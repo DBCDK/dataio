@@ -23,10 +23,7 @@ import java.util.List;
  * directly inside this class, but always consecutively.
  */
 public class ExternalChunk implements Iterable<ChunkItem> {
-
-
     public enum Type {
-
         PARTITIONED,
         PROCESSED,
         DELIVERED
@@ -69,9 +66,7 @@ public class ExternalChunk implements Iterable<ChunkItem> {
             @JsonProperty("items") List<ChunkItem> items) {
         this(jobId, chunkId, type);
         // ensure to uphold invariant
-        for (ChunkItem item : items) {
-            insertItem(item);
-        }
+        addAllItems(items);
     }
 
     public long getJobId() {
@@ -118,6 +113,12 @@ public class ExternalChunk implements Iterable<ChunkItem> {
             throw new IllegalArgumentException(msg);
         }
         items.add(item);
+    }
+
+    public void addAllItems(List<ChunkItem> items) {
+        for (ChunkItem item : items) {
+            insertItem(item);
+        }
     }
 
     @Override

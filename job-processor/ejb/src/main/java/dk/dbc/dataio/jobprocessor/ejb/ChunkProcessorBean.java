@@ -1,12 +1,14 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
-import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
+import dk.dbc.dataio.jobprocessor.util.FlowCache;
 import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +21,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
@@ -31,15 +31,9 @@ import java.util.Map;
 @LocalBean
 public class ChunkProcessorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
-    private static final int CACHE_MAX_ENTRIES = 5;
 
-    // A per bean instance LRU cache using a LinkedHashMap with access-ordering
-    private final LinkedHashMap<String, List<JSWrapperSingleScript>> flowCache =
-            new LinkedHashMap(CACHE_MAX_ENTRIES + 1, .75F, true) {
-                @Override
-                public boolean removeEldestEntry(Map.Entry eldest) {
-                    return size() > CACHE_MAX_ENTRIES;
-            }};
+    // A per bean instance LRU flow cache
+    private final FlowCache flowCache = new FlowCache();
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -54,24 +48,18 @@ public class ChunkProcessorBean {
         final StopWatch stopWatchForChunk = new StopWatch();
         try {
             LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
-
-            List<ChunkItem> processedItems = new ArrayList<>(0);
+            final ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
+            processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
             if (chunk.size() > 0) {
                 try {
-                    final List<JSWrapperSingleScript> jsWrappers = setupJavaScriptEnvironments(flow);
-                    final Object supplementaryData = convertSupplementaryProcessDataToJsJsonObject(jsWrappers.get(0), supplementaryProcessData);
-                    processedItems = processItems(chunk, supplementaryData, jsWrappers);
+                    final FlowCache.FlowCacheEntry flowCacheEntry = cacheFlow(flow);
+                    final Object supplementaryData = convertSupplementaryProcessDataToJsJsonObject(flowCacheEntry.scripts.get(0), supplementaryProcessData);
+                    processedChunk.addAllItems(processItems(chunk, supplementaryData, flowCacheEntry.scripts));
                 } catch (Throwable ex) {
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     // with the Throwable.
-                    processedItems = failItemsWithThrowable(chunk, ex);
+                    processedChunk.addAllItems(failItemsWithThrowable(chunk, ex));
                 }
-            }
-
-            final ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
-            processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
-            for (ChunkItem item : processedItems) {
-                processedChunk.insertItem(item);
             }
             return processedChunk;
         } finally {
@@ -80,10 +68,7 @@ public class ChunkProcessorBean {
         }
     }
 
-    /* Creates separate javascript environments for each component in given flow and returns
-       them as wrapped scripts.
-     */
-    private List<JSWrapperSingleScript> setupJavaScriptEnvironments(Flow flow) throws Throwable {
+    private FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws Throwable {
         final StopWatch stopWatch = new StopWatch();
         try {
             final String cacheKey = String.format("%d.%d", flow.getId(), flow.getVersion());
@@ -91,33 +76,9 @@ public class ChunkProcessorBean {
                 LOGGER.info("Cache hit for flow (id.version) ({})", cacheKey);
                 return flowCache.get(cacheKey);
             }
-
-            LOGGER.info("Setting up Javascript environments");
-            final List<JSWrapperSingleScript> jsWrappers = new ArrayList<>(flow.getContent().getComponents().size());
-
-            for (FlowComponent flowComponent : flow.getContent().getComponents()) {
-                final FlowComponentContent flowComponentContent = flowComponent.getContent();
-                final List<JavaScript> javaScriptsBase64 = flowComponentContent.getJavascripts();
-                final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
-                for (JavaScript javascriptBase64 : javaScriptsBase64) {
-                    javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
-                            Base64Util.base64decode(javascriptBase64.getJavascript())));
-                }
-                String requireCacheJson = null;
-                if( flowComponentContent.getRequireCache() != null ) {
-                    requireCacheJson = Base64Util.base64decode(flowComponentContent.getRequireCache());
-                }
-                jsWrappers.add(new JSWrapperSingleScript(flowComponentContent.getName(),
-                        flowComponentContent.getInvocationMethod(), javaScripts, requireCacheJson));
-            }
-            if (jsWrappers.isEmpty()) {
-                throw new IllegalStateException(String.format("No javascript found in flow %s", flow.getContent().getName()));
-            }
-            flowCache.put(cacheKey, jsWrappers);
-
-            return jsWrappers;
+            return flowCache.put(cacheKey, flow);
         } finally {
-            LOGGER.debug("Javascript environments creation took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("Flow caching took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

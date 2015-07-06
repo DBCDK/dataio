@@ -98,7 +98,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
         if (listView.detailedTabs.getWidgetCount() > 0) {
-            listView.detailedTabs.selectTab(0);
+            if(itemModel.getStatus() == ItemModel.LifeCycle.DELIVERING && failedItemCounter > 0) {
+                listView.detailedTabs.selectTab(3);
+            } else {
+                listView.detailedTabs.selectTab(0);
+            }
             listView.detailedTabs.setVisible(true);
         }
     }

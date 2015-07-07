@@ -6,6 +6,7 @@
 @def backgroundLightGrey #f9f9f7;
 @def headerTextColor #81a932;
 @def buttonColor #f47321;
+@def deleteButtonColor OrangeRed
 @def boxFrameColor #4f6853;
 @def tableBorderColor #6F7277;
 
@@ -25,6 +26,8 @@
 @external .dio-PromptedData-DataClass, .dio-SortableList;
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
+@external .deleteButton;
+
 
 
 /*
@@ -90,6 +93,10 @@ li {
     -webkit-border-radius: 0.5em;
     -moz-border-radius: 0.5em;
     border-radius: 0.5em;
+}
+
+.deleteButton {
+    background: deleteButtonColor none;
 }
 
 .fixed-empty-listbox-width {

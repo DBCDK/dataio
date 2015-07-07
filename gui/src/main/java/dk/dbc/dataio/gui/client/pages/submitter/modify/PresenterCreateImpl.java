@@ -36,4 +36,8 @@ public class PresenterCreateImpl extends PresenterImpl {
         flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
+    /**
+     * This has no implementation because "Create" does not have a delete button!
+     */
+    public void deleteButtonPressed() {}
 }

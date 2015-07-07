@@ -32,6 +32,7 @@ public interface FlowStoreProxyAsync {
     // Submitters
     void createSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
     void updateSubmitter(SubmitterModel model, AsyncCallback<SubmitterModel> async);
+    void deleteSubmitter(long submitterId, long version, AsyncCallback<Void> async);
     void findAllSubmitters(AsyncCallback<List<SubmitterModel>> async);
     void getSubmitter(Long id, AsyncCallback<SubmitterModel> async);
 

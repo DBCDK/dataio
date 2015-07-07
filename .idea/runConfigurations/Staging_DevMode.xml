@@ -3,7 +3,8 @@
     <module name="dataio-gui" />
     <option name="VM_PARAMETERS" value="-Xmx512m -DflowStoreURL=http://dataio-be-s01.dbc.dk:8080/dataio/flow-store-service -DdataioJobStoreServiceEndpoint=http://dataio-be-s01.dbc.dk:8080/dataio/job-store-service -DdataioSinkServiceEndpoint=http://dataio-wn-s02.dbc.dk:8080/dataio/sink-service -DdataioGuiSubversionScmEndpoint=https://svn.dbc.dk/repos -Durl/dataio/jobstore/filesystem=http://dataio-be-s01.dbc.dk/dataio-job-store -Durl/dataio/logstore/rs=http://dataio-wn-s01.dbc.dk:8080/dataio/log-store-service -Durl/dataio/jobstore/rs=http://dataio-be-s01.dbc.dk:8080/dataio/job-store-service" />
     <option name="RUN_PAGE" value="gui.html" />
-    <option name="BROWSER" value="a7bb68e0-33c0-4d6f-a81a-aac1fdb870c8" />
+    <option name="BROWSER" value="d9418cbc-3bd7-4d16-90d4-674962e981d3" />
+    <option name="USE_SUPER_DEV_MODE" value="true" />
     <RunnerSettings RunnerId="Debug">
       <option name="DEBUG_PORT" value="" />
       <option name="TRANSPORT" value="0" />

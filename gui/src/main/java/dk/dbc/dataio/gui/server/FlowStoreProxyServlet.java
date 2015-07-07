@@ -119,6 +119,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public void deleteSubmitter(long submitterId, long version) throws ProxyException {
+        flowStoreProxy.deleteSubmitter(submitterId, version);
+    }
+
+    @Override
     public List<SubmitterModel> findAllSubmitters() throws ProxyException {
         return flowStoreProxy.findAllSubmitters();
     }

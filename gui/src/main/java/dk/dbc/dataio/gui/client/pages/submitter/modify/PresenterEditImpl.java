@@ -22,6 +22,7 @@ public class PresenterEditImpl extends PresenterImpl {
         view = clientFactory.getSubmitterEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getSubmitterId();
+        view.deleteButton.setVisible(true);
     }
 
 
@@ -44,9 +45,26 @@ public class PresenterEditImpl extends PresenterImpl {
         flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
+    void deleteModel() {
+        flowStoreProxy.deleteSubmitter(model.getId(), model.getVersion(), new DeleteSubmitterModelFilteredAsyncCallback());
+    }
+
     // Private methods
     private void getSubmitter(final Long submitterId) {
         flowStoreProxy.getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
+    }
+
+    /**
+     * A signal to the presenter, saying that the save button has been pressed
+     */
+    public void deleteButtonPressed() {
+        if (model != null) {
+            if (!model.isNumberValid()) {
+                view.setErrorText(texts.error_NumberInputFieldValidationError());
+            } else {
+                deleteModel();
+            }
+        }
     }
 
     /**
@@ -63,6 +81,22 @@ public class PresenterEditImpl extends PresenterImpl {
         public void onSuccess(SubmitterModel model) {
             setSubmitterModel(model);
             updateAllFieldsAccordingToCurrentState();
+        }
+    }
+
+    /**
+     * Local call back class to be instantiated in the call to createSubmitter or updateSubmitter in flowstore proxy
+     */
+    class DeleteSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            view.status.setText(texts.status_SubmitterSuccessfullyDeleted());
+            setSubmitterModel(null);
         }
     }
 

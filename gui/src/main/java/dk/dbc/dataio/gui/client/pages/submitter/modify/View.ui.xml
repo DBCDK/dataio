@@ -9,7 +9,13 @@
         <li><dio:PromptedTextBox ui:field="number" guiId="submitternumberpanel" prompt="{txt.label_SubmitterNumber}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextBox ui:field="name" guiId="submitternamepanel" prompt="{txt.label_SubmitterName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextArea ui:field="description" guiId="submitterdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
-        <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
+
+        <li>
+            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <!-- Visibility of the delete button is controlled from PresenterEditImpl -->
+            <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
+        </li>
+
         <li><g:Label ui:field="status"></g:Label></li>
 
     </g:HTMLPanel>

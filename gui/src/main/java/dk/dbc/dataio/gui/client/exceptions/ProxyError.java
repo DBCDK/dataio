@@ -9,5 +9,6 @@ public enum ProxyError {
     INTERNAL_SERVER_ERROR,
     MODEL_MAPPER_INVALID_FIELD_VALUE,
     PRECONDITION_FAILED,        // Referenced objects could not be located
-    SUBVERSION_LOOKUP_FAILED    // Error retrieving java scripts
+    SUBVERSION_LOOKUP_FAILED ,  // Error retrieving java scripts
+    ERROR_UNKNOWN               // If the connector throw an unexpected exception
 }

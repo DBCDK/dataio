@@ -78,6 +78,11 @@ public class PresenterImplTest {
         public ProxyErrorTexts getProxyErrorTexts() {
             return proxyErrorTexts;
         }
+
+        @Override
+        public void deleteButtonPressed() {
+            deleteButtonPressed();
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------

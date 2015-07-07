@@ -46,7 +46,4 @@ public class ItemsListView extends Composite {
     void backButtonPressed(ClickEvent event) {
         History.back();
     }
-
-
-
 }

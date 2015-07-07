@@ -154,8 +154,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", model.getName());
         FlowComponent flowComponent = null;
         try {
-            fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
-            flowComponent = flowStoreServiceConnector.createFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult));
+            FlowComponent createdFlowComponent = flowStoreServiceConnector.createFlowComponent(
+                    FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScripts(model)));
+
+            flowComponent = flowStoreServiceConnector.updateNext(
+                    FlowComponentModelMapper.toNext(model, fetchRequiredJavaScriptsForNext(model)),
+                    createdFlowComponent.getId(),
+                    createdFlowComponent.getVersion());
+
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
@@ -168,8 +174,16 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", model.getId(), model.getVersion());
         FlowComponent flowComponent = null;
         try {
-            fetchRequiredJavaScriptResult fetchRequiredJavaScriptResult = fetchRequiredJavaScripts(model);
-            flowComponent = flowStoreServiceConnector.updateFlowComponent(FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScriptResult), model.getId(), model.getVersion());
+            final FlowComponent updatedContentFlowComponent = flowStoreServiceConnector.updateFlowComponent(
+                    FlowComponentModelMapper.toFlowComponentContent(model, fetchRequiredJavaScripts(model)),
+                    model.getId(),
+                    model.getVersion());
+
+            flowComponent = flowStoreServiceConnector.updateNext(
+                    FlowComponentModelMapper.toNext(model, fetchRequiredJavaScriptsForNext(model)),
+                    updatedContentFlowComponent.getId(),
+                    updatedContentFlowComponent.getVersion());
+
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
@@ -573,6 +587,14 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return javaScriptProjectFetcher.fetchRequiredJavaScript(
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod());
+    }
+
+    private fetchRequiredJavaScriptResult fetchRequiredJavaScriptsForNext(FlowComponentModel model) throws JavaScriptProjectFetcherException {
+        return javaScriptProjectFetcher.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnNext()),
                 model.getInvocationJavascript(),
                 model.getInvocationMethod());
     }

@@ -29,7 +29,7 @@ public final class FlowComponentModelMapper {
                 flowComponent.getContent().getName(),
                 flowComponent.getContent().getSvnProjectForInvocationJavascript(),
                 String.valueOf(flowComponent.getContent().getSvnRevision()),
-                null, //TODO - only until the backend object have been modified
+                flowComponent.getNext() == null ? new String() : String.valueOf(flowComponent.getNext().getSvnRevision()),
                 flowComponent.getContent().getInvocationJavascriptName(),
                 flowComponent.getContent().getInvocationMethod(),
                 getJavaScriptNames(flowComponent.getContent().getJavascripts()),
@@ -85,7 +85,6 @@ public final class FlowComponentModelMapper {
                 model.getName(),
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
-                //TODO next revision => can be null
                 model.getInvocationJavascript(),
                 requiredJavaScripts.javaScripts,
                 model.getInvocationMethod(),
@@ -93,6 +92,19 @@ public final class FlowComponentModelMapper {
                 requiredJavaScripts.requireCache);
         //TODO handle require
     }
+
+    public static FlowComponentContent toNext(FlowComponentModel model, fetchRequiredJavaScriptResult requiredJavaScripts) throws IllegalArgumentException{
+        return new FlowComponentContent(
+                model.getName(),
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnNext()),
+                model.getInvocationJavascript(),
+                requiredJavaScripts.javaScripts,
+                model.getInvocationMethod(),
+                model.getDescription(),
+                requiredJavaScripts.requireCache);
+    }
+
 
     /*
      * private helper methods

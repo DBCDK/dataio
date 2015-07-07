@@ -274,10 +274,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for(RevisionInfo revisionInfo : revisionInfoList) {
             availableRevisions.add(Long.toString(revisionInfo.getRevision()));
         }
-        availableNextRevisions = new ArrayList<String>(availableRevisions);
-        availableNextRevisions.add(0, "");
         view.revision.setAvailableItems(availableRevisions);
+        availableNextRevisions = new ArrayList<String>(availableRevisions);
         view.next.setAvailableItems(availableNextRevisions);
+        if(!model.getSvnNext().isEmpty()) {
+            view.next.setSelectedItem(model.getSvnNext());
+        }
+        view.next.fireChangeEvent();
         view.revision.setSelectedItem(model.getSvnRevision());
         view.revision.fireChangeEvent();
     }

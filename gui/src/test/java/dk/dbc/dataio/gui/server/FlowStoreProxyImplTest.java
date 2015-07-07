@@ -19,6 +19,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -51,6 +52,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -1260,18 +1262,21 @@ public class FlowStoreProxyImplTest {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
-        final FlowComponent flowComponent = new FlowComponentBuilder().build();
-        final FlowComponentModel model = new FlowComponentModelBuilder().build();
+        final FlowComponent flowComponent = new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().build()).build();
+        final FlowComponentModel model = new FlowComponentModelBuilder().setSvnNext(String.valueOf(flowComponent.getNext().getSvnRevision())).build();
+
+        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+                anyString(),
+                anyLong(),
+                anyString(),
+                anyString()))
+                .thenReturn(getDefaultJavaScripts());
 
         when(flowStoreServiceConnector.createFlowComponent(any(FlowComponentContent.class))).thenReturn(flowComponent);
-        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
-                model.getSvnProject(),
-                Long.valueOf(model.getSvnRevision()),
-                model.getInvocationJavascript(),
-                model.getInvocationMethod()))
-                .thenReturn(getDefaultJavaScripts());
+        when(flowStoreServiceConnector.updateNext(any(FlowComponentContent.class), eq(flowComponent.getId()), (eq(flowComponent.getVersion())))).thenReturn(flowComponent);
+
         try {
-            final FlowComponentModel createdModel = flowStoreProxy.createFlowComponent(new FlowComponentModelBuilder().build());
+            final FlowComponentModel createdModel = flowStoreProxy.createFlowComponent(model);
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createFlowComponent()");
@@ -1379,17 +1384,18 @@ public class FlowStoreProxyImplTest {
         final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
 
-        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
-        FlowComponentModel model = new FlowComponentModelBuilder().build();
+        final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).setNext(new FlowComponentContentBuilder().build()).build();
+        final FlowComponentModel model = new FlowComponentModelBuilder().setSvnNext(String.valueOf(flowComponent.getNext().getSvnRevision())).build();
 
         when(flowStoreServiceConnector.getFlowComponent(any(Long.class))).thenReturn(flowComponent);
-        when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
+        when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(model.getId())), (eq(model.getVersion()))))
                 .thenReturn(flowComponent);
+        when(flowStoreServiceConnector.updateNext(any(FlowComponentContent.class), eq(flowComponent.getId()), eq(flowComponent.getVersion()))).thenReturn(flowComponent);
         when(javaScriptProjectFetcher.fetchRequiredJavaScript(
-                model.getSvnProject(),
-                Long.valueOf(model.getSvnRevision()),
-                model.getInvocationJavascript(),
-                model.getInvocationMethod()))
+                anyString(),
+                anyLong(),
+                anyString(),
+                anyString()))
                 .thenReturn(getDefaultJavaScripts());
         try {
             final FlowComponentModel updatedModel = flowStoreProxy.updateFlowComponent(model);

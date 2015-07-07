@@ -27,6 +27,7 @@ import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTest
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.VERSION;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -129,10 +130,10 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
         FlowComponent updatedFlowComponent
                 = updateFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(
-                        Response.Status.OK.getStatusCode(),
-                        flowComponentToUpdate,
-                        flowComponentToUpdate.getId(),
-                        flowComponentToUpdate.getVersion());
+                Response.Status.OK.getStatusCode(),
+                flowComponentToUpdate,
+                flowComponentToUpdate.getId(),
+                flowComponentToUpdate.getVersion());
 
         assertThat(updatedFlowComponent, is(notNullValue()));
         assertThat(updatedFlowComponent.getContent(), is(notNullValue()));
@@ -165,6 +166,72 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.updateFlowComponent(flowComponentContent, id, version);
+    }
+
+    // ******************************************** update next tests ********************************************
+
+    @Test
+    public void updateNext_flowComponentIsUpdated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+        FlowComponentContent next = new FlowComponentContentBuilder().setSvnRevision(34).build();
+        final FlowComponent flowComponentToUpdate = new FlowComponentBuilder().setNext(next).build();
+
+        FlowComponent updatedFlowComponent
+                = updateFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.OK.getStatusCode(),
+                flowComponentToUpdate,
+                flowComponentToUpdate.getId(),
+                flowComponentToUpdate.getVersion());
+
+        assertThat(updatedFlowComponent, is(notNullValue()));
+        assertThat(updatedFlowComponent.getContent(), is(notNullValue()));
+        assertThat(updatedFlowComponent.getId(), is(flowComponentToUpdate.getId()));
+        assertThat(updatedFlowComponent.getNext(), is(notNullValue()));
+        assertThat(updatedFlowComponent.getNext(), is(next));
+    }
+
+    @Test
+    public void updateNext_flowComponentIsUpdatedWithNull_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+        final FlowComponent flowComponentToUpdate = new FlowComponentBuilder().setNext(null).build();
+
+        FlowComponent updatedFlowComponent
+                = updateFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.OK.getStatusCode(),
+                flowComponentToUpdate,
+                flowComponentToUpdate.getId(),
+                flowComponentToUpdate.getVersion());
+
+        assertThat(updatedFlowComponent, is(notNullValue()));
+        assertThat(updatedFlowComponent.getContent(), is(notNullValue()));
+        assertThat(updatedFlowComponent.getId(), is(flowComponentToUpdate.getId()));
+        assertThat(updatedFlowComponent.getNext(), is(nullValue()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void updateNext_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        updateNext_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), null, ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateNext_responseWithPrimaryKeyViolation_throws() throws FlowStoreServiceConnectorException {
+        updateNext_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_ACCEPTABLE.getStatusCode(), "", ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void updateNext_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
+        updateNext_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
+    }
+
+    // Helper method
+    private FlowComponent updateNext_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id, long version) throws FlowStoreServiceConnectorException {
+        final FlowComponentContent next = new FlowComponentContentBuilder().build();
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
+                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, id);
+        when(HttpClient.doPostWithJson(CLIENT, headers, next, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.updateNext(next, id, version);
     }
 
     // *********************************** find all flow components tests ***********************************

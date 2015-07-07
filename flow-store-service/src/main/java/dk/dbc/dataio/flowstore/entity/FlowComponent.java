@@ -1,5 +1,6 @@
 package dk.dbc.dataio.flowstore.entity;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
@@ -44,12 +45,15 @@ public class FlowComponent extends VersionedEntity {
         return nameIndexValue;
     }
 
+    @JsonRawValue
     public String getNext() {
         return next;
     }
 
     public void setNext(String next) {
-        this.next = next;
+        if(next!= null) {
+            this.next = next.isEmpty() ? null : next;
+        }
     }
 
     /**

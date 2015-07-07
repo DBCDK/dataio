@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -49,6 +50,29 @@ public class FlowComponentTest {
     public void setContent_jsonDataArgIsNull_throws() throws Exception {
         final FlowComponent flowComponent = new FlowComponent();
         flowComponent.setContent(null);
+    }
+
+    @Test
+    public void setNext_jsonDataArgIsEmpty_setsNextToNull() {
+        final FlowComponent flowComponent = new FlowComponent();
+        flowComponent.setNext(new String());
+        assertThat(flowComponent.getNext(), is(nullValue()));
+    }
+
+    @Test
+    public void setNext_jsonDataArgIsNull_NextIsNull() {
+        final FlowComponent flowComponent = new FlowComponent();
+        flowComponent.setNext(null);
+        assertThat(flowComponent.getNext(), is(nullValue()));
+    }
+
+    @Test
+    public void setNext_jsonDataArgIsValidFlowComponentContentJson_setsNext() {
+        final String flowComponentContent = new FlowComponentContentJsonBuilder()
+                .build();
+        final FlowComponent flowComponent = new FlowComponent();
+        flowComponent.setNext(flowComponentContent);
+        assertThat(flowComponent.getNext(), is(flowComponentContent));
     }
 
 }

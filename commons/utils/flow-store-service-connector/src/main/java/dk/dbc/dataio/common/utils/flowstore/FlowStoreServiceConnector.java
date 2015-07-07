@@ -415,6 +415,34 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Updates an existing flow component from the flow-store by adding next flow component content
+     *
+     * @param next flow component content
+     * @param flowComponentId the id of the flow component to update with next
+     * @param version the current version of the flow component
+     * @return the updated with next flow component
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to update the flow component
+     */
+    public FlowComponent updateNext(FlowComponentContent next, long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorException {
+        log.trace("FlowStoreServiceConnector: updateNext({}, {});", flowComponentId, version);
+        final StopWatch stopWatch = new StopWatch();
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
+                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, flowComponentId);
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+        final Response response = doPostWithJson(httpClient, headers, next, baseUrl, path.build());
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            return readResponseEntity(response, FlowComponent.class);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: updateNext took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     // ************************************************** Flow **************************************************
 
     /**

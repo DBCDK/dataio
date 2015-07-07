@@ -79,7 +79,7 @@ public class FlowComponentsBeanTest {
         Response response = flowComponentsBean.getFlowComponent(1L);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        JsonNode entityNode = JsonUtil.getJsonRoot((String) response.getEntity());
         assertThat(entityNode.get("content").get("name").textValue(), is("testFlowComponent"));
     }
 
@@ -194,6 +194,60 @@ public class FlowComponentsBeanTest {
         final Response response = flowComponentsBean.updateFlowComponent(uriInfo, flowComponentContent, 123L, 4321L);
 
         verify(flowComponent).setContent(flowComponentContent);
+        verify(flowComponent).setVersion(4321L);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test
+    public void updateNext_flowComponentNotFound_throwsException() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
+
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().setName("UpdateContentName").build();
+        final Response response = flowComponentsBean.updateNext(null, flowComponentContent, 123L, 4321L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+
+    @Test
+    public void updateNext_nextIsNull_returnsResponseWithHttpStatusOk() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowComponent flowComponent = mock(FlowComponent.class);
+        final UriInfo uriInfo = mock(UriInfo.class);
+        final UriBuilder uriBuilder = mock(UriBuilder.class);
+        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+
+        when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
+        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(flowComponent)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
+
+        final Response response = flowComponentsBean.updateNext(uriInfo, null, 123L, 4321L);
+
+        verify(flowComponent).setNext(null);
+        verify(flowComponent).setVersion(4321L);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test
+    public void updateNext_nextIsNotNull_returnsResponseWithHttpStatusOk_returnsFlowComponent() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowComponent flowComponent = mock(FlowComponent.class);
+        final UriInfo uriInfo = mock(UriInfo.class);
+        final UriBuilder uriBuilder = mock(UriBuilder.class);
+        final FlowComponentsBean flowComponentsBean = newFlowComponentsBeanWithMockedEntityManager();
+
+        when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
+        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(flowComponent)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(flowComponent);
+
+        final String flowComponentContent = new FlowComponentContentJsonBuilder().build();
+        final Response response = flowComponentsBean.updateNext(uriInfo, flowComponentContent, 123L, 4321L);
+
+        verify(flowComponent).setNext(flowComponentContent);
         verify(flowComponent).setVersion(4321L);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));

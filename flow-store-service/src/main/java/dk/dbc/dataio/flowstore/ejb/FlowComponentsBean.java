@@ -145,4 +145,40 @@ public class FlowComponentsBean {
         return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlowComponent)).entity(flowComponentJson).build();
     }
 
+    /**
+     * Updates an existing flow component with next
+     *
+     * @param uriInfo URI information
+     * @param flowComponentContent The content of the next flow component
+     * @param id The flow component ID
+     * @param version The version of the flow component
+     *
+     * @return a HTTP 200 response with flow component content as JSON
+     *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
+     *         a HTTP 409 response in case of Concurrent Update error
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JsonException on failure to create json component
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response updateNext(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id,
+                                        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+
+        final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
+        if (flowComponentEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+        }
+        entityManager.detach(flowComponentEntity);
+        flowComponentEntity.setNext(flowComponentContent);
+        flowComponentEntity.setVersion(version);
+        entityManager.merge(flowComponentEntity);
+        entityManager.flush();
+        final FlowComponent updatedFlowComponent = entityManager.find(FlowComponent.class, id);
+        final String flowComponentJson = JsonUtil.toJson(updatedFlowComponent);
+        return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlowComponent)).entity(flowComponentJson).build();
+    }
+
 }

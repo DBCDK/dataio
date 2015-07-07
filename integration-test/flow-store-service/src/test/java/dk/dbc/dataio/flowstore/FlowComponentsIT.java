@@ -365,7 +365,7 @@ public class FlowComponentsIT {
             assertThat(flowComponents.size(), is(2));
 
             // And...
-            assertThat(flowComponents.get(0).getContent().getName(), is (FIRST_FLOW_COMPONENT_NAME));
+            assertThat(flowComponents.get(0).getContent().getName(), is(FIRST_FLOW_COMPONENT_NAME));
             assertThat(flowComponents.get(1).getContent().getName(), is (SECOND_FLOW_COMPONENT_NAME));
         }
     }
@@ -425,6 +425,55 @@ public class FlowComponentsIT {
             // And... Assert the version number has been updated after creation, but only by the first user.
             assertThat(flowComponents.get(0).getVersion(), is(version +1));
         }
+    }
+
+
+    /**
+     * Given: a deployed flow-store service
+     * And  : a valid flow component with given id is already stored
+     * When : valid JSON is POSTed to the flow component path with an identifier (update next)
+     * Then : assert the correct fields have been
+     * And  : assert that the id of the flow component has not changed
+     * And  : assert that the version number has been updated
+     * And  : assert that content and next contains the expected values
+     * And  : assert that updated data can be found in the underlying database and only one flow component exists
+     */
+    @Test
+    public void updateNextWithFlowComponentContent_ok() throws Exception{
+
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // And...
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+        assertThat("created flowComponent.getNext() is null", flowComponent.getNext(), is(nullValue()));
+
+        // When...
+        final FlowComponentContent next = new FlowComponentContentBuilder().setSvnRevision(2).setInvocationJavascriptName("updatedInvocationJavascriptName").build();
+        FlowComponent updatedFlowComponent = flowStoreServiceConnector.updateNext(next, flowComponent.getId(), flowComponent.getVersion());
+
+        // Then...
+        assertNotNull("updated flowComponent not null", updatedFlowComponent);
+        assertNotNull("updated flowComponent content not null", updatedFlowComponent.getContent());
+        assertNotNull("updated flowComponent next not null", updatedFlowComponent.getNext());
+
+        // And...
+        assertThat("updated flowComponent id", updatedFlowComponent.getId(), is(flowComponent.getId()));
+
+        // And...
+        assertThat("updated flowComponent version", updatedFlowComponent.getVersion(), is(flowComponent.getVersion() + 1));
+
+        // And...
+        assertThat("next SVN revision", updatedFlowComponent.getNext().getSvnRevision(), is(next.getSvnRevision()));
+        assertThat("next invocation javascript name", updatedFlowComponent.getNext().getInvocationJavascriptName(), is(next.getInvocationJavascriptName()));
+
+        assertThat("flowComponent content SVN revision", updatedFlowComponent.getContent().getSvnRevision(), is(flowComponent.getContent().getSvnRevision()));
+        assertThat("flowComponent content invocation javascript name", updatedFlowComponent.getContent().getInvocationJavascriptName(), is(flowComponent.getContent().getInvocationJavascriptName()));
+
+        // And...
+        final List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
+        assertThat("1 flow component stored in the underlying database", flowComponents.size(), is(1));
     }
 
 }

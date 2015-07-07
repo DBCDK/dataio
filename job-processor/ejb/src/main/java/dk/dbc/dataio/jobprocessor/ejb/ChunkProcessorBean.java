@@ -10,6 +10,8 @@ import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.util.FlowCache;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
+import dk.dbc.javascript.recordprocessing.FailRecord;
+import dk.dbc.javascript.recordprocessing.IgnoreRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -141,6 +143,12 @@ public class ChunkProcessorBean {
             } else {
                 processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(data), ChunkItem.Status.SUCCESS);
             }
+        } catch (IgnoreRecord ex ) {
+            LOGGER.error("Record Ignored by JS with Message: {}", ex.getMessage());
+            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(ex.getMessage()), ChunkItem.Status.IGNORE);
+        } catch (FailRecord ex) {
+            LOGGER.error("RecordProcessing Terminated by JS with Message: {}", ex.getMessage());
+            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE);
         } catch (Throwable ex) {
             LOGGER.error("Exception caught during JavaScript processing", ex);
             processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE);

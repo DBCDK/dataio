@@ -193,6 +193,57 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
+    @Test
+    public void process_javaScriptIgnoreRecord() throws Exception {
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore",
+                getJavaScript("function throwIgnore() {" +
+                        "Packages.dk.dbc.javascript.recordprocessing.IgnoreRecord.doThrow('errorMessage');" +
+                        "}"));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult,
+                getJavaScript(getJavaScriptReturnNoResultFunction()));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(getItems("zero"))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()), is("errorMessage"));
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void process_javaScriptFailRecord() throws Exception {
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore",
+                getJavaScript("function throwIgnore() {" +
+                        "Packages.dk.dbc.javascript.recordprocessing.RecordProcessingIgnoreRecord.doThrow('errorMessage');" +
+                        "}"));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult,
+                getJavaScript(getJavaScriptReturnNoResultFunction()));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(getItems("zero"))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 1);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] data", processedItem0.getData().isEmpty(), is(false));
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
+    }
+
+
     private void assertProcessedChunk(ExternalChunk chunk, long jobID, long chunkId, int chunkSize) {
         assertThat("Chunk", chunk, is(notNullValue()));
         assertThat("Chunk job ID", chunk.getJobId(), is(jobID));

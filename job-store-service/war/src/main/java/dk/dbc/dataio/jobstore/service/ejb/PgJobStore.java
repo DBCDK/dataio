@@ -140,8 +140,9 @@ public class PgJobStore {
             // Creates job entity in its own transactional scope to enable external visibility
             JobEntity jobEntity = businessObject.createJobEntity(addJobParam);
 
-            // Continue only if timeOfCompletion is not set (all required entities could be located).
-            if(jobEntity.getTimeOfCompletion() == null) {
+            // Continue only if timeOfCompletion is not set (all required remote entities could be located).
+            final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
+            if (jobEntity.getTimeOfCompletion() == null) {
                 final short maxChunkSize = 10;
                 int chunkId = 0;
                 ChunkEntity chunkEntity;
@@ -155,9 +156,8 @@ public class PgJobStore {
                         break;
                     }
                     if (chunkEntity.getState().fatalDiagnosticExists()) {
-                        // Partitioning resulted in unrecoverable error - abort job creation
-                        jobEntity.getState().getDiagnostics().addAll(chunkEntity.getState().getDiagnostics());
-                        jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                        // Partitioning resulted in unrecoverable error - set diagnostic to force job abortion
+                        abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
                         break;
                     }
                     jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), addJobParam.getSink());
@@ -170,8 +170,9 @@ public class PgJobStore {
 
                 jobEntity = getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
                 updateJobEntityState(jobEntity, jobStateChange);
-            } else {
-                LOGGER.debug("Job with id '{}' marked as finished. Diagnostics: {}", jobEntity.getId(), jobEntity.getState().getDiagnostics());
+                if (!abortDiagnostics.isEmpty()) {
+                    abortJob(jobEntity, abortDiagnostics);
+                }
             }
             entityManager.flush();
             logTimerMessage(jobEntity);
@@ -415,6 +416,9 @@ public class PgJobStore {
                 chunkEntity.setDataFileId(dataFileId);
                 chunkEntity.setSequenceAnalysisData(sequenceAnalysisData);
                 chunkEntity.setState(chunkState);
+                if (chunkState.fatalDiagnosticExists()) {
+                    chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                }
                 entityManager.persist(chunkEntity);
                 entityManager.flush();
                 entityManager.refresh(chunkEntity);
@@ -808,6 +812,14 @@ public class PgJobStore {
         itemState.updateState(stateChange);
         itemEntity.setState(itemState);
         return itemState;
+    }
+
+    private JobEntity abortJob(JobEntity jobEntity, List<Diagnostic> diagnostics) {
+        final State jobState = new State(jobEntity.getState());
+        jobState.getDiagnostics().addAll(diagnostics);
+        jobEntity.setState(jobState);
+        jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        return jobEntity;
     }
 
     private void logTimerMessage(JobEntity jobEntity) {

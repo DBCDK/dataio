@@ -222,7 +222,7 @@ public class ChunkProcessorBeanTest {
     public void process_javaScriptFailRecord() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore",
                 getJavaScript("function throwIgnore() {" +
-                        "Packages.dk.dbc.javascript.recordprocessing.RecordProcessingIgnoreRecord.doThrow('errorMessage');" +
+                        "Packages.dk.dbc.javascript.recordprocessing.FailRecord.doThrow('errorMessage');" +
                         "}"));
         final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult,
                 getJavaScript(getJavaScriptReturnNoResultFunction()));
@@ -238,7 +238,7 @@ public class ChunkProcessorBeanTest {
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
-        assertThat("Chunk item[0] data", processedItem0.getData().isEmpty(), is(false));
+        assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }

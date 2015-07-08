@@ -148,7 +148,7 @@ public class ChunkProcessorBean {
             processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(ex.getMessage()), ChunkItem.Status.IGNORE);
         } catch (FailRecord ex) {
             LOGGER.error("RecordProcessing Terminated by JS with Message: {}", ex.getMessage());
-            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE);
+            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(ex.getMessage()), ChunkItem.Status.FAILURE);
         } catch (Throwable ex) {
             LOGGER.error("Exception caught during JavaScript processing", ex);
             processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE);

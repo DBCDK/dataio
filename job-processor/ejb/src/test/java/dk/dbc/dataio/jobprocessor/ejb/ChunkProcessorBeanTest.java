@@ -32,11 +32,11 @@ public class ChunkProcessorBeanTest {
     private final long jobId = 42;
     private final long submitter = 123;
     private final String format = "DasFormat";
-    final String javaScriptReturnUpperCase = "returnUpperCase";
-    final String javaScriptReturnEmptyString = "returnEmptyString";
-    final String javaScriptReturnNoResult = "returnNoResult";
-    final String javaScriptReturnConcatenation = "returnConcatenation";
-    final String javaScriptThrowException = "throwException";
+    static final String javaScriptReturnUpperCase = "returnUpperCase";
+    static final String javaScriptReturnEmptyString = "returnEmptyString";
+    static final String javaScriptReturnNoResult = "returnNoResult";
+    static final String javaScriptReturnConcatenation = "returnConcatenation";
+    static final String javaScriptThrowException = "throwException";
 
     private final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(submitter, format);
 
@@ -290,7 +290,7 @@ public class ChunkProcessorBeanTest {
                 .build();
     }
 
-    private FlowComponentContent getFlowComponentContent(ScriptWrapper scriptWrapper) throws Exception {
+    public static FlowComponentContent getFlowComponentContent(ScriptWrapper scriptWrapper) throws Exception {
         final String modulesInfoModuleResource = "/ModulesInfo.json";
         final String useModuleResource = "/Use.json";
         final JSONBContext jsonbContext = new JSONBContext();
@@ -303,34 +303,34 @@ public class ChunkProcessorBeanTest {
                 .build();
     }
 
-    JavaScript getJavaScript(String javascript) {
+    public static JavaScript getJavaScript(String javascript) {
         return new JavaScriptBuilder()
                 .setJavascript(Base64Util.base64encode(javascript))
                 .build();
     }
 
-    String getJavaScriptReturnUpperCaseFunction() {
+    public static String getJavaScriptReturnUpperCaseFunction() {
         return ""
                 + "function " + javaScriptReturnUpperCase + "(str) {\n"
                 + "    return str.toUpperCase();\n"
                 + "}\n";
     }
 
-    String getJavaScriptReturnEmptyStringFunction() {
+    public static String getJavaScriptReturnEmptyStringFunction() {
         return ""
                 + "function " + javaScriptReturnEmptyString + "(str) {\n"
                 + "    return \"\";\n"
                 + "}\n";
     }
 
-    String getJavaScriptReturnNoResultFunction() {
+    public static String getJavaScriptReturnNoResultFunction() {
         return ""
                 + "function " + javaScriptReturnNoResult + "(str) {\n"
                 + "    return;\n"
                 + "}\n";
     }
 
-    String getJavaScriptThrowExceptionFunction() {
+    public static String getJavaScriptThrowExceptionFunction() {
         return ""
                 + "function " + javaScriptThrowException + "(str) {\n"
                 + "    if(str === \"throw\" || str === \"\") {\n"
@@ -341,20 +341,20 @@ public class ChunkProcessorBeanTest {
                 + "}\n";
     }
 
-    String getJavaScriptReturnConcatenationFunction() {
+    public static String getJavaScriptReturnConcatenationFunction() {
         return ""
                 + "function " + javaScriptReturnConcatenation + "(str, processData) {\n"
                 + "    return processData.submitter + str + processData.format;\n"
                 + "}\n";
     }
 
-    private String resourceToString(String resourceName) throws Exception {
+    public static String resourceToString(String resourceName) throws Exception {
         final java.net.URL url = ChunkProcessorBeanTest.class.getResource(resourceName);
         final java.nio.file.Path resPath = java.nio.file.Paths.get(url.toURI());
         return new String(java.nio.file.Files.readAllBytes(resPath), "UTF8");
     }
 
-    static class ScriptWrapper {
+    public static class ScriptWrapper {
         public final String invocationMethod;
         public final JavaScript javaScript;
 

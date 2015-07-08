@@ -20,8 +20,8 @@ import java.util.Map;
  * API.
  */
 public class FlowCache {
+    public static final int CACHE_MAX_ENTRIES = 5;
     private static final Logger LOGGER = LoggerFactory.getLogger(FlowCache.class);
-    private static final int CACHE_MAX_ENTRIES = 5;
 
     // A LRU cache using a LinkedHashMap with access-ordering
     private final LinkedHashMap<String, FlowCacheEntry> flowCache;

@@ -5,6 +5,7 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +39,8 @@ public class ViewTest {
 
 
     // Test Data
-    private SinkModel testModel1 = new SinkModel(8347L, 98345L, "SinkNam1", "SinkRes1", "SinkDescription1");
-    private SinkModel testModel2 = new SinkModel(8348L, 98346L, "SinkNam2", "SinkRes2", "SinkDescription2");
+    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setResource("SinkRes1").setDescription("SinkDescription1").build();
+    private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setResource("SinkRes2").setDescription("SinkDescription2").build();
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
 

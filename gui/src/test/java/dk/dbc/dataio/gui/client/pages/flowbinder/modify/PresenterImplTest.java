@@ -13,6 +13,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -68,9 +69,9 @@ public class PresenterImplTest {
     private final SubmitterModel submitterModel2 = new SubmitterModelBuilder().setId(202L).setNumber("2202").setName("SName 2").build();
     private final SubmitterModel submitterModel3 = new SubmitterModelBuilder().setId(203L).setNumber("2203").setName("SName 3").build();
     private final SubmitterModel submitterModel4 = new SubmitterModelBuilder().setId(204L).setNumber("2204").setName("SName 4").build();
-    private final SinkModel sinkModel1 = new SinkModel(301L, 100L, "Snm1", "Rsc", "description");
-    private final SinkModel sinkModel2 = new SinkModel(302L, 100L, "Snm2", "Rsc", "description");
-    private final SinkModel sinkModel3 = new SinkModel(303L, 100L, "Snm3", "Rsc", "description");
+    private final SinkModel sinkModel1 = new SinkModelBuilder().setId(301L).setName("Snm1").build();
+    private final SinkModel sinkModel2 = new SinkModelBuilder().setId(302L).setName("Snm2").build();
+    private final SinkModel sinkModel3 = new SinkModelBuilder().setId(303L).setName("Snm3").build();
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {

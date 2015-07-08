@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class SinkModelMapperTest {
     private static final Sink defaultSink2 = new SinkBuilder().setId(333L).setVersion(444L).setContent(defaultSinkContent2).build();
     private static final List<Sink> defaultSinkList = Arrays.asList(defaultSink1, defaultSink2);
     // Default SinkModels
-    private static final SinkModel defaultSinkModel1 = new SinkModel(555L, 666L, "Sink Model Name 1", "Sink Model Resource 1", "Sink Model Description 1");
+    private static final SinkModel defaultSinkModel1 = new SinkModelBuilder().setName("Sink Model Name 1").setResource("Sink Model Resource 1").setDescription("Sink Model Description 1").build();
 
 
     @Test(expected = NullPointerException.class)
@@ -97,7 +98,7 @@ public class SinkModelMapperTest {
     public void toSinkContent_invalidSinkName_throwsIllegalArgumentException() {
         final String sinkName = "*%(Illegal)_&Name - €";
         final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
-        SinkModel model = new SinkModel(555L, 666L, sinkName, "Sink Model Resource 1", "Sink Model Description 1");
+        SinkModel model = new SinkModelBuilder().setName(sinkName).build();
         try {
             SinkModelMapper.toSinkContent(model);
             fail("Illegal sink name not detected");

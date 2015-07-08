@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -120,7 +121,7 @@ public class SinkServiceProxyImplTest {
     }
 
     private SinkModel getValidSinkModel() {
-        return new SinkModel(0, 0 , "name", "dataio/resource", "description");
+        return new SinkModelBuilder().setId(0).setVersion(0).setResource("dataio/resource").build();
     }
 
 }

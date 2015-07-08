@@ -3,7 +3,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -80,7 +80,7 @@ public class PresenterCreateImplTest {
     public void saveModel_sinkContentOk_createSinkCalled() {
         presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterCreateImpl.model = new SinkModel(1, 1, "Sink Name", "Sink Resource Name", "Sink Description");
+        presenterCreateImpl.model = new SinkModelBuilder().build();
         presenterCreateImpl.saveModel();
         verify(mockedFlowStoreProxy).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
     }

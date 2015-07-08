@@ -9,6 +9,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -50,7 +51,7 @@ public class PresenterImplTest {
     private static boolean saveModelHasBeenCalled;
     private static boolean initializeModelHasBeenCalled;
 
-    private final SinkModel sinkModel = new SinkModel(23, 4, "sinkName", "SinkResourceName", "SinkDescription");
+    private final SinkModel sinkModel = new SinkModelBuilder().build();
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(ClientFactory clientFactory) {

@@ -7,6 +7,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import org.junit.Test;
 
@@ -42,7 +43,7 @@ public class FlowBinderModelMapperTest {
     // Default Flow Binder Model
     private static final FlowModel defaultFlowModel = new FlowModel(DEFAULT_FLOW_ID, 4L, "flow name", "flow description", Collections.singletonList(new FlowComponentModel()));
     private static final SubmitterModel defaultSubmitterModel = new SubmitterModelBuilder().setId(DEFAULT_SUBMITTER_ID).build();
-    private static final SinkModel defaultSinkModel = new SinkModel(DEFAULT_SINK_ID, 7L, "sink name", "sink resource", "sink description");
+    private static final SinkModel defaultSinkModel = new SinkModelBuilder().setId(DEFAULT_SINK_ID).build();
     private static final FlowBinderModel defaultFlowBinderModel = new FlowBinderModel(
             DEFAULT_FLOW_BINDER_ID,
             DEFAULT_FLOW_BINDER_VERSION,

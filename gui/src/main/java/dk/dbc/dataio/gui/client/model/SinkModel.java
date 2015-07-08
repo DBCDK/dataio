@@ -85,4 +85,25 @@ public class SinkModel extends GenericBackendModel {
     public List<String> getDataioPatternMatches() {
         return Format.getDataioPatternMatches(sinkName);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SinkModel)) return false;
+
+        SinkModel sinkModel = (SinkModel) o;
+
+        if (sinkName != null ? !sinkName.equals(sinkModel.sinkName) : sinkModel.sinkName != null) return false;
+        if (resource != null ? !resource.equals(sinkModel.resource) : sinkModel.resource != null) return false;
+        return !(description != null ? !description.equals(sinkModel.description) : sinkModel.description != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = sinkName != null ? sinkName.hashCode() : 0;
+        result = 31 * result + (resource != null ? resource.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
+    }
 }

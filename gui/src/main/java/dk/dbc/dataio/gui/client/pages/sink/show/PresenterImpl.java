@@ -12,11 +12,13 @@ import dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
- * This class represents the show submitters presenter implementation
+ * This class represents the show sinks presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
     private ClientFactory clientFactory;
@@ -68,11 +70,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createSink() {
+        view.selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
     /*
-     * Local methods
+     * Private methods
      */
 
     /**
@@ -82,6 +85,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         flowStoreProxy.findAllSinks(new FetchSinksCallback());
     }
 
+    /**
+     * This method deciphers if a sink has been added, updated or deleted.
+     * The view and selection model are updated accordingly
+     *
+     * @param models the list of sinks returned from flow store proxy
+     */
+    private void setSinksAndDecipherSelection(Set<SinkModel> dataProviderSet, List<SinkModel> models) {
+        if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
+            view.selectionModel.clear();
+            view.setSinks(models);
+        } else {
+            for (SinkModel current : models) {
+                if (!dataProviderSet.contains(current)) {
+                    view.setSinks(models);
+                    view.selectionModel.setSelected(current, true);
+                    break;
+                }
+            }
+        }
+    }
 
     /*
      * Private classes
@@ -98,7 +121,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
         @Override
         public void onSuccess(List<SinkModel> models) {
-            view.setSinks(models);
+            setSinksAndDecipherSelection(new HashSet<SinkModel>(view.dataProvider.getList()), models);
         }
     }
 

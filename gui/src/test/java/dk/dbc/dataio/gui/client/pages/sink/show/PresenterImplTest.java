@@ -7,6 +7,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -27,7 +29,9 @@ import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -48,6 +52,8 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock ProxyException mockedProxyException;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock SingleSelectionModel<SinkModel> mockedSelectionModel;
+    @Mock ListDataProvider<SinkModel> mockedDataProvider;
 
     // Setup mocked data
     @Before
@@ -57,6 +63,8 @@ public class PresenterImplTest {
         when(mockedClientFactory.getSinksShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        mockedView.selectionModel = mockedSelectionModel;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
 
@@ -146,7 +154,7 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void fetchSinks_callbackWithSuccess_sinksAreFetched() {
+    public void fetchSinks_callbackWithSuccess_sinksAreFetchedInitialCallback() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -154,6 +162,41 @@ public class PresenterImplTest {
         presenterImpl.fetchSinksCallback.onSuccess(testModels);
 
         // Verify Test
+        verify(mockedSelectionModel).clear();
         verify(mockedView).setSinks(testModels);
     }
+    @Test
+    public void fetchSinks_callbackWithSuccess_sinksAreFetchedNoChanges() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+
+        // Test Subject Under Test
+        presenterImpl.fetchSinksCallback.onSuccess(testModels);
+
+        // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
+        verify(mockedView, times(0)).setSinks(testModels);
+    }
+
+    @Test
+    public void fetchSinks_callbackWithSuccess_sinksAreFetchedOneHasChangedSelectionIsSet() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(testModel1);
+
+        SinkModel editedSink = new SinkModelBuilder().setName("editedName").build();
+        List<SinkModel> sinkModels = Arrays.asList(editedSink, testModel2);
+
+        // Test Subject Under Test
+        presenterImpl.fetchSinksCallback.onSuccess(sinkModels);
+
+        // Verify Test
+        verify(mockedSelectionModel).setSelected(editedSink, true);
+        verify(mockedView).setSinks(sinkModels);
+    }
+
 }

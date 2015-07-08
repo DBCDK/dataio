@@ -8,9 +8,7 @@ import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
-import com.google.gwt.view.client.NoSelectionModel;
-import com.google.gwt.view.client.SelectionChangeEvent;
-import com.google.gwt.view.client.SelectionModel;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -21,7 +19,7 @@ import java.util.List;
  */
 public class View extends ViewWidget {
     ListDataProvider<SinkModel> dataProvider;
-    NoSelectionModel<SinkModel> selectionModel;
+    SingleSelectionModel<SinkModel> selectionModel = new SingleSelectionModel<SinkModel>();
 
     /**
      * Default constructor
@@ -63,7 +61,7 @@ public class View extends ViewWidget {
         sinksTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         sinksTable.addColumn(constructResourceNameColumn(), texts.columnHeader_ResourceName());
         sinksTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
-        sinksTable.setSelectionModel(constructSelectionModel());
+        sinksTable.setSelectionModel(selectionModel);
         sinksTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
 
@@ -138,17 +136,6 @@ public class View extends ViewWidget {
     }
 
     /**
-     * This method constructs a Selection Model, and attaches an event handler to the table,
-     * reacting on selection events.
-     * @return A Selection Model for the table
-     */
-    private SelectionModel constructSelectionModel() {
-        selectionModel = new NoSelectionModel<SinkModel>();
-        selectionModel.addSelectionChangeHandler(new SinkSelectionModel());
-        return selectionModel;
-    }
-
-    /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
      * @return the double click handler
@@ -157,22 +144,13 @@ public class View extends ViewWidget {
         DoubleClickHandler handler = new DoubleClickHandler() {
             @Override
             public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                SinkModel selected = selectionModel.getLastSelectedObject();
+                SinkModel selected = selectionModel.getSelectedObject();
                 if(selected != null) {
                     presenter.editSink(selected);
                 }
             }
         };
         return handler;
-    }
-
-    /*
-    * Private classes
-    */
-    class SinkSelectionModel implements SelectionChangeEvent.Handler {
-        public void onSelectionChange(SelectionChangeEvent event) {
-            selectionModel.getLastSelectedObject();
-        }
     }
 
 }

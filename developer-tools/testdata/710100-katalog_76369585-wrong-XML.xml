@@ -1,0 +1,23 @@
+<?xml version='1.0'?><dataio-harvester-datafile><data-container><data-supplementary><creationDate>20150101</creationDate></data-supplementary><data><collection xmlns="info:lc/xmlns/marcxchange-v1"><marcx:record xmlns:marcx="info:lc/xmlns/marcxchange-v1" format="danMARC2" type="Bibliographic">
+      <marcx:leader>00000c    2200000   4500</marcx:leader>
+      <marcx:datafield ind1="0" ind2="0" tag="001">
+        <marcx:subfield code="a">76369585</marcx:subfield>
+        <marcx:subfield code="b">710100</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield ind1="0" ind2="0" tag="004">
+        <marcx:subfield code="r">c</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield ind1="0" ind2="0" tag="008">
+        <marcx:subfield code="&amp;">1/marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield ind1="0" ind2="0" tag="009">
+        <marcx:subfield code="a">a</marcx:subfield>
+        <marcx:subfield code="g">xx</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield ind1="0" ind2="0" tag="245">
+        <marcx:subfield code="a">Ukendt titel</marcx:subfield>
+      </marcx:datafield>
+      <marcx:datafield ind1="0" ind2="0" tag="n55">
+        <marcx:subfield code="a">20150101</marcx:subfield>
+      </marcx:datafield>
+    </marcx:record></collection></data></data-container></dataio-harvester-datafile>

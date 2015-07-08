@@ -1,0 +1,12 @@
+{
+         "charset": "hest",
+         "destination": "broend3",
+         "format": "katalog",
+         "mailForNotificationAboutProcessing": "-mailForNotificationAboutProcessing-",
+         "mailForNotificationAboutVerification": "-mailForNotificationAboutVerification-",
+         "resultmailInitials": "resultMail",
+         "packaging": "xml",
+         "submitterId": 710100,
+         "type": "TEST"
+}
+

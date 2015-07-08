@@ -30,7 +30,8 @@ python tools
 ------------
 
 create_job.py  -- opretter et job.
-
+Eksempel: 
+create_job.py --host dataio-be-s01:8080 testdata/tracebullet.xml testdata/tracebullet.jobspecification.json
 
 resource-files
 --------------

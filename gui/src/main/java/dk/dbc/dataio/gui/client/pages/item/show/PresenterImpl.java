@@ -6,6 +6,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
@@ -167,6 +169,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.failedItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.ignoredItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.jobDiagnosticTabContent.jobDiagnosticTable.setRowCount(0); // clear table on startup
+        hideTabs();
     }
 
     /**
@@ -178,6 +181,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         view.jobHeader.setText(constructJobHeaderText(jobModel));
+        selectTabVisibility();
         if(allItemCounter == 0) {
             view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         } else {
@@ -191,6 +195,50 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         setJobInfoTab(jobModel);
         setDiagnosticModels(jobModel);
+    }
+
+    private void hideTabs() {
+        setTabVisible(ViewWidget.ALL_ITEMS_TAB_INDEX, false);
+        setTabVisible(ViewWidget.FAILED_ITEMS_TAB_INDEX, false);
+        setTabVisible(ViewWidget.IGNORED_ITEMS_TAB_INDEX, false);
+        setTabVisible(ViewWidget.JOB_INFO_TAB_CONTENT, false);
+        setTabVisible(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, false);
+    }
+
+    /**
+     * Show the tabs that contains information.
+     */
+    private void selectTabVisibility() {
+        setTabVisible(ViewWidget.JOB_INFO_TAB_CONTENT, true);
+        if(allItemCounter == 0) {
+            setTabVisible(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, true);
+        } else {
+            setTabVisible(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
+            if(failedItemCounter != 0) {
+                setTabVisible(ViewWidget.FAILED_ITEMS_TAB_INDEX, true);
+            }
+            if(ignoredItemCounter != 0) {
+                setTabVisible(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
+            }
+        }
+    }
+
+    /**
+     * Hide or Show the Tab. Can't call setVisible directly on Tab because it
+     * is an interface. Need to cast to the underlying Composite and then
+     * call setVisible on it.
+     *
+     * @param tabIndex the index as defined in the ViewWidget constants
+     * @param showTab whether to show or hide the tab.
+     */
+    private void setTabVisible(int tabIndex, boolean showTab) {
+        TabBar.Tab tabObject = view.tabPanel.getTabBar().getTab(tabIndex);
+        if (tabObject == null) {
+            return;
+        }
+        if (tabObject instanceof Composite) {
+            ((Composite) tabObject).setVisible(showTab);
+        }
     }
 
     /**

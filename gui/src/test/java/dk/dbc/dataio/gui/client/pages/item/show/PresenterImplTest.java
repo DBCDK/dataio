@@ -9,6 +9,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -29,10 +30,12 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -81,9 +84,15 @@ public class PresenterImplTest {
     @Mock PromptedLabel mockedMailForNotificationAboutVerification;
     @Mock PromptedLabel mockedMailForNotificationAboutProcessing;
     @Mock PromptedLabel mockedResultMailInitials;
+    @Mock TabBar mockedTabBar;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
+    static final int ALL_ITEMS_TAB_INDEX = 0;
+    static final int FAILED_ITEMS_TAB_INDEX = 1;
+    static final int IGNORED_ITEMS_TAB_INDEX = 2;
+    static final int JOB_INFO_TAB_CONTENT = 3;
+    static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
 
 
     // Setup mocked data
@@ -108,6 +117,7 @@ public class PresenterImplTest {
         mockedView.failedItemsList = mockedFailedItemsListView;
         mockedView.ignoredItemsList = mockedIgnoredItemsListView;
         mockedView.tabPanel = mockedTabPanel;
+        when(mockedTabPanel.getTabBar()).thenReturn(mockedTabBar);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedView.allItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.failedItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
@@ -221,9 +231,9 @@ public class PresenterImplTest {
             true, 10, 10, 0, 5, 20, 21, 22, new ArrayList<DiagnosticModel>(),
             "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
     private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
-    private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Arrays.asList(testJobModelSucceeded));
-    private List<JobModel> testJobModelsFailed = new ArrayList<JobModel>(Arrays.asList(testJobModelFailed));
-    private List<JobModel> testJobModelsIgnored = new ArrayList<JobModel>(Arrays.asList(testJobModelIgnored));
+    private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Collections.singletonList(testJobModelSucceeded));
+    private List<JobModel> testJobModelsFailed = new ArrayList<JobModel>(Collections.singletonList(testJobModelFailed));
+    private List<JobModel> testJobModelsIgnored = new ArrayList<JobModel>(Collections.singletonList(testJobModelIgnored));
     private List<JobModel> testJobModels2 = new ArrayList<JobModel>(Arrays.asList(testJobModel2, testJobModelSucceeded));
 
     @Test
@@ -261,6 +271,11 @@ public class PresenterImplTest {
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
         verify(mockedJobDiagnosticTable).setRowCount(0);
+        verify(mockedTabBar).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedJobStoreProxy).listJobs(any(JobListCriteriaModel.class), any(PresenterImpl.JobCallback.class));
     }
 
@@ -501,8 +516,12 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar, times(2)).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedTabPanel);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);
@@ -531,8 +550,12 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedTabPanel);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);
@@ -561,8 +584,12 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedTabPanel);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);
@@ -591,8 +618,13 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationB");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingB");
         verify(mockedResultMailInitials).setText("resultMailInitialsB");
+        verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
+
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedTabPanel);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);
@@ -612,8 +644,12 @@ public class PresenterImplTest {
         presenterImpl.getJobCallback.onSuccess(testJobModels0);
 
         // Verify Test
+        verify(mockedTabBar).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedTabPanel);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);
@@ -633,8 +669,12 @@ public class PresenterImplTest {
         presenterImpl.getJobCallback.onSuccess(null);
 
         // Verify Test
+        verify(mockedTabBar).getTab(ALL_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedTabPanel);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);

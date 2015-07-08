@@ -3,8 +3,6 @@ package dk.dbc.dataio.commons.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -12,15 +10,17 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Chunk-type for using outside of the jobstore. Internally in the jobstore, a
+ * Chunk-type for using outside of the job-store. Internally in the job-store, a
  * chunk entity will be used.
  * <p>
- * This class can be viewed as a small extension/simplification to a list with {@link ChunkItem}s, with an invariant. The invariant is described in the method
- * {@link #insertItem}.
+ * This class can be viewed as a small extension/simplification to a list with
+ * {@link ChunkItem}s, with the following invariant: items must be inserted
+ * consecutively, ie. the first item must have id 0, the next id 1 and so forth.
+ * Out of order insertions will cause an IllegalArgumentException to be thrown.
  * <p>
- * ChunkItems can be inserted with insertItem. Extraction is through an
- * iterator, since it is assumed that no one ever needs to access ChunkItems
- * directly inside this class, but always consecutively.
+ * ChunkItems can be inserted with the insertItem() and addAllItems() methods.
+ * Extraction is through an iterator, since it is assumed that no one ever needs
+ * to access items directly inside this class, but always consecutively.
  */
 public class ExternalChunk implements Iterable<ChunkItem> {
     public enum Type {
@@ -29,13 +29,13 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         DELIVERED
     }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExternalChunk.class);
-
     private final Type type;
     private final long jobId;
     private final long chunkId;
     @JsonProperty
     private final List<ChunkItem> items;
+    @JsonProperty
+    private final List<ChunkItem> next;
     @JsonProperty
     private String encoding;
 
@@ -46,14 +46,14 @@ public class ExternalChunk implements Iterable<ChunkItem> {
      */
     public ExternalChunk(long jobId, long chunkId, Type type) {
         if (jobId < 0 || chunkId < 0) {
-            String msg = String.format("Neither JobId nor ChunkId can be negative: [%d/%d]", jobId, chunkId);
-            LOGGER.warn(msg);
-            throw new IllegalArgumentException(msg);
+            throw new IllegalArgumentException(String.format("Neither job ID nor chunk ID can be negative: [%d/%d]",
+                    jobId, chunkId));
         }
         this.jobId = jobId;
         this.chunkId = chunkId;
         this.type = type;
         this.items = new ArrayList<>();
+        this.next = new ArrayList<>(0);
         this.encoding = "UTF-8";
     }
 
@@ -63,10 +63,11 @@ public class ExternalChunk implements Iterable<ChunkItem> {
     private ExternalChunk(@JsonProperty("jobId") long jobId,
             @JsonProperty("chunkId") long chunkId,
             @JsonProperty("type") Type type,
-            @JsonProperty("items") List<ChunkItem> items) {
+            @JsonProperty("items") List<ChunkItem> items,
+            @JsonProperty("next") List<ChunkItem> next) {
         this(jobId, chunkId, type);
         // ensure to uphold invariant
-        addAllItems(items);
+        addAllItems(items, next);
     }
 
     public long getJobId() {
@@ -90,6 +91,11 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         return items.isEmpty();
     }
 
+    @JsonIgnore
+    public boolean hasNextItems() {
+        return !next.isEmpty();
+    }
+
     public Charset getEncoding() {
         return Charset.forName(encoding);
     }
@@ -98,31 +104,55 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         this.encoding = encoding.name();
     }
 
-    /**
-     * Inserting ChunkItems into the Chunk.
-     *
-     * You must insert your ChunkItems consecutively. That is, the first ChunkItem must have id 0, the next id 1 and so forth.
-     * If you insert a ChunkItem out of order, an IllegalArgumentException is thrown.
-     *
-     * @param item The ChunkItem to insert.
-     */
-    public void insertItem(ChunkItem item) throws IllegalArgumentException {
-        if (item.getId() != items.size()) {
-            String msg = String.format("ChunkItems must be inserted consecutively. Size of list: %d inserted item-id: %d", items.size(), item.getId());
-            LOGGER.warn(msg);
-            throw new IllegalArgumentException(msg);
-        }
-        items.add(item);
-    }
-
-    public void addAllItems(List<ChunkItem> items) {
+    public void addAllItems(List<ChunkItem> items) throws IllegalArgumentException {
         for (ChunkItem item : items) {
             insertItem(item);
+        }
+    }
+
+    public void addAllItems(List<ChunkItem> current, List<ChunkItem> next) throws IllegalArgumentException {
+        if (next == null) {
+            addAllItems(current);
+        } else {
+            final Iterator<ChunkItem> currentIterator = current.iterator();
+            final Iterator<ChunkItem> nextIterator = next.iterator();
+            while (currentIterator.hasNext()) {
+                ChunkItem nextItem = ChunkItem.UNDEFINED;
+                if (nextIterator.hasNext()) {
+                    nextItem = nextIterator.next();
+                }
+                insertItem(currentIterator.next(), nextItem);
+            }
+        }
+    }
+
+    public void insertItem(ChunkItem item) throws IllegalArgumentException {
+        if (item == ChunkItem.UNDEFINED)
+            throw new IllegalArgumentException("item can not be null");
+        insert(items, item);
+    }
+
+    public void insertItem(ChunkItem currentItem, ChunkItem nextItem) throws IllegalArgumentException {
+        insertItem(currentItem);
+        if (nextItem != ChunkItem.UNDEFINED) {
+            if (currentItem.getId() != nextItem.getId()) {
+                throw new IllegalArgumentException(String.format("Current item id %d differs from next item id %d",
+                        currentItem.getId(), nextItem.getId()));
+            }
+            insert(next, nextItem);
         }
     }
 
     @Override
     public Iterator<ChunkItem> iterator() {
         return items.iterator();
+    }
+
+    private void insert(List<ChunkItem> collection, ChunkItem item) throws IllegalArgumentException {
+        if (item.getId() != collection.size()) {
+            throw new IllegalArgumentException(String.format("ChunkItems must be inserted consecutively. Size of list: %d inserted item-id: %d",
+                    collection.size(), item.getId()));
+        }
+        collection.add(item);
     }
 }

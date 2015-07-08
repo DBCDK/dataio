@@ -2,15 +2,17 @@ package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ExternalChunkBuilder {
     private long jobId = 3;
     private long chunkId = 1;
     private final ExternalChunk.Type type;
-    private List<ChunkItem> items = new ArrayList<>(Arrays.asList(new ChunkItemBuilder().build()));
+    private List<ChunkItem> items = new ArrayList<>(Collections.singletonList(new ChunkItemBuilder().build()));
+    private List<ChunkItem> next = null;
 
     public ExternalChunkBuilder(ExternalChunk.Type type) {
         this.type = type;
@@ -31,11 +33,14 @@ public class ExternalChunkBuilder {
         return this;
     }
 
+    public ExternalChunkBuilder setNextItems(List<ChunkItem> nextItems) {
+        this.next = nextItems;
+        return this;
+    }
+
     public ExternalChunk build() {
-        ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
-        for(ChunkItem item : items) {
-            chunk.insertItem(item);
-        }
+        final ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
+        chunk.addAllItems(items, next);
         return chunk;
     }
 }

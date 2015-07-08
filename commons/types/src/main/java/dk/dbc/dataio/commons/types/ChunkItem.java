@@ -10,6 +10,7 @@ import java.io.Serializable;
  * Chunk item DTO class.
  */
 public class ChunkItem implements Serializable {
+    public static final ChunkItem UNDEFINED = null;
     private static final long serialVersionUID = -7214362358523195493L;
 
     public enum Status { SUCCESS, FAILURE, IGNORE }

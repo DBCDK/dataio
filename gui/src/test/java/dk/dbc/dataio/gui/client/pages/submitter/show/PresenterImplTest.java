@@ -7,15 +7,17 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,11 +26,14 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,6 +54,8 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock ProxyException mockedProxyException;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock SingleSelectionModel<SubmitterModel> mockedSelectionModel;
+    @Mock ListDataProvider<SubmitterModel> mockedDataProvider;
 
     // Setup mocked data
     @Before
@@ -58,6 +65,8 @@ public class PresenterImplTest {
         when(mockedClientFactory.getSubmittersShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        mockedView.selectionModel = mockedSelectionModel;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
 
@@ -74,7 +83,9 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(new SubmitterModelBuilder().build(), new SubmitterModelBuilder().build()));
+    private SubmitterModel testModel1 = new SubmitterModelBuilder().setId(1L).setName("model1").build();
+    private SubmitterModel testModel2 = new SubmitterModelBuilder().setId(2L).setName("model2").build();
+    private List<SubmitterModel> testModels = new ArrayList<SubmitterModel>(Arrays.asList(testModel1, testModel2));
 
 
     @Test
@@ -112,6 +123,7 @@ public class PresenterImplTest {
         presenterImpl.editSubmitter(testModels.get(0));
 
         // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
         verify(mockedPlaceController).goTo(any(EditPlace.class));
     }
 
@@ -124,6 +136,7 @@ public class PresenterImplTest {
         presenterImpl.createSubmitter();
 
         // Verify Test
+        verify(mockedSelectionModel).clear();
         verify(mockedPlaceController).goTo(any(CreatePlace.class));
     }
 
@@ -145,15 +158,67 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void fetchSubmitters_callbackWithSuccess_submittersAreFetched() {
+    public void fetchSubmitters_callbackWithSuccess_SubmittersAreFetchedInitialCallback() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(new ArrayList<SubmitterModel>());
 
         // Test Subject Under Test
         presenterImpl.fetchSubmittersCallback.onSuccess(testModels);
 
         // Verify Test
+        verify(mockedSelectionModel).clear();
         verify(mockedView).setSubmitters(testModels);
+    }
+
+    @Test
+    public void fetchSubmitters_callbackWithSuccess_SubmittersAreFetchedNoChanges() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+
+        // Test Subject Under Test
+        presenterImpl.fetchSubmittersCallback.onSuccess(testModels);
+
+        // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
+        verify(mockedView, times(0)).setSubmitters(testModels);
+    }
+
+    @Test
+    public void fetchSubmitters_callbackWithSuccess_SubmittersAreFetchedOneHasChangedSelectionIsSet() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(testModel1);
+
+        SubmitterModel editedSubmitter = new SubmitterModelBuilder().setName("editedName").build();
+        List<SubmitterModel> submitterModels = Arrays.asList(editedSubmitter, testModel2);
+
+        // Test Subject Under Test
+        presenterImpl.fetchSubmittersCallback.onSuccess(submitterModels);
+
+        // Verify Test
+        verify(mockedSelectionModel).setSelected(editedSubmitter, true);
+        verify(mockedView).setSubmitters(submitterModels);
+    }
+
+    @Test
+    public void fetchSubmitters_callbackWithSuccess_SubmitterAreFetchedOneWasDeletedSelectionIsCleared() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+
+        // Test Subject Under Test
+        presenterImpl.fetchSubmittersCallback.onSuccess(Collections.singletonList(testModel1));
+
+        // Verify Test
+        verify(mockedSelectionModel).clear();
+        verify(mockedView).setSubmitters(Collections.singletonList(testModel1));
     }
 
 }

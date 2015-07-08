@@ -12,7 +12,9 @@ import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -68,11 +70,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createSubmitter() {
+        view.selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
     /*
-     * Local methods
+     * Private methods
      */
 
     /**
@@ -80,6 +83,28 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void fetchSubmitters() {
         flowStoreProxy.findAllSubmitters(new FetchSubmittersCallback());
+    }
+
+
+    /**
+     * This method deciphers if a submitter has been added, updated or deleted.
+     * The view and selection model are updated accordingly
+     *
+     * @param models the list of submitters returned from flow store proxy
+     */
+    private void setSubmittersAndDecipherSelection(Set<SubmitterModel> dataProviderSet, List<SubmitterModel> models) {
+        if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
+            view.selectionModel.clear();
+            view.setSubmitters(models);
+        } else {
+            for (SubmitterModel current : models) {
+                if (!dataProviderSet.contains(current)) {
+                    view.setSubmitters(models);
+                    view.selectionModel.setSelected(current, true);
+                    break;
+                }
+            }
+        }
     }
 
 
@@ -98,7 +123,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
         @Override
         public void onSuccess(List<SubmitterModel> models) {
-            view.setSubmitters(models);
+            setSubmittersAndDecipherSelection(new HashSet<SubmitterModel>(view.dataProvider.getList()), models);
         }
     }
 

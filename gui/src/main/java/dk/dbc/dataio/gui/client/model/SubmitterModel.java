@@ -110,4 +110,25 @@ public class SubmitterModel extends GenericBackendModel {
     public List<String> getDataioPatternMatches() {
         return Format.getDataioPatternMatches(name);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SubmitterModel)) return false;
+
+        SubmitterModel model = (SubmitterModel) o;
+
+        if (number != null ? !number.equals(model.number) : model.number != null) return false;
+        if (name != null ? !name.equals(model.name) : model.name != null) return false;
+        return !(description != null ? !description.equals(model.description) : model.description != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = number != null ? number.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
+    }
 }

@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -162,6 +163,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onSuccess(SubmitterModel model) {
             view.status.setText(texts.status_SubmitterSuccessfullySaved());
             setSubmitterModel(model);
+            History.back();
         }
     }
 

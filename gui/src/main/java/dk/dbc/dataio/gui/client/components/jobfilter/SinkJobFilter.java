@@ -4,7 +4,9 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.PromptedList;
+import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * This is the Sink Job Filter
@@ -15,7 +17,9 @@ public class SinkJobFilter extends BaseJobFilter {
 
     private static SinkJobFilterUiBinder ourUiBinder = GWT.create(SinkJobFilterUiBinder.class);
 
-    public SinkJobFilter() {
+    @Inject
+    public SinkJobFilter(Texts texts, Resources resources) {
+        super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 

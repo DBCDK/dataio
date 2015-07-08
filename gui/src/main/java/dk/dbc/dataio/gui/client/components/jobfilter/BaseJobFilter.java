@@ -1,6 +1,5 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -8,6 +7,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.TitledDecoratorPanelWithButton;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
@@ -15,13 +15,25 @@ import dk.dbc.dataio.gui.client.resources.Resources;
  * This is the base class for Job Filters
  */
 public abstract class BaseJobFilter extends Composite {
-    protected final static Texts texts = GWT.create(Texts.class);  // Consider using Dependency Injection !!!
-    protected final static Resources resources = GWT.create(Resources.class);  // Consider using Dependency Injection !!!
+
+    static protected Texts texts;
+    static protected Resources resources;
 
     protected final Widget thisAsWidget = this.asWidget();
     protected FlowPanel parentPanel = null;
     protected TitledDecoratorPanelWithButton decoratorPanel = null;
     protected HandlerRegistration clickHandlerRegistration = null;
+
+    /**
+     * Constructor
+     * @param texts Internationalized texts to be used by this class
+     * @param resources Resourcres to be used by this class
+     */
+    @Inject
+    public BaseJobFilter(Texts texts, Resources resources) {
+        this.texts = texts;
+        this.resources = resources;
+    }
 
     /**
      * This is the abstract method, to be used for naming the actual Job Filter

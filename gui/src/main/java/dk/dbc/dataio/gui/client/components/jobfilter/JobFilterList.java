@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
+import com.google.gwt.core.client.GWT;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,13 +10,21 @@ import java.util.List;
  * in the Jobs List
  */
 final public class JobFilterList {
+    JobFilterGinjector ginjector;
+    private List<? extends BaseJobFilter> jobFilterList;
+
     /**
-     * The list of Job Filters to be used in the Jobs List
+     * Constructor for the JobFilterList
+     * Here, the list of all available Job Filters are listed.
+     * Add new Job Filters to the end of the list
      */
-    private List<? extends BaseJobFilter> jobFilterList = Arrays.asList(
-        new SinkJobFilter()
-        // Add new Job Filters here...
-            );
+    public JobFilterList() {
+        ginjector = GWT.create(JobFilterGinjector.class);
+        jobFilterList = Arrays.asList(
+            ginjector.getSinkJobFilter()
+                // Add new Job Filters here...
+        );
+    }
 
     /**
      * Getter for the Job Filter List

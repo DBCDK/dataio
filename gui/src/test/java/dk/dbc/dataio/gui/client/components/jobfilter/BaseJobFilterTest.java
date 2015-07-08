@@ -30,14 +30,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @RunWith(GwtMockitoTestRunner.class)
 public class BaseJobFilterTest {
     String name;
-    Texts texts;
-    Resources resources;
     Widget thisAsWidget;
     FlowPanel parentPanel;
     TitledDecoratorPanelWithButton decoratorPanel;
     HandlerRegistration clickHandlerRegistration;
     boolean addJobFilterMethodCalled = false;
 
+    @Mock Texts mockedTexts;
+    @Mock Resources mockedResources;
     @Mock FlowPanel mockedPanel;
     @Mock HandlerRegistration mockedClickHandlerRegistration;
 
@@ -45,6 +45,7 @@ public class BaseJobFilterTest {
     class ConcreteBaseJobFilter extends BaseJobFilter {
         String storedName;
         public ConcreteBaseJobFilter(String name) {
+            super(mockedTexts, mockedResources);
             this.storedName = name;
         }
         @Override
@@ -93,8 +94,8 @@ public class BaseJobFilterTest {
 
     private void getAttributes(ConcreteBaseJobFilter jobFilter) {
         name = jobFilter.getName();
-        texts = jobFilter.getTexts();
-        resources = jobFilter.getResources();
+        mockedTexts = jobFilter.getTexts();
+        mockedResources = jobFilter.getResources();
         thisAsWidget = jobFilter.getThisAsWidget();
         parentPanel = jobFilter.getParentPanel();
         decoratorPanel = jobFilter.getDecoratorPanel();
@@ -104,8 +105,6 @@ public class BaseJobFilterTest {
     @Before
     public void clearAttributes() {
         name = null;
-        texts = null;
-        resources = null;
         thisAsWidget = null;
         parentPanel = null;
         decoratorPanel = null;
@@ -124,8 +123,8 @@ public class BaseJobFilterTest {
         // Verify test
         getAttributes(jobFilter);
         assertThat(name, is("-test name-"));
-        assertThat(texts, is(notNullValue()));
-        assertThat(resources, is(notNullValue()));
+        assertThat(mockedTexts, is(notNullValue()));
+        assertThat(mockedResources, is(notNullValue()));
         assertThat(thisAsWidget, is(notNullValue()));
         assertThat(parentPanel, is(nullValue()));
         assertThat(decoratorPanel, is(nullValue()));

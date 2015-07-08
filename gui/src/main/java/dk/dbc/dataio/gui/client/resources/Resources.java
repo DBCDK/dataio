@@ -85,6 +85,12 @@ public interface Resources extends ClientBundle {
 
         @ClassName("dio-MultiProgressBar")
         String dioMultiProgressBar();
+
+        @ClassName("deleteButton")
+        String deleteButton();
+
+        @ClassName("jobsShowTable")
+        String jobsShowTable();
     }
 
     @Source("css/dataio.css")

@@ -8,6 +8,7 @@
     <inherits name='com.google.web.bindery.event.EventBinder'/>
     <inherits name="com.google.gwt.resources.Resources"/>
     <inherits name='com.google.gwt.query.Query'/>
+    <inherits name="com.google.gwt.inject.Inject"/>
     <inherits name='gwtquery.plugins.draggable.Draggable'/>
 
     <!-- Inherit the default GWT style sheet. You can change -->
@@ -30,21 +31,21 @@
     <inherits name="com.google.gwt.place.Place" />
 
     <inherits name="dk.dbc.dataio.commons.types.Types" />
-    
+
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
-    
+
     <extend-property name="locale" values="dk"/>
     <set-property name="locale" value="dk"/>
-    
-	<replace-with class="dk.dbc.dataio.gui.util.ClientFactoryImpl">
-		<when-type-is class="dk.dbc.dataio.gui.util.ClientFactory" />
-	</replace-with>
-    
+
+    <replace-with class="dk.dbc.dataio.gui.util.ClientFactoryImpl">
+        <when-type-is class="dk.dbc.dataio.gui.util.ClientFactory" />
+    </replace-with>
+
     <source path="client" />
     <source path="activities" />
     <source path="util" />
     <source path="views" />
     <source path="places" />
     <source path="types" />
-    
+
 </module>

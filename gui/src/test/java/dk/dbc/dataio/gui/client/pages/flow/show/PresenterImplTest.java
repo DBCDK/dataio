@@ -7,6 +7,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -32,6 +34,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,6 +55,8 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock ProxyException mockedProxyException;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock SingleSelectionModel<FlowModel> mockedSelectionModel;
+    @Mock ListDataProvider<FlowModel> mockedDataProvider;
 
     // Setup mocked data
     @Before
@@ -61,6 +66,8 @@ public class PresenterImplTest {
         when(mockedClientFactory.getFlowsShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        mockedView.selectionModel = mockedSelectionModel;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
     // Subject Under Test
@@ -206,6 +213,52 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedFlowStore, times(2)).findAllFlows(any(PresenterImpl.FetchFlowsCallback.class));
         // findAllFlows is requested both from presenter.start() and from the callback - therefore it is called twice
+    }
+
+    @Test
+    public void fetchFlows_callbackWithSuccess_flowsAreFetchedInitialCallback() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowsCallback.onSuccess(flowModels);
+
+        // Verify Test
+        verify(mockedSelectionModel).clear();
+        verify(mockedView).setFlows(flowModels);
+    }
+    @Test
+    public void fetchFlows_callbackWithSuccess_flowsAreFetchedNoChanges() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(flowModels);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowsCallback.onSuccess(flowModels);
+
+        // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
+        verify(mockedView, times(0)).setFlows(flowModels);
+    }
+
+    @Test
+    public void fetchFlows_callbackWithSuccess_flowsAreFetchedOneHasChangedSelectionIsSet() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(flowModels);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(flowModel1);
+
+        FlowModel editedFlow = new FlowModelBuilder().setName("editedName").build();
+        List<FlowModel> flowModels = Arrays.asList(editedFlow, flowModel2);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowsCallback.onSuccess(flowModels);
+
+        // Verify Test
+        verify(mockedSelectionModel).setSelected(editedFlow, true);
+        verify(mockedView).setFlows(flowModels);
     }
 
 }

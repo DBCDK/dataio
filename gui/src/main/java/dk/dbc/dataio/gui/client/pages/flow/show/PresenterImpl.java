@@ -12,7 +12,9 @@ import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -78,6 +80,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlow() {
+        view.selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -92,6 +95,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         flowStoreProxy.findAllFlows(new FetchFlowsCallback());
     }
 
+    /**
+     * This method deciphers if a flow has been added, updated or deleted.
+     * The view and selection model are updated accordingly
+     *
+     * @param models the list of flows returned from flow store proxy
+     */
+    private void setFlowsAndDecipherSelection(Set<FlowModel> dataProviderSet, List<FlowModel> models) {
+        if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
+            view.selectionModel.clear();
+            view.setFlows(models);
+        } else {
+            for (FlowModel current : models) {
+                if (!dataProviderSet.contains(current)) {
+                    view.setFlows(models);
+                    view.selectionModel.setSelected(current, true);
+                    break;
+                }
+            }
+        }
+    }
 
     /*
      * Private classes
@@ -108,7 +131,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
         @Override
         public void onSuccess(List<FlowModel> models) {
-            view.setFlows(models);
+            setFlowsAndDecipherSelection(new HashSet<FlowModel>(view.dataProvider.getList()), models);
         }
     }
 

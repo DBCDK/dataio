@@ -154,7 +154,7 @@ public class FlowComponentModel extends GenericBackendModel {
 
     /**
      * Set description
-     * @param description Submitter description
+     * @param description Flow component description
      */
     public void setDescription(String description) {
         this.description = description;
@@ -198,7 +198,7 @@ public class FlowComponentModel extends GenericBackendModel {
     }
 
     /**
-     * Checks if the flow binder name contains illegal characters.
+     * Checks if the flow component name contains illegal characters.
      * A-Å, 0-9, - (minus), + (plus), _ (underscore) and space is valid
      * @return a list containing illegal characters found. Empty list if none found.
      */
@@ -206,4 +206,37 @@ public class FlowComponentModel extends GenericBackendModel {
         return Format.getDataioPatternMatches(name);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowComponentModel)) return false;
+
+        FlowComponentModel that = (FlowComponentModel) o;
+
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (svnProject != null ? !svnProject.equals(that.svnProject) : that.svnProject != null) return false;
+        if (svnRevision != null ? !svnRevision.equals(that.svnRevision) : that.svnRevision != null) return false;
+        if (svnNext != null ? !svnNext.equals(that.svnNext) : that.svnNext != null) return false;
+        if (invocationJavascript != null ? !invocationJavascript.equals(that.invocationJavascript) : that.invocationJavascript != null)
+            return false;
+        if (invocationMethod != null ? !invocationMethod.equals(that.invocationMethod) : that.invocationMethod != null)
+            return false;
+        if (javascriptModules != null ? !javascriptModules.equals(that.javascriptModules) : that.javascriptModules != null)
+            return false;
+        return !(description != null ? !description.equals(that.description) : that.description != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (svnProject != null ? svnProject.hashCode() : 0);
+        result = 31 * result + (svnRevision != null ? svnRevision.hashCode() : 0);
+        result = 31 * result + (svnNext != null ? svnNext.hashCode() : 0);
+        result = 31 * result + (invocationJavascript != null ? invocationJavascript.hashCode() : 0);
+        result = 31 * result + (invocationMethod != null ? invocationMethod.hashCode() : 0);
+        result = 31 * result + (javascriptModules != null ? javascriptModules.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
+    }
 }

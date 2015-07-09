@@ -92,4 +92,25 @@ public class FlowModel extends GenericBackendModel {
         return Format.getDataioPatternMatches(flowName);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlowModel)) return false;
+
+        FlowModel flowModel = (FlowModel) o;
+
+        if (flowName != null ? !flowName.equals(flowModel.flowName) : flowModel.flowName != null) return false;
+        if (description != null ? !description.equals(flowModel.description) : flowModel.description != null)
+            return false;
+        return !(flowComponents != null ? !flowComponents.equals(flowModel.flowComponents) : flowModel.flowComponents != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = flowName != null ? flowName.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (flowComponents != null ? flowComponents.hashCode() : 0);
+        return result;
+    }
 }

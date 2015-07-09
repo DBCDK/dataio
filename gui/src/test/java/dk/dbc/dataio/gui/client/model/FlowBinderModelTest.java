@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import org.junit.Test;
@@ -163,7 +164,7 @@ public class FlowBinderModelTest {
 
     private FlowBinderModel getTestModel(boolean sequenceAnalysis) {
         FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().build();
-        FlowModel flowModel = new FlowModel(33L, 44L, "Nmm", "Des", Collections.singletonList(flowComponentModel));
+        FlowModel flowModel = new FlowModelBuilder().setComponents(Collections.singletonList(flowComponentModel)).build();
         SubmitterModel submitterModel = new SubmitterModelBuilder().build();
         SinkModel sinkModel = new SinkModelBuilder().build();
         return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Collections.singletonList(submitterModel), sinkModel);

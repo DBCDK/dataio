@@ -12,7 +12,7 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -62,9 +62,9 @@ public class PresenterImplTest {
     private View view;
     private PresenterImplConcrete presenterImpl;
 
-    private final FlowModel flowModel1 = new FlowModel(101L, 44L, "Nmm1", "Des", Collections.singletonList(new FlowComponentModelBuilder().build()));
-    private final FlowModel flowModel2 = new FlowModel(102L, 44L, "Nmm1", "Des", Collections.singletonList(new FlowComponentModelBuilder().build()));
-    private final FlowModel flowModel3 = new FlowModel(103L, 44L, "Nmm1", "Des", Collections.singletonList(new FlowComponentModelBuilder().build()));
+    private final FlowModel flowModel1 = new FlowModelBuilder().setId(101).build();
+    private final FlowModel flowModel2 = new FlowModelBuilder().setId(102).build();
+    private final FlowModel flowModel3 = new FlowModelBuilder().setId(103).build();
     private final SubmitterModel submitterModel1 = new SubmitterModelBuilder().setId(201L).setNumber("2201").setName("SName 1").build();
     private final SubmitterModel submitterModel2 = new SubmitterModelBuilder().setId(202L).setNumber("2202").setName("SName 2").build();
     private final SubmitterModel submitterModel3 = new SubmitterModelBuilder().setId(203L).setNumber("2203").setName("SName 3").build();

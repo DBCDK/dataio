@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -73,7 +74,7 @@ public class PresenterImplTest {
             super(clientFactory);
             view = PresenterImplTest.this.viewWidget;
             flowStoreProxy = mockedFlowStoreProxy;
-            model = new FlowModel(DEFAULT_ID, DEFAULT_VERSION, DEFAULT_NAME, DEFAULT_DESCRIPTION, selectedFlowComponentModelList);
+            model = new FlowModelBuilder().setId(DEFAULT_ID).setVersion(DEFAULT_VERSION).setName(DEFAULT_NAME).setDescription(DEFAULT_DESCRIPTION).setComponents(selectedFlowComponentModelList).build();
             availableFlowComponentModels = availableFlowComponentModelList;
             saveModelHasBeenCalled = false;
         }

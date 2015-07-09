@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -567,7 +568,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createFlow(any(FlowContent.class))).thenReturn(flow);
 
         try {
-            final FlowModel createdModel = flowStoreProxy.createFlow(getDefaultFlowModel(0, 0));
+            final FlowModel createdModel = flowStoreProxy.createFlow(new FlowModelBuilder().setId(0).setVersion(0).build());
             assertNotNull(createdModel);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createFlow()");
@@ -587,14 +588,8 @@ public class FlowStoreProxyImplTest {
     @Test
     public void createFlow_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        FlowModel model = getDefaultFlowModel(0, 0);
-        model.setFlowName("");
+        FlowModel model = new FlowModelBuilder().setId(0).setVersion(0).setName("").build();
         createFlow_testForProxyError(model, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
-    }
-
-
-    private FlowModel getDefaultFlowModel(long id, long version) {
-        return new FlowModel(id, version, "FlowName", "description", Collections.singletonList(new FlowComponentModelBuilder().build()));
     }
 
     private void createFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
@@ -604,7 +599,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createFlow(any(FlowContent.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
-            flowStoreProxy.createFlow(getDefaultFlowModel(0, 0));
+            flowStoreProxy.createFlow(new FlowModelBuilder().setId(0).setVersion(0).build());
             fail("No " + expectedErrorName + " error was thrown by createFlow()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1010,7 +1005,7 @@ public class FlowStoreProxyImplTest {
     }
 
     private FlowBinderModel getDefaultFlowBinderModel(long id, long version) {
-        FlowModel flowModel = getDefaultFlowModel(id, version);
+        FlowModel flowModel = new FlowModelBuilder().setId(id).setVersion(version).build();
         SinkModel sinkModel = new SinkModelBuilder().setId(id).setVersion(version).build();
         SubmitterModel submitterModel = new SubmitterModelBuilder().setId(id).setVersion(version).build();
 
@@ -1227,7 +1222,7 @@ public class FlowStoreProxyImplTest {
         for (FlowComponent flowComponent : flow.getContent().getComponents()) {
             flowComponentModels.add(FlowComponentModelMapper.toModel(flowComponent));
         }
-        return new FlowModel(flow.getId(), flow.getVersion(), flow.getContent().getName(), flow.getContent().getDescription(), flowComponentModels);
+        return new FlowModelBuilder().setId(flow.getId()).setVersion(flow.getVersion()).setName(flow.getContent().getName()).setDescription(flow.getContent().getDescription()).setComponents(flowComponentModels).build();
     }
 
 

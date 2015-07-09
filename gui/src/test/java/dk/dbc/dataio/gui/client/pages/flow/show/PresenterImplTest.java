@@ -13,6 +13,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -23,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
@@ -75,8 +77,16 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private FlowModel flowModel1 = new FlowModel(14L, 343L, "Fnam1", "Fdsc1", Arrays.asList(new FlowComponentModelBuilder().build()));
-    private FlowModel flowModel2 = new FlowModel(15L, 344L, "Fnam2", "Fdsc2", Arrays.asList(new FlowComponentModelBuilder().build(), new FlowComponentModelBuilder().build()));
+    private FlowModel flowModel1 = new FlowModelBuilder()
+            .setName("Fnam1")
+            .setComponents(Collections.singletonList(new FlowComponentModelBuilder().build()))
+            .build();
+
+    private FlowModel flowModel2 = new FlowModelBuilder()
+            .setName("Fnam2")
+            .setComponents(Arrays.asList(new FlowComponentModelBuilder().setName("FCnam1").build(), new FlowComponentModelBuilder().setName("FCnam2").build()))
+            .build();
+
     private List<FlowModel> flowModels = Arrays.asList(flowModel1, flowModel2);
 
 

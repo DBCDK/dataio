@@ -6,6 +6,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,9 +43,9 @@ public class ViewTest {
     private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setSvnRevision("FCsrv1").build();
     private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setSvnRevision("FCsrv2").build();
     private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setSvnRevision("FCsrv3").build();
-    private FlowModel flowModel1 = new FlowModel(14L, 343L, "Fnam1", "Fdsc1", Collections.singletonList(flowComponentModel1));
-    private FlowModel flowModel2 = new FlowModel(15L, 344L, "Fnam2", "Fdsc2", Arrays.asList(flowComponentModel2, flowComponentModel3));
-    private FlowModel flowModel3 = new FlowModel(16L, 345L, "Fnam3", "Fdsc3", Collections.singletonList(flowComponentModel3));
+    private FlowModel flowModel1 = new FlowModelBuilder().setName("Fnam1").setComponents(Collections.singletonList(flowComponentModel1)).build();
+    private FlowModel flowModel2 = new FlowModelBuilder().setName("Fnam2").setComponents(Arrays.asList(flowComponentModel2, flowComponentModel3)).build();
+    private FlowModel flowModel3 = new FlowModelBuilder().setName("Fnam3").setComponents(Collections.singletonList(flowComponentModel3)).build();
     private List<FlowModel> flowModels = Arrays.asList(flowModel1, flowModel2);
 
     // Subject Under Test

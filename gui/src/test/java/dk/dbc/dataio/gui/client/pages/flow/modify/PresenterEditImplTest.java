@@ -10,6 +10,7 @@ import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -118,7 +119,8 @@ public class PresenterEditImplTest {
     public void getFlowModelFilteredAsyncCallback_successfulCallback_modelIsInitializedCorrectly() {
         presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
-        FlowModel model = getValidFlowModel(4, 5);
+        FlowModel model =
+                getValidFlowModel(4, 5);
         assertThat(presenterEditImplConcrete.model, is(nullValue()));
 
         presenterEditImplConcrete.callback.onSuccess(model);  // Emulate a successful callback from flowstore
@@ -158,7 +160,9 @@ public class PresenterEditImplTest {
     }
 
     private FlowModel getValidFlowModel(long id, long version) {
-        return new FlowModel(id, version, "name", "Description", Collections.singletonList(new FlowComponentModelBuilder().setId(id).setVersion(version).build()));
+        return new FlowModelBuilder().setId(id).setVersion(version)
+                .setComponents(Collections.singletonList(new FlowComponentModelBuilder().setId(id).setVersion(version).build()))
+                .build();
     }
 
     private void assertFlowComponentModelsEquals(List<FlowComponentModel> flowComponentModelList1, List<FlowComponentModel> flowComponentModelList2) {

@@ -10,11 +10,11 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
-import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -107,27 +107,26 @@ public class FlowModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toFlowContent_nullInput_throwsNullPointerException() {
-        FlowModelMapper.toFlowContent(null, Arrays.asList(new FlowComponentBuilder().build()));
+        FlowModelMapper.toFlowContent(null, Collections.singletonList(new FlowComponentBuilder().build()));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void toFlowContent_validInputNoFlowComponents_throwsIllegalArgumentException() {
         // Build a FlowModel containing no flow components
-        FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, new ArrayList<FlowComponentModel>());
-        FlowModelMapper.toFlowContent(model, Arrays.asList(new FlowComponentBuilder().build()));
+        FlowModel model = new FlowModelBuilder().setComponents(new ArrayList<FlowComponentModel>()).build();
+        FlowModelMapper.toFlowContent(model, Collections.singletonList(new FlowComponentBuilder().build()));
     }
 
     @Test
     public void toFlowContent_invalidFlowName_throwsIllegalArgumentException() {
-        FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().build();
         FlowComponent flowComponent = getValidFlowComponent();
 
         final String flowName = "*%(Illegal)_&Name - €";
         final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
-        FlowModel model = new FlowModel(ID, VERSION, flowName, DESCRIPTION, Arrays.asList(flowComponentModel));
+        FlowModel model = new FlowModelBuilder().setName(flowName).build();
 
         try {
-            FlowModelMapper.toFlowContent(model, Arrays.asList(flowComponent));
+            FlowModelMapper.toFlowContent(model, Collections.singletonList(flowComponent));
             fail("Illegal flow name not detected");
         } catch(IllegalArgumentException e) {
             assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
@@ -160,7 +159,7 @@ public class FlowModelMapperTest {
                         null,
                         INVOCATION_NAME_1,
                         INVOCATION_METHOD_1,
-                        Arrays.asList(MODULE_NAME_1),
+                        Collections.singletonList(MODULE_NAME_1),
                         DESCRIPTION);
 
         FlowComponentModel flowComponentModel2 =
@@ -172,7 +171,7 @@ public class FlowModelMapperTest {
                         null,
                         INVOCATION_NAME_2,
                         INVOCATION_METHOD_2,
-                        Arrays.asList(MODULE_NAME_2),
+                        Collections.singletonList(MODULE_NAME_2),
                         DESCRIPTION);
 
         components.add(flowComponentModel1);
@@ -190,7 +189,7 @@ public class FlowModelMapperTest {
                         .setSvnRevision(SVN_REVISION_1)
                         .setInvocationJavascriptName(INVOCATION_NAME_1)
                         .setInvocationMethod(INVOCATION_METHOD_1)
-                        .setJavascripts(Arrays.asList(javaScript1))
+                        .setJavascripts(Collections.singletonList(javaScript1))
                         .build())
                 .build();
 
@@ -203,7 +202,7 @@ public class FlowModelMapperTest {
                         .setSvnRevision(SVN_REVISION_2)
                         .setInvocationJavascriptName(INVOCATION_NAME_2)
                         .setInvocationMethod(INVOCATION_METHOD_2)
-                        .setJavascripts(Arrays.asList(javaScript2))
+                        .setJavascripts(Collections.singletonList(javaScript2))
                         .build())
                 .build();
 
@@ -211,7 +210,7 @@ public class FlowModelMapperTest {
         flowComponents.add(flowComponent1);
         flowComponents.add(flowComponent2);
 
-        FlowModel model = new FlowModel(ID, VERSION, NAME, DESCRIPTION, components);
+        FlowModel model = new FlowModelBuilder().setId(ID).setVersion(VERSION).setName(NAME).setDescription(DESCRIPTION).setComponents(components).build();
 
         // Convert model to flow content
         FlowContent flowContent = FlowModelMapper.toFlowContent(model, flowComponents);
@@ -293,7 +292,7 @@ public class FlowModelMapperTest {
                         .setSvnRevision(89)
                         .setInvocationJavascriptName("invocation navn")
                         .setInvocationMethod("invocation method")
-                        .setJavascripts(Arrays.asList(new JavaScript("Javascript", "Javascript 1")))
+                        .setJavascripts(Collections.singletonList(new JavaScript("Javascript", "Javascript 1")))
                         .build())
                 .build();
     }

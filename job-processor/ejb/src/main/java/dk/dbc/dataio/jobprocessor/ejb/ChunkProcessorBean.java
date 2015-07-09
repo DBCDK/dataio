@@ -56,7 +56,12 @@ public class ChunkProcessorBean {
                 try {
                     final FlowCache.FlowCacheEntry flowCacheEntry = cacheFlow(flow);
                     final Object supplementaryData = convertSupplementaryProcessDataToJsJsonObject(flowCacheEntry.scripts.get(0), supplementaryProcessData);
-                    processedChunk.addAllItems(processItems(chunk, supplementaryData, flowCacheEntry.scripts));
+                    final List<ChunkItem> items = processItems(chunk, supplementaryData, flowCacheEntry.scripts);
+                    List<ChunkItem> next = null;
+                    if (!flowCacheEntry.next.isEmpty()) {
+                        next = processItems(chunk, supplementaryData, flowCacheEntry.next);
+                    }
+                    processedChunk.addAllItems(items, next);
                 } catch (Throwable ex) {
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     // with the Throwable.

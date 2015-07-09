@@ -111,9 +111,12 @@ public class ExternalChunk implements Iterable<ChunkItem> {
     }
 
     public void addAllItems(List<ChunkItem> current, List<ChunkItem> next) throws IllegalArgumentException {
-        if (next == null) {
+        if (next == null || next.isEmpty()) {
             addAllItems(current);
         } else {
+            if (current.size() != next.size())
+                throw new IllegalArgumentException(String.format("Size of current list %d differs from size of next list %s",
+                        current.size(), next.size()));
             final Iterator<ChunkItem> currentIterator = current.iterator();
             final Iterator<ChunkItem> nextIterator = next.iterator();
             while (currentIterator.hasNext()) {

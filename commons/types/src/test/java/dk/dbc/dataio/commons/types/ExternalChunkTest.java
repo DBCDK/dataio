@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -105,6 +106,13 @@ public class ExternalChunkTest {
         assertThat("chunk size", chunk.size(), is(1));
         assertThat("is chunk empty?", chunk.isEmpty(), is(false));
         assertThat("chunk has next items?", chunk.hasNextItems(), is(false));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addAllItems_2arg_listsDifferInSize_throws() {
+        final ChunkItem firstItem = new ChunkItem(0L, "First", ChunkItem.Status.IGNORE);
+        final ChunkItem secondItem = new ChunkItem(1L, "Second", ChunkItem.Status.SUCCESS);
+        chunk.addAllItems(Arrays.asList(firstItem, secondItem), Collections.singletonList(firstItem));
     }
 
     @Test

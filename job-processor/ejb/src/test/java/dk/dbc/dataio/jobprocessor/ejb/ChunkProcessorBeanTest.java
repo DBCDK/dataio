@@ -21,6 +21,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -241,6 +242,30 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
+    }
+
+    @Test
+    public void process_flowHasNextComponents_returnsChunkWithNextItems() throws Exception {
+        final FlowComponent flowComponent = new FlowComponentBuilder()
+                .setContent(getFlowComponentContent(
+                        new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()))))
+                .setNext(getFlowComponentContent(
+                        new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()))))
+                .build();
+        final Flow flow = new FlowBuilder()
+                .setContent(new FlowContentBuilder()
+                        .setComponents(Collections.singletonList(flowComponent))
+                        .build())
+                .build();
+        final String record = "zero";
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(getItems(record))
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertThat("Chunk has next items", processedChunk.hasNextItems(), is(true));
     }
 
 

@@ -175,18 +175,6 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void fetchFlows_callbackWithSuccess_flowsAreFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.fetchFlowsCallback.onSuccess(flowModels);
-
-        // Verify Test
-        verify(mockedView).setFlows(flowModels);
-    }
-
-    @Test
     public void refreshFlowComponents_callbackWithError_errorMessageInView() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);

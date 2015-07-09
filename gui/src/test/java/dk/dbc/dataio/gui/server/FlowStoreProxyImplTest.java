@@ -29,6 +29,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
@@ -1008,21 +1009,7 @@ public class FlowStoreProxyImplTest {
         FlowModel flowModel = new FlowModelBuilder().setId(id).setVersion(version).build();
         SinkModel sinkModel = new SinkModelBuilder().setId(id).setVersion(version).build();
         SubmitterModel submitterModel = new SubmitterModelBuilder().setId(id).setVersion(version).build();
-
-        return new FlowBinderModel(
-                1,
-                1,
-                "flowBinderName",
-                "flowBinderDescription",
-                "flowBinderPackaging",
-                "format",
-                "charset",
-                "destination",
-                "recordSplitter",
-                true,
-                flowModel,
-                Collections.singletonList(submitterModel),
-                sinkModel);
+        return new FlowBinderModelBuilder().setId(1).setVersion(1).setFlowModel(flowModel).setSubmitterModels(Collections.singletonList(submitterModel)).setSinkModel(sinkModel).build();
     }
 
     private void updateFlowBinder_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {

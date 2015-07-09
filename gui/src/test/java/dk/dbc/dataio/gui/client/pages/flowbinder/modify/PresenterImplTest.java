@@ -12,6 +12,7 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
@@ -78,7 +79,7 @@ public class PresenterImplTest {
             super(clientFactory);
             flowStoreProxy = mockedFlowStoreProxy;
             view = PresenterImplTest.this.view;
-            model = new FlowBinderModel(321L, 432L, "name", "desc", "pack", "form", "char", "dest", "recs", true, flowModel1, Collections.singletonList(submitterModel1), sinkModel1);
+            model = new FlowBinderModelBuilder().setFlowModel(flowModel1).setSubmitterModels(Collections.singletonList(submitterModel1)).setSinkModel(sinkModel1).build();
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
             setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3));
@@ -424,7 +425,7 @@ public class PresenterImplTest {
     @Test
     public void saveFlowBinderModelCallback_successfullCallback_statusMessageDisplayed() {
         final String SUCCESS_TEXT = "Check!";
-        FlowBinderModel flowBinderModel = new FlowBinderModel(5555L, 66L, "nx", "dx", "px", "fx", "cx", "dx", "rx", true, flowModel3, Collections.singletonList(submitterModel3), sinkModel3);
+        FlowBinderModel flowBinderModel = new FlowBinderModelBuilder().setFlowModel(flowModel3).setSubmitterModels(Collections.singletonList(submitterModel3)).setSinkModel(sinkModel3).build();
         when(mockedTexts.status_SaveSuccess()).thenReturn(SUCCESS_TEXT);
         initializeAndStartPresenter();
 

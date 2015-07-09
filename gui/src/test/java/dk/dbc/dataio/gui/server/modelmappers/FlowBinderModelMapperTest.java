@@ -6,6 +6,7 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
@@ -44,17 +45,14 @@ public class FlowBinderModelMapperTest {
     private static final FlowModel defaultFlowModel = new FlowModelBuilder().setId(DEFAULT_FLOW_ID).setVersion(4).build();
     private static final SubmitterModel defaultSubmitterModel = new SubmitterModelBuilder().setId(DEFAULT_SUBMITTER_ID).build();
     private static final SinkModel defaultSinkModel = new SinkModelBuilder().setId(DEFAULT_SINK_ID).build();
-    private static final FlowBinderModel defaultFlowBinderModel = new FlowBinderModel(
-            DEFAULT_FLOW_BINDER_ID,
-            DEFAULT_FLOW_BINDER_VERSION,
-            "flow binder name", "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
-            defaultFlowModel,
-            Collections.singletonList(defaultSubmitterModel),
-            defaultSinkModel
-            );
-
-
-    // FlowBinderModelMapper.toModel()
+    private static final FlowBinderModel defaultFlowBinderModel =
+            new FlowBinderModelBuilder()
+                    .setId(DEFAULT_FLOW_BINDER_ID)
+                    .setVersion(DEFAULT_FLOW_BINDER_VERSION)
+                    .setFlowModel(defaultFlowModel)
+                    .setSubmitterModels(Collections.singletonList(defaultSubmitterModel))
+                    .setSinkModel(defaultSinkModel)
+                    .build();
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullFlowBinderInput_throws() {
@@ -105,14 +103,14 @@ public class FlowBinderModelMapperTest {
         final String flowBinderName = "*%(Illegal)_&Name - €";
         final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
 
-        final FlowBinderModel flowBinderModel = new FlowBinderModel(
-                DEFAULT_FLOW_BINDER_ID,
-                DEFAULT_FLOW_BINDER_VERSION,
-                flowBinderName, "flow binder description", "packaging", "format", "charset", "destination", "recordsplitter", true,
-                defaultFlowModel,
-                Collections.singletonList(defaultSubmitterModel),
-                defaultSinkModel);
-
+        final FlowBinderModel flowBinderModel = new FlowBinderModelBuilder()
+                .setId(DEFAULT_FLOW_BINDER_ID)
+                .setVersion(DEFAULT_FLOW_BINDER_VERSION)
+                .setName(flowBinderName)
+                .setFlowModel(defaultFlowModel)
+                .setSubmitterModels(Collections.singletonList(defaultSubmitterModel))
+                .setSinkModel(defaultSinkModel)
+                .build();
         try {
             FlowBinderModelMapper.toFlowBinderContent(flowBinderModel);
         } catch(IllegalArgumentException e) {

@@ -7,9 +7,7 @@ import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
-import com.google.gwt.view.client.NoSelectionModel;
-import com.google.gwt.view.client.SelectionChangeEvent;
-import com.google.gwt.view.client.SelectionModel;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -17,7 +15,7 @@ import java.util.List;
 
 public class View extends ViewWidget {
     ListDataProvider<FlowComponentModel> dataProvider;
-    NoSelectionModel<FlowComponentModel> selectionModel;
+    SingleSelectionModel<FlowComponentModel> selectionModel = new SingleSelectionModel<FlowComponentModel>();
 
     /**
      * Default constructor
@@ -64,7 +62,7 @@ public class View extends ViewWidget {
         flowComponentsTable.addColumn(constructSvnNextColumn(), texts.columnHeader_Next());
         flowComponentsTable.addColumn(constructJavaScriptModulesColumn(), texts.columnHeader_JavaScriptModules());
         flowComponentsTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
-        flowComponentsTable.setSelectionModel(constructSelectionModel());
+        flowComponentsTable.setSelectionModel(selectionModel);
         flowComponentsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
 
@@ -231,17 +229,6 @@ public class View extends ViewWidget {
     }
 
     /**
-     * This method constructs a Selection Model, and attaches an event handler to the table,
-     * reacting on selection events.
-     * @return A Selection Model for the table
-     */
-    private SelectionModel constructSelectionModel() {
-        selectionModel = new NoSelectionModel<FlowComponentModel>();
-        selectionModel.addSelectionChangeHandler(new FlowComponentSelectionModel());
-        return selectionModel;
-    }
-
-    /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
      * @return the double click handler
@@ -250,22 +237,13 @@ public class View extends ViewWidget {
         DoubleClickHandler handler = new DoubleClickHandler() {
             @Override
             public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                FlowComponentModel selected = selectionModel.getLastSelectedObject();
+                FlowComponentModel selected = selectionModel.getSelectedObject();
                 if(selected != null) {
                     presenter.editFlowComponent(selected);
                 }
             }
         };
         return handler;
-    }
-
-    /*
-    * Private classes
-    */
-    class FlowComponentSelectionModel implements SelectionChangeEvent.Handler {
-        public void onSelectionChange(SelectionChangeEvent event) {
-            selectionModel.getLastSelectedObject();
-        }
     }
 
 }

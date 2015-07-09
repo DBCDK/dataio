@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -236,6 +237,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         public void onSuccess(FlowComponentModel flowComponentModel) {
             view.status.setText(texts.status_FlowComponentSuccessfullySaved());
             setFlowComponentModel(flowComponentModel);
+            History.back();
         }
     }
 

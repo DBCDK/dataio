@@ -7,6 +7,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -27,7 +29,9 @@ import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -48,6 +52,8 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock ProxyException mockedProxyException;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock SingleSelectionModel<FlowComponentModel> mockedSelectionModel;
+    @Mock ListDataProvider<FlowComponentModel> mockedDataProvider;
 
     // Setup mocked data
     @Before
@@ -57,6 +63,8 @@ public class PresenterImplTest {
         when(mockedClientFactory.getFlowComponentsShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        mockedView.selectionModel = mockedSelectionModel;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
 
@@ -73,11 +81,9 @@ public class PresenterImplTest {
     }
 
     // Test Data
-    private List<FlowComponentModel> testModels
-            = Arrays.asList(new FlowComponentModelBuilder().build(),
-            new FlowComponentModelBuilder().build(),
-            new FlowComponentModelBuilder().build()
-    );
+    FlowComponentModel testModel1 = new FlowComponentModelBuilder().setName("FCName1").build();
+    FlowComponentModel testModel2 = new FlowComponentModelBuilder().setName("FCName2").build();
+    private List<FlowComponentModel> testModels = Arrays.asList(testModel1, testModel2);
 
 
     @Test
@@ -147,7 +153,7 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void fetchFlowComponents_callbackWithSuccess_flowComponentsAreFetched() {
+    public void fetchFlowComponents_callbackWithSuccess_flowComponentsAreFetchedInitialCallback() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -155,7 +161,42 @@ public class PresenterImplTest {
         presenterImpl.fetchFlowComponentsCallback.onSuccess(testModels);
 
         // Verify Test
+        verify(mockedSelectionModel).clear();
         verify(mockedView).setFlowComponents(testModels);
+    }
+
+    @Test
+    public void fetchFlowComponents_callbackWithSuccess_flowComponentsAreFetchedNoChanges() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowComponentsCallback.onSuccess(testModels);
+
+        // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
+        verify(mockedView, times(0)).setFlowComponents(testModels);
+    }
+
+    @Test
+    public void fetchFlowComponents_callbackWithSuccess_flowComponentsAreFetchedOneHasChangedSelectionIsSet() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(testModels);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(testModel1);
+
+        FlowComponentModel editedFlowComponent = new FlowComponentModelBuilder().setName("editedName").build();
+        List<FlowComponentModel> flowComponentModels = Arrays.asList(editedFlowComponent, testModel2);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowComponentsCallback.onSuccess(flowComponentModels);
+
+        // Verify Test
+        verify(mockedSelectionModel).setSelected(editedFlowComponent, true);
+        verify(mockedView).setFlowComponents(flowComponentModels);
     }
 
 }

@@ -12,11 +12,13 @@ import dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
- * This class represents the show submitters presenter implementation
+ * This class represents the show flow components presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
     private ClientFactory clientFactory;
@@ -68,11 +70,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlowComponent() {
+        view.selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
     /*
-     * Local methods
+     * Private methods
      */
 
     /**
@@ -82,6 +85,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         flowStoreProxy.findAllFlowComponents(new FetchFlowComponentsCallback());
     }
 
+    /**
+     * This method deciphers if a flow component has been added, updated or deleted.
+     * The view and selection model are updated accordingly
+     *
+     * @param models the list of flow components returned from flow store proxy
+     */
+    private void setFlowComponentsAndDecipherSelection(Set<FlowComponentModel> dataProviderSet, List<FlowComponentModel> models) {
+        if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
+            view.selectionModel.clear();
+            view.setFlowComponents(models);
+        } else {
+            for (FlowComponentModel current : models) {
+                if (!dataProviderSet.contains(current)) {
+                    view.setFlowComponents(models);
+                    view.selectionModel.setSelected(current, true);
+                    break;
+                }
+            }
+        }
+    }
 
     /*
      * Private classes
@@ -98,7 +121,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
         @Override
         public void onSuccess(List<FlowComponentModel> models) {
-            view.setFlowComponents(models);
+            setFlowComponentsAndDecipherSelection(new HashSet<FlowComponentModel>(view.dataProvider.getList()), models);
         }
     }
 

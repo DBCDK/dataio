@@ -14,6 +14,9 @@ import java.util.List;
  */
  @Stateless
  public class LogStoreBean {
+     public static final String ENTRY_SEPARATOR = System.lineSeparator()
+             + "___END_OF_LOG_ENTRY___" + System.lineSeparator() + System.lineSeparator();
+
      private static final String LOG_FORMAT_WITHOUT_STACKTRACE = "%s %s %s %s%n";
      private static final String LOG_FORMAT_WITH_STACKTRACE = "%s %s %s %s%n%s%n";
 
@@ -32,15 +35,17 @@ import java.util.List;
          if (logentryEntities.isEmpty()) {
              return "";
          }
-         if (logentryEntities.size() == 1) {
-             return logentryEntities.get(0).getFormattedMessage();
+         final StringBuilder sb = new StringBuilder();
+         if (logentryEntities.size() < 3) {
+             for (LogEntryEntity logEntryEntity : logentryEntities) {
+                 sb.append(logEntryEntity.getFormattedMessage()).append(ENTRY_SEPARATOR);
+             }
          } else {
-             final StringBuilder sb = new StringBuilder();
              for (LogEntryEntity logEntryEntity : logentryEntities) {
                  sb.append(format(logEntryEntity));
              }
-             return sb.toString();
          }
+         return sb.toString();
      }
 
      private List<LogEntryEntity> getLogEntryEntities(String jobId, long chunkId, long itemId) {

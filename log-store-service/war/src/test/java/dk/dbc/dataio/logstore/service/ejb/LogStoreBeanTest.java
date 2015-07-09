@@ -55,7 +55,7 @@ public class LogStoreBeanTest {
         final LogStoreBean logStoreBean = newLogStoreBean();
         final String itemLog = logStoreBean.getItemLog(jobId, chunkId, itemId);
         assertThat(itemLog.isEmpty(), is(false));
-        assertThat(itemLog, is(logEntryEntity.getFormattedMessage()));
+        assertThat(itemLog, is(logEntryEntity.getFormattedMessage() + LogStoreBean.ENTRY_SEPARATOR));
     }
 
     private LogStoreBean newLogStoreBean() {

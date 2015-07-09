@@ -7,6 +7,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
+import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -35,7 +37,9 @@ import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -56,6 +60,8 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock ProxyException mockedProxyException;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock SingleSelectionModel<FlowBinderModel> mockedSelectionModel;
+    @Mock ListDataProvider<FlowBinderModel> mockedDataProvider;
 
     // Setup mocked data
     @Before
@@ -65,6 +71,8 @@ public class PresenterImplTest {
         when(mockedClientFactory.getFlowBindersShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        mockedView.selectionModel = mockedSelectionModel;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
     // Subject Under Test
@@ -167,7 +175,7 @@ public class PresenterImplTest {
     }
 
     @Test
-    public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetched() {
+    public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedInitialCallback() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -175,6 +183,41 @@ public class PresenterImplTest {
         presenterImpl.fetchFlowBindersCallback.onSuccess(flowBinderModels);
 
         // Verify Test
+        verify(mockedSelectionModel).clear();
+        verify(mockedView).setFlowBinders(flowBinderModels);
+    }
+
+    @Test
+    public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedNoChanges() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(flowBinderModels);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowBindersCallback.onSuccess(flowBinderModels);
+
+        // Verify Test
+        verifyZeroInteractions(mockedSelectionModel);
+        verify(mockedView, times(0)).setFlowBinders(flowBinderModels);
+    }
+
+    @Test
+    public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedOneHasChangedSelectionIsSet() {
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        when(mockedDataProvider.getList()).thenReturn(flowBinderModels);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(flowBinderModel1);
+
+        FlowBinderModel editedFlowBinder = new FlowBinderModelBuilder().setName("editedName").build();
+        List<FlowBinderModel> flowBinderModels = Arrays.asList(editedFlowBinder, flowBinderModel2);
+
+        // Test Subject Under Test
+        presenterImpl.fetchFlowBindersCallback.onSuccess(flowBinderModels);
+
+        // Verify Test
+        verify(mockedSelectionModel).setSelected(editedFlowBinder, true);
         verify(mockedView).setFlowBinders(flowBinderModels);
     }
 

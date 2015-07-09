@@ -12,11 +12,13 @@ import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
- * This class represents the show flowbinders presenter implementation
+ * This class represents the show flow binders presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
     private ClientFactory clientFactory;
@@ -68,6 +70,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlowBinder() {
+        view.selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -82,6 +85,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         flowStoreProxy.findAllFlowBinders(new FetchFlowBindersCallback());
     }
 
+    /**
+     * This method deciphers if a flow binder has been added, updated or deleted.
+     * The view and selection model are updated accordingly
+     *
+     * @param models the list of flow binders returned from flow store proxy
+     */
+    private void setFlowBindersAndDecipherSelection(Set<FlowBinderModel> dataProviderSet, List<FlowBinderModel> models) {
+        if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
+            view.selectionModel.clear();
+            view.setFlowBinders(models);
+        } else {
+            for (FlowBinderModel current : models) {
+                if (!dataProviderSet.contains(current)) {
+                    view.setFlowBinders(models);
+                    view.selectionModel.setSelected(current, true);
+                    break;
+                }
+            }
+        }
+    }
 
     /*
      * Private classes
@@ -97,7 +120,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<FlowBinderModel> models) {
-            view.setFlowBinders(models);
+            setFlowBindersAndDecipherSelection(new HashSet<FlowBinderModel>(view.dataProvider.getList()), models);
         }
     }
 

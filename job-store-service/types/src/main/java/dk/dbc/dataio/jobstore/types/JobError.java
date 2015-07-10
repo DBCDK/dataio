@@ -8,6 +8,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
  * Class representing a job error
  */
 public class JobError {
+
+    public static final String NO_STACKTRACE = null;
     public enum Code {
         INVALID_DATA,
         INVALID_ITEM_IDENTIFIER,

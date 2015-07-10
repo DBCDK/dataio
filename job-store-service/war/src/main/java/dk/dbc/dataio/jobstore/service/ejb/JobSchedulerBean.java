@@ -1,14 +1,14 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorBean;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorMXBean;
 import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorSample;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
 import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
@@ -74,30 +74,26 @@ public class JobSchedulerBean {
      * @throws NullPointerException if given any null-valued argument
      * @throws JobStoreException if unable to setup monitoring
      */
+    @Stopwatch
     public void scheduleChunk(CollisionDetectionElement chunkCDE, Sink sink, boolean doPublishWorkload) throws NullPointerException, JobStoreException {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            InvariantUtil.checkNotNullOrThrow(chunkCDE, "cde");
-            InvariantUtil.checkNotNullOrThrow(sink, "sink");
-            final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) chunkCDE.getIdentifier();
-            LOGGER.info("Scheduling chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
-            toSinkMapping.put(chunkIdentifier, sink);
-            final String lockObject = getLockObject(String.valueOf(sink.getId()));
-            final List<CollisionDetectionElement> workload;
-            synchronized (lockObject) {
-                final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
-                sac.sequenceAnalyser.add(chunkCDE);
-                updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
-                if (doPublishWorkload) {
-                    workload = getWorkload(sac);
-                } else {
-                    workload = Collections.emptyList();
-                }
+        InvariantUtil.checkNotNullOrThrow(chunkCDE, "cde");
+        InvariantUtil.checkNotNullOrThrow(sink, "sink");
+        final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) chunkCDE.getIdentifier();
+        LOGGER.info("Scheduling chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
+        toSinkMapping.put(chunkIdentifier, sink);
+        final String lockObject = getLockObject(String.valueOf(sink.getId()));
+        final List<CollisionDetectionElement> workload;
+        synchronized (lockObject) {
+            final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
+            sac.sequenceAnalyser.add(chunkCDE);
+            updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
+            if (doPublishWorkload) {
+                workload = getWorkload(sac);
+            } else {
+                workload = Collections.emptyList();
             }
-            publishWorkload(workload);
-        } finally {
-            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
+        publishWorkload(workload);
     }
 
     /**
@@ -107,34 +103,30 @@ public class JobSchedulerBean {
      * @param chunkIdentifier chunk identifier
      * @throws JobStoreException if unable to setup monitoring
      */
+    @Stopwatch
     public void releaseChunk(ChunkIdentifier chunkIdentifier) throws JobStoreException {
-        final StopWatch stopWatch = new StopWatch();
-        try {
-            if (chunkIdentifier != null) {
-                LOGGER.info("Releasing chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
-                List<CollisionDetectionElement> workload;
-                final Sink sink = toSinkMapping.get(chunkIdentifier);
-                if (sink != null) {
-                    final String lockObject = getLockObject(String.valueOf(sink.getId()));
-                    synchronized (lockObject) {
-                        final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
-                        workload = releaseAndReturnWorkload(sac, chunkIdentifier);
+        if (chunkIdentifier != null) {
+            LOGGER.info("Releasing chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
+            List<CollisionDetectionElement> workload;
+            final Sink sink = toSinkMapping.get(chunkIdentifier);
+            if (sink != null) {
+                final String lockObject = getLockObject(String.valueOf(sink.getId()));
+                synchronized (lockObject) {
+                    final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
+                    workload = releaseAndReturnWorkload(sac, chunkIdentifier);
+                }
+                publishWorkload(workload);
+                toSinkMapping.remove(chunkIdentifier);
+            } else {
+                // Somehow the toSinkMapping has gone out of sync with reality,
+                // so try to release chunk from all sequence analysers
+                for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
+                    synchronized (entry.getKey()) {
+                        workload = releaseAndReturnWorkload(entry.getValue(), chunkIdentifier);
                     }
                     publishWorkload(workload);
-                    toSinkMapping.remove(chunkIdentifier);
-                } else {
-                    // Somehow the toSinkMapping has gone out of sync with reality,
-                    // so try to release chunk from all sequence analysers
-                    for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
-                        synchronized (entry.getKey()) {
-                            workload = releaseAndReturnWorkload(entry.getValue(), chunkIdentifier);
-                        }
-                        publishWorkload(workload);
-                    }
                 }
             }
-        } finally {
-            LOGGER.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

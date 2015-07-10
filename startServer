@@ -18,6 +18,16 @@ function shutdown {
     clear_mountpoint
 }
 
+function developmentmode {
+    startup
+    # setting up JNDI endpoints
+    echo "setting up JNDI endpoints for staging..."
+    ENDPOINTDIR=${BASEDIR}/integration-test/glassfish/jndioverrides
+    echo "JNDI endpoints changes is run from " ${ENDPOINTDIR}
+    ${ENDPOINTDIR}/glassfish4_add_endpoints
+    echo "JNDI settings configured."
+}
+
 function deploy {
     echo Dont know how to deploy
 }
@@ -32,14 +42,19 @@ function clear_mountpoint {
 
 trap shutdown SIGHUP SIGINT SIGTERM
 
-legal_parameters="start stop help"
+legal_parameters="start stop devmode help"
 
 [[ $legal_parameters =~ $1 ]] && echo "" || echo "$1 is an illegal parameter. Legal parameters are : $legal_parameters"
 
 arg=$1
-if [ -z "$arg" ] ; then 
-   arg=start 
-fi 
+if [ -z "$arg" ] ; then
+   arg=start
+fi
+
+arg1=$1
+if [ "$arg1" = devmode ] ; then
+    arg1=devmode
+fi
 
 case $arg in
     start) 
@@ -48,10 +63,14 @@ case $arg in
     stop)
 	shutdown
 	;;
+	devmode)
+	developmentmode
+	;;
     help)
 	echo "usage $0 [command]"
 	echo "  command must be on of the following"
 	echo "   - start    : startup + deploy dataio components"
+	echo "   - devmode  : startup + deploy dataio components + JNDI endpoints against staging"
 	echo "   - startup  : start databases and glassfish"
 	echo "   - stop     : shutdown + undeploy dataio components"
 	echo "   - shutdown : stop databases and glassfish"

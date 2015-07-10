@@ -59,8 +59,11 @@ public class AddJobParam implements AutoCloseable {
     protected InputStream dataFileInputStream;
     protected DataPartitionerFactory.DataPartitioner dataPartitioner;
 
-    public AddJobParam(JobInputStream jobInputStream, FlowStoreServiceConnector flowStoreServiceConnector,
-                       FileStoreServiceConnector fileStoreServiceConnector) throws NullPointerException {
+    public AddJobParam(
+            JobInputStream jobInputStream,
+            FlowStoreServiceConnector flowStoreServiceConnector,
+            FileStoreServiceConnector fileStoreServiceConnector) throws NullPointerException {
+
         this.jobInputStream = InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");

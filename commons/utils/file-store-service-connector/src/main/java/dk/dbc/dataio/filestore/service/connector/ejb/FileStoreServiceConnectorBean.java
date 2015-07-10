@@ -53,7 +53,7 @@ public class FileStoreServiceConnectorBean {
         Client client = HttpClient.newClient(config);
 
         try {
-            final String endpoint = ServiceUtil.getStringValueFromResource(JndiConstants.URL_RESOURCE_FILESTORE_RS);
+            final String endpoint = ServiceUtil.getFileStoreServiceEndpoint();
             fileStoreServiceConnector = new FileStoreServiceConnector(client, endpoint);
             LOGGER.info("Using service endpoint {}", endpoint);
         } catch (NamingException e) {

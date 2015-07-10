@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -52,6 +53,19 @@ public class JobsBean {
     PgJobStore jobStore;
 
     /**
+     * This is a dummy service for TEST purposes.
+     * @return always OK
+     */
+    @GET
+    @Path("jobs/test")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Stopwatch
+    public Response testThis() {
+        return Response.ok().entity("Det gik jo fantastisk.").build();
+    }
+
+    /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
      *
      * @param uriInfo application and request URI information
@@ -68,6 +82,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response addJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
         LOGGER.trace("JobInputStream: {}", jobInputStreamData);
         final JobInputStream jobInputStream;
@@ -113,6 +128,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_CHUNK_PROCESSED)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response addChunkProcessed(@Context UriInfo uriInfo, String externalChunkData,
                              @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
                              @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId)
@@ -143,6 +159,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_CHUNK_DELIVERED)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response addChunkDelivered(@Context UriInfo uriInfo, String externalChunkData,
                                       @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
                                       @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId)
@@ -161,6 +178,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response listJobs(String jobListCriteriaData) throws JSONBException {
         try {
             final JobListCriteria jobListCriteria =
@@ -190,6 +208,7 @@ public class JobsBean {
     @Path(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response listItems(String itemListCriteriaData) throws JSONBException {
         try {
             final ItemListCriteria itemListCriteria =
@@ -221,6 +240,7 @@ public class JobsBean {
     @GET
     @Path(JobStoreServiceConstants.JOB_RESOURCEBUNDLE)
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response getResourceBundle(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         try {
             ResourceBundle resourceBundle = jobStore.getResourceBundle(jobId);
@@ -249,6 +269,7 @@ public class JobsBean {
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED)
     @Produces({ MediaType.TEXT_PLAIN })
+    @Stopwatch
     public Response getPartitionedResult(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
                                          @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
                                          @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
@@ -270,6 +291,7 @@ public class JobsBean {
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED)
     @Produces({ MediaType.TEXT_PLAIN })
+    @Stopwatch
     public Response getProcessingResult(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
                                         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
                                         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
@@ -291,6 +313,7 @@ public class JobsBean {
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
     @Produces({ MediaType.TEXT_PLAIN })
+    @Stopwatch
     public Response getDeliveringResult(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
                                         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
                                         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {

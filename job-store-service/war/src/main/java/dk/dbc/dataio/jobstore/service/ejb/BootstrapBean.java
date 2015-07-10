@@ -1,13 +1,13 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,15 +43,13 @@ public class BootstrapBean {
     JobSchedulerBean jobSchedulerBean;
 
     @PostConstruct
+    @Stopwatch
     public void initialize() {
-        final StopWatch stopWatch = new StopWatch();
         try {
             restoreSystemState();
             jobSchedulerBean.jumpStart();
         } catch (JobStoreException e) {
             throw new EJBException(e);
-        } finally {
-            LOGGER.debug("job-store initialization took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

@@ -1,4 +1,4 @@
-create_job.py#!/usr/bin/env python
+#!/usr/bin/env python
 
 #
 #
@@ -12,8 +12,8 @@ import json
 def parse_arguments():
     global args
     parser = argparse.ArgumentParser("")
-    parser.add_argument("filename", help="datafile")
     parser.add_argument("jobspecification", help="job specification file in json")
+    parser.add_argument("fileID", help="The Number from [urn:dataio-fs:638388] eg 638388")
     parser.add_argument("--host", help="host for the dataio system, choose dataio-be-s01:8080 for staging or dataio-be-p01:8080 for prod", required=True)
 
     args = parser.parse_args()
@@ -53,8 +53,8 @@ def create_job(fileId, specification):
 
 parse_arguments()
 
-fileStoreId = post_file(args.filename)
-create_job(fileStoreId, load_specification(args.jobspecification))
+
+create_job(args.fileID, load_specification(args.jobspecification))
 
 
 

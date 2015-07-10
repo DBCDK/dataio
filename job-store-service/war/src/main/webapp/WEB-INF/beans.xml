@@ -5,6 +5,6 @@
        version="1.1" bean-discovery-mode="all">
 
        <interceptors>
-              <class>dk.dbc.dataio.jobstore.service.interceptor.StopwatchInterceptor</class>
+              <class>dk.dbc.dataio.commons.types.interceptor.StopwatchInterceptor</class>
        </interceptors>
 </beans>

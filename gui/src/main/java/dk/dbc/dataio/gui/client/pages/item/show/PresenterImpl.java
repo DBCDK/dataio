@@ -31,6 +31,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected int allItemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
+    protected ItemListCriteriaModel.ItemSearchType itemSearchType;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -69,6 +70,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void allItemsTabSelected() {
+        itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
         getItems(ItemListCriteriaModel.ItemSearchType.ALL, allItemCounter, view.allItemsList);
     }
 
@@ -77,6 +79,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void failedItemsTabSelected() {
+        itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
         getItems(ItemListCriteriaModel.ItemSearchType.FAILED, failedItemCounter, view.failedItemsList);
     }
 
@@ -85,11 +88,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void ignoredItemsTabSelected() {
+        itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
         getItems(ItemListCriteriaModel.ItemSearchType.IGNORED, ignoredItemCounter, view.ignoredItemsList);
     }
 
     /**
      * An indication from the view, that an item has been selected
+     * @param listView The list view in question
      * @param itemModel The model for the selected item
      */
     @Override
@@ -99,20 +104,37 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
-        if (listView.detailedTabs.getWidgetCount() > 0) {
-            if(itemModel.getStatus() == ItemModel.LifeCycle.DELIVERING && failedItemCounter > 0) {
-                listView.detailedTabs.selectTab(3);
-            } else {
-                listView.detailedTabs.selectTab(0);
-            }
-            listView.detailedTabs.setVisible(true);
-        }
+        selectDetailedTab(listView, itemModel.getStatus());
     }
 
     /*
      * Private methods
      */
 
+    /**
+     * This method decides which detailed tab should be default selected
+     * @param listView The list view in question
+     * @param status the status of the selected item
+     */
+    private void selectDetailedTab(ItemsListView listView, ItemModel.LifeCycle status) {
+
+        // Item failed in delivering: Show sink result
+        if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.DELIVERING) {
+            listView.detailedTabs.selectTab(listView.SINK_RESULT_TAB_CONTENT);
+        }
+        // Item failed in processing: Show output post
+        else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.PROCESSING) {
+            listView.detailedTabs.selectTab(listView.OUTPUT_POST_TAB_CONTENT);
+        }
+        // Item ignored in processing or delivering: Show output post
+        else if(itemSearchType == ItemListCriteriaModel.ItemSearchType.IGNORED && (status == ItemModel.LifeCycle.PROCESSING || status == ItemModel.LifeCycle.DELIVERING)) {
+            listView.detailedTabs.selectTab(listView.OUTPUT_POST_TAB_CONTENT);
+        }
+        else {
+            listView.detailedTabs.selectTab(listView.JAVASCRIPT_LOG_TAB_CONTENT);
+        }
+        listView.detailedTabs.setVisible(true);
+    }
 
     /**
      * This method fetches the Job Model with the given jobId

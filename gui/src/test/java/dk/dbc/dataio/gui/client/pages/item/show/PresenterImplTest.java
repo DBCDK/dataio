@@ -93,6 +93,9 @@ public class PresenterImplTest {
     static final int IGNORED_ITEMS_TAB_INDEX = 2;
     static final int JOB_INFO_TAB_CONTENT = 3;
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
+    static final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
+    static final int OUTPUT_POST_TAB_CONTENT = 2;
+    static final int SINK_RESULT_TAB_CONTENT = 3;
 
 
     // Setup mocked data
@@ -158,7 +161,9 @@ public class PresenterImplTest {
     final static String MOCKED_TAB_IGNOREDITEMS = "Mocked Ignorerede poster";
     final static String MOCKED_TAB_JOBINFO = "Mocked Job info";
     final static String MOCKED_TAB_JAVASCRIPTLOG = "Mocked Javascript log";
-    final static String MOCKED_TAB_INPUTPOST = "Mocked input post log";
+    final static String MOCKED_TAB_INPUTPOST = "Mocked input post";
+    final static String MOCKED_TAB_OUTPUTPOST = "Mocked output post";
+    final static String MOCKED_TAB_SINKRESULT = "Mocked sink result";
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedText);
@@ -184,6 +189,8 @@ public class PresenterImplTest {
         when(mockedText.tab_JobInfo()).thenReturn(MOCKED_TAB_JOBINFO);
         when(mockedText.tab_JavascriptLog()).thenReturn(MOCKED_TAB_JAVASCRIPTLOG);
         when(mockedText.tab_PartitioningPost()).thenReturn(MOCKED_TAB_INPUTPOST);
+        when(mockedText.tab_ProcessingPost()).thenReturn(MOCKED_TAB_OUTPUTPOST);
+        when(mockedText.tab_DeliveringPost()).thenReturn(MOCKED_TAB_SINKRESULT);
     }
 
     // Subject Under Test
@@ -209,7 +216,7 @@ public class PresenterImplTest {
     private ItemModel testModel1 = new ItemModel("11", "1001", "1111", "1", ItemModel.LifeCycle.DELIVERING);
     private ItemModel testModel2 = new ItemModel("12", "ItemId2", "ChunkId2", "JobId2", ItemModel.LifeCycle.DONE);
     private ItemModel testModel3 = new ItemModel("13", "ItemId3", "ChunkId3", "JobId3", ItemModel.LifeCycle.PARTITIONING);
-    private ItemModel testModel4 = new ItemModel("14", "ItemId4", "ChunkId4", "JobId4", ItemModel.LifeCycle.PROCESSING);
+    private ItemModel testModel4 = new ItemModel("14", "1004", "1114", "1", ItemModel.LifeCycle.PROCESSING);
     private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
     private JobModel testJobModelSucceeded = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014", "SubmitterName1",
@@ -384,7 +391,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedAllDetailedTabs.getWidgetCount()).thenReturn(3); // Simulate not empty
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel1);
@@ -394,8 +401,93 @@ public class PresenterImplTest {
         verify(mockedText).tab_JavascriptLog();
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).getWidgetCount();
-        verify(mockedAllDetailedTabs).selectTab(0);
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).selectTab(JAVASCRIPT_LOG_TAB_CONTENT);
+        verify(mockedAllDetailedTabs).setVisible(true);
+    }
+
+    @Test
+    public void itemSelected_itemFailedInDelivering_callItemSelected_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.itemSelected(mockedAllItemsListView, testModel1);
+
+        // Verify Test
+        verify(mockedAllDetailedTabs).clear();
+        verify(mockedText).tab_JavascriptLog();
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).selectTab(SINK_RESULT_TAB_CONTENT);
+        verify(mockedAllDetailedTabs).setVisible(true);
+    }
+
+    @Test
+    public void itemSelected_itemFailedInProcessing_callItemSelected_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.itemSelected(mockedAllItemsListView, testModel4);
+
+        // Verify Test
+        verify(mockedAllDetailedTabs).clear();
+        verify(mockedText).tab_JavascriptLog();
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
+        verify(mockedAllDetailedTabs).setVisible(true);
+    }
+
+    @Test
+    public void itemSelected_itemIgnoredInProcessing_callItemSelected_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.itemSelected(mockedAllItemsListView, testModel4);
+
+        // Verify Test
+        verify(mockedAllDetailedTabs).clear();
+        verify(mockedText).tab_JavascriptLog();
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
+        verify(mockedAllDetailedTabs).setVisible(true);
+    }
+
+    @Test
+    public void itemSelected_itemIgnoredInDelivering_callItemSelected_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.itemSelected(mockedAllItemsListView, testModel1);
+
+        // Verify Test
+        verify(mockedAllDetailedTabs).clear();
+        verify(mockedText).tab_JavascriptLog();
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 

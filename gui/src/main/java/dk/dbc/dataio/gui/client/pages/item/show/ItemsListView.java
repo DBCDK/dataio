@@ -16,6 +16,9 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 public class ItemsListView extends Composite {
     protected static final int PAGE_SIZE = 20;
     protected static final int FAST_FORWARD_PAGES = 5;
+    final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
+    final int OUTPUT_POST_TAB_CONTENT = 2;
+    final int SINK_RESULT_TAB_CONTENT = 3;
 
     interface ItemsListUiBinder extends UiBinder<HTMLPanel, ItemsListView> {
     }

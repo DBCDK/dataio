@@ -1,4 +1,4 @@
-create_job.py#!/usr/bin/env python
+#!/usr/bin/env python
 
 #
 #

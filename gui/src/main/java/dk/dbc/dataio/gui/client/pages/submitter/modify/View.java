@@ -57,6 +57,5 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("deleteButton")
     void deleteButtonPressed(ClickEvent event) {
         presenter.deleteButtonPressed();
-        History.back();
     }
 }

@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.place.shared.Place;
+import com.google.gwt.user.client.History;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
@@ -97,6 +98,7 @@ public class PresenterEditImpl extends PresenterImpl {
         public void onSuccess(Void aVoid) {
             view.status.setText(texts.status_SubmitterSuccessfullyDeleted());
             setSubmitterModel(null);
+            History.back();
         }
     }
 

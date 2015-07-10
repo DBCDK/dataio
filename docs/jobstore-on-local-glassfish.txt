@@ -1,0 +1,32 @@
+
+***** Guide til opsætning af IntelliJ for at kunne køre job-store på en lokal Glassfish styret fra IntelliJ. *****
+
+- Åben ‘Run/Debug Configurations’
+- klik på ‘+’
+- Vælg ‘Glassfish Server’ -> ‘Local’
+- Giv din server et passende navn som for eksempel "Local Dev” i ‘Name’ feltet.
+- Såfremt du ikke har mappet en Glassfish Server tidligere i din IntelliJ så skal du klikke på knappen ‘Configure’ og pege på følgende dir: SVN_CHECKOUT_HOME/integration-test/glassfish/home/glassfish4
+- Nu er vi tilbage i ‘Run/Debug Configurations’ hvor du skal sætte ‘Server Domain’ ved at pege på følgende dir: SVN_CHECKOUT_HOME/integration-test/glassfish/home/glassfish4/glassfish/domains/domain1
+- Ignorer i første omgang den Warning der siger: ‘No artifacts marked for deployment’
+- Klik på knappe ‘OK’
+- Nu skal vi teste om vores nye server mapping i IntelliJ kan koble sig på den kørende intergrations Glassfish server. Start denne ved at køre ‘sh startServer devmode’
+- Under ‘Run/Debug Configurations’ vælg din ny-mappede server og klik på ‘Run’ knappen.
+- Output vinduet vil sige at der allerede kører en proces der benytter på port 4848 og noget i retning af ‘Command start-domain failed.’ og det er præcis som det skal være. Til sidst vil der stå noget i retning af ‘Connected to server’.
+- Nu kan du administrere din Glassfish server gennem IntelliJ.
+- som eksempel vil vi nu deploye job-store igennem IntelliJ.
+- Open den 'Run/Debug Configuration' vi lige har oprettet og klik på fanen 'Deployment' og klik på '+' og vælg følgende: 'dataio-job-store-service-war:war exploded'
+- 'Kør' din server inde fra IntelliJ hvis ikke den allerede er startet. OBS: husk at du skal have startet din Glassfish i devmode som beskrevet ovenfor.
+- Inde fra din lokale Glassfish skal du nu gerne have job-store war filen deployet under menuen 'Applications'
+- Klik på dit nye deployment og klik på 'Launch' ude til højre og du vil se en side med et link der ligner dette: 'http://dhcp86.dbc.dk:8080/dataio/job-store-service'
+- Klik på linket og tilføje følgende til URL'en så den ser således ud: 'http://dhcp86.dbc.dk:8080/dataio/job-store-service/jobs/test' og fyr den af i en browser.
+- Såfremt dit deployment virker vil du se følgende i din browser: 'Det gik jo fantastisk.'
+
+Mapning af server.log så den kan ses igennem IntelliJ:
+- Åben den 'Run/Debug Configuration' vi lige har oprettet og klik på fanen 'Logs' og klik herefter på '+'
+- Angiv et alias og peg på server.log som ligger i din lokale Glassfish installation.
+- Husk at unchecke 'Skip content' ude til højre.
+- Husk at sætte 'Log level' til 'All' ud for hver logfil nede i dit 'Run' vindue i IntelliJ
+
+Gendeploy application
+- Når serveren kører inde fra IntelliJ klik da på den øverste knap i 'Run' vinduet med den label der siger 'Rerun [NAVN_PÅ_DIN_CONFIGURATION]'
+

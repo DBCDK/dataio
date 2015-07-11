@@ -35,13 +35,12 @@ def load_specification(specificationFileName):
     return json.loads(data)
 
 
-def create_job(fileId, specification):
-    specification['dataFile'] = "urn:dataio-fs:" + str(fileId)
-    # "dataFile": "urn:dataio-fs:" + str(fileId),
-    specification = {"jobSpecification": specification, "isEndOfJob": True, "partNumber": 0}
+def create_job(fileId, job_specification):
+    job_specification['dataFile'] = "urn:dataio-fs:" + str(fileId)
+    add_job_args = {"jobSpecification": job_specification, "isEndOfJob": True, "partNumber": 0}
 
     createJobUrl = "http://" + args.host + "/dataio/job-store-service/jobs"
-    r = requests.post(createJobUrl, json.dumps(specification))
+    r = requests.post(createJobUrl, json.dumps(add_job_args))
 
     if r.status_code == requests.codes.CREATED:
         job = json.loads(str(r.content))

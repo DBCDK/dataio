@@ -10,16 +10,15 @@ public class JobListCriteriaModel extends GenericBackendModel {
 
     private JobSearchType jobSearchType;
     private String sinkId;
-    private Set<String> jobTypes;
+    private Set<String> jobTypes = new HashSet<String>();
 
     public JobListCriteriaModel() {
-        this(JobSearchType.PROCESSING_FAILED, "0", new HashSet<String>()); //Default values
+        this(JobSearchType.PROCESSING_FAILED, "0"); //Default values
     }
 
-    private JobListCriteriaModel(JobSearchType searchType, String sinkId, Set<String> jobTypes) {
+    private JobListCriteriaModel(JobSearchType searchType, String sinkId) {
         this.setSearchType(searchType);
         this.setSinkId(sinkId);
-        this.jobTypes = jobTypes;
         for (JobType jobType : JobType.values()) {
             jobTypes.add(jobType.name());
         }
@@ -45,4 +44,24 @@ public class JobListCriteriaModel extends GenericBackendModel {
         this.sinkId = sinkId;
     }
 
+    /**
+     * Merges the current model with the one supplied as a parameter in the call, using AND logic
+     * @param model The model to merge with the current one using AND logic
+     * @return The resulting model (also stored in this instance)
+     */
+    public JobListCriteriaModel and(JobListCriteriaModel model) {
+        if (model != null) {
+            setSearchType(model.getSearchType());  // The old SearchType is disgarded, and the new SearchType is used instead
+            setSinkId(model.getSinkId());  // The old SinkId is disgarded, and the new SinkId is used instead
+            Set<String> oldJobTypes = new HashSet<String>(this.jobTypes.size());
+            oldJobTypes.addAll(this.jobTypes);
+            this.jobTypes.clear();
+            for (String jobType: oldJobTypes) {
+                if (model.jobTypes.contains(jobType)) {  // Only if the old AND the new supplied jobtype is present in the model
+                    this.jobTypes.add(jobType);
+                }
+            }
+        }
+        return this;
+    }
 }

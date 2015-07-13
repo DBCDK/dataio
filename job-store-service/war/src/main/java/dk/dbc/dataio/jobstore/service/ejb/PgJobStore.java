@@ -83,6 +83,7 @@ public class PgJobStore {
     @Resource
     SessionContext sessionContext;
 
+    /* These instances are not private otherwise they were not accessible from automatic test */
     @EJB
     JobSchedulerBean jobSchedulerBean;
 
@@ -96,6 +97,11 @@ public class PgJobStore {
     EntityManager entityManager;
 
     JSONBContext jsonbContext = new JSONBContext();
+
+    @Stopwatch
+    public String testMe() {
+        return "Det virker fantastisk.";
+    }
 
     /**
      * Adds new job in the underlying data store from given job input stream, after attempting to retrieve

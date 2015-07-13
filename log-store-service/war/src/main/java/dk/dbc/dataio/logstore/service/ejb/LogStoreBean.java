@@ -1,5 +1,6 @@
 package dk.dbc.dataio.logstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import dk.dbc.dataio.logstore.service.entity.LogEntryEntity;
 
@@ -23,6 +24,10 @@ import java.util.List;
      @PersistenceContext
      EntityManager entityManager;
 
+     @Stopwatch
+     public String testMe() {
+         return "Det gik jo fantastisk.";
+     }
      /**
       * Retrieves log for given item in given chunk in given job
       * @param jobId ID of job
@@ -30,6 +35,7 @@ import java.util.List;
       * @param itemId ID of item in chunk
       * @return log as string, or empty string if no entries could be found
       */
+     @Stopwatch
      public String getItemLog(String jobId, long chunkId, long itemId) {
          final List<LogEntryEntity> logentryEntities = getLogEntryEntities(jobId, chunkId, itemId);
          if (logentryEntities.isEmpty()) {

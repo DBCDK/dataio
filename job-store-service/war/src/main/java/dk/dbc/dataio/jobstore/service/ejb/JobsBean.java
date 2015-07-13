@@ -49,6 +49,7 @@ public class JobsBean {
 
     JSONBContext jsonbContext = new JSONBContext();
 
+    /* This is ont private so it is accessible from automatic test */
     @EJB
     PgJobStore jobStore;
 
@@ -58,11 +59,10 @@ public class JobsBean {
      */
     @GET
     @Path("jobs/test")
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Stopwatch
     public Response testThis() {
-        return Response.ok().entity("Det gik jo fantastisk.").build();
+        return Response.ok().entity(this.jobStore.testMe()).build();
     }
 
     /**

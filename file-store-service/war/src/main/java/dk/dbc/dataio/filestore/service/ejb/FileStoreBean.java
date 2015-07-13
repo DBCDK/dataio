@@ -3,6 +3,7 @@ package dk.dbc.dataio.filestore.service.ejb;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.entity.FileAttributes;
 import org.slf4j.Logger;
@@ -34,6 +35,11 @@ public class FileStoreBean {
     @EJB
     BinaryFileStoreBean binaryFileStore;
 
+    @Stopwatch
+    public String testMe(){
+        return "Det gik jo fantastisk.";
+    }
+
     /**
      * Adds content of given input stream as file in store
      * @param dataSource input stream of bytes to be written
@@ -41,6 +47,7 @@ public class FileStoreBean {
      * @throws NullPointerException if given null-valued dataSource argument
      * @throws IllegalStateException on general failure to write data
      */
+    @Stopwatch
     public String addFile(InputStream dataSource) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(dataSource, "dataSource");
         final Path location = getCurrentLocation();
@@ -69,6 +76,7 @@ public class FileStoreBean {
      * @throws IllegalStateException on general failure to read data
      * @throws EJBException if no file attributes can be found for given file ID
      */
+    @Stopwatch
     public void getFile(String fileId, OutputStream dataDestination)
             throws NullPointerException, IllegalArgumentException, IllegalStateException, EJBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
@@ -92,6 +100,7 @@ public class FileStoreBean {
      * @throws IllegalArgumentException if given empty-valued fileId argument
      * @throws EJBException if no file attributes can be found for given file ID
      */
+    @Stopwatch
     public long getByteSize(String fileId) throws NullPointerException, IllegalArgumentException, EJBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         try {
@@ -112,6 +121,7 @@ public class FileStoreBean {
      * @throws NullPointerException if given null-valued fileId argument
      * @throws IllegalArgumentException if given empty valued fileId argument
      */
+    @Stopwatch
     public boolean fileExists(String fileId) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         try {

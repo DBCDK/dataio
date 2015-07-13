@@ -1,5 +1,6 @@
 package dk.dbc.dataio.logstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.LogStoreServiceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,17 @@ public class LogEntriesBean {
     LogStoreBean logStoreBean;
 
     /**
+     * This is a dummy service for TEST purposes.
+     * @return always OK
+     */
+    @GET
+    @Path("logentries/test")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Stopwatch
+    public Response testThis() {
+        return Response.ok().entity(this.logStoreBean.testMe()).build();
+    }
+    /**
      * Retrieves log for given item in given chunk in given job
      * @param jobId ID of job
      * @param chunkId ID of chunk in job
@@ -37,6 +49,7 @@ public class LogEntriesBean {
     @GET
     @Path(LogStoreServiceConstants.ITEM_LOG_ENTRY_COLLECTION)
     @Produces(MediaType.TEXT_PLAIN)
+    @Stopwatch
     public Response getItemLog(
             @PathParam(LogStoreServiceConstants.JOB_ID_VARIABLE) final String jobId,
             @PathParam(LogStoreServiceConstants.CHUNK_ID_VARIABLE) final Long chunkId,

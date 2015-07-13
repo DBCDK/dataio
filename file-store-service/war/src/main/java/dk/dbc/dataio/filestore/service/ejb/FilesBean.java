@@ -1,5 +1,6 @@
 package dk.dbc.dataio.filestore.service.ejb;
 
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.FileStoreServiceConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -36,6 +38,18 @@ public class FilesBean {
     FileStoreBean fileStore;
 
     /**
+     * This is a dummy service for TEST purposes.
+     * @return always OK
+     */
+    @GET
+    @Path("files/test")
+    @Produces(MediaType.TEXT_PLAIN)
+    @Stopwatch
+    public Response testThis() {
+        return Response.ok().entity(this.fileStore.testMe()).build();
+    }
+
+    /**
      * Creates new file in file-store containing data from the given data stream
      *
      * @param uriInfo application and request URI information
@@ -49,6 +63,7 @@ public class FilesBean {
     @POST
     @javax.ws.rs.Path(FileStoreServiceConstants.FILES_COLLECTION)
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Stopwatch
     public Response addFile(@Context UriInfo uriInfo, InputStream dataStream) throws IOException {
         LOGGER.trace("addFile() method called");
         try {
@@ -70,6 +85,7 @@ public class FilesBean {
     @GET
     @javax.ws.rs.Path(FileStoreServiceConstants.FILE)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Stopwatch
     public Response getFile(@PathParam("id") final String id) {
         LOGGER.trace("getFile() method called with file ID {}", id);
 
@@ -97,6 +113,7 @@ public class FilesBean {
      */
     @GET
     @javax.ws.rs.Path(FileStoreServiceConstants.FILE_ATTRIBUTES_BYTESIZE)
+    @Stopwatch
     public Response getByteSize(@PathParam("id") final String id) {
         LOGGER.trace("getFileAttributes() method called with file ID {}", id);
         try {

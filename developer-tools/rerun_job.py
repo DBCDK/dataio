@@ -14,8 +14,8 @@ import argparse
 def parse_arguments():
     global args
     parser = argparse.ArgumentParser("")
+    parser.add_argument("jobid", type=int, help="job nummeret")
     parser.add_argument("--host", help="host til dataio systemet brug dataio-be-s01:8080 for staging", required=True)
-    parser.add_argument("--job", help="job to show", type=int, required=True)
 
     args = parser.parse_args()
 
@@ -64,7 +64,7 @@ def create_job(job_specification):
 
 
 
-job_specification=get_job_specifiction(args.job)
+job_specification=get_job_specifiction(args.jobid)
 
 new_job_id=create_job( job_specification)
-print("job "+ new_job_id+" er oprettet som kopi af job "+ str(args.job))
+print("job "+ new_job_id+" er oprettet som kopi af job "+ str(args.jobid))

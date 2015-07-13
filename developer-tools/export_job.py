@@ -15,7 +15,7 @@ def parse_arguments():
     global args
     parser = argparse.ArgumentParser("")
     parser.add_argument("jobid", help="job nummeret")
-    parser.add_argument("filenamePrefix", help="Filename perfix")
+    parser.add_argument("filenamePrefix", help="Filename prefix - f.eks. mitSejeExportJob bliver til mitSejeExportJob.data og mitSejeExportJob.specification")
     parser.add_argument("--host", help="host til dataio systemet brug dataio-be-s01:8080 for staging", required=True)
 
     args = parser.parse_args()

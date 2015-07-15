@@ -741,6 +741,69 @@ public class PgJobStoreIT {
 
     /**
      * Given: a job store where a job is added
+     * When : an external chunk with Next processing Data is added
+     * Then : the job info snapshot is updated
+     * And  : the referenced entities are updated
+     */
+    @Test
+    public void addChunkWithNextData() throws JobStoreException, SQLException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
+        final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
+
+        final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
+
+        assertThat(jobInfoSnapshotNewJob, not(nullValue()));
+
+        // Validate that nothing has been processed on job level
+        assertThat(jobInfoSnapshotNewJob.getState().getPhase(PROCESSING).getSucceeded(), is(0));
+
+        // Validate that nothing has been processed on chunk level
+        assertAndReturnChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, PROCESSING, false);
+
+        // Validate that nothing has been processed on item level
+        assertAndReturnItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
+
+        ExternalChunk chunk = buildExternalChunkWithNextItems(
+                jobInfoSnapshotNewJob.getJobId(),
+                chunkId, 1,
+                ExternalChunk.Type.PROCESSED,
+                ChunkItem.Status.SUCCESS);
+
+        // When...
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapShotUpdatedJob = pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // Then...
+        assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
+
+        // Validate that one external chunk has been processed on job level
+        assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(PROCESSING).getSucceeded(), is(1));
+        LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshotNewJob.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
+        assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
+
+        // And...
+
+        // Validate that one external chunk has been processed on chunk level
+        assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
+
+        // Validate that one external chunk has been processed on item level
+        assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+
+        clearEntityManagerCache();
+
+        ExternalChunk fromDB= pgJobStore.getChunk(ExternalChunk.Type.PROCESSED, jobInfoSnapshotNewJob.getJobId(), chunkId);
+        assertThat( fromDB.hasNextItems(), is(true));
+        // extra checks for next Iems.
+
+    }
+
+
+    /**
+     * Given: a job store where a job is added
      * When : the same external chunk is added twice
      * Then : a DuplicateChunkException is thrown
      * And  : the DuplicateChunkException contains a JobError with Code.ILLEGAL_CHUNK
@@ -1490,6 +1553,18 @@ public class PgJobStoreIT {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
+    }
+
+
+    private ExternalChunk buildExternalChunkWithNextItems(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
+        List<ChunkItem> items = new ArrayList<>();
+        List<ChunkItem> nextItems = new ArrayList<>();
+
+        for(long i = 0; i < numberOfItems; i++) {
+            items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
+            nextItems.add( new ChunkItemBuilder().setId(i).setData("next:"+getData(type)).setStatus(status).build());
+        }
+        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).setNextItems(nextItems).build();
     }
 
     private ExternalChunk buildExternalChunkContainingFailedAndIgnoredItem(int numberOfItems, long jobId, long chunkId, long failedItemId, long ignoredItemId, ExternalChunk.Type type) {

@@ -73,6 +73,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
+
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
  */
@@ -488,6 +490,13 @@ public class PgJobStore {
             final ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
             for (ItemEntity itemEntity : itemEntities) {
                 chunk.insertItem(itemEntity.toChunkItem(phase));
+                // Special case for nextProcess Chunk... only relevant in phase PROCESSED
+                if(PROCESSED == type ) {
+                    ChunkItem nextProcessingChunkItem=itemEntity.getChunkItemForNextProcessing(phase);
+                    if( nextProcessingChunkItem != null ) {
+                        chunk.insertNextItem(nextProcessingChunkItem);
+                    }
+                }
             }
             chunk.setEncoding(itemEntities.get(0).getEncodingForPhase(phase));
             return chunk;
@@ -602,6 +611,9 @@ public class PgJobStore {
                     .setEndDate(new Date());                                                // ToDo: ExternalChunk type must contain endDate
 
             setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, itemData);
+            if( chunk.hasNextItems() ) {
+                setNextOutcomeOnItemEntityFromPhase( chunk, phase, itemEntity, itemData);
+            }
 
             setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, itemStateChange);
 
@@ -638,6 +650,16 @@ public class PgJobStore {
             case PARTITIONING:
                 throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
         }
+    }
+
+    private void setNextOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ItemData itemData) throws InvalidInputException {
+        switch (phase) {
+                case PROCESSING: itemEntity.setNextProcessingOutcome(itemData);
+                    break;
+                case DELIVERING:
+                case PARTITIONING:
+                    throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
+            }
     }
 
     /**

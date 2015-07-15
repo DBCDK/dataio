@@ -18,6 +18,7 @@
     <module>dummy</module>
     <module>es</module>
     <module>fbs</module>
+    <module>diff</module>
     <module>testutil</module>
     <module>types</module>
   </modules>

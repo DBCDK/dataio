@@ -1,0 +1,12 @@
+{
+         "charset": "utf8",
+         "destination": "fbs",
+         "format": "katalog",
+         "mailForNotificationAboutProcessing": "-mailForNotificationAboutProcessing-",
+         "mailForNotificationAboutVerification": "-mailForNotificationAboutVerification-",
+         "resultmailInitials": "resultMail",
+         "packaging": "xml",
+         "submitterId": 870970,
+         "type": "TRANSIENT"
+}
+

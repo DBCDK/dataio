@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -340,7 +341,11 @@ public class PgJobStore {
                         addJobParam.getJobInputStream().getJobSpecification().getType() != JobSpecification.Type.ACCTEST ?
                                 new FlowTrimmer(jsonbContext).trim(flowJson) : flowJson);
                 jobEntity.setCachedFlow(flowCacheEntity);
-                final String sinkJson = jsonbContext.marshall(addJobParam.getSink());
+                String sinkJson = jsonbContext.marshall(addJobParam.getSink());
+                if( addJobParam.getJobInputStream().getJobSpecification().getType() == JobSpecification.Type.ACCTEST ) {
+                    LOGGER.info("Forsing diff sink on ACCTEST job");
+                    sinkJson = jsonbContext.marshall( new Sink(1,1,new SinkContent("DiffSink","jdbc/dataio/diff","InternalSink")) );
+                }
                 final SinkCacheEntity sinkCacheEntity = cacheSink(sinkJson);
                 jobEntity.setCachedSink(sinkCacheEntity);
             } catch (JSONBException e) {

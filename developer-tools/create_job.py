@@ -47,6 +47,7 @@ def create_job(fileId, job_specification):
         print("job " + str(job['jobId']) + " er oprettet")
         return r.headers['location']
 
+    print r.content
     raise Exception("error creating job")
 
 

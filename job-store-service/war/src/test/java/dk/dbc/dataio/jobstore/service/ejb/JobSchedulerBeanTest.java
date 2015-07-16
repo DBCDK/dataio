@@ -22,6 +22,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.DO_PUBLISH_WORKLOAD;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.NOT_PUBLISH_WORKLOAD;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -38,6 +40,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobSchedulerBeanTest {
+
+    private final static CollisionDetectionElement NO_CHUNK_CDE = null;
+    private final static Sink NO_SINK = null;
     private final SequenceAnalyser sequenceAnalyser = mock(SequenceAnalyser.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
     private final PgJobStore jobStoreBean = mock(PgJobStore.class);
@@ -76,7 +81,7 @@ public class JobSchedulerBeanTest {
     public void scheduleChunk2arg_chunkArgIsNull_throws() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
-            jobSchedulerBean.scheduleChunk(null, sink);
+            jobSchedulerBean.scheduleChunk(NO_CHUNK_CDE, sink);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -86,7 +91,7 @@ public class JobSchedulerBeanTest {
     public void scheduleChunk2arg_sinkArgIsNull_throws() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
-            jobSchedulerBean.scheduleChunk(chunkCDE, null);
+            jobSchedulerBean.scheduleChunk(chunkCDE, NO_SINK);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -191,7 +196,7 @@ public class JobSchedulerBeanTest {
     public void scheduleChunk3arg_chunkArgIsNull_throws() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
-            jobSchedulerBean.scheduleChunk(null, sink, false);
+            jobSchedulerBean.scheduleChunk(NO_CHUNK_CDE, sink, NOT_PUBLISH_WORKLOAD);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -201,7 +206,7 @@ public class JobSchedulerBeanTest {
     public void scheduleChunk3arg_sinkArgIsNull_throws() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
-            jobSchedulerBean.scheduleChunk(chunkCDE, null, false);
+            jobSchedulerBean.scheduleChunk(chunkCDE, NO_SINK, NOT_PUBLISH_WORKLOAD);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -212,7 +217,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
 
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, NOT_PUBLISH_WORKLOAD);
         verify(sequenceAnalyser).add(any(CollisionDetectionElement.class));
     }
 
@@ -223,7 +228,7 @@ public class JobSchedulerBeanTest {
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
         verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
@@ -235,7 +240,7 @@ public class JobSchedulerBeanTest {
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, NOT_PUBLISH_WORKLOAD);
         verify(jobStoreBean, times(0)).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(0)).send(chunk);
     }
@@ -252,7 +257,7 @@ public class JobSchedulerBeanTest {
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
         verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
@@ -269,7 +274,7 @@ public class JobSchedulerBeanTest {
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, true);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
         verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
@@ -277,7 +282,7 @@ public class JobSchedulerBeanTest {
     @Test
     public void scheduleChunk3arg_sinkNotSeenBefore_createsSequenceAnalyserAndMaintainsToSinkMapping() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, NOT_PUBLISH_WORKLOAD);
         assertThat("sequenceAnalysers.size(),", jobSchedulerBean.sequenceAnalysers.size(), is(1));
         assertThat("sequenceAnalysers.get(),", getMXBean(jobSchedulerBean), is(notNullValue()));
         assertThat("toSinkMapping.size()", jobSchedulerBean.toSinkMapping.size(), is(1));
@@ -290,7 +295,7 @@ public class JobSchedulerBeanTest {
 
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         try {
-            jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+            jobSchedulerBean.scheduleChunk(chunkCDE, sink, NOT_PUBLISH_WORKLOAD);
             fail("No exception thrown");
         } catch (JobStoreException e) {
         }
@@ -299,7 +304,7 @@ public class JobSchedulerBeanTest {
     @Test
     public void scheduleChunk3arg_givenValidCDE_updatesMonitor() throws JobStoreException {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
-        jobSchedulerBean.scheduleChunk(chunkCDE, sink, false);
+        jobSchedulerBean.scheduleChunk(chunkCDE, sink, NOT_PUBLISH_WORKLOAD);
         final SequenceAnalyserMonitorMXBean mxBean = getMXBean(jobSchedulerBean);
 
         // Inject recognizable timestamp into monitor sample
@@ -450,8 +455,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         final String saId = String.valueOf(sink.getId());
         injectSequenceAnalyserComposite(jobSchedulerBean, saId);
-        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
-                .get(jobSchedulerBean.getLockObject(saId));
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers.get(jobSchedulerBean.getLockObject(saId));
         sac.itemsInProgress = JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK - expectedWorkloadSize;
         final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, 100);
         assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
@@ -465,8 +469,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         final String saId = String.valueOf(sink.getId());
         injectSequenceAnalyserComposite(jobSchedulerBean, saId);
-        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
-                .get(jobSchedulerBean.getLockObject(saId));
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers.get(jobSchedulerBean.getLockObject(saId));
         final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, expectedWorkloadSize);
         assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
         assertThat("sac.itemsInProgress", sac.itemsInProgress, is(expectedWorkloadSize));
@@ -478,8 +481,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         final String saId = String.valueOf(sink.getId());
         injectSequenceAnalyserComposite(jobSchedulerBean, saId);
-        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
-                .get(jobSchedulerBean.getLockObject(saId));
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers.get(jobSchedulerBean.getLockObject(saId));
         sac.itemsInProgress = JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK;
         final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, 100);
         assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));
@@ -492,8 +494,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         final String saId = String.valueOf(sink.getId());
         injectSequenceAnalyserComposite(jobSchedulerBean, saId);
-        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers
-                .get(jobSchedulerBean.getLockObject(saId));
+        final JobSchedulerBean.SequenceAnalyserComposite sac = jobSchedulerBean.sequenceAnalysers.get(jobSchedulerBean.getLockObject(saId));
         sac.itemsInProgress = JobSchedulerBean.MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK + 5;
         final List<CollisionDetectionElement> workload = jobSchedulerBean.getWorkload(sac, 100);
         assertThat("workload.size()", workload.size(), is(expectedWorkloadSize));

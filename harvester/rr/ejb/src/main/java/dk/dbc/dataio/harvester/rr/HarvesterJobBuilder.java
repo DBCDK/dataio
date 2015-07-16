@@ -154,8 +154,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
     private JobInfoSnapshot createJobInJobStore(String fileId) throws HarvesterException {
         final JobSpecification jobSpecification = createJobSpecification(fileId);
         try {
-            final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(
-                    new JobInputStream(jobSpecification, true, 0));
+            final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpecification, true, 0));
             LOGGER.info("Created job in job-store with ID {}", jobInfoSnapshot.getJobId());
             return jobInfoSnapshot;
         } catch (JobStoreServiceConnectorException e) {
@@ -184,7 +183,10 @@ public class HarvesterJobBuilder implements AutoCloseable {
                 jobSpecificationTemplate.getCharset(),
                 jobSpecificationTemplate.getDestination(),
                 jobSpecificationTemplate.getSubmitterId(),
-                "", "", "", fileStoreUrn.toString(),
+                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION,
+                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING,
+                JobSpecification.EMPTY_RESULT_MAIL_INITIALS,
+                fileStoreUrn.toString(),
                 jobSpecificationTemplate.getType());
     }
 }

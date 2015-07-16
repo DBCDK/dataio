@@ -11,6 +11,9 @@ import java.io.Serializable;
  */
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
+    public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION = "";
+    public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING = "";
+    public static final String EMPTY_RESULT_MAIL_INITIALS = "";
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 

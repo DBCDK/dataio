@@ -45,8 +45,7 @@ public class JobProcessorMessageProducerBean {
             final TextMessage message = createMessage(context, chunk);
             context.createProducer().send(processorQueue, message);
         } catch (JSONBException | JMSException e) {
-            final String errorMessage = String.format("Exception caught while queueing chunk %s for job %s",
-                    chunk.getChunkId(), chunk.getJobId());
+            final String errorMessage = String.format("Exception caught while queueing chunk %s for job %s", chunk.getChunkId(), chunk.getJobId());
             throw new JobStoreException(errorMessage, e);
         }
     }

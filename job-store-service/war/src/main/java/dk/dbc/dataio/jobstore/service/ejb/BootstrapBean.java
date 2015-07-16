@@ -22,6 +22,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.NOT_PUBLISH_WORKLOAD;
+
 @Singleton
 @Startup
 @DependsOn("StartupDBMigrator")
@@ -80,7 +82,7 @@ public class BootstrapBean {
                     ResourceBundle resourceBundle = jobStore.getResourceBundle((int) jobId);
                     cache.put(jobId, resourceBundle.getSink());
                 }
-                jobSchedulerBean.scheduleChunk(collisionDetectionElement, cache.get(jobId), false);
+                jobSchedulerBean.scheduleChunk(collisionDetectionElement, cache.get(jobId), NOT_PUBLISH_WORKLOAD);
             }
 
             if (collisionDetectionElements.size() != limit) {

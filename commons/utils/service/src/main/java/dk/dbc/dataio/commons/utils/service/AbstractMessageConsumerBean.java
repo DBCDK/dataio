@@ -98,8 +98,7 @@ public abstract class AbstractMessageConsumerBean {
             LOGGER.error("Transaction rollback", t);
             // Ensure that this container-managed transaction can not commit
             // and therefore that this message subsequently will be re-delivered.
-            throw new IllegalStateException(String.format(
-                    "Exception caught while processing message<%s>", messageId), t);
+            throw new IllegalStateException(String.format("Exception caught while processing message<%s>", messageId), t);
         }
     }
 
@@ -114,8 +113,13 @@ public abstract class AbstractMessageConsumerBean {
 
     public void confirmLegalChunkTypeOrThrow(ExternalChunk chunk, ExternalChunk.Type legalChunkType) throws InvalidMessageException {
         if(chunk.getType() != legalChunkType) {
-            String errMsg = String.format("The chunk with id (jobId/chunkId) : [%d/%d] is of illegal type [%s] when [%s] was expected.",
-                    chunk.getJobId(), chunk.getChunkId(), chunk.getType(), legalChunkType);
+            String errMsg = String.format(
+                    "The chunk with id (jobId/chunkId) : [%d/%d] is of illegal type [%s] when [%s] was expected.",
+                    chunk.getJobId(),
+                    chunk.getChunkId(),
+                    chunk.getType(),
+                    legalChunkType);
+
             LOGGER.warn(errMsg);
             throw new InvalidMessageException(errMsg);
         }

@@ -39,6 +39,8 @@ public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
     static final int MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK = 10000;
     static final int MAX_NUMBER_OF_ITEMS_PER_WORKLOAD = 100;
+    public static final boolean DO_PUBLISH_WORKLOAD = true;
+    public static final boolean NOT_PUBLISH_WORKLOAD = false;
 
     ConcurrentHashMap<String, SequenceAnalyserComposite> sequenceAnalysers = new ConcurrentHashMap<>(16, 0.9F, 1);
     ConcurrentHashMap<ChunkIdentifier, Sink> toSinkMapping = new ConcurrentHashMap<>(16, 0.9F, 1);
@@ -61,7 +63,7 @@ public class JobSchedulerBean {
      * @throws JobStoreException if unable to setup monitoring
      */
     public void scheduleChunk(CollisionDetectionElement chunkCDE, Sink sink) throws NullPointerException, JobStoreException {
-        scheduleChunk(chunkCDE, sink, true);
+        scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
     }
 
     /**
@@ -184,22 +186,22 @@ public class JobSchedulerBean {
         for (final CollisionDetectionElement element : elements) {
             final ChunkIdentifier identifier = (ChunkIdentifier) element.getIdentifier();
             try {
-                final ExternalChunk chunk = jobStoreBean.getChunk(ExternalChunk.Type.PARTITIONED,
-                        (int) identifier.getJobId(), (int) identifier.getChunkId());
+                final ExternalChunk chunk = jobStoreBean.getChunk(
+                        ExternalChunk.Type.PARTITIONED,
+                        (int) identifier.getJobId(),
+                        (int) identifier.getChunkId());
+
                 if (chunk == null) {
-                    LOGGER.error("Unable to locate chunk.id {} for job.id {}",
-                            identifier.chunkId, identifier.jobId);
+                    LOGGER.error("Unable to locate chunk.id {} for job.id {}", identifier.chunkId, identifier.jobId);
                 } else {
                     try {
                         jobProcessorMessageProducerBean.send(chunk);
                     } catch (JobStoreException e) {
-                        LOGGER.error("Unable to send notification for chunk.id {} for job.id {}",
-                                identifier.chunkId, identifier.jobId, e);
+                        LOGGER.error("Unable to send notification for chunk.id {} for job.id {}", identifier.chunkId, identifier.jobId, e);
                     }
                 }
             } catch (NullPointerException e) {
-                LOGGER.error("Unable to retrieve chunk.id {} for job.id {}",
-                        identifier.chunkId, identifier.jobId, e);
+                LOGGER.error("Unable to retrieve chunk.id {} for job.id {}", identifier.chunkId, identifier.jobId, e);
             }
         }
     }
@@ -214,10 +216,8 @@ public class JobSchedulerBean {
             } catch (IllegalStateException e) {
                 throw new JobStoreException("Monitoring error", e);
             }
-            sequenceAnalyserMonitorBean.getMBeans().get(localName).setSample(
-                    new SequenceAnalyserMonitorSample(0, new Date().getTime()));
-            sequenceAnalyserComposite = new SequenceAnalyserComposite(
-                    new NaiveSequenceAnalyser(), sequenceAnalyserMonitorBean.getMBeans().get(localName));
+            sequenceAnalyserMonitorBean.getMBeans().get(localName).setSample(new SequenceAnalyserMonitorSample(0, new Date().getTime()));
+            sequenceAnalyserComposite = new SequenceAnalyserComposite(new NaiveSequenceAnalyser(), sequenceAnalyserMonitorBean.getMBeans().get(localName));
             sequenceAnalysers.put(lockObject, sequenceAnalyserComposite);
         }
         return sequenceAnalyserComposite;
@@ -234,16 +234,13 @@ public class JobSchedulerBean {
         if (isHead) {
             // Specified chunk is at the head of the sequence analysis "queue", so
             // we update the sample with the current "queue" size and "now" timestamp
-            sac.sequenceAnalyserMonitorMXBean.setSample(
-                    new SequenceAnalyserMonitorSample(sac.sequenceAnalyser.size(), new Date().getTime()));
+            sac.sequenceAnalyserMonitorMXBean.setSample(new SequenceAnalyserMonitorSample(sac.sequenceAnalyser.size(), new Date().getTime()));
         } else {
             // Specified chunk is not at the head of the sequence analysis "queue", so
             // we update the sample with the current "queue" size and keep the old timestamp
             // since head of the "queue" still remains
-            final long headOfQueueMonitoringStartTime = sac.sequenceAnalyserMonitorMXBean.getSample()
-                    .getHeadOfQueueMonitoringStartTime();
-            sac.sequenceAnalyserMonitorMXBean.setSample(
-                    new SequenceAnalyserMonitorSample(sac.sequenceAnalyser.size(), headOfQueueMonitoringStartTime));
+            final long headOfQueueMonitoringStartTime = sac.sequenceAnalyserMonitorMXBean.getSample().getHeadOfQueueMonitoringStartTime();
+            sac.sequenceAnalyserMonitorMXBean.setSample(new SequenceAnalyserMonitorSample(sac.sequenceAnalyser.size(), headOfQueueMonitoringStartTime));
         }
     }
 

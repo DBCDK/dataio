@@ -66,7 +66,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 String message=String.format("Different status %s -> %s\n%s",
                         statusToString(item.current.getStatus()),
                         statusToString(item.next.getStatus()),
-                        item.next.getData()
+                        Base64Util.base64decode(item.next.getData())
                 );
                 deliveredChunk.insertItem(new ChunkItem(item.next.getId(), Base64Util.base64encode(message), ChunkItem.Status.FAILURE));
             } else {

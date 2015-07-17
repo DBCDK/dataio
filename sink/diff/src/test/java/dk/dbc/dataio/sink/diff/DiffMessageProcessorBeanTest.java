@@ -113,14 +113,14 @@ public class DiffMessageProcessorBeanTest {
     @Test
     public void processPayload_FailDifferentStatus() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData("Item1").setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData("Item2").setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData("Item3").setStatus(ChunkItem.Status.IGNORE).build()
+                new ChunkItemBuilder().setId(0L).setData(Base64Util.base64encode("Item1")).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(Base64Util.base64encode("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(Base64Util.base64encode("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
         );
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData("Item1").setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(1L).setData("Item2").setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData("Item3").setStatus(ChunkItem.Status.SUCCESS).build()
+                new ChunkItemBuilder().setId(0L).setData(Base64Util.base64encode("Result1")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setData(Base64Util.base64encode("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(Base64Util.base64encode("Item3")).setStatus(ChunkItem.Status.SUCCESS).build()
         );
 
         final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
@@ -135,7 +135,7 @@ public class DiffMessageProcessorBeanTest {
         ChunkItem item0 = iterator.next();
         assertThat(item0.getStatus(), is(ChunkItem.Status.FAILURE));
         String item0ExpectedData="Different status Failure -> Success\n"+
-                "Item1";
+                "Result1";
         assertThat(item0.getData(), is( Base64Util.base64encode(item0ExpectedData) ));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();

@@ -63,7 +63,9 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
         for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
             if( item.current.getStatus() != item.next.getStatus() ) {
-                String message=String.format("Different status current revision is: $s\n, next revision is $s",
+                String message=String.format("Different status\n"+
+                                              "current revision is: %s\n" +
+                                              "   next revision is: %s",
                         statusToString(item.current.getStatus()),
                         statusToString(item.next.getStatus()));
                 deliveredChunk.insertItem(new ChunkItem(item.next.getId(), Base64Util.base64encode(message), ChunkItem.Status.FAILURE));

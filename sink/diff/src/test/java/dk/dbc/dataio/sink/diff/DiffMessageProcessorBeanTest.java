@@ -134,9 +134,8 @@ public class DiffMessageProcessorBeanTest {
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item0 = iterator.next();
         assertThat(item0.getStatus(), is(ChunkItem.Status.FAILURE));
-        String item0ExpectedData="Different status\n"+
-                                 "current revision is: Failure\n" +
-                                 "   next revision is: Success";
+        String item0ExpectedData="Different status Failure -> Success\n"+
+                "Item1";
         assertThat(item0.getData(), is( Base64Util.base64encode(item0ExpectedData) ));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();

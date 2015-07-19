@@ -1,11 +1,13 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.components.TitledDecoratorPanelWithButton;
+import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
@@ -51,6 +53,10 @@ public class BaseJobFilterTest {
         @Override
         public String getName() {
             return storedName;
+        }
+        @Override
+        public HandlerRegistration addValueChangeHandler(ValueChangeHandler<JobListCriteriaModel> valueChangeHandler) {
+            return null;
         }
         public Texts getTexts() {
             return texts;

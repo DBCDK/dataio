@@ -64,6 +64,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void fetchSelectedJobs() {
         view.selectionModel.clear();
+        view.jobsTable.setRowCount(0);
         fetchJobs();
     }
 
@@ -87,7 +88,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     void fetchJobs() {
         if (view.selectionModel.getSelectedObject() == null) {
-            final JobListCriteriaModel jobListCriteriaModel = new JobListCriteriaModel();
+            final JobListCriteriaModel jobListCriteriaModel = view.jobFilter.getValue();
             if (view.processingFailedJobsButton.getValue()) {
                 jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.PROCESSING_FAILED);
             } else if (view.deliveringFailedJobsButton.getValue()) {

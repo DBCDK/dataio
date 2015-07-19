@@ -11,6 +11,7 @@ import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -29,6 +30,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // UI Fields
     @UiField CellTable jobsTable;
+    @UiField JobFilter jobFilter;
     @UiField SimplePager pagerTop;
     @UiField SimplePager pagerBottom;
     @UiField RadioButton allJobsButton;
@@ -46,6 +48,12 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
         pagerTop.firstPage();
+        presenter.fetchSelectedJobs();
+    }
+
+
+    @UiHandler("jobFilter")
+    void jobFilterActivated(ClickEvent event) {
         presenter.fetchSelectedJobs();
     }
 

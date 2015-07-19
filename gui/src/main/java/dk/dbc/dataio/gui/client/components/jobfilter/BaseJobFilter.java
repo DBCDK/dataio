@@ -3,18 +3,21 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.TitledDecoratorPanelWithButton;
+import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * This is the base class for Job Filters
  */
-public abstract class BaseJobFilter extends Composite {
+public abstract class BaseJobFilter extends Composite implements HasValue<JobListCriteriaModel>  {
 
     static protected Texts texts;
     static protected Resources resources;
@@ -23,11 +26,12 @@ public abstract class BaseJobFilter extends Composite {
     protected FlowPanel parentPanel = null;
     protected TitledDecoratorPanelWithButton decoratorPanel = null;
     protected HandlerRegistration clickHandlerRegistration = null;
+    protected JobListCriteriaModel jobListCriteriaModel = new JobListCriteriaModel();
 
     /**
      * Constructor
      * @param texts Internationalized texts to be used by this class
-     * @param resources Resourcres to be used by this class
+     * @param resources Resources to be used by this class
      */
     @Inject
     public BaseJobFilter(Texts texts, Resources resources) {
@@ -91,6 +95,28 @@ public abstract class BaseJobFilter extends Composite {
             if (parentPanel != null) {
                 parentPanel.remove(decoratorPanel);
             }
+        }
+    }
+
+    /*
+     * Override HasValue Interface Methods
+     */
+
+    @Override
+    public JobListCriteriaModel getValue() {
+        return jobListCriteriaModel;
+    }
+
+    @Override
+    public void setValue(JobListCriteriaModel model) {
+        jobListCriteriaModel = model;
+    }
+
+    @Override
+    public void setValue(JobListCriteriaModel model, boolean fireEvents) {
+        setValue(model);
+        if (fireEvents) {
+            ValueChangeEvent.fire(this, model);
         }
     }
 

@@ -20,22 +20,25 @@ public final class JobListCriteriaModelMapper {
     public static JobListCriteria toJobListCriteria(JobListCriteriaModel model) {
         final JobListCriteria jobListCriteria = new JobListCriteria();
 
-        if (Long.valueOf(model.getSinkId()).intValue() != 0) {
-            // Where Sink ID equals...
-            buildJobListCriteriaWithSinkClause(jobListCriteria, model);
-        } else {
-            if (model.getId() != 0) {
-                // Where job ID equals...
-                buildJobListCriteriaWithJobIdClause(jobListCriteria, model);
-            } else {
-                // Where/or job type equals...
-                buildJobListCriteriaWithJobTypeClauses(jobListCriteria, model);
+        if (model.getId() != 0) {
+            // Where job ID equals...
+            buildJobListCriteriaWithJobIdClause(jobListCriteria, model);
+        }
+        else {
+            if (Long.valueOf(model.getSinkId()).intValue() != 0) {
+                // Where Sink ID equals...
+                buildJobListCriteriaWithSinkClause(jobListCriteria, model);
             }
+
             // And where search type equals...
             buildJobListCriteriaWithSearchType(jobListCriteria, model);
+
+            // And where/or job type equals...
+            buildJobListCriteriaWithJobTypeClauses(jobListCriteria, model);
+
+            // Order by...
+            orderByDescendingTimeOfCreation(jobListCriteria);
         }
-        // Order by...
-        orderByDescendingTimeOfCreation(jobListCriteria);
         return jobListCriteria;
     }
 

@@ -494,13 +494,11 @@ public class PgJobStore {
         if (itemEntities.size() > 0) {
             final ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
             for (ItemEntity itemEntity : itemEntities) {
-                chunk.insertItem(itemEntity.toChunkItem(phase));
-                // Special case for nextProcess Chunk... only relevant in phase PROCESSED
-                if(PROCESSED == type ) {
-                    ChunkItem nextProcessingChunkItem=itemEntity.getChunkItemForNextProcessing(phase);
-                    if( nextProcessingChunkItem != null ) {
-                        chunk.insertNextItem(nextProcessingChunkItem);
-                    }
+                if (PROCESSED == type) {
+                    // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
+                    chunk.insertItem(itemEntity.toChunkItem(phase), itemEntity.getChunkItemForNextProcessing(phase));
+                } else {
+                    chunk.insertItem(itemEntity.toChunkItem(phase));
                 }
             }
             chunk.setEncoding(itemEntities.get(0).getEncodingForPhase(phase));

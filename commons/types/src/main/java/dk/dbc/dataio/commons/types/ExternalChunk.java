@@ -146,12 +146,6 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         }
     }
 
-    public void insertNextItem(ChunkItem item) {
-        if (item == ChunkItem.UNDEFINED)
-            throw new IllegalArgumentException("item can not be null");
-        next.add(item);
-    }
-
     public List<ChunkItem> getItems() {
         return items;
     }

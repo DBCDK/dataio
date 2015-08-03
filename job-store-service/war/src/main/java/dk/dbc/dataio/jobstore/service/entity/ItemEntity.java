@@ -48,9 +48,8 @@ public class ItemEntity {
     private ItemData processingOutcome;
 
     @Column(columnDefinition = "json")
-    @Convert(converter = ItemDataConverter.class)
-    private ItemData nextProcessingOutcome;
-
+    @Convert(converter = ChunkItemConverter.class)
+    private ChunkItem nextProcessingOutcome;
 
     @Column(columnDefinition = "json")
     @Convert(converter = ItemDataConverter.class)
@@ -104,11 +103,11 @@ public class ItemEntity {
         this.processingOutcome = processingOutcome;
     }
 
-    public ItemData getNextProcessingOutcome() {
+    public ChunkItem getNextProcessingOutcome() {
         return nextProcessingOutcome;
     }
 
-    public void setNextProcessingOutcome(ItemData nextProcessingOutcome) {
+    public void setNextProcessingOutcome(ChunkItem nextProcessingOutcome) {
         this.nextProcessingOutcome = nextProcessingOutcome;
     }
 
@@ -208,22 +207,6 @@ public class ItemEntity {
         }
         return null;
     }
-
-    /**
-     * @param phase phase
-     * @return ChunkItem representation of item data for specified phase
-     * @throws NullPointerException if called with null-valued phase, if
-     * item contains no data for phase or if item contains no state info
-     * for phase.
-     */
-    public ChunkItem getChunkItemForNextProcessing(State.Phase phase) throws NullPointerException {
-        InvariantUtil.checkNotNullOrThrow(phase, "phase");
-        if (nextProcessingOutcome != null) {
-            return new ChunkItem(key.getId(), getNextProcessingOutcome().getData(), getChunkItemStatusForPhase(phase));
-        }
-        return null;
-    }
-
 
     private ItemData getItemDataForPhase(State.Phase phase) {
         switch (phase) {

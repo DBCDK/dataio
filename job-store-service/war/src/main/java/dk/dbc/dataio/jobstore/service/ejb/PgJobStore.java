@@ -72,6 +72,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
@@ -496,7 +497,7 @@ public class PgJobStore {
             for (ItemEntity itemEntity : itemEntities) {
                 if (PROCESSED == type) {
                     // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                    chunk.insertItem(itemEntity.toChunkItem(phase), itemEntity.getChunkItemForNextProcessing(phase));
+                    chunk.insertItem(itemEntity.toChunkItem(phase), itemEntity.getNextProcessingOutcome());
                 } else {
                     chunk.insertItem(itemEntity.toChunkItem(phase));
                 }
@@ -593,6 +594,7 @@ public class PgJobStore {
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
         chunkItemEntities.chunkStateChange.setPhase(phase);
 
+        final Iterator<ChunkItem> nextIterator = chunk.nextIterator();
         for (ChunkItem chunkItem : chunk) {
             final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
             final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
@@ -614,8 +616,8 @@ public class PgJobStore {
                     .setEndDate(new Date());                                                // ToDo: ExternalChunk type must contain endDate
 
             setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, itemData);
-            if( chunk.hasNextItems() ) {
-                setNextOutcomeOnItemEntityFromPhase( chunk, phase, itemEntity, itemData);
+            if (nextIterator.hasNext()) {
+                itemEntity.setNextProcessingOutcome(nextIterator.next());
             }
 
             setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, itemStateChange);
@@ -653,16 +655,6 @@ public class PgJobStore {
             case PARTITIONING:
                 throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
         }
-    }
-
-    private void setNextOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ItemData itemData) throws InvalidInputException {
-        switch (phase) {
-                case PROCESSING: itemEntity.setNextProcessingOutcome(itemData);
-                    break;
-                case DELIVERING:
-                case PARTITIONING:
-                    throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
-            }
     }
 
     /**

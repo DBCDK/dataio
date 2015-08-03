@@ -159,6 +159,10 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         return items.iterator();
     }
 
+    public Iterator<ChunkItem> nextIterator() {
+        return next.iterator();
+    }
+
     private void insert(List<ChunkItem> collection, ChunkItem item) throws IllegalArgumentException {
         if (item.getId() != collection.size()) {
             throw new IllegalArgumentException(String.format("ChunkItems must be inserted consecutively. Size of list: %d inserted item-id: %d",

@@ -45,7 +45,7 @@ public final class JobListCriteriaModelMapper {
      * @param model the job list criteria model
      */
     private static void buildJobListCriteriaWithSinkClause(JobListCriteria jobListCriteria, JobListCriteriaModel model) {
-        jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, model.getSinkId()));
+        jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, Long.valueOf(model.getSinkId()).intValue()));
     }
 
     /**

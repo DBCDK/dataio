@@ -805,8 +805,8 @@ public class PgJobStoreIT {
         ChunkItem chunkItem = fromDB.getItems().get(0);
         ChunkItem nextChunkItem = fromDB.getNext().get(0);
 
-        assertThat("nextChunkItem.getData() = chunkItem.getData()" , nextChunkItem.getData(), not(chunkItem.getData()));
-        assertThat("nextChunkItem.getStatus() = nextChunkItem.getStatus()", nextChunkItem.getStatus(), is(chunkItem.getStatus()));
+        assertThat("nextChunkItem.getData() NOT chunkItem.getData()" , nextChunkItem.getData(), not(chunkItem.getData()));
+        assertThat("nextChunkItem.getStatus() IS nextChunkItem.getStatus()", nextChunkItem.getStatus(), is(chunkItem.getStatus()));
     }
 
 

@@ -39,6 +39,11 @@ public class FlowTest {
         assertThat(instance, is(notNullValue()));
     }
 
+    @Test
+    public void hasNextComponents_flowHasNoComponentsContainingNextEntries_returnsFalse() {
+        assertThat(newFlowInstance().hasNextComponents(), is(false));
+    }
+
     public static Flow newFlowInstance() {
         return new Flow(ID, VERSION, CONTENT);
     }

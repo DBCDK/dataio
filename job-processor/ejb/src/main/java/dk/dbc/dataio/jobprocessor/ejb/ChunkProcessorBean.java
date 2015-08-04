@@ -78,7 +78,11 @@ public class ChunkProcessorBean {
     private FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws Throwable {
         final StopWatch stopWatch = new StopWatch();
         try {
-            final String cacheKey = String.format("%d.%d", flow.getId(), flow.getVersion());
+            String cacheKey = String.format("%d.%d", flow.getId(), flow.getVersion());
+            if (flow.hasNextComponents()) {
+                // Avoids mixing up acctest and non-acctest flows in cache.
+                cacheKey += ".acctest";
+            }
             if (flowCache.containsKey(cacheKey)) {
                 LOGGER.info("Cache hit for flow (id.version) ({})", cacheKey);
                 return flowCache.get(cacheKey);

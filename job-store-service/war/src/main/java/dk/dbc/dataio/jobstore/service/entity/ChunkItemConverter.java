@@ -25,9 +25,12 @@ public class ChunkItemConverter implements AttributeConverter<ChunkItem, PGobjec
     @Override
     public ChunkItem convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
-            return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), ChunkItem.class);
+            if (pgObject != null) {
+                return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), ChunkItem.class);
+            }
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
+        return null;
     }
 }

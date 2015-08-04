@@ -795,10 +795,18 @@ public class PgJobStoreIT {
 
         clearEntityManagerCache();
 
-        ExternalChunk fromDB= pgJobStore.getChunk(ExternalChunk.Type.PROCESSED, jobInfoSnapshotNewJob.getJobId(), chunkId);
-        assertThat( fromDB.hasNextItems(), is(true));
-        // extra checks for next Iems.
+        ExternalChunk fromDB = pgJobStore.getChunk(ExternalChunk.Type.PROCESSED, jobInfoSnapshotNewJob.getJobId(), chunkId);
+        assertThat(fromDB.hasNextItems(), is(true));
 
+        // extra checks for next items.
+        assertThat(fromDB.getNext().size(), is(1));
+        assertThat(fromDB.getItems().size(), is(1));
+
+        ChunkItem chunkItem = fromDB.getItems().get(0);
+        ChunkItem nextChunkItem = fromDB.getNext().get(0);
+
+        assertThat("nextChunkItem.getData() = chunkItem.getData()" , nextChunkItem.getData(), not(chunkItem.getData()));
+        assertThat("nextChunkItem.getStatus() = nextChunkItem.getStatus()", nextChunkItem.getStatus(), is(chunkItem.getStatus()));
     }
 
 
@@ -1562,7 +1570,7 @@ public class PgJobStoreIT {
 
         for(long i = 0; i < numberOfItems; i++) {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
-            nextItems.add( new ChunkItemBuilder().setId(i).setData("next:"+getData(type)).setStatus(status).build());
+            nextItems.add(new ChunkItemBuilder().setId(i).setData("next:" + getData(type)).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).setNextItems(nextItems).build();
     }

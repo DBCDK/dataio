@@ -9,6 +9,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -337,18 +338,18 @@ public class PgJobStore {
         if (!jobState.fatalDiagnosticExists()) {
             jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
             try {
-                final String flowJson = jsonbContext.marshall(addJobParam.getFlow());
-                final FlowCacheEntity flowCacheEntity = cacheFlow(
-                        addJobParam.getJobInputStream().getJobSpecification().getType() != JobSpecification.Type.ACCTEST ?
-                                new FlowTrimmer(jsonbContext).trim(flowJson) : flowJson);
-                jobEntity.setCachedFlow(flowCacheEntity);
-                String sinkJson = jsonbContext.marshall(addJobParam.getSink());
-                if( addJobParam.getJobInputStream().getJobSpecification().getType() == JobSpecification.Type.ACCTEST ) {
-                    LOGGER.info("Forsing diff sink on ACCTEST job");
-                    sinkJson = jsonbContext.marshall( new Sink(1,1,new SinkContent("DiffSink","jdbc/dataio/diff","InternalSink")) );
+                String flowJson = jsonbContext.marshall(addJobParam.getFlow());
+                String sinkJson;
+                if (addJobParam.getJobInputStream().getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
+                    LOGGER.info("Forcing diff sink on ACCTEST job");
+                    sinkJson = jsonbContext.marshall(new Sink(1, 1, new SinkContent(
+                            "DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality")));
+                } else {
+                    flowJson = new FlowTrimmer(jsonbContext).trim(flowJson);
+                    sinkJson = jsonbContext.marshall(addJobParam.getSink());
                 }
-                final SinkCacheEntity sinkCacheEntity = cacheSink(sinkJson);
-                jobEntity.setCachedSink(sinkCacheEntity);
+                jobEntity.setCachedFlow(cacheFlow(flowJson));
+                jobEntity.setCachedSink(cacheSink(sinkJson));
             } catch (JSONBException e) {
                 throw new JobStoreException("Exception caught during job-store operation", e);
             }

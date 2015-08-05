@@ -96,25 +96,27 @@ public class SinkJobFilter extends BaseJobFilter {
     /*
      * This class is the ValueChangeHandler for the SinkJobFilter
      */
-    class SinkJobFilterValueChangeHandler implements ValueChangeHandler<String> {
+    public class SinkJobFilterValueChangeHandler implements ValueChangeHandler<String> {
         @Override
         public void onValueChange(ValueChangeEvent<String> valueChangeEvent) {
             if (sinkJobValueChangeHandler != null) {
                 JobListCriteriaModel model = new JobListCriteriaModel();
                 model.setSinkId(valueChangeEvent.getValue());
-                sinkJobValueChangeHandler.onValueChange(new SinkJobFilterValueChangeEvent(jobListCriteriaModel));
+                sinkJobValueChangeHandler.onValueChange(new SinkJobFilterValueChangeEvent(model));
             }
         }
     }
 
     /*
-     * This class is the HanderRegistration for the SinkJobFilter
+     * This class is the HandlerRegistration for the SinkJobFilter
      */
     class SinkJobFilterHandlerRegistration implements HandlerRegistration {
         @Override
         public void removeHandler() {
-            sinkListHandlerRegistration.removeHandler();
-            sinkListHandlerRegistration = null;
+            if (sinkListHandlerRegistration != null) {
+                sinkListHandlerRegistration.removeHandler();
+                sinkListHandlerRegistration = null;
+            }
             sinkJobValueChangeHandler = null;
         }
     }
@@ -122,7 +124,7 @@ public class SinkJobFilter extends BaseJobFilter {
     /*
      * This class is the ValueChangeEvent for the SinkJobFilter
      */
-    class SinkJobFilterValueChangeEvent extends ValueChangeEvent<JobListCriteriaModel> {
+    public class SinkJobFilterValueChangeEvent extends ValueChangeEvent<JobListCriteriaModel> {
         protected SinkJobFilterValueChangeEvent(JobListCriteriaModel value) {
             super(value);
         }

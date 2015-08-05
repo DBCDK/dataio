@@ -19,8 +19,8 @@ import dk.dbc.dataio.gui.client.resources.Resources;
  */
 public abstract class BaseJobFilter extends Composite implements HasValue<JobListCriteriaModel>  {
 
-    static protected Texts texts;
-    static protected Resources resources;
+    protected Texts texts;
+    protected Resources resources;
 
     protected final Widget thisAsWidget = this.asWidget();
     protected FlowPanel parentPanel = null;

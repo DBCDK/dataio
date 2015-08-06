@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.junit.Before;
@@ -80,15 +79,13 @@ public class DiffMessageProcessorBeanTest {
     @Test
     public void processPayload_FailDifferentContent() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("Item1")).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
-        );
+                new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("nextItem1")).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("nextItem2")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
-        );
+                new ChunkItemBuilder().setId(0L).setData(getXmlNext()).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
 
         final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
@@ -113,15 +110,13 @@ public class DiffMessageProcessorBeanTest {
     @Test
     public void processPayload_FailDifferentStatus() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("Item1")).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
-        );
+                new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("Result1")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.SUCCESS).build()
-        );
+                new ChunkItemBuilder().setId(0L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build());
 
         final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
@@ -134,9 +129,6 @@ public class DiffMessageProcessorBeanTest {
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item0 = iterator.next();
         assertThat(item0.getStatus(), is(ChunkItem.Status.FAILURE));
-        String item0ExpectedData="Different status Failure -> Success\n"+
-                "Result1";
-        assertThat(item0.getData(), is(StringUtil.asBytes(item0ExpectedData)));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat(item1.getStatus(), is(ChunkItem.Status.SUCCESS));
@@ -147,10 +139,33 @@ public class DiffMessageProcessorBeanTest {
     }
 
 
+    /* Private methods */
 
     private DiffMessageProcessorBean getDiffMessageProcessorBean() {
         final DiffMessageProcessorBean diffMessageProcessorBean = new DiffMessageProcessorBean();
         diffMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return diffMessageProcessorBean;
     }
+
+    private byte[] getXml() {
+        return ("<?xml version='1.0'?><dataio-harvester-datafile><data-container>" +
+                "<data><collection xmlns=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<record xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd\">" +
+                "<leader>00000n 2200000 4500</leader>" +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                "<subfield code=\"a\">Sun Kil Moon</subfield>" +
+                "</datafield></record></collection></data></data-container></dataio-harvester-datafile>").getBytes();
+    }
+
+    private byte[] getXmlNext() {
+        return ("<dataio-harvester-datafile>" +
+                "<data-container>" +
+                "<data><collection xmlns=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<record xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd\">" +
+                "<leader>00000n 2200000 4500</leader> " +
+                "<datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                "<subfield code=\"a\">Sun Kil Sun</subfield>" +
+                "</datafield></record></collection></data></data-container></dataio-harvester-datafile>").getBytes();
+    }
+
 }

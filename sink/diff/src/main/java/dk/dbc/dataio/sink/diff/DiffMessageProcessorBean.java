@@ -18,7 +18,6 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @MessageDriven
@@ -50,7 +49,8 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
 
         for (final ChunkItem item : processedChunk) {
-            deliveredChunk.insertItem(new ChunkItem(item.getId(), StringUtil.asBytes("Missing Next Items"), ChunkItem.Status.FAILURE));
+            deliveredChunk.insertItem(
+                    new ChunkItem(item.getId(), StringUtil.asBytes("Missing Next Items"), ChunkItem.Status.FAILURE));
         }
         return deliveredChunk;
 
@@ -64,19 +64,35 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
         for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
             if( item.current.getStatus() != item.next.getStatus() ) {
-                String message=String.format("Different status %s -> %s\n%s",
+                String message = String.format("Different status %s -> %s\n%s",
                         statusToString(item.current.getStatus()),
                         statusToString(item.next.getStatus()),
                         StringUtil.asString(item.next.getData())
                 );
-                deliveredChunk.insertItem(new ChunkItem(item.next.getId(), StringUtil.asBytes(message), ChunkItem.Status.FAILURE));
+                deliveredChunk.insertItem(
+                        new ChunkItem(item.next.getId(), StringUtil.asBytes(message), ChunkItem.Status.FAILURE));
             } else {
-                ChunkItem.Status status= Arrays.equals(item.current.getData(), item.next.getData()) ? ChunkItem.Status.SUCCESS: ChunkItem.Status.FAILURE;
-                deliveredChunk.insertItem(new ChunkItem(item.current.getId(),item.next.getData(), status));
+                try {
+                    final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+                    final String diff = xmlDiffGenerator.getDiff(item.current.getData(), item.next.getData());
+
+                    if(diff.isEmpty()) {
+                        deliveredChunk.insertItem(
+                                new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.SUCCESS));
+                    } else {
+                        deliveredChunk.insertItem(
+                                new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.FAILURE));
+                    }
+
+                } catch (DiffGeneratorException e) {
+                    deliveredChunk.insertItem(
+                            new ChunkItem(item.current.getId(), StringUtil.asBytes(e.toString()), ChunkItem.Status.FAILURE));
+                }
             }
         }
         return deliveredChunk;
     }
+
 
     static private String statusToString( ChunkItem.Status status) {
         switch ( status ) {

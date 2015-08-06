@@ -38,9 +38,12 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc.xmldiff</groupId>
+      <artifactId>xmldiff-core</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
   </dependencies>
-
-
   <build>
     <plugins>
       <plugin>
@@ -67,7 +70,6 @@
           </webResources>
         </configuration>
       </plugin>
-
     </plugins>
   </build>
 

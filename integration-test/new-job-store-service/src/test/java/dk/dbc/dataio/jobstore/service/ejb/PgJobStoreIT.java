@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
@@ -1558,7 +1559,7 @@ public class PgJobStoreIT {
     private ExternalChunk buildExternalChunk(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         for(long i = 0; i < numberOfItems; i++) {
-            items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
+            items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
@@ -1569,8 +1570,8 @@ public class PgJobStoreIT {
         List<ChunkItem> nextItems = new ArrayList<>();
 
         for(long i = 0; i < numberOfItems; i++) {
-            items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
-            nextItems.add(new ChunkItemBuilder().setId(i).setData("next:" + getData(type)).setStatus(status).build());
+            items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(status).build());
+            nextItems.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes("next:" + getData(type))).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).setNextItems(nextItems).build();
     }
@@ -1579,11 +1580,11 @@ public class PgJobStoreIT {
         List<ChunkItem> items = new ArrayList<>(numberOfItems);
         for(int i = 0; i < numberOfItems; i++) {
             if(i == failedItemId) {
-                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.FAILURE).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(ChunkItem.Status.FAILURE).build());
             } else if( i == ignoredItemId) {
-                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.IGNORE).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(ChunkItem.Status.IGNORE).build());
             } else {
-                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.SUCCESS).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(ChunkItem.Status.SUCCESS).build());
             }
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
@@ -1616,7 +1617,7 @@ public class PgJobStoreIT {
         assertThat(itemState.getPhase(phase).getSucceeded(), is(succeeded));
         assertThat(itemState.phaseIsDone(phase), is(isPhaseDone));
         if(isPhaseDone) {
-            assertThat(itemEntity.getProcessingOutcome().getData(), is(getData(ExternalChunk.Type.PROCESSED)));
+            assertThat(itemEntity.getProcessingOutcome().getData(), is(StringUtil.base64encode(getData(ExternalChunk.Type.PROCESSED))));
         }
         return itemState;
     }

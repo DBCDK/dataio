@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -609,7 +610,10 @@ public class PgJobStore {
 
             chunkItemEntities.entities.add(itemEntity);
 
-            final ItemData itemData = new ItemData(chunkItem.getData(), StandardCharsets.UTF_8);   // ToDo: ExternalChunk type must contain encoding
+            final ItemData itemData = new ItemData(
+                    StringUtil.base64encode(
+                            StringUtil.asString(chunkItem.getData(), chunk.getEncoding()),
+                            chunk.getEncoding()), chunk.getEncoding());
 
             final StateChange itemStateChange = new StateChange()
                     .setPhase(phase)

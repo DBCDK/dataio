@@ -7,14 +7,12 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
-import org.apache.commons.codec.binary.Base64;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -127,10 +125,6 @@ public class ESTaskPackageUtil {
         }
     }
 
-    private static String decodeBase64(String dataToDecode, Charset charset) {
-        return new String(Base64.decodeBase64(dataToDecode), charset);
-    }
-
     /**
      * Extracts addi-records from given chunk result.
      *
@@ -148,7 +142,7 @@ public class ESTaskPackageUtil {
     public static List<AddiRecord> getAddiRecordsFromChunk(ExternalChunk processedChunk) throws IllegalStateException, NumberFormatException, IOException {
         final List<AddiRecord> addiRecords = new ArrayList<>();
         for (ChunkItem item : processedChunk) {
-            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(decodeBase64(item.getData(), processedChunk.getEncoding()).getBytes(processedChunk.getEncoding())));
+            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(item.getData()));
             addiRecords.add(addiReader.getNextRecord());
             if (addiReader.getNextRecord() != null) {
                 throw new IllegalStateException(String.format("More than one Addi in record in: [jobId, chunkId] [%d, %d]", processedChunk.getJobId(), processedChunk.getChunkId()));
@@ -161,23 +155,20 @@ public class ESTaskPackageUtil {
      * Extracts addi-record from given chunk item.
      * Items data is assumed to be base64 encoded.
      * @param chunkItem Object containing base64 encoded addi-record data
-     * @param encoding addi-data encoding
      * @return AddiRecord object.
      * @throws NullPointerException if given any null-valued argument
      * @throws IOException if an error occurs during reading of the addi-data.
      * @throws IllegalStateException if contained addi-record is invalid or if
      * addi-data contains multiple addi-records
-     * @throws NumberFormatException if contained record is not
-     * addi-format or not base64 encoded.
+     * @throws NumberFormatException if contained record is not addi-format
      */
-    public static AddiRecord getAddiRecordFromChunkItem(ChunkItem chunkItem, Charset encoding)
+    public static AddiRecord getAddiRecordFromChunkItem(ChunkItem chunkItem)
             throws NullPointerException, IllegalStateException, NumberFormatException, IOException {
-        if(chunkItem.getData().isEmpty()) {
+        if (chunkItem.getData().length == 0) {
             throw new IllegalStateException("No data in ChunkItem");
         }
         final List<AddiRecord> addiRecords = new ArrayList<>();
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(
-                decodeBase64(chunkItem.getData(), encoding).getBytes(encoding)));
+        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
         addiRecords.add(addiReader.getNextRecord());
         if (addiReader.getNextRecord() != null) {
             throw new IllegalStateException("More than one Addi in record");
@@ -249,7 +240,7 @@ public class ESTaskPackageUtil {
             List<ChunkItem> chunkItems = new ArrayList<>();
             List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = getDataFromTaskPackageRecordStructure(conn, targetReference);
             for (TaskPackageRecordsStructureData data : taskPackageRecordsStructureDatas) {
-                LOGGER.info("targetRef: {}  status: {} recordDiag: {}", new Object[]{targetReference, data.recordstatus, data.recordOrSurDiag2});
+                LOGGER.info("targetRef: {}  status: {} recordDiag: {}", targetReference, data.recordstatus, data.recordOrSurDiag2);
                 ChunkItem.Status status = ChunkItem.Status.FAILURE;
                 final String errMsg = "record status for taskpackage [%d/%d] is: %s - this is an error - accepting it as failed!";
                 String failureMsg = "";
@@ -282,7 +273,7 @@ public class ESTaskPackageUtil {
                 }
                 String recordIdData = data.record_id == null ? "unknown record ID" : data.record_id;
                 String itemData = status == ChunkItem.Status.SUCCESS ? recordIdData : failureMsg;
-                chunkItems.add(new ChunkItem(data.lbnr, Base64Util.base64encode(itemData), status));
+                chunkItems.add(new ChunkItem(data.lbnr, StringUtil.asBytes(itemData), status));
             }
             return chunkItems;
         } finally {

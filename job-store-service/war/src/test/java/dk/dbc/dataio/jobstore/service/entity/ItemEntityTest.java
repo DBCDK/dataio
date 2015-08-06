@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
@@ -14,7 +15,7 @@ import static org.junit.Assert.fail;
 
 public class ItemEntityTest {
     final static ItemEntity.Key KEY = new ItemEntity.Key(2, 1, (short) 0);
-    final static ItemData DATA = new ItemData("data", StandardCharsets.UTF_8);
+    final static ItemData DATA = new ItemData(StringUtil.base64encode("data"), StandardCharsets.UTF_8);
 
     @Test
     public void toChunkItem_entityContainsNoData_throws() {
@@ -59,7 +60,9 @@ public class ItemEntityTest {
 
     @Test
     public void toChunkItem_calledWithPartitioningPhase_returnsChunkItem() {
-        final ChunkItem expectedChunkItem = new ChunkItem(KEY.getId(), DATA.getData(), ChunkItem.Status.SUCCESS);
+        final ChunkItem expectedChunkItem = new ChunkItem(KEY.getId(),
+                StringUtil.asBytes(StringUtil.base64decode(DATA.getData())),
+                ChunkItem.Status.SUCCESS);
         final ItemEntity entity = new ItemEntity();
         entity.setKey(KEY);
         entity.setPartitioningOutcome(DATA);
@@ -71,7 +74,9 @@ public class ItemEntityTest {
 
     @Test
     public void toChunkItem_calledWithProcessingPhase_returnsChunkItem() {
-        final ChunkItem expectedChunkItem = new ChunkItem(KEY.getId(), DATA.getData(), ChunkItem.Status.FAILURE);
+        final ChunkItem expectedChunkItem = new ChunkItem(KEY.getId(),
+                StringUtil.asBytes(StringUtil.base64decode(DATA.getData())),
+                ChunkItem.Status.FAILURE);
         final ItemEntity entity = new ItemEntity();
         entity.setKey(KEY);
         entity.setProcessingOutcome(DATA);
@@ -83,7 +88,9 @@ public class ItemEntityTest {
 
     @Test
     public void toChunkItem_calledWithDeliveringPhase_returnsChunkItem() {
-        final ChunkItem expectedChunkItem = new ChunkItem(KEY.getId(), DATA.getData(), ChunkItem.Status.IGNORE);
+        final ChunkItem expectedChunkItem = new ChunkItem(KEY.getId(),
+                StringUtil.asBytes(StringUtil.base64decode(DATA.getData())),
+                ChunkItem.Status.IGNORE);
         final ItemEntity entity = new ItemEntity();
         entity.setKey(KEY);
         entity.setDeliveringOutcome(DATA);

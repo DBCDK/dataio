@@ -1,6 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 public class ChunkItemJsonBuilder extends JsonBuilder {
     private long id = 0L;
@@ -26,7 +27,7 @@ public class ChunkItemJsonBuilder extends JsonBuilder {
         return
                 START_OBJECT +
                     asLongMember("id", id) + MEMBER_DELIMITER +
-                    asTextMember("data", data) + MEMBER_DELIMITER +
+                    asTextMember("data", StringUtil.base64encode(data)) + MEMBER_DELIMITER +
                     asTextMember("status", status.name()) +
                 END_OBJECT;
     }

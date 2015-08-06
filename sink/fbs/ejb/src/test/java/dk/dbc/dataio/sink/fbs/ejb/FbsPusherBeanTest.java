@@ -2,18 +2,18 @@ package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.junit.Test;
 
 import javax.xml.ws.WebServiceException;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -39,10 +39,10 @@ public class FbsPusherBeanTest {
         final String inData2 = "two";
         final String inData3 = "three";
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(new ArrayList<ChunkItem>()).build();
-        processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(inData0)).build());
-        processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(inData1)).build());
-        processedChunk.insertItem(new ChunkItemBuilder().setId(2).setData(Base64Util.base64encode(inData2)).build());
-        processedChunk.insertItem(new ChunkItemBuilder().setId(3).setData(Base64Util.base64encode(inData3)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(inData0)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(StringUtil.asBytes(inData1)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(2).setData(StringUtil.asBytes(inData2)).build());
+        processedChunk.insertItem(new ChunkItemBuilder().setId(3).setData(StringUtil.asBytes(inData3)).build());
         processedChunk.insertItem(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.FAILURE).build());
         processedChunk.insertItem(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.IGNORE).build());
 
@@ -72,14 +72,14 @@ public class FbsPusherBeanTest {
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat(item1.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(item1.getData(), is(Base64Util.base64encode(okMessage)));
+        assertThat(StringUtil.asString(item1.getData()), is(okMessage));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item2 = iterator.next();
         assertThat(item2.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item3 = iterator.next();
         assertThat(item3.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(item3.getData(), is(Base64Util.base64encode(failedMessage)));
+        assertThat(StringUtil.asString(item3.getData()), is(failedMessage));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item4 = iterator.next();
         assertThat(item4.getStatus(), is(ChunkItem.Status.IGNORE));

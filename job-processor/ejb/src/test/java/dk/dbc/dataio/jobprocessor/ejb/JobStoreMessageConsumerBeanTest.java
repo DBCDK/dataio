@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -99,7 +99,7 @@ public class JobStoreMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, InvalidMessageException, JMSException, JSONBException {
-        final ChunkItem item = new ChunkItemBuilder().setData("This is some data").setStatus(ChunkItem.Status.SUCCESS).build();
+        final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
         // The Chunk-type 'processed' is not allowed in the JobProcessor, only 'partitioned' is allowed.
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
@@ -143,7 +143,7 @@ public class JobStoreMessageConsumerBeanTest {
         final ResourceBundle resourceBundle = new ResourceBundle(flow, sink, new SupplementaryProcessDataBuilder().build());
         when(jobStoreServiceConnector.getResourceBundle(anyInt())).thenReturn(resourceBundle);
 
-        final ChunkItem item = new ChunkItemBuilder().setData(Base64Util.base64encode("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
+        final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).setItems(Arrays.asList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
@@ -171,7 +171,7 @@ public class JobStoreMessageConsumerBeanTest {
         assertThat("chunk size", out.size(), is(in.size()));
         final Iterator<ChunkItem> inIterator = in.iterator();
         for (ChunkItem item : out) {
-            assertThat("chunk item data", Base64Util.base64decode(item.getData()), is(Base64Util.base64decode(inIterator.next().getData()).toUpperCase()));
+            assertThat("chunk item data", StringUtil.asString(item.getData()), is(StringUtil.asString(inIterator.next().getData()).toUpperCase()));
         }
     }
 

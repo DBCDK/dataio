@@ -8,6 +8,7 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -142,7 +143,7 @@ public class ChunkProcessorBeanTest {
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
-        assertThat("Chunk item[0] data", processedItem0.getData().isEmpty(), is(false));
+        assertThat("Chunk item[0] data", processedItem0.getData().length == 0, is(false));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
@@ -165,7 +166,7 @@ public class ChunkProcessorBeanTest {
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
-        assertThat("Chunk item[0] data", processedItem0.getData().isEmpty(), is(false));
+        assertThat("Chunk item[0] data", processedItem0.getData().length == 0, is(false));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
@@ -189,7 +190,7 @@ public class ChunkProcessorBeanTest {
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
-        assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()),
+        assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()),
                 is(String.format("%s%s%s", submitter, record.toUpperCase(), format)));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
@@ -214,7 +215,7 @@ public class ChunkProcessorBeanTest {
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
-        assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()), is("errorMessage"));
+        assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
@@ -239,7 +240,7 @@ public class ChunkProcessorBeanTest {
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
-        assertThat("Chunk item[0] data", Base64Util.base64decode(processedItem0.getData()), is("errorMessage"));
+        assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
@@ -283,7 +284,7 @@ public class ChunkProcessorBeanTest {
         for (String itemData : data) {
             items.add(new ChunkItemBuilder()
                     .setId(chunkId++)
-                    .setData(Base64Util.base64encode(itemData))
+                    .setData(StringUtil.asBytes(itemData))
                     .build());
         }
         return items;

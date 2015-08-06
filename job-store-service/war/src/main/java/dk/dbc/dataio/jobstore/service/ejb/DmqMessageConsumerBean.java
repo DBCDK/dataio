@@ -4,8 +4,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -50,7 +50,7 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         final ExternalChunk deadChunk = new ExternalChunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
         deadChunk.setEncoding(StandardCharsets.UTF_8);
         for (ChunkItem chunkItem : originatingChunk) {
-            deadChunk.insertItem(new ChunkItem(chunkItem.getId(), Base64Util.base64encode(String.format(
+            deadChunk.insertItem(new ChunkItem(chunkItem.getId(), StringUtil.asBytes(String.format(
                     "Item was failed due to dead %s chunk", originatingChunk.getType())), ChunkItem.Status.FAILURE));
         }
         return deadChunk;

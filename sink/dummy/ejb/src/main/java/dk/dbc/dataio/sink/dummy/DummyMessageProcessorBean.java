@@ -8,8 +8,8 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobstore.types.JobError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         for (final ChunkItem item : processedChunk) {
             // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
             ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
-            deliveredChunk.insertItem(new ChunkItem(item.getId(), Base64Util.base64encode("Set by DummySink"), status));
+            deliveredChunk.insertItem(new ChunkItem(item.getId(), StringUtil.asBytes("Set by DummySink"), status));
         }
         return deliveredChunk;
     }

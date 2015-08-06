@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
@@ -192,7 +193,10 @@ public class ItemEntity {
      */
     public ChunkItem toChunkItem(State.Phase phase) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(phase, "phase");
-        return new ChunkItem(key.getId(), getItemDataForPhase(phase).getData(), getChunkItemStatusForPhase(phase));
+        final ItemData itemData = getItemDataForPhase(phase);
+        return new ChunkItem(key.getId(), StringUtil.asBytes(
+                StringUtil.base64decode(itemData.getData(), itemData.getEncoding()), itemData.getEncoding()),
+                getChunkItemStatusForPhase(phase));
     }
 
     /**

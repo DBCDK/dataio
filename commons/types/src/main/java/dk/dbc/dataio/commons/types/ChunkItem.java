@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Chunk item DTO class.
@@ -16,7 +17,7 @@ public class ChunkItem implements Serializable {
     public enum Status { SUCCESS, FAILURE, IGNORE }
 
     private final long id;
-    private final String data;
+    private final byte[] data;
     private final Status status;
 
     /**
@@ -32,7 +33,7 @@ public class ChunkItem implements Serializable {
     @JsonCreator
     public ChunkItem(
             @JsonProperty("id") long id,
-            @JsonProperty("data") String data,
+            @JsonProperty("data") byte[] data,
             @JsonProperty("status") Status status) {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
@@ -43,7 +44,7 @@ public class ChunkItem implements Serializable {
         return id;
     }
 
-    public String getData() {
+    public byte[] getData() {
         return data;
     }
 
@@ -65,20 +66,17 @@ public class ChunkItem implements Serializable {
         if (id != chunkItem.id) {
             return false;
         }
-        if (!data.equals(chunkItem.data)) {
+        if (!Arrays.equals(data, chunkItem.data)) {
             return false;
         }
-        if (status != chunkItem.status) {
-            return false;
-        }
+        return status == chunkItem.status;
 
-        return true;
     }
 
     @Override
     public int hashCode() {
         int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + data.hashCode();
+        result = 31 * result + Arrays.hashCode(data);
         result = 31 * result + status.hashCode();
         return result;
     }

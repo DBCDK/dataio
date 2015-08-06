@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 
 public class ChunkItemBuilder {
     private long id = 0L;
-    private String data = "data";
+    private byte[] data = "data".getBytes();
     private ChunkItem.Status status = ChunkItem.Status.SUCCESS;
 
     public ChunkItemBuilder setId(long id) {
@@ -12,7 +12,7 @@ public class ChunkItemBuilder {
         return this;
     }
 
-    public ChunkItemBuilder setData(String data) {
+    public ChunkItemBuilder setData(byte[] data) {
         this.data = data;
         return this;
     }

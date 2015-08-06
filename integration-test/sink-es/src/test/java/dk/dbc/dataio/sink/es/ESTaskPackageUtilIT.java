@@ -4,7 +4,7 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
@@ -71,7 +71,7 @@ public class ESTaskPackageUtilIT {
         ChunkItem ci = items.get(0);
         assertThat(ci.getId(), is(0L));
         assertThat(ci.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(ci.getData(), is(Base64Util.base64encode(pid)));
+        assertThat(StringUtil.asString(ci.getData()), is(pid));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class ESTaskPackageUtilIT {
         ChunkItem ci = items.get(0);
         assertThat(ci.getId(), is(0L));
         assertThat(ci.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(Base64Util.base64decode(ci.getData()).toLowerCase().contains("queued"), is(true)); // a little hacky - but the failure message should contain some info about what happend.
+        assertThat(StringUtil.asString(ci.getData()).toLowerCase().contains("queued"), is(true)); // a little hacky - but the failure message should contain some info about what happend.
     }
 
     @Test
@@ -101,7 +101,7 @@ public class ESTaskPackageUtilIT {
         ChunkItem ci = items.get(0);
         assertThat(ci.getId(), is(0L));
         assertThat(ci.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(Base64Util.base64decode(ci.getData()).toLowerCase().contains("inprocess"), is(true)); // a little hacky - but the failure message should contain some info about what happend.
+        assertThat(StringUtil.asString(ci.getData()).toLowerCase().contains("inprocess"), is(true)); // a little hacky - but the failure message should contain some info about what happend.
     }
 
     @Test
@@ -117,7 +117,7 @@ public class ESTaskPackageUtilIT {
         ChunkItem ci = items.get(0);
         assertThat(ci.getId(), is(0L));
         assertThat(ci.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(ci.getData(), is(Base64Util.base64encode(failureMessage)));
+        assertThat(StringUtil.asString(ci.getData()), is(failureMessage));
     }
 
     @Test
@@ -145,31 +145,31 @@ public class ESTaskPackageUtilIT {
         ChunkItem ci0 = items.get(0);
         assertThat(ci0.getId(), is(0L));
         assertThat(ci0.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(ci0.getData(), is(Base64Util.base64encode(pid0)));
+        assertThat(StringUtil.asString(ci0.getData()), is(pid0));
         ChunkItem ci1 = items.get(1);
         assertThat(ci1.getId(), is(1L));
         assertThat(ci1.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(ci1.getData(), is(Base64Util.base64encode(failureMessage0)));
+        assertThat(StringUtil.asString(ci1.getData()), is(failureMessage0));
         ChunkItem ci2 = items.get(2);
         assertThat(ci2.getId(), is(2L));
         assertThat(ci2.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(ci2.getData(), is(Base64Util.base64encode(pid1)));
+        assertThat(StringUtil.asString(ci2.getData()), is(pid1));
         ChunkItem ci3 = items.get(3);
         assertThat(ci3.getId(), is(3L));
         assertThat(ci3.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(ci3.getData(), is(Base64Util.base64encode(failureMessage1)));
+        assertThat(StringUtil.asString(ci3.getData()), is(failureMessage1));
         ChunkItem ci4 = items.get(4);
         assertThat(ci4.getId(), is(4L));
         assertThat(ci4.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(ci4.getData(), is(Base64Util.base64encode(pid2)));
+        assertThat(StringUtil.asString(ci4.getData()), is(pid2));
         ChunkItem ci5 = items.get(5);
         assertThat(ci5.getId(), is(5L));
         assertThat(ci5.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(ci5.getData(), is(Base64Util.base64encode(failureMessage2)));
+        assertThat(StringUtil.asString(ci5.getData()), is(failureMessage2));
         ChunkItem ci6 = items.get(6);
         assertThat(ci6.getId(), is(6L));
         assertThat(ci6.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(ci6.getData(), is(Base64Util.base64encode(pid3)));
+        assertThat(StringUtil.asString(ci6.getData()), is(pid3));
     }
 
     @Test
@@ -302,7 +302,7 @@ public class ESTaskPackageUtilIT {
             int id = 0;
             for (String addi : addis) {
                 // This is not the place to test state of incoming chunk items, therefore: assuming all incoming ChunkItems are successfull.
-                ChunkItem ci = new ChunkItemBuilder().setId(id++).setStatus(ChunkItem.Status.SUCCESS).setData(Base64Util.base64encode(addi)).build();
+                ChunkItem ci = new ChunkItemBuilder().setId(id++).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes(addi)).build();
                 chunkItems.add(ci);
             }
             return chunkItems;
@@ -379,7 +379,7 @@ public class ESTaskPackageUtilIT {
                 JDBCUtil.update(conn, stmt4, diagnosticId, targetReference, lbnr);
             } catch (SQLException e) {
                 LOGGER.error("SQLException caught when trying to set failurediagnostic with the following values: targetRef: [{}] lbnr: [{}] failureDiagnostic: [{}]",
-                        new Object[]{targetReference, lbnr, failureDiagnostic, e});
+                        targetReference, lbnr, failureDiagnostic, e);
                 throw e;
             }
         }

@@ -2,13 +2,15 @@ package dk.dbc.dataio.commons.types;
 
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class ChunkItemTest {
     private static final long ID = 1L;
-    private static final String DATA = "data";
+    private static final byte[] DATA = "data".getBytes(StandardCharsets.UTF_8);
     private static final ChunkItem.Status STATUS = ChunkItem.Status.SUCCESS;
 
     @Test(expected = NullPointerException.class)
@@ -28,7 +30,7 @@ public class ChunkItemTest {
 
     @Test
     public void constructor_dataArgIsEmpty_returnsNewInstance() {
-        assertThat(new ChunkItem(ID, "", STATUS), is(notNullValue()));
+        assertThat(new ChunkItem(ID, new byte[0], STATUS), is(notNullValue()));
     }
 
     public void constructor_allArgsAreValid_returnsNewInstance() {

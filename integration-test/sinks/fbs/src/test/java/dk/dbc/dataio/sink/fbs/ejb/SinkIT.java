@@ -3,7 +3,7 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -85,28 +85,28 @@ public class SinkIT {
 
     private ExternalChunk getProcessedChunk() {
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
-        processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(Base64Util.base64encode(
-            "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\">" +
-                    "<marcx:leader>00000n    2200000   4500</marcx:leader>" +
-                    "<marcx:datafield tag=\"001\" ind1=\"0\" ind2=\"0\">" +
+        processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(
+                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                        "<marcx:record format=\"danMARC2\">" +
+                        "<marcx:leader>00000n    2200000   4500</marcx:leader>" +
+                        "<marcx:datafield tag=\"001\" ind1=\"0\" ind2=\"0\">" +
                         "<marcx:subfield code=\"a\">4 539 593 6</marcx:subfield>" +
                         "<marcx:subfield code=\"b\">870970</marcx:subfield>" +
                         "<marcx:subfield code=\"c\">20131114205943</marcx:subfield>" +
                         "<marcx:subfield code=\"d\">20131114</marcx:subfield>" +
                         "<marcx:subfield code=\"f\">a</marcx:subfield>" +
-                    "</marcx:datafield>" +
-                    "<marcx:datafield tag=\"245\" ind1=\"0\" ind2=\"0\">" +
+                        "</marcx:datafield>" +
+                        "<marcx:datafield tag=\"245\" ind1=\"0\" ind2=\"0\">" +
                         "<marcx:subfield code=\"a\">&#xC0; la recherche du temps perdu</marcx:subfield>" +
-                    "</marcx:datafield>" +
-                "</marcx:record>" +
-            "</marcx:collection>"
+                        "</marcx:datafield>" +
+                        "</marcx:record>" +
+                        "</marcx:collection>"
         )).build());
-        processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(Base64Util.base64encode(
+        processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(StringUtil.asBytes(
                 "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                  "<marcx:record format=\"danMARC2\">" +
-                  "</marcx:record>" +
-                "</marcx:collection>"
+                        "<marcx:record format=\"danMARC2\">" +
+                        "</marcx:record>" +
+                        "</marcx:collection>"
         )).build());
         return processedChunk;
     }

@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.util.FlowCache;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -139,7 +139,7 @@ public class ChunkProcessorBean {
     private ChunkItem processItem(ChunkItem item, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers, LogStoreTrackingId trackingId) {
         ChunkItem processedItem;
         try {
-            String data = Base64Util.base64decode(item.getData());
+            String data = StringUtil.asString(item.getData());
             for (JSWrapperSingleScript jsWrapper : jsWrappers) {
                 data = invokeJavaScript(jsWrapper, data, supplementaryData, trackingId);
                 if (data.isEmpty()) {
@@ -148,19 +148,19 @@ public class ChunkProcessorBean {
                 }
             }
             if (data.isEmpty()) {
-                processedItem = new ChunkItem(item.getId(), "Ignored by job-processor since returned data was empty", ChunkItem.Status.IGNORE);
+                processedItem = new ChunkItem(item.getId(), StringUtil.asBytes("Ignored by job-processor since returned data was empty"), ChunkItem.Status.IGNORE);
             } else {
-                processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(data), ChunkItem.Status.SUCCESS);
+                processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(data), ChunkItem.Status.SUCCESS);
             }
         } catch (IgnoreRecord ex ) {
             LOGGER.error("Record Ignored by JS with Message: {}", ex.getMessage());
-            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(ex.getMessage()), ChunkItem.Status.IGNORE);
+            processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(ex.getMessage()), ChunkItem.Status.IGNORE);
         } catch (FailRecord ex) {
             LOGGER.error("RecordProcessing Terminated by JS with Message: {}", ex.getMessage());
-            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(ex.getMessage()), ChunkItem.Status.FAILURE);
+            processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(ex.getMessage()), ChunkItem.Status.FAILURE);
         } catch (Throwable ex) {
             LOGGER.error("Exception caught during JavaScript processing", ex);
-            processedItem = new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE);
+            processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(getFailureMessage(ex)), ChunkItem.Status.FAILURE);
         }
         return processedItem;
     }
@@ -194,7 +194,7 @@ public class ChunkProcessorBean {
     private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable ex) {
         List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
-            failedItems.add(new ChunkItem(item.getId(), Base64Util.base64encode(getFailureMessage(ex)), ChunkItem.Status.FAILURE));
+            failedItems.add(new ChunkItem(item.getId(), StringUtil.asBytes(getFailureMessage(ex)), ChunkItem.Status.FAILURE));
         }
         return failedItems;
     }

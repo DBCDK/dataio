@@ -8,8 +8,8 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.jobstore.types.JobError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +18,7 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @MessageDriven
@@ -49,7 +50,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
 
         for (final ChunkItem item : processedChunk) {
-            deliveredChunk.insertItem(new ChunkItem(item.getId(), Base64Util.base64encode("Missing Next Items"), ChunkItem.Status.FAILURE));
+            deliveredChunk.insertItem(new ChunkItem(item.getId(), StringUtil.asBytes("Missing Next Items"), ChunkItem.Status.FAILURE));
         }
         return deliveredChunk;
 
@@ -66,11 +67,11 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 String message=String.format("Different status %s -> %s\n%s",
                         statusToString(item.current.getStatus()),
                         statusToString(item.next.getStatus()),
-                        Base64Util.base64decode(item.next.getData())
+                        StringUtil.asString(item.next.getData())
                 );
-                deliveredChunk.insertItem(new ChunkItem(item.next.getId(), Base64Util.base64encode(message), ChunkItem.Status.FAILURE));
+                deliveredChunk.insertItem(new ChunkItem(item.next.getId(), StringUtil.asBytes(message), ChunkItem.Status.FAILURE));
             } else {
-                ChunkItem.Status status=item.current.getData().equals(item.next.getData())? ChunkItem.Status.SUCCESS: ChunkItem.Status.FAILURE;
+                ChunkItem.Status status= Arrays.equals(item.current.getData(), item.next.getData()) ? ChunkItem.Status.SUCCESS: ChunkItem.Status.FAILURE;
                 deliveredChunk.insertItem(new ChunkItem(item.current.getId(),item.next.getData(), status));
             }
         }

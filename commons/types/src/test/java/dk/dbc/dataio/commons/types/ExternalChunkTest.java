@@ -14,7 +14,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 public class ExternalChunkTest {
-    private static final ChunkItem CHUNK_ITEM = new ChunkItem(0L, "data", ChunkItem.Status.SUCCESS);
+    private static final ChunkItem CHUNK_ITEM = new ChunkItem(0L, "data".getBytes(), ChunkItem.Status.SUCCESS);
     private ExternalChunk chunk;
 
     @Before
@@ -47,7 +47,7 @@ public class ExternalChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void insertItem_outOfOrderItemId_throws() {
-        chunk.insertItem(new ChunkItem(1L, "data", ChunkItem.Status.IGNORE));
+        chunk.insertItem(new ChunkItem(1L, "data".getBytes(), ChunkItem.Status.IGNORE));
     }
 
     @Test
@@ -80,7 +80,7 @@ public class ExternalChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void insertItem_2arg_nextItemIdDiffersFromCurrentItemId_throws() {
-        final ChunkItem nextChunkItem = new ChunkItem(1L, "data", ChunkItem.Status.SUCCESS);
+        final ChunkItem nextChunkItem = new ChunkItem(1L, "data".getBytes(), ChunkItem.Status.SUCCESS);
         chunk.insertItem(CHUNK_ITEM, nextChunkItem);
     }
 
@@ -110,16 +110,16 @@ public class ExternalChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void addAllItems_2arg_listsDifferInSize_throws() {
-        final ChunkItem firstItem = new ChunkItem(0L, "First", ChunkItem.Status.IGNORE);
-        final ChunkItem secondItem = new ChunkItem(1L, "Second", ChunkItem.Status.SUCCESS);
+        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
+        final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
         chunk.addAllItems(Arrays.asList(firstItem, secondItem), Collections.singletonList(firstItem));
     }
 
     @Test
     public void chunk_iterator() {
-        final ChunkItem firstItem = new ChunkItem(0L, "First", ChunkItem.Status.IGNORE);
-        final ChunkItem secondItem = new ChunkItem(1L, "Second", ChunkItem.Status.SUCCESS);
-        final ChunkItem thirdItem = new ChunkItem(2L, "Third", ChunkItem.Status.FAILURE);
+        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
+        final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
+        final ChunkItem thirdItem = new ChunkItem(2L, "Third".getBytes(), ChunkItem.Status.FAILURE);
         chunk.insertItem(firstItem);
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
@@ -138,9 +138,9 @@ public class ExternalChunkTest {
 
     @Test
     public void convertToJsonAndBackAgain() throws JsonException {
-        final ChunkItem firstItem = new ChunkItem(0L, "First", ChunkItem.Status.IGNORE);
-        final ChunkItem secondItem = new ChunkItem(1L, "Second", ChunkItem.Status.SUCCESS);
-        final ChunkItem thirdItem = new ChunkItem(2L, "Third", ChunkItem.Status.FAILURE);
+        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
+        final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
+        final ChunkItem thirdItem = new ChunkItem(2L, "Third".getBytes(), ChunkItem.Status.FAILURE);
         chunk.insertItem(firstItem);
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
@@ -158,13 +158,13 @@ public class ExternalChunkTest {
 
     @Test(expected = JsonException.class)
     public void unmarshallFromJsonWhichDoNotUpholdInvariant() throws JsonException {
-        final String illegalJson = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":1,\"data\":\"Second\",\"status\":\"SUCCESS\"},{\"id\":0,\"data\":\"Second\",\"status\":\"SUCCESS\"}]}";
+        final String illegalJson = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"},{\"id\":0,\"data\":\"Second\",\"status\":\"SUCCESS\"}]}";
         JsonUtil.fromJson(illegalJson, ExternalChunk.class);
     }
 
     @Test
     public void unmarshallFromJsonWithoutNext() throws JsonException {
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"Second\",\"status\":\"SUCCESS\"}]}";
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
         final ExternalChunk chunk = JsonUtil.fromJson(json, ExternalChunk.class);
         assertThat(chunk, is(notNullValue()));
     }

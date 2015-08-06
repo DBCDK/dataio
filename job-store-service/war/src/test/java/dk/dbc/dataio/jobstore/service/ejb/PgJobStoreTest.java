@@ -11,6 +11,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -672,6 +673,10 @@ public class PgJobStoreTest {
     @Test
     public void updateChunkItemEntities_itemsForProcessingPhase() throws JobStoreException {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
+        final List<String> expectedItemData = Arrays.asList(
+                StringUtil.base64encode(chunkData.get(0)),
+                StringUtil.base64encode(chunkData.get(1)),
+                StringUtil.base64encode(chunkData.get(2)));
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
@@ -684,7 +689,7 @@ public class PgJobStoreTest {
         assertThat("Chunk: number of ignored items", chunkItemEntities.chunkStateChange.getIgnored(), is(1));
         assertThat("Chunk: number of succeeded items", chunkItemEntities.chunkStateChange.getSucceeded(), is(1));
 
-        assertChunkItemEntities(chunkItemEntities, State.Phase.PROCESSING, chunkData, StandardCharsets.UTF_8);
+        assertChunkItemEntities(chunkItemEntities, State.Phase.PROCESSING, expectedItemData, StandardCharsets.UTF_8);
         StateElement entityStateElement = entities.get(0).getState().getPhase(State.Phase.PROCESSING);
         assertThat(String.format("%s failed counter", entities.get(0).getKey()),
                 entityStateElement.getFailed(), is(0));
@@ -711,6 +716,10 @@ public class PgJobStoreTest {
     @Test
     public void updateChunkItemEntities_itemsForDeliveringPhase() throws JobStoreException {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
+        final List<String> expectedItemData = Arrays.asList(
+                StringUtil.base64encode(chunkData.get(0)),
+                StringUtil.base64encode(chunkData.get(1)),
+                StringUtil.base64encode(chunkData.get(2)));
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.DELIVERED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
@@ -723,7 +732,7 @@ public class PgJobStoreTest {
         assertThat("Chunk: number of ignored items", chunkItemEntities.chunkStateChange.getIgnored(), is(1));
         assertThat("Chunk: number of succeeded items", chunkItemEntities.chunkStateChange.getSucceeded(), is(1));
 
-        assertChunkItemEntities(chunkItemEntities, State.Phase.DELIVERING, chunkData, StandardCharsets.UTF_8);
+        assertChunkItemEntities(chunkItemEntities, State.Phase.DELIVERING, expectedItemData, StandardCharsets.UTF_8);
         StateElement entityStateElement = entities.get(0).getState().getPhase(State.Phase.DELIVERING);
         assertThat(String.format("%s failed counter", entities.get(0).getKey()),
                 entityStateElement.getFailed(), is(0));
@@ -1085,7 +1094,7 @@ public class PgJobStoreTest {
 
     @Test
     public void getChunk_queryReturnsItemEntityWithData_returnsChunk() {
-        final ItemData data1 = new ItemData("data1", StandardCharsets.UTF_8);
+        final ItemData data1 = new ItemData(StringUtil.base64encode("data1"), StandardCharsets.UTF_8);
         final State state1 = new State();
         state1.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
         final ItemEntity entity1 = new ItemEntity();
@@ -1093,7 +1102,7 @@ public class PgJobStoreTest {
         entity1.setPartitioningOutcome(data1);
         entity1.setState(state1);
 
-        final ItemData data2 = new ItemData("data2", StandardCharsets.ISO_8859_1);
+        final ItemData data2 = new ItemData(StringUtil.base64encode("data2"), StandardCharsets.ISO_8859_1);
         final State state2 = new State();
         state2.getPhase(State.Phase.PARTITIONING).setFailed(1);
         final ItemEntity entity2 = new ItemEntity();
@@ -1113,10 +1122,10 @@ public class PgJobStoreTest {
         final Iterator<ChunkItem> iterator = chunk.iterator();
         final ChunkItem firstChunkItem = iterator.next();
         assertThat("chunk[0].getId()", firstChunkItem.getId(), is((long) entity1.getKey().getId()));
-        assertThat("chunk[0].getData()", firstChunkItem.getData(), is(data1.getData()));
+        assertThat("chunk[0].getData()", StringUtil.asString(firstChunkItem.getData()), is(StringUtil.base64decode(data1.getData())));
         final ChunkItem secondChunkItem = iterator.next();
         assertThat("chunk[1].getId()", secondChunkItem.getId(), is((long) entity2.getKey().getId()));
-        assertThat("chunk[1].getData()", secondChunkItem.getData(), is(data2.getData()));
+        assertThat("chunk[1].getData()", StringUtil.asString(secondChunkItem.getData()), is(StringUtil.base64decode(data2.getData())));
     }
 
     @Test
@@ -1260,7 +1269,7 @@ public class PgJobStoreTest {
         final LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
         short itemId = 0;
         for (String itemData : data) {
-            chunkItems.add(new ChunkItem(itemId++, itemData, statusStack.pop()));
+            chunkItems.add(new ChunkItem(itemId++, StringUtil.asBytes(itemData), statusStack.pop()));
         }
         return new ExternalChunkBuilder(type)
                 .setJobId(jobId)

@@ -8,7 +8,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -32,7 +32,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -152,10 +152,10 @@ public class EsMessageProcessorBeanIT {
     public void esMessageProcessorBean_validProcessorResultOnSinksQueue_eventuallyProcessed()
             throws JsonException, JMSException, InterruptedException, SQLException, ClassNotFoundException, JSONBException {
         final ChunkItem item = new ChunkItemBuilder()
-                .setData(Base64Util.base64encode(ADDI_OK))
+                .setData(StringUtil.asBytes(ADDI_OK))
                 .build();
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
-                .setItems(Arrays.asList(item))
+                .setItems(Collections.singletonList(item))
                 .build();
         final MockedJmsTextMessage processorMessage = newProcessorMessageForSink(processedChunk);
 

@@ -299,7 +299,7 @@ public class PerformanceIT {
         // invocationfunction for use as entrance to the javascripts.
 
         JavaScript js = new JavaScript(Base64.encodeBase64String(("function invocationFunction(record, supplementaryData) {\n"
-                + "return \"Hello from javascript!\\n\";"
+                + "return record;"
                 + "}").getBytes("UTF-8")), "NoModule");
         JavaScript jsUse = new JavaScript(Base64.encodeBase64String("function use(module) {};".getBytes("UTF-8")), "Use");
         JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String("var __ModulesInfo = function() { var that = {}; that.checkDepAlreadyLoaded = function( moduleName ) { return true; }; return that;}();".getBytes("UTF-8")), "ModulesInfo");

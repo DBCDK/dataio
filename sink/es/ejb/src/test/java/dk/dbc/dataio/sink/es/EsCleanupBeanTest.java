@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -132,7 +133,7 @@ public class EsCleanupBeanTest {
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.SUCCESS)
-                .setData("succeeded")
+                .setData(StringUtil.asBytes("succeeded"))
                 .build());
         when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
 
@@ -162,7 +163,7 @@ public class EsCleanupBeanTest {
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.SUCCESS)
-                .setData("succeeded")
+                .setData(StringUtil.asBytes("succeeded"))
                 .build());
         when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
 
@@ -229,12 +230,12 @@ public class EsCleanupBeanTest {
         esItems.add(new ChunkItemBuilder()
                 .setId(0L)
                 .setStatus(ChunkItem.Status.FAILURE)
-                .setData("failed")
+                .setData(StringUtil.asBytes("failed"))
                 .build());
         esItems.add(new ChunkItemBuilder()
                 .setId(1L)
                 .setStatus(ChunkItem.Status.SUCCESS)
-                .setData("succeeded")
+                .setData(StringUtil.asBytes("succeeded"))
                 .build());
 
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
@@ -284,11 +285,11 @@ public class EsCleanupBeanTest {
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.FAILURE)
-                .setData("failed")
+                .setData(StringUtil.asBytes("failed"))
                 .build());
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.SUCCESS)
-                .setData("succeeded")
+                .setData(StringUtil.asBytes("succeeded"))
                 .build());
 
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
@@ -321,11 +322,11 @@ public class EsCleanupBeanTest {
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.FAILURE)
-                .setData("failed")
+                .setData(StringUtil.asBytes("failed"))
                 .build());
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.SUCCESS)
-                .setData("succeeded")
+                .setData(StringUtil.asBytes("succeeded"))
                 .build());
         
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
@@ -373,11 +374,11 @@ public class EsCleanupBeanTest {
         final ArrayList<ChunkItem> esItems = new ArrayList<>();
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.FAILURE)
-                .setData("failed")
+                .setData(StringUtil.asBytes("failed"))
                 .build());
         esItems.add(new ChunkItemBuilder()
                 .setStatus(ChunkItem.Status.SUCCESS)
-                .setData("succeeded")
+                .setData(StringUtil.asBytes("succeeded"))
                 .build());
 
         when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);

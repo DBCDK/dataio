@@ -3,7 +3,7 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -62,7 +62,7 @@ public class FbsPusherBean {
         ChunkItem deliveredItem;
         try {
             final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(
-                    Base64Util.base64decode(chunkItem.getData()), trackingId);
+                    StringUtil.asString(chunkItem.getData()), trackingId);
             switch(updateMarcXchangeResult.getUpdateMarcXchangeStatus()) {
                 case OK:
                     deliveredItem = newSuccessfulChunkItem(
@@ -99,11 +99,6 @@ public class FbsPusherBean {
     }
 
     private ChunkItem newChunkItem(long chunkItemId, String data, ChunkItem.Status status) {
-        if (data != null && !data.isEmpty()) {
-            data = Base64Util.base64encode(data);
-        } else {
-            data = "";
-        }
-        return new ChunkItem(chunkItemId, data, status);
+        return new ChunkItem(chunkItemId, StringUtil.asBytes(data), status);
     }
 }

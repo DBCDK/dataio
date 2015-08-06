@@ -11,7 +11,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.junit.Before;
@@ -80,14 +80,14 @@ public class DiffMessageProcessorBeanTest {
     @Test
     public void processPayload_FailDifferentContent() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData("Item1").setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData("Item2").setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData("Item3").setStatus(ChunkItem.Status.IGNORE).build()
+                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("Item1")).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
         );
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData("nextItem1").setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData("nextItem2").setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData("Item3").setStatus(ChunkItem.Status.IGNORE).build()
+                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("nextItem1")).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("nextItem2")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
         );
 
         final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
@@ -113,14 +113,14 @@ public class DiffMessageProcessorBeanTest {
     @Test
     public void processPayload_FailDifferentStatus() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(Base64Util.base64encode("Item1")).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData(Base64Util.base64encode("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(Base64Util.base64encode("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
+                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("Item1")).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.IGNORE).build()
         );
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(Base64Util.base64encode("Result1")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(1L).setData(Base64Util.base64encode("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(Base64Util.base64encode("Item3")).setStatus(ChunkItem.Status.SUCCESS).build()
+                new ChunkItemBuilder().setId(0L).setData(StringUtil.asBytes("Result1")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setData(StringUtil.asBytes("Item2")).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(StringUtil.asBytes("Item3")).setStatus(ChunkItem.Status.SUCCESS).build()
         );
 
         final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
@@ -136,7 +136,7 @@ public class DiffMessageProcessorBeanTest {
         assertThat(item0.getStatus(), is(ChunkItem.Status.FAILURE));
         String item0ExpectedData="Different status Failure -> Success\n"+
                 "Result1";
-        assertThat(item0.getData(), is( Base64Util.base64encode(item0ExpectedData) ));
+        assertThat(item0.getData(), is(StringUtil.asBytes(item0ExpectedData)));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat(item1.getStatus(), is(ChunkItem.Status.SUCCESS));

@@ -9,7 +9,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -152,7 +152,7 @@ public class EsMessageProcessorBeanTest {
         final ArrayList<ChunkItem> chunkItems = new ArrayList<>();
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(0)
-                .setData(Base64Util.base64encode(validAddiWithoutProcessing))
+                .setData(StringUtil.asBytes(validAddiWithoutProcessing))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // ignored by processor
@@ -165,32 +165,32 @@ public class EsMessageProcessorBeanTest {
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces invalid addi
                 .setId(3)
-                .setData("invalid")
+                .setData(StringUtil.asBytes("invalid"))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(4)
-                .setData(Base64Util.base64encode(validAddiWithoutProcessing))
+                .setData(StringUtil.asBytes(validAddiWithoutProcessing))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces empty addi
                 .setId(5)
-                .setData("")
+                .setData(StringUtil.asBytes(""))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // sink processing removed from meta data and processed successfully
                 .setId(6)
-                .setData(Base64Util.base64encode(validAddiProcessingFalse))
+                .setData(StringUtil.asBytes(validAddiProcessingFalse))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               //sink processing removed from meta data, content data converted to iso2709 and processed successfully
                 .setId(7)
-                .setData(Base64Util.base64encode(validAddiProcessingTrue))
+                .setData(StringUtil.asBytes(validAddiProcessingTrue))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()
                 .setId(8)
-                .setData(Base64Util.base64encode(validAddiProcessingTrueInvalidMarcX))
+                .setData(StringUtil.asBytes(validAddiProcessingTrueInvalidMarcX))
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
 
@@ -269,7 +269,7 @@ public class EsMessageProcessorBeanTest {
     private String generateChunkResultJsonWithResource(String resourceName) {
         try {
             final ChunkItem item = new ChunkItemBuilder()
-                    .setData(Base64Util.base64encode(getResourceAsString(resourceName)))
+                    .setData(StringUtil.asBytes(getResourceAsString(resourceName)))
                     .build();
             return JsonUtil.toJson(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                     .setItems(Arrays.asList(item))
@@ -299,7 +299,7 @@ public class EsMessageProcessorBeanTest {
     public void removeNodeFromDom_processingTagIsSetWithValueFalse_tagIsRemovedAndNewMetaDataReturned() throws IOException, TransformerException, SAXException {
         final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
@@ -313,7 +313,7 @@ public class EsMessageProcessorBeanTest {
     public void removeNodeFromDom_processingTagIsSetWithValueTrue_tagIsRemovedAndNewMetaDataReturned() throws TransformerException, SAXException, IOException {
         final String validAddi = getValidAdiWithProcessingTrue();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
@@ -326,7 +326,7 @@ public class EsMessageProcessorBeanTest {
     public void do2709Encoding_tagIsSetWithValueTrue_returnsTrue() throws IOException, SAXException {
         final String validAddi = getValidAdiWithProcessingTrue();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
@@ -337,7 +337,7 @@ public class EsMessageProcessorBeanTest {
     public void do2709Encoding_tagIsSetWithValueFalse_returnsFalse() throws IOException, SAXException {
         final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = getDocument(addiRecord.getMetaData());
         NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
@@ -348,7 +348,7 @@ public class EsMessageProcessorBeanTest {
     public void getDocument_bytesAreConverted_documentIsReturned() throws IOException, SAXException {
         final String validAddi = getValidAddiWithProcessingFalse();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = esMessageProcessorBean.getDocument(addiRecord.getMetaData());
         assertThat(document, not(nullValue()));
@@ -358,7 +358,7 @@ public class EsMessageProcessorBeanTest {
     public void getDocument_invalidAddi_throws() throws IOException, SAXException {
         final String validAddi = getValidAddiWithoutProcessing();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         try {
             esMessageProcessorBean.getDocument(addiRecord.getContentData());
@@ -370,7 +370,7 @@ public class EsMessageProcessorBeanTest {
     public void domToByteArray_documentIsConvertedToByteArray_byteArrayReturned () throws IOException, SAXException, TransformerException {
         final String validAddi = getValidAdiWithProcessingTrue();
         final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         Document document = getDocument(addiRecord.getMetaData());
         assertThat(esMessageProcessorBean.domToByteArray(document), not(nullValue()));
@@ -379,7 +379,7 @@ public class EsMessageProcessorBeanTest {
     private ChunkItem getChunkItem(String validAddi, ChunkItem.Status status) {
         return new ChunkItemBuilder()  // processed successfully
                 .setId(0)
-                .setData(Base64Util.base64encode(validAddi))
+                .setData(StringUtil.asBytes(validAddi))
                 .setStatus(status)
                 .build();
     }

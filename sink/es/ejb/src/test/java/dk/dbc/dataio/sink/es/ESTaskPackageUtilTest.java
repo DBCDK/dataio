@@ -6,9 +6,9 @@ import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -17,7 +17,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -81,18 +80,6 @@ public class ESTaskPackageUtilTest {
         ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
-    @Test(expected = NumberFormatException.class)
-    public void getAddiRecordsFromChunk_recordInChunkNotBase64Encoded_throws() throws Exception {
-        final String simpleAddiString = "1\na\n1\nb\n";
-        final ChunkItem item = new ChunkItemBuilder()
-                .setData(simpleAddiString)
-                .build();
-        final ExternalChunk processedChunk = new ExternalChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PROCESSED);
-        processedChunk.insertItem(item);
-        processedChunk.setEncoding(ENCODING);
-        ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
-    }
-
     @Test
     public void getAddiRecordsFromChunk_singleSimpleRecordInChunk_happyPath() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
@@ -103,43 +90,27 @@ public class ESTaskPackageUtilTest {
 
     @Test(expected = NullPointerException.class)
     public void getAddiRecordFromChunkItem_chunkItemArgIsNull_throws() throws Exception {
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(null, StandardCharsets.UTF_8);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void getAddiRecordFromChunkItem_encodingArgIsNull_throws() throws Exception {
-        final String simpleAddiString = "1\na\n1\nb\n";
-        final ChunkItem chunkItem = newChunkItem(simpleAddiString);
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, null);
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(null);
     }
 
     @Test(expected = IllegalStateException.class)
     public void getAddiRecordFromChunkItem_twoAddiInOneRecord_throws() throws Exception {
         final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
         final ChunkItem chunkItem = newChunkItem(addiWithTwoRecords);
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
     }
 
     @Test(expected = NumberFormatException.class)
     public void getAddiRecordFromChunkItem_chunkItemArgContainsNonAddiData_throws() throws Exception {
         final ChunkItem chunkItem = newChunkItem("non-addi");
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void getAddiRecordFromChunkItem_chunkItemArgContainsNonBase64EncodedAddi_throws() throws Exception {
-        final String simpleAddiString = "1\na\n1\nb\n";
-        final ChunkItem chunkItem = new ChunkItemBuilder()
-                .setData(simpleAddiString)
-                .build();
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
     }
 
     @Test
     public void getAddiRecordFromChunkItem_chunkItemArgContainsValidAddi_returnsAddiRecordInstance() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
         final ChunkItem chunkItem = newChunkItem(simpleAddiString);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, StandardCharsets.UTF_8);
+        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         assertThat(addiRecord, is(notNullValue()));
     }
 
@@ -294,7 +265,7 @@ public class ESTaskPackageUtilTest {
     private ChunkItem newChunkItem(String record) {
         return new ChunkItemBuilder()
                 .setId(0L)
-                .setData(encodeBase64(record))
+                .setData(StringUtil.asBytes(record))
                 .build();
     }
 
@@ -308,9 +279,5 @@ public class ESTaskPackageUtilTest {
     private AddiRecord newAddiRecordFromString(String record) throws IOException {
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(record.getBytes(ENCODING)));
         return addiReader.getNextRecord();
-    }
-
-    private String encodeBase64(String dataToEncode) {
-        return Base64.encodeBase64String(dataToEncode.getBytes(ENCODING));
     }
 }

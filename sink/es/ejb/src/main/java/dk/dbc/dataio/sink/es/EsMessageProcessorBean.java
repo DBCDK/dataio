@@ -10,6 +10,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
@@ -145,19 +146,23 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     try {
-                        addiRecords.add(buildAddiRecord(chunkItem, processedChunk));
-                        incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), "Empty slot", ChunkItem.Status.SUCCESS));
+                        addiRecords.add(buildAddiRecord(chunkItem));
+                        incompleteDeliveredChunk.insertItem(new ChunkItem(
+                                chunkItem.getId(), StringUtil.asBytes("Empty slot"), ChunkItem.Status.SUCCESS));
                     } catch (RuntimeException | IOException | SAXException | TransformerException e) {
-                        incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), e.getMessage(), ChunkItem.Status.FAILURE));
+                        incompleteDeliveredChunk.insertItem(new ChunkItem(
+                                chunkItem.getId(), StringUtil.asBytes(e.getMessage()), ChunkItem.Status.FAILURE));
                     } finally {
                         LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
                     }
                     break;
                 case FAILURE:
-                    incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), "Failed by processor", ChunkItem.Status.IGNORE));
+                    incompleteDeliveredChunk.insertItem(new ChunkItem(
+                            chunkItem.getId(), StringUtil.asBytes("Failed by processor"), ChunkItem.Status.IGNORE));
                     break;
                 case IGNORE:
-                    incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), "Ignored by processor", ChunkItem.Status.IGNORE));
+                    incompleteDeliveredChunk.insertItem(new ChunkItem(
+                            chunkItem.getId(), StringUtil.asBytes("Ignored by processor"), ChunkItem.Status.IGNORE));
                     break;
                 default:
                     throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
@@ -178,14 +183,13 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      *                                              the content data from the chunk item converted to iso2709.
      *                                              new addi-record is created -> containing meta data without processing tag and content data as 2709.
      * @param chunkItem chunk item
-     * @param processedChunk external chunk
      * @return the processed addi-record
      * @throws IOException if an error occurs during reading of the addi-data
      * @throws SAXException on failure to parse document
      * @throws TransformerException on failure to transform to byte array
      */
-     AddiRecord buildAddiRecord(ChunkItem chunkItem, ExternalChunk processedChunk) throws IOException, SAXException, TransformerException {
-        AddiRecord addiRecordFromChunkItem = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding());
+     AddiRecord buildAddiRecord(ChunkItem chunkItem) throws IOException, SAXException, TransformerException {
+        AddiRecord addiRecordFromChunkItem = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         Document metaDataDocument = getDocument(addiRecordFromChunkItem.getMetaData());
         NodeList nodeList = metaDataDocument.getElementsByTagName(PROCESSING_TAG);
         final AddiRecord processedAddiRecord;
@@ -203,7 +207,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 processedAddiRecord = new AddiRecord(newMetaData, addiRecordFromChunkItem.getContentData());
             }
         } else {
-            processedAddiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem, processedChunk.getEncoding());
+            processedAddiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
         }
          return processedAddiRecord;
     }

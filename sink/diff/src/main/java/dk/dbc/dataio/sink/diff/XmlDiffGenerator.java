@@ -28,6 +28,18 @@ public class XmlDiffGenerator {
     private static final String OPEN_URI = "[URI CHANGED>";
     private static final String CLOSE_URI = "<URI CHANGED]";
 
+    /**
+     * Creates diff string through XmlDiff.
+     *
+     * Diff as empty string     : if the two input parameters are identical or semantic identical.
+     * Diff with xml as string  : if the two input parameters are different from one another.
+     *
+     * @param current the current item data
+     * @param next the next item data
+     * @return the diff string
+     *
+     * @throws DiffGeneratorException on failure to create diff
+     */
     public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
         final XmlDiffWriter writer = new XmlDiffTextWriter(OPEN_CURRENT, CLOSE_CURRENT, OPEN_LEFT, CLOSE_LEFT, OPEN_NAME, CLOSE_NAME, OPEN_URI, CLOSE_URI);
         try {
@@ -46,7 +58,7 @@ public class XmlDiffGenerator {
         }
     }
 
-    boolean hasDiff(XmlDiff.Result result) throws IOException, SAXException {
+    boolean hasDiff(XmlDiff.Result result) {
         if (result.equals(XmlDiff.Result.DIFFERENT)) {
             return true;
         } else {

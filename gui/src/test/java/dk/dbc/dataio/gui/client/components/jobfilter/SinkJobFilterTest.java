@@ -3,10 +3,7 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.components.TitledDecoratorPanelWithButton;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -37,15 +34,6 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class SinkJobFilterTest {
-
-
-    String name;
-    Widget thisAsWidget;
-    FlowPanel parentPanel;
-    TitledDecoratorPanelWithButton decoratorPanel;
-    HandlerRegistration clickHandlerRegistration;
-    boolean addJobFilterMethodCalled = false;
-
     @Mock Texts mockedTexts;
     @Mock Resources mockedResources;
     @Mock FlowStoreProxyAsync mockedFlowStoreProxy;

@@ -26,6 +26,10 @@ final public class JobFilterList {
         );
     }
 
+    public JobFilterList(List<? extends BaseJobFilter> jobFilterList) {
+        this.jobFilterList = jobFilterList;
+    }
+
     /**
      * Getter for the Job Filter List
      * @return The list of Job Filters

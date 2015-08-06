@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -59,8 +58,11 @@ public class JobFilter extends Composite implements HasValue<JobListCriteriaMode
      * Constructor
      */
     public JobFilter() {
+        this(new JobFilterList());
+    }
+
+    public JobFilter(JobFilterList availableJobFilters) {
         initWidget(ourUiBinder.createAndBindUi(this));
-        JobFilterList availableJobFilters = new JobFilterList();
         for (BaseJobFilter filter: availableJobFilters.getJobFilterList()) {
             filterMenu.addItem(filter.getName(), filter.getAddCommand(jobFilterPanel));
         }
@@ -127,24 +129,6 @@ public class JobFilter extends Composite implements HasValue<JobListCriteriaMode
      */
     public void enableFilterButton(boolean enable) {
         this.filterButton.setEnabled(enable);
-    }
-
-
-
-
-    class JobFilterHandlerRegistration implements HandlerRegistration {
-        @Override
-        public void removeHandler() {
-            // Mangler
-        }
-    }
-
-
-    class JobFilterValueChangeHandler implements ValueChangeHandler {
-        @Override
-        public void onValueChange(ValueChangeEvent valueChangeEvent) {
-            // Mangler
-        }
     }
 
 }

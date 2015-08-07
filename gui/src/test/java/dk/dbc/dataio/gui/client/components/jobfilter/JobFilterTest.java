@@ -131,14 +131,6 @@ public class JobFilterTest {
     private void assertDefaultJobListCriteriaModel(JobListCriteriaModel model) {
         assertJobListCriteriaModel(model, "0", JobListCriteriaModel.JobSearchType.PROCESSING_FAILED,
                 Arrays.asList("PERSISTENT", "ACCTEST", "TEST", "TRANSIENT"));
-//        assertThat(model.getSinkId(), is("0"));
-//        assertThat(model.getSearchType(), is(JobListCriteriaModel.JobSearchType.PROCESSING_FAILED));
-//        Set<String> jobTypes = model.getJobTypes();
-//        assertThat(jobTypes.size(), is(4));
-//        assertThat(jobTypes.contains("PERSISTENT"), is(true));
-//        assertThat(jobTypes.contains("ACCTEST"), is(true));
-//        assertThat(jobTypes.contains("TEST"), is(true));
-//        assertThat(jobTypes.contains("TRANSIENT"), is(true));
     }
 
     private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteriaModel model) {

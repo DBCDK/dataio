@@ -79,7 +79,7 @@ public class SinkJobFilter extends BaseJobFilter {
     /**
      * This class is the callback class for the findAllSinks method in the Flow Store
      */
-    protected class FetchSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
+    class FetchSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
         }
@@ -96,7 +96,7 @@ public class SinkJobFilter extends BaseJobFilter {
     /*
      * This class is the ValueChangeHandler for the SinkJobFilter
      */
-    public class SinkJobFilterValueChangeHandler implements ValueChangeHandler<String> {
+    class SinkJobFilterValueChangeHandler implements ValueChangeHandler<String> {
         @Override
         public void onValueChange(ValueChangeEvent<String> valueChangeEvent) {
             if (sinkJobValueChangeHandler != null) {
@@ -124,7 +124,7 @@ public class SinkJobFilter extends BaseJobFilter {
     /*
      * This class is the ValueChangeEvent for the SinkJobFilter
      */
-    public class SinkJobFilterValueChangeEvent extends ValueChangeEvent<JobListCriteriaModel> {
+    class SinkJobFilterValueChangeEvent extends ValueChangeEvent<JobListCriteriaModel> {
         protected SinkJobFilterValueChangeEvent(JobListCriteriaModel value) {
             super(value);
         }

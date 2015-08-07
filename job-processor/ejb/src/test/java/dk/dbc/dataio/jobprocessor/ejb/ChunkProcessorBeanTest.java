@@ -9,7 +9,6 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
@@ -331,7 +330,7 @@ public class ChunkProcessorBeanTest {
 
     public static JavaScript getJavaScript(String javascript) {
         return new JavaScriptBuilder()
-                .setJavascript(Base64Util.base64encode(javascript))
+                .setJavascript(StringUtil.base64encode(javascript))
                 .build();
     }
 

@@ -76,7 +76,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.utils.service.Base64Util.base64encode;
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -674,9 +674,9 @@ public class PgJobStoreTest {
     public void updateChunkItemEntities_itemsForProcessingPhase() throws JobStoreException {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final List<String> expectedItemData = Arrays.asList(
-                StringUtil.base64encode(chunkData.get(0)),
-                StringUtil.base64encode(chunkData.get(1)),
-                StringUtil.base64encode(chunkData.get(2)));
+                base64encode(chunkData.get(0)),
+                base64encode(chunkData.get(1)),
+                base64encode(chunkData.get(2)));
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.PROCESSED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
@@ -717,9 +717,9 @@ public class PgJobStoreTest {
     public void updateChunkItemEntities_itemsForDeliveringPhase() throws JobStoreException {
         final List<String> chunkData = Arrays.asList("itemData0", "itemData1", "itemData2");
         final List<String> expectedItemData = Arrays.asList(
-                StringUtil.base64encode(chunkData.get(0)),
-                StringUtil.base64encode(chunkData.get(1)),
-                StringUtil.base64encode(chunkData.get(2)));
+                base64encode(chunkData.get(0)),
+                base64encode(chunkData.get(1)),
+                base64encode(chunkData.get(2)));
         final ExternalChunk chunk = getExternalChunk(1, 0, ExternalChunk.Type.DELIVERED, chunkData,
                 Arrays.asList(ChunkItem.Status.SUCCESS, ChunkItem.Status.FAILURE, ChunkItem.Status.IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
@@ -1094,7 +1094,7 @@ public class PgJobStoreTest {
 
     @Test
     public void getChunk_queryReturnsItemEntityWithData_returnsChunk() {
-        final ItemData data1 = new ItemData(StringUtil.base64encode("data1"), StandardCharsets.UTF_8);
+        final ItemData data1 = new ItemData(base64encode("data1"), StandardCharsets.UTF_8);
         final State state1 = new State();
         state1.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
         final ItemEntity entity1 = new ItemEntity();
@@ -1102,7 +1102,7 @@ public class PgJobStoreTest {
         entity1.setPartitioningOutcome(data1);
         entity1.setState(state1);
 
-        final ItemData data2 = new ItemData(StringUtil.base64encode("data2"), StandardCharsets.ISO_8859_1);
+        final ItemData data2 = new ItemData(base64encode("data2"), StandardCharsets.ISO_8859_1);
         final State state2 = new State();
         state2.getPhase(State.Phase.PARTITIONING).setFailed(1);
         final ItemEntity entity2 = new ItemEntity();

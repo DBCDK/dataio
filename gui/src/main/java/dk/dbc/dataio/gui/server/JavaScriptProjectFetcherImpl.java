@@ -7,6 +7,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -213,7 +214,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
 
             final Path mainJsPath = Paths.get(projectPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
             final String mainJsContent = new String(Files.readAllBytes(mainJsPath), CHARSET);
-            final JavaScript mainJs = new JavaScript(Base64.encodeBase64String(mainJsContent.getBytes(CHARSET)), "");
+            final JavaScript mainJs = new JavaScript(StringUtil.base64encode(mainJsContent, CHARSET), "");
             javaScripts.add(mainJs);
 
             for (String dependency : dependencies) {

@@ -21,11 +21,6 @@
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-service</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -84,11 +79,6 @@
       <artifactId>javaee-api</artifactId>
       <version>${javaee.api.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-codec</groupId>
-      <artifactId>commons-codec</artifactId>
-      <version>1.8</version>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

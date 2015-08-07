@@ -3,7 +3,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
@@ -334,7 +334,7 @@ public class JobsBean {
     Response getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
             ItemData itemData = jobStore.getItemData(jobId, chunkId, itemId, phase);
-            return  Response.ok().entity(Base64Util.base64decode(itemData.getData())).build();
+            return  Response.ok().entity(StringUtil.base64decode(itemData.getData())).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
         }

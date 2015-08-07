@@ -12,7 +12,6 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
@@ -537,7 +536,7 @@ public class PgJobStore {
                is still created but with a serialized JobError as payload instead.
              */
             for (String record : dataPartitioner) {
-                final ItemData itemData = new ItemData(Base64Util.base64encode(record), dataPartitioner.getEncoding());
+                final ItemData itemData = new ItemData(StringUtil.base64encode(record), dataPartitioner.getEncoding());
 
                 final StateChange stateChange = new StateChange()
                     .setPhase(State.Phase.PARTITIONING)

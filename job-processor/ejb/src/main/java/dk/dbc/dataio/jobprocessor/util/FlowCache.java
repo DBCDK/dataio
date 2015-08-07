@@ -4,7 +4,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
-import dk.dbc.dataio.commons.utils.service.Base64Util;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
@@ -81,11 +81,11 @@ public class FlowCache {
         final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
         for (JavaScript javascriptBase64 : javaScriptsBase64) {
             javaScripts.add(new StringSourceSchemeHandler.Script(javascriptBase64.getModuleName(),
-                    Base64Util.base64decode(javascriptBase64.getJavascript())));
+                    StringUtil.base64decode(javascriptBase64.getJavascript())));
         }
         String requireCacheJson = null;
         if (componentContent.getRequireCache() != null) {
-            requireCacheJson = Base64Util.base64decode(componentContent.getRequireCache());
+            requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
         }
         return new JSWrapperSingleScript(componentContent.getName(), componentContent.getInvocationMethod(),
                 javaScripts, requireCacheJson);

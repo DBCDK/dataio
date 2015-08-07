@@ -38,7 +38,6 @@ import static org.junit.Assert.fail;
 public class FilesIT {
     private static final int MB = 1024*1024;
     private static final int BUFFER_SIZE = 8192;
-    private static final byte[] DATA = "8 bytes!".getBytes();
 
     private static Client restClient;
 
@@ -93,13 +92,7 @@ public class FilesIT {
             //  3. file when read back from file store
             fail("Not enough free space for test: " + (veryLargeFileSizeInBytes * 3) / MB + " MB needed");
         }
-
-        // This creates a sparse file matching maximum available heap size
-        // https://en.wikipedia.org/wiki/Sparse_file
-        try (RandomAccessFile sparseFile = new RandomAccessFile(sourceFile, "rw")) {
-            sparseFile.setLength(veryLargeFileSizeInBytes);
-        }
-        assertThat(Files.size(sourceFile.toPath()) > 0, is(true));
+        createSparseFile(sourceFile, veryLargeFileSizeInBytes);
 
         final FileStoreServiceConnector fileStoreServiceConnector =
                 new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
@@ -136,6 +129,33 @@ public class FilesIT {
         assertThat(byteSize, is((long)data.length));
     }
 
+    /**
+     * Given: a deployed file-store service containing a file
+     * When: deleting the file
+     * Then: the file can no longer be retrieved by id
+     */
+    @Test
+    public void deleteFile() throws IOException, FileStoreServiceConnectorException {
+        // Given...
+        final File sourceFile = rootFolder.newFile();
+        final FileStoreServiceConnector fileStoreServiceConnector =
+                new FileStoreServiceConnector(restClient, ITUtil.FILE_STORE_BASE_URL);
+
+        try (final InputStream is = getInputStreamForFile(sourceFile.toPath())) {
+            final String fileId = fileStoreServiceConnector.addFile(is);
+
+            // When...
+            fileStoreServiceConnector.deleteFile(fileId);
+
+            // Then...
+            try {
+                fileStoreServiceConnector.getFile(fileId);
+            } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
+                assertThat(e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
+            }
+        }
+    }
+
     private static void writeFile(Path path, InputStream is) throws IOException {
         try (final OutputStream os = getOutputStreamForFile(path)) {
             final byte[] buf = new byte[BUFFER_SIZE];
@@ -169,5 +189,14 @@ public class FilesIT {
             }
         } catch (Exception e) {
         }
+    }
+
+    private static void createSparseFile(File destination, long fileSizeInBytes) throws IOException {
+        // This creates a sparse file matching maximum available heap size
+        // https://en.wikipedia.org/wiki/Sparse_file
+        try (RandomAccessFile sparseFile = new RandomAccessFile(destination, "rw")) {
+            sparseFile.setLength(fileSizeInBytes);
+        }
+        assertThat(Files.size(destination.toPath()) > 0, is(true));
     }
 }

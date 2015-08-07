@@ -178,6 +178,52 @@ public class FileStoreServiceConnectorTest {
         assertThat(fileStoreServiceConnector.getFile(FILE_ID), is(INPUT_STREAM));
     }
 
+    @Test
+    public void deleteFile_fileIdArgIsNull_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.deleteFile(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void deleteFile_fileIdArgIsEmpty_throws() throws FileStoreServiceConnectorException {
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.deleteFile("");
+            fail("No exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void deleteFile_responseWithUnexpectedStatusCode_throws() throws FileStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doDelete(CLIENT, FILE_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.deleteFile(FILE_ID);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void deleteFile_serviceReturnsStatusOk_returns() throws FileStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doDelete(CLIENT, FILE_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), ""));
+
+        newFileStoreServiceConnector().deleteFile(FILE_ID);
+    }
+
     //********
 
     @Test

@@ -114,6 +114,31 @@ public class FileStoreServiceConnector {
     }
 
     /**
+     * Deletes file from store
+     * @param fileId ID of file
+     * @throws NullPointerException if given null-valued fileId argument
+     * @throws IllegalArgumentException if given empty-valued fileId argument
+     * @throws ProcessingException on general communication error
+     * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public void deleteFile(final String fileId) throws NullPointerException, IllegalArgumentException,
+                                                       ProcessingException, FileStoreServiceConnectorException {
+        log.trace("FileStoreServiceConnector: deleteFile(\"{}\");", fileId);
+        final StopWatch stopWatch = new StopWatch();
+        InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
+
+        final Response response = HttpClient.doDelete(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+        } finally {
+            response.close();
+            log.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Retrieves size of a file in bytes.
      * @param fileId ID of file
      * @return byte size of file

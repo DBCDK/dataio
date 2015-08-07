@@ -9,6 +9,7 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -101,6 +102,17 @@ public class FilesBean {
         };
 
         return Response.ok(stream).build();
+    }
+
+    @DELETE
+    @javax.ws.rs.Path(FileStoreServiceConstants.FILE)
+    @Stopwatch
+    public Response deleteFile(@PathParam("id") final String id) {
+        if (!fileStore.fileExists(id)) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        fileStore.deleteFile(id);
+        return Response.ok().build();
     }
 
     /**

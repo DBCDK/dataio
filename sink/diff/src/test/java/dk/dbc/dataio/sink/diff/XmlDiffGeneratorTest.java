@@ -27,28 +27,28 @@ public class XmlDiffGeneratorTest {
     }
 
     @Test
-    public void testGetDiff_semanticEqual_returnsEmptyString() throws IOException, SAXException, DiffGeneratorException {
+    public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException {
         XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXmlSemanticEquals());
         assertThat(diff, is(""));
     }
 
     @Test
-    public void testGetDiff_different_returnsDiffString() throws IOException, SAXException, DiffGeneratorException {
+    public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException {
         XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXmlNext());
         assertThat(diff, not(""));
     }
 
     @Test
-    public void testGetDiff_contentEquals_returnsEmptyString() throws IOException, SAXException, DiffGeneratorException {
+    public void testGetDiff_contentEquals_returnsEmptyString() throws DiffGeneratorException {
         XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXml());
         assertThat(diff, is(""));
     }
 
     @Test
-    public void testGetDiff_failureComparingInput_throws() throws IOException, SAXException, DiffGeneratorException {
+    public void testGetDiff_failureComparingInput_throws() throws DiffGeneratorException {
         XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         try {
             xmlDiffGenerator.getDiff("<INVALID>".getBytes(), "<INVALID>".getBytes());

@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
-import org.apache.commons.codec.binary.Base64;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 import org.slf4j.Logger;
@@ -223,11 +222,11 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
 
             JavascriptUtil.getAllDependentJavascriptsResult result=JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath);
             for (SpecializedFileSchemeHandler.JS js : result.javaScripts) {
-                javaScripts.add(new JavaScript(Base64.encodeBase64String(js.javascript.getBytes(CHARSET)), js.modulename));
+                javaScripts.add(new JavaScript(StringUtil.base64encode(js.javascript, CHARSET), js.modulename));
             }
 
             if( result.requireCache != null ) {
-                requireCache = Base64.encodeBase64String( result.requireCache.getBytes(CHARSET) );
+                requireCache = StringUtil.base64encode(result.requireCache, CHARSET);
             }
         } catch (SVNException e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);

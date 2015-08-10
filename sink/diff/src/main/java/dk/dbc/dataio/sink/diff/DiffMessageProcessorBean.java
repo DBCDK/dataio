@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,8 +52,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
 
         for (final ChunkItem item : processedChunk) {
-            deliveredChunk.insertItem(
-                    new ChunkItem(item.getId(), StringUtil.asBytes("Missing Next Items"), ChunkItem.Status.FAILURE));
+            deliveredChunk.insertItem(new ChunkItem(item.getId(), StringUtil.asBytes("Missing Next Items"), ChunkItem.Status.FAILURE));
         }
         return deliveredChunk;
 
@@ -69,28 +71,41 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         statusToString(item.next.getStatus()),
                         StringUtil.asString(item.next.getData())
                 );
-                deliveredChunk.insertItem(
-                        new ChunkItem(item.next.getId(), StringUtil.asBytes(message), ChunkItem.Status.FAILURE));
+                deliveredChunk.insertItem(new ChunkItem(item.next.getId(), StringUtil.asBytes(message), ChunkItem.Status.FAILURE));
             } else {
                 try {
-                    final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
-                    final String diff = xmlDiffGenerator.getDiff(item.current.getData(), item.next.getData());
-
-                    if(diff.isEmpty()) {
-                        deliveredChunk.insertItem(
-                                new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.SUCCESS));
-                    } else {
-                        deliveredChunk.insertItem(
-                                new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.FAILURE));
+                    String diff;
+                    try {
+                        final AddiDiffGenerator addiDiffGenerator = new AddiDiffGenerator();
+                        diff = addiDiffGenerator.getDiff(getAddiRecord(item.current.getData()), getAddiRecord(item.next.getData()));
+                    } catch (IllegalArgumentException e) {
+                        diff = getXmlDiff(item.current.getData(), item.next.getData());
                     }
-
+                    if (diff.isEmpty()) {
+                        deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.SUCCESS));
+                    } else {
+                        deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.FAILURE));
+                    }
                 } catch (DiffGeneratorException e) {
-                    deliveredChunk.insertItem(
-                            new ChunkItem(item.current.getId(), StringUtil.asBytes(e.toString()), ChunkItem.Status.FAILURE));
+                    deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(e.toString()), ChunkItem.Status.FAILURE));
                 }
-            }
+             }
         }
         return deliveredChunk;
+    }
+
+    private AddiRecord getAddiRecord(byte[] data) {
+        final AddiReader currentAddiReader = new AddiReader(new ByteArrayInputStream(data));
+        try {
+            return currentAddiReader.getNextRecord();
+        } catch (Exception e) {
+            throw new IllegalArgumentException("input byte array cannot be converted to addi", e);
+        }
+    }
+
+    private String getXmlDiff(byte[]currentData, byte[] nextData) throws DiffGeneratorException {
+        final XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        return xmlDiffGenerator.getDiff(currentData, nextData);
     }
 
 

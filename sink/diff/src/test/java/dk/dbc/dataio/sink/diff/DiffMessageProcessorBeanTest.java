@@ -16,6 +16,7 @@ import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -108,6 +109,49 @@ public class DiffMessageProcessorBeanTest {
     }
 
     @Test
+    public void processPayload_FailDifferentOrInvalidAddiContent() throws IOException {
+        final byte[] addi1 = getAddi(getMeta("current"), getContent("current title"));
+        final byte[] addi2 = getAddi(getMeta("next"), getContent("current title"));
+        final byte[] addi3 = getAddi(getMeta("current"), getContent("next title"));
+        final byte[] addi4 = getAddi(getMeta("next"), getContent("next title"));
+        final byte[] addi5 = getAddi(getMeta("current"), getInvalidContent());
+
+        final List<ChunkItem> processedChunkItems = Arrays.asList(
+                new ChunkItemBuilder().setId(0L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(3L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(4L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build());
+
+        final List<ChunkItem> processedChunkNextItems = Arrays.asList(
+                new ChunkItemBuilder().setId(0L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setData(addi2).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setData(addi3).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(3L).setData(addi4).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(4L).setData(addi5).setStatus(ChunkItem.Status.SUCCESS).build());
+
+        final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+                .setItems(processedChunkItems)
+                .setNextItems(processedChunkNextItems)
+                .build();
+
+        final ExternalChunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
+        assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
+        Iterator<ChunkItem> iterator = deliveredChunk.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem item0 = iterator.next();
+        assertThat(item0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        ChunkItem item1 = iterator.next();
+        assertThat(item1.getStatus(), is(ChunkItem.Status.FAILURE));
+        ChunkItem item2 = iterator.next();
+        assertThat(item2.getStatus(), is(ChunkItem.Status.FAILURE));
+        ChunkItem item3 = iterator.next();
+        assertThat(item3.getStatus(), is(ChunkItem.Status.FAILURE));
+        ChunkItem item4 = iterator.next();
+        assertThat(item4.getStatus(), is(ChunkItem.Status.FAILURE));
+    }
+
+    @Test
     public void processPayload_FailDifferentStatus() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
@@ -166,6 +210,38 @@ public class DiffMessageProcessorBeanTest {
                 "<datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
                 "<subfield code=\"a\">Sun Kil Sun</subfield>" +
                 "</datafield></record></collection></data></data-container></dataio-harvester-datafile>").getBytes();
+    }
+
+    private String getMeta(String attributeValue) {
+        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"" + attributeValue + "\" language=\"dan\" submitter=\"870970\"/>" +
+                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
+                "</es:referencedata>";
+    }
+
+    private String getContent(String contentAttributeValue) {
+        return "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<marcx:record format=\"danMARC2\">" +
+                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
+                "<marcx:subfield code=\"a\">" + contentAttributeValue + "</marcx:subfield>" +
+                "</marcx:datafield></marcx:record></marcx:collection>";
+    }
+
+    private String getInvalidContent() {
+        return  "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+                "<marcx:record format=\"danMARC2\">" +
+                "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
+                "</marcx:datafield></marcx:record></marcx:collection>";
+    }
+
+    private byte[] getAddi(String metaXml, String contentXml) {
+        return (metaXml.trim().getBytes().length +
+                System.lineSeparator() +
+                metaXml +
+                System.lineSeparator() +
+                contentXml.trim().getBytes().length +
+                System.lineSeparator() +
+                contentXml).getBytes();
     }
 
 }

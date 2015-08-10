@@ -112,8 +112,7 @@ public class AddiDiffGeneratorTest {
     }
 
     private byte[] getAddi(String metaXml, String contentXml) {
-        return ("" +
-                metaXml.trim().getBytes().length +
+        return (metaXml.trim().getBytes().length +
                 System.lineSeparator() +
                 metaXml +
                 System.lineSeparator() +

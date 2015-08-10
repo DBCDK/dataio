@@ -17,8 +17,8 @@ public class XmlDiffGenerator {
     private static final String CLOSE_CURRENT = "<CURRENT]";
 
     // Tags marking differences in next
-    private static final String OPEN_LEFT = "[NEXT>";
-    private static final String CLOSE_LEFT = "<NEXT]";
+    private static final String OPEN_NEXT = "[NEXT>";
+    private static final String CLOSE_NEXT = "<NEXT]";
 
     // Name changed => namespace url is unchanged
     private static final String OPEN_NAME = "[NAME CHANGED>";
@@ -41,7 +41,7 @@ public class XmlDiffGenerator {
      * @throws DiffGeneratorException on failure to create diff
      */
     public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
-        final XmlDiffWriter writer = new XmlDiffTextWriter(OPEN_CURRENT, CLOSE_CURRENT, OPEN_LEFT, CLOSE_LEFT, OPEN_NAME, CLOSE_NAME, OPEN_URI, CLOSE_URI);
+        final XmlDiffWriter writer = new XmlDiffTextWriter(OPEN_CURRENT, CLOSE_CURRENT, OPEN_NEXT, CLOSE_NEXT, OPEN_NAME, CLOSE_NAME, OPEN_URI, CLOSE_URI);
         try {
             XmlDiff.Result result = XmlDiff.compare(
                     new ByteArrayInputStream(current),

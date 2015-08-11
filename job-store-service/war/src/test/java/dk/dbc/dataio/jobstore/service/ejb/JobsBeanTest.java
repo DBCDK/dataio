@@ -1,11 +1,13 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import com.fasterxml.jackson.databind.type.CollectionType;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -393,6 +395,35 @@ public class JobsBeanTest {
         when(jobsBean.jobStore.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
 
         final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(false));
+    }
+
+    // ************************************* getProcessedNextResult() tests ***********************************************************
+
+    @Test
+    public void getProcessedNextResult_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
+        ChunkItem chunkItem = new ChunkItem(1, StringUtil.asBytes("Next data"), ChunkItem.Status.SUCCESS);
+
+        when(jobsBean.jobStore.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
+
+        final Response response = jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID);
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+        assertThat("DataString not null", response.getEntity().toString(), not(nullValue()));
+    }
+
+
+    @Test
+    public void getProcessedNextResult_itemEntityNotFound_returnsStatusNotFoundResponse() throws Exception {
+        JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
+        InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
+
+        when(jobsBean.jobStore.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenThrow(invalidInputException);
+
+        final Response response = jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID);
         assertThat("Response not null", response, not(nullValue()));
         assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat("Response entity", response.hasEntity(), is(false));

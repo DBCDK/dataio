@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
@@ -319,7 +320,6 @@ public class JobsBean {
         return getItemData(jobId, chunkId, itemId, State.Phase.DELIVERING);
     }
 
-
     /**
      * @param jobId the job id
      * @param chunkId the chunk id
@@ -335,6 +335,35 @@ public class JobsBean {
         try {
             ItemData itemData = jobStore.getItemData(jobId, chunkId, itemId, phase);
             return  Response.ok().entity(StringUtil.base64decode(itemData.getData())).build();
+        } catch (InvalidInputException e) {
+            return Response.status(NOT_FOUND).build();
+        }
+    }
+
+    /**
+     * Retrieves data from processed next chunk item as String
+     * @param jobId the job id
+     * @param chunkId the chunk id
+     * @param itemId the itemId
+     *
+     * @return a HTTP 200 OK response with data from processed next chunk item as String,
+     *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
+     *
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to retrieve job
+     */
+    @GET
+    @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
+    @Produces({ MediaType.TEXT_PLAIN })
+    @Stopwatch
+    public Response getProcessedNextResult(
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+            @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+            @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+
+        try {
+            ChunkItem chunkItem = jobStore.getNextProcessingOutcome(jobId, chunkId, itemId);
+            return Response.ok().entity(StringUtil.asString(chunkItem.getData())).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
         }

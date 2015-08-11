@@ -233,7 +233,7 @@ public class PgJobStoreTest {
         final String xml = getXml();
 
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) xml.getBytes().length);
-        when(mockedDataPartitioner.getBytesRead()).thenReturn((long)(xml.getBytes().length - 1));
+        when(mockedDataPartitioner.getBytesRead()).thenReturn((long) (xml.getBytes().length - 1));
         try {
             pgJobStore.compareByteSize("42", mockedDataPartitioner);
         } catch (IOException e) {}
@@ -1178,6 +1178,29 @@ public class PgJobStoreTest {
                 itemData.getData(), is(itemEntity.getDeliveringOutcome().getData()));
     }
 
+    @Test
+    public void getNextProcessingOutcome_itemEntityNotFound_throws() throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
+        try {
+            pgJobStore.getNextProcessingOutcome(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+            fail("No exception thrown");
+        } catch (JobStoreException e) {}
+    }
+
+    @Test
+    public void getNextProcessingOutcome_itemEntityFound_returnsChunkItem() throws JobStoreException{
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
+
+        final ChunkItem chunkItem = pgJobStore.getNextProcessingOutcome(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        assertThat("chunkItem not null", chunkItem, not(nullValue()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}", chunkItem.getData(), itemEntity.getNextProcessingOutcome().getData()),
+                chunkItem.getData(), is(itemEntity.getNextProcessingOutcome().getData()));
+    }
+
     /*
      * Private methods
      */
@@ -1261,6 +1284,7 @@ public class PgJobStoreTest {
         itemEntity.setPartitioningOutcome(new ItemData("Partitioning data", Charset.defaultCharset()));
         itemEntity.setProcessingOutcome(new ItemData("processing data", Charset.defaultCharset()));
         itemEntity.setDeliveringOutcome(new ItemData("delivering data", Charset.defaultCharset()));
+        itemEntity.setNextProcessingOutcome(new ChunkItem(itemId, StringUtil.asBytes("next data"), ChunkItem.Status.SUCCESS));
         return itemEntity;
     }
 

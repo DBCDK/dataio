@@ -733,6 +733,25 @@ public class PgJobStore {
         }
     }
 
+    /**
+     * Retrieves next processing outcome as chunk item
+     * @param jobId id of job containing chunk
+     * @param chunkId id of chunk containing item
+     * @param itemId id of the item
+     *
+     * @return next processing outcome
+     * @throws InvalidInputException if unable to find referenced item
+     */
+    @Stopwatch
+    public ChunkItem getNextProcessingOutcome(int jobId, int chunkId, short itemId) throws InvalidInputException {
+        ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
+        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
+        if (itemEntity == null) {
+            throwInvalidInputException(String.format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
+        }
+        return itemEntity.getNextProcessingOutcome();
+    }
+
     /*
      * package private methods
      */

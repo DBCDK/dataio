@@ -13,6 +13,7 @@ public class JobStoreServiceConstants {
     public static final String JOB_RESOURCEBUNDLE           = "jobs/{jobId}/resourcebundle";
     public static final String CHUNK_ITEM_PARTITIONED       = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/partitioned";
     public static final String CHUNK_ITEM_PROCESSED         = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed";
+    public static final String CHUNK_ITEM_PROCESSED_NEXT    = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/next";
     public static final String CHUNK_ITEM_DELIVERED         = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered";
 
     private JobStoreServiceConstants() { }

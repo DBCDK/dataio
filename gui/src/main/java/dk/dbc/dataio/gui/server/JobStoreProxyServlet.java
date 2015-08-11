@@ -44,6 +44,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
+    public String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException {
+        return jobStoreProxy.getProcessedNextResult(jobId, chunkId, itemId);
+    }
+
+    @Override
     public void close() {
         if (jobStoreProxy != null) {
             jobStoreProxy.close();

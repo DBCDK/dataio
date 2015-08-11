@@ -160,6 +160,29 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         }
     }
 
+    @Override
+    public String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException {
+        log.trace("JobStoreProxy: getProcessedNextResult(\"{}\", \"{}\", \"{}\");", jobId, chunkId, itemId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return format(jobStoreServiceConnector.getProcessedNextResult(jobId, chunkId, itemId));
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: getProcessedNextResult - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: getProcessedNextResult - Unexpected Status Code Exception", e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: getProcessedNextResult - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("JobStoreProxy: getProcessedNextResult took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
 
     /**
      * Determines if a string is xml alike:

@@ -188,6 +188,27 @@ public class JobStoreProxyImplTest {
         jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PARTITIONING);
     }
 
+    @Test(expected = ProxyException.class)
+    public void getProcessedNextResult_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.getProcessedNextResult(anyInt(), anyInt(), anyShort())).thenThrow(new JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.getProcessedNextResult(1, 0, (short) 0);
+    }
+
+    @Test
+    public void getProcessedNextResult_remoteServiceReturnsHttpStatusOk_returnsDataString() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.getProcessedNextResult(anyInt(), anyInt(), anyShort())).thenReturn(getXmlData());
+        try {
+            String data = jobStoreProxy.getProcessedNextResult(1, 0, (short) 0);
+            assertThat("data not null", data, not(nullValue()));
+            assertThat(data, is(JobStoreProxyImpl.format(getXmlData())));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getProcessedNextResult()");
+        }
+    }
+
     /*
      * private methods
      */

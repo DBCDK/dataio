@@ -507,6 +507,44 @@ public class JobStoreServiceConnectorTest {
         assertThat(data, is(ITEM_DATA));
     }
 
+    // ***************************************** getNextItemData() tests *****************************************
+
+    @Test
+    public void getProcessedNextResult_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.getProcessedNextResult(-1, CHUNK_ID, ITEM_ID);
+            fail("No exception thrown");
+        } catch (IllegalArgumentException e) {}
+    }
+
+    @Test
+    public void getProcessedNextResult_notFoundResponse_throws() throws JobStoreServiceConnectorException {
+        try {
+            getProcessedNextResult_mockedHttpWithSpecifiedReturnErrorCode(
+                    JOB_ID, CHUNK_ID, ITEM_ID,
+                    JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT,
+                    Response.Status.NOT_FOUND.getStatusCode(),
+                    null);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        }
+    }
+
+    @Test
+    public void getProcessedNextResult_itemFound_returnsProcessedNextResult() throws JobStoreServiceConnectorException {
+        final String data = getProcessedNextResult_mockedHttpWithSpecifiedReturnErrorCode(
+                JOB_ID,
+                CHUNK_ID,
+                ITEM_ID,
+                JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT,
+                Response.Status.OK.getStatusCode(),
+                ITEM_DATA);
+
+        assertThat(data, is(notNullValue()));
+        assertThat(data, is(ITEM_DATA));
+    }
+
     /*
      * Private methods
      */
@@ -574,6 +612,13 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.getItemData(jobId, chunkId, itemId, phase);
+    }
+
+    private String getProcessedNextResult_mockedHttpWithSpecifiedReturnErrorCode(int jobId, int chunkId, short itemId, String pathString, int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildAddChunkItemPath(jobId, chunkId, itemId, pathString)))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.getProcessedNextResult(jobId, chunkId, itemId);
     }
 
     private String[] buildAddChunkPath(long jobId, long chunkId, String pathString) {

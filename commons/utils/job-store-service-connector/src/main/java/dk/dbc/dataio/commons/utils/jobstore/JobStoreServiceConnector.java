@@ -235,6 +235,37 @@ public class JobStoreServiceConnector {
         }
     }
 
+    /**
+     * Retrieves processed next result: Representing the the data stored within the next chunk item as String
+     * @param jobId job id
+     * @param chunkId chunk id
+     * @param itemId item id
+     *
+     * @return processed next result
+     * @throws JobStoreServiceConnectorException on general failure to retrieve processed next result
+     * @throws IllegalArgumentException if given empty-valued input arguments
+     */
+    public String getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException{
+        log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {}, {});", jobId, chunkId, itemId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
+                    .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
+                    .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, String.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: getProcessedNextResult took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     public Client getHttpClient() {
         return httpClient;
     }

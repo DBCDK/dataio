@@ -49,7 +49,7 @@ public class ItemTabContentTest {
 
     @Before
     public void prepareMocks() {
-        when(mockedTexts.error_CouldNotFetchItemData()).thenReturn(CANNOT_FETCH_ITEM_DATA);
+        when(mockedTexts.error_CouldNotFetchData()).thenReturn(CANNOT_FETCH_ITEM_DATA);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class ItemTabContentTest {
         inputPostTabContentConcrete.callback.onFailure(mockedThrowable);
 
         // Test verification
-        verify(mockedTexts).error_CouldNotFetchItemData();
+        verify(mockedTexts).error_CouldNotFetchData();
         assertThat(inputPostTabContentConcrete.text, is(CANNOT_FETCH_ITEM_DATA));
     }
 

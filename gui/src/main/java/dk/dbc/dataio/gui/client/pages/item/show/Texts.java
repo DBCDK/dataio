@@ -36,7 +36,7 @@ public interface Texts extends Constants {
     String error_CannotFetchJavaScriptLog();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_CouldNotFetchItemData();
+    String error_CouldNotFetchData();
 
 
     // Labels
@@ -103,6 +103,8 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_DeliveringPost();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_NextOutputPost();
 
 
     // JobInfo Prompt Labels

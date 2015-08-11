@@ -6,29 +6,29 @@ import com.google.gwt.user.client.ui.HTML;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 
-public class ItemTabContent extends HTML{
+public class NextTabContent extends HTML {
+
     private Texts texts;
     private JobStoreProxyAsync jobStoreProxy;
     private final static String NBSP = new String(new char[4]).replace("\0", "\u00A0");
     private final static String AMP = "\u0026";
 
-    public ItemTabContent(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
+    public NextTabContent(Texts texts, JobStoreProxyAsync jobStoreProxy, ItemModel itemModel) {
         this.texts = texts;
         this.jobStoreProxy = jobStoreProxy;
-        getItemData(itemModel, lifeCycle);
+        getProcessedNextResult(itemModel);
     }
 
-    private void getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
-        jobStoreProxy.getItemData(
+    private void getProcessedNextResult(ItemModel itemModel) {
+        jobStoreProxy.getProcessedNextResult(
                 Long.valueOf(itemModel.getJobId()).intValue(),
                 Long.valueOf(itemModel.getChunkId()).intValue(),
                 Long.valueOf(itemModel.getItemId()).shortValue(),
-                lifeCycle,
                 new GetItemDataAsyncCallback());
     }
 
     /*
-     * Callback class to be instantiated in the call to getChunkItem in jobStoreProxy
+     * Callback class to be instantiated in the call to getProcessedNextResult in jobStoreProxy
      */
     class GetItemDataAsyncCallback implements AsyncCallback<String> {
 

@@ -103,6 +103,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
+        listView.detailedTabs.add(new NextTabContent(texts, jobStoreProxy, itemModel), texts.tab_NextOutputPost());
         listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
         selectDetailedTab(listView, itemModel.getStatus());
     }
@@ -336,8 +337,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<JobModel> jobModels) {
-            if (jobModels != null && jobModels.size()>0)
-            setJobModel(jobModels.get(0));
+            if (jobModels != null && jobModels.size() > 0) {
+                setJobModel(jobModels.get(0));
+            }
         }
     }
 

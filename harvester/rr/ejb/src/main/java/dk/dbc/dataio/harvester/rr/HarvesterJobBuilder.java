@@ -77,7 +77,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
      * any records, to the file-store and creates job in the job-store
      * referencing the uploaded file
      * @return job info snapshot for created job, or null if no job was created
-     * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to upload to file-store or on
+     * @throws HarvesterException on failure to upload to file-store or on
      * failure to create job in job-store
      */
     public JobInfoSnapshot build() throws HarvesterException {
@@ -90,7 +90,12 @@ public class HarvesterJobBuilder implements AutoCloseable {
         if (recordsAdded > 0) {
             final String fileId = uploadToFileStore();
             if (fileId != null) {
-                return createJobInJobStore(fileId);
+                try {
+                    return createJobInJobStore(fileId);
+                } catch (HarvesterException e) {
+                    removeFromFileStore(fileId);
+                    throw e;
+                }
             }
         }
         return null;
@@ -147,6 +152,15 @@ public class HarvesterJobBuilder implements AutoCloseable {
             LOGGER.warn("Unable to close tmp file InputStream");
         }
         return fileId;
+    }
+
+    private void removeFromFileStore(String fileId) {
+        try {
+            LOGGER.info("Removing file with id {} from file-store", fileId);
+            fileStoreServiceConnector.deleteFile(fileId);
+        } catch (FileStoreServiceConnectorException e) {
+            LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
+        }
     }
 
     /* Creates new job in the job-store

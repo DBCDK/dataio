@@ -174,6 +174,7 @@ public class HarvesterJobBuilderTest {
             fail("No exception thrown");
         } catch (HarvesterException e) {
         }
+        verify(fileStoreServiceConnector).deleteFile(fileId);
     }
 
     @Test

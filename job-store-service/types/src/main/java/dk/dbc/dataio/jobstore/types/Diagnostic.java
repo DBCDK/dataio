@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 
 public class Diagnostic {
     public enum Level { FATAL, WARNING }
@@ -19,7 +20,7 @@ public class Diagnostic {
     public Diagnostic(Level level, String message, Throwable cause) throws NullPointerException, IllegalArgumentException {
         this(level, message);
         if (cause != null) {
-            this.stacktrace = getStackTraceString(cause, "");
+            this.stacktrace = StringUtil.getStackTraceString(cause, "");
         }
     }
 
@@ -67,40 +68,5 @@ public class Diagnostic {
     @Override
     public String toString() {
         return " [level: '" + level + "', message: '" + message + "']";
-    }
-
-    public static String getStackTraceString(Throwable e, String indent) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(e.toString());
-        sb.append("\n");
-
-        final StackTraceElement[] stack = e.getStackTrace();
-        if (stack != null) {
-            for (StackTraceElement stackTraceElement : stack) {
-                sb.append(indent);
-                sb.append("\tat ");
-                sb.append(stackTraceElement.toString());
-                sb.append("\n");
-            }
-        }
-
-        final Throwable[] suppressedExceptions = e.getSuppressed();
-        // Print suppressed exceptions indented one level deeper.
-        if (suppressedExceptions != null) {
-            for (Throwable throwable : suppressedExceptions) {
-                sb.append(indent);
-                sb.append("\tSuppressed: ");
-                sb.append(getStackTraceString(throwable, indent + "\t"));
-            }
-        }
-
-        final Throwable cause = e.getCause();
-        if (cause != null) {
-            sb.append(indent);
-            sb.append("Caused by: ");
-            sb.append(getStackTraceString(cause, indent));
-        }
-
-        return sb.toString();
     }
 }

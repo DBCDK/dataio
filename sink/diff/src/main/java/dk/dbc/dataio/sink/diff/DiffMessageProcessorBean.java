@@ -87,7 +87,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.FAILURE));
                     }
                 } catch (DiffGeneratorException e) {
-                    deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(e.toString()), ChunkItem.Status.FAILURE));
+                    deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(StringUtil.getStackTraceString(e, "")), ChunkItem.Status.FAILURE));
                 }
              }
         }

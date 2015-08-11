@@ -95,7 +95,7 @@ public class PresenterImplTest {
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
     static final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
     static final int OUTPUT_POST_TAB_CONTENT = 2;
-    static final int SINK_RESULT_TAB_CONTENT = 3;
+    static final int SINK_RESULT_TAB_CONTENT = 4;
 
 
     // Setup mocked data
@@ -163,6 +163,7 @@ public class PresenterImplTest {
     final static String MOCKED_TAB_JAVASCRIPTLOG = "Mocked Javascript log";
     final static String MOCKED_TAB_INPUTPOST = "Mocked input post";
     final static String MOCKED_TAB_OUTPUTPOST = "Mocked output post";
+    final static String MOCKED_TAB_NEXT_OUTPUTPOST = "Mocked next output post";
     final static String MOCKED_TAB_SINKRESULT = "Mocked sink result";
     @Before
     public void setupMockedTextsBehaviour() {
@@ -190,6 +191,7 @@ public class PresenterImplTest {
         when(mockedText.tab_JavascriptLog()).thenReturn(MOCKED_TAB_JAVASCRIPTLOG);
         when(mockedText.tab_PartitioningPost()).thenReturn(MOCKED_TAB_INPUTPOST);
         when(mockedText.tab_ProcessingPost()).thenReturn(MOCKED_TAB_OUTPUTPOST);
+        when(mockedText.tab_NextOutputPost()).thenReturn(MOCKED_TAB_NEXT_OUTPUTPOST);
         when(mockedText.tab_DeliveringPost()).thenReturn(MOCKED_TAB_SINKRESULT);
     }
 
@@ -402,6 +404,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
         verify(mockedAllDetailedTabs).selectTab(JAVASCRIPT_LOG_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
@@ -423,6 +426,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
         verify(mockedAllDetailedTabs).selectTab(SINK_RESULT_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
@@ -444,6 +448,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
         verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
@@ -465,6 +470,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
         verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
@@ -486,6 +492,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
         verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);

@@ -243,7 +243,7 @@ public class JobStoreServiceConnector {
      *
      * @return processed next result
      * @throws JobStoreServiceConnectorException on general failure to retrieve processed next result
-     * @throws IllegalArgumentException if given empty-valued input arguments
+     * @throws IllegalArgumentException on job id less than bound value
      */
     public String getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException{
         log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {}, {});", jobId, chunkId, itemId);

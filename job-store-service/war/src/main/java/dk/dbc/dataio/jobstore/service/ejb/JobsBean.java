@@ -350,7 +350,7 @@ public class JobsBean {
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
-     * @throws JobStoreException on failure to retrieve job
+     * @throws JobStoreException on failure to retrieve item
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)

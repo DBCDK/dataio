@@ -806,7 +806,7 @@ public class PgJobStoreIT {
         ChunkItem chunkItem = fromDB.getItems().get(0);
         ChunkItem nextChunkItem = fromDB.getNext().get(0);
 
-        assertThat("nextChunkItem.getData() NOT chunkItem.getData()" , nextChunkItem.getData(), not(chunkItem.getData()));
+        assertThat("nextChunkItem.getData() NOT chunkItem.getData()", nextChunkItem.getData(), not(chunkItem.getData()));
         assertThat("nextChunkItem.getStatus() IS nextChunkItem.getStatus()", nextChunkItem.getStatus(), is(chunkItem.getStatus()));
     }
 
@@ -1406,6 +1406,36 @@ public class PgJobStoreIT {
         // Then...
         assertThat("itemData", ignoredItemData, not(nullValue()));
         assertThat("itemData.data", ignoredItemData.getData(), is(ignoredItemEntity.getDeliveringOutcome().getData()));
+    }
+
+    /**
+     * Given: a job store containing a job
+     *
+     * When : requesting next processing outcome
+     * Then : the next processing outcome returned contains the the correct data.
+     */
+    @Test
+    public void getNextProcessingOutcome() throws JobStoreException {
+        // Given...
+        final int CHUNK_ID = 1;                  // second chunk is used, hence the chunk id is 1.
+        final PgJobStore pgJobStore = newPgJobStore();
+        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
+
+        ExternalChunk chunk = buildExternalChunkWithNextItems(jobInfoSnapshot.getJobId(), CHUNK_ID, 1, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
+
+        final EntityTransaction chunkTransaction = entityManager.getTransaction();
+        chunkTransaction.begin();
+        pgJobStore.addChunk(chunk);
+        chunkTransaction.commit();
+
+        // When...
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, (short)0);
+        final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
+        ChunkItem chunkItem = pgJobStore.getNextProcessingOutcome(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId());
+
+        // Then...
+        assertThat("chunkItem", chunkItem, not(nullValue()));
+        assertThat("chunkItem.data", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(successfulItemEntity.getNextProcessingOutcome().getData())));
     }
 
 

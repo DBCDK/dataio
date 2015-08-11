@@ -14,7 +14,7 @@ public class XmlDiffGenerator {
 
     // Tags marking difference in current
     private static final String OPEN_CURRENT = "CURRENT[";
-    private static final String CLOSE_CURRENT = "]CURRENT";
+    private static final String CLOSE_CURRENT = "]CURRENT , ";
 
     // Tags marking differences in next
     private static final String OPEN_NEXT = "NEXT[";
@@ -22,7 +22,7 @@ public class XmlDiffGenerator {
 
     // Name changed => namespace url is unchanged
     private static final String OPEN_NAME = "NAME CHANGED[";
-    private static final String CLOSE_NAME = "]NAME CHANGED";
+    private static final String CLOSE_NAME = "]NAME CHANGED , ";
 
     // Namespace url changed (URI) => name is unchanged
     private static final String OPEN_URI = "URI CHANGED[";

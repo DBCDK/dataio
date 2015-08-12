@@ -1179,13 +1179,16 @@ public class PgJobStoreTest {
     }
 
     @Test
-    public void getNextProcessingOutcome_itemEntityNotFound_throws() throws JobStoreException {
+    public void getNextProcessingOutcome_itemEntityNotFound_throws() throws InvalidInputException {
         final PgJobStore pgJobStore = newPgJobStore();
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
         try {
             pgJobStore.getNextProcessingOutcome(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
             fail("No exception thrown");
-        } catch (JobStoreException e) {}
+        } catch (InvalidInputException e) {
+            assertThat("JobError:", e.getJobError(), is(notNullValue()));
+            assertThat("JobError: code", e.getJobError().getCode(), is(JobError.Code.INVALID_ITEM_IDENTIFIER));
+        }
     }
 
     @Test

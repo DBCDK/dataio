@@ -116,6 +116,21 @@ Mulige returværdier:
 
     **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
 
+
+.. code-block:: rst
+
+    DELETE files/{id}
+
+Sletter fil indeholdt i fil lageret.
+
+Mulige returværdier:
+
+    **HTTP 200 OK** i fald filen blev slettet
+
+    **HTTP 404 NOT_FOUND** i tilfælde af at fil ID'et ikke kunne findes
+
+    **HTTP 500 INTERNAL_SERVER_ERROR** svar i tilfælde af uventet intern fejl
+
 .. code-block:: rst
 
     GET files/{id}/attributes/bytesize

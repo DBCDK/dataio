@@ -44,6 +44,9 @@ public class ESTaskPackageUtilTest {
     private static final long CHUNK_ID = 17L;
     private static final Charset ENCODING = Charset.defaultCharset();
     private static final String DB_NAME = "dbname";
+    private static final int USER_ID = 42;
+    private static final ESUtil.PackageType PACKAGE_TYPE = ESUtil.PackageType.DATABASE_UPDATE;
+    private static final ESUtil.Action ACTION = ESUtil.Action.INSERT;
 
     @Test
     public void test() throws SQLException {
@@ -122,7 +125,8 @@ public class ESTaskPackageUtilTest {
         final String simpleAddiString = "1\na\n1\nb\n";
         final EsWorkload esWorkload = newEsWorkload(simpleAddiString);
         final ESUtil.AddiListInsertionResult addiListInsertionResult = new ESUtil.AddiListInsertionResult(expectedTargetReference, 1);
-        when(ESUtil.insertAddiList(any(Connection.class), any(ArrayList.class), any(String.class), any(Charset.class), any(String.class))).thenReturn(addiListInsertionResult);
+        when(ESUtil.insertAddiList(any(Connection.class), any(ArrayList.class), any(String.class), any(Charset.class), any(String.class),
+                eq(USER_ID), eq(PACKAGE_TYPE), eq(ACTION))).thenReturn(addiListInsertionResult);
 
         assertThat(ESTaskPackageUtil.insertTaskPackage(esConn, DB_NAME, esWorkload), is(expectedTargetReference));
     }
@@ -157,7 +161,8 @@ public class ESTaskPackageUtilTest {
         final String simpleAddiString = "1\na\n1\nb\n";
         final EsWorkload esWorkload = newEsWorkload(simpleAddiString);
         final ESUtil.AddiListInsertionResult addiListInsertionResult = new ESUtil.AddiListInsertionResult(12345, 0);
-        when(ESUtil.insertAddiList(any(Connection.class), any(ArrayList.class), any(String.class), any(Charset.class), any(String.class))).thenReturn(addiListInsertionResult);
+        when(ESUtil.insertAddiList(any(Connection.class), any(ArrayList.class), any(String.class), any(Charset.class), any(String.class),
+                eq(USER_ID), eq(PACKAGE_TYPE), eq(ACTION))).thenReturn(addiListInsertionResult);
 
         ESTaskPackageUtil.insertTaskPackage(esConn, DB_NAME, esWorkload);
     }
@@ -259,7 +264,7 @@ public class ESTaskPackageUtilTest {
 
     private EsWorkload newEsWorkload(String record) throws IOException {
         return new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build(),
-                Arrays.asList(newAddiRecordFromString(record)));
+                Arrays.asList(newAddiRecordFromString(record)), USER_ID, PACKAGE_TYPE, ACTION);
     }
 
     private ChunkItem newChunkItem(String record) {

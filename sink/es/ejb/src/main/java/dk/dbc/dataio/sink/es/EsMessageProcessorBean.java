@@ -93,6 +93,8 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
         try {
             if (workload.getAddiRecords().isEmpty()) {
+                LOGGER.info("chunk {} of job {} contained no Addi records - sending result",
+                        deliveredChunk.getChunkId(), deliveredChunk.getJobId());
                 try {
                     jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
                 } catch (JobStoreServiceConnectorException e) {
@@ -103,9 +105,6 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         }
                     }
                 }
-
-                LOGGER.info("chunk {} of job {} contained no Addi records - sending result",
-                        deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             } else {
                 final int targetReference = esConnector.insertEsTaskPackage(workload);
                 final EsInFlight esInFlight = new EsInFlight();
@@ -168,7 +167,8 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                     throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
             }
         }
-        return new EsWorkload(incompleteDeliveredChunk, addiRecords);
+        return new EsWorkload(incompleteDeliveredChunk, addiRecords,
+                configuration.getEsUserId(), configuration.getEsPackageType(), configuration.getEsAction());
     }
 
     /**

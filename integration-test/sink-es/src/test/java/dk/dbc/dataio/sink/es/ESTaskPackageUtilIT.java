@@ -32,6 +32,9 @@ public class ESTaskPackageUtilIT {
 
     private static String ES_DATABASE_NAME;
     private static final String ADDI_OK = "1\na\n1\nb\n";
+    private static final int USER_ID = 3; // ja7
+    private static final ESUtil.PackageType PACKAGE_TYPE = ESUtil.PackageType.DATABASE_UPDATE;
+    private static final ESUtil.Action ACTION = ESUtil.Action.INSERT;
 
     @BeforeClass
     public static void setUpClass() {
@@ -293,7 +296,8 @@ public class ESTaskPackageUtilIT {
                 deliveredChunk.insertItem(item);
             }
             deliveredChunk.setEncoding(processedChunk.getEncoding());
-            EsWorkload esWorkload = new EsWorkload(deliveredChunk, ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk));
+            EsWorkload esWorkload = new EsWorkload(deliveredChunk, ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk),
+                    USER_ID, PACKAGE_TYPE, ACTION);
             return ESTaskPackageUtil.insertTaskPackage(conn, dbname, esWorkload);
         }
 

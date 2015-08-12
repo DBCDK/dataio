@@ -255,7 +255,6 @@ public class EsMessageProcessorBeanTest {
         final TestableMessageConsumerBean testableMessageConsumerBean = new TestableMessageConsumerBean();
         testableMessageConsumerBean.setMessageDrivenContext(new MockedMessageDrivenContext());
         final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
-        configuration.esRecordsCapacity = RECORDS_CAPACITY;
         configuration.esDatabaseName = ES_DATABASE_NAME;
         testableMessageConsumerBean.configuration = configuration;
         testableMessageConsumerBean.esConnector = esConnector;

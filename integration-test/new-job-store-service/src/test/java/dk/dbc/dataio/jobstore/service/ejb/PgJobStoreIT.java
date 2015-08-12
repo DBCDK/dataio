@@ -918,8 +918,8 @@ public class PgJobStoreIT {
     public void listDeliveringFailedJobs() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int CHUNK_ID = 0;
-        final short FAILED_ITEM_ID = 3;
+        final int chunkId = 0;
+        final short failedItemId = 3;
 
         final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
         final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
@@ -927,7 +927,7 @@ public class PgJobStoreIT {
         final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, snapshots.get(0).getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.DELIVERED);
+                10, snapshots.get(0).getJobId(), chunkId, failedItemId, 6, ExternalChunk.Type.DELIVERED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -960,8 +960,8 @@ public class PgJobStoreIT {
     public void listProcessingFailedJobs() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int CHUNK_ID = 0;
-        final short FAILED_ITEM_ID = 3;
+        final int chunkId = 0;
+        final short failedItemId = 3;
 
         final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
         final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
@@ -969,7 +969,7 @@ public class PgJobStoreIT {
         final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, snapshots.get(0).getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.PROCESSED);
+                10, snapshots.get(0).getJobId(), chunkId, failedItemId, 6, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1044,13 +1044,13 @@ public class PgJobStoreIT {
     public void listFailedItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
+        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short failedItemId = 3;          // The failed item will be the 4th out of 10
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, 6, ExternalChunk.Type.PROCESSED);
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, 6, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1065,8 +1065,8 @@ public class PgJobStoreIT {
         List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.listItems(findAllItemsForJobWithStatusFailed);
         assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
         assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(FAILED_ITEM_ID));
-        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(FAILED_ITEM_ID + 1));
+        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(failedItemId));
+        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(failedItemId + 1));
     }
 
     /**
@@ -1078,14 +1078,14 @@ public class PgJobStoreIT {
     public void listIgnoredItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
-        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
+        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short failedItemId = 3;          // The failed item will be the 4th out of 10
+        final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1100,8 +1100,8 @@ public class PgJobStoreIT {
         List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.listItems(findAllItemsForJobWithStatusIgnored);
         assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
         assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(IGNORED_ITEM_ID));
-        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(IGNORED_ITEM_ID + 1));
+        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(ignoredItemId));
+        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(ignoredItemId + 1));
     }
 
     /**
@@ -1113,14 +1113,14 @@ public class PgJobStoreIT {
     public void listAllItemsForJob() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
-        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
+        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short failedItemId = 3;          // The failed item will be the 4th out of 10
+        final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1256,15 +1256,15 @@ public class PgJobStoreIT {
      */
     @Test
     public void getItemDataPartitioned() throws JobStoreException {
-        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short ITEM_ID = 3;
+        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short itemId = 3;
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshot, not(nullValue()));
 
-        final ItemEntity.Key itemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, ITEM_ID);
+        final ItemEntity.Key itemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, itemId);
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
 
         // When...
@@ -1294,16 +1294,16 @@ public class PgJobStoreIT {
     @Test
     public void getItemDataProcessed() throws JobStoreException {
         // Given...
-        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
-        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
-        final short SUCCESSFUL_ITEM_ID = 0;
+        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short failedItemId = 3;          // The failed item will be the 4th out of 10
+        final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
+        final short successfulItemId = 0;
         final PgJobStore pgJobStore = newPgJobStore();
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.PROCESSED);
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1311,7 +1311,7 @@ public class PgJobStoreIT {
         chunkTransaction.commit();
 
         // When...
-        final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID);
+        final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, failedItemId);
         final ItemEntity failedItemEntity = entityManager.find(ItemEntity.class, failedItemKey);
         ItemData failedItemData = pgJobStore.getItemData(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.PROCESSING);
 
@@ -1320,7 +1320,7 @@ public class PgJobStoreIT {
         assertThat("itemData.data", failedItemData.getData(), is(failedItemEntity.getProcessingOutcome().getData()));
 
         // And when...
-        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, SUCCESSFUL_ITEM_ID);
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, successfulItemId);
         final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
         ItemData successfulItemData = pgJobStore.getItemData(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.PROCESSING);
 
@@ -1329,7 +1329,7 @@ public class PgJobStoreIT {
         assertThat("itemData.data", successfulItemData.getData(), is(successfulItemEntity.getProcessingOutcome().getData()));
 
         // And when...
-        final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, IGNORED_ITEM_ID);
+        final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, ignoredItemId);
         final ItemEntity ignoredItemEntity = entityManager.find(ItemEntity.class, ignoredItemKey);
         ItemData ignoredItemData = pgJobStore.getItemData(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.PROCESSING);
 
@@ -1358,15 +1358,15 @@ public class PgJobStoreIT {
     @Test
     public void getItemDataDelivered() throws JobStoreException {
         // Given...
-        final int CHUNK_ID = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short FAILED_ITEM_ID = 3;          // The failed item will be the 4th out of 10
-        final short IGNORED_ITEM_ID = 4;         // The ignored item is the 5th out of 10
-        final short SUCCESSFUL_ITEM_ID = 0;
+        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
+        final short failedItemId = 3;          // The failed item will be the 4th out of 10
+        final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
+        final short successfulItemId = 0;
         final PgJobStore pgJobStore = newPgJobStore();
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk processedChunk = buildExternalChunk(jobInfoSnapshot.getJobId(), CHUNK_ID, 10, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
+        ExternalChunk processedChunk = buildExternalChunk(jobInfoSnapshot.getJobId(), chunkId, 10, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1374,14 +1374,14 @@ public class PgJobStoreIT {
         chunkTransaction.commit();
 
         ExternalChunk deliveredChunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID, IGNORED_ITEM_ID, ExternalChunk.Type.DELIVERED);
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.DELIVERED);
 
         chunkTransaction.begin();
         pgJobStore.addChunk(deliveredChunk);
         chunkTransaction.commit();
 
         // When...
-        final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, FAILED_ITEM_ID);
+        final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, failedItemId);
         final ItemEntity failedItemEntity = entityManager.find(ItemEntity.class, failedItemKey);
         ItemData failedItemData = pgJobStore.getItemData(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.DELIVERING);
 
@@ -1390,7 +1390,7 @@ public class PgJobStoreIT {
         assertThat("itemData.data", failedItemData.getData(), is(failedItemEntity.getDeliveringOutcome().getData()));
 
         // When...
-        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, SUCCESSFUL_ITEM_ID);
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, successfulItemId);
         final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
         ItemData successfulItemData = pgJobStore.getItemData(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.DELIVERING);
 
@@ -1399,7 +1399,7 @@ public class PgJobStoreIT {
         assertThat("itemData.data", successfulItemData.getData(), is(successfulItemEntity.getDeliveringOutcome().getData()));
 
         // When...
-        final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, IGNORED_ITEM_ID);
+        final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, ignoredItemId);
         final ItemEntity ignoredItemEntity = entityManager.find(ItemEntity.class, ignoredItemKey);
         ItemData ignoredItemData = pgJobStore.getItemData(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.DELIVERING);
 
@@ -1417,11 +1417,11 @@ public class PgJobStoreIT {
     @Test
     public void getNextProcessingOutcome() throws JobStoreException {
         // Given...
-        final int CHUNK_ID = 1;                  // second chunk is used, hence the chunk id is 1.
+        final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.
         final PgJobStore pgJobStore = newPgJobStore();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunkWithNextItems(jobInfoSnapshot.getJobId(), CHUNK_ID, 1, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
+        ExternalChunk chunk = buildExternalChunkWithNextItems(jobInfoSnapshot.getJobId(), chunkId, 1, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1429,7 +1429,7 @@ public class PgJobStoreIT {
         chunkTransaction.commit();
 
         // When...
-        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), CHUNK_ID, (short)0);
+        final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, (short)0);
         final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
         ChunkItem chunkItem = pgJobStore.getNextProcessingOutcome(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId());
 

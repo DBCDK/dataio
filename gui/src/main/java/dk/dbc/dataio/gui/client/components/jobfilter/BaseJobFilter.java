@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
@@ -17,7 +18,7 @@ import dk.dbc.dataio.gui.client.resources.Resources;
 /**
  * This is the base class for Job Filters
  */
-public abstract class BaseJobFilter extends Composite implements HasValue<JobListCriteriaModel>  {
+public abstract class BaseJobFilter extends Composite implements HasValue<JobListCriteriaModel>, HasChangeHandlers {
 
     protected Texts texts;
     protected Resources resources;

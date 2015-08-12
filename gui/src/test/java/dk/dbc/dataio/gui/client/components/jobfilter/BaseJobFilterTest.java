@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -84,6 +85,11 @@ public class BaseJobFilterTest {
         }
         public HandlerRegistration getClickHandlerRegistration() {
             return clickHandlerRegistration;
+        }
+
+        @Override
+        public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+            return null;
         }
     }
 

@@ -2,6 +2,7 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.HasValueChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -13,8 +14,8 @@ import com.google.gwt.user.client.ui.ListBox;
 import java.util.List;
 
 
-public class PromptedList extends PromptedData implements HasValue<String> {
-    private boolean valueChangeHandlerInitialized;
+public class PromptedList extends PromptedData implements HasValue<String>, HasValueChangeHandlers<String> {
+    private boolean valueChangeHandlerInitialized = false;
 
     @UiField final ListBox listBox;
 

@@ -111,7 +111,6 @@ public class SinkJobFilterTest {
         }
         public FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
         public SinkJobFilterValueChangeHandler sinkJobFilterValueChangeHandler = new SinkJobFilterValueChangeHandler();
-        public SinkJobFilterHandlerRegistration sinkJobFilterHandlerRegistration = new SinkJobFilterHandlerRegistration();
     }
 
     @Test
@@ -176,36 +175,6 @@ public class SinkJobFilterTest {
         String sinkId = argument.getValue().getValue().getSinkId();
         assertThat(sinkId, is(SINK_ID));
 
-    }
-
-    @Test
-    public void sinkJobFilterHandlerRegistration_callRemoveHandlerWhenRegistrationIsNull_noAction() {
-        // Test Preparation
-        ConcreteSinkJobFilter jobFilter = new ConcreteSinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-        jobFilter.sinkListHandlerRegistration = null;
-        jobFilter.sinkJobValueChangeHandler = null;
-
-        // Activate Subject Under Test
-        jobFilter.sinkJobFilterHandlerRegistration.removeHandler();
-
-        // Verify test
-        assertThat(jobFilter.sinkListHandlerRegistration, is(nullValue()));
-        assertThat(jobFilter.sinkJobValueChangeHandler, is(nullValue()));
-        // Nothing really to test - nothing should happen here... But no exception should be triggered
-    }
-
-    @Test
-    public void sinkJobFilterHandlerRegistration_callRemoveHandlerWhenRegistrationIsNotNull_handlerRemovedCorrectly() {
-        // Test Preparation
-        ConcreteSinkJobFilter jobFilter = new ConcreteSinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-        jobFilter.addValueChangeHandler(mockedValueChangeHandler);
-
-        // Activate Subject Under Test
-        jobFilter.sinkJobFilterHandlerRegistration.removeHandler();
-
-        // Verify test
-        assertThat(jobFilter.sinkListHandlerRegistration, is(nullValue()));
-        assertThat(jobFilter.sinkJobValueChangeHandler, is(nullValue()));
     }
 
 }

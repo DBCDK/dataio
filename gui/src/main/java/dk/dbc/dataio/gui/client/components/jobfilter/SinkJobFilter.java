@@ -1,10 +1,12 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
@@ -13,6 +15,7 @@ import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
@@ -31,6 +34,11 @@ public class SinkJobFilter extends BaseJobFilter {
     ValueChangeHandler<JobListCriteriaModel> sinkJobValueChangeHandler = null;
     HandlerRegistration sinkListHandlerRegistration = null;
 
+
+    @UiConstructor
+    public SinkJobFilter() {
+        this((Texts) GWT.create(Texts.class), (Resources) GWT.create(Resources.class), (FlowStoreProxyAsync) GWT.create(FlowStoreProxy.class));
+    }
 
     @Inject
     public SinkJobFilter(Texts texts, Resources resources, FlowStoreProxyAsync flowStoreProxy) {
@@ -61,7 +69,7 @@ public class SinkJobFilter extends BaseJobFilter {
     }
 
 
-     /*
+    /*
      * Override HasValueChangeHandlers Interface Methods
      */
 
@@ -69,8 +77,17 @@ public class SinkJobFilter extends BaseJobFilter {
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<JobListCriteriaModel> valueChangeHandler) {
         sinkJobValueChangeHandler = valueChangeHandler;
         sinkListHandlerRegistration = sinkList.addValueChangeHandler(new SinkJobFilterValueChangeHandler());
-        return new SinkJobFilterHandlerRegistration();
+        return sinkListHandlerRegistration;
     }
+
+    /*
+     * Override HasChangeHandlers Interface Methods
+     */
+    @Override
+    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        return sinkList.addChangeHandler(changeHandler);
+    }
+
 
     /*
      * Private classes
@@ -104,20 +121,6 @@ public class SinkJobFilter extends BaseJobFilter {
                 model.setSinkId(valueChangeEvent.getValue());
                 sinkJobValueChangeHandler.onValueChange(new SinkJobFilterValueChangeEvent(model));
             }
-        }
-    }
-
-    /*
-     * This class is the HandlerRegistration for the SinkJobFilter
-     */
-    class SinkJobFilterHandlerRegistration implements HandlerRegistration {
-        @Override
-        public void removeHandler() {
-            if (sinkListHandlerRegistration != null) {
-                sinkListHandlerRegistration.removeHandler();
-                sinkListHandlerRegistration = null;
-            }
-            sinkJobValueChangeHandler = null;
         }
     }
 

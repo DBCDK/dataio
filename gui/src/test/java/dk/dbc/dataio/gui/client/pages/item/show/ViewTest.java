@@ -14,6 +14,8 @@ import com.google.gwtmockito.GwtMock;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -55,8 +57,9 @@ public class ViewTest {
     @Mock HandlerRegistration mockedHandlerRegistration;
 
     // Test Data
-    private ItemModel itemModel = new ItemModel("11", "ItemId1", "ChunkId1", "JobId1", ItemModel.LifeCycle.DELIVERING);
-    private DiagnosticModel diagnosticModel = new DiagnosticModel("FATAL", "message", "");
+    private DiagnosticModel diagnosticModel = new DiagnosticModelBuilder().build();
+    private ItemModel itemModel = new ItemModelBuilder().setLifeCycle(ItemModel.LifeCycle.DELIVERING).build();
+
     /*
      * The tested view contains nested UiBinder views: ViewWidget (a UiBinder view) instantiates three ItemsListView
      * (also UiBinder views).

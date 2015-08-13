@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +21,7 @@ import static org.mockito.Mockito.when;
 public class ItemTabContentTest {
     final String CANNOT_FETCH_ITEM_DATA = "Mocked Cannot fetch chunk data";
     final ItemModel.LifeCycle LIFECYCLE = ItemModel.LifeCycle.PROCESSING;
-    final ItemModel TEST_ITEM_MODEL = new ItemModel("284378745", "874784", "29", "656565", LIFECYCLE);
+    final ItemModel TEST_ITEM_MODEL = new ItemModelBuilder().setLifeCycle(ItemModel.LifeCycle.PROCESSING).build();
 
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
     @Mock Texts mockedTexts;

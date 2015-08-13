@@ -5,6 +5,7 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JavascriptLogTabContentTest {
-    final ItemModel TEST_ITEM_MODEL = new ItemModel("284378745", "874784", "29", "656565", ItemModel.LifeCycle.DELIVERING);
+    final ItemModel TEST_ITEM_MODEL = new ItemModelBuilder().build();
     final String CANNOT_FETCH_JAVASCRIPT_LOG = "Mocked Cannot fetch javascript log";
     private final static String NBSP = new String(new char[8]).replace("\0", "\u00A0");
 

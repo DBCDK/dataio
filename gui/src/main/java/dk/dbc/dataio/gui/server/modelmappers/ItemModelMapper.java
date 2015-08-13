@@ -1,6 +1,8 @@
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 
@@ -78,7 +80,38 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
-                searchFailed(itemInfoSnapshot.getState()));
+                searchFailed(itemInfoSnapshot.getState()),
+                toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
+                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()));
+    }
+
+    /**
+     * Maps a list of Diagnostics to a list of Diagnostic models
+     *
+     * @param diagnostics the list of diagnostics to map
+     * @return list of diagnostic models
+     */
+    private static List<DiagnosticModel> toDiagnosticModels(List<Diagnostic> diagnostics) {
+        List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(diagnostics.size());
+        for (Diagnostic diagnostic : diagnostics) {
+            diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().name(), diagnostic.getMessage(), diagnostic.getStacktrace()));
+        }
+        return diagnosticModels;
+    }
+
+    /**
+     * Determines if an item contains any diagnostic with level FATAL
+     *
+     * @param diagnostics the list of diagnostics
+     * @return true if a diagnostic with level FATAL is located, otherwise false
+     */
+    private static boolean hasFatalDiagnostic(List<Diagnostic> diagnostics) {
+        for(Diagnostic diagnostic : diagnostics) {
+            if(diagnostic.getLevel() == Diagnostic.Level.FATAL) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -93,7 +126,9 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
-                searchIgnored(itemInfoSnapshot.getState()));
+                searchIgnored(itemInfoSnapshot.getState()),
+                toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
+                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()));
     }
 
     /**
@@ -108,7 +143,9 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
-                searchAll(itemInfoSnapshot.getState()));
+                searchAll(itemInfoSnapshot.getState()),
+                toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
+                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()));
     }
 
     /**

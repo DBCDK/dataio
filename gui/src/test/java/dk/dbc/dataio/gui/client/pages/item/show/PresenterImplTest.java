@@ -20,6 +20,8 @@ import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -215,10 +217,12 @@ public class PresenterImplTest {
 
 
     // Test Data
-    private ItemModel testModel1 = new ItemModel("11", "1001", "1111", "1", ItemModel.LifeCycle.DELIVERING);
-    private ItemModel testModel2 = new ItemModel("12", "ItemId2", "ChunkId2", "JobId2", ItemModel.LifeCycle.DONE);
-    private ItemModel testModel3 = new ItemModel("13", "ItemId3", "ChunkId3", "JobId3", ItemModel.LifeCycle.PARTITIONING);
-    private ItemModel testModel4 = new ItemModel("14", "1004", "1114", "1", ItemModel.LifeCycle.PROCESSING);
+    private DiagnosticModel diagnosticModel = new DiagnosticModelBuilder().build();
+    private ItemModel testModel1 = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111").setJobId("1").setLifeCycle(ItemModel.LifeCycle.DELIVERING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
+    private ItemModel testModel2 = new ItemModelBuilder().setItemNumber("12").setItemId("ItemId2").setChunkId("ChunkId2").setJobId("JobId2").setLifeCycle(ItemModel.LifeCycle.DONE).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
+    private ItemModel testModel3 = new ItemModelBuilder().setItemNumber("13").setItemId("ItemId3").setChunkId("ChunkId3").setJobId("JobId3").setLifeCycle(ItemModel.LifeCycle.PARTITIONING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
+    private ItemModel testModel4 = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
+
     private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
     private JobModel testJobModelSucceeded = new JobModel("2014-12-16 08:51:17", "1418716277429",
             "150014", "SubmitterName1",

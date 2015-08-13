@@ -24,6 +24,7 @@ public class JobModel extends GenericBackendModel {
     private long processedCounter;
     private long deliveredCounter;
     private List<DiagnosticModel> diagnosticModels;
+    private boolean diagnosticFatal;
     private String packaging;
     private String format;
     private String charset;
@@ -52,6 +53,7 @@ public class JobModel extends GenericBackendModel {
      * @param processedCounter                     The number of Processed Items
      * @param deliveredCounter                     The number of Delivered Items
      * @param diagnosticModels                     The list of Diagnostics
+     * @param diagnosticFatal                      The boolean telling if the list of Diagnostics contains FATAL
      * @param packaging                            The Packaging
      * @param format                               The Format
      * @param charset                              The Charset
@@ -76,6 +78,7 @@ public class JobModel extends GenericBackendModel {
                     long processedCounter,
                     long deliveredCounter,
                     List<DiagnosticModel> diagnosticModels,
+                    boolean diagnosticFatal,
                     String packaging,
                     String format,
                     String charset,
@@ -99,6 +102,7 @@ public class JobModel extends GenericBackendModel {
         this.processedCounter = processedCounter;
         this.deliveredCounter = deliveredCounter;
         this.diagnosticModels = diagnosticModels;
+        this.diagnosticFatal = diagnosticFatal;
         this.packaging = packaging;
         this.format = format;
         this.charset = charset;
@@ -112,7 +116,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), "", "", "", "", "", "", "");
+        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "");
     }
 
 
@@ -394,6 +398,15 @@ public class JobModel extends GenericBackendModel {
      */
     public List<DiagnosticModel> getDiagnosticModels() {
         return diagnosticModels;
+    }
+
+    /**
+     * Gets the boolean telling if the list of Diagnostics contains FATAL
+     *
+     * @return true if FATAL is in list, otherwise false
+     */
+    public boolean isDiagnosticFatal() {
+        return diagnosticFatal;
     }
 
     /**

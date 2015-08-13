@@ -49,6 +49,7 @@ public class JobModelMapper {
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING)),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING)),
                 getDiagnostics(jobInfoSnapshot.getState().getDiagnostics()),
+                hasFatalDiagnostic(jobInfoSnapshot.getState().getDiagnostics()),
                 jobInfoSnapshot.getSpecification().getPackaging(),
                 jobInfoSnapshot.getSpecification().getFormat(),
                 jobInfoSnapshot.getSpecification().getCharset(),
@@ -182,9 +183,18 @@ public class JobModelMapper {
     private static List<DiagnosticModel> getDiagnostics(List<Diagnostic> diagnostics) {
         List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(diagnostics.size());
         for(Diagnostic diagnostic : diagnostics) {
-            diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().toString(), diagnostic.getMessage(), diagnostic.getStacktrace()));
+            diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().name(), diagnostic.getMessage(), diagnostic.getStacktrace()));
         }
         return diagnosticModels;
+    }
+
+    private static boolean hasFatalDiagnostic(List<Diagnostic> diagnostics) {
+        for(Diagnostic diagnostic : diagnostics) {
+            if(diagnostic.getLevel() == Diagnostic.Level.FATAL) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

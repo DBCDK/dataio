@@ -6,15 +6,13 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.Event;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import com.google.web.bindery.event.shared.EventBus;
-import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-
-import java.util.ArrayList;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -45,21 +43,36 @@ public class StatusColumnTest {
 
 
     // Test data
-    private JobModel doneWithoutErrorModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014", "SubmitterName",
-            "FlowBinderName", 6789L, "SinkName",
-            true, 10, 10, 0, 0, 41, 42, 43, new ArrayList<DiagnosticModel>(),
-            "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
-    private JobModel doneWithErrorModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014", "SubmitterName",
-            "FlowBinderName", 6789L, "SinkName",
-            true, 10, 10, 5, 5, 44, 45, 46, new ArrayList<DiagnosticModel>(),
-            "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
-    private JobModel notDoneModel = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014", "SubmitterName",
-            "FlowBinderName", 6789L, "SinkName",
-            false, 10, 5, 0, 0, 47, 48, 49, new ArrayList<DiagnosticModel>(),// Job not done marks the model as Not Done
-            "packaging", "format", "charset", "destination", "mailNotification", "mailProcessing", "resultMailInitials");
+    private JobModel doneWithoutErrorModel = new JobModelBuilder()
+            .setItemCounter(10)
+            .setSucceededCounter(10)
+            .setFailedCounter(0)
+            .setIgnoredCounter(0)
+            .setPartitionedCounter(41)
+            .setProcessedCounter(42)
+            .setDeliveredCounter(43)
+            .build();
+
+    private JobModel doneWithErrorModel = new JobModelBuilder()
+            .setItemCounter(10)
+            .setSucceededCounter(10)
+            .setFailedCounter(5)
+            .setIgnoredCounter(5)
+            .setPartitionedCounter(44)
+            .setProcessedCounter(45)
+            .setDeliveredCounter(46)
+            .build();
+
+    private JobModel notDoneModel = new JobModelBuilder()
+            .setIsJobDone(false)
+            .setItemCounter(10)
+            .setSucceededCounter(5)
+            .setFailedCounter(0)
+            .setIgnoredCounter(0)
+            .setPartitionedCounter(47)
+            .setProcessedCounter(48)
+            .setDeliveredCounter(49)
+            .build();
 
     // Subject Under Test
     StatusColumn statusColumn;

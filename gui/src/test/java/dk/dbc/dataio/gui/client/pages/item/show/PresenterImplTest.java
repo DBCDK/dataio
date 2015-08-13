@@ -22,6 +22,7 @@ import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -43,12 +44,12 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
-* PresenterImpl unit tests
-*
-* The test methods of this class uses the following naming convention:
-*
-*  unitOfWork_stateUnderTest_expectedBehavior
-*/
+ * PresenterImpl unit tests
+ *
+ * The test methods of this class uses the following naming convention:
+ *
+ *  unitOfWork_stateUnderTest_expectedBehavior
+ */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
     @Mock ClientFactory mockedClientFactory;
@@ -223,26 +224,103 @@ public class PresenterImplTest {
     private ItemModel testModel3 = new ItemModelBuilder().setItemNumber("13").setItemId("ItemId3").setChunkId("ChunkId3").setJobId("JobId3").setLifeCycle(ItemModel.LifeCycle.PARTITIONING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
     private ItemModel testModel4 = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
 
+
     private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
-    private JobModel testJobModelSucceeded = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014", "SubmitterName1",
-            "FlowBinderName1", 5678L, "SinkName1",
-            true, 20, 20, 0, 0, 11, 12, 13, new ArrayList<DiagnosticModel>(),
-            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
-    private JobModel testJobModelFailed = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014", "SubmitterName1",
-            "FlowBinderName1", 5678L, "SinkName1",
-            true, 20, 20, 1, 0, 14, 15, 16, new ArrayList<DiagnosticModel>(),
-            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
-    private JobModel testJobModelIgnored = new JobModel("2014-12-16 08:51:17", "1418716277429",
-            "150014", "SubmitterName1",
-            "FlowBinderName1", 5678L, "SinkName1",
-            true, 20, 20, 0, 1, 17, 18, 19, new ArrayList<DiagnosticModel>(),
-            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
-    private JobModel testJobModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
-            "424242", "SubmitterName2", "FlowBinderName2", 5679L, "SinkName2",
-            true, 10, 10, 0, 5, 20, 21, 22, new ArrayList<DiagnosticModel>(),
-            "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
+
+    private JobModel testJobModelSucceeded = new JobModelBuilder()
+            .setJobId("1418716277429")
+            .setSubmitterNumber("150014")
+            .setSubmitterName("SubmitterName1")
+            .setFlowBinderName("FlowBinderName1")
+            .setSinkId(5678L)
+            .setSinkName("SinkName1")
+            .setItemCounter(20)
+            .setSucceededCounter(20)
+            .setFailedCounter(0)
+            .setIgnoredCounter(0)
+            .setPartitionedCounter(11)
+            .setProcessedCounter(12)
+            .setDeliveredCounter(13)
+            .setPackaging("packagingA")
+            .setFormat("formatA")
+            .setCharset("charsetA")
+            .setDestination("destinationA")
+            .setMailForNotificationAboutVerification("mailNotificationA")
+            .setMailForNotificationAboutProcessing("mailProcessingA")
+            .setResultMailInitials("resultMailInitialsA")
+            .build();
+
+    private JobModel testJobModelFailed = new JobModelBuilder()
+            .setJobId("1418716277429")
+            .setSubmitterNumber("150014")
+            .setSubmitterName("SubmitterName1")
+            .setFlowBinderName("FlowBinderName1")
+            .setSinkId(5678L)
+            .setSinkName("SinkName1")
+            .setItemCounter(20)
+            .setSucceededCounter(20)
+            .setFailedCounter(1)
+            .setIgnoredCounter(0)
+            .setPartitionedCounter(14)
+            .setProcessedCounter(15)
+            .setDeliveredCounter(16)
+            .setPackaging("packagingA")
+            .setFormat("formatA")
+            .setCharset("charsetA")
+            .setDestination("destinationA")
+            .setMailForNotificationAboutVerification("mailNotificationA")
+            .setMailForNotificationAboutProcessing("mailProcessingA")
+            .setResultMailInitials("resultMailInitialsA")
+            .build();
+
+    private JobModel testJobModelIgnored = new JobModelBuilder()
+            .setJobId("1418716277429")
+            .setSubmitterNumber("150014")
+            .setSubmitterName("SubmitterName1")
+            .setFlowBinderName("FlowBinderName1")
+            .setSinkId(5678L)
+            .setSinkName("SinkName1")
+            .setItemCounter(20)
+            .setSucceededCounter(20)
+            .setFailedCounter(0)
+            .setIgnoredCounter(1)
+            .setPartitionedCounter(17)
+            .setProcessedCounter(18)
+            .setDeliveredCounter(19)
+            .setPackaging("packagingA")
+            .setFormat("formatA")
+            .setCharset("charsetA")
+            .setDestination("destinationA")
+            .setMailForNotificationAboutVerification("mailNotificationA")
+            .setMailForNotificationAboutProcessing("mailProcessingA")
+            .setResultMailInitials("resultMailInitialsA")
+            .build();
+
+    private JobModel testJobModel2 = new JobModelBuilder()
+            .setJobId("1418716277429")
+            .setJobCreationTime("2014-12-17 00:37:48")
+            .setJobId("1418773068083")
+            .setSubmitterNumber("424242")
+            .setSubmitterName("SubmitterName2")
+            .setFlowBinderName("FlowBinderName2")
+            .setSinkId(5679L)
+            .setSinkName("SinkName2")
+            .setItemCounter(10)
+            .setSucceededCounter(10)
+            .setFailedCounter(0)
+            .setIgnoredCounter(5)
+            .setPartitionedCounter(20)
+            .setProcessedCounter(21)
+            .setDeliveredCounter(22)
+            .setPackaging("packagingB")
+            .setFormat("formatB")
+            .setCharset("charsetB")
+            .setDestination("destinationB")
+            .setMailForNotificationAboutVerification("mailNotificationB")
+            .setMailForNotificationAboutProcessing("mailProcessingB")
+            .setResultMailInitials("resultMailInitialsB")
+            .build();
+
     private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
     private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Collections.singletonList(testJobModelSucceeded));
     private List<JobModel> testJobModelsFailed = new ArrayList<JobModel>(Collections.singletonList(testJobModelFailed));

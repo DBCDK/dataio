@@ -8,8 +8,8 @@ import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
@@ -54,15 +54,39 @@ public class ViewTest {
 
 
     // Test Data
-    private JobModel testModel1 = new JobModel("2014-12-16 08:51:17", "1418716277429", "150014",
-            "SubmitterNameA", "FlowBinderNameA", 3456L, "SinkNameA",
-            true, 12, 9, 2, 3, 51, 52, 53, new ArrayList<DiagnosticModel>(),
-            "packagingA", "formatA", "charsetA", "destinationA", "mailNotificationA", "mailProcessingA", "resultMailInitialsA");
+    private JobModel testModel1 = new JobModelBuilder()
+            .setJobCreationTime("2014-12-16 08:51:17")
+            .setJobId("1418716277429")
+            .setSubmitterNumber("150014")
+            .setSubmitterName("SubmitterNameA")
+            .setFlowBinderName("FlowBinderNameA")
+            .setSinkId(3456L)
+            .setSinkName("SinkNameA")
+            .setItemCounter(12)
+            .setSucceededCounter(9)
+            .setFailedCounter(2)
+            .setIgnoredCounter(3)
+            .setPartitionedCounter(51)
+            .setProcessedCounter(52)
+            .setDeliveredCounter(53)
+            .build();
 
-    private JobModel testModel2 = new JobModel("2014-12-17 00:37:48", "1418773068083",
-            "424242", "SubmitterNameB", "FlowBinderNameB", 3457L, "SinkNameB",
-            true, 5, 5, 0, 0, 54, 55, 56, new ArrayList<DiagnosticModel>(),
-            "packagingB", "formatB", "charsetB", "destinationB", "mailNotificationB", "mailProcessingB", "resultMailInitialsB");
+    private JobModel testModel2 = new JobModelBuilder()
+            .setJobCreationTime("2014-12-17 00:37:48")
+            .setJobId("1418773068083")
+            .setSubmitterNumber("424242")
+            .setSubmitterName("SubmitterNameB")
+            .setFlowBinderName("FlowBinderNameB")
+            .setSinkId(3457L)
+            .setSinkName("SinkNameB")
+            .setItemCounter(5)
+            .setSucceededCounter(5)
+            .setFailedCounter(0)
+            .setIgnoredCounter(0)
+            .setPartitionedCounter(54)
+            .setProcessedCounter(55)
+            .setDeliveredCounter(56)
+            .build();
 
     private List<JobModel> testModels = new ArrayList<JobModel>(Arrays.asList(testModel1, testModel2));
 

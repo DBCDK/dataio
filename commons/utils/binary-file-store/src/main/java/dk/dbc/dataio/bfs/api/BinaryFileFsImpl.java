@@ -135,6 +135,11 @@ public class BinaryFileFsImpl implements BinaryFile {
         return path;
     }
 
+    @Override
+    public boolean exists() {
+        return Files.exists(path);
+    }
+
     void createPathIfNotExists(Path path) {
         try {
             Files.createDirectories(path);

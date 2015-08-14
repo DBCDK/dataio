@@ -117,6 +117,19 @@ public class BinaryFileFsImplTest {
     }
 
     @Test
+    public void exists_pathExists_returnsTrue() throws IOException {
+        final Path filePath = mountPoint.newFile().toPath();
+        assertThat(Files.exists(filePath), is(true));
+    }
+
+    @Test
+    public void exists_pathDoesNotExist_returnsFalse() throws IOException {
+        final Path filePath = mountPoint.newFile().toPath();
+        Files.delete(filePath);
+        assertThat(Files.exists(filePath), is(false));
+    }
+
+    @Test
     public void read_osArgIsNull_throws() throws IOException {
         final Path sourceFile = mountPoint.newFile().toPath();
         final BinaryFileFsImpl binaryFileFs = new BinaryFileFsImpl(sourceFile);

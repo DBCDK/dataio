@@ -58,6 +58,12 @@ public class FileStoreBean {
         final ByteCountingInputStream wrappedDataSource = new ByteCountingInputStream(dataSource);
         final Path path = location.resolve(String.valueOf(fileAttributes.getId()));
         final BinaryFile binaryFile = binaryFileStore.getBinaryFile(path);
+        if (binaryFile.exists()) {
+            // FileAttributes could be created, but a dangling file with the
+            // same id already exists in the file system.
+            LOGGER.warn("Deleted dangling file {}", binaryFile.getPath());
+            binaryFile.delete();
+        }
         binaryFile.write(wrappedDataSource);
 
         // Set the number of bytes read on file attributes

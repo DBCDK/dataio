@@ -19,6 +19,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,11 +44,27 @@ public class FileStoreBeanTest {
         when(binaryFileStoreBean.getBinaryFile(any(Path.class))).thenReturn(binaryFile);
         when(entityManager.merge(any(FileAttributes.class))).thenReturn(fileAttributes);
         when(fileAttributes.getId()).thenReturn(Long.valueOf(fileId));
+        when(binaryFile.exists()).thenReturn(false);
 
         final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
 
         assertThat(fileStoreBean.addFile(inputStream), is(fileId));
         verify(fileAttributes).setByteSize(anyLong());
+        verify(binaryFile, times(0)).delete();
+    }
+
+    @Test
+    public void addFile_danglingFileExists_overwritesFile() {
+        when(binaryFileStoreBean.getBinaryFile(any(Path.class))).thenReturn(binaryFile);
+        when(entityManager.merge(any(FileAttributes.class))).thenReturn(fileAttributes);
+        when(fileAttributes.getId()).thenReturn(Long.valueOf(fileId));
+        when(binaryFile.exists()).thenReturn(true);
+
+        final FileStoreBean fileStoreBean = newFileStoreBeanInstance();
+
+        assertThat(fileStoreBean.addFile(inputStream), is(fileId));
+        verify(fileAttributes).setByteSize(anyLong());
+        verify(binaryFile, times(1)).delete();
     }
 
     @Test(expected = NullPointerException.class)

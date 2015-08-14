@@ -39,4 +39,11 @@ public interface BinaryFile {
      * @return path of this binary file representation
      */
     Path getPath();
+
+    /**
+     * Tests whether a file exists
+     * @return true if the file exists, false if the file does not exist or
+     * its existence cannot be determined
+     */
+    boolean exists();
 }

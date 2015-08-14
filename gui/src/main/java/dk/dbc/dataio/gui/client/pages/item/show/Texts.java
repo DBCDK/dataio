@@ -92,6 +92,9 @@ public interface Texts extends Constants {
     String tab_JobDiagnostic();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_ItemDiagnostic();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_JavascriptLog();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

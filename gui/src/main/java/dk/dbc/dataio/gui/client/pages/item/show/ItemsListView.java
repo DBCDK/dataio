@@ -7,16 +7,21 @@ import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.SimplePager;
+import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 
 public class ItemsListView extends Composite {
     protected static final int PAGE_SIZE = 20;
     protected static final int FAST_FORWARD_PAGES = 5;
+    final int ITEM_DIAGNOSTIC_TAB_CONTENT = 5;
     final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
+    final int INPUT_POST_TAB_CONTENT = 1;
     final int OUTPUT_POST_TAB_CONTENT = 2;
     final int NEXT_OUTPUT_POST_TAB_CONTENT = 3;
     final int SINK_RESULT_TAB_CONTENT = 4;
@@ -29,9 +34,35 @@ public class ItemsListView extends Composite {
     @UiField CellTable itemsTable;
     @UiField SimplePager itemsPager;
     @UiField DecoratedTabPanel detailedTabs;
+    @UiField ItemDiagnosticTabContent itemDiagnosticTabContent;
 
     public ItemsListView() {
         initWidget(ourUiBinder.createAndBindUi(this));
+        setupColumns(itemDiagnosticTabContent);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void setupColumns(final ItemDiagnosticTabContent itemDiagnosticTabContent) {
+        itemDiagnosticTabContent.itemDiagnosticTable.addColumn(constructDiagnosticLevelColumn());
+        itemDiagnosticTabContent.itemDiagnosticTable.addColumn(constructDiagnosticMessageColumn());
+    }
+
+    Column constructDiagnosticLevelColumn() {
+        return new TextColumn<DiagnosticModel>() {
+            @Override
+            public String getValue(DiagnosticModel model) {
+                return model.getLevel();
+            }
+        };
+    }
+
+    Column constructDiagnosticMessageColumn() {
+        return new TextColumn<DiagnosticModel>() {
+            @Override
+            public String getValue(DiagnosticModel model) {
+                return model.getMessage();
+            }
+        };
     }
 
     @UiFactory

@@ -70,6 +70,7 @@ public class PresenterImplTest {
     @Mock CellTable mockedFailedItemsTable;
     @Mock CellTable mockedIgnoredItemsTable;
     @Mock CellTable mockedJobDiagnosticTable;
+    @Mock CellTable mockedItemDiagnosticTable;
     @Mock SimplePager mockedAllPager;
     @Mock SimplePager mockedFailedPager;
     @Mock SimplePager mockedIgnoredPager;
@@ -80,6 +81,7 @@ public class PresenterImplTest {
     @Mock SingleSelectionModel<ItemModel> mockedSelectionModel;
     @Mock JobInfoTabContent mockedJobInfoTabContent;
     @Mock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
+    @Mock ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
     @Mock PromptedLabel mockedPackaging;
     @Mock PromptedLabel mockedFormat;
     @Mock PromptedLabel mockedCharset;
@@ -99,6 +101,7 @@ public class PresenterImplTest {
     static final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
     static final int OUTPUT_POST_TAB_CONTENT = 2;
     static final int SINK_RESULT_TAB_CONTENT = 4;
+    static final int ITEM_DIAGNOSTIC_TAB_CONTENT = 5;
 
 
     // Setup mocked data
@@ -112,6 +115,12 @@ public class PresenterImplTest {
         mockedFailedItemsListView.itemsTable = mockedFailedItemsTable;
         mockedView.jobDiagnosticTabContent = mockedJobDiagnosticTabContent;
         mockedIgnoredItemsListView.itemsTable = mockedIgnoredItemsTable;
+        mockedAllItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
+        mockedAllItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
+        mockedFailedItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
+        mockedFailedItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
+        mockedIgnoredItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
+        mockedIgnoredItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
         mockedView.jobDiagnosticTabContent.jobDiagnosticTable = mockedJobDiagnosticTable;
         mockedAllItemsListView.itemsPager = mockedAllPager;
         mockedFailedItemsListView.itemsPager = mockedFailedPager;
@@ -124,6 +133,7 @@ public class PresenterImplTest {
         mockedView.ignoredItemsList = mockedIgnoredItemsListView;
         mockedView.tabPanel = mockedTabPanel;
         when(mockedTabPanel.getTabBar()).thenReturn(mockedTabBar);
+        when(mockedAllDetailedTabs.getTabBar()).thenReturn(mockedTabBar);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedView.allItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.failedItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
@@ -168,6 +178,8 @@ public class PresenterImplTest {
     final static String MOCKED_TAB_OUTPUTPOST = "Mocked output post";
     final static String MOCKED_TAB_NEXT_OUTPUTPOST = "Mocked next output post";
     final static String MOCKED_TAB_SINKRESULT = "Mocked sink result";
+    final static String MOCKED_TAB_ITEM_DIAGNOSTIC = "Mocked item diagnostic result";
+
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedText);
@@ -196,6 +208,7 @@ public class PresenterImplTest {
         when(mockedText.tab_ProcessingPost()).thenReturn(MOCKED_TAB_OUTPUTPOST);
         when(mockedText.tab_NextOutputPost()).thenReturn(MOCKED_TAB_NEXT_OUTPUTPOST);
         when(mockedText.tab_DeliveringPost()).thenReturn(MOCKED_TAB_SINKRESULT);
+        when(mockedText.tab_ItemDiagnostic()).thenReturn(MOCKED_TAB_ITEM_DIAGNOSTIC);
     }
 
     // Subject Under Test
@@ -206,13 +219,13 @@ public class PresenterImplTest {
     class PresenterImplConcrete extends PresenterImpl {
         ItemsListView itemsListView;
         public ItemsCallback getItemsCallback;
-        public JobCallback getJobCallback;
+        public JobsCallback getJobsCallback;
 
         public PresenterImplConcrete(Place place, ClientFactory clientFactory, ItemsListView itemsListView) {
             super(place, clientFactory);
             this.itemsListView = itemsListView;
             this.getItemsCallback = new ItemsCallback(itemsListView, ROW_COUNT, OFFSET);
-            this.getJobCallback = new JobCallback();
+            this.getJobsCallback = new JobsCallback();
         }
     }
 
@@ -223,7 +236,8 @@ public class PresenterImplTest {
     private ItemModel testModel2 = new ItemModelBuilder().setItemNumber("12").setItemId("ItemId2").setChunkId("ChunkId2").setJobId("JobId2").setLifeCycle(ItemModel.LifeCycle.DONE).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
     private ItemModel testModel3 = new ItemModelBuilder().setItemNumber("13").setItemId("ItemId3").setChunkId("ChunkId3").setJobId("JobId3").setLifeCycle(ItemModel.LifeCycle.PARTITIONING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
     private ItemModel testModel4 = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
-
+    private ItemModel testModel5 = new ItemModelBuilder().setHasDiagnosticFatal(true).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
+    private ItemModel testModel6 = new ItemModelBuilder().setDiagnosticModels(new ArrayList<DiagnosticModel>()).build();
 
     private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
 
@@ -367,7 +381,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
-        verify(mockedJobStoreProxy).listJobs(any(JobListCriteriaModel.class), any(PresenterImpl.JobCallback.class));
+        verify(mockedJobStoreProxy).listJobs(any(JobListCriteriaModel.class), any(PresenterImpl.JobsCallback.class));
     }
 
     @Test
@@ -488,6 +502,53 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
+        verify(mockedAllDetailedTabs).selectTab(JAVASCRIPT_LOG_TAB_CONTENT);
+        verify(mockedAllDetailedTabs).setVisible(true);
+    }
+
+    @Test
+    public void itemSelected_itemFailedWithFatalDiagnostic_callItemSelected_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.itemSelected(mockedAllItemsListView, testModel5);
+
+        // Verify Test
+        verify(mockedAllDetailedTabs).clear();
+        verify(mockedText).tab_JavascriptLog();
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
+        verify(mockedAllDetailedTabs).selectTab(ITEM_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedAllDetailedTabs).setVisible(true);
+    }
+
+    @Test
+    public void itemSelected_itemFailedWithZeroDiagnostics_callItemSelected_ok() {
+        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        presenterImpl.jobId = "1234";
+        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.itemSelected(mockedAllItemsListView, testModel6);
+
+        // Verify Test
+        verify(mockedAllDetailedTabs).clear();
+        verify(mockedText).tab_JavascriptLog();
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs, times(0)).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
         verify(mockedAllDetailedTabs).selectTab(JAVASCRIPT_LOG_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
@@ -510,6 +571,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
         verify(mockedAllDetailedTabs).selectTab(SINK_RESULT_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
@@ -532,6 +594,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
         verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
@@ -554,6 +617,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
         verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
@@ -576,6 +640,7 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
         verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
@@ -672,7 +737,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onFailure(mockedException);
+        presenterImpl.getJobsCallback.onFailure(mockedException);
 
         // Verify Test
         verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFETCHJOB);
@@ -685,7 +750,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onSuccess(testJobModelsFailed);
+        presenterImpl.getJobsCallback.onSuccess(testJobModelsFailed);
 
         // Verify Test
         verify(mockedView.jobHeader).setText("Mocked Job Id: 1418716277429, Mocked Submitter: 150014, Mocked Sink: SinkName1");
@@ -701,7 +766,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
@@ -719,7 +784,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onSuccess(testJobModelsIgnored);
+        presenterImpl.getJobsCallback.onSuccess(testJobModelsIgnored);
 
         // Verify Test
         verify(mockedView.jobHeader).setText("Mocked Job Id: 1418716277429, Mocked Submitter: 150014, Mocked Sink: SinkName1");
@@ -735,7 +800,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
@@ -753,7 +818,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onSuccess(testJobModelsSucceeded);
+        presenterImpl.getJobsCallback.onSuccess(testJobModelsSucceeded);
 
         // Verify Test
         verify(mockedView.jobHeader).setText("Mocked Job Id: 1418716277429, Mocked Submitter: 150014, Mocked Sink: SinkName1");
@@ -769,7 +834,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
@@ -787,7 +852,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onSuccess(testJobModels2);
+        presenterImpl.getJobsCallback.onSuccess(testJobModels2);
 
         // Verify Test
         verify(mockedView.jobHeader).setText("Mocked Job Id: 1418773068083, Mocked Submitter: 424242, Mocked Sink: SinkName2");
@@ -803,8 +868,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
-
+        verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
@@ -822,7 +886,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onSuccess(testJobModels0);
+        presenterImpl.getJobsCallback.onSuccess(testJobModels0);
 
         // Verify Test
         verify(mockedTabBar).getTab(ALL_ITEMS_TAB_INDEX);
@@ -847,7 +911,7 @@ public class PresenterImplTest {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getJobCallback.onSuccess(null);
+        presenterImpl.getJobsCallback.onSuccess(null);
 
         // Verify Test
         verify(mockedTabBar).getTab(ALL_ITEMS_TAB_INDEX);

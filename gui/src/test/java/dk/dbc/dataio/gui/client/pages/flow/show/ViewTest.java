@@ -40,9 +40,9 @@ public class ViewTest {
 
 
     // Test Data
-    private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setSvnRevision("FCsrv1").build();
-    private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setSvnRevision("FCsrv2").build();
-    private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setSvnRevision("FCsrv3").build();
+    private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setSvnRevision("FCsrv1").setSvnNext("FCsrv1").build();
+    private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setSvnRevision("FCsrv2").setSvnNext("FCsrv4").build();
+    private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setSvnRevision("FCsrv3").setSvnNext("").build();
     private FlowModel flowModel1 = new FlowModelBuilder().setName("Fnam1").setComponents(Collections.singletonList(flowComponentModel1)).build();
     private FlowModel flowModel2 = new FlowModelBuilder().setName("Fnam2").setComponents(Arrays.asList(flowComponentModel2, flowComponentModel3)).build();
     private FlowModel flowModel3 = new FlowModelBuilder().setName("Fnam3").setComponents(Collections.singletonList(flowComponentModel3)).build();
@@ -151,15 +151,28 @@ public class ViewTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void constructFlowComponentsColumn_oneFlowComponent_correctlySetup() {
+    public void constructFlowComponentsColumn_oneFlowComponentWithSvnNext_correctlySetup() {
         view = new View(mockedClientFactory);
 
         // Subject Under Test
         Column column = view.constructFlowComponentsColumn();
 
         // Test that correct getValue handler has been setup
-        String expected = flowComponentModel1.getName() + " (SVN Rev. " + flowComponentModel1.getSvnRevision() + ")";
+        String expected = flowComponentModel1.getName() + " (SVN Rev. " + flowComponentModel1.getSvnRevision() + ", SVN Next. " + flowComponentModel1.getSvnNext() + ")";
         assertThat((String) column.getValue(flowModel1), is(expected));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructFlowComponentsColumn_oneFlowComponentWithEmptySvnNext_correctlySetup() {
+        view = new View(mockedClientFactory);
+
+        // Subject Under Test
+        Column column = view.constructFlowComponentsColumn();
+
+        // Test that correct getValue handler has been setup
+        String expected = flowComponentModel3.getName() + " (SVN Rev. " + flowComponentModel3.getSvnRevision() + ")";
+        assertThat((String) column.getValue(flowModel3), is(expected));
     }
 
     @Test
@@ -172,7 +185,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         String expected =
-                flowComponentModel2.getName() + " (SVN Rev. " + flowComponentModel2.getSvnRevision() + "), " +
+                flowComponentModel2.getName() + " (SVN Rev. " + flowComponentModel2.getSvnRevision() + ", SVN Next. " + flowComponentModel2.getSvnNext() + "), " +
                 flowComponentModel3.getName() + " (SVN Rev. " + flowComponentModel3.getSvnRevision() + ")";
         assertThat((String) column.getValue(flowModel2), is(expected));
     }

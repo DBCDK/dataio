@@ -175,7 +175,24 @@ public class View extends ViewWidget {
     private String formatFlowComponents(List<FlowComponentModel> flowComponentModels) {
         List<String> parameters = new ArrayList<String>();
         for(FlowComponentModel model : flowComponentModels){
-            parameters.add(Format.inBracketsPairString(model.getName(), formatSvnRevision(model)));
+            parameters.add(Format.inBracketsPairString(model.getName(), formatRevision(model)));
+        }
+        return Format.commaSeparate(parameters);
+    }
+
+    /**
+     * Formats a flow component to be shown in a cell.
+     * If the svn next is empty, only the current svn revision will be displayed alongside
+     * the flow component name. Otherwise both current and next revision will be shown alongside the flow component name.
+     *
+     * @param flowComponentModel The Flow Component Model
+     * @return The text formatted Flow Component
+     */
+    private String formatRevision(FlowComponentModel flowComponentModel) {
+        List<String> parameters = new ArrayList<String>();
+        parameters.add(formatSvnRevision(flowComponentModel));
+        if(!flowComponentModel.getSvnNext().isEmpty()) {
+            parameters.add(formatSvnNext(flowComponentModel));
         }
         return Format.commaSeparate(parameters);
     }
@@ -187,6 +204,15 @@ public class View extends ViewWidget {
      */
     private String formatSvnRevision(FlowComponentModel flowComponentModel){
         return "SVN Rev. " + flowComponentModel.getSvnRevision();
+    }
+
+    /**
+     * Formats an SVN Next number
+     * @param flowComponentModel The Flow Component Model
+     * @return The formatted SVN Next number
+     */
+    private String formatSvnNext(FlowComponentModel flowComponentModel){
+        return "SVN Next. " + flowComponentModel.getSvnNext();
     }
 
     /**

@@ -8,6 +8,8 @@ import java.util.List;
  */
 public class JobModel extends GenericBackendModel {
 
+    public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
+
     private String jobCreationTime;
     private String jobId;
     private String submitterNumber;
@@ -32,7 +34,7 @@ public class JobModel extends GenericBackendModel {
     private String mailForNotificationAboutVerification;
     private String mailForNotificationAboutProcessing;
     private String resultmailInitials;
-
+    private Type type;
 
     /**
      * Constructor with full parameter list
@@ -61,6 +63,7 @@ public class JobModel extends GenericBackendModel {
      * @param mailForNotificationAboutVerification The Mail For Notification About Verification
      * @param mailForNotificationAboutProcessing   The Mail For Notification About Processing
      * @param resultmailInitials                   The Resultmail Initials
+     * @param type                                 The type of job (TRANSIENT, PERSISTENT, TEST, ACCTEST)
      */
     public JobModel(String jobCreationTime,
                     String jobId,
@@ -85,7 +88,8 @@ public class JobModel extends GenericBackendModel {
                     String destination,
                     String mailForNotificationAboutVerification,
                     String mailForNotificationAboutProcessing,
-                    String resultmailInitials) {
+                    String resultmailInitials,
+                    Type type) {
         this.jobCreationTime = jobCreationTime;
         this.jobId = jobId;
         this.submitterNumber = submitterNumber;
@@ -110,13 +114,14 @@ public class JobModel extends GenericBackendModel {
         this.mailForNotificationAboutVerification = mailForNotificationAboutVerification;
         this.mailForNotificationAboutProcessing = mailForNotificationAboutProcessing;
         this.resultmailInitials = resultmailInitials;
+        this.type = type;
     }
 
     /**
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "");
+        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "", Type.TRANSIENT);
     }
 
 
@@ -535,4 +540,12 @@ public class JobModel extends GenericBackendModel {
         this.resultmailInitials = resultmailInitials;
     }
 
+    /**
+     * Gets the Type
+     *
+     * @return The type of job
+     */
+    public Type getType() {
+        return type;
+    }
 }

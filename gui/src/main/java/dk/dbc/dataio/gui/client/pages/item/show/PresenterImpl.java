@@ -31,6 +31,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected int allItemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
+    protected JobModel.Type type;
     protected ItemListCriteriaModel.ItemSearchType itemSearchType;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory) {
@@ -162,6 +163,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         allItemCounter = (int) jobModel.getItemCounter();
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
+        type = jobModel.getType();
         view.jobHeader.setText(constructJobHeaderText(jobModel));
         selectJobTabVisibility(jobModel);
         selectJobTab(jobModel);
@@ -368,10 +370,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             if (!itemModel.getDiagnosticModels().isEmpty()) {
                 setItemTabVisibility(listView, listView.ITEM_DIAGNOSTIC_TAB_CONTENT, true);
             }
+            if(type == JobModel.Type.ACCTEST) {
+                setItemTabVisibility(listView, listView.NEXT_OUTPUT_POST_TAB_CONTENT, true);
+            }
             setItemTabVisibility(listView, listView.JAVASCRIPT_LOG_TAB_CONTENT, true);
             setItemTabVisibility(listView, listView.INPUT_POST_TAB_CONTENT, true);
             setItemTabVisibility(listView, listView.OUTPUT_POST_TAB_CONTENT, true);
-            setItemTabVisibility(listView, listView.NEXT_OUTPUT_POST_TAB_CONTENT, true);
             setItemTabVisibility(listView, listView.SINK_RESULT_TAB_CONTENT, true);
         }
     }

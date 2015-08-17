@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;
@@ -56,7 +57,8 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getDestination(),
                 jobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification(),
                 jobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing(),
-                jobInfoSnapshot.getSpecification().getResultmailInitials());
+                jobInfoSnapshot.getSpecification().getResultmailInitials(),
+                getType(jobInfoSnapshot.getSpecification().getType()));
     }
 
     /**
@@ -218,6 +220,15 @@ public class JobModelMapper {
      */
     private static long getStateCount(StateElement element) {
         return element.getSucceeded() + element.getFailed() + element.getIgnored();
+    }
+
+    private static JobModel.Type getType(JobSpecification.Type type) {
+        switch (type) {
+            case TRANSIENT: return JobModel.Type.TRANSIENT;
+            case TEST: return JobModel.Type.TEST;
+            case ACCTEST: return JobModel.Type.ACCTEST;
+            default: return JobModel.Type.TRANSIENT;
+        }
     }
 
 }

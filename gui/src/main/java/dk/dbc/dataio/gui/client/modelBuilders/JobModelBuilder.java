@@ -34,6 +34,7 @@ public class JobModelBuilder {
     private String mailForNotificationAboutVerification = "-mailForNotificationAboutVerification-";
     private String mailForNotificationAboutProcessing = "-mailForNotificationAboutProcessing-";
     private String resultMailInitials = "-resultmailInitials-";
+    private JobModel.Type type = JobModel.Type.TRANSIENT;
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -155,6 +156,11 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setType(JobModel.Type type) {
+        this.type = type;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -180,6 +186,7 @@ public class JobModelBuilder {
                 destination,
                 mailForNotificationAboutVerification,
                 mailForNotificationAboutProcessing,
-                resultMailInitials);
+                resultMailInitials,
+                type);
     }
 }

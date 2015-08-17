@@ -27,6 +27,7 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel mailForNotificationAboutVerification;
     @UiField PromptedLabel mailForNotificationAboutProcessing;
     @UiField PromptedLabel resultMailInitials;
+    @UiField PromptedLabel type;
 
     /**
      * Ui Handler to catch click events on the Back button

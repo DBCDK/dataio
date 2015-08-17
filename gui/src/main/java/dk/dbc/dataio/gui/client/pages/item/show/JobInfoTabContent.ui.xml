@@ -14,6 +14,7 @@
         <li><comp:PromptedLabel ui:field="mailForNotificationAboutVerification" guiId="jobinfoMailForNotificationAboutVerificationPanel" prompt="{txt.prompt_MailForNotificationAboutVerification}" /></li>
         <li><comp:PromptedLabel ui:field="mailForNotificationAboutProcessing" guiId="jobinfoMailForNotificationAboutProcessingPanel" prompt="{txt.prompt_MailForNotificationAboutProcessing}" /></li>
         <li><comp:PromptedLabel ui:field="resultMailInitials" guiId="jobinfoResultMailInitialsPanel" prompt="{txt.prompt_ResultMailInitials}" /></li>
+        <li><comp:PromptedLabel ui:field="type" guiId="typePanel" prompt="{txt.prompt_Type}" /></li>
 
     </g:HTMLPanel>
 

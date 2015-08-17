@@ -282,6 +282,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.jobInfoTabContent.mailForNotificationAboutVerification.setText(jobModel.getMailForNotificationAboutVerification());
         view.jobInfoTabContent.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
         view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultmailInitials());
+        view.jobInfoTabContent.type.setText(jobModel.getType().name());
     }
 
 

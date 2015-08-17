@@ -14,6 +14,7 @@ import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
@@ -89,6 +90,7 @@ public class PresenterImplTest {
     @Mock PromptedLabel mockedMailForNotificationAboutVerification;
     @Mock PromptedLabel mockedMailForNotificationAboutProcessing;
     @Mock PromptedLabel mockedResultMailInitials;
+    @Mock PromptedLabel mockedType;
     @Mock TabBar mockedTabBar;
 
     private final static int OFFSET = 0;
@@ -149,6 +151,7 @@ public class PresenterImplTest {
         mockedView.jobInfoTabContent.mailForNotificationAboutVerification = mockedMailForNotificationAboutVerification;
         mockedView.jobInfoTabContent.mailForNotificationAboutProcessing = mockedMailForNotificationAboutProcessing;
         mockedView.jobInfoTabContent.resultMailInitials = mockedResultMailInitials;
+        mockedView.jobInfoTabContent.type = mockedType;
     }
 
     // Mocked Texts
@@ -262,6 +265,7 @@ public class PresenterImplTest {
             .setMailForNotificationAboutVerification("mailNotificationA")
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
+            .setType(JobModel.Type.TRANSIENT)
             .build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
@@ -285,6 +289,7 @@ public class PresenterImplTest {
             .setMailForNotificationAboutVerification("mailNotificationA")
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
+            .setType(JobModel.Type.TEST)
             .build();
 
     private JobModel testJobModelIgnored = new JobModelBuilder()
@@ -308,6 +313,7 @@ public class PresenterImplTest {
             .setMailForNotificationAboutVerification("mailNotificationA")
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
+            .setType(JobModel.Type.PERSISTENT)
             .build();
 
     private JobModel testJobModel2 = new JobModelBuilder()
@@ -333,6 +339,7 @@ public class PresenterImplTest {
             .setMailForNotificationAboutVerification("mailNotificationB")
             .setMailForNotificationAboutProcessing("mailProcessingB")
             .setResultMailInitials("resultMailInitialsB")
+            .setType(JobModel.Type.ACCTEST)
             .build();
 
     private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
@@ -762,6 +769,7 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedType).setText(JobSpecification.Type.TEST.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
@@ -775,6 +783,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
+        verifyNoMoreInteractions(mockedType);
     }
 
     @Test
@@ -796,6 +805,7 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedType).setText(JobModel.Type.PERSISTENT.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
@@ -809,6 +819,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
+        verifyNoMoreInteractions(mockedType);
     }
 
     @Test
@@ -830,6 +841,7 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedType).setText(JobModel.Type.TRANSIENT.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
@@ -843,6 +855,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
+        verifyNoMoreInteractions(mockedType);
     }
 
     @Test
@@ -864,6 +877,7 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationB");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingB");
         verify(mockedResultMailInitials).setText("resultMailInitialsB");
+        verify(mockedType).setText(JobModel.Type.ACCTEST.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
@@ -877,6 +891,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
+        verifyNoMoreInteractions(mockedType);
     }
 
     @Test
@@ -902,6 +917,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
+        verifyNoMoreInteractions(mockedType);
     }
 
     @Test
@@ -927,6 +943,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
+        verifyNoMoreInteractions(mockedType);
     }
 
 }

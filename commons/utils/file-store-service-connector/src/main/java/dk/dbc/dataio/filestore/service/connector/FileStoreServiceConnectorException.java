@@ -15,4 +15,8 @@ public class FileStoreServiceConnectorException extends Exception {
     public FileStoreServiceConnectorException(String message) {
         super(message);
     }
+
+    public FileStoreServiceConnectorException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

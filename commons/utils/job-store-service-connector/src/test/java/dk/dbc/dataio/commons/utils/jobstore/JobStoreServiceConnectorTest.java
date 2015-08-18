@@ -30,6 +30,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
@@ -111,6 +112,19 @@ public class JobStoreServiceConnectorTest {
             assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
             assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
             assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void addJob_onProcessingException_throws() {
+        final JobInputStream jobInputStream = getNewJobInputStream();
+        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION))
+                .thenThrow(new ProcessingException("Connection reset"));
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.addJob(jobInputStream);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
         }
     }
 

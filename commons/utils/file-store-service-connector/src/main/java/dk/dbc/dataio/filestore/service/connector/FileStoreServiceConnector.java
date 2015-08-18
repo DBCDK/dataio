@@ -118,18 +118,18 @@ public class FileStoreServiceConnector {
      * @param fileId ID of file
      * @throws NullPointerException if given null-valued fileId argument
      * @throws IllegalArgumentException if given empty-valued fileId argument
-     * @throws ProcessingException on general communication error
+     * @throws FileStoreServiceConnectorException on general communication error
      * @throws FileStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
     public void deleteFile(final String fileId) throws NullPointerException, IllegalArgumentException,
-                                                       ProcessingException, FileStoreServiceConnectorException {
+                                                       FileStoreServiceConnectorException {
         log.trace("FileStoreServiceConnector: deleteFile(\"{}\");", fileId);
         final StopWatch stopWatch = new StopWatch();
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
         final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
                 .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, fileId);
 
-        final Response response = HttpClient.doDelete(httpClient, baseUrl, path.build());
+        final Response response = doDelete(path);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
         } finally {
@@ -198,5 +198,13 @@ public class FileStoreServiceConnector {
             }
         }
         return null;
+    }
+
+    private Response doDelete(PathBuilder path) throws FileStoreServiceConnectorException {
+        try {
+            return HttpClient.doDelete(httpClient, baseUrl, path.build());
+        } catch (ProcessingException e) {
+            throw new FileStoreServiceConnectorException("file-store communication error", e);
+        }
     }
 }

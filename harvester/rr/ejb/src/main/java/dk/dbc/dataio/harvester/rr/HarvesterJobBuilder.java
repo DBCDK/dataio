@@ -19,6 +19,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -90,12 +91,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
         if (recordsAdded > 0) {
             final String fileId = uploadToFileStore();
             if (fileId != null) {
-                try {
-                    return createJobInJobStore(fileId);
-                } catch (HarvesterException e) {
-                    removeFromFileStore(fileId);
-                    throw e;
-                }
+                return createJobInJobStore(fileId);
             }
         }
         return null;
@@ -172,11 +168,20 @@ public class HarvesterJobBuilder implements AutoCloseable {
             LOGGER.info("Created job in job-store with ID {}", jobInfoSnapshot.getJobId());
             return jobInfoSnapshot;
         } catch (JobStoreServiceConnectorException e) {
+            boolean doRemoveFromFileStore = true;
             if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                JobStoreServiceConnectorUnexpectedStatusCodeException statusCodeException
+                        = (JobStoreServiceConnectorUnexpectedStatusCodeException) e;
+                final JobError jobError = statusCodeException.getJobError();
                 if (jobError != null) {
                     LOGGER.error("job-store returned error: {}", jobError.getDescription());
                 }
+                if (statusCodeException.getStatusCode() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+                    doRemoveFromFileStore = false;
+                }
+            }
+            if (doRemoveFromFileStore) {
+                removeFromFileStore(fileId);
             }
             throw new HarvesterException("Unable to create job in job-store", e);
         }

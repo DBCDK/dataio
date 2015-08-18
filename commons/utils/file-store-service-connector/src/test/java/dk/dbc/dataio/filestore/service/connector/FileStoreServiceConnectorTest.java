@@ -10,6 +10,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
@@ -195,6 +196,21 @@ public class FileStoreServiceConnectorTest {
             fileStoreServiceConnector.deleteFile("");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void deleteFile_onProcessingException_throws() throws FileStoreServiceConnectorException {
+        final PathBuilder path = new PathBuilder(FileStoreServiceConstants.FILE)
+                .bind(FileStoreServiceConstants.FILE_ID_VARIABLE, FILE_ID);
+        when(HttpClient.doDelete(CLIENT, FILE_STORE_URL, path.build()))
+                .thenThrow(new ProcessingException("Connection reset"));
+
+        final FileStoreServiceConnector fileStoreServiceConnector = newFileStoreServiceConnector();
+        try {
+            fileStoreServiceConnector.deleteFile(FILE_ID);
+            fail("No exception thrown");
+        } catch (FileStoreServiceConnectorException e) {
         }
     }
 

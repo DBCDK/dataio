@@ -57,15 +57,20 @@ public class JobStoreServiceConnector {
      * @param jobInputStream containing the job specification
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
      * @throws NullPointerException if given null-valued argument
-     * @throws ProcessingException on general communication error
-     * @throws JobStoreServiceConnectorException on general failure to create job
+     * @throws JobStoreServiceConnectorException on general communication failure
+     * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
-    public JobInfoSnapshot addJob(JobInputStream jobInputStream) throws NullPointerException, ProcessingException, JobStoreServiceConnectorException {
+    public JobInfoSnapshot addJob(JobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: addJob();");
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
-            final Response response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
+            final Response response;
+            try {
+                response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION);
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
             try {
                 verifyResponseStatus(response, Response.Status.CREATED);
                 return readResponseEntity(response, JobInfoSnapshot.class);

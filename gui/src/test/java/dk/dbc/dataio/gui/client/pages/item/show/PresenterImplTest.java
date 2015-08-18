@@ -100,10 +100,6 @@ public class PresenterImplTest {
     static final int IGNORED_ITEMS_TAB_INDEX = 2;
     static final int JOB_INFO_TAB_CONTENT = 3;
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
-    static final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
-    static final int OUTPUT_POST_TAB_CONTENT = 2;
-    static final int SINK_RESULT_TAB_CONTENT = 4;
-    static final int ITEM_DIAGNOSTIC_TAB_CONTENT = 5;
 
 
     // Setup mocked data
@@ -234,11 +230,10 @@ public class PresenterImplTest {
 
 
     // Test Data
-    private DiagnosticModel diagnosticModel = new DiagnosticModelBuilder().build();
-    private ItemModel testModel1 = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111").setJobId("1").setLifeCycle(ItemModel.LifeCycle.DELIVERING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
-    private ItemModel testModel2 = new ItemModelBuilder().setItemNumber("12").setItemId("ItemId2").setChunkId("ChunkId2").setJobId("JobId2").setLifeCycle(ItemModel.LifeCycle.DONE).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
-    private ItemModel testModel3 = new ItemModelBuilder().setItemNumber("13").setItemId("ItemId3").setChunkId("ChunkId3").setJobId("JobId3").setLifeCycle(ItemModel.LifeCycle.PARTITIONING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
-    private ItemModel testModel4 = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(diagnosticModel)).build();
+    private ItemModel testModel1 = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111").setJobId("1").setLifeCycle(ItemModel.LifeCycle.DELIVERING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+    private ItemModel testModel2 = new ItemModelBuilder().setItemNumber("12").setItemId("ItemId2").setChunkId("ChunkId2").setJobId("JobId2").setLifeCycle(ItemModel.LifeCycle.DONE).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+    private ItemModel testModel3 = new ItemModelBuilder().setItemNumber("13").setItemId("ItemId3").setChunkId("ChunkId3").setJobId("JobId3").setLifeCycle(ItemModel.LifeCycle.PARTITIONING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
+    private ItemModel testModel4 = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
     private ItemModel testModel5 = new ItemModelBuilder().setHasDiagnosticFatal(true).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
     private ItemModel testModel6 = new ItemModelBuilder().setDiagnosticModels(new ArrayList<DiagnosticModel>()).build();
 
@@ -392,6 +387,7 @@ public class PresenterImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void allItemsTabSelected_callAllItemsTabSelected_allItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
@@ -425,6 +421,7 @@ public class PresenterImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void failedItemsTabSelected_callFailedItemsTabSelected_failedItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
@@ -459,6 +456,7 @@ public class PresenterImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void ignoredItemsTabSelected_callIgnoredItemsTabSelected_ignoredItemsRequested() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
@@ -497,6 +495,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
+        presenterImpl.type = JobModel.Type.PERSISTENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel1);
@@ -504,13 +503,22 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
-        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(JAVASCRIPT_LOG_TAB_CONTENT);
+        verify(mockedText).tab_PartitioningPost();
+        verify(mockedText).tab_ProcessingPost();
+        verify(mockedText).tab_DeliveringPost();
+        verify(mockedText).tab_ItemDiagnostic();
+
+        verify(mockedText, times(0)).tab_NextOutputPost();
+
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));    // index 0
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));                 // index 1
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));                // index 2
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));                // index 3
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC)); // index 4
+
+        verify(mockedAllDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+
+        verify(mockedAllDetailedTabs).selectTab(0);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -520,20 +528,31 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel5);
 
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
-        verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
-        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(ITEM_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedText).tab_ItemDiagnostic();
+
+        verify(mockedText, times(0)).tab_JavascriptLog();
+        verify(mockedText, times(0)).tab_PartitioningPost();
+        verify(mockedText, times(0)).tab_ProcessingPost();
+        verify(mockedText, times(0)).tab_NextOutputPost();
+        verify(mockedText, times(0)).tab_DeliveringPost();
+
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));  // index 0
+
+        verify(mockedAllDetailedTabs, times(0)).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
+        verify(mockedAllDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
+        verify(mockedAllDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
+        verify(mockedAllDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
+        verify(mockedAllDetailedTabs, times(0)).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+
+
+        verify(mockedAllDetailedTabs).selectTab(0);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -543,6 +562,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.type = JobModel.Type.TRANSIENT;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel6);
@@ -550,13 +570,22 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
+        verify(mockedText).tab_PartitioningPost();
+        verify(mockedText).tab_ProcessingPost();
+        verify(mockedText).tab_DeliveringPost();
+
+        verify(mockedText, times(0)).tab_NextOutputPost();
+        verify(mockedText, times(0)).tab_ItemDiagnostic();
+
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));    // index 0
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));                 // index 1
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));                // index 2
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));                // index 3
+
+        verify(mockedAllDetailedTabs, times(0)).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
         verify(mockedAllDetailedTabs, times(0)).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(JAVASCRIPT_LOG_TAB_CONTENT);
+
+        verify(mockedAllDetailedTabs).selectTab(0);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -566,6 +595,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.type = JobModel.Type.ACCTEST;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel1);
@@ -573,13 +603,19 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
-        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(SINK_RESULT_TAB_CONTENT);
+        verify(mockedText).tab_PartitioningPost();
+        verify(mockedText).tab_ProcessingPost();
+        verify(mockedText).tab_DeliveringPost();
+        verify(mockedText).tab_NextOutputPost();
+        verify(mockedText).tab_ItemDiagnostic();
+
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));    // index 0
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));                 // index 1
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));                // index 2
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));           // index 3
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));                // index 4
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC)); // index 5
+        verify(mockedAllDetailedTabs).selectTab(4);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -589,6 +625,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.type = JobModel.Type.ACCTEST;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel4);
@@ -596,13 +633,19 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
-        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
+        verify(mockedText).tab_PartitioningPost();
+        verify(mockedText).tab_ProcessingPost();
+        verify(mockedText).tab_DeliveringPost();
+        verify(mockedText).tab_NextOutputPost();
+        verify(mockedText).tab_ItemDiagnostic();
+
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));    // index 0
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));                 // index 1
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));                // index 2
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));           // index 3
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));                // index 4
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC)); // index 5
+        verify(mockedAllDetailedTabs).selectTab(2);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -612,6 +655,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.type = JobModel.Type.ACCTEST;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel4);
@@ -619,13 +663,19 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
-        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
+        verify(mockedText).tab_PartitioningPost();
+        verify(mockedText).tab_ProcessingPost();
+        verify(mockedText).tab_DeliveringPost();
+        verify(mockedText).tab_NextOutputPost();
+        verify(mockedText).tab_ItemDiagnostic();
+
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));    // index 0
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));                 // index 1
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));                // index 2
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));           // index 3
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));                // index 4
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC)); // index 5
+        verify(mockedAllDetailedTabs).selectTab(2);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -635,6 +685,7 @@ public class PresenterImplTest {
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.type = JobModel.Type.ACCTEST;
 
         // Subject under test
         presenterImpl.itemSelected(mockedAllItemsListView, testModel1);
@@ -642,13 +693,19 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedAllDetailedTabs).clear();
         verify(mockedText).tab_JavascriptLog();
-        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));
-        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));
-        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC));
-        verify(mockedAllDetailedTabs).selectTab(OUTPUT_POST_TAB_CONTENT);
+        verify(mockedText).tab_PartitioningPost();
+        verify(mockedText).tab_ProcessingPost();
+        verify(mockedText).tab_DeliveringPost();
+        verify(mockedText).tab_NextOutputPost();
+        verify(mockedText).tab_ItemDiagnostic();
+
+        verify(mockedAllDetailedTabs).add(any(JavascriptLogTabContent.class), eq(MOCKED_TAB_JAVASCRIPTLOG));    // index 0
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_INPUTPOST));                 // index 1
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_OUTPUTPOST));                // index 2
+        verify(mockedAllDetailedTabs).add(any(NextTabContent.class), eq(MOCKED_TAB_NEXT_OUTPUTPOST));           // index 3
+        verify(mockedAllDetailedTabs).add(any(ItemTabContent.class), eq(MOCKED_TAB_SINKRESULT));                // index 4
+        verify(mockedAllDetailedTabs).add(any(ItemDiagnosticTabContent.class), eq(MOCKED_TAB_ITEM_DIAGNOSTIC)); // index 5
+        verify(mockedAllDetailedTabs).selectTab(2);
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
@@ -666,6 +723,7 @@ public class PresenterImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void fetchAllJobs_callbackWithSuccess_allJobsAreFetched() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
         presenterImpl.jobId = "1234";
@@ -690,6 +748,7 @@ public class PresenterImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void fetchFailedJobs_callbackWithSuccess_failedJobsAreFetched() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedFailedItemsListView);
         presenterImpl.jobId = "1234";
@@ -714,6 +773,7 @@ public class PresenterImplTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void fetchIgnoredJobs_callbackWithSuccess_ignoredJobsAreFetched() {
         PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedIgnoredItemsListView);
         presenterImpl.jobId = "1234";

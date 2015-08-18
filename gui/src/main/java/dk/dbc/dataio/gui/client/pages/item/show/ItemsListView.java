@@ -19,12 +19,12 @@ import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 public class ItemsListView extends Composite {
     protected static final int PAGE_SIZE = 20;
     protected static final int FAST_FORWARD_PAGES = 5;
-    final int ITEM_DIAGNOSTIC_TAB_CONTENT = 5;
-    final int JAVASCRIPT_LOG_TAB_CONTENT = 0;
-    final int INPUT_POST_TAB_CONTENT = 1;
-    final int OUTPUT_POST_TAB_CONTENT = 2;
-    final int NEXT_OUTPUT_POST_TAB_CONTENT = 3;
-    final int SINK_RESULT_TAB_CONTENT = 4;
+    protected static final String JAVASCRIPT_LOG_TAB_CONTENT = "JAVASCRIPT_LOG_TAB_CONTENT" ;
+    protected static final String INPUT_POST_TAB_CONTENT = "INPUT_POST_TAB_CONTENT";
+    protected static final String OUTPUT_POST_TAB_CONTENT = "OUTPUT_POST_TAB_CONTENT";
+    protected static final String NEXT_OUTPUT_POST_TAB_CONTENT = "NEXT_OUTPUT_POST_TAB_CONTENT";
+    protected static final String SINK_RESULT_TAB_CONTENT = "SINK_RESULT_TAB_CONTENT";
+    protected static final String ITEM_DIAGNOSTIC_TAB_CONTENT = "ITEM_DIAGNOSTIC_TAB_CONTENT";
 
     interface ItemsListUiBinder extends UiBinder<HTMLPanel, ItemsListView> {
     }

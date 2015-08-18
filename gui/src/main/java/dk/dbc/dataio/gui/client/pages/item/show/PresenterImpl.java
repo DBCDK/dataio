@@ -16,10 +16,13 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
     protected static final int PAGE_SIZE = 20;
+    private final Map<String, Integer> tabIndexes = new HashMap<String, Integer>(0);
 
     protected ClientFactory clientFactory;
     protected Texts texts;
@@ -100,9 +103,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void itemSelected(ItemsListView listView, ItemModel itemModel) {
         listView.detailedTabs.clear();
+        populateItemTabIndexes(itemModel);
         addItemTabs(listView, itemModel);
-        hideItemTabs(listView);
-        selectItemTabsVisibility(listView, itemModel);
         selectItemTab(listView, itemModel);
     }
 
@@ -295,8 +297,39 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /*
-     * ============ > Methods used for displaying item data and showing/hiding/selecting item tabs < ============
+     * =================== > Methods used for displaying item data and selecting item tabs < ===================
      */
+
+    /**
+     * This method deciphers which tab indexes should be available.
+     * If a fatal diagnostic exists, we are only interested in viewing the item diagnostic tab.
+     * If the job type is not ACCTEST, we are not interesting i viewing the next output post tab.
+     * The tab index assigned will therefore vary depending on the item data input.
+     *
+     * @param itemModel The model containing the item data
+     */
+    private void populateItemTabIndexes(ItemModel itemModel) {
+        tabIndexes.clear();
+        if(itemModel.isDiagnosticFatal()) {
+            tabIndexes.put(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT, 0);
+        } else {
+            tabIndexes.put(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT, 0);
+            tabIndexes.put(ItemsListView.INPUT_POST_TAB_CONTENT, 1);
+            tabIndexes.put(ItemsListView.OUTPUT_POST_TAB_CONTENT, 2);
+            if(type.equals(JobModel.Type.ACCTEST)) {
+                tabIndexes.put(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT, 3);
+                tabIndexes.put(ItemsListView.SINK_RESULT_TAB_CONTENT, 4);
+                if(!itemModel.getDiagnosticModels().isEmpty()) {
+                    tabIndexes.put(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT, 5);
+                }
+            } else {
+                tabIndexes.put(ItemsListView.SINK_RESULT_TAB_CONTENT, 3);
+                if(!itemModel.getDiagnosticModels().isEmpty()) {
+                    tabIndexes.put(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT, 4);
+                }
+            }
+        }
+    }
 
     /**
      * This method adds item tabs to the list view.
@@ -304,30 +337,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param itemModel The model containing the item data
      */
     private void addItemTabs(ItemsListView listView, ItemModel itemModel) {
-        listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
-        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
-        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
-        listView.detailedTabs.add(new NextTabContent(texts, jobStoreProxy, itemModel), texts.tab_NextOutputPost());
-        listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
-        if (!itemModel.getDiagnosticModels().isEmpty()) {
+        if(tabIndexes.containsKey(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT)) {
+            listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
+        }
+        if(tabIndexes.containsKey(ItemsListView.INPUT_POST_TAB_CONTENT)) {
+            listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
+        }
+        if(tabIndexes.containsKey(ItemsListView.OUTPUT_POST_TAB_CONTENT)) {
+            listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
+        }
+        if(tabIndexes.containsKey(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT)) {
+            listView.detailedTabs.add(new NextTabContent(texts, jobStoreProxy, itemModel), texts.tab_NextOutputPost());
+        }
+        if(tabIndexes.containsKey(ItemsListView.SINK_RESULT_TAB_CONTENT)) {
+            listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
+        }
+        if(tabIndexes.containsKey(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT)) {
             setDiagnosticModels(listView, itemModel);
             listView.detailedTabs.add(listView.itemDiagnosticTabContent.itemDiagnosticTable, texts.tab_ItemDiagnostic());
         }
     }
-
-    /**
-     * Hides item tabs
-     * @param listView The list view in question
-     */
-    private void hideItemTabs(ItemsListView listView) {
-        setItemTabVisibility(listView, listView.ITEM_DIAGNOSTIC_TAB_CONTENT, false);
-        setItemTabVisibility(listView, listView.JAVASCRIPT_LOG_TAB_CONTENT, false);
-        setItemTabVisibility(listView, listView.INPUT_POST_TAB_CONTENT, false);
-        setItemTabVisibility(listView, listView.OUTPUT_POST_TAB_CONTENT, false);
-        setItemTabVisibility(listView, listView.NEXT_OUTPUT_POST_TAB_CONTENT, false);
-        setItemTabVisibility(listView, listView.SINK_RESULT_TAB_CONTENT, false);
-    }
-
 
     /**
      * This method decides which detailed tab should be default selected
@@ -335,69 +364,27 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param itemModel The model containing the item data
      */
     private void selectItemTab(ItemsListView listView, ItemModel itemModel) {
-
         ItemModel.LifeCycle status = itemModel.getStatus();
         if(itemModel.isDiagnosticFatal()) {
-            listView.detailedTabs.selectTab(listView.ITEM_DIAGNOSTIC_TAB_CONTENT);
+            listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT));
         } else {
 
             // Item failed in delivering: Show sink result
             if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.DELIVERING) {
-                listView.detailedTabs.selectTab(listView.SINK_RESULT_TAB_CONTENT);
+                listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
             }
             // Item failed in processing: Show output post
             else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.PROCESSING) {
-                listView.detailedTabs.selectTab(listView.OUTPUT_POST_TAB_CONTENT);
+                listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
             }
             // Item ignored in processing or delivering: Show output post
             else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.IGNORED && (status == ItemModel.LifeCycle.PROCESSING || status == ItemModel.LifeCycle.DELIVERING)) {
-                listView.detailedTabs.selectTab(listView.OUTPUT_POST_TAB_CONTENT);
+                listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
             } else {
-                listView.detailedTabs.selectTab(listView.JAVASCRIPT_LOG_TAB_CONTENT);
+                listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT));
             }
         }
         listView.detailedTabs.setVisible(true);
-    }
-
-    /**
-     * Deciphers which tabs should be visible.
-     * @param listView The list view in question
-     * @param itemModel The model containing the item data
-     */
-    private void selectItemTabsVisibility(ItemsListView listView, ItemModel itemModel) {
-        if (itemModel.isDiagnosticFatal()) {
-            setItemTabVisibility(listView, listView.ITEM_DIAGNOSTIC_TAB_CONTENT, true);
-        } else {
-            if (!itemModel.getDiagnosticModels().isEmpty()) {
-                setItemTabVisibility(listView, listView.ITEM_DIAGNOSTIC_TAB_CONTENT, true);
-            }
-            if(type == JobModel.Type.ACCTEST) {
-                setItemTabVisibility(listView, listView.NEXT_OUTPUT_POST_TAB_CONTENT, true);
-            }
-            setItemTabVisibility(listView, listView.JAVASCRIPT_LOG_TAB_CONTENT, true);
-            setItemTabVisibility(listView, listView.INPUT_POST_TAB_CONTENT, true);
-            setItemTabVisibility(listView, listView.OUTPUT_POST_TAB_CONTENT, true);
-            setItemTabVisibility(listView, listView.SINK_RESULT_TAB_CONTENT, true);
-        }
-    }
-
-    /**
-     * Hide or Show the Tab. Can't call setVisible directly on Tab because it
-     * is an interface. Need to cast to the underlying Composite and then
-     * call setVisible on it.
-     *
-     * @param listView the list view in question
-     * @param tabIndex the index as defined in the ItemsListView constants
-     * @param showTab whether to show or hide the tab.
-     */
-    private void setItemTabVisibility(ItemsListView listView, int tabIndex, boolean showTab) {
-        TabBar.Tab tabObject = listView.detailedTabs.getTabBar().getTab(tabIndex);
-        if (tabObject == null) {
-            return;
-        }
-        if (tabObject instanceof Composite) {
-            ((Composite) tabObject).setVisible(showTab);
-        }
     }
 
     /**

@@ -82,7 +82,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         diff = getXmlDiff(item.current.getData(), item.next.getData());
                     }
                     if (diff.isEmpty()) {
-                        deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.SUCCESS));
+                        deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes("Current and Next output were identical", processedChunk.getEncoding()), ChunkItem.Status.SUCCESS));
                     } else {
                         deliveredChunk.insertItem(new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, processedChunk.getEncoding()), ChunkItem.Status.FAILURE));
                     }

@@ -166,15 +166,7 @@ public class JobModelMapper {
      * @return number of ignored items.
      */
     private static int getIgnored(State state) {
-        int ignored;
-        if(state.getPhase(State.Phase.DELIVERING).getIgnored() != 0) {
-            ignored = state.getPhase(State.Phase.DELIVERING).getIgnored();
-        } else if(state.getPhase(State.Phase.PROCESSING).getIgnored() != 0) {
-            ignored = state.getPhase(State.Phase.PROCESSING).getIgnored();
-        } else {
-            ignored = state.getPhase(State.Phase.PARTITIONING).getIgnored();
-        }
-        return ignored;
+        return state.getPhase(State.Phase.PROCESSING).getIgnored();
     }
 
     /**

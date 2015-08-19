@@ -1,11 +1,25 @@
 package dk.dbc.dataio.jobstore;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
+import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.After;
@@ -13,6 +27,14 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 import javax.ws.rs.client.Client;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public abstract class AbstractJobStoreTest {
     protected static FileStoreServiceConnector fileStoreServiceConnector;
@@ -42,5 +64,52 @@ public abstract class AbstractJobStoreTest {
     @After
     public void clearFlowStore() {
         ITUtil.clearFlowStore();
+    }
+
+
+    protected String createMarcxchangeHarvesterDataFile(File datafile, int numberOfRecords) {
+        try (final OutputStream os = new FileOutputStream(datafile)) {
+            try (final HarvesterXmlDataFile harvesterXmlDataFile = new HarvesterXmlDataFile(StandardCharsets.UTF_8, os)) {
+                while (numberOfRecords-- > 0) {
+                    final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
+                    marcExchangeCollection.addMember(
+                            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\"/>".getBytes(StandardCharsets.UTF_8)
+                    );
+                    harvesterXmlDataFile.addRecord(marcExchangeCollection);
+                }
+            }
+            try (final InputStream is = new FileInputStream(datafile)) {
+                return fileStoreServiceConnector.addFile(is);
+            }
+        } catch (IOException | HarvesterException | FileStoreServiceConnectorException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    protected void createFlowStoreEnvironmentMatchingJobSpecification(JobSpecification jobSpecification) {
+        try {
+            final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+            final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
+                    .setName(jobSpecification.getDestination())
+                    .build());
+            final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
+                    .setNumber(jobSpecification.getSubmitterId())
+                    .build());
+            flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
+                    .setPackaging(jobSpecification.getPackaging())
+                    .setFormat(jobSpecification.getFormat())
+                    .setCharset(jobSpecification.getCharset())
+                    .setDestination(jobSpecification.getDestination())
+                    .setSubmitterIds(Arrays.asList(submitter.getId()))
+                    .setFlowId(flow.getId())
+                    .setSinkId(sink.getId())
+                    .build());
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    protected JobInputStream getJobInputStream(JobSpecification jobSpecification) {
+        return new JobInputStream(jobSpecification, true, 0);
     }
 }

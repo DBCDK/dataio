@@ -1,43 +1,29 @@
 package dk.dbc.dataio.jobstore;
 
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
-import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
-import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class AddJobIT extends AbstractJobStoreTest {
+
+    private static final long SLEEP_INTERVAL_IN_MS = 1000;
+    private static final long MAX_WAIT_IN_MS = 10000;
+
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
 
@@ -70,61 +56,53 @@ public class AddJobIT extends AbstractJobStoreTest {
 
         final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));
 
-        // Then...
+        final JobInfoSnapshot jobInfoSnapshotAfterWait = this.waitForJobCompletion(jobInfoSnapshot.getJobId());
 
-        final State jobState = jobInfoSnapshot.getState();
+        // Then...
+        final State jobState = jobInfoSnapshotAfterWait.getState();
         assertThat("Partitioning phase complete", jobState.phaseIsDone(State.Phase.PARTITIONING), is(true));
         assertThat("Partitioning phase failures", jobState.getPhase(State.Phase.PARTITIONING).getFailed(), is(0));
 
         // And...
-
-        assertThat("Number of items", jobInfoSnapshot.getNumberOfItems(), is(recordCount));
-        assertThat("Number of chunks", jobInfoSnapshot.getNumberOfChunks(), is(2));
+        assertThat("Number of items", jobInfoSnapshotAfterWait.getNumberOfItems(), is(recordCount));
+        assertThat("Number of chunks", jobInfoSnapshotAfterWait.getNumberOfChunks(), is(2));
     }
 
-    public static String createMarcxchangeHarvesterDataFile(File datafile, int numberOfRecords) {
-        try (final OutputStream os = new FileOutputStream(datafile)) {
-            try (final HarvesterXmlDataFile harvesterXmlDataFile = new HarvesterXmlDataFile(StandardCharsets.UTF_8, os)) {
-                while (numberOfRecords-- > 0) {
-                    final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection();
-                    marcExchangeCollection.addMember(
-                            "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\"/>".getBytes(StandardCharsets.UTF_8)
-                    );
-                    harvesterXmlDataFile.addRecord(marcExchangeCollection);
+    private JobInfoSnapshot waitForJobCompletion(long jobId) throws JobStoreServiceConnectorException {
+        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+        JobInfoSnapshot jobInfoSnapshot = null;
+        // Wait for Job-completion
+        long remainingWaitInMs = MAX_WAIT_IN_MS;
+
+        System.out.println("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - waiting in MAX milliseconds: " + MAX_WAIT_IN_MS);
+        System.out.println("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
+
+
+        while ( remainingWaitInMs > 0 ) {
+            System.out.println("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
+
+            jobInfoSnapshot = jobStoreServiceConnector.listJobs(criteria).get(0);
+            if (phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
+                break;
+            } else {
+                try {
+                    Thread.sleep(SLEEP_INTERVAL_IN_MS);
+                    remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;
+                } catch (InterruptedException ex) {
+                    break;
                 }
             }
-            try (final InputStream is = new FileInputStream(datafile)) {
-                return fileStoreServiceConnector.addFile(is);
-            }
-        } catch (IOException | HarvesterException | FileStoreServiceConnectorException e) {
-            throw new IllegalStateException(e);
         }
+        if (!phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
+            throw new IllegalStateException(String.format("Job %d did not complete successfully in time",
+                    jobInfoSnapshot.getJobId()));
+        }
+
+        return jobInfoSnapshot;
     }
 
-    public static void createFlowStoreEnvironmentMatchingJobSpecification(JobSpecification jobSpecification) {
-        try {
-            final Flow flow = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
-            final Sink sink = flowStoreServiceConnector.createSink(new SinkContentBuilder()
-                    .setName(jobSpecification.getDestination())
-                    .build());
-            final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder()
-                    .setNumber(jobSpecification.getSubmitterId())
-                    .build());
-            flowStoreServiceConnector.createFlowBinder(new FlowBinderContentBuilder()
-                    .setPackaging(jobSpecification.getPackaging())
-                    .setFormat(jobSpecification.getFormat())
-                    .setCharset(jobSpecification.getCharset())
-                    .setDestination(jobSpecification.getDestination())
-                    .setSubmitterIds(Arrays.asList(submitter.getId()))
-                    .setFlowId(flow.getId())
-                    .setSinkId(sink.getId())
-                    .build());
-        } catch (FlowStoreServiceConnectorException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    public static JobInputStream getJobInputStream(JobSpecification jobSpecification) {
-        return new JobInputStream(jobSpecification, true, 0);
+    private boolean phasePartitioningDoneSuccessfully(JobInfoSnapshot jobInfoSnapshot) {
+        final State state = jobInfoSnapshot.getState();
+        return state.phaseIsDone(State.Phase.PARTITIONING);
     }
 }

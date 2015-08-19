@@ -618,7 +618,7 @@ public class PgJobStoreIT {
      * And  : the returned JobInfoSnapshot holds the expected values
      */
     @Test
-    public void addJobWarningDiagnosticLocated() throws JobStoreException, SQLException {
+    public void addJobWarningDiagnosticLocated() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -626,6 +626,7 @@ public class PgJobStoreIT {
         final int expectedNumberOfItems = 11;
 
         // When...
+        setupExpectationOnGetByteSize();
         JobInfoSnapshot jobInfoSnapshot = addJobWithDiagnostic(pgJobStore, Diagnostic.Level.WARNING);
 
         // Then...
@@ -659,7 +660,7 @@ public class PgJobStoreIT {
      * And  : no diagnostics were created while adding job
      */
     @Test
-    public void addJob() throws JobStoreException, SQLException {
+    public void addJob() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -667,6 +668,7 @@ public class PgJobStoreIT {
         final int expectedNumberOfItems = 11;
 
         // When...
+        setupExpectationOnGetByteSize();
         JobInfoSnapshot jobInfoSnapshot = addJobs(expectedNumberOfJobs, pgJobStore).get(0);
 
         // Then...
@@ -691,12 +693,13 @@ public class PgJobStoreIT {
      * And  : the referenced entities are updated
      */
     @Test
-    public void addChunk() throws JobStoreException, SQLException {
+    public void addChunk() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
         final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
@@ -747,12 +750,13 @@ public class PgJobStoreIT {
      * And  : the referenced entities are updated
      */
     @Test
-    public void addChunkWithNextData() throws JobStoreException, SQLException {
+    public void addChunkWithNextData() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
         final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
@@ -819,11 +823,12 @@ public class PgJobStoreIT {
      * And  : job, chunk and item entities have not been updated after the second add.
      */
     @Test
-    public void addChunkMultipleTimesMultipleItems() throws JobStoreException {
+    public void addChunkMultipleTimesMultipleItems() throws JobStoreException, FileStoreServiceConnectorException {
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.
         final int numberOfItems = 10;
 
+        setupExpectationOnGetByteSize();
         JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunk(
@@ -882,9 +887,10 @@ public class PgJobStoreIT {
      * Then : only the filtered snapshots are returned
      */
     @Test
-    public void listJobs() throws JobStoreException {
+    public void listJobs() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
+        setupExpectationOnGetByteSize();
         final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
         final List<JobInfoSnapshot> expectedSnapshots = snapshots.subList(1, snapshots.size() - 1);
 
@@ -915,7 +921,7 @@ public class PgJobStoreIT {
      * Then     : one filtered snapshot is returned
      */
     @Test
-    public void listDeliveringFailedJobs() throws JobStoreException {
+    public void listDeliveringFailedJobs() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;
@@ -924,6 +930,7 @@ public class PgJobStoreIT {
         final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
         final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
 
+        setupExpectationOnGetByteSize();
         final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -957,7 +964,7 @@ public class PgJobStoreIT {
      * Then     : no snapshots are returned.
      */
     @Test
-    public void listProcessingFailedJobs() throws JobStoreException {
+    public void listProcessingFailedJobs() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;
@@ -966,6 +973,7 @@ public class PgJobStoreIT {
         final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
         final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
 
+        setupExpectationOnGetByteSize();
         final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -998,7 +1006,7 @@ public class PgJobStoreIT {
      * Then : only one filtered snapshot is returned
      */
     @Test
-    public void listJobsForSpecificSink() throws JobStoreException {
+    public void listJobsForSpecificSink() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int numberOfJobs = 3;
@@ -1012,6 +1020,7 @@ public class PgJobStoreIT {
                     .setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build());
 
             final EntityTransaction jobTransaction = entityManager.getTransaction();
+            setupExpectationOnGetByteSize();
             jobTransaction.begin();
             snapshots.add(pgJobStore.addJob(mockedAddJobParam));
             jobTransaction.commit();
@@ -1041,12 +1050,13 @@ public class PgJobStoreIT {
      * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listFailedItemsForJob() throws JobStoreException {
+    public void listFailedItemsForJob() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1075,13 +1085,14 @@ public class PgJobStoreIT {
      * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listIgnoredItemsForJob() throws JobStoreException {
+    public void listIgnoredItemsForJob() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
         final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1110,13 +1121,14 @@ public class PgJobStoreIT {
      * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listAllItemsForJob() throws JobStoreException {
+    public void listAllItemsForJob() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
         final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1151,13 +1163,14 @@ public class PgJobStoreIT {
      * Then    : the expected filtered chunk collision detection elements are returned, sorted by creation time ASC
      */
     @Test
-    public void listChunksCollisionDetectionElements() throws JobStoreException {
+    public void listChunksCollisionDetectionElements() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
         final PgJobStore pgJobStore = newPgJobStore();
         for(int i = 0; i < 4; i++) {
             final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
             final EntityTransaction transaction = entityManager.getTransaction();
+            setupExpectationOnGetByteSize();
             transaction.begin();
             pgJobStore.addJob(mockedAddJobParam);
             transaction.commit();
@@ -1196,17 +1209,18 @@ public class PgJobStoreIT {
      * Then : the resource bundle contains the correct flow, sink and supplementary process data
      */
     @Test
-    public void getResourceBundle() throws JobStoreException {
+    public void getResourceBundle() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
+
+        setupExpectationOnGetByteSize();
         jobTransaction.begin();
-
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
-
         jobTransaction.commit();
+
         assertThat(jobInfoSnapshot, not(nullValue()));
 
         // When...
@@ -1230,11 +1244,13 @@ public class PgJobStoreIT {
      * Then : a chunks can be retrieved
      */
     @Test
-    public void getChunk() throws JobStoreException {
+    public void getChunk() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         final EntityTransaction transaction = entityManager.getTransaction();
+
+        setupExpectationOnGetByteSize();
         transaction.begin();
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
         transaction.commit();
@@ -1255,11 +1271,13 @@ public class PgJobStoreIT {
      * Then : the item data is returned and contains the the correct data.
      */
     @Test
-    public void getItemDataPartitioned() throws JobStoreException {
+    public void getItemDataPartitioned() throws JobStoreException, FileStoreServiceConnectorException {
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short itemId = 3;
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
+
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshot, not(nullValue()));
@@ -1292,7 +1310,7 @@ public class PgJobStoreIT {
      * Then : the item data returned contains the the correct data.
      */
     @Test
-    public void getItemDataProcessed() throws JobStoreException {
+    public void getItemDataProcessed() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
@@ -1300,6 +1318,7 @@ public class PgJobStoreIT {
         final short successfulItemId = 0;
         final PgJobStore pgJobStore = newPgJobStore();
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1356,7 +1375,7 @@ public class PgJobStoreIT {
      * Then : the item data returned contains the the correct data.
      */
     @Test
-    public void getItemDataDelivered() throws JobStoreException {
+    public void getItemDataDelivered() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
@@ -1364,6 +1383,7 @@ public class PgJobStoreIT {
         final short successfulItemId = 0;
         final PgJobStore pgJobStore = newPgJobStore();
 
+        setupExpectationOnGetByteSize();
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk processedChunk = buildExternalChunk(jobInfoSnapshot.getJobId(), chunkId, 10, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
@@ -1415,10 +1435,13 @@ public class PgJobStoreIT {
      * Then : the next processing outcome returned contains the the correct data.
      */
     @Test
-    public void getNextProcessingOutcome() throws JobStoreException {
+    public void getNextProcessingOutcome() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.
         final PgJobStore pgJobStore = newPgJobStore();
+
+        setupExpectationOnGetByteSize();
+
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkWithNextItems(jobInfoSnapshot.getJobId(), chunkId, 1, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
@@ -1438,6 +1461,10 @@ public class PgJobStoreIT {
         assertThat("chunkItem.data", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(successfulItemEntity.getNextProcessingOutcome().getData())));
     }
 
+    private void setupExpectationOnGetByteSize() throws FileStoreServiceConnectorException {
+        Long byteSizeOfMockedData = (long) MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length;
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(byteSizeOfMockedData);
+    }
 
     private PgJobStore newPgJobStore() {
         final PgJobStore pgJobStore = new PgJobStore();
@@ -1463,7 +1490,9 @@ public class PgJobStoreIT {
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
-            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new MockedAddJobParam());
+
+            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, mockedAddJobParam);
             snapshots.add(jobInfoSnapshot);
         }
         return snapshots;
@@ -1690,10 +1719,9 @@ public class PgJobStoreIT {
         }
 
         public MockedAddJobParam(String utf8Data) {
-            this(new JobInputStream(new JobSpecificationBuilder()
-                    .setDataFile(FILE_STORE_URN.toString())
-                    .setCharset(StandardCharsets.UTF_8.name())
-                    .build(), true, 0), utf8Data);
+            this(new JobInputStream(
+                    new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).setCharset(StandardCharsets.UTF_8.name()).build(), true, 0
+            ), utf8Data);
         }
 
         public MockedAddJobParam() {

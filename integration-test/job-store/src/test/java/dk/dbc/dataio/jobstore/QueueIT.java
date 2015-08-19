@@ -55,7 +55,7 @@ public class QueueIT extends AbstractJobStoreTest {
     public void addChunk_jobStateUpdatedAndWorkloadPublished()
             throws IOException, JobStoreServiceConnectorException, JSONBException, JMSException, URISyntaxException {
         final int expectedNumberOfRecords = 11;
-        final String fileId = AddJobIT.createMarcxchangeHarvesterDataFile(tmpFolder.newFile(), expectedNumberOfRecords);
+        final String fileId = createMarcxchangeHarvesterDataFile(tmpFolder.newFile(), expectedNumberOfRecords);
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                     .setPackaging("xml")
                     .setFormat("basis")
@@ -64,9 +64,9 @@ public class QueueIT extends AbstractJobStoreTest {
                     .setSubmitterId(870970)
                     .setDataFile(FileStoreUrn.create(fileId).toString())
                     .build();
-        AddJobIT.createFlowStoreEnvironmentMatchingJobSpecification(jobSpecification);
+        createFlowStoreEnvironmentMatchingJobSpecification(jobSpecification);
 
-        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(AddJobIT.getJobInputStream(jobSpecification));
+        JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));
 
         // Swallow 1st Chunk message
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);

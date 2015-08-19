@@ -41,7 +41,7 @@ import java.util.List;
  * given a null value.
  * </p>
  */
-public class AddJobParam implements AutoCloseable {
+public class AddJobParam {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddJobParam.class);
 
     protected final FlowStoreServiceConnector flowStoreServiceConnector;
@@ -119,8 +119,7 @@ public class AddJobParam implements AutoCloseable {
         return dataPartitioner;
     }
 
-    @Override
-    public void close() throws JobStoreException {
+    public void closeDataFile() throws JobStoreException {
         if (dataFileInputStream != null) {
             try {
                 dataFileInputStream.close();

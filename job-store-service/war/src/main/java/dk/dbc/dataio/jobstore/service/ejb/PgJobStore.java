@@ -58,6 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
@@ -118,17 +119,8 @@ public class PgJobStore {
      */
     @Stopwatch
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
-        try (AddJobParam param = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector(), fileStoreServiceConnectorBean.getConnector())) {
-            JobInfoSnapshot jobInfoSnapshot = addJob(param);
-            if (!jobInfoSnapshot.getState().fatalDiagnosticExists()) {
-                try {
-                    compareByteSize(param.getDataFileId(), param.getDataPartitioner());
-                } catch (IOException e) {
-                    throw new JobStoreException("Error reading data file", e);
-                }
-            }
-            return jobInfoSnapshot;
-        }
+        AddJobParam param = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector(), fileStoreServiceConnectorBean.getConnector());
+        return addJob(param);
     }
 
     /**
@@ -143,16 +135,41 @@ public class PgJobStore {
     @Stopwatch
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
         LOGGER.info("Adding job");
-        final PgJobStore businessObject = getProxyToSelf();
+        final PgJobStore businessServiceProxy = getProxyToSelf();
 
         // Creates job entity in its own transactional scope to enable external visibility
-        JobEntity jobEntity = businessObject.createJobEntity(addJobParam);
+        JobEntity jobEntity = businessServiceProxy.createJobEntity(addJobParam);
+
+        businessServiceProxy.handlePartitioningAsynchronously(addJobParam, businessServiceProxy, jobEntity);
+
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    /**
+     * OBS: this method is a public wrapper to support asynchronous behavior
+     *
+     */
+
+    @Asynchronous
+    public void handlePartitioningAsynchronously(AddJobParam addJobParam, PgJobStore businessServiceProxy, JobEntity jobEntity) throws JobStoreException {
+        handlePartitioning(addJobParam, businessServiceProxy, jobEntity);
+    }
+
+    /**
+     * This method has package scope so testing is possible
+     * @param addJobParam
+     * @param businessServiceProxy
+     * @param jobEntity
+     * @return
+     * @throws JobStoreException
+     */
+     JobInfoSnapshot handlePartitioning(AddJobParam addJobParam, PgJobStore businessServiceProxy, JobEntity jobEntity) throws JobStoreException {
+        final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
 
         // Continue only if timeOfCompletion is not set (all required remote entities could be located).
-        final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
         if (jobEntity.getTimeOfCompletion() == null) {
 
-            doPartitioningToChunksAndItems(addJobParam, businessObject, jobEntity, abortDiagnostics);
+            doPartitioningToChunksAndItems(addJobParam, businessServiceProxy, jobEntity, abortDiagnostics);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
             final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
@@ -166,11 +183,22 @@ public class PgJobStore {
         entityManager.flush();
         logTimerMessage(jobEntity);
 
+        // Important that this is done after partitioning is done otherwise DataPartitioner is not updated with file info - hence filesize is 0.
+        if (!jobEntity.getState().fatalDiagnosticExists()) {
+            try {
+                compareByteSize(addJobParam.getDataFileId(), addJobParam.getDataPartitioner());
+            } catch (IOException e) {
+                throw new JobStoreException("Error reading data file", e);
+            }
+        }
+
+        addJobParam.closeDataFile();
+
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
     private void doPartitioningToChunksAndItems(
             AddJobParam addJobParam,
-            PgJobStore businessObject,
+            PgJobStore businessServiceProxy,
             JobEntity jobEntity,
             List<Diagnostic> abortDiagnostics) throws JobStoreException {
 
@@ -180,7 +208,7 @@ public class PgJobStore {
         do {
             // Creates each chunk entity (and associated item entities) in its own
             // transactional scope to enable external visibility of job creation progress
-            chunkEntity = businessObject.createChunkEntity(
+            chunkEntity = businessServiceProxy.createChunkEntity(
                     jobEntity.getId(),
                     chunkId++,
                     maxChunkSize,
@@ -421,13 +449,6 @@ public class PgJobStore {
 
             return chunkEntity;
     }
-    private State initializeChunkState(ChunkItemEntities chunkItemEntities) {
-        final State chunkState = new State();
-        for (final ItemEntity itemEntity : chunkItemEntities.entities) {
-            chunkState.getDiagnostics().addAll(itemEntity.getState().getDiagnostics());
-        }
-        return chunkState;
-    }
     private SequenceAnalysisData initializeSequenceAnalysisData(SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, ChunkItemEntities chunkItemEntities, StateChange chunkStateChange) {
         SequenceAnalysisData sequenceAnalysisData;
         if (chunkStateChange.getFailed() > 0) {
@@ -436,6 +457,13 @@ public class PgJobStore {
             sequenceAnalysisData = new SequenceAnalysisData(sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.records));
         }
         return sequenceAnalysisData;
+    }
+    private State initializeChunkState(ChunkItemEntities chunkItemEntities) {
+        final State chunkState = new State();
+        for (final ItemEntity itemEntity : chunkItemEntities.entities) {
+            chunkState.getDiagnostics().addAll(itemEntity.getState().getDiagnostics());
+        }
+        return chunkState;
     }
     private ChunkEntity initializeChunkEntityAndSetValues(int jobId, int chunkId, String dataFileId, ChunkItemEntities chunkItemEntities, SequenceAnalysisData sequenceAnalysisData, State chunkState) {
         ChunkEntity chunkEntity;
@@ -634,6 +662,16 @@ public class PgJobStore {
         }
         return chunkItemEntities;
     }
+    private void setOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ItemData itemData) throws InvalidInputException {
+        switch (phase) {
+            case PROCESSING: itemEntity.setProcessingOutcome(itemData);
+                break;
+            case DELIVERING: itemEntity.setDeliveringOutcome(itemData);
+                break;
+            case PARTITIONING:
+                throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
+        }
+    }
     private void setItemStateOnChunkItemFromStatus(ChunkItemEntities chunkItemEntities, ChunkItem chunkItem, StateChange itemStateChange) {
         switch (chunkItem.getStatus()) {
             case FAILURE:
@@ -650,17 +688,6 @@ public class PgJobStore {
                 break;
         }
     }
-    private void setOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ItemData itemData) throws InvalidInputException {
-        switch (phase) {
-            case PROCESSING: itemEntity.setProcessingOutcome(itemData);
-                break;
-            case DELIVERING: itemEntity.setDeliveringOutcome(itemData);
-                break;
-            case PARTITIONING:
-                throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
-        }
-    }
-
     /**
      * Creates new item entity with data from the partitioning phase
      * @param jobId id of job containing chunk

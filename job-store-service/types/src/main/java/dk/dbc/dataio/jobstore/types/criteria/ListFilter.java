@@ -9,6 +9,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
  * @param <T> ListFilterField subtype
  */
 public class ListFilter<T extends ListFilterField> {
+
+    private final static Object NO_VAlUE = null;
     /**
      * Filter operators
      */
@@ -39,6 +41,7 @@ public class ListFilter<T extends ListFilterField> {
     public ListFilter(@JsonProperty("field") T field,
                       @JsonProperty("operator") Op operator,
                       @JsonProperty("value") Object value) throws NullPointerException {
+
         this.field = InvariantUtil.checkNotNullOrThrow(field, "field");
         this.operator = InvariantUtil.checkNotNullOrThrow(operator, "operator");
         this.value = value;
@@ -46,7 +49,7 @@ public class ListFilter<T extends ListFilterField> {
 
     @JsonIgnore
     public ListFilter(@JsonProperty("field") T field) {
-        this(field, Op.NOOP, null);
+        this(field, Op.NOOP, NO_VAlUE);
     }
 
     @JsonIgnore

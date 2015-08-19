@@ -61,7 +61,7 @@ public class JobListCriteriaModel extends GenericBackendModel {
     public JobListCriteriaModel and(JobListCriteriaModel model) {
         if (model != null) {
             setSearchType(model.getSearchType());  // The old SearchType is disgarded, and the new SearchType is used instead
-            setSinkId(model.getSinkId());  // The old SinkId is disgarded, and the new SinkId is used instead
+            if( !model.getSinkId().equals("0")) setSinkId(model.getSinkId());  // The old SinkId is disgarded, and the new SinkId is used instead if differen from default value
             if( model.getSubmitter() != null ) setSubmitter( model.getSubmitter());
             Set<String> oldJobTypes = new HashSet<String>(this.jobTypes.size());
             oldJobTypes.addAll(this.jobTypes);

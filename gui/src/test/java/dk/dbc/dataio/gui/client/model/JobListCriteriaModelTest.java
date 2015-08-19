@@ -85,6 +85,20 @@ public class JobListCriteriaModelTest {
         assertThat(equals(model, JobListCriteriaModel.JobSearchType.ALL, "1", true, false, true, false), is(true));
     }
 
+    @Test
+    public void and_mergeModelsDifferentSinkIds_newVaueOverrulesOnlyIfSet() {
+        // Test Preparation
+        JobListCriteriaModel model    = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", true, false, true, false);
+        // Note "0" is Defautl value for sinkId.. and equals not SET.
+        JobListCriteriaModel newModel = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "0",    true, false, true, false);
+
+        // Test Subject Under Test
+        model.and(newModel);
+
+        // Verify Test
+        assertThat(equals(model, JobListCriteriaModel.JobSearchType.ALL, "1321", true, false, true, false), is(true));
+    }
+
 
     @Test
     public void and_mergeModelsNonOverlapingJobTypes_noJobTypes() {

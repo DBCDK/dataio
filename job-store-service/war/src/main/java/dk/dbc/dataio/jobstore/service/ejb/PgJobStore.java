@@ -146,12 +146,12 @@ public class PgJobStore {
     }
 
     /**
-     * OBS: this method is a public wrapper to support asynchronous behavior
+     * This method is a public wrapper to support asynchronous behavior
      *
-     * @param addJobParam
-     * @param businessServiceProxy
-     * @param jobEntity
-     * @throws JobStoreException
+     * @param addJobParam           see description in above addJob method
+     * @param businessServiceProxy  see description in above addJob method
+     * @param jobEntity             see description in above addJob method
+     * @throws JobStoreException    see description in above addJob method
      */
     @Asynchronous
     public void handlePartitioningAsynchronously(AddJobParam addJobParam, PgJobStore businessServiceProxy, JobEntity jobEntity) throws JobStoreException {
@@ -160,11 +160,11 @@ public class PgJobStore {
 
     /**
      * This method has package scope so testing is possible
-     * @param addJobParam
-     * @param businessServiceProxy
-     * @param jobEntity
+     * @param addJobParam           see description in above addJob method
+     * @param businessServiceProxy  see description in above addJob method
+     * @param jobEntity             see description in above addJob method
      * @return
-     * @throws JobStoreException
+     * @throws JobStoreException    see description in above addJob method
      */
      JobInfoSnapshot handlePartitioning(AddJobParam addJobParam, PgJobStore businessServiceProxy, JobEntity jobEntity) throws JobStoreException {
         final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);

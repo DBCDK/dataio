@@ -18,6 +18,7 @@ def parse_arguments():
     parser.add_argument("--job", help="job to show", type=int)
     parser.add_argument("--limit", help="limit number of jobs to list", type=int, default=0)
     parser.add_argument("--offset", help="start from offset ", type=int, default=0)
+    parser.add_argument("--submitter", help="only show for a given submitter")
 
     args = parser.parse_args()
 
@@ -27,13 +28,28 @@ parse_arguments()
 print()
 url="http://"+args.host+"/dataio/job-store-service/jobs/searches"
 
-search_arguments={ "limit": args.limit, "offset": args.offset, "ordering": [
-{
-   "field": "JOB_ID",
-   "sort": "DESC"
+search_arguments={
+   "limit": args.limit, "offset": args.offset,
+   "ordering": [
+      {
+      "field": "JOB_ID",
+      "sort": "DESC"
+      }
+      ]
    }
-   ]
-   }
+
+if args.submitter :
+    search_arguments['filtering'] = [{"members":
+        [{
+            "filter": {
+                "field": "SPECIFICATION",
+                "operator": "JSON_LEFT_CONTAINS",
+                "value": '{ "submitterId": %s}'%args.submitter
+            },
+            "logicalOperator": "AND",
+        }
+        ]}]
+
 
 search_on_id={ "filtering": [ { "members": [
             {

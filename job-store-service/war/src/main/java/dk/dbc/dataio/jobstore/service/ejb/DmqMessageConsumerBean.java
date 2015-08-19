@@ -37,22 +37,33 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
             LOGGER.info("Received dead message for chunk {} of type {} in job {}",
                     chunk.getChunkId(), chunk.getType(), chunk.getJobId());
             if (chunk.getType() == ExternalChunk.Type.PARTITIONED) {
-                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.PROCESSED, chunk));
+                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.PROCESSED, chunk, ChunkItem.Status.FAILURE));
+                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.DELIVERED, chunk, ChunkItem.Status.IGNORE));
+            } else {
+                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.DELIVERED, chunk, ChunkItem.Status.FAILURE));
             }
-            jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.DELIVERED, chunk));
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type",
                     consumedMessage.getMessageId(), consumedMessage.getMessagePayload()), e);
         }
     }
 
-    private ExternalChunk createDeadChunk(ExternalChunk.Type chunkType, ExternalChunk originatingChunk) {
+    private ExternalChunk createDeadChunk(ExternalChunk.Type chunkType, ExternalChunk originatingChunk, ChunkItem.Status status) {
         final ExternalChunk deadChunk = new ExternalChunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
         deadChunk.setEncoding(StandardCharsets.UTF_8);
         for (ChunkItem chunkItem : originatingChunk) {
-            deadChunk.insertItem(new ChunkItem(chunkItem.getId(), StringUtil.asBytes(String.format(
-                    "Item was failed due to dead %s chunk", originatingChunk.getType())), ChunkItem.Status.FAILURE));
+            deadChunk.insertItem(new ChunkItem(chunkItem.getId(), getDeadChunkData(originatingChunk, status), status));
         }
         return deadChunk;
+    }
+
+    public byte[] getDeadChunkData(ExternalChunk originatingChunk, ChunkItem.Status status) {
+        StringBuilder stringBuilder = new StringBuilder("Item was ");
+        stringBuilder.append(status == ChunkItem.Status.FAILURE ? "failed" : "ignored");
+        stringBuilder.append(String.format(
+                " due to dead %s chunk", originatingChunk.getType()));
+
+        System.out.println(stringBuilder.toString());
+        return StringUtil.asBytes(stringBuilder.toString());
     }
 }

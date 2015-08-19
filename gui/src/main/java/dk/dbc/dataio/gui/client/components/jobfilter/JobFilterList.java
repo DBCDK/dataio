@@ -21,7 +21,7 @@ final public class JobFilterList {
     public JobFilterList() {
         ginjector = GWT.create(JobFilterGinjector.class);
         jobFilterList = Arrays.asList(
-            ginjector.getSinkJobFilter()
+                ginjector.getSinkJobFilter(), ginjector.getSubmitterJobFilter()
                 // Add new Job Filters here...
         );
     }

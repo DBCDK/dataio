@@ -73,7 +73,7 @@ public abstract class BaseJobFilter extends Composite implements HasValue<JobLis
      */
     public void addJobFilter() {
         if (clickHandlerRegistration == null) {
-            decoratorPanel = new TitledDecoratorPanelWithButton(texts.sinkFilter_name(), resources.deleteButton());
+            decoratorPanel = new TitledDecoratorPanelWithButton(getName(), resources.deleteButton());
             clickHandlerRegistration = decoratorPanel.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {

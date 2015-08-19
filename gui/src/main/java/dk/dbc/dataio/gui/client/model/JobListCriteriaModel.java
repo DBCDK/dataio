@@ -11,6 +11,7 @@ public class JobListCriteriaModel extends GenericBackendModel {
     private JobSearchType jobSearchType;
     private String sinkId;
     private Set<String> jobTypes = new HashSet<String>();
+    private String submitter;
 
     public JobListCriteriaModel() {
         this(JobSearchType.PROCESSING_FAILED, "0"); //Default values
@@ -44,6 +45,14 @@ public class JobListCriteriaModel extends GenericBackendModel {
         this.sinkId = sinkId;
     }
 
+    public String getSubmitter() {
+        return submitter;
+    }
+
+    public void setSubmitter(String submitter) {
+        this.submitter = submitter;
+    }
+
     /**
      * Merges the current model with the one supplied as a parameter in the call, using AND logic
      * @param model The model to merge with the current one using AND logic
@@ -53,6 +62,7 @@ public class JobListCriteriaModel extends GenericBackendModel {
         if (model != null) {
             setSearchType(model.getSearchType());  // The old SearchType is disgarded, and the new SearchType is used instead
             setSinkId(model.getSinkId());  // The old SinkId is disgarded, and the new SinkId is used instead
+            if( model.getSubmitter() != null ) setSubmitter( model.getSubmitter());
             Set<String> oldJobTypes = new HashSet<String>(this.jobTypes.size());
             oldJobTypes.addAll(this.jobTypes);
             this.jobTypes.clear();

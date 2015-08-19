@@ -6,6 +6,7 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 
@@ -24,6 +25,7 @@ public class JobListCriteriaModelTest {
         assertThat(model.getVersion(), is(0L));
         assertThat(model.getSearchType(), is(JobListCriteriaModel.JobSearchType.PROCESSING_FAILED));
         assertThat(model.getSinkId(), is("0"));
+        assertThat(model.getSubmitter(), is(nullValue()));
         assertThat(model.getJobTypes().size(), is(4));
         assertThat(model.getJobTypes().contains(TEST), is(true));
         assertThat(model.getJobTypes().contains(TRANSIENT), is(true));
@@ -83,6 +85,7 @@ public class JobListCriteriaModelTest {
         assertThat(equals(model, JobListCriteriaModel.JobSearchType.ALL, "1", true, false, true, false), is(true));
     }
 
+
     @Test
     public void and_mergeModelsNonOverlapingJobTypes_noJobTypes() {
         // Test Preparation
@@ -99,7 +102,7 @@ public class JobListCriteriaModelTest {
     @Test
     public void and_mergeModelsOverlapingJobTypes_onlyOverlappingJobTypes() {
         // Test Preparation
-        JobListCriteriaModel model    = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", true,  false, true, false);
+        JobListCriteriaModel model    = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", true, false, true, false);
         JobListCriteriaModel newModel = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", false, true,  true, false);
 
         // Test Subject Under Test
@@ -110,14 +113,46 @@ public class JobListCriteriaModelTest {
     }
 
 
+    @Test
+    public void add_mergeModelsDifferentSubmitter_newValueOverrules() throws Exception {
+        JobListCriteriaModel model    = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", "42", true, false, true, false);
+        JobListCriteriaModel newModel = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", "870970", false, true,  true, false);
+
+        // Test Subject Under Test
+        model.and(newModel);
+
+        // Verify Test
+        assertThat(equals(model, JobListCriteriaModel.JobSearchType.ALL, "1", "870970", false, false, true, false), is(false));
+    }
+
+    @Test
+    public void add_mergeModelsDifferentSubmitter_newValueOverrules_onlyIfSet() throws Exception {
+        JobListCriteriaModel model    = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", "42", true, false, true, false);
+        JobListCriteriaModel newModel = constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType.ALL, "1321", "870970", false, true,  true, false);
+
+        // Test Subject Under Test
+        model.and(newModel);
+
+        // Verify Test
+        assertThat(equals(model, JobListCriteriaModel.JobSearchType.ALL, "1", "870970", false, false, true, false), is(false));
+    }
+
+
     /*
-     * Private utility methods
-     */
+         * Private utility methods
+         */
     private JobListCriteriaModel constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType jobSearchType, String sinkId,
+                                                                   boolean test, boolean trans, boolean persistent, boolean  acctest) {
+        return constructJobListCriteriaModel(jobSearchType, sinkId, null, test, trans, persistent, acctest);
+    }
+
+    private JobListCriteriaModel constructJobListCriteriaModel(JobListCriteriaModel.JobSearchType jobSearchType, String sinkId,
+                                                               String submitter,
                                                                boolean test, boolean trans, boolean persistent, boolean  acctest) {
         JobListCriteriaModel model = new JobListCriteriaModel();
         model.setSearchType(jobSearchType);
         model.setSinkId(sinkId);
+        model.setSubmitter(submitter);
         Set<String> types = model.getJobTypes();
         types.clear();
         if (test) {
@@ -141,14 +176,32 @@ public class JobListCriteriaModelTest {
                 types.contains(TEST), types.contains(TRANSIENT), types.contains(PERSISTENT), types.contains(ACCTEST));
     }
 
+
+
     private boolean equals(JobListCriteriaModel model,
                            JobListCriteriaModel.JobSearchType jobSearchType, String sinkId,
+                           boolean test, boolean trans, boolean persistent, boolean  acctest) {
+        return equals( model, jobSearchType, sinkId, null, test, trans, persistent, acctest );
+    }
+
+    private boolean equals(JobListCriteriaModel model,
+                           JobListCriteriaModel.JobSearchType jobSearchType, String sinkId,
+                           String submitter,
                            boolean test, boolean trans, boolean persistent, boolean  acctest) {
         if (model.getSearchType() != jobSearchType) {
             return false;
         }
         if (!model.getSinkId().equals(sinkId)) {
             return false;
+        }
+        if( model.getSubmitter() != null ) {
+            if (!model.getSubmitter().equals(submitter)) {
+                return false;
+            }
+        } else {
+            if (submitter != null) {
+                return false;
+            }
         }
         Set<String> types1 = model.getJobTypes();
         if (types1.contains(TEST) != test) {
@@ -168,7 +221,7 @@ public class JobListCriteriaModelTest {
 
     private boolean equals(JobListCriteriaModel model1, JobListCriteriaModel model2) {
         Set<String> types = model2.getJobTypes();
-        return equals(model1, model2.getSearchType(), model2.getSinkId(), types.contains(TEST), types.contains(TRANSIENT), types.contains(PERSISTENT), types.contains(ACCTEST));
+        return equals(model1, model2.getSearchType(), model2.getSinkId(), model2.getSubmitter(), types.contains(TEST), types.contains(TRANSIENT), types.contains(PERSISTENT), types.contains(ACCTEST));
     }
 
 }

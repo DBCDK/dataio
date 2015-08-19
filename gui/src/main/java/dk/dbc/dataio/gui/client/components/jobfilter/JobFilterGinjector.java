@@ -11,4 +11,5 @@ import com.google.gwt.inject.client.Ginjector;
 @GinModules(JobFilterClientModule.class)
 public interface JobFilterGinjector extends Ginjector {
     SinkJobFilter getSinkJobFilter();
+    SubmitterJobFilter getSubmitterJobFilter();
 }

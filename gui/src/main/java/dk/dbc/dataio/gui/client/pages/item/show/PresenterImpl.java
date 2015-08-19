@@ -369,8 +369,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT));
         } else {
 
+            // Acceptance test job: Show sink result
+            if(type == JobModel.Type.ACCTEST) {
+                listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
+            }
             // Item failed in delivering: Show sink result
-            if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.DELIVERING) {
+            else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.DELIVERING) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
             }
             // Item failed in processing: Show output post

@@ -148,8 +148,11 @@ public class PgJobStore {
     /**
      * OBS: this method is a public wrapper to support asynchronous behavior
      *
+     * @param addJobParam
+     * @param businessServiceProxy
+     * @param jobEntity
+     * @throws JobStoreException
      */
-
     @Asynchronous
     public void handlePartitioningAsynchronously(AddJobParam addJobParam, PgJobStore businessServiceProxy, JobEntity jobEntity) throws JobStoreException {
         handlePartitioning(addJobParam, businessServiceProxy, jobEntity);

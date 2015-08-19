@@ -63,7 +63,6 @@ public class ViewTest {
             .setSinkId(3456L)
             .setSinkName("SinkNameA")
             .setItemCounter(12)
-            .setSucceededCounter(9)
             .setFailedCounter(2)
             .setIgnoredCounter(3)
             .setPartitionedCounter(51)
@@ -80,7 +79,6 @@ public class ViewTest {
             .setSinkId(3457L)
             .setSinkName("SinkNameB")
             .setItemCounter(5)
-            .setSucceededCounter(5)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(54)
@@ -103,7 +101,6 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME = "Mocked Column Header Flow Binder Name";
     final static String MOCKED_COLUMN_HEADER_SINK_NAME = "Mocked Column Header Sink Name";
     final static String MOCKED_COLUMN_HEADER_ITEM_COUNTER = "Mocked Column Header Item Counter";
-    final static String MOCKED_COLUMN_HEADER_SUCCEEDED = "Mocked Column Header Succeeded";
     final static String MOCKED_COLUMN_HEADER_FAILED = "Mocked Column Header Failed";
     final static String MOCKED_COLUMN_HEADER_IGNORED = "Mocked Column Header Ignored";
     final static String MOCKED_COLUMN_HEADER_PROGRESS = "Mocked Column Header Progress";
@@ -122,7 +119,6 @@ public class ViewTest {
         when(mockedTexts.columnHeader_FlowBinderName()).thenReturn(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME);
         when(mockedTexts.columnHeader_SinkName()).thenReturn(MOCKED_COLUMN_HEADER_SINK_NAME);
         when(mockedTexts.columnHeader_TotalChunkCount()).thenReturn(MOCKED_COLUMN_HEADER_ITEM_COUNTER);
-        when(mockedTexts.columnHeader_SuccessCounter()).thenReturn(MOCKED_COLUMN_HEADER_SUCCEEDED);
         when(mockedTexts.columnHeader_FailureCounter()).thenReturn(MOCKED_COLUMN_HEADER_FAILED);
         when(mockedTexts.columnHeader_IgnoredCounter()).thenReturn(MOCKED_COLUMN_HEADER_IGNORED);
         when(mockedTexts.columnHeader_ProgressBar()).thenReturn(MOCKED_COLUMN_HEADER_PROGRESS);
@@ -147,7 +143,6 @@ public class ViewTest {
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SINK_NAME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_ITEM_COUNTER));
-        verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUCCEEDED));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FAILED));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_IGNORED));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_PROGRESS));
@@ -308,30 +303,6 @@ public class ViewTest {
         assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
         assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
         assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void constructSuccessCounterColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory, "Header Text");
-
-        // Subject Under Test
-        Column column = view.constructSuccessCounterColumn();
-
-        // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getSucceededCounter())));
-
-        // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
-
-        // Test that correct comparator has been setup
-        // successCounter for testModel1 (12) is larger than testModel2 (5)
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), greaterThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), lessThan(0));
 
         // Test that column is set to ascending sorting
         assertThat(column.isDefaultSortAscending(), is(true));

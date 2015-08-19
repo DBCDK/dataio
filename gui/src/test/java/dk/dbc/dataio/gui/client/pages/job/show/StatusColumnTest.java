@@ -45,7 +45,6 @@ public class StatusColumnTest {
     // Test data
     private JobModel doneWithoutErrorModel = new JobModelBuilder()
             .setItemCounter(10)
-            .setSucceededCounter(10)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(41)
@@ -55,7 +54,6 @@ public class StatusColumnTest {
 
     private JobModel doneWithErrorModel = new JobModelBuilder()
             .setItemCounter(10)
-            .setSucceededCounter(10)
             .setFailedCounter(5)
             .setIgnoredCounter(5)
             .setPartitionedCounter(44)
@@ -66,7 +64,6 @@ public class StatusColumnTest {
     private JobModel notDoneModel = new JobModelBuilder()
             .setIsJobDone(false)
             .setItemCounter(10)
-            .setSucceededCounter(5)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(47)

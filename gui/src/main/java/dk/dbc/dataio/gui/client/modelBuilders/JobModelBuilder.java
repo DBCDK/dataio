@@ -18,7 +18,6 @@ public class JobModelBuilder {
     private String sinkName = "Sink name";
     private boolean jobDone = true;
     private long itemCounter = 10L;
-    private long succeededCounter = 10L;
     private long failedCounter = 0L;
     private long ignoredCounter = 0L;
     private long partitionedCounter = 14;
@@ -78,11 +77,6 @@ public class JobModelBuilder {
 
     public JobModelBuilder setItemCounter(long itemCounter) {
         this.itemCounter = itemCounter;
-        return this;
-    }
-
-    public JobModelBuilder setSucceededCounter(long succeededCounter) {
-        this.succeededCounter = succeededCounter;
         return this;
     }
 
@@ -172,7 +166,6 @@ public class JobModelBuilder {
                 sinkName,
                 jobDone,
                 itemCounter,
-                succeededCounter,
                 failedCounter,
                 ignoredCounter,
                 partitionedCounter,

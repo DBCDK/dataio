@@ -43,7 +43,6 @@ public class JobModelMapper {
                 getSinkName(jobInfoSnapshot.getFlowStoreReferences()),
                 jobInfoSnapshot.getState().allPhasesAreDone(),
                 getTotal(jobInfoSnapshot.getState()),
-                getSucceeded(jobInfoSnapshot.getState()),
                 getFailed(jobInfoSnapshot.getState()),
                 getIgnored(jobInfoSnapshot.getState()),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING)),
@@ -130,26 +129,6 @@ public class JobModelMapper {
     private static String getSinkName(FlowStoreReferences references) {
         FlowStoreReference sinkReference = references.getReference(FlowStoreReferences.Elements.SINK);
         return sinkReference == null ? "" : sinkReference.getName();
-    }
-
-    /**
-     * This method determine how many posts that successfully have completed one or more phases.
-     * This is done for each phase, in order to display information to the user for a job that has not yet finished.
-     *
-     * @param state containing information regarding the job
-     * @return number of succeeded items.
-     */
-    private static long getSucceeded(State state) {
-        long succeeded;
-        if(state.getPhase(State.Phase.DELIVERING).getSucceeded() != 0) {
-            succeeded = state.getPhase(State.Phase.DELIVERING).getSucceeded();
-        } else if(state.getPhase(State.Phase.PROCESSING).getSucceeded() != 0) {
-            succeeded = state.getPhase(State.Phase.PROCESSING).getSucceeded();
-        }
-        else {
-            succeeded = state.getPhase(State.Phase.PARTITIONING).getSucceeded();
-        }
-        return succeeded;
     }
 
     private static int getFailed(State state) {

@@ -32,9 +32,6 @@ public interface Texts extends Constants {
     String columnHeader_JobCreationTime();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_SuccessCounter();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_FailureCounter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

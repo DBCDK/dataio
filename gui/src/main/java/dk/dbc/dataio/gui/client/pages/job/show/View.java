@@ -104,7 +104,6 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructFlowBinderNameColumn(), texts.columnHeader_FlowBinderName());
         jobsTable.addColumn(constructSinkNameColumn(), texts.columnHeader_SinkName());
         jobsTable.addColumn(constructItemCountColumn(), texts.columnHeader_TotalChunkCount());
-        jobsTable.addColumn(constructSuccessCounterColumn(), texts.columnHeader_SuccessCounter());
         jobsTable.addColumn(constructFailedCounterColumn(), texts.columnHeader_FailureCounter());
         jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
         jobsTable.addColumn(constructProgressBarColumn(), texts.columnHeader_ProgressBar());
@@ -266,30 +265,6 @@ public class View extends ViewWidget {
         columnSortHandler.setComparator(column, new Comparator<JobModel>() {
             public int compare(JobModel o1, JobModel o2) {
                 return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongs(o1.getItemCounter(), o2.getItemCounter()) : 1;
-            }
-        });
-        return column;
-    }
-
-    /**
-     * This method constructs the success counter column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed success count column
-     */
-    Column constructSuccessCounterColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
-            @Override
-            public String getValue(JobModel model) {
-                return String.valueOf(model.getSucceededCounter());
-            }
-        };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongs(
-                        o1.getSucceededCounter(), o2.getSucceededCounter()) : 1;
-
             }
         });
         return column;

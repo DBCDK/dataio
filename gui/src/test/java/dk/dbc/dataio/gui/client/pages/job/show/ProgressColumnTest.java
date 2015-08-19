@@ -52,7 +52,6 @@ public class ProgressColumnTest {
     // Test data
     private JobModel legalTestModel = new JobModelBuilder()
             .setItemCounter(100)
-            .setSucceededCounter(10)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(41)
@@ -62,7 +61,6 @@ public class ProgressColumnTest {
 
     private JobModel illegalTestModel1 = new JobModelBuilder()
             .setItemCounter(100)
-            .setSucceededCounter(10)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(41)
@@ -72,7 +70,6 @@ public class ProgressColumnTest {
 
     private JobModel illegalTestModel2 = new JobModelBuilder()
             .setItemCounter(20)
-            .setSucceededCounter(10)
             .setFailedCounter(0)
             .setIgnoredCounter(0)
             .setPartitionedCounter(41)

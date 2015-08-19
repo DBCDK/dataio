@@ -19,7 +19,6 @@ public class JobModel extends GenericBackendModel {
     private String sinkName;
     private boolean jobDone;
     private long itemCounter;
-    private long succeededCounter;
     private long failedCounter;
     private long ignoredCounter;
     private long partitionedCounter;
@@ -48,7 +47,6 @@ public class JobModel extends GenericBackendModel {
      * @param sinkName                             The Sink Name
      * @param jobDone                              The Job Done
      * @param itemCounter                          The Item Counter
-     * @param succeededCounter                     The Succeeded Counter
      * @param failedCounter                        The Failed Counter
      * @param ignoredCounter                       The Ignored Counter
      * @param partitionedCounter                   The number of Partitioned Items
@@ -74,7 +72,6 @@ public class JobModel extends GenericBackendModel {
                     String sinkName,
                     boolean jobDone,
                     long itemCounter,
-                    long succeededCounter,
                     long failedCounter,
                     long ignoredCounter,
                     long partitionedCounter,
@@ -99,7 +96,6 @@ public class JobModel extends GenericBackendModel {
         this.sinkName = sinkName;
         this.itemCounter = itemCounter;
         this.jobDone = jobDone;
-        this.succeededCounter = succeededCounter;
         this.failedCounter = failedCounter;
         this.ignoredCounter = ignoredCounter;
         this.partitionedCounter = partitionedCounter;
@@ -121,7 +117,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "", Type.TRANSIENT);
+        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "", Type.TRANSIENT);
     }
 
 
@@ -285,24 +281,6 @@ public class JobModel extends GenericBackendModel {
      */
     public void setJobDone(boolean jobDone) {
         this.jobDone = jobDone;
-    }
-
-    /**
-     * Gets the Succeeded Counter
-     *
-     * @return The Succeeded Counter
-     */
-    public long getSucceededCounter() {
-        return succeededCounter;
-    }
-
-    /**
-     * Sets the Succeeded Counter
-     *
-     * @param succeededCounter The Succeeded Counter
-     */
-    public void setSucceededCounter(long succeededCounter) {
-        this.succeededCounter = succeededCounter;
     }
 
     /**

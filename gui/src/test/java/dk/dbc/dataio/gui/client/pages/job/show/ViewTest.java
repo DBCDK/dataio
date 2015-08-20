@@ -132,7 +132,6 @@ public class ViewTest {
         view = new View(mockedClientFactory, "Header Text");
 
         // Verify invocations
-        //verify(view.jobsTable).addColumnSortHandler(isA(ColumnSortEvent.ListHandler.class));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER));

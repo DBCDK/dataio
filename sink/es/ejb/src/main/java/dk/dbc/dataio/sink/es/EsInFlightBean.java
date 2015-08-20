@@ -14,7 +14,7 @@ public class EsInFlightBean {
     @EJB
     EsSinkConfigurationBean configuration;
 
-    @PersistenceContext
+    @PersistenceContext(unitName = "esInFlightPU")
     EntityManager entityManager;
 
     public void addEsInFlight(EsInFlight esInFlight) {

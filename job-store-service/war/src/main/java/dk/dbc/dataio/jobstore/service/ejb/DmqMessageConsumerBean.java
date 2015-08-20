@@ -62,8 +62,7 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         stringBuilder.append(status == ChunkItem.Status.FAILURE ? "failed" : "ignored");
         stringBuilder.append(String.format(
                 " due to dead %s chunk", originatingChunk.getType()));
-
-        System.out.println(stringBuilder.toString());
+        
         return StringUtil.asBytes(stringBuilder.toString());
     }
 }

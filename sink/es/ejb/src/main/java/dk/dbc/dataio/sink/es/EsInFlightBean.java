@@ -15,7 +15,7 @@ public class EsInFlightBean {
     EsSinkConfigurationBean configuration;
 
     @PersistenceContext
-    private EntityManager entityManager;
+    EntityManager entityManager;
 
     public void addEsInFlight(EsInFlight esInFlight) {
         entityManager.persist(esInFlight);

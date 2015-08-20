@@ -13,6 +13,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>es</module>
     <module>fbs</module>
   </modules>
 

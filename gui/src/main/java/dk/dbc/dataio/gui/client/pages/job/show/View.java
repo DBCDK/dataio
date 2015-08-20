@@ -3,19 +3,14 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.cellview.client.ColumnSortEvent;
-import com.google.gwt.user.cellview.client.ColumnSortList;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
-import dk.dbc.dataio.gui.client.helpers.SortHelper;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 
@@ -26,7 +21,6 @@ public class View extends ViewWidget {
 
     private static Resources resources;
 
-    ColumnSortEvent.ListHandler<JobModel> columnSortHandler;
     Column jobCreationTimeColumn;
     ListDataProvider<JobModel> dataProvider;
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<JobModel>();
@@ -62,11 +56,6 @@ public class View extends ViewWidget {
         dataProvider.getList().clear();
         dataProvider.getList().addAll(jobs);
 
-        // Do sort by job creation time
-        ColumnSortList columnSortList = jobsTable.getColumnSortList();
-        columnSortList.clear();  // Clear the Sort List
-        columnSortList.push(jobCreationTimeColumn);  // Default sorting is by job creation time
-        ColumnSortEvent.fire(jobsTable, columnSortList);  // Do sort right now
 
         // Set page size parameters
         jobsTable.setPageSize(PAGE_SIZE);
@@ -86,16 +75,6 @@ public class View extends ViewWidget {
     private void setupColumns() {
         dataProvider = new ListDataProvider<JobModel>();
         dataProvider.addDataDisplay(jobsTable);
-
-        columnSortHandler = new ColumnSortEvent.ListHandler<JobModel>(dataProvider.getList()) {
-            @Override
-            public void onColumnSort(ColumnSortEvent event) {
-                // Prior to each sort, do sort jobCreationTimeColumn first, to assure, that the secondary search will be by jobCreationTimeColumn
-                Collections.sort(dataProvider.getList(), Collections.reverseOrder(getComparator(jobCreationTimeColumn)));
-                super.onColumnSort(event);
-            }
-        };
-        jobsTable.addColumnSortHandler(columnSortHandler);
 
         jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
@@ -128,13 +107,6 @@ public class View extends ViewWidget {
                 return model.getJobCreationTime();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongDates(o1.getJobCreationTime(), o2.getJobCreationTime()) : 1;
-            }
-        });
-        column.setDefaultSortAscending(false);  // Set default sort order for jobCreationTime Column to Descending (youngest first)
         return column;
     }
 
@@ -151,12 +123,6 @@ public class View extends ViewWidget {
                 return model.getJobId();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStringsAsLongs(o1.getJobId(), o2.getJobId()) : 1;
-            }
-        });
         return column;
     }
 
@@ -173,12 +139,6 @@ public class View extends ViewWidget {
                 return model.getSubmitterNumber();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStringsAsLongs(o1.getSubmitterNumber(), o2.getSubmitterNumber()) : 1;
-            }
-        });
         return column;
     }
 
@@ -195,12 +155,6 @@ public class View extends ViewWidget {
                 return model.getSubmitterName();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStrings(o1.getSubmitterName(), o2.getSubmitterName()) : 1;
-            }
-        });
         return column;
     }
 
@@ -217,12 +171,6 @@ public class View extends ViewWidget {
                 return model.getFlowBinderName();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStrings(o1.getFlowBinderName(), o2.getFlowBinderName()) : 1;
-            }
-        });
         return column;
     }
 
@@ -239,12 +187,6 @@ public class View extends ViewWidget {
                 return model.getSinkName();
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareStrings(o1.getSinkName(), o2.getSinkName()) : 1;
-            }
-        });
         return column;
     }
 
@@ -261,12 +203,6 @@ public class View extends ViewWidget {
                 return String.valueOf(model.getItemCounter());
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongs(o1.getItemCounter(), o2.getItemCounter()) : 1;
-            }
-        });
         return column;
     }
 
@@ -283,13 +219,6 @@ public class View extends ViewWidget {
                 return String.valueOf(model.getFailedCounter());
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongs(
-                        o1.getFailedCounter(), o2.getFailedCounter()) : 1;
-            }
-        });
         return column;
     }
 
@@ -306,13 +235,6 @@ public class View extends ViewWidget {
                 return String.valueOf(model.getIgnoredCounter());
             }
         };
-        column.setSortable(true);
-        columnSortHandler.setComparator(column, new Comparator<JobModel>() {
-            public int compare(JobModel o1, JobModel o2) {
-                return SortHelper.validateObjects(o1, o2) ? SortHelper.compareLongs(
-                        o1.getIgnoredCounter(), o2.getIgnoredCounter()) : 1;
-            }
-        });
         return column;
     }
 

@@ -4,7 +4,6 @@ import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -22,8 +21,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.lessThan;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
@@ -135,7 +132,7 @@ public class ViewTest {
         view = new View(mockedClientFactory, "Header Text");
 
         // Verify invocations
-        verify(view.jobsTable).addColumnSortHandler(isA(ColumnSortEvent.ListHandler.class));
+        //verify(view.jobsTable).addColumnSortHandler(isA(ColumnSortEvent.ListHandler.class));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER));
@@ -159,7 +156,6 @@ public class ViewTest {
         // Subject Under Test
         view.setJobs(testModels);
 
-        verify(view.jobsTable).getColumnSortList();
         verify(view.jobsTable).setPageSize(20);
         verify(view.jobsTable).setRowCount(2);
     }
@@ -175,17 +171,8 @@ public class ViewTest {
         // Test that correct getValue handler has been setup
         assertThat((String) column.getValue(testModel1), is(testModel1.getJobCreationTime()));
 
-        // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
 
-        // Test that correct comparator has been setup
-        // JobCreationTime for testModel1 is earlier than for testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
 
-        // Test that column is set to descending sorting
-        assertThat(column.isDefaultSortAscending(), is(false));
     }
 
     @Test
@@ -199,17 +186,6 @@ public class ViewTest {
         // Test that correct getValue handler has been setup
         assertThat((String) column.getValue(testModel1), is(testModel1.getJobId()));
 
-        // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
-
-        // Test that correct comparator has been setup
-        // JobId for testModel1 is less than testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
     }
 
     @Test
@@ -224,16 +200,8 @@ public class ViewTest {
         assertThat((String) column.getValue(testModel1), is(testModel1.getSubmitterNumber()));
 
         // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
+        assertThat(column.isSortable(), is(false));
 
-        // Test that correct comparator has been setup
-        // Submitter number for testModel1 is less than testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
     }
 
     @Test
@@ -248,16 +216,8 @@ public class ViewTest {
         assertThat((String) column.getValue(testModel1), is(testModel1.getSubmitterName()));
 
         // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
+        assertThat(column.isSortable(), is(false));
 
-        // Test that correct comparator has been setup
-        // SubmitterName for testModel1 comes before testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
     }
 
     @Test
@@ -272,16 +232,8 @@ public class ViewTest {
         assertThat((String) column.getValue(testModel1), is(testModel1.getFlowBinderName()));
 
         // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
+        assertThat(column.isSortable(), is(false));
 
-        // Test that correct comparator has been setup
-        // FlowBinderName for testModel1 comes before testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
     }
 
     @Test
@@ -296,17 +248,11 @@ public class ViewTest {
         assertThat((String) column.getValue(testModel1), is(testModel1.getSinkName()));
 
         // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
+        assertThat(column.isSortable(), is(false));
 
-        // Test that correct comparator has been setup
-        // SinkName for testModel1 comes before testModel2
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), lessThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), greaterThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
     }
+
+
 
     @Test
     @SuppressWarnings("unchecked")
@@ -320,16 +266,8 @@ public class ViewTest {
         assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getFailedCounter())));
 
         // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
+        assertThat(column.isSortable(), is(false));
 
-        // Test that correct comparator has been setup
-        // failedCounter for testModel1 (2) is larger than testModel2 (0)
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), greaterThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), lessThan(0));
-
-        // Test that column is set to ascending sorting
-        assertThat(column.isDefaultSortAscending(), is(true));
     }
 
     @Test
@@ -344,13 +282,7 @@ public class ViewTest {
         assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getIgnoredCounter())));
 
         // Test that column is set to sortable
-        assertThat(column.isSortable(), is(true));
-
-        // Test that correct comparator has been setup
-        // failedCounter for testModel1 (3) is larger than testModel2 (0)
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel1), is(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel1, testModel2), greaterThan(0));
-        assertThat(view.columnSortHandler.getComparator(column).compare(testModel2, testModel1), lessThan(0));
+        assertThat(column.isSortable(), is(false));
 
         // Test that column is set to ascending sorting
         assertThat(column.isDefaultSortAscending(), is(true));

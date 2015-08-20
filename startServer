@@ -23,8 +23,10 @@ function developmentmode {
     # setting up JNDI endpoints
     echo "setting up JNDI endpoints for staging..."
     ENDPOINTDIR=${BASEDIR}/integration-test/glassfish/jndioverrides
-    echo "JNDI endpoints changes is run from " ${ENDPOINTDIR}
-    ${ENDPOINTDIR}/glassfish4_add_endpoints
+    for f in `find ${ENDPOINTDIR} -type f -executable` ; do
+       echo "JNDI endpoints changes is run from " $( basename ${f})
+       ${f}
+    done
     echo "JNDI settings configured."
 }
 

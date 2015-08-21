@@ -19,6 +19,8 @@
             <g:RadioButton ui:field="allJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_AllJobs}" />
         </span>
 
+        <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />
+
         <c:SimplePager ui:field="pagerTop" />
         <c:CellTable pageSize='20' ui:field='jobsTable' />
         <c:SimplePager ui:field="pagerBottom" />

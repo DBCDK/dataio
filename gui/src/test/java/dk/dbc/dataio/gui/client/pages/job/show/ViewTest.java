@@ -22,6 +22,8 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNot.not;
+import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
@@ -102,6 +104,7 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_IGNORED = "Mocked Column Header Ignored";
     final static String MOCKED_COLUMN_HEADER_PROGRESS = "Mocked Column Header Progress";
     final static String MOCKED_COLUMN_HEADER_JOB_STATUS = "Mocked Column Header Job Status";
+
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedClientFactory.getJobsShowTexts()).thenReturn(mockedTexts);
@@ -145,8 +148,8 @@ public class ViewTest {
         verify(view.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_STATUS));
         verify(view.pagerTop).setDisplay(view.jobsTable);
         verify(view.pagerBottom).setDisplay(view.jobsTable);
+        assertThat(view.refreshButton, not(nullValue()));
     }
-
 
     @Test
     public void constructor_setupData_dataSetupCorrect() {

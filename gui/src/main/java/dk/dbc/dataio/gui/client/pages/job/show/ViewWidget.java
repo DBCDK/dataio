@@ -9,6 +9,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.SimplePager;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
@@ -37,6 +38,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField RadioButton allJobsButton;
     @UiField RadioButton processingFailedJobsButton;
     @UiField RadioButton deliveringFailedJobsButton;
+    @UiField Button refreshButton;
 
 
     @UiFactory SimplePager makeSimplePager() {
@@ -54,6 +56,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiHandler("jobFilter")
     void jobFilterChanged(ChangeEvent event) {
+        presenter.fetchSelectedJobs();
+    }
+
+    @UiHandler("refreshButton")
+    void refreshButtonPressed(ClickEvent event) {
         presenter.fetchSelectedJobs();
     }
 

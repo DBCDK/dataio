@@ -225,7 +225,7 @@ public class ESTaskPackageUtilIT {
 
         private enum RecordStatus {
             SUCCESS, QUEUED, INPROCESS, FAILED
-        };
+        }
 
         private final Connection conn;
         private final String dbname;

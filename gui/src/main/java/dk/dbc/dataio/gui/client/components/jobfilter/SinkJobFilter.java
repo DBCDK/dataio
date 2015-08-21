@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
@@ -13,7 +12,6 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
@@ -31,7 +29,7 @@ public class SinkJobFilter extends BaseJobFilter {
     private static SinkJobFilterUiBinder ourUiBinder = GWT.create(SinkJobFilterUiBinder.class);
 
     FlowStoreProxyAsync flowStoreProxy;
-    ValueChangeHandler<JobListCriteriaModel> sinkJobValueChangeHandler = null;
+    ChangeHandler sinkJobValueChangeHandler = null;
     HandlerRegistration sinkListHandlerRegistration = null;
 
 
@@ -50,8 +48,9 @@ public class SinkJobFilter extends BaseJobFilter {
 
     @UiField PromptedList sinkList;
 
+
     /**
-     * Event handler for handling changes in the selected sink
+     * Event handler for handling changes in the selected submitter
      * @param event The ValueChangeEvent
      */
     @UiHandler("sinkList")
@@ -70,24 +69,13 @@ public class SinkJobFilter extends BaseJobFilter {
 
 
     /*
-     * Override HasValueChangeHandlers Interface Methods
-     */
-
-    @Override
-    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<JobListCriteriaModel> valueChangeHandler) {
-        sinkJobValueChangeHandler = valueChangeHandler;
-        sinkListHandlerRegistration = sinkList.addValueChangeHandler(new SinkJobFilterValueChangeHandler());
-        return sinkListHandlerRegistration;
-    }
-
-    /*
      * Override HasChangeHandlers Interface Methods
      */
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        sinkJobValueChangeHandler = changeHandler;
         return sinkList.addChangeHandler(changeHandler);
     }
-
 
     /*
      * Private classes
@@ -100,36 +88,14 @@ public class SinkJobFilter extends BaseJobFilter {
         @Override
         public void onFilteredFailure(Throwable e) {
         }
-
         @Override
         public void onSuccess(List<SinkModel> models) {
             for (SinkModel model: models) {
                 sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
             }
+            jobListCriteriaModel.setSinkId(sinkList.getSelectedKey());
             sinkList.setEnabled(true);
         }
     }
 
-    /*
-     * This class is the ValueChangeHandler for the SinkJobFilter
-     */
-    class SinkJobFilterValueChangeHandler implements ValueChangeHandler<String> {
-        @Override
-        public void onValueChange(ValueChangeEvent<String> valueChangeEvent) {
-            if (sinkJobValueChangeHandler != null) {
-                JobListCriteriaModel model = new JobListCriteriaModel();
-                model.setSinkId(valueChangeEvent.getValue());
-                sinkJobValueChangeHandler.onValueChange(new SinkJobFilterValueChangeEvent(model));
-            }
-        }
-    }
-
-    /*
-     * This class is the ValueChangeEvent for the SinkJobFilter
-     */
-    class SinkJobFilterValueChangeEvent extends ValueChangeEvent<JobListCriteriaModel> {
-        protected SinkJobFilterValueChangeEvent(JobListCriteriaModel value) {
-            super(value);
-        }
-    }
 }

@@ -1,4 +1,4 @@
-package dk.dbc.dataio.gui.client.components;
+package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickHandler;
@@ -12,6 +12,8 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.SimplePanelWithButton;
+import dk.dbc.dataio.gui.client.components.TitledDecoratorPanel;
 
 import java.util.Iterator;
 
@@ -32,18 +34,18 @@ import java.util.Iterator;
  * {@code
  * <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
  * ...
- * <dio:TitledDecoratorPanelWithButton title="Panel Title" buttonImage="{img.deleteButton}">
+ * <dio:JobFilterPanel title="Panel Title" buttonImage="{img.deleteButton}">
  *    <g:Label>Panel content...</g:Label>
- * </dio:TitledDecoratorPanelWithButton>
+ * </dio:JobFilterPanel>
  * }</pre>
  */
-public class TitledDecoratorPanelWithButton extends Composite implements HasWidgets, HasClickHandlers {
-    interface TitledDecoratorPanelWithButtonUiBinder extends UiBinder<HTMLPanel, TitledDecoratorPanelWithButton> {
+public class JobFilterPanel extends Composite implements HasWidgets, HasClickHandlers/*, HasChangeHandlers*/ {
+    interface TitledJobFilterPanelUiBinder extends UiBinder<HTMLPanel, JobFilterPanel> {
     }
 
-    private static TitledDecoratorPanelWithButtonUiBinder ourUiBinder = GWT.create(TitledDecoratorPanelWithButtonUiBinder.class);
+    private static TitledJobFilterPanelUiBinder ourUiBinder = GWT.create(TitledJobFilterPanelUiBinder.class);
 
-    public TitledDecoratorPanelWithButton() {
+    public JobFilterPanel() {
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 
@@ -56,7 +58,7 @@ public class TitledDecoratorPanelWithButton extends Composite implements HasWidg
      * @param buttonImage the button image
      */
     @UiConstructor
-    public TitledDecoratorPanelWithButton(String title, ImageResource buttonImage) {
+    public JobFilterPanel(String title, ImageResource buttonImage) {
         initWidget(ourUiBinder.createAndBindUi(this));
         setTitle(title);
         this.panel.setButtonImage(buttonImage);

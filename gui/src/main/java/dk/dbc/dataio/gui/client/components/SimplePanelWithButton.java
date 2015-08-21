@@ -46,7 +46,7 @@ public class SimplePanelWithButton extends Composite implements HasWidgets, HasC
     private static SimplePanelWithButtonUiBinder ourUiBinder = GWT.create(SimplePanelWithButtonUiBinder.class);
 
     @UiField PushButton button;
-    @UiField SimplePanel content;
+    protected @UiField SimplePanel content;
 
     /**
      * Default constructor, taking the button image as a parameter

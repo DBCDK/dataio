@@ -20,7 +20,5 @@
             </g:MenuItem>
         </g:MenuBar>
 
-        <g:Button ui:field="filterButton"><ui:text from="{txt.button_Filter}"/></g:Button>
-
     </g:HTMLPanel>
 </ui:UiBinder>

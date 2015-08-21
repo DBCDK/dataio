@@ -1,31 +1,28 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
-import com.google.gwt.user.client.ui.FlowPanel;
-import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
-import dk.dbc.dataio.gui.client.components.TitledDecoratorPanelWithButton;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * This is the base class for Job Filters
  */
-public abstract class BaseJobFilter extends Composite implements HasValue<JobListCriteriaModel>, HasChangeHandlers {
+public abstract class BaseJobFilter extends Composite implements HasChangeHandlers {
 
     protected Texts texts;
     protected Resources resources;
 
     protected final Widget thisAsWidget = this.asWidget();
-    protected FlowPanel parentPanel = null;
-    protected TitledDecoratorPanelWithButton decoratorPanel = null;
+    protected JobFilter parentJobFilter = null;
+    protected JobFilterPanel filterPanel = null;
     protected HandlerRegistration clickHandlerRegistration = null;
     protected JobListCriteriaModel jobListCriteriaModel = new JobListCriteriaModel();
 
@@ -49,14 +46,14 @@ public abstract class BaseJobFilter extends Composite implements HasValue<JobLis
 
     /**
      * This method codes the behavior when adding the actual Job Filter (activating the menu)
-     * @param parentContainer The container panel, where the actual Job Filter is added
+     * @param parentJobFilter The JobFilter, where the current JobFilter is being added to
      * @return The Scheduler command to be used, when adding the Job Filter
      */
-    public Scheduler.ScheduledCommand getAddCommand(final FlowPanel parentContainer) {
-        if (parentContainer == null) {
+    public Scheduler.ScheduledCommand getAddCommand(final JobFilter parentJobFilter) {
+        if (parentJobFilter == null) {
             return null;
         } else {
-            parentPanel = parentContainer;
+            this.parentJobFilter = parentJobFilter;
             return new Scheduler.ScheduledCommand() {
                 @Override
                 public void execute() {
@@ -68,20 +65,22 @@ public abstract class BaseJobFilter extends Composite implements HasValue<JobLis
 
     /**
      * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen.
-     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on the remove
-     * button will remove the filter.
+     * Apart from adding the Job Filter, two handlers are registered:
+     *  - A Click Handler is registered to assure, that a click on the remove button will remove the filter.
+     *  - A Change Handler is registered to signal changes in the Job Filter to the owner panel
      */
     public void addJobFilter() {
-        if (clickHandlerRegistration == null) {
-            decoratorPanel = new TitledDecoratorPanelWithButton(getName(), resources.deleteButton());
-            clickHandlerRegistration = decoratorPanel.addClickHandler(new ClickHandler() {
+        if (filterPanel == null) {
+            GWT.log("Add Job Filter: " + getName());
+            filterPanel = new JobFilterPanel(getName(), resources.deleteButton());
+            clickHandlerRegistration = filterPanel.addClickHandler(new ClickHandler() {
                 @Override
                 public void onClick(ClickEvent clickEvent) {
                     removeJobFilter();
                 }
             });
-            decoratorPanel.add(thisAsWidget);
-            parentPanel.add(decoratorPanel);
+            filterPanel.add(thisAsWidget);
+            parentJobFilter.add(this);
         }
     }
 
@@ -90,35 +89,21 @@ public abstract class BaseJobFilter extends Composite implements HasValue<JobLis
      * The associated Click Handler is de-registered to assure, that no ghost events will be triggered
      */
     public void removeJobFilter() {
-        if (clickHandlerRegistration != null) {
+        GWT.log("Remove Job Filter: " + getName());
+        if (filterPanel != null) {
             clickHandlerRegistration.removeHandler();
             clickHandlerRegistration = null;
-            if (parentPanel != null) {
-                parentPanel.remove(decoratorPanel);
-            }
+            filterPanel.clear();
+            parentJobFilter.remove(this);
         }
     }
 
-    /*
-     * Override HasValue Interface Methods
+    /**
+     * Gets the value of the current Job List Criteria Model
+     * @return The current value of the Job List Criteria Model
      */
-
-    @Override
     public JobListCriteriaModel getValue() {
         return jobListCriteriaModel;
-    }
-
-    @Override
-    public void setValue(JobListCriteriaModel model) {
-        jobListCriteriaModel = model;
-    }
-
-    @Override
-    public void setValue(JobListCriteriaModel model, boolean fireEvents) {
-        setValue(model);
-        if (fireEvents) {
-            ValueChangeEvent.fire(this, model);
-        }
     }
 
 }

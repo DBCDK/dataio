@@ -1,20 +1,18 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.HasClickHandlers;
-import com.google.gwt.event.logical.shared.ValueChangeHandler;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.Widget;
-import dk.dbc.dataio.gui.client.components.TitledDecoratorPanelWithButton;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 
 import java.util.Iterator;
@@ -26,9 +24,9 @@ import java.util.Iterator;
  *
  * <pre>
  * <code>
- * +---------------+    +---------+
- * | Tilføj Filter |    | Filtrér |
- * +---------------+    +---------+
+ * +---------------+
+ * | Tilføj Filter |
+ * +---------------+
  * }
  * </code>
  * </pre>
@@ -44,56 +42,102 @@ import java.util.Iterator;
  * </code>
  * </pre>
  */
-public class JobFilter extends Composite implements HasValue<JobListCriteriaModel>, HasClickHandlers {
+public class JobFilter extends Composite implements HasChangeHandlers {
     interface JobFilterUiBinder extends UiBinder<HTMLPanel, JobFilter> {
     }
 
     private static JobFilterUiBinder ourUiBinder = GWT.create(JobFilterUiBinder.class);
 
+    ChangeHandler changeHandler = null;
+
     @UiField FlowPanel jobFilterPanel;
     @UiField MenuBar filterMenu;
-    @UiField Button filterButton;
+
 
     /**
-     * Constructor
+     * Default empty Constructor
      */
+    @UiConstructor
     public JobFilter() {
         this(new JobFilterList());
     }
 
+    /**
+     * Constructor with list of Available Job Filters to be shown upon startup
+     * @param availableJobFilters The list of Available Job Filters
+     */
     public JobFilter(JobFilterList availableJobFilters) {
         initWidget(ourUiBinder.createAndBindUi(this));
         for (BaseJobFilter filter: availableJobFilters.getJobFilterList()) {
-            filterMenu.addItem(filter.getName(), filter.getAddCommand(jobFilterPanel));
+            filterMenu.addItem(filter.getName(), filter.getAddCommand(this));
         }
     }
 
 
     /*
-     * HasClickHandlers Interface Methods
+     * HasChangeHandlers Interface Methods
      */
 
+    /**
+     * Adds a change handler to be notified upon changes in the stored Job List Criteria Model
+     * @param changeHandler The change handler to be notified upon changes
+     * @return A Handler Registration object, to be used to remove the Change Handler
+     */
     @Override
-    public HandlerRegistration addClickHandler(ClickHandler clickHandler) {
-        return filterButton.addClickHandler(clickHandler);
+    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        this.changeHandler = changeHandler;
+        return new HandlerRegistration() {
+            @Override
+            public void removeHandler() {
+                removeChangeHandler();
+            }
+        };
     }
 
 
     /*
-     * Has Value Interface Methods
+     * Public Methods
      */
 
-    @Override
+    /**
+     * Adds a child Job Filter to the list of Job Filters
+     * @param jobFilter The job filter to add to the list of Job Filters
+     */
+    public void add(BaseJobFilter jobFilter) {
+        jobFilterPanel.add(jobFilter.filterPanel);
+        jobFilter.addChangeHandler(new ChangeHandler() {
+            @Override
+            public void onChange(ChangeEvent changeEvent) {
+                valueChanged();
+            }
+        });
+        valueChanged();  // Do assure, that whenever a filter is being applied, do the filtering
+    }
+
+    /**
+     * Removes a child Job Filter from the list of Job Filters
+     * @param jobFilter The job filter to remove from the list of Job Filters
+     */
+    public void remove(BaseJobFilter jobFilter) {
+        if (jobFilter.filterPanel != null) {
+            jobFilterPanel.remove(jobFilter.filterPanel);
+            jobFilter.filterPanel = null;
+        }
+        valueChanged();  // Do assure, that whenever a filter is being removed, do the filtering
+    }
+
+    /**
+     * Gets the current value of the Job List Criteria Model
+     * @return The current value of the Job List Criteria Model
+     */
     public JobListCriteriaModel getValue() {
         JobListCriteriaModel resultingJobListCriteriaModel = new JobListCriteriaModel();
 
         // Now do find all derivatives of the BaseJobFilter - eg SinkJobFilter, and get it's JobListCriteriaModel
-        Iterator<Widget> decoratorPanelIterator = jobFilterPanel.iterator();  // Outer level: Find TitledDecoratorPanelWithButton's
-        while (decoratorPanelIterator.hasNext()) {
-            Widget decoratorPanelWidget = decoratorPanelIterator.next();
-            if (decoratorPanelWidget instanceof TitledDecoratorPanelWithButton) {
-                TitledDecoratorPanelWithButton titledDecoratorPanelWithButton = (TitledDecoratorPanelWithButton) decoratorPanelWidget;
-                Iterator<Widget> baseJobFilterIterator = titledDecoratorPanelWithButton.iterator();  // Inner level: Find BaseJobFilter's - or any derivative
+        for (Widget decoratorPanelWidget : jobFilterPanel) {
+            if (decoratorPanelWidget instanceof JobFilterPanel) {
+                JobFilterPanel jobFilterPanel = (JobFilterPanel) decoratorPanelWidget;
+                Iterator<Widget> baseJobFilterIterator = jobFilterPanel.iterator();  // Inner level: Find BaseJobFilter's - or any derivative
                 if (baseJobFilterIterator.hasNext()) {
                     Widget baseJobFilterWidget = baseJobFilterIterator.next();
                     if (baseJobFilterWidget instanceof BaseJobFilter) {
@@ -107,28 +151,20 @@ public class JobFilter extends Composite implements HasValue<JobListCriteriaMode
         return resultingJobListCriteriaModel;
     }
 
-    @Override
-    public void setValue(JobListCriteriaModel s) {
-        // No implementation - it makes no sense
-    }
 
-    @Override
-    public void setValue(JobListCriteriaModel s, boolean b) {
-        // No implementation - it makes no sense
-    }
-
-    @Override
-    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<JobListCriteriaModel> valueChangeHandler) {
-        return null;
-    }
-
-
-    /**
-     * Enable or disable the filter button
-     * @param enable True: enable button, false: disable button
+    /*
+     * Private methods and classes
      */
-    public void enableFilterButton(boolean enable) {
-        this.filterButton.setEnabled(enable);
+    private void removeChangeHandler() {
+        changeHandler = null;
+    }
+
+    class JobFilterChangeEvent extends ChangeEvent {}
+
+    void valueChanged() {
+        if (changeHandler != null) {
+            changeHandler.onChange(new JobFilterChangeEvent());
+        }
     }
 
 }

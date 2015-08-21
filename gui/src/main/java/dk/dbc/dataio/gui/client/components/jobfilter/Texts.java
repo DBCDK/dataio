@@ -10,11 +10,6 @@ public interface Texts extends Constants{
     String text_Filter();
 
 
-    // Button texts
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Filter();
-
-
     // Other texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_AddFilter();

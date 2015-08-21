@@ -19,14 +19,17 @@ def parse_arguments():
     parser.add_argument("--limit", help="limit number of jobs to list", type=int, default=0)
     parser.add_argument("--offset", help="start from offset ", type=int, default=0)
     parser.add_argument("--submitter", help="only show for a given submitter")
+    parser.add_argument("--count", help="count the jobs serverside", nargs="?", default=False, const=True)
 
     args = parser.parse_args()
 
 
 parse_arguments()
 
-print()
 url="http://"+args.host+"/dataio/job-store-service/jobs/searches"
+if args.count :
+    url=url+"/count"
+
 
 search_arguments={
    "limit": args.limit, "offset": args.offset,

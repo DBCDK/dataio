@@ -23,6 +23,8 @@ import java.util.List;
  * This is the Sink Job Filter
  */
 public class SinkJobFilter extends BaseJobFilter {
+    final String NO_SINK_ID_SELECTED = "0";  // Setting SinkId to zero means no filtering
+
     interface SinkJobFilterUiBinder extends UiBinder<HTMLPanel, SinkJobFilter> {
     }
 
@@ -55,7 +57,7 @@ public class SinkJobFilter extends BaseJobFilter {
      */
     @UiHandler("sinkList")
     void filterSelectionChanged(ValueChangeEvent<String> event) {
-        jobListCriteriaModel.setSinkId(sinkList.getSelectedKey());
+        setSinkId(sinkList.getSelectedKey());
     }
 
     /**
@@ -78,7 +80,7 @@ public class SinkJobFilter extends BaseJobFilter {
     }
 
     /*
-     * Private classes
+     * Private
      */
 
     /**
@@ -90,12 +92,17 @@ public class SinkJobFilter extends BaseJobFilter {
         }
         @Override
         public void onSuccess(List<SinkModel> models) {
+            sinkList.addAvailableItem(texts.sinkFilter_ChooseASinkName(), NO_SINK_ID_SELECTED);
             for (SinkModel model: models) {
                 sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
             }
-            jobListCriteriaModel.setSinkId(sinkList.getSelectedKey());
+            setSinkId(sinkList.getSelectedKey());
             sinkList.setEnabled(true);
         }
+    }
+
+    private void setSinkId(String sinkId) {
+        jobListCriteriaModel.setSinkId(sinkId);
     }
 
 }

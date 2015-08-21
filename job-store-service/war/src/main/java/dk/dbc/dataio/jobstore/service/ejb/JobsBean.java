@@ -199,6 +199,34 @@ public class JobsBean {
     }
 
     /**
+     * Retrieves job listing from the underlying data store determined by given search criteria
+     * @param jobListCriteriaData JSON representation of JobListCriteria
+     * @return a HTTP 200 OK response with list of JobInfoSnapshots for selected jobs,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * @throws JSONBException on marshalling failure
+     */
+    @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response countJobs(String jobListCriteriaData) throws JSONBException {
+        try {
+            final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
+            final long count = jobStore.countJobs(jobListCriteria);
+            return Response.ok().entity(jsonbContext.marshall(count)).build();
+        } catch (JSONBException e) {
+            LOGGER.warn("Bad request: {}", e.getMessage());
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+
+
+    /**
      * Retrieves item listing from the underlying data store determined by given search criteria
      * @param itemListCriteriaData JSON representation of ItemListCriteria
      * @return a HTTP 200 OK response with list of ItemInfoSnapshots for selected items,

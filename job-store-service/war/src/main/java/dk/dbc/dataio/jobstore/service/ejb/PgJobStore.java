@@ -307,6 +307,14 @@ public class PgJobStore {
         return new JobListQuery(entityManager).execute(criteria);
     }
 
+
+    @Stopwatch
+    public long countJobs(JobListCriteria criteria) throws NullPointerException {
+        InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+        return new JobListQuery(entityManager).execute_count(criteria);
+    }
+
+
     /**
      * Creates chunk collision detection element listing based on given criteria
      * @param criteria chunk listing criteria

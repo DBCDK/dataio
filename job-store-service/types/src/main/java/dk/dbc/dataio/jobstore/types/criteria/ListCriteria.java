@@ -95,6 +95,10 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
         return (U)this;
     }
 
+    public void removeOrderBy() {
+        ordering = new ArrayList<>();
+    }
+
     public int getLimit() {
         return limit;
     }

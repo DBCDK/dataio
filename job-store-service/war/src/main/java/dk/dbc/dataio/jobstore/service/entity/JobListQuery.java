@@ -20,6 +20,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
     /* How fragile is this with regards to schema changes for table columns?
      */
     static final String QUERY_BASE = "SELECT * FROM job";
+    static final String QUERY_COUNT_BASE = "SELECT count(*) FROM job";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobListQuery.class);
 
@@ -65,5 +66,26 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
             jobInfoSnapshots.add(JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity));
         }
         return jobInfoSnapshots;
+    }
+
+    /**
+     * Creates and executes job count query with given criteria
+     *
+     * @param criteria query criteria
+     * @return list of information snapshots for selected jobs
+     * @throws NullPointerException if given null-valued criteria argument
+     * @throws PersistenceException if unable to execute query
+     */
+    public long execute_count(JobListCriteria criteria) throws NullPointerException, PersistenceException {
+        final String query = buildCountQueryString(QUERY_COUNT_BASE, criteria);
+        LOGGER.debug("query = {}", query);
+        final Query listJobQuery = entityManager.createNativeQuery(query);
+        setParameters(listJobQuery, criteria);
+
+        /* We can not utilise @SqlResultSetMapping to map directly to JobInfoSnapshot
+           since we have no way to convert our complex JSON types into their corresponding POJOs */
+
+        final Long jobs = (Long) listJobQuery.getSingleResult();
+        return jobs;
     }
 }

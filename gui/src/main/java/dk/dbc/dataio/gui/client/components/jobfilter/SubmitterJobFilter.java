@@ -11,6 +11,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
@@ -48,6 +49,16 @@ public class SubmitterJobFilter extends BaseJobFilter {
         jobListCriteriaModel.setSubmitter(submitter.getValue());
     }
 
+    /**
+     * Gets the value of the current Job List Criteria Model
+     * @return The current value of the Job List Criteria Model
+     */
+    public JobListCriteriaModel getValue() {
+        JobListCriteriaModel jobListCriteriaModel=new JobListCriteriaModel();
+        jobListCriteriaModel.setSubmitter(submitter.getValue());
+        return jobListCriteriaModel;
+    }
+
 
     @Override
     public String getName() {
@@ -58,5 +69,6 @@ public class SubmitterJobFilter extends BaseJobFilter {
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
         return submitter.addChangeHandler( changeHandler );
     }
+
 
 }

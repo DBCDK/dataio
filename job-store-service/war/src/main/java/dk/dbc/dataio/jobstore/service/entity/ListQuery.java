@@ -47,6 +47,15 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
         return queryString.toString();
     }
 
+
+    /* Builds and returns query expression as string
+         */
+    protected String buildCountQueryString(String queryBase, T criteria) throws NullPointerException {
+        final StringBuilder queryString = new StringBuilder(queryBase);
+        addWhereClauses(queryString, criteria.getFiltering());
+        return queryString.toString();
+    }
+
     /* Binds field values extracted from given criteria to positional parameter to prevent SQL injection attacks
      */
     protected void setParameters(Query query, T criteria) {

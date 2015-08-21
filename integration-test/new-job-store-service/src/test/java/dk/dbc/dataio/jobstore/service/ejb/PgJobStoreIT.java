@@ -914,6 +914,38 @@ public class PgJobStoreIT {
     }
 
     /**
+     * Given: a job store containing a number of jobs
+     * When : requesting a job count with a criteria selecting a subset of the jobs
+     * Then : only the filtered snapshots are counted and orderby/offset is ignored
+     */
+    @Test
+    public void countJobs() throws JobStoreException, FileStoreServiceConnectorException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        setupExpectationOnGetByteSize();
+        final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
+
+        // When...
+        final JsonObject jsonValue = Json.createObjectBuilder()
+                .add("destination", snapshots.get(0).getSpecification().getDestination())
+                .add("type", snapshots.get(0).getSpecification().getType().name())
+                .build();
+
+        final JobListCriteria jobListCriteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonValue.toString()))
+                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
+                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()))
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC))
+                .limit(1).offset(12);
+
+        final long count= pgJobStore.countJobs(jobListCriteria);
+
+        // Then...
+        assertThat( count, is(2L));
+    }
+
+
+    /**
      * Given    : a job store containing a number of jobs, where one has failed during delivering
      * When     : requesting a job listing with a criteria selecting only jobs failed in processing
      * Then     : no snapshots are returned.

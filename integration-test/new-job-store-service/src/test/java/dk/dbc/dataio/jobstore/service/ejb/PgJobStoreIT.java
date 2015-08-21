@@ -83,6 +83,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.dataio.jobstore.types.Diagnostic.Level.FATAL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
@@ -92,6 +93,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -99,6 +101,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreIT {
+
+    private static final long SLEEP_INTERVAL_IN_MS = 1000;
+    private static final long MAX_WAIT_IN_MS = 10000;
+
     public static final String DATABASE_NAME = "jobstore";
     public static final String JOB_TABLE_NAME = "job";
     public static final String CHUNK_TABLE_NAME = "chunk";
@@ -396,12 +402,12 @@ public class PgJobStoreIT {
      * And  : no entities are created
      */
     @Test
-    public void addAndScheduleJob_differentByteSize_throws() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void addAndScheduleJob_differentByteSize_throws() throws SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int expectedNumberOfJobs = 0;
-        final int expectedNumberOfChunks = 0;
-        final int expectedNumberOfItems = 0;
+        final int expectedNumberOfJobs = 1;
+        final int expectedNumberOfChunks = 2;
+        final int expectedNumberOfItems = 11;
         final long fileStoreByteSize = 42;
 
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
@@ -414,24 +420,66 @@ public class PgJobStoreIT {
         // Set up mocked return for different byte sizes
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(fileStoreByteSize);
 
-        try {
-            // When...
-            final EntityTransaction jobTransaction = entityManager.getTransaction();
-            jobTransaction.begin();
-            pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
-            jobTransaction.commit();
-            fail();
+        // When...
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
+        jobTransaction.commit();
 
-            // Then...
-        } catch (JobStoreException e) {
+        final JobInfoSnapshot jobInfoSnapshotAfterWait = waitForJobCompletion(jobInfoSnapshot.getJobId(), pgJobStore);
+        assertTrue(!jobInfoSnapshotAfterWait.getState().getDiagnostics().isEmpty());
+        final Diagnostic diagnostic = jobInfoSnapshotAfterWait.getState().getDiagnostics().get(0);
+        assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
 
-            // And...
-            assertThat("DataPartitioner.byteSize was: " + dataPartitionerByteSize + ". FileStore.byteSize was: " + fileStoreByteSize, e.getMessage().contains("Error reading data file"), is(true));
 
-            // And...
-            assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
-        }
+        // And...
+        final String expectedStacktrace = "DataPartitioner.byteSize was: " + dataPartitionerByteSize + ". FileStore.byteSize was: " + fileStoreByteSize;
+        assertThat(expectedStacktrace, diagnostic.getStacktrace().contains("Error reading data file"), is(true));
+
+        // And...
+        assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
     }
+
+    private JobInfoSnapshot waitForJobCompletion(long jobId, PgJobStore pgJobStore) {
+        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+        JobInfoSnapshot jobInfoSnapshot = null;
+        // Wait for Job-completion
+        long remainingWaitInMs = MAX_WAIT_IN_MS;
+
+        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - waiting in MAX milliseconds: " + MAX_WAIT_IN_MS);
+        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
+
+
+        while ( remainingWaitInMs > 0 ) {
+            LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
+
+            jobInfoSnapshot = pgJobStore.listJobs(criteria).get(0);
+            if (phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
+                break;
+            } else {
+                try {
+                    Thread.sleep(SLEEP_INTERVAL_IN_MS);
+                    remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;
+                } catch (InterruptedException ex) {
+                    break;
+                }
+            }
+        }
+        if (!phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
+            throw new IllegalStateException(String.format("Job %d did not complete successfully in time",
+                    jobInfoSnapshot.getJobId()));
+        }
+
+        return jobInfoSnapshot;
+    }
+
+    private boolean phasePartitioningDoneSuccessfully(JobInfoSnapshot jobInfoSnapshot) {
+        final State state = jobInfoSnapshot.getState();
+        return state.phaseIsDone(State.Phase.PARTITIONING);
+    }
+
+
+
 
     /**
      * Given: an empty jobstore

@@ -1,14 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import net.logstash.logback.encoder.org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.Test;
 
 import javax.persistence.LockModeType;
@@ -59,62 +56,6 @@ public class PgJobStore_AddAndScheduleJobTest extends PgJobStoreBaseTest {
             assertThat(jobInfoSnapshotReturned, is(notNullValue()));
         } catch(JobStoreException e) {
             fail("Exception thrown by addAndScheduleJob()");
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_differentByteSize_throwsJobStoreException() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(getXml().getBytes(StandardCharsets.UTF_8));
-
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(42L);
-
-        try {
-            pgJobStore.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {
-
-            if(! (e.getCause() instanceof IOException) ) {
-                fail("Exception was correctly thrown but not of IOException as expected!");
-            }
-            final String message = ExceptionUtils.getStackTrace(e);
-            if(! (message.contains("DataPartitioner.byteSize was:") && message.contains("FileStore.byteSize was:")) ) {
-                fail("Exception was correctly thrown but does not contain correct message!");
-            }
-        }
-    }
-
-    @Test
-    public void addAndScheduleJob_byteSizeNotFound_throwsJobStoreException() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
-        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(getXml().getBytes(StandardCharsets.UTF_8));
-
-        setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
-
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
-        try {
-            pgJobStore.addAndScheduleJob(jobInputStream);
-            fail("No exception thrown by addAndScheduleJob()");
-        } catch(JobStoreException e) {
-
-            if(e.getCause() instanceof FileStoreServiceConnectorUnexpectedStatusCodeException) {
-
-                final FileStoreServiceConnectorUnexpectedStatusCodeException cause = (FileStoreServiceConnectorUnexpectedStatusCodeException) e.getCause();
-                if(cause.getStatusCode() != 400) {
-                    fail("HTTP code 400 expected because: FilesBean.getByteSize return HTTP code 400 -> BAD_REQUEST response in case the file id is not a number!");
-                }
-
-            } else {
-                fail("Exception cause is not of type FileStoreServiceConnectorUnexpectedStatusCodeException as expected!");
-            }
         }
     }
 

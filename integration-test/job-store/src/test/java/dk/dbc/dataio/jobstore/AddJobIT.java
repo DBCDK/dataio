@@ -12,6 +12,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -20,6 +22,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class AddJobIT extends AbstractJobStoreTest {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddJobIT.class);
 
     private static final long SLEEP_INTERVAL_IN_MS = 1000;
     private static final long MAX_WAIT_IN_MS = 10000;
@@ -74,12 +78,12 @@ public class AddJobIT extends AbstractJobStoreTest {
         // Wait for Job-completion
         long remainingWaitInMs = MAX_WAIT_IN_MS;
 
-        System.out.println("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - waiting in MAX milliseconds: " + MAX_WAIT_IN_MS);
-        System.out.println("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
+        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - waiting in MAX milliseconds: " + MAX_WAIT_IN_MS);
+        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
 
 
         while ( remainingWaitInMs > 0 ) {
-            System.out.println("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
+            LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
 
             jobInfoSnapshot = jobStoreServiceConnector.listJobs(criteria).get(0);
             if (phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {

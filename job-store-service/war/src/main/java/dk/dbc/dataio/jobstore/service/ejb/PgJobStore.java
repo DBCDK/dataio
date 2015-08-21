@@ -78,6 +78,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
+import static dk.dbc.dataio.jobstore.types.Diagnostic.Level.FATAL;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -186,12 +187,21 @@ public class PgJobStore {
         entityManager.flush();
         logTimerMessage(jobEntity);
 
-        // Important that this is done after partitioning is done otherwise DataPartitioner is not updated with file info - hence filesize is 0.
+        /*
+            Important that this is done after partitioning is done otherwise DataPartitioner is not updated with file info - hence filesize is 0.
+            & it is also important that catching all possible exceptions and set diagnostics otherwise the transaction is rolled back hence state will be incorrect!
+        */
         if (!jobEntity.getState().fatalDiagnosticExists()) {
             try {
                 compareByteSize(addJobParam.getDataFileId(), addJobParam.getDataPartitioner());
-            } catch (IOException e) {
-                throw new JobStoreException("Error reading data file", e);
+            } catch (Exception exception) {
+                final String diagnosticMessageOnJobLevel = String.format("Partitioning succeeded but validation 'compareByteSize' failed: %s", exception.getMessage());
+                final Diagnostic diagnostic = new Diagnostic(FATAL, diagnosticMessageOnJobLevel, exception);
+
+                abortDiagnostics.add(diagnostic);
+                if (!abortDiagnostics.isEmpty()) {
+                    abortJob(jobEntity, abortDiagnostics);
+                }
             }
         }
 

@@ -33,10 +33,13 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.jobstore.types.Diagnostic.Level.FATAL;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -48,13 +51,56 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     private static final int EXPECTED_NUMBER_OF_CHUNKS = 2;
 
     @Test
+    public void handlePartitioning_byteSizeNotFound_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+
+        JobEntity jobEntity = pgJobStore.createJobEntity(mockedAddJobParam);
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
+
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
+
+        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+
+        final Diagnostic diagnostic = jobEntity.getState().getDiagnostics().get(0);
+        final String diagnosticsStacktrace = diagnostic.getStacktrace();
+        assertTrue(!jobEntity.getState().getDiagnostics().isEmpty());
+        assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
+        assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("Caused by: dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException: unexpected status code"));
+        assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("dk.dbc.dataio.jobstore.types.JobStoreException: Could not retrieve byte size"));
+
+    }
+
+    @Test
+    public void handlePartitioning_differentByteSize_returnsSnapshotWithJobMarkedAsCompletedAndDiagnosticsAdded() throws JobStoreException, FileStoreServiceConnectorException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+
+        JobEntity jobEntity = pgJobStore.createJobEntity(mockedAddJobParam);
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999l);
+
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
+
+        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+
+        final Diagnostic diagnostic = jobEntity.getState().getDiagnostics().get(0);
+        final String diagnosticsMessage = diagnostic.getMessage();
+        assertTrue(!jobEntity.getState().getDiagnostics().isEmpty());
+        assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
+        assertThat("Diagnostics message", diagnosticsMessage, containsString("DataPartitioner.byteSize was:"));
+        assertThat("Diagnostics message", diagnosticsMessage, containsString("FileStore.byteSize was:"));
+    }
+
+
+    @Test
     public void handlePartitioning_diagnosticWithLevelFatalFound_returnsJobInformationSnapshotWithJobMarkedAsCompleted() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore();
 
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, ERROR_MESSAGE)));
 
-        //OLD JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
         JobEntity jobEntity = pgJobStore.createJobEntity(mockedAddJobParam);
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
@@ -67,7 +113,6 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    //Error reading data file {42}. DataPartitioner.byteSize was: 269. FileStore.byteSize was: 0
     public void handlePartitioning_allArgsAreValid_returnsJobInformationSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
         final PgJobStore pgJobStore = newPgJobStore();
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
@@ -90,7 +135,6 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269l);
 
 
-        // OLD final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -129,7 +173,6 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269l);
 
-        // OLD final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));

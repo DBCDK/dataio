@@ -18,17 +18,9 @@ import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -36,13 +28,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
@@ -61,7 +51,6 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class EsMessageProcessorBeanTest {
-    private static final int RECORDS_CAPACITY = 1;
     private static final String ES_DATABASE_NAME = "dbname";
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private static final String PROCESSING_TAG = "dataio:sink-processing";
@@ -144,15 +133,15 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void getEsWorkloadFromChunkResult_chunkResultArgIsNonEmpty_returnsEsWorkload() throws SinkException {
-        final String validAddiProcessingFalse = getValidAddiWithProcessingFalse();
-        final String validAddiProcessingTrue = getValidAddiWithProcessingTrueAndValidMarcXContentData();
-        final String validAddiWithoutProcessing = getValidAddiWithoutProcessing();
-        final String validAddiProcessingTrueInvalidMarcX = getValidAddiWithProcessingTrueAndInvalidMarcXContentData();
+        final byte[] validAddiProcessingFalse = AddiRecordPreprocessorTest.getValidAddiWithProcessingFalse();
+        final byte[] validAddiProcessingTrue = AddiRecordPreprocessorTest.getValidAddiWithProcessingTrueAndValidMarcXContentData();
+        final byte[] validAddiWithoutProcessing = AddiRecordPreprocessorTest.getValidAddiWithoutProcessing();
+        final byte[] validAddiProcessingTrueInvalidMarcX = AddiRecordPreprocessorTest.getValidAddiWithProcessingTrueAndInvalidMarcXContentData();
 
         final ArrayList<ChunkItem> chunkItems = new ArrayList<>();
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(0)
-                .setData(StringUtil.asBytes(validAddiWithoutProcessing))
+                .setData(validAddiWithoutProcessing)
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // ignored by processor
@@ -170,7 +159,7 @@ public class EsMessageProcessorBeanTest {
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(4)
-                .setData(StringUtil.asBytes(validAddiWithoutProcessing))
+                .setData(validAddiWithoutProcessing)
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces empty addi
@@ -180,17 +169,17 @@ public class EsMessageProcessorBeanTest {
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // sink processing removed from meta data and processed successfully
                 .setId(6)
-                .setData(StringUtil.asBytes(validAddiProcessingFalse))
+                .setData(validAddiProcessingFalse)
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               //sink processing removed from meta data, content data converted to iso2709 and processed successfully
                 .setId(7)
-                .setData(StringUtil.asBytes(validAddiProcessingTrue))
+                .setData(validAddiProcessingTrue)
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
         chunkItems.add(new ChunkItemBuilder()
                 .setId(8)
-                .setData(StringUtil.asBytes(validAddiProcessingTrueInvalidMarcX))
+                .setData(validAddiProcessingTrueInvalidMarcX)
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
 
@@ -271,7 +260,7 @@ public class EsMessageProcessorBeanTest {
                     .setData(StringUtil.asBytes(getResourceAsString(resourceName)))
                     .build();
             return JsonUtil.toJson(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
-                    .setItems(Arrays.asList(item))
+                    .setItems(Collections.singletonList(item))
                     .build());
         } catch (JsonException e) {
             throw new IllegalStateException(e);
@@ -292,169 +281,6 @@ public class EsMessageProcessorBeanTest {
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, payloadType);
         textMessage.setText(payload);
         return textMessage;
-    }
-
-    @Test
-    public void removeNodeFromDom_processingTagIsSetWithValueFalse_tagIsRemovedAndNewMetaDataReturned() throws IOException, TransformerException, SAXException {
-        final String validAddi = getValidAddiWithProcessingFalse();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord.getMetaData());
-        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
-        assertThat(nodeList.getLength(), is(1));
-
-        esMessageProcessorBean.removeNodeFromDom(nodeList.item(0));
-        assertThat(nodeList.getLength(), is(0));
-    }
-
-    @Test
-    public void removeNodeFromDom_processingTagIsSetWithValueTrue_tagIsRemovedAndNewMetaDataReturned() throws TransformerException, SAXException, IOException {
-        final String validAddi = getValidAdiWithProcessingTrue();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord.getMetaData());
-        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
-        assertThat(nodeList.getLength(), is(1));
-        esMessageProcessorBean.removeNodeFromDom(nodeList.item(0));
-        assertThat(nodeList.getLength(), is(0));
-    }
-
-    @Test
-    public void do2709Encoding_tagIsSetWithValueTrue_returnsTrue() throws IOException, SAXException {
-        final String validAddi = getValidAdiWithProcessingTrue();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord.getMetaData());
-        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
-        assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(true));
-    }
-
-    @Test
-    public void do2709Encoding_tagIsSetWithValueFalse_returnsFalse() throws IOException, SAXException {
-        final String validAddi = getValidAddiWithProcessingFalse();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord.getMetaData());
-        NodeList nodeList = document.getElementsByTagName(PROCESSING_TAG);
-        assertThat(esMessageProcessorBean.do2709Encoding(nodeList), is(false));
-    }
-
-    @Test
-    public void getDocument_bytesAreConverted_documentIsReturned() throws IOException, SAXException {
-        final String validAddi = getValidAddiWithProcessingFalse();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = esMessageProcessorBean.getDocument(addiRecord.getMetaData());
-        assertThat(document, not(nullValue()));
-    }
-
-    @Test
-    public void getDocument_invalidAddi_throws() throws IOException, SAXException {
-        final String validAddi = getValidAddiWithoutProcessing();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        try {
-            esMessageProcessorBean.getDocument(addiRecord.getContentData());
-            fail();
-        } catch (SAXException e) {}
-    }
-
-    @Test
-    public void domToByteArray_documentIsConvertedToByteArray_byteArrayReturned () throws IOException, SAXException, TransformerException {
-        final String validAddi = getValidAdiWithProcessingTrue();
-        final ChunkItem chunkItem = getChunkItem(validAddi, ChunkItem.Status.SUCCESS);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        Document document = getDocument(addiRecord.getMetaData());
-        assertThat(esMessageProcessorBean.domToByteArray(document), not(nullValue()));
-    }
-
-    private ChunkItem getChunkItem(String validAddi, ChunkItem.Status status) {
-        return new ChunkItemBuilder()  // processed successfully
-                .setId(0)
-                .setData(StringUtil.asBytes(validAddi))
-                .setStatus(status)
-                .build();
-    }
-
-    private Document getDocument(byte[] byteArray) throws IOException, SAXException {
-        final DocumentBuilder builder = getDocumentBuilder();
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
-        return builder.parse(byteArrayInputStream);
-    }
-
-    private DocumentBuilder getDocumentBuilder() {
-        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        try {
-            return documentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private String getValidAddiWithProcessingFalse() {
-        return "236\n" +
-                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"false\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>\n1\nb\n";
-    }
-
-    private String getValidAddiWithoutProcessing() {
-        return "131\n" +
-                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "</es:referencedata>\n1\nb\n";
-    }
-
-    private String getValidAdiWithProcessingTrue() {
-        return "235\n" +
-                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>\n1\nb\n";
-    }
-
-    private String getValidAddiWithProcessingTrueAndInvalidMarcXContentData() {
-        return "235\n" +
-                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>" +
-                "\n238\n" +
-                "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\"><marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "<marcx:subfield code=\"a\">title1</marcx:subfield></marcx:datafield>" +
-                "</marcx:record>" +
-                "</marcx:collection>" +
-                "\n";
-    }
-
-    private String getValidAddiWithProcessingTrueAndValidMarcXContentData() {
-        return "235\n" +
-                "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" encodeAs2709=\"true\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>" +
-                "\n506\n" +
-                "<marcx:record xmlns:marcx='info:lc/xmlns/marcxchange-v1'>" +
-                "<marcx:leader>00000n    2200000   4500</marcx:leader>" +
-                "<marcx:datafield tag='100' ind1='0' ind2='0'>" +
-                "<marcx:subfield code='a'>field1</marcx:subfield>" +
-                "<marcx:subfield code='b'/>" +
-                "<marcx:subfield code='d'>Field2</marcx:subfield>" +
-                "</marcx:datafield><marcx:datafield tag='101' ind1='1' ind2='2'>" +
-                "<marcx:subfield code='h'>est</marcx:subfield>" +
-                "<marcx:subfield code='k'>o</marcx:subfield>" +
-                "<marcx:subfield code='G'>ris</marcx:subfield>" +
-                "</marcx:datafield></marcx:record>\n";
     }
 
     private static class TestableMessageConsumerBean extends EsMessageProcessorBean {

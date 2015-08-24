@@ -132,7 +132,7 @@ public class SinksBeanTest {
         Response response = sinksBean.getSink(ID);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
-        JsonNode entityNode = JsonUtil.getJsonRoot((String)response.getEntity());
+        JsonNode entityNode = JsonUtil.getJsonRoot((String) response.getEntity());
         assertThat(entityNode.get("content").get("name").textValue(), is(sinkName));
         assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
     }
@@ -175,6 +175,33 @@ public class SinksBeanTest {
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getEntityTag().getValue(), is(ETAG_VALUE));
+    }
+
+
+    @Test
+    public void deleteSink_sinkNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(null);
+
+        final Response response = sinksBean.deleteSink(ID, VERSION);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void deleteSink_sinkFound_returnsResponseWithHttpStatusOk_returnsNoContentHttpResponse() throws JsonException, ReferencedEntityNotFoundException {
+        final Sink sink = mock(Sink.class);
+        final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
+
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(sink)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(Sink.class), any())).thenReturn(sink);
+        when(ENTITY_MANAGER.merge(any(Sink.class))).thenReturn(sink);
+
+        final Response response = sinksBean.deleteSink(ID, VERSION);
+
+        verify(sink).setVersion(VERSION);
+        verify(ENTITY_MANAGER).remove(sink);
+        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
     @Test

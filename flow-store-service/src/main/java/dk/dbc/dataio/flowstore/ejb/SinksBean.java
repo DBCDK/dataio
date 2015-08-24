@@ -12,6 +12,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -136,6 +137,41 @@ public class SinksBean {
                 .entity(sinkJson)
                 .tag(updatedSink.getVersion().toString())
                 .build();
+    }
+
+    /**
+     * Deletes an existing sink
+     *
+     * @param sinkId The Sink ID
+     * @param version The version of the sink
+     *
+     * @return a HTTP 204 response with no content,
+     *         a HTTP 404 response in case of Sink ID not found,
+     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     *         a HTTP 500 response in case of general error.
+     */
+    @DELETE
+    @Path(FlowStoreServiceConstants.SINK)
+    public Response deleteSink(
+            @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long sinkId,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
+
+        final Sink sinkEntity = entityManager.find(Sink.class, sinkId);
+
+        if(sinkEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // First we need to update the version no to see if any Optimistic Locking occurs!
+        entityManager.detach(sinkEntity);
+        sinkEntity.setVersion(version);
+        Sink versionUpdatedAndNoOptimisticLocking = entityManager.merge(sinkEntity);
+
+        // If no Optimistic Locking - delete it!
+        entityManager.remove(versionUpdatedAndNoOptimisticLocking);
+        entityManager.flush();
+
+        return Response.noContent().build();
     }
 
 

@@ -188,7 +188,7 @@ public class SinksBeanTest {
     }
 
     @Test
-    public void deleteSink_sinkFound_returnsResponseWithHttpStatusOk_returnsNoContentHttpResponse() throws JsonException, ReferencedEntityNotFoundException {
+    public void deleteSink_sinkFound_returnsNoContentHttpResponse() throws JsonException, ReferencedEntityNotFoundException {
         final Sink sink = mock(Sink.class);
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
 

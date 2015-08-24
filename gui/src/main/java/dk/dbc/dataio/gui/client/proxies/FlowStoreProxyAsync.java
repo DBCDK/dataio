@@ -39,6 +39,7 @@ public interface FlowStoreProxyAsync {
     // Sinks
     void createSink(SinkModel model, AsyncCallback<SinkModel> async);
     void updateSink(SinkModel model, AsyncCallback<SinkModel> async);
+    void deleteSink(long sinkId, long version, AsyncCallback<Void> async);
     void findAllSinks(AsyncCallback<List<SinkModel>> async);
     void getSink(Long id, AsyncCallback<SinkModel> async);
 

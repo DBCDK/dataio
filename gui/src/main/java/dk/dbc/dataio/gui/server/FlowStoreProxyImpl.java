@@ -424,6 +424,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public void deleteSink(long sinkId, long version) throws NullPointerException, ProxyException {
+        final String callerMethodName = "deleteSink";
+        log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", sinkId, version);
+        try {
+            flowStoreServiceConnector.deleteSink(sinkId, version);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
+    @Override
     public List<SinkModel> findAllSinks() throws ProxyException {
         final String callerMethodName = "findAllSinks";
         List<Sink> sinks = null;

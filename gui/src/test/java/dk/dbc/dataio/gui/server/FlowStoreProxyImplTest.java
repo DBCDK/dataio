@@ -57,6 +57,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -331,6 +332,50 @@ public class FlowStoreProxyImplTest {
         try {
             flowStoreProxy.updateSink(model);
             fail("No " + expectedErrorName + " error was thrown by updateSink()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    /*
+     * Test deleteSink
+     */
+
+    @Test
+    public void deleteSink_remoteServiceReturnsHttpStatusNoContent() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        try {
+            flowStoreProxy.deleteSink(ID, 1L);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: deleteSink()");
+        }
+    }
+
+    @Test
+    public void deleteSink_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        deleteSink_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void deleteSink_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        deleteSink_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void deleteSink_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        deleteSink_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    private void deleteSink_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        doThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("msg", errorCodeToReturn)).when(flowStoreServiceConnector).deleteSink(eq(ID), (eq(1L)));
+        try {
+            flowStoreProxy.deleteSink(ID, 1);
+            fail("No " + expectedErrorName + " error was thrown by deleteSink()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
         }

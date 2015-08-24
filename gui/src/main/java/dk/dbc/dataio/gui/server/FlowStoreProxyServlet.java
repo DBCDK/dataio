@@ -149,6 +149,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public void deleteSink(long sinkId, long version) throws NullPointerException, ProxyException {
+        flowStoreProxy.deleteSink(sinkId, version);
+    }
+
+    @Override
     public List<SinkModel> findAllSinks() throws ProxyException {
         return flowStoreProxy.findAllSinks();
     }

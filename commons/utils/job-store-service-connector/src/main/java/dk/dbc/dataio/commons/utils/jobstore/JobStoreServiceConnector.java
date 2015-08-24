@@ -169,6 +169,31 @@ public class JobStoreServiceConnector {
     }
 
     /**
+     * Retrieves job listing determined by given search criteria from the job-store
+     * @param criteria list criteria
+     * @return list of selected job info snapshots
+     * @throws NullPointerException when given null-valued criteria argument
+     * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
+     */
+    public int countJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: listJobs();");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT);
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                Long res=readResponseEntity(response, new GenericType<Long>() {
+                });
+                return (int) res.longValue();
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: listJobs took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+    /**
      * Retrieves item listing determined by given search criteria from the job-store
      * @param criteria list criteria
      * @return list of selected item info snapshots

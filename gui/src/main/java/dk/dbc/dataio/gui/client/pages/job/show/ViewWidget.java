@@ -51,17 +51,17 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
         pagerTop.firstPage();
-        presenter.fetchSelectedJobs();
+        presenter.updateSelectedJobs();
     }
 
     @UiHandler("jobFilter")
     void jobFilterChanged(ChangeEvent event) {
-        presenter.fetchSelectedJobs();
+        presenter.updateSelectedJobs();
     }
 
     @UiHandler("refreshButton")
     void refreshButtonPressed(ClickEvent event) {
-        presenter.fetchSelectedJobs();
+        presenter.refresh();
     }
 
     /**

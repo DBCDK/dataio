@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -74,10 +73,14 @@ public class PresenterImplTest {
             super(clientFactory);
             view = mockedView;
         }
+
         @Override
-        protected void fetchJobsFromJobStore(JobListCriteriaModel model) {
+        protected void updateBaseQuery() {
+            JobListCriteriaModel model=new JobListCriteriaModel();
+            model.getJobTypes().remove(JobListCriteriaModel.JobType.TRANSIENT.name());
+            model.getJobTypes().remove(JobListCriteriaModel.JobType.PERSISTENT.name());
+            view.dataProvider.setBaseCriteria( model );
         }
-        public FetchJobsCallback fetchJobsCallback = new FetchJobsCallback();
     }
 
 
@@ -137,7 +140,7 @@ public class PresenterImplTest {
         when(mockedProcessingFailedJobsButton.getValue()).thenReturn(true);
 
         // Subject under test
-        presenterImpl.fetchSelectedJobs();
+        presenterImpl.updateSelectedJobs();
 
         // Verify Test
         verify(mockedView.selectionModel).clear();
@@ -153,7 +156,7 @@ public class PresenterImplTest {
         when(mockedDeliveringFailedJobsButton.getValue()).thenReturn(true);
 
         // Subject under test
-        presenterImpl.fetchSelectedJobs();
+        presenterImpl.updateSelectedJobs();
 
         // Verify Test
         verify(mockedView.selectionModel).clear();
@@ -170,53 +173,13 @@ public class PresenterImplTest {
         when(mockedDeliveringFailedJobsButton.getValue()).thenReturn(false);
 
         // Subject under test
-        presenterImpl.fetchSelectedJobs();
+        presenterImpl.updateSelectedJobs();
 
         // Verify Test
         verify(mockedView.selectionModel).clear();
         verify(mockedProcessingFailedJobsButton, times(2)).getValue();
         verify(mockedDeliveringFailedJobsButton, times(2)).getValue();
         verifyZeroInteractions(mockedAllJobsButton);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void fetchJobs_jobSelected_viewNotRepopulated() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedView.selectionModel.getSelectedObject()).thenReturn(new JobModel());
-
-        // Subject under test
-        presenterImpl.fetchJobs();
-
-        // Verify Test
-        // Verify only one invocation during call to start
-        verify(mockedProcessingFailedJobsButton).getValue();
-        verify(mockedDeliveringFailedJobsButton).getValue();
-    }
-
-    @Test
-    public void fetchJob_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.fetchJobsCallback.onFilteredFailure(mockedException);
-
-        // Verify Test
-        verify(mockedView).setErrorText(any(String.class));
-    }
-
-    @Test
-    public void fetchJob_callbackWithSuccess_jobsAreFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.fetchJobsCallback.onSuccess(testModels);
-
-        // Verify Test
-        verify(mockedView).setJobs(testModels);
     }
 
 }

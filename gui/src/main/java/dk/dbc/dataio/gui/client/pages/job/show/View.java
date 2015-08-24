@@ -5,7 +5,7 @@ import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.CellPreviewEvent;
-import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -22,7 +22,7 @@ public class View extends ViewWidget {
     private static Resources resources;
 
     Column jobCreationTimeColumn;
-    ListDataProvider<JobModel> dataProvider;
+    public AsyncJobViewDataProvider dataProvider;
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<JobModel>();
 
     // Enums
@@ -40,26 +40,42 @@ public class View extends ViewWidget {
     public View(ClientFactory clientFactory, String headerText) {
         super(clientFactory, headerText);
         View.resources = clientFactory.getImageResources();
+
         setupColumns();
+
+        dataProvider = new AsyncJobViewDataProvider( clientFactory,this);
+        dataProvider.addDataDisplay(jobsTable);
     }
+
+    /* Package scoped Constructor used for unit testing. */
+    View(ClientFactory clientFactory, String headerText, Boolean setupColumns) {
+        super(clientFactory, headerText);
+        View.resources = clientFactory.getImageResources();
+
+        dataProvider = new AsyncJobViewDataProvider( clientFactory,this);
+        if( setupColumns ) {
+            setupColumns();
+        }
+    }
+
 
     /*
      * Public methods
      */
 
     /**
+     * Force a refresh of the jobsTable data.
+     */
+    public void refreshJobsTable() {
+        jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+    }
+    /**
      * This method is used to put data into the view
      *
      * @param jobs The list of jobs to put into the view
      */
     public void setJobs(List<JobModel> jobs) {
-        dataProvider.getList().clear();
-        dataProvider.getList().addAll(jobs);
-
-
-        // Set page size parameters
-        jobsTable.setPageSize(PAGE_SIZE);
-        jobsTable.setRowCount(jobs.size());
+        // TODO remove
     }
 
     /**
@@ -72,10 +88,7 @@ public class View extends ViewWidget {
      * It is called before data has been applied to the view - data is being applied in the setJobs method
      */
     @SuppressWarnings("unchecked")
-    private void setupColumns() {
-        dataProvider = new ListDataProvider<JobModel>();
-        dataProvider.addDataDisplay(jobsTable);
-
+    void setupColumns() {
         jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
@@ -92,6 +105,10 @@ public class View extends ViewWidget {
 
         pagerTop.setDisplay(jobsTable);
         pagerBottom.setDisplay(jobsTable);
+
+        jobsTable.setVisibleRange(0,20);
+
+
     }
 
     /**

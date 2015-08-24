@@ -48,4 +48,8 @@
     <source path="places" />
     <source path="types" />
 
+
+    <!-- enable source maps -->
+
+    <set-property name="compiler.useSourceMaps" value="true" />
 </module>

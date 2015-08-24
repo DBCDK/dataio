@@ -4,13 +4,10 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
+import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
-
-import java.util.List;
 
 
 /**
@@ -44,7 +41,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());
-        fetchJobs();
+        updateBaseQuery();
     }
 
 
@@ -62,61 +59,27 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     @Override
-    public void fetchSelectedJobs() {
+    public void updateSelectedJobs() {
         view.selectionModel.clear();
-        view.jobsTable.setRowCount(0);
-        fetchJobs();
+        view.dataProvider.updateUserCriteria();
+        view.dataProvider.updateCurrentCriteria();
+        view.jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
     }
 
+
+    @Override
+    public void refresh() {
+        view.refreshJobsTable();
+    }
 
     /**
      * Abstract Methods
      */
 
-    /**
-     * @param model containing the values required for the job store search.
-     */
-    protected abstract void fetchJobsFromJobStore(JobListCriteriaModel model);
+    protected abstract void updateBaseQuery();
 
 
-    /*
-     * Local methods
-     */
 
-    /**
-     * This method fetches all jobs, and sends them to the view
-     */
-    void fetchJobs() {
-        if (view.selectionModel.getSelectedObject() == null) {
-            final JobListCriteriaModel jobListCriteriaModel = view.jobFilter.getValue();
-            if (view.processingFailedJobsButton.getValue()) {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.PROCESSING_FAILED);
-            } else if (view.deliveringFailedJobsButton.getValue()) {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.DELIVERING_FAILED);
-            } else {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.ALL);
-            }
-            fetchJobsFromJobStore(jobListCriteriaModel);
-        }
-    }
 
-    /*
-     * Private classes
-     */
-
-    /**
-     * This class is the callback class for the findAllJobsNew method in the Job Store
-     */
-    protected class FetchJobsCallback extends FilteredAsyncCallback<List<JobModel>> {
-        @Override
-        public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
-        }
-
-        @Override
-        public void onSuccess(List<JobModel> models) {
-            view.setJobs(models);
-        }
-    }
 
 }

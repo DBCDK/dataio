@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.model;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class JobListCriteriaModel extends GenericBackendModel {
@@ -12,6 +13,8 @@ public class JobListCriteriaModel extends GenericBackendModel {
     private String sinkId;
     private Set<String> jobTypes = new HashSet<String>();
     private String submitter;
+    int limit = 0;
+    int offset = 0;
 
     public JobListCriteriaModel() {
         this(JobSearchType.PROCESSING_FAILED, "0"); //Default values
@@ -37,6 +40,10 @@ public class JobListCriteriaModel extends GenericBackendModel {
         return jobTypes;
     }
 
+    public void setJobTypes(Set<String> jobTypes) {
+        this.jobTypes = jobTypes;
+    }
+
     public String getSinkId() {
         return sinkId;
     }
@@ -51,6 +58,22 @@ public class JobListCriteriaModel extends GenericBackendModel {
 
     public void setSubmitter(String submitter) {
         this.submitter = submitter;
+    }
+
+    public int getLimit() {
+        return limit;
+    }
+
+    public void setLimit(int limit) {
+        this.limit = limit;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public void setOffset(int offset) {
+        this.offset = offset;
     }
 
     /**
@@ -73,5 +96,22 @@ public class JobListCriteriaModel extends GenericBackendModel {
             }
         }
         return this;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        JobListCriteriaModel that = (JobListCriteriaModel) o;
+        return Objects.equals(jobSearchType, that.jobSearchType) &&
+                Objects.equals(sinkId, that.sinkId) &&
+                Objects.equals(jobTypes, that.jobTypes) &&
+                Objects.equals(submitter, that.submitter);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jobSearchType, sinkId, jobTypes, submitter);
     }
 }

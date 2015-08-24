@@ -44,6 +44,9 @@ public final class JobListCriteriaModelMapper {
             // Order by...
             orderByDescendingTimeOfCreation(jobListCriteria);
         }
+
+        jobListCriteria.limit( model.getLimit() );
+        jobListCriteria.offset( model.getOffset() );
         return jobListCriteria;
     }
 

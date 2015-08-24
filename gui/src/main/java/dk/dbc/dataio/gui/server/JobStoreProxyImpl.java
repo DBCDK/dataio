@@ -21,6 +21,8 @@ import dk.dbc.dataio.gui.server.modelmappers.criterias.JobListCriteriaModelMappe
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -62,7 +64,9 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: listJobs(\"{}\");", model.getSearchType());
         final StopWatch stopWatch = new StopWatch();
         try {
-            jobInfoSnapshotList = jobStoreServiceConnector.listJobs(JobListCriteriaModelMapper.toJobListCriteria(model));
+            JobListCriteria criteria=JobListCriteriaModelMapper.toJobListCriteria(model);
+            criteria.orderBy(new ListOrderBy<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.DESC));
+            jobInfoSnapshotList = jobStoreServiceConnector.listJobs(criteria);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
@@ -82,6 +86,37 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             log.debug("JobStoreProxy: listJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
         return JobModelMapper.toModel(jobInfoSnapshotList);
+    }
+
+    @Override
+    public int countJobs(JobListCriteriaModel model) throws ProxyException {
+        final int jobCount;
+        log.trace("JobStoreProxy: countJobs(\"{}\");", model.getSearchType());
+        final StopWatch stopWatch = new StopWatch();
+        try {
+
+            JobListCriteria criteria=JobListCriteriaModelMapper.toJobListCriteria(model);
+            jobCount = jobStoreServiceConnector.countJobs(criteria);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: countJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: countJobs - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: countJobs - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e) {
+            log.error("JobStoreProxy: countJobs - Invalid Field Value Exception", e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        }
+        finally {
+            log.debug("JobStoreProxy: countJobs took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return jobCount;
     }
 
     @Override

@@ -34,6 +34,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
+    public int countJobs(JobListCriteriaModel model) throws ProxyException {
+        return jobStoreProxy.countJobs(model);
+    }
+
+    @Override
     public List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException {
         return jobStoreProxy.listItems(model);
     }

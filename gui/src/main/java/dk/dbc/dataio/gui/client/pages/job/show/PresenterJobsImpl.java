@@ -20,12 +20,13 @@ public class PresenterJobsImpl extends PresenterImpl {
     /**
      * Abstract Methods
      *
-     * @param model The prepared JobListCriteriaModel data structure to pre-define the search
+     *
      */
     @Override
-    protected void fetchJobsFromJobStore(JobListCriteriaModel model) {
+    protected void updateBaseQuery() {
+        JobListCriteriaModel model=new JobListCriteriaModel();
         model.getJobTypes().remove(JobListCriteriaModel.JobType.TEST.name());
         model.getJobTypes().remove(JobListCriteriaModel.JobType.ACCTEST.name());
-        jobStoreProxy.listJobs(model, new FetchJobsCallback());
+        view.dataProvider.setBaseCriteria( model );
     }
 }

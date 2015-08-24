@@ -214,6 +214,7 @@ public class JobsBean {
         try {
             final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
             final long count = jobStore.countJobs(jobListCriteria);
+            LOGGER.debug("count Response {}",count);
             return Response.ok().entity(jsonbContext.marshall(count)).build();
         } catch (JSONBException e) {
             LOGGER.warn("Bad request: {}", e.getMessage());

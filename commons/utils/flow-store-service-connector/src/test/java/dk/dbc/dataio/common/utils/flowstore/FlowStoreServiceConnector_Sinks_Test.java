@@ -125,14 +125,14 @@ public class FlowStoreServiceConnector_Sinks_Test {
         final Sink sinkToUpdate = new SinkBuilder().build();
 
         Sink updatedSink = updateSink_mockedHttpWithSpecifiedReturnErrorCode(
-                        Response.Status.OK.getStatusCode(),
-                        sinkToUpdate,
-                        sinkToUpdate.getId(),
-                        sinkToUpdate.getVersion());
+                Response.Status.OK.getStatusCode(),
+                sinkToUpdate,
+                sinkToUpdate.getId(),
+                sinkToUpdate.getVersion());
 
         assertThat(updatedSink, is(notNullValue()));
         assertThat(updatedSink.getContent(), is(notNullValue()));
-        assertThat(updatedSink.getId(), is (sinkToUpdate.getId()));
+        assertThat(updatedSink.getId(), is(sinkToUpdate.getId()));
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
@@ -163,6 +163,44 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.updateSink(sinkContent, id, version);
+    }
+
+
+     // **************************************** delete sink tests ****************************************
+    @Test
+    public void deleteSink_sinkIsDeleted() throws FlowStoreServiceConnectorException, JsonException {
+        final Sink sinkToDelete = new SinkBuilder().build();
+        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), sinkToDelete.getId(), sinkToDelete.getVersion());
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void deleteSink_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteSink_responseWithVersionConflict_throws() throws FlowStoreServiceConnectorException{
+        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteSink_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), ID, VERSION);
+    }
+
+    // Helper method
+    private void deleteSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id, long version) throws FlowStoreServiceConnectorException {
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
+                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(id));
+
+        when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.deleteSink(id, version);
     }
 
     // ************************************* find all sinks tests *************************************

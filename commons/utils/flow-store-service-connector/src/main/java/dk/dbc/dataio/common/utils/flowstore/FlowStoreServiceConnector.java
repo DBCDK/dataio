@@ -153,6 +153,39 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Deletes an existing sink from the flow-store
+     *
+     * @param sinkId, the database related ID
+     * @param version, the current JPA version of the sink - Optimistic Locking
+     *
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
+     */
+    public void deleteSink(long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+
+        log.trace("FlowStoreServiceConnector: deleteSink({})", sinkId);
+        InvariantUtil.checkNotNullOrThrow(sinkId, "sinkId");
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder pathBuilder = new PathBuilder(
+                FlowStoreServiceConstants.SINK)
+                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(sinkId));
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
+        final int actualStatus = response.getStatus();
+
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: deleteSink took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     // ************************************************* Submitter *************************************************
 
     /**

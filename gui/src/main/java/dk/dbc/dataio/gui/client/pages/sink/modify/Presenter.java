@@ -8,4 +8,5 @@ public interface Presenter extends GenericPresenter {
     void descriptionChanged(String description);
     void keyPressed();
     void saveButtonPressed();
+    void deleteButtonPressed();
 }

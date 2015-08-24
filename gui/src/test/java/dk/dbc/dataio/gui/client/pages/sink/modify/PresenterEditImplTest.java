@@ -131,4 +131,18 @@ public class PresenterEditImplTest {
         verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
+    @Test
+    public void deleteSinkModelFilteredAsyncCallback_callback_invoked() {
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+
+        presenterEditImpl.deleteModel();
+
+        // Verify that the proxy call is invoked... Cannot emulate the callback as the return type is Void
+        verify(mockedFlowStoreProxy).deleteSink(
+                eq(presenterEditImpl.model.getId()),
+                eq(presenterEditImpl.model.getVersion()),
+                any(PresenterEditImpl.DeleteSinkModelFilteredAsyncCallback.class));
+    }
+
 }

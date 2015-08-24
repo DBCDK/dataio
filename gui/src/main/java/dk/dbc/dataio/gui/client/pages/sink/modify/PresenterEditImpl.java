@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.place.shared.Place;
+import com.google.gwt.user.client.History;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -22,6 +23,7 @@ public class PresenterEditImpl extends PresenterImpl {
         view = clientFactory.getSinkEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getSinkId();
+        view.deleteButton.setVisible(true);
     }
     /**
      * Initializing the model
@@ -41,9 +43,25 @@ public class PresenterEditImpl extends PresenterImpl {
         flowStoreProxy.updateSink(model, new SaveSinkModelFilteredAsyncCallback());
     }
 
+    /**
+     * Deletes the embedded model as a Sink in the database
+     */
+    void deleteModel() {
+        flowStoreProxy.deleteSink(model.getId(), model.getVersion(), new DeleteSinkModelFilteredAsyncCallback());
+    }
+
     // Private methods
     private void getSink(final long sinkId) {
         flowStoreProxy.getSink(sinkId, new GetSinkModelFilteredAsyncCallback());
+    }
+
+    /**
+     * A signal to the presenter, saying that the delete button has been pressed
+     */
+    public void deleteButtonPressed() {
+        if (model != null) {
+            deleteModel();
+        }
     }
 
     /**
@@ -60,6 +78,23 @@ public class PresenterEditImpl extends PresenterImpl {
         public void onSuccess(SinkModel model) {
             setSinkModel(model);
             updateAllFieldsAccordingToCurrentState();
+        }
+    }
+
+    /**
+     * Local call back class to be instantiated in the call to deleteSubmitter in flowstore proxy
+     */
+    class DeleteSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            view.status.setText(texts.status_SinkSuccessfullyDeleted());
+            setSinkModel(null);
+            History.back();
         }
     }
 }

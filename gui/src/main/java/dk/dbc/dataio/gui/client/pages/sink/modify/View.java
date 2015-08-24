@@ -6,6 +6,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
@@ -26,6 +27,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox resource;
     @UiField PromptedTextArea description;
+    @UiField Button deleteButton;
     @UiField Label status;
 
     @UiHandler("name")
@@ -55,4 +57,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.saveButtonPressed();
     }
 
+    @UiHandler("deleteButton")
+    @SuppressWarnings("unused")
+    void deleteButtonPressed(ClickEvent event) {
+        presenter.deleteButtonPressed();
+    }
 }

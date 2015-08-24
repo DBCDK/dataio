@@ -87,6 +87,11 @@ public class PresenterImplTest {
         public Texts getSinkModifyConstants() {
             return texts;
         }
+
+        @Override
+        public void deleteButtonPressed() {
+            deleteButtonPressed();
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------

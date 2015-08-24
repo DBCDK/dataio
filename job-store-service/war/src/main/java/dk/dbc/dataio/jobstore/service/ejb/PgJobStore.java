@@ -360,6 +360,18 @@ public class PgJobStore {
     }
 
     /**
+     *
+     * @param criteria item listing criteria
+     * @return the number of items located through the criteria
+     * @throws NullPointerException if given null-valued criteria argument
+     */
+    @Stopwatch
+    public long countItems(ItemListCriteria criteria) throws NullPointerException {
+        InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+        return new ItemListQuery(entityManager).execute_count(criteria);
+    }
+
+    /**
      * Creates new job entity and caches associated Flow and Sink as needed.
      * If any Diagnostic with level FATAL is located, the elements will not be cashed.
      * Instead timeOfCompletion is set on the jobEntity, to mark the job as finished as it will be unable to complete if added.

@@ -336,6 +336,32 @@ public class JobsBeanTest {
         assertThat("ItemInfoSnapshots element", itemInfoSnapshots.get(0).getItemId(), is(expectedItemInfoSnapshots.get(0).getItemId()));
     }
 
+    // ************************************* countItems() tests **********************************************************
+
+    @Test
+    public void countItems_jobStoreReturnsItemCount_returnsStatusOkResponseWithCountAsEntity() throws JSONBException {
+        when(jobsBean.jobStore.countItems(any(ItemListCriteria.class))).thenReturn(110L);
+
+        final Response response = jobsBean.countItems(asJson(new ItemListCriteria()));
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+        long count = jsonbContext.unmarshall((String)response.getEntity(), Long.class);
+        assertThat("Count", count, is(110L));
+    }
+
+    @Test
+    public void countItems_unableToUnmarshallItemListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
+        final Response response = jobsBean.countJobs("Invalid JSON");
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat("JobError", jobError, is(notNullValue()));
+        assertThat("JobError code", jobError.getCode(), is(JobError.Code.INVALID_JSON));
+    }
+
     // ************************************* getResourceBundle() tests ***********************************************************
 
     @Test

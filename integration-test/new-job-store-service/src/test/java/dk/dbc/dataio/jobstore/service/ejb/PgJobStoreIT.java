@@ -94,7 +94,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -1079,6 +1078,30 @@ public class PgJobStoreIT {
         assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(0));
     }
 
+    /**
+     * Given: a job store containing a number of jobs
+     * When : requesting an item count with a criteria selecting items from a specific job
+     * Then : only the filtered snapshots from the specific job are counted and orderby/offset is ignored
+     */
+    @Test
+    public void countItems() throws JobStoreException, FileStoreServiceConnectorException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        setupExpectationOnGetByteSize();
+        final List<JobInfoSnapshot> snapshots = addJobs(2, pgJobStore);
+
+        // When...
+         final ItemListCriteria itemListCriteria = new ItemListCriteria()
+                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, snapshots.get(0).getJobId()))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
+                .limit(1).offset(6);
+
+        final long count = pgJobStore.countItems(itemListCriteria);
+
+        // Then...
+        assertThat("item count returned", count, is(11L));
+    }
 
     /**
      * Given: a job store containing 3 number of jobs all with reference to different sinks

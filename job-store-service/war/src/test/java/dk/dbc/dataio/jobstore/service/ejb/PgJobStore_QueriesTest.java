@@ -137,6 +137,28 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
     }
 
     @Test
+    public void countItems_criteriaArgIsNull_throws() {
+        final PgJobStore pgJobStore = newPgJobStore();
+        try {
+            pgJobStore.countItems(null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void countItems_queryReturnsItemCount() {
+        final Query query = mock(Query.class);
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+
+        when(query.getSingleResult()).thenReturn(2L);
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        final Long count = pgJobStore.countItems(new ItemListCriteria());
+        assertThat(count, is(2L));
+    }
+
+    @Test
     public void listChunksCollisionDetectionElements_criteriaArgIsNull_throws() {
         final PgJobStore pgJobStore = newPgJobStore();
         try {

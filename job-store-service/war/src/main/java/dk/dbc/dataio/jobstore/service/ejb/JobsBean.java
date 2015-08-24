@@ -255,6 +255,32 @@ public class JobsBean {
     }
 
     /**
+     * Retrieves item listing from the underlying data store determined by given search criteria
+     * @param itemListCriteriaData JSON representation of ItemListCriteria
+     * @return a HTTP 200 OK response with count of selected items,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     * @throws JSONBException on marshalling failure
+     */
+    @POST
+    @Path(JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response countItems(String itemListCriteriaData) throws JSONBException {
+        try {
+            final ItemListCriteria itemListCriteria = jsonbContext.unmarshall(itemListCriteriaData, ItemListCriteria.class);
+            final long count = jobStore.countItems(itemListCriteria);
+            return Response.ok().entity(jsonbContext.marshall(count)).build();
+        } catch (JSONBException e) {
+            LOGGER.warn("Bad request: {}", e.getMessage());
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(
+                            new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        }
+    }
+
+    /**
      * Retrieves bundle of resources relevant for a job. (sink, flow, supplementaryProcessData)
      * @param jobId of job to bundle resources for
      *

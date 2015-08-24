@@ -16,6 +16,7 @@ import java.util.List;
 public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.Field> {
 
     static final String QUERY_BASE = "SELECT * FROM item";
+    static final String QUERY_COUNT_BASE = "SELECT count(*) FROM item";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ItemListQuery.class);
 
@@ -51,5 +52,26 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
         final Query listItemQuery = entityManager.createNativeQuery(query, ItemEntity.class);
         setParameters(listItemQuery, criteria);
         return listItemQuery.getResultList();
+    }
+
+    /**
+     * Creates and executes item count query with given criteria
+     *
+     * @param criteria query criteria
+     * @return list of information snapshots for selected items
+     * @throws NullPointerException if given null-valued criteria argument
+     * @throws PersistenceException if unable to execute query
+     */
+    public long execute_count(ItemListCriteria criteria) throws NullPointerException, PersistenceException {
+        final String query = buildCountQueryString(QUERY_COUNT_BASE, criteria);
+        LOGGER.debug("query = {}", query);
+        final Query listItemQuery = entityManager.createNativeQuery(query);
+        setParameters(listItemQuery, criteria);
+
+        /* We can not utilise @SqlResultSetMapping to map directly to ItemInfoSnapshot
+           since we have no way to convert our complex JSON types into their corresponding POJOs */
+
+        final Long items = (Long)listItemQuery.getSingleResult();
+        return items;
     }
 }

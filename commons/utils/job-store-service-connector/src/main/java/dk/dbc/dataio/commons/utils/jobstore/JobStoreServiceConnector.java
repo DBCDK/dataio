@@ -218,6 +218,32 @@ public class JobStoreServiceConnector {
     }
 
     /**
+     * Retrieves item count determined by given search criteria from the job-store
+     * @param criteria list criteria
+     * @return number of items located through criteria
+     * @throws NullPointerException when given null-valued criteria argument
+     * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
+     */
+    public int countItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: countItems();");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
+            final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT);
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                Long result = readResponseEntity(response, new GenericType<Long>() {
+                });
+                return (int) result.longValue();
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: countItems took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Retrieves a bundle of resources connected to a specific job (identified by the job id given as input)
      * @param jobId job id
      * @return resourceBundle containing sink, flow, supplementaryProcessData

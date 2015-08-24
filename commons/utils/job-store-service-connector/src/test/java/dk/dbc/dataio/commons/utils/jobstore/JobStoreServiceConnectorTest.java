@@ -415,6 +415,19 @@ public class JobStoreServiceConnectorTest {
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
 
+    @Test
+    public void countItems_parseNumber() throws Exception {
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        long count = 123;
+        ItemListCriteria criteria = new ItemListCriteria();
+
+        when(HttpClient.doPostWithJson(CLIENT, criteria, JOB_STORE_URL, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT))
+                .thenReturn(new MockedResponse<>(200, count));
+
+        int result = instance.countItems(criteria);
+        assertThat(result, is(Long.valueOf(count).intValue()));
+    }
+
     // ******************************************* getResourceBundle() tests *******************************************
 
     @Test

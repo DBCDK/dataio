@@ -21,8 +21,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -56,123 +58,71 @@ public class ESTaskPackageUtilIT {
         }
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testGetSinkResultItemsForTaskPackage_nullParameterConnection_throws() throws SQLException {
-        ESTaskPackageUtil.getSinkResultItemsForTaskPackage(null, 1);
-    }
-
     @Test
-    public void testGetSinkResultItemsForTaskPackage_SingleAddiWithSuccess_isSuccessAndHasPid() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        String pid = "PID:1";
+    public void getChunkForTaskPackage() throws SQLException, ClassNotFoundException, IOException {
+        final List<ChunkItem> items = new ArrayList<>(7);
+        items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.IGNORE).build());
+        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).build());  // OK multiple
+        items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.FAILURE).build());
+        items.add(new ChunkItemBuilder().setId(3).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // queued
+        items.add(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // in process
+        items.add(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // failed with diagnostic
+        items.add(new ChunkItemBuilder().setId(6).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // OK single
+        final ExternalChunk placeholderChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+
         int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
-                .addAddiRecordWithSuccess(ADDI_OK, pid)
-                .createInsertAndSetStatus();
-
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
-        assertThat(items.size(), is(1));
-
-        ChunkItem ci = items.get(0);
-        assertThat(ci.getId(), is(0L));
-        assertThat(ci.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(StringUtil.asString(ci.getData()), is(pid));
-    }
-
-    @Test
-    public void testGetSinkResultItemsForTaskPackage_SingleAddiWithQueued_isFailed() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
+                .addAddiRecordWithSuccess(ADDI_OK, "pid:1a")
+                .addAddiRecordWithSuccess(ADDI_OK, "pid:1b")
+                .addAddiRecordWithSuccess(ADDI_OK, "pid:1c")
                 .addAddiRecordWithQueued(ADDI_OK)
-                .createInsertAndSetStatus();
-
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
-        assertThat(items.size(), is(1));
-
-        ChunkItem ci = items.get(0);
-        assertThat(ci.getId(), is(0L));
-        assertThat(ci.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(StringUtil.asString(ci.getData()).toLowerCase().contains("queued"), is(true)); // a little hacky - but the failure message should contain some info about what happend.
-    }
-
-    @Test
-    public void testGetSinkResultItemsForTaskPackage_SingleAddiWithInProcess_isFailed() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
                 .addAddiRecordWithInprocess(ADDI_OK)
+                .addAddiRecordWithFailed(ADDI_OK, "failed")
+                .addAddiRecordWithSuccess(ADDI_OK, "pid:6")
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
-        assertThat(items.size(), is(1));
-
-        ChunkItem ci = items.get(0);
-        assertThat(ci.getId(), is(0L));
-        assertThat(ci.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(StringUtil.asString(ci.getData()).toLowerCase().contains("inprocess"), is(true)); // a little hacky - but the failure message should contain some info about what happend.
+        final ExternalChunk chunk = ESTaskPackageUtil.getChunkForTaskPackage(ITUtil.getEsConnection(), targetReference, placeholderChunk);
+        final Iterator<ChunkItem> iterator = chunk.iterator();
+        ChunkItem next = iterator.next();
+        assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.IGNORE));
+        next = iterator.next();
+        assertThat("ChunkItem1.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1a"));
+        assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1b"));
+        assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1c"));
+        next = iterator.next();
+        assertThat("ChunkItem2.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        next = iterator.next();
+        assertThat("ChunkItem3.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem3 content", StringUtil.asString(next.getData()), containsString("queued"));
+        next = iterator.next();
+        assertThat("ChunkItem4.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem4 content", StringUtil.asString(next.getData()), containsString("in process"));
+        next = iterator.next();
+        assertThat("ChunkItem5.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem5 content", StringUtil.asString(next.getData()), containsString("failed"));
+        next = iterator.next();
+        assertThat("ChunkItem6.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("ChunkItem6 content", StringUtil.asString(next.getData()), containsString("pid:6"));
     }
 
     @Test
-    public void testGetSinkResultItemsForTaskPackage_SingleAddiWithFailure_isFailedAndHasFailureMessage() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        String failureMessage = "Some Error Occured On The Other Side Of ES!";
+    public void getChunkForTaskPackage_expectedItemContentIsMissingInEs_failsItem() throws SQLException, ClassNotFoundException, IOException {
+        final List<ChunkItem> items = new ArrayList<>(2);
+        items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).build());
+        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());
+        final ExternalChunk placeholderChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+
         int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
-                .addAddiRecordWithFailed(ADDI_OK, failureMessage)
+                .addAddiRecordWithSuccess(ADDI_OK, "pid:0a")
+                .addAddiRecordWithSuccess(ADDI_OK, "pid:0b")
                 .createInsertAndSetStatus();
 
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
-        assertThat(items.size(), is(1));
-
-        ChunkItem ci = items.get(0);
-        assertThat(ci.getId(), is(0L));
-        assertThat(ci.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(StringUtil.asString(ci.getData()), is(failureMessage));
-    }
-
-    @Test
-    public void testGetSinkResultItemsForTaskPackage_SeverealAddiWithFailureAndSuccess() throws IllegalStateException, NumberFormatException, IOException, ClassNotFoundException, SQLException {
-        String failureMessage0 = "Error 0";
-        String failureMessage1 = "Error 1";
-        String failureMessage2 = "Error 2";
-        String pid0 = "PID:0";
-        String pid1 = "PID:1";
-        String pid2 = "PID:2";
-        String pid3 = "PID:3";
-        int targetReference = new TPCreator(ITUtil.getEsConnection(), ES_DATABASE_NAME)
-                .addAddiRecordWithSuccess(ADDI_OK, pid0)
-                .addAddiRecordWithFailed(ADDI_OK, failureMessage0)
-                .addAddiRecordWithSuccess(ADDI_OK, pid1)
-                .addAddiRecordWithFailed(ADDI_OK, failureMessage1)
-                .addAddiRecordWithSuccess(ADDI_OK, pid2)
-                .addAddiRecordWithFailed(ADDI_OK, failureMessage2)
-                .addAddiRecordWithSuccess(ADDI_OK, pid3)
-                .createInsertAndSetStatus();
-
-        List<ChunkItem> items = ESTaskPackageUtil.getSinkResultItemsForTaskPackage(ITUtil.getEsConnection(), targetReference);
-        assertThat(items.size(), is(7));
-
-        ChunkItem ci0 = items.get(0);
-        assertThat(ci0.getId(), is(0L));
-        assertThat(ci0.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(StringUtil.asString(ci0.getData()), is(pid0));
-        ChunkItem ci1 = items.get(1);
-        assertThat(ci1.getId(), is(1L));
-        assertThat(ci1.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(StringUtil.asString(ci1.getData()), is(failureMessage0));
-        ChunkItem ci2 = items.get(2);
-        assertThat(ci2.getId(), is(2L));
-        assertThat(ci2.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(StringUtil.asString(ci2.getData()), is(pid1));
-        ChunkItem ci3 = items.get(3);
-        assertThat(ci3.getId(), is(3L));
-        assertThat(ci3.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(StringUtil.asString(ci3.getData()), is(failureMessage1));
-        ChunkItem ci4 = items.get(4);
-        assertThat(ci4.getId(), is(4L));
-        assertThat(ci4.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(StringUtil.asString(ci4.getData()), is(pid2));
-        ChunkItem ci5 = items.get(5);
-        assertThat(ci5.getId(), is(5L));
-        assertThat(ci5.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat(StringUtil.asString(ci5.getData()), is(failureMessage2));
-        ChunkItem ci6 = items.get(6);
-        assertThat(ci6.getId(), is(6L));
-        assertThat(ci6.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(StringUtil.asString(ci6.getData()), is(pid3));
+        final ExternalChunk chunk = ESTaskPackageUtil.getChunkForTaskPackage(ITUtil.getEsConnection(), targetReference, placeholderChunk);
+        final Iterator<ChunkItem> iterator = chunk.iterator();
+        ChunkItem next = iterator.next();
+        assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        next = iterator.next();
+        assertThat("ChunkItem1.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
     }
 
     @Test

@@ -92,29 +92,33 @@ public class ESTaskPackageUtilTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void getAddiRecordFromChunkItem_chunkItemArgIsNull_throws() throws Exception {
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(null);
-    }
-
-    @Test(expected = IllegalStateException.class)
-    public void getAddiRecordFromChunkItem_twoAddiInOneRecord_throws() throws Exception {
-        final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
-        final ChunkItem chunkItem = newChunkItem(addiWithTwoRecords);
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void getAddiRecordFromChunkItem_chunkItemArgContainsNonAddiData_throws() throws Exception {
-        final ChunkItem chunkItem = newChunkItem("non-addi");
-        ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
+    public void getAddiRecordsFromChunkItem_chunkItemArgIsNull_throws() throws Exception {
+        ESTaskPackageUtil.getAddiRecordsFromChunkItem(null);
     }
 
     @Test
-    public void getAddiRecordFromChunkItem_chunkItemArgContainsValidAddi_returnsAddiRecordInstance() throws Exception {
+    public void getAddiRecordsFromChunkItem_twoAddiInOneRecord_throws() throws Exception {
+        final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
+        final ChunkItem chunkItem = newChunkItem(addiWithTwoRecords);
+        final List<AddiRecord> addiRecords = ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        assertThat("Number of Addi records returned", addiRecords.size(), is(2));
+        assertThat("first Addi record", addiRecords.get(0), is(notNullValue()));
+        assertThat("second Addi record", addiRecords.get(1), is(notNullValue()));
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void getAddiRecordsFromChunkItem_chunkItemArgContainsNonAddiData_throws() throws Exception {
+        final ChunkItem chunkItem = newChunkItem("non-addi");
+        ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+    }
+
+    @Test
+    public void getAddiRecordsFromChunkItem_chunkItemArgContainsValidAddi_returnsAddiRecordInstance() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
         final ChunkItem chunkItem = newChunkItem(simpleAddiString);
-        final AddiRecord addiRecord = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        assertThat(addiRecord, is(notNullValue()));
+        final List<AddiRecord> addiRecords = ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        assertThat("Number of Addi records returned", addiRecords.size(), is(1));
+        assertThat("Addi record", addiRecords.get(0), is(notNullValue()));
     }
 
     @Test

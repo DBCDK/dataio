@@ -19,7 +19,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class ESTaskPackageUtil {
     private static final XLogger LOGGER = XLoggerFactory.getXLogger(ESTaskPackageUtil.class);
@@ -152,28 +154,27 @@ public class ESTaskPackageUtil {
     }
 
     /**
-     * Extracts addi-record from given chunk item.
-     * Items data is assumed to be base64 encoded.
-     * @param chunkItem Object containing base64 encoded addi-record data
-     * @return AddiRecord object.
+     * Extracts addi-record(s) from given chunk item
+     * @param chunkItem Object containing addi-record data
+     * @return list of AddiRecord objects
      * @throws NullPointerException if given any null-valued argument
-     * @throws IOException if an error occurs during reading of the addi-data.
-     * @throws IllegalStateException if contained addi-record is invalid or if
-     * addi-data contains multiple addi-records
+     * @throws IOException if an error occurs during reading of the addi-data
+     * @throws IllegalStateException if contained addi-record is invalid
      * @throws NumberFormatException if contained record is not addi-format
      */
-    public static AddiRecord getAddiRecordFromChunkItem(ChunkItem chunkItem)
+    public static List<AddiRecord> getAddiRecordsFromChunkItem(ChunkItem chunkItem)
             throws NullPointerException, IllegalStateException, NumberFormatException, IOException {
         if (chunkItem.getData().length == 0) {
             throw new IllegalStateException("No data in ChunkItem");
         }
         final List<AddiRecord> addiRecords = new ArrayList<>();
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-        addiRecords.add(addiReader.getNextRecord());
-        if (addiReader.getNextRecord() != null) {
-            throw new IllegalStateException("More than one Addi in record");
+        AddiRecord nextRecord = addiReader.getNextRecord();
+        while (nextRecord != null) {
+            addiRecords.add(nextRecord);
+            nextRecord = addiReader.getNextRecord();
         }
-        return addiRecords.get(0);
+        return addiRecords;
     }
 
     /**
@@ -218,65 +219,86 @@ public class ESTaskPackageUtil {
         return sb.toString();
     }
 
+    public static ExternalChunk getChunkForTaskPackage(Connection connection, int targetReference, ExternalChunk placeholderChunk) throws SQLException {
+        final ExternalChunk chunk = new ExternalChunk(placeholderChunk.getJobId(),
+                placeholderChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        chunk.setEncoding(placeholderChunk.getEncoding());
+        final LinkedList<TaskPackageRecordsStructureData> taskPackageRecordsStructureDataList =
+                new LinkedList<>(getDataFromTaskPackageRecordStructure(connection, targetReference));
+        for (ChunkItem chunkItem : placeholderChunk) {
+            if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+                chunkItem = getChunkItemFromTaskPackageRecordStructureData(connection, targetReference, chunkItem, taskPackageRecordsStructureDataList);
+            }
+            chunk.insertItem(chunkItem);
+        }
+        return chunk;
+    }
+
+    private static ChunkItem getChunkItemFromTaskPackageRecordStructureData(Connection connection, int targetReference, ChunkItem placeholderChunkItem,
+            LinkedList<TaskPackageRecordsStructureData> taskPackageRecordsStructureDataList) throws NumberFormatException, SQLException {
+        final int numberOfRecords = Integer.parseInt(StringUtil.asString(placeholderChunkItem.getData()));
+        ChunkItem.Status status = ChunkItem.Status.SUCCESS;
+        final StringBuilder itemData = new StringBuilder(String.format("Task package: %d\n",targetReference));
+        final String recordHeader = "Record %d: id=%s\n";
+        final String recordResult = "\t%s\n";
+        for (int i = 1; i <= numberOfRecords; i++) {
+            TaskPackageRecordsStructureData recordData;
+            try {
+                recordData = taskPackageRecordsStructureDataList.remove();
+            } catch (NoSuchElementException e) {
+                status = ChunkItem.Status.FAILURE;
+                itemData.append(String.format(recordHeader, i, null));
+                itemData.append(String.format(recordResult, "No record found in ES"));
+                continue;
+            }
+
+            LOGGER.info("targetRef: {}  status: {} recordDiag: {}", targetReference,
+                    recordData.recordstatus, recordData.recordOrSurDiag2);
+
+            itemData.append(String.format(recordHeader, i, recordData.record_id));
+            // A task package must only be completed if all its records have been completed.
+            // Therefore: if the status of a record is anything but success or failure,
+            // an error has occurred. The record will be accepted as failed, with a message
+            // in the chunk item telling that the record was not completed.
+            switch (recordData.recordstatus) {
+                case 1:
+                    // success
+                    itemData.append(String.format(recordResult, "OK"));
+                    break;
+                case 2:
+                    // queued
+                    status = ChunkItem.Status.FAILURE;
+                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " is queued"));
+                    break;
+                case 3:
+                    // inProcess
+                    status = ChunkItem.Status.FAILURE;
+                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " is in process"));
+                    break;
+                case 4:
+                    // failed
+                    status = ChunkItem.Status.FAILURE;
+                    itemData.append(String.format(recordResult, getFailureDiagnostic(connection, recordData.recordOrSurDiag2)));
+                    break;
+                default:
+                    status = ChunkItem.Status.FAILURE;
+                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " has unknown completion status " + recordData.recordstatus));
+            }
+        }
+        return new ChunkItem(placeholderChunkItem.getId(), StringUtil.asBytes(itemData.toString()), status);
+    }
+
     private static class TaskPackageRecordsStructureData {
 
         public final int lbnr;
         public final int recordstatus;
         public final String record_id;
         public final int recordOrSurDiag2;
-
         public TaskPackageRecordsStructureData(int lbnr, int recordstatus, String record_id, int recordOrSurDiag2) {
             this.lbnr = lbnr;
             this.recordstatus = recordstatus;
             this.record_id = record_id;
             this.recordOrSurDiag2 = recordOrSurDiag2;
-        }
-    }
-
-    public static List<ChunkItem> getSinkResultItemsForTaskPackage(Connection conn, int targetReference) throws SQLException {
-        LOGGER.entry();
-        try {
-            List<ChunkItem> chunkItems = new ArrayList<>();
-            List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = getDataFromTaskPackageRecordStructure(conn, targetReference);
-            for (TaskPackageRecordsStructureData data : taskPackageRecordsStructureDatas) {
-                LOGGER.info("targetRef: {}  status: {} recordDiag: {}", targetReference, data.recordstatus, data.recordOrSurDiag2);
-                ChunkItem.Status status = ChunkItem.Status.FAILURE;
-                final String errMsg = "record status for taskpackage [%d/%d] is: %s - this is an error - accepting it as failed!";
-                String failureMsg = "";
-                switch (data.recordstatus) {
-                    // A taskpackage must only be completed if all its records have been completed.
-                    // Therefore: if the status of a record is anything but success or failure,
-                    // an error has occured. The record will be accepted as failed, with a message
-                    // both in the log, and in the ChunkItem telling that the record was not completed.
-                    case 1:
-                        // success
-                        status = ChunkItem.Status.SUCCESS;
-                        break;
-                    case 2:
-                        // queued
-                        failureMsg = String.format(errMsg, targetReference, data.lbnr, "queued");
-                        LOGGER.error(failureMsg);
-                        break;
-                    case 3:
-                        // inProcess
-                        failureMsg = String.format(errMsg, targetReference, data.lbnr, "inProcess");
-                        LOGGER.error(failureMsg);
-                        break;
-                    case 4:
-                        // failed
-                        failureMsg = getFailureDiagnostic(conn, data.recordOrSurDiag2);
-                        break;
-                    default:
-                        failureMsg = String.format("An unknown completion.status [%d] for taskpackage [%d/%d] was found - accepting as failed.", data.recordstatus, targetReference, data.lbnr);
-                        LOGGER.error(failureMsg);
-                }
-                String recordIdData = data.record_id == null ? "unknown record ID" : data.record_id;
-                String itemData = status == ChunkItem.Status.SUCCESS ? recordIdData : failureMsg;
-                chunkItems.add(new ChunkItem(data.lbnr, StringUtil.asBytes(itemData), status));
-            }
-            return chunkItems;
-        } finally {
-            LOGGER.exit();
         }
     }
 

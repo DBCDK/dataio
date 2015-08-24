@@ -1,6 +1,6 @@
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,12 +68,12 @@ public class EsConnectorBean {
         }
     }
 
-    public List<ChunkItem> getResultingItemsFromSinkForTaskPackage(int targetReference) throws SinkException {
+    public ExternalChunk getChunkForTaskPackage(int targetReference, ExternalChunk placeholderChunk) throws SinkException {
         try (final Connection connection = getConnection()) {
-            return ESTaskPackageUtil.getSinkResultItemsForTaskPackage(connection, targetReference);
+            return ESTaskPackageUtil.getChunkForTaskPackage(connection, targetReference, placeholderChunk);
         } catch (SQLException | NamingException e) {
-            LOGGER.warn("Exception caught while retrieving ChunkItems from ES-taskpackage.", e);
-            throw new SinkException("Failed to retrieve ChunkItems from taskpackage", e);
+            LOGGER.warn("Exception caught while creating chunk for ES task package", e);
+            throw new SinkException("Failed to create chunk for task package", e);
         }
     }
 

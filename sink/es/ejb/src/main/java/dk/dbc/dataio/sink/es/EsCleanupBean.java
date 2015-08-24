@@ -59,13 +59,10 @@ public class EsCleanupBean {
     /**
      * Cleanup of ES/Inflight.
      *
-     * When this thread awakens, it will find the current inflight
-     * targetreferences, find those targetreferences in the ES-base, and if any
-     * of the corresponding taskpackages are completed or aborted they will be
-     * removed. Both from the ES-base and the InFlight-base.
-     *
-     * After that, the semaphore will be decremented with the amount of slots
-     * previously held by the completed/aborted taskpackages.
+     * When this thread awakens, it will find the current in-flight
+     * target references, lookup those target references in the ES-base,
+     * and if any of the corresponding task packages are completed or aborted
+     * they will be removed from the ES and the in-flight databases.
      *
      * This method runs in its own transactional scope to avoid
      * tearing down any controlling timers
@@ -122,7 +119,7 @@ public class EsCleanupBean {
     }
 
     private List<Integer> findTargetReferencesForCompletedTaskpackagesFromTaskStatus(List<TaskStatus> taskStatus) throws SinkException {
-        List<TaskStatus> finishedTaskpackages = filterFinsihedTaskpackages(taskStatus);
+        List<TaskStatus> finishedTaskpackages = filterFinishedTaskpackages(taskStatus);
         return filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
     }
 
@@ -238,63 +235,9 @@ public class EsCleanupBean {
             throw new SinkException(String.format("Unable to marshall delivered chunk for tp: %d", esInFlight.getTargetReference()), e);
         }
 
-        // this list only contains the resulting items for the successfull items in the incompleteDeliveredChunk.
-        final List<ChunkItem> items = esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference());
-        
-        // Ensure that all items from the taskpackage has a match in the incompleteDeliveredChunk,
-        // i.e. the number of successfull items in incompleteDeliveredChunk must equals the number of
-        // items from the taskpackage
-        int successfulItemsFromIncompleteDeliveredChunk = getNumberOfSuccessfulItemsFromIncompleteDeliveredChunk(incompleteDeliveredChunk);
-        throwIfMismatchBetweenNumberOfItems(items, successfulItemsFromIncompleteDeliveredChunk, esInFlight, incompleteDeliveredChunk);
-        ExternalChunk deliveredChunk = weaveItemsFromTaskpackageAndIncompleteDeliveredChunk(incompleteDeliveredChunk, items, esInFlight);        
-
-        return deliveredChunk;
+        return esConnector.getChunkForTaskPackage(esInFlight.getTargetReference(), incompleteDeliveredChunk);
     }
     
-    private int getNumberOfSuccessfulItemsFromIncompleteDeliveredChunk(final ExternalChunk incompleteDeliveredChunk) {
-        int successfulItemsFromIncompleteDeliveredChunk = 0;
-        for(ChunkItem item : incompleteDeliveredChunk) {
-            successfulItemsFromIncompleteDeliveredChunk += item.getStatus() == ChunkItem.Status.SUCCESS ? 1 : 0;
-        }
-        return successfulItemsFromIncompleteDeliveredChunk;
-    }
-
-    private void throwIfMismatchBetweenNumberOfItems(final List<ChunkItem> items, int successfulItemsFromIncompleteDeliveredChunk, EsInFlight esInFlight, final ExternalChunk incompleteDeliveredChunk) throws SinkException {
-        if (items.size() != successfulItemsFromIncompleteDeliveredChunk) {
-            throw new SinkException(String.format("Item discrepancy between tp<%d> and inflight chunk (%d/%d): %d items returned, %d items used",
-                    esInFlight.getTargetReference(),
-                    incompleteDeliveredChunk.getJobId(),
-                    incompleteDeliveredChunk.getChunkId(),
-                    items.size(),
-                    incompleteDeliveredChunk.size()));
-        }
-    }
-
-    private ExternalChunk weaveItemsFromTaskpackageAndIncompleteDeliveredChunk(final ExternalChunk incompleteDeliveredChunk, final List<ChunkItem> items, EsInFlight esInFlight) throws SinkException, IllegalArgumentException {
-        // Create new deliveredChunk by weaving incompleteDeliveredChunk and ChunkItems from Taskpackage.
-        ExternalChunk deliveredChunk = new ExternalChunk(incompleteDeliveredChunk.getJobId(), incompleteDeliveredChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
-        deliveredChunk.setEncoding(incompleteDeliveredChunk.getEncoding());
-        int itemsCounter = 0;
-        for(ChunkItem item : incompleteDeliveredChunk) {
-            if (item.getStatus() == ChunkItem.Status.SUCCESS) {
-                try {
-                    int id = (int) item.getId();
-                    deliveredChunk.insertItem(new ChunkItem(id, items.get(itemsCounter).getData(), items.get(itemsCounter).getStatus()));
-                    itemsCounter++;
-                } catch (IndexOutOfBoundsException e) {
-                    String errMsg = String.format("Delivered Chunk item discrepancy for tp<%d>: Trying to get item [%d] from items from TP.", 
-                            esInFlight.getTargetReference(),
-                            itemsCounter);
-                    throw new SinkException(errMsg, e);
-                }
-            } else {
-                deliveredChunk.insertItem(item);
-            }
-        }
-        return deliveredChunk;
-    }
-
-
     private Map<Integer, EsInFlight> createEsInFlightMap(List<EsInFlight> esInFlightList) {
         Map<Integer, EsInFlight> esInFlightMap = new HashMap<>();
         for (EsInFlight esInFlight : esInFlightList) {
@@ -303,7 +246,7 @@ public class EsCleanupBean {
         return esInFlightMap;
     }
 
-    private List<TaskStatus> filterFinsihedTaskpackages(List<TaskStatus> taskStatus) {
+    private List<TaskStatus> filterFinishedTaskpackages(List<TaskStatus> taskStatus) {
         List<TaskStatus> finishedTaskpackages = new ArrayList<>();
         for (TaskStatus ts : taskStatus) {
             if (ts.getTaskStatus() == TaskStatus.Code.COMPLETE || ts.getTaskStatus() == TaskStatus.Code.ABORTED) {

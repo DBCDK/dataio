@@ -10,7 +10,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
@@ -24,6 +23,8 @@ import javax.ejb.MessageDriven;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 
 @MessageDriven
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
@@ -115,23 +116,28 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     try {
-                        addiRecords.add(buildAddiRecord(chunkItem));
+                        final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
+                        addiRecords.addAll(addiRecordsFromItem);
+                        // We use the data property of the ChunkItem placeholder kept in the ES
+                        // in-flight database to store the number of Addi records from the
+                        // original record - this information is used by the EsCleanupBean
+                        // when creating the resulting sink chunk.
                         incompleteDeliveredChunk.insertItem(new ChunkItem(
-                                chunkItem.getId(), StringUtil.asBytes("Empty slot"), ChunkItem.Status.SUCCESS));
+                                chunkItem.getId(), asBytes(Integer.toString(addiRecordsFromItem.size())), ChunkItem.Status.SUCCESS));
                     } catch (RuntimeException | IOException e) {
                         incompleteDeliveredChunk.insertItem(new ChunkItem(
-                                chunkItem.getId(), StringUtil.asBytes(e.getMessage()), ChunkItem.Status.FAILURE));
+                                chunkItem.getId(), asBytes(e.getMessage()), ChunkItem.Status.FAILURE));
                     } finally {
                         LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
                     }
                     break;
                 case FAILURE:
                     incompleteDeliveredChunk.insertItem(new ChunkItem(
-                            chunkItem.getId(), StringUtil.asBytes("Failed by processor"), ChunkItem.Status.IGNORE));
+                            chunkItem.getId(), asBytes("Failed by processor"), ChunkItem.Status.IGNORE));
                     break;
                 case IGNORE:
                     incompleteDeliveredChunk.insertItem(new ChunkItem(
-                            chunkItem.getId(), StringUtil.asBytes("Ignored by processor"), ChunkItem.Status.IGNORE));
+                            chunkItem.getId(), asBytes("Ignored by processor"), ChunkItem.Status.IGNORE));
                     break;
                 default:
                     throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
@@ -141,8 +147,12 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 configuration.getEsUserId(), configuration.getEsPackageType(), configuration.getEsAction());
     }
 
-    AddiRecord buildAddiRecord(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
-        AddiRecord addiRecordFromChunkItem = ESTaskPackageUtil.getAddiRecordFromChunkItem(chunkItem);
-        return addiRecordPreprocessor.execute(addiRecordFromChunkItem);
+    private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
+        final List<AddiRecord> addiRecords = ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        final List<AddiRecord> preprocessedAddiRecords = new ArrayList<>(addiRecords.size());
+        for (AddiRecord addiRecord : addiRecords) {
+            preprocessedAddiRecords.add(addiRecordPreprocessor.execute(addiRecord));
+        }
+        return preprocessedAddiRecords;
     }
 }

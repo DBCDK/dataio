@@ -119,7 +119,7 @@ public class EsCleanupBeanTest {
     }
 
     @Test
-    public void cleanup_noFinsihedInFlight_nothingHappens() throws SinkException {
+    public void cleanup_noFinishedInFlight_nothingHappens() throws SinkException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight42_2));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_124));
 
@@ -135,7 +135,8 @@ public class EsCleanupBeanTest {
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .setData(StringUtil.asBytes("succeeded"))
                 .build());
-        when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
+        when(esConnector.getChunkForTaskPackage(anyInt(), any(ExternalChunk.class)))
+                .thenReturn(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
 
         getEsCleanupBean().cleanup();
 
@@ -165,7 +166,8 @@ public class EsCleanupBeanTest {
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .setData(StringUtil.asBytes("succeeded"))
                 .build());
-        when(esConnector.getResultingItemsFromSinkForTaskPackage(anyInt())).thenReturn(esItems);
+        when(esConnector.getChunkForTaskPackage(anyInt(), any(ExternalChunk.class)))
+                .thenReturn(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
 
         getEsCleanupBean().cleanup();
 
@@ -198,192 +200,6 @@ public class EsCleanupBeanTest {
         assertThat("ModifiedExternalChunk.ChunkItem.id, is OriginalExternalChunk.ChunkItem.id", modifiedChunkItem.getId(), is(originalChunkItem.getId()));
         assertThat("ModifiedExternalChunk.ChunkItem.data, is OriginalExternalChunk.ChunkItem.data", modifiedChunkItem.getData(), not(originalChunkItem.getData()));
         assertThat("ModifiedExternalChunk.ChunkItem.Status", modifiedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-    }
-
-    @Test
-    public void createDeliveredChunk_fillsOutEmptySlotsInPreBuiltDeliveredChunk() throws SinkException, JsonException {
-        final ArrayList<ChunkItem> resultItems = new ArrayList<>();
-        resultItems.add(new ChunkItemBuilder()
-                .setId(0L)
-                .setStatus(ChunkItem.Status.IGNORE)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(1L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(2L)
-                .setStatus(ChunkItem.Status.FAILURE)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(3L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
-                .setItems(resultItems)
-                .build();
-        final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setTargetReference(42);
-        esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(incompleteDeliveredChunk));
-
-        final ArrayList<ChunkItem> esItems = new ArrayList<>();
-        esItems.add(new ChunkItemBuilder()
-                .setId(0L)
-                .setStatus(ChunkItem.Status.FAILURE)
-                .setData(StringUtil.asBytes("failed"))
-                .build());
-        esItems.add(new ChunkItemBuilder()
-                .setId(1L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .setData(StringUtil.asBytes("succeeded"))
-                .build());
-
-        when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
-
-        final ExternalChunk deliveredChunk = getEsCleanupBean().createDeliveredChunk(esInFlight);
-        assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
-        Iterator<ChunkItem> iterator = deliveredChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item0 = iterator.next();
-        assertThat("ChunkItem 0 status", item0.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("ChunkItem 0 data", item0.getData(), is(resultItems.get(0).getData()));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item1 = iterator.next();
-        assertThat("ChunkItem 1 status", item1.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("ChunkItem 1 data", item1.getData(), is(esItems.get(0).getData()));
-        assertThat("ChunkItem 1 ID", item1.getId(), is(1L));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item2 = iterator.next();
-        assertThat("ChunkItem 2 status", item2.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("ChunkItem 2 data", item2.getData(), is(resultItems.get(2).getData()));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item3 = iterator.next();
-        assertThat("ChunkItem 3 status", item3.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("ChunkItem 3 data", item3.getData(), is(esItems.get(1).getData()));
-        assertThat("ChunkItem 3 ID", item3.getId(), is(3L));
-        assertThat(iterator.hasNext(), is(false));
-    }
-
-    @Test(expected = SinkException.class)
-    public void createDeliveredChunk_numberOfEmptySlotsInPreBuiltDeliveredChunkIsLessThanNumberOfItemsReturnedFromEs_throws() throws SinkException, JsonException {
-        final ArrayList<ChunkItem> resultItems = new ArrayList<>();
-        resultItems.add(new ChunkItemBuilder()
-                .setId(0L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(1L)
-                .setStatus(ChunkItem.Status.FAILURE)
-                .build());
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
-                .setItems(resultItems)
-                .build();
-        final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setTargetReference(42);
-        esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(incompleteDeliveredChunk));
-
-        final ArrayList<ChunkItem> esItems = new ArrayList<>();
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.FAILURE)
-                .setData(StringUtil.asBytes("failed"))
-                .build());
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .setData(StringUtil.asBytes("succeeded"))
-                .build());
-
-        when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
-
-        getEsCleanupBean().createDeliveredChunk(esInFlight);
-    }
-    
-    @Test
-    public void createDeliveredChunk_chunkCreated_itemsInChunkIsZeroIndexed() throws JsonException, SinkException {
-        final ArrayList<ChunkItem> resultItems = new ArrayList<>();
-        resultItems.add(new ChunkItemBuilder()
-                .setId(0L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(1L)
-                .setStatus(ChunkItem.Status.IGNORE)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(2L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
-                .setItems(resultItems)
-                .build();
-        final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setTargetReference(42);
-        esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(incompleteDeliveredChunk));
-        
-        final ArrayList<ChunkItem> esItems = new ArrayList<>();
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.FAILURE)
-                .setData(StringUtil.asBytes("failed"))
-                .build());
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .setData(StringUtil.asBytes("succeeded"))
-                .build());
-        
-        when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
-
-        final ExternalChunk deliveredChunk = getEsCleanupBean().createDeliveredChunk(esInFlight);
-        assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
-        Iterator<ChunkItem> iterator = deliveredChunk.iterator();
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item0 = iterator.next();
-        assertThat("ChunkItem 0 status", item0.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("ChunkItem 0 ID", item0.getId(), is(0L));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item1 = iterator.next();
-        assertThat("ChunkItem 1 status", item1.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("ChunkItem 1 ID", item1.getId(), is(1L));
-        assertThat(iterator.hasNext(), is(true));
-        ChunkItem item2 = iterator.next();
-        assertThat("ChunkItem 2 status", item2.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("ChunkItem 2 ID", item2.getId(), is(2L));
-        assertThat(iterator.hasNext(), is(false));
-    }
-
-    @Test(expected = SinkException.class)
-    public void createDeliveredChunk_numberOfItemsReturnedFromEsIsLessThanNumberOfEmptySlotsInPreBuiltDeliveredChunk_throws() throws SinkException, JsonException {
-        final ArrayList<ChunkItem> resultItems = new ArrayList<>();
-        resultItems.add(new ChunkItemBuilder()
-                .setId(0L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(1L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        resultItems.add(new ChunkItemBuilder()
-                .setId(2L)
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .build());
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
-                .setItems(resultItems)
-                .build();
-        final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setTargetReference(42);
-        esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(incompleteDeliveredChunk));
-
-        final ArrayList<ChunkItem> esItems = new ArrayList<>();
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.FAILURE)
-                .setData(StringUtil.asBytes("failed"))
-                .build());
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .setData(StringUtil.asBytes("succeeded"))
-                .build());
-
-        when(esConnector.getResultingItemsFromSinkForTaskPackage(esInFlight.getTargetReference())).thenReturn(esItems);
-
-        getEsCleanupBean().createDeliveredChunk(esInFlight);
     }
 
     private EsCleanupBean getEsCleanupBean() {

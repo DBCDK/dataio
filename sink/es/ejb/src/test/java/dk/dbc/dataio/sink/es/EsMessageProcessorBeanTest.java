@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -198,6 +199,7 @@ public class EsMessageProcessorBeanTest {
         ChunkItem item0 = iterator.next();
         assertThat("chunkItem 0 ID", item0.getId(), is(0L));
         assertThat("chunkItem 0 status", item0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem 0 data", asString(item0.getData()), is("1"));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat("chunkItem 1 ID", item1.getId(), is(1L));
@@ -214,6 +216,7 @@ public class EsMessageProcessorBeanTest {
         ChunkItem item4 = iterator.next();
         assertThat("chunkItem 4 ID", item4.getId(), is(4L));
         assertThat("chunkItem 4 status", item4.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem 4 data", asString(item0.getData()), is("1"));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item5 = iterator.next();
         assertThat("chunkItem 5 ID", item5.getId(), is(5L));
@@ -221,10 +224,12 @@ public class EsMessageProcessorBeanTest {
         ChunkItem item6 = iterator.next();
         assertThat("chunkItem 6 ID", item6.getId(), is(6L));
         assertThat("chunkItem 6 status", item6.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem 6 data", asString(item0.getData()), is("1"));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item7 = iterator.next();
         assertThat("chunkItem 7 ID", item7.getId(), is(7L));
         assertThat("chunkItem 7 status", item7.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("chunkItem 7 data", asString(item0.getData()), is("1"));
         ChunkItem item8 = iterator.next();
         assertThat("chunkItem 8 ID", item8.getId(), is(8L));
         assertThat("chunkItem 8 status", item8.getStatus(), is(ChunkItem.Status.FAILURE));

@@ -29,6 +29,8 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -167,6 +169,14 @@ public abstract class SinkIT {
         return esMessageProcessorBean;
     }
 
+    protected EsCleanupBean getEsCleanupBean() {
+        final EsCleanupBean esCleanupBean = new EsCleanupBean();
+        esCleanupBean.esConnector = getEsConnectorBean();
+        esCleanupBean.esInFlightAdmin = getEsInFlightBean();
+        esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        return esCleanupBean;
+    }
+
     protected EsSinkConfigurationBean getEsSinkConfigurationBean() {
         final EsSinkConfigurationBean esSinkConfigurationBean = new EsSinkConfigurationBean();
         esSinkConfigurationBean.esDatabaseName = ES_DATABASE_NAME;
@@ -216,6 +226,18 @@ public abstract class SinkIT {
                 "</es:referencedata>\n1\nb\n").getBytes(StandardCharsets.UTF_8);
     }
 
+    protected byte[] getValidAddiWithMultipleRecords(int numberOfRecords) {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        while (numberOfRecords-- > 0) {
+            try {
+                outputStream.write(getValidAddi());
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return outputStream.toByteArray();
+    }
+
     protected byte[] getValidAddiWithProcessingTrue() {
         return ("235\n" +
                 "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
@@ -234,6 +256,18 @@ public abstract class SinkIT {
                 "<marcx:subfield code='k'>o</marcx:subfield>" +
                 "<marcx:subfield code='G'>ris</marcx:subfield>" +
                 "</marcx:datafield></marcx:record>\n").getBytes(StandardCharsets.UTF_8);
+    }
+
+    protected byte[] getValidAddiWithMultipleRecordsWithProcessingTrue(int numberOfRecords) {
+        final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        while (numberOfRecords-- > 0) {
+            try {
+                outputStream.write(getValidAddiWithProcessingTrue());
+            } catch (IOException e) {
+                throw new IllegalStateException(e);
+            }
+        }
+        return outputStream.toByteArray();
     }
 
     protected static class TestableEsMessageProcessorBean extends EsMessageProcessorBean {

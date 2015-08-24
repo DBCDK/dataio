@@ -4,41 +4,60 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.SinkContentJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createSink;
+import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class SinksIT {
 
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
+    private static FlowStoreServiceConnector flowStoreServiceConnector;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         dbConnection = newIntegrationTestConnection();
         restClient = HttpClient.newClient();
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
     }
 
     @AfterClass
@@ -48,7 +67,7 @@ public class SinksIT {
 
     @After
     public void tearDown() throws SQLException {
-        clearDbTables(dbConnection, ITUtil.SINKS_TABLE_NAME);
+        clearAllDbTables(dbConnection);
     }
 
     /**
@@ -63,7 +82,6 @@ public class SinksIT {
 
         // When...
         final SinkContent sinkContent = new SinkContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         Sink sink = flowStoreServiceConnector.createSink(sinkContent);
@@ -103,7 +121,6 @@ public class SinksIT {
     @Test
     public void createSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final SinkContent sinkContent = new SinkContentBuilder().setName("UniqueName").build();
 
         try {
@@ -133,7 +150,6 @@ public class SinksIT {
 
         // When...
         final SinkContent sinkContent = new SinkContentBuilder().build();
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
 
         // Then...
         Sink sink = flowStoreServiceConnector.createSink(sinkContent);
@@ -155,7 +171,6 @@ public class SinksIT {
     public void getSink_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
         try{
             // Given...
-            final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
             flowStoreServiceConnector.getSink(432);
 
             fail("Invalid request to getSink() was not detected.");
@@ -179,10 +194,9 @@ public class SinksIT {
     public void updateSink_ok() throws Exception{
 
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final SinkContent sinkContent = new SinkContentBuilder().build();
 
         // And...
-        final SinkContent sinkContent = new SinkContentBuilder().build();
         Sink sink = flowStoreServiceConnector.createSink(sinkContent);
 
         // When...
@@ -238,8 +252,6 @@ public class SinksIT {
     @Test
     public void updateSink_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-
         try{
             // When...
             final SinkContent newSinkContent = new SinkContentBuilder().build();
@@ -272,7 +284,6 @@ public class SinksIT {
     @Test
     public void updateSink_duplicateName_NotAcceptable() throws FlowStoreServiceConnectorException{
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String FIRST_SINK_NAME = "FirstSinkName";
         final String SECOND_SINK_NAME = "SecondSinkName";
 
@@ -322,7 +333,6 @@ public class SinksIT {
     @Test
     public void updateSink_WrongVersion_Conflict() throws FlowStoreServiceConnectorException {
         // Given...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         final String SINK_NAME_FROM_FIRST_USER = "UpdatedSinkNameFromFirstUser";
         final String SINK_NAME_FROM_SECOND_USER = "UpdatedSinkNameFromSecondUser";
         long version = -1;
@@ -363,6 +373,139 @@ public class SinksIT {
     }
 
     /**
+     * Given: a deployed flow-store service and a none referenced sink is stored
+     * When : attempting to delete the sink
+     * Then : the sink is deleted
+     */
+    @Test
+    public void deleteSink_Ok() throws FlowStoreServiceConnectorException {
+
+        // Given...
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+        long sinkId = sink.getId();
+        long version = sink.getVersion();
+
+        // Verify before delete
+        Sink sinkBeforeDelete = flowStoreServiceConnector.getSink(sinkId);
+        assertThat(sinkBeforeDelete.getId(), is(sinkId));
+
+        // When...
+        flowStoreServiceConnector.deleteSink(sinkId, version);
+
+        // Then... Verify that the sink is deleted
+        try {
+            flowStoreServiceConnector.getSink(sinkId);
+            fail("Sink was not deleted");
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // We expect this exception from getSink(...) method when no sink exists!
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : attempting to delete a sink that does not exist
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void deleteSink_NoSinkToDelete() throws ProcessingException {
+
+        // Given...
+        final long sinkIdNotExists = 9999;
+        final long versionNotExists = 9;
+
+        try {
+            // When...
+            flowStoreServiceConnector.deleteSink(sinkIdNotExists, versionNotExists);
+            fail("None existing Sink was not detected");
+
+            // Then ...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // And...
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service and a none referenced sink is stored.
+     * And  : the sink is updated and, valid JSON is POSTed to the sinks path with an identifier (update)
+     *        and correct version number
+     * When : attempting to delete the sink with the previous version number, valid JSON is POSTed to the sinks
+     *        path with an identifier (delete) and wrong version number
+
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a CONFLICT http status code
+     */
+    @Test
+    public void deleteSink_OptimisticLocking() throws FlowStoreServiceConnectorException {
+
+        // Given...
+        final SinkContent sinkContent = new SinkContentBuilder().build();
+        Sink sink = flowStoreServiceConnector.createSink(sinkContent);
+        long sinkId = sink.getId();
+        long versionFirst = sink.getVersion();
+        long versionSecond = versionFirst + 1;
+
+        // And
+        final SinkContent newSinkContent = new SinkContentBuilder().setName("UpdatedSinkName").build();
+        final Sink sinkUpdated = flowStoreServiceConnector.updateSink(newSinkContent, sinkId, versionFirst);
+        assertThat(sinkUpdated.getVersion(), is(versionSecond));
+
+        // Verify before delete
+        Sink sinkBeforeDelete = flowStoreServiceConnector.getSink(sinkId);
+        assertThat(sinkBeforeDelete.getId(), is(sinkId));
+        assertThat(sinkBeforeDelete.getVersion(), is(versionSecond));
+
+        try {
+            // When...
+            flowStoreServiceConnector.deleteSink(sinkId, versionFirst);
+            fail("Sink was deleted");
+
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // And...
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service and a sink referenced by a flow binder is stored.
+     * When : attempting to delete the referenced sink
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a CONFLICT http status code
+     */
+    @Test
+    public void deleteSink_FlowBinderExists() throws FlowStoreServiceConnectorException {
+
+        // Given
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+        final long sinkId = sink.getId();
+
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+
+        try {
+            // When...
+            flowStoreServiceConnector.deleteSink(sinkId, sink.getVersion());
+            fail("Sink was deleted");
+
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // And
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
+        }
+    }
+
+    /**
      * Given: a deployed flow-store service containing no sinks
      * When: GETing sinks collection
      * Then: request returns with empty list
@@ -370,8 +513,7 @@ public class SinksIT {
     @Test
     public void findAllSinks_emptyResult() throws Exception {
         // When...
-        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-        final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
+         final List<Sink> sinks = flowStoreServiceConnector.findAllSinks();
 
         // Then...
         assertThat(sinks, is(notNullValue()));

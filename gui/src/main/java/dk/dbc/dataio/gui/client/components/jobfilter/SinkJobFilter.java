@@ -32,7 +32,6 @@ public class SinkJobFilter extends BaseJobFilter {
 
     FlowStoreProxyAsync flowStoreProxy;
     ChangeHandler sinkJobValueChangeHandler = null;
-    HandlerRegistration sinkListHandlerRegistration = null;
 
 
     @UiConstructor

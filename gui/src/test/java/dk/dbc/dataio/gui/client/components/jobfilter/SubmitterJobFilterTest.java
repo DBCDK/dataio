@@ -29,8 +29,8 @@ public class SubmitterJobFilterTest {
     @Mock Resources mockedResources;
     @Mock ValueChangeEvent<String> mockedValueChangeEvent;
     @Mock ChangeHandler mockedChangeHandler;
-    @Mock ValueChangeHandler<String> mockedSinkJobFilterValueChangeHandler;
-    @Mock HandlerRegistration mockedSinkListHandlerRegistration;
+    @Mock ValueChangeHandler<String> mockedSubmitterJobFilterValueChangeHandler;
+    @Mock HandlerRegistration mockedSubmitterHandlerRegistration;
 
     final String DEFAULT_SUBMITTER_NAME = "default submitter name";
 
@@ -72,7 +72,7 @@ public class SubmitterJobFilterTest {
     public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
         // Test Preparation
         SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.submitter.addValueChangeHandler(any(ValueChangeHandler.class))).thenReturn(mockedSinkListHandlerRegistration);
+        when(jobFilter.submitter.addValueChangeHandler(any(ValueChangeHandler.class))).thenReturn(mockedSubmitterHandlerRegistration);
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);

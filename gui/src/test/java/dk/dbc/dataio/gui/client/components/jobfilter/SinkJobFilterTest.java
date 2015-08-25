@@ -8,7 +8,6 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -32,7 +31,6 @@ import static org.mockito.Mockito.when;
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-@Ignore
 @RunWith(GwtMockitoTestRunner.class)
 public class SinkJobFilterTest {
     @Mock Texts mockedTexts;
@@ -59,21 +57,21 @@ public class SinkJobFilterTest {
         verify(mockedFlowStoreProxy).findAllSinks(any(SinkJobFilter.FetchSinksCallback.class));
     }
 
-//    @Test
-//    public void changeFilterSelection_callFilterSelectionChanged_setSinkIdInModel() {
-//        // Constants
-//        final String SELECTED_KEY = "Elephant";
-//
-//        // Test Preparation
-//        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-//        when(jobFilter.sinkList.getSelectedKey()).thenReturn(SELECTED_KEY);
-//
-//        // Activate Subject Under Test
-//        jobFilter.filterSelectionChanged(mockedValueChangeEvent);
-//
-//        // Verify test
-//        assertThat(jobFilter.jobListCriteriaModel.getSinkId(), is(SELECTED_KEY));
-//    }
+    @Test
+    public void changeFilterSelection_callFilterSelectionChanged_setSinkIdInModel() {
+        // Constants
+        final String SELECTED_KEY = "Elephant";
+
+        // Test Preparation
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
+        when(jobFilter.sinkList.getSelectedKey()).thenReturn(SELECTED_KEY);
+
+        // Activate Subject Under Test
+        jobFilter.filterSelectionChanged(mockedValueChangeEvent);
+
+        // Verify test
+        assertThat(jobFilter.jobListCriteriaModel.getSinkId(), is(SELECTED_KEY));
+    }
 
     @Test
     public void getName_callGetName_fetchesStoredName() {
@@ -95,15 +93,16 @@ public class SinkJobFilterTest {
     public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
         // Test Preparation
         SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-        when(jobFilter.sinkList.addValueChangeHandler(any(ValueChangeHandler.class))).thenReturn(mockedSinkListHandlerRegistration);
+        when(jobFilter.sinkList.addChangeHandler(any(ChangeHandler.class))).thenReturn(mockedSinkListHandlerRegistration);
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
 
         // Verify test
-//        assertThat(jobFilter.sinkJobValueChangeHandler, is(mockedValueChangeHandler));
-        assertThat(jobFilter.sinkListHandlerRegistration, is(mockedSinkListHandlerRegistration));
+        assertThat(jobFilter.sinkJobValueChangeHandler, is(mockedChangeHandler));
+        verify(jobFilter.sinkList).addChangeHandler(mockedChangeHandler);
         assertThat(handlerRegistration, not(nullValue()));
+        assertThat(handlerRegistration, is(mockedSinkListHandlerRegistration));
     }
 
     class ConcreteSinkJobFilter extends SinkJobFilter {
@@ -111,7 +110,6 @@ public class SinkJobFilterTest {
             super(texts, resources, flowStoreProxy);
         }
         public FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
-//        public SinkJobFilterValueChangeHandler sinkJobFilterValueChangeHandler = new SinkJobFilterValueChangeHandler();
     }
 
     @Test
@@ -142,41 +140,5 @@ public class SinkJobFilterTest {
         verify(jobFilter.sinkList).addAvailableItem("SecondName", "321");
         verify(jobFilter.sinkList).setEnabled(true);
     }
-
-//    @Test
-//    public void sinkJobFilterValueChangeHandler_callOnValueChangeSinkJobValueChangeHandlerNotSet_nothingHappens() {
-//        // Test Preparation
-//        ConcreteSinkJobFilter jobFilter = new ConcreteSinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-//        ValueChangeEvent<String> valueChangeEvent = new ValueChangeEvent("Tjek1") {};
-//
-//        // Activate Subject Under Test
-//        jobFilter.sinkJobFilterValueChangeHandler.onValueChange(valueChangeEvent);
-//
-//        // Verify test
-//        assertThat(jobFilter.sinkJobValueChangeHandler, is(nullValue()));
-//        // Nothing to really verify, except that no exception is thrown
-//    }
-//
-//    @Test
-//    public void sinkJobFilterValueChangeHandler_callOnValueChangeSinkJobValueChangeHandlerSet_sinkIdIsSetCorrectly() {
-//        // Constants
-//        final String SINK_ID = "7365";
-//
-//        // Test Preparation
-//        ConcreteSinkJobFilter jobFilter = new ConcreteSinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-//        jobFilter.addChangeHandler(mockedChangeHandler);
-//        ValueChangeEvent<String> valueChangeEvent = new ValueChangeEvent(SINK_ID) {};
-//
-//        // Activate Subject Under Test
-//        jobFilter.sinkJobFilterValueChangeHandler.onValueChange(valueChangeEvent);
-//
-//        // Verify test
-//        ArgumentCaptor<SinkJobFilter.SinkJobFilterChangeEvent> argument = ArgumentCaptor.forClass(SinkJobFilter.SinkJobFilterChangeEvent.class);
-//        verify(mockedChangeHandler).onChange(argument.capture());
-////        String sinkId = argument.getValue().getValue().getSinkId();
-////        assertThat(sinkId, is(SINK_ID));
-//// CHECK LIGE HER......
-//        assert(false);
-//    }
 
 }

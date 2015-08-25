@@ -255,7 +255,7 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves item listing from the underlying data store determined by given search criteria
+     * Retrieves item count from the underlying data store determined by given search criteria
      * @param itemListCriteriaData JSON representation of ItemListCriteria
      * @return a HTTP 200 OK response with count of selected items,
      *         a HTTP 400 BAD_REQUEST response on invalid json content,

@@ -424,8 +424,8 @@ public class JobStoreServiceConnectorTest {
         when(HttpClient.doPostWithJson(CLIENT, criteria, JOB_STORE_URL, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT))
                 .thenReturn(new MockedResponse<>(200, count));
 
-        int result = instance.countItems(criteria);
-        assertThat(result, is(Long.valueOf(count).intValue()));
+        long result = instance.countItems(criteria);
+        assertThat(result, is(count));
     }
 
     // ******************************************* getResourceBundle() tests *******************************************

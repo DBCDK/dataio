@@ -67,10 +67,6 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
         LOGGER.debug("query = {}", query);
         final Query listItemQuery = entityManager.createNativeQuery(query);
         setParameters(listItemQuery, criteria);
-
-        /* We can not utilise @SqlResultSetMapping to map directly to ItemInfoSnapshot
-           since we have no way to convert our complex JSON types into their corresponding POJOs */
-
         final Long items = (Long)listItemQuery.getSingleResult();
         return items;
     }

@@ -224,7 +224,7 @@ public class JobStoreServiceConnector {
      * @throws NullPointerException when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
-    public int countItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+    public long countItems(ItemListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: countItems();");
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -232,9 +232,8 @@ public class JobStoreServiceConnector {
             final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT);
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                Long result = readResponseEntity(response, new GenericType<Long>() {
-                });
-                return (int) result.longValue();
+                Long result = readResponseEntity(response, new GenericType<Long>() {});
+                return result;
             } finally {
                 response.close();
             }

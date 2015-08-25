@@ -163,9 +163,7 @@ public class FlowStoreServiceConnector {
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
      */
     public void deleteSink(long sinkId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
-
         log.trace("FlowStoreServiceConnector: deleteSink({})", sinkId);
-        InvariantUtil.checkNotNullOrThrow(sinkId, "sinkId");
         final StopWatch stopWatch = new StopWatch();
 
         final PathBuilder pathBuilder = new PathBuilder(

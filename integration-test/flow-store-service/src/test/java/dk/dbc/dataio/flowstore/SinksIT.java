@@ -386,10 +386,6 @@ public class SinksIT {
         long sinkId = sink.getId();
         long version = sink.getVersion();
 
-        // Verify before delete
-        Sink sinkBeforeDelete = flowStoreServiceConnector.getSink(sinkId);
-        assertThat(sinkBeforeDelete.getId(), is(sinkId));
-
         // When...
         flowStoreServiceConnector.deleteSink(sinkId, version);
 

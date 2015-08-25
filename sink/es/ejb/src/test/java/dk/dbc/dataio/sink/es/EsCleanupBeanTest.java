@@ -7,7 +7,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -18,9 +17,9 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,7 +59,7 @@ public class EsCleanupBeanTest {
     public void setup() throws JsonException {
 
         final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setItems(
-                    Arrays.asList(new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build())).build();
+                Collections.singletonList(new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build())).build();
         String incompleteDeliveredChunkJson = JsonUtil.toJson(incompleteDeliveredChunk);
                 
         esInFlight41_1 = new EsInFlight();
@@ -120,8 +119,10 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_noFinishedInFlight_nothingHappens() throws SinkException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight42_2));
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_124));
+        when(esInFlightAdmin.listEsInFlight()).thenReturn(Collections.singletonList(esInFlight42_2));
+        final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
+        taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(taskStatusMap);
 
         getEsCleanupBean().cleanup();
     }
@@ -129,12 +130,12 @@ public class EsCleanupBeanTest {
     @Test
     public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedIsCleanedUp() throws SinkException, JobStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_122, taskStatus_123, taskStatus_124, taskStatus_125));
-        final ArrayList<ChunkItem> esItems = new ArrayList<>();
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .setData(StringUtil.asBytes("succeeded"))
-                .build());
+        final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
+        taskStatusMap.put(taskStatus_122.getTargetReference(), taskStatus_122);
+        taskStatusMap.put(taskStatus_123.getTargetReference(), taskStatus_123);
+        taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
+        taskStatusMap.put(taskStatus_125.getTargetReference(), taskStatus_125);
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(taskStatusMap);
         when(esConnector.getChunkForTaskPackage(anyInt(), any(ExternalChunk.class)))
                 .thenReturn(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
 
@@ -147,8 +148,9 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JSONBException, JobStoreServiceConnectorException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight43_1));
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(new ArrayList());
+        when(esInFlightAdmin.listEsInFlight()).thenReturn(Collections.singletonList(esInFlight43_1));
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
+                .thenReturn(Collections.<Integer, TaskStatus>emptyMap());
 
         getEsCleanupBean().cleanup();
 
@@ -160,12 +162,12 @@ public class EsCleanupBeanTest {
     @Test
     public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedAndNoTargetReferencedAreCleanedUp() throws SinkException, JobStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
-        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(Arrays.asList(taskStatus_122, taskStatus_123, taskStatus_124));
-        final ArrayList<ChunkItem> esItems = new ArrayList<>();
-        esItems.add(new ChunkItemBuilder()
-                .setStatus(ChunkItem.Status.SUCCESS)
-                .setData(StringUtil.asBytes("succeeded"))
-                .build());
+        final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
+        taskStatusMap.put(taskStatus_122.getTargetReference(), taskStatus_122);
+        taskStatusMap.put(taskStatus_123.getTargetReference(), taskStatus_123);
+        taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
+                .thenReturn(taskStatusMap);
         when(esConnector.getChunkForTaskPackage(anyInt(), any(ExternalChunk.class)))
                 .thenReturn(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
 

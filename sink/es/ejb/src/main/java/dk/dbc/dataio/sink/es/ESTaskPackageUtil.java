@@ -19,8 +19,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 public class ESTaskPackageUtil {
@@ -55,10 +57,10 @@ public class ESTaskPackageUtil {
     }
 
     // Tested through integrationtests
-    public static List<TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> targetreferences) throws SQLException {
+    public static Map<Integer, TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> targetreferences) throws SQLException {
         LOGGER.entry();
         try {
-            List<TaskStatus> taskStatusList = new ArrayList<>();
+            Map<Integer, TaskStatus> taskStatuses = new HashMap<>();
             // Since the 'SELECT ... WHERE targetreference IN' construct used to get completion status
             // has an upper bound of 1000 members of the IN condition we split into multiple
             // iterations if necessary
@@ -73,7 +75,7 @@ public class ESTaskPackageUtil {
                     while (rs.next()) {
                         int targetreference = rs.getInt(1);
                         int statusCode = rs.getInt(2);
-                        taskStatusList.add(new TaskStatus(statusCode, targetreference));
+                        taskStatuses.put(targetreference, new TaskStatus(statusCode, targetreference));
                     }
                 } catch (SQLException ex) {
                     LOGGER.warn("SQLException caught while trying to find completion status for taskpackages with retrieve statement: {}", retrieveStatement, ex);
@@ -83,7 +85,7 @@ public class ESTaskPackageUtil {
                     JDBCUtil.closeStatement(ps);
                 }
             }
-            return taskStatusList;
+            return taskStatuses;
         } finally {
             LOGGER.exit();
         }
@@ -348,7 +350,6 @@ public class ESTaskPackageUtil {
     }
 
     public static class TaskStatus {
-
         private final Code taskStatus;
         private final int targetreference;
 
@@ -365,12 +366,32 @@ public class ESTaskPackageUtil {
             return targetreference;
         }
 
-        public static enum Code {
-
-            PENDING, ACTIVE, COMPLETE, ABORTED;
-
-            private Code() {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
             }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            TaskStatus that = (TaskStatus) o;
+
+            if (targetreference != that.targetreference) {
+                return false;
+            }
+            return taskStatus == that.taskStatus;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = taskStatus.hashCode();
+            result = 31 * result + targetreference;
+            return result;
+        }
+
+        public enum Code {
+            PENDING, ACTIVE, COMPLETE, ABORTED;
 
             private static Code getCode(int i) {
                 switch (i) {

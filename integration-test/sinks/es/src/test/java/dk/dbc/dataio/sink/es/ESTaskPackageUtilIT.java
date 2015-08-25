@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -138,14 +139,15 @@ public class ESTaskPackageUtilIT {
                     .createInsertAndSetStatus());
         }
 
-        final List<ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
+        final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
                 ESTaskPackageUtil.findCompletionStatusForTaskpackages(ITUtil.getEsConnection(), targetReferences);
 
         assertThat(completionStatusForTaskpackages, is(notNullValue()));
         assertThat(completionStatusForTaskpackages.size(), is(targetReferences.size()));
-        for (int i = 0; i < targetReferences.size(); i++) {
-            assertThat(completionStatusForTaskpackages.get(i).getTargetReference(), is(targetReferences.get(i)));
-            assertThat(completionStatusForTaskpackages.get(i).getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.PENDING));
+        for (Integer targetReference : targetReferences) {
+            assertThat(completionStatusForTaskpackages.containsKey(targetReference), is(true));
+            final ESTaskPackageUtil.TaskStatus taskStatus = completionStatusForTaskpackages.get(targetReference);
+            assertThat(taskStatus.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.PENDING));
         }
     }
 
@@ -164,7 +166,7 @@ public class ESTaskPackageUtilIT {
 
         ESTaskPackageUtil.deleteTaskpackages(ITUtil.getEsConnection(), targetReferences);
 
-        final List<ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
+        final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
                 ESTaskPackageUtil.findCompletionStatusForTaskpackages(ITUtil.getEsConnection(), targetReferences);
 
         assertThat(completionStatusForTaskpackages, is(notNullValue()));

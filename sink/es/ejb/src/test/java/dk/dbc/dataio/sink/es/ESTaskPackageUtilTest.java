@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -61,12 +62,12 @@ public class ESTaskPackageUtilTest {
         when(mockRs.getInt(eq(1))).thenReturn(targetReference);
         when(mockRs.getInt(eq(2))).thenReturn(2);
 
-        List<ESTaskPackageUtil.TaskStatus> status = ESTaskPackageUtil.findCompletionStatusForTaskpackages(mockConn, Arrays.asList(targetReference));
+        Map<Integer, ESTaskPackageUtil.TaskStatus> statusMap =
+                ESTaskPackageUtil.findCompletionStatusForTaskpackages(mockConn, Collections.singletonList(targetReference));
 
-        assertThat(status.size(), is(1));
-        ESTaskPackageUtil.TaskStatus taskStatus = status.get(0);
-        assertThat(taskStatus.getTargetReference(), is(42));
-        assertThat(taskStatus.getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.COMPLETE));
+        assertThat(statusMap.size(), is(1));
+        assertThat(statusMap.containsKey(42), is(true));
+        assertThat(statusMap.get(42).getTaskStatus(), is(ESTaskPackageUtil.TaskStatus.Code.COMPLETE));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -268,7 +269,7 @@ public class ESTaskPackageUtilTest {
 
     private EsWorkload newEsWorkload(String record) throws IOException {
         return new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build(),
-                Arrays.asList(newAddiRecordFromString(record)), USER_ID, PACKAGE_TYPE, ACTION);
+                Collections.singletonList(newAddiRecordFromString(record)), USER_ID, PACKAGE_TYPE, ACTION);
     }
 
     private ChunkItem newChunkItem(String record) {

@@ -27,7 +27,6 @@ import javax.ejb.TransactionAttributeType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -77,13 +76,14 @@ public class EsCleanupBean {
                 LOGGER.info("No records in ES InFlight.");
                 return;
             }
+            Map<Integer, TaskStatus> taskStatusMap = getTaskStatusForESTaskpackages(esInFlightMap);
 
-            final List<ExternalChunk> lostChunks = findLostChunks(esInFlightMap);
+            final List<ExternalChunk> lostChunks = findLostChunks(esInFlightMap, taskStatusMap);
             if(!lostChunks.isEmpty()) {
                 addChunks(lostChunks);
             }
 
-            final List<ExternalChunk> deliveredChunks = findDeliveredChunks(esInFlightMap);
+            final List<ExternalChunk> deliveredChunks = findDeliveredChunks(esInFlightMap, taskStatusMap);
             if(!deliveredChunks.isEmpty()) {
                 addChunks(deliveredChunks);
             }
@@ -118,26 +118,30 @@ public class EsCleanupBean {
         }
     }
 
-    private List<Integer> findTargetReferencesForCompletedTaskpackagesFromTaskStatus(List<TaskStatus> taskStatus) throws SinkException {
-        List<TaskStatus> finishedTaskpackages = filterFinishedTaskpackages(taskStatus);
-        return filterTargetReferencesFromTaskStatusList(finishedTaskpackages);
+    private List<Integer> findTargetReferencesForCompletedTaskpackagesFromTaskStatus(Map<Integer, TaskStatus> taskStatusMap) {
+        final List<Integer> finishedTaskPackages = new ArrayList<>();
+        for (Map.Entry<Integer, TaskStatus> entry : taskStatusMap.entrySet()) {
+            final TaskStatus ts = entry.getValue();
+            if (ts.getTaskStatus() == TaskStatus.Code.COMPLETE || ts.getTaskStatus() == TaskStatus.Code.ABORTED) {
+                finishedTaskPackages.add(entry.getKey());
+            }
+        }
+        return finishedTaskPackages;
     }
 
-    private List<TaskStatus> getTaskStatusForESTaskpackages(Map<Integer, EsInFlight> esInFlightMap) throws SinkException {
-        List<Integer> targetReferences = new ArrayList<>(esInFlightMap.keySet());
-        return esConnector.getCompletionStatusForESTaskpackages(targetReferences);
+    private Map<Integer, TaskStatus> getTaskStatusForESTaskpackages(Map<Integer, EsInFlight> esInFlightMap) throws SinkException {
+        return esConnector.getCompletionStatusForESTaskpackages(new ArrayList<>(esInFlightMap.keySet()));
     }
 
-    private List<ExternalChunk> findLostChunks(Map<Integer, EsInFlight> esInFlightMap) throws SinkException {
+    private List<ExternalChunk> findLostChunks(Map<Integer, EsInFlight> esInFlightMap, Map<Integer, TaskStatus> taskStatusMap) throws SinkException {
         final StopWatch stopWatch = new StopWatch();
         try {
             List<ExternalChunk> lostExternalChunks = new ArrayList<>();
             List<EsInFlight> lostEsInFlight = new ArrayList<>();
-            List<TaskStatus> taskStatusList = getTaskStatusForESTaskpackages(esInFlightMap);
-            LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatusList.size(), esInFlightMap.size());
+            LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatusMap.size(), esInFlightMap.size());
 
             for (Map.Entry<Integer, EsInFlight> esInFlightEntry : esInFlightMap.entrySet()) {
-                if (!hasTargetReference(taskStatusList, esInFlightEntry.getKey())) {
+                if (!taskStatusMap.containsKey(esInFlightEntry.getKey())) {
                     // The entry did not have a target reference -> create lost chunk and add it to the list
                     lostExternalChunks.add(createLostChunk(esInFlightEntry.getValue()));
                     lostEsInFlight.add(esInFlightEntry.getValue());
@@ -153,15 +157,6 @@ public class EsCleanupBean {
         }
     }
 
-    private boolean hasTargetReference(List<TaskStatus>taskStatusList, Integer esInFlightReference) {
-        for(TaskStatus taskStatus : taskStatusList) {
-            if (esInFlightReference == taskStatus.getTargetReference()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     ExternalChunk createLostChunk(EsInFlight esInFlight) throws SinkException {
         LOGGER.info("Finishing lost chunk for tp: {}", esInFlight.getTargetReference());
         final ExternalChunk externalChunk;
@@ -174,32 +169,29 @@ public class EsCleanupBean {
         // Create a new external chunk representing the lost target reference
         final ExternalChunk lostExternalChunk = new ExternalChunk(externalChunk.getJobId(), externalChunk.getChunkId(), externalChunk.getType());
         lostExternalChunk.setEncoding(externalChunk.getEncoding());
-        Iterator<ChunkItem> it = externalChunk.iterator();
 
-        while (it.hasNext()) {
-            ChunkItem chunkItem = it.next();
-            lostExternalChunk.insertItem(buildChunkItem(chunkItem));
+        for (ChunkItem chunkItem : externalChunk) {
+            lostExternalChunk.insertItem(createLostChunkItem(chunkItem));
         }
         return lostExternalChunk;
     }
 
-    private ChunkItem buildChunkItem(ChunkItem chunkItem) {
-      final ChunkItem lostChunkItem;
-            if(chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
-                final String data = "Item status set to failed due to taskpackage lost in ES";
-                lostChunkItem = new ChunkItem(chunkItem.getId(), StringUtil.asBytes(data), ChunkItem.Status.FAILURE);
-            } else {
-                lostChunkItem = chunkItem;
+    private ChunkItem createLostChunkItem(ChunkItem chunkItem) {
+        final ChunkItem lostChunkItem;
+        if(chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+            final String data = "Item status set to failed due to taskpackage lost in ES";
+            lostChunkItem = new ChunkItem(chunkItem.getId(), StringUtil.asBytes(data), ChunkItem.Status.FAILURE);
+        } else {
+            lostChunkItem = chunkItem;
         }
         return lostChunkItem;
     }
 
-    private List<ExternalChunk> findDeliveredChunks(Map<Integer, EsInFlight> esInFlightMap) {
+    private List<ExternalChunk> findDeliveredChunks(Map<Integer, EsInFlight> esInFlightMap, Map<Integer, TaskStatus> taskStatusMap) {
         final StopWatch stopWatch = new StopWatch();
         List<ExternalChunk> deliveredChunks = new ArrayList<>();
         try {
-            List<TaskStatus> taskStatusList = getTaskStatusForESTaskpackages(esInFlightMap);
-            List<Integer> finishedTargetReferences = findTargetReferencesForCompletedTaskpackagesFromTaskStatus(taskStatusList);
+            final List<Integer> finishedTargetReferences = findTargetReferencesForCompletedTaskpackagesFromTaskStatus(taskStatusMap);
             if (finishedTargetReferences.isEmpty()) {
                 LOGGER.info("No finished taskpackages in ES.");
             } else {
@@ -244,24 +236,6 @@ public class EsCleanupBean {
             esInFlightMap.put(esInFlight.getTargetReference(), esInFlight);
         }
         return esInFlightMap;
-    }
-
-    private List<TaskStatus> filterFinishedTaskpackages(List<TaskStatus> taskStatus) {
-        List<TaskStatus> finishedTaskpackages = new ArrayList<>();
-        for (TaskStatus ts : taskStatus) {
-            if (ts.getTaskStatus() == TaskStatus.Code.COMPLETE || ts.getTaskStatus() == TaskStatus.Code.ABORTED) {
-                finishedTaskpackages.add(ts);
-            }
-        }
-        return finishedTaskpackages;
-    }
-
-    private List<Integer> filterTargetReferencesFromTaskStatusList(List<TaskStatus> taskStatus) {
-        List<Integer> targetReferences = new ArrayList<>();
-        for (TaskStatus ts : taskStatus) {
-            targetReferences.add(ts.getTargetReference());
-        }
-        return targetReferences;
     }
 
     private List<EsInFlight> getEsInFlightsFromTargetReferences(Map<Integer, EsInFlight> esInFlightMap, List<Integer> finishedTargetReferences) {

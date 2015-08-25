@@ -14,6 +14,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 @Stateless
 public class EsConnectorBean {
@@ -51,11 +52,11 @@ public class EsConnectorBean {
         }
     }
 
-    public List<ESTaskPackageUtil.TaskStatus> getCompletionStatusForESTaskpackages(List<Integer> targetReferences) throws SinkException {
+    public Map<Integer, ESTaskPackageUtil.TaskStatus> getCompletionStatusForESTaskpackages(List<Integer> targetReferences) throws SinkException {
         try (final Connection connection = getConnection()) {
             return ESTaskPackageUtil.findCompletionStatusForTaskpackages(connection, targetReferences);
         } catch (SQLException | NamingException e) {
-            throw new SinkException("Failed to get targetreferences for task packages", e);
+            throw new SinkException("Failed to get completion status for task packages", e);
         }
     }
 

@@ -2,14 +2,15 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
@@ -33,22 +34,19 @@ public class SubmitterJobFilter extends BaseJobFilter {
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 
-    @UiField
-    PromptedTextBox submitter;
+    @UiField PromptedTextBox submitter;
 
 
     /**
-     * Gets the value of the current Job List Criteria Model
-     * @return The current value of the Job List Criteria Model
+     * Event handler for handling changes in the selected submitter
+     * @param event The ValueChangeEvent
      */
-    public JobListCriteriaModel getValue() {
-        JobListCriteriaModel jobListCriteriaModel=new JobListCriteriaModel();
+    @UiHandler("submitter")
+    void filterSelectionChanged(ValueChangeEvent<String> event) {
         if( submitter.getValue().length() > 0 ) {
             jobListCriteriaModel.setSubmitter(submitter.getValue());
         }
-        return jobListCriteriaModel;
     }
-
 
     @Override
     public String getName() {

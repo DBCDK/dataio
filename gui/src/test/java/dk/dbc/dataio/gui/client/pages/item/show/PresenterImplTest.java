@@ -4,15 +4,12 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.cellview.client.SimplePager;
-import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
-import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
@@ -72,14 +69,10 @@ public class PresenterImplTest {
     @Mock CellTable mockedIgnoredItemsTable;
     @Mock CellTable mockedJobDiagnosticTable;
     @Mock CellTable mockedItemDiagnosticTable;
-    @Mock SimplePager mockedAllPager;
-    @Mock SimplePager mockedFailedPager;
-    @Mock SimplePager mockedIgnoredPager;
     @Mock DecoratedTabPanel mockedAllDetailedTabs;
     @Mock DecoratedTabPanel mockedFailedDetailedTabs;
     @Mock DecoratedTabPanel mockedIgnoredDetailedTabs;
     @Mock DecoratedTabPanel mockedTabPanel;
-    @Mock SingleSelectionModel<ItemModel> mockedSelectionModel;
     @Mock JobInfoTabContent mockedJobInfoTabContent;
     @Mock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
     @Mock ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
@@ -92,6 +85,7 @@ public class PresenterImplTest {
     @Mock PromptedLabel mockedResultMailInitials;
     @Mock PromptedLabel mockedType;
     @Mock TabBar mockedTabBar;
+    @Mock AsyncItemViewDataProvider mockedDataProvider;
 
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
@@ -120,9 +114,6 @@ public class PresenterImplTest {
         mockedIgnoredItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
         mockedIgnoredItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
         mockedView.jobDiagnosticTabContent.jobDiagnosticTable = mockedJobDiagnosticTable;
-        mockedAllItemsListView.itemsPager = mockedAllPager;
-        mockedFailedItemsListView.itemsPager = mockedFailedPager;
-        mockedIgnoredItemsListView.itemsPager = mockedIgnoredPager;
         mockedAllItemsListView.detailedTabs = mockedAllDetailedTabs;
         mockedFailedItemsListView.detailedTabs = mockedFailedDetailedTabs;
         mockedIgnoredItemsListView.detailedTabs = mockedIgnoredDetailedTabs;
@@ -136,9 +127,6 @@ public class PresenterImplTest {
         when(mockedView.allItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.failedItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
         when(mockedView.ignoredItemsList.itemsTable.getVisibleRange()).thenReturn(new Range(OFFSET, ROW_COUNT));
-        when(mockedView.allItemsList.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
-        when(mockedView.failedItemsList.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
-        when(mockedView.ignoredItemsList.itemsTable.getSelectionModel()).thenReturn(mockedSelectionModel);
         mockedView.jobInfoTabContent = mockedJobInfoTabContent;
         mockedView.jobInfoTabContent.packaging = mockedPackaging;
         mockedView.jobInfoTabContent.format = mockedFormat;
@@ -148,6 +136,7 @@ public class PresenterImplTest {
         mockedView.jobInfoTabContent.mailForNotificationAboutProcessing = mockedMailForNotificationAboutProcessing;
         mockedView.jobInfoTabContent.resultMailInitials = mockedResultMailInitials;
         mockedView.jobInfoTabContent.type = mockedType;
+        mockedView.dataProvider = mockedDataProvider;
     }
 
     // Mocked Texts
@@ -217,27 +206,20 @@ public class PresenterImplTest {
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
         ItemsListView itemsListView;
-        public ItemsCallback getItemsCallback;
         public JobsCallback getJobsCallback;
 
         public PresenterImplConcrete(Place place, ClientFactory clientFactory, ItemsListView itemsListView) {
             super(place, clientFactory);
             this.itemsListView = itemsListView;
-            this.getItemsCallback = new ItemsCallback(itemsListView, ROW_COUNT, OFFSET);
             this.getJobsCallback = new JobsCallback();
         }
     }
 
-
     // Test Data
     private ItemModel testModel1 = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111").setJobId("1").setLifeCycle(ItemModel.LifeCycle.DELIVERING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
-    private ItemModel testModel2 = new ItemModelBuilder().setItemNumber("12").setItemId("ItemId2").setChunkId("ChunkId2").setJobId("JobId2").setLifeCycle(ItemModel.LifeCycle.DONE).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
-    private ItemModel testModel3 = new ItemModelBuilder().setItemNumber("13").setItemId("ItemId3").setChunkId("ChunkId3").setJobId("JobId3").setLifeCycle(ItemModel.LifeCycle.PARTITIONING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
     private ItemModel testModel4 = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
     private ItemModel testModel5 = new ItemModelBuilder().setHasDiagnosticFatal(true).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
     private ItemModel testModel6 = new ItemModelBuilder().setDiagnosticModels(new ArrayList<DiagnosticModel>()).build();
-
-    private List<ItemModel> testModels = Arrays.asList(testModel1, testModel2, testModel3, testModel4);
 
     private JobModel testJobModelSucceeded = new JobModelBuilder()
             .setJobId("1418716277429")
@@ -367,9 +349,6 @@ public class PresenterImplTest {
         verify(mockedClientFactory).getItemsShowView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
@@ -397,23 +376,16 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
+        verify(mockedView.dataProvider).setBaseCriteria(eq(mockedAllItemsListView), any(ItemListCriteriaModel.class));
 
         // Verifications from subject under test
-        verify(mockedAllItemsTable).getVisibleRange();
         verify(mockedView).setSelectionEnabled(false);
         verify(mockedAllDetailedTabs).clear();
         verify(mockedAllDetailedTabs).setVisible(false);
-        verify(mockedAllPager).getPageSize();
-        verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
         verifyNoMoreInteractions(mockedFailedItemsTable);
         verifyNoMoreInteractions(mockedIgnoredItemsTable);
         verifyNoMoreInteractions(mockedFailedDetailedTabs);
         verifyNoMoreInteractions(mockedIgnoredDetailedTabs);
-        verifyNoMoreInteractions(mockedFailedPager);
-        verifyNoMoreInteractions(mockedIgnoredPager);
     }
 
     @Test
@@ -432,23 +404,16 @@ public class PresenterImplTest {
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
         verify(mockedJobDiagnosticTable).setRowCount(0);
-        verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
+        verify(mockedView.dataProvider).setBaseCriteria(eq(mockedFailedItemsListView), any(ItemListCriteriaModel.class));
 
         // Verifications from subject under test
-        verify(mockedFailedItemsTable).getVisibleRange();
         verify(mockedView).setSelectionEnabled(false);
         verify(mockedFailedDetailedTabs).clear();
         verify(mockedFailedDetailedTabs).setVisible(false);
-        verify(mockedFailedPager).getPageSize();
-        verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
         verifyNoMoreInteractions(mockedAllItemsTable);
         verifyNoMoreInteractions(mockedIgnoredItemsTable);
         verifyNoMoreInteractions(mockedAllDetailedTabs);
         verifyNoMoreInteractions(mockedIgnoredDetailedTabs);
-        verifyNoMoreInteractions(mockedAllPager);
-        verifyNoMoreInteractions(mockedIgnoredPager);
     }
 
     @Test
@@ -466,23 +431,16 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedAllPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedFailedPager).setPageSize(PresenterImpl.PAGE_SIZE);
-        verify(mockedIgnoredPager).setPageSize(PresenterImpl.PAGE_SIZE);
+        verify(mockedView.dataProvider).setBaseCriteria(eq(mockedIgnoredItemsListView), any(ItemListCriteriaModel.class));
 
         // Verifications from subject under test
-        verify(mockedIgnoredItemsTable).getVisibleRange();
         verify(mockedView).setSelectionEnabled(false);
         verify(mockedIgnoredDetailedTabs).clear();
         verify(mockedIgnoredDetailedTabs).setVisible(false);
-        verify(mockedIgnoredPager).getPageSize();
-        verify(mockedJobStoreProxy).listItems(any(ItemListCriteriaModel.class), any(AsyncCallback.class));
         verifyNoMoreInteractions(mockedAllItemsTable);
         verifyNoMoreInteractions(mockedFailedItemsTable);
         verifyNoMoreInteractions(mockedAllDetailedTabs);
         verifyNoMoreInteractions(mockedFailedDetailedTabs);
-        verifyNoMoreInteractions(mockedAllPager);
-        verifyNoMoreInteractions(mockedFailedPager);
     }
 
     @Test
@@ -841,95 +799,6 @@ public class PresenterImplTest {
         }
         verify(mockedAllDetailedTabs).selectTab(selectedTabIndex);
         verify(mockedAllDetailedTabs).setVisible(true);
-    }
-
-
-    @Test
-    public void fetchJob_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
-        presenterImpl.jobId = "1234";
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getItemsCallback.onFailure(mockedException);
-
-        // Verify Test
-        verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFETCHITEMS);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void fetchAllJobs_callbackWithSuccess_allJobsAreFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
-        presenterImpl.jobId = "1234";
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getItemsCallback.onSuccess(testModels);
-
-        // Verify Test
-        // Called from start()
-        verify(mockedAllItemsTable).setRowCount(0);
-        verify(mockedFailedItemsTable).setRowCount(0);
-        verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedJobDiagnosticTable).setRowCount(0);
-        // Called from subject under test
-        verify(mockedAllItemsTable).setRowCount(4);
-        verify(mockedAllItemsTable).setRowData(OFFSET, testModels);
-        verify(mockedView).setSelectionEnabled(true);
-        verify(mockedSelectionModel).setSelected(testModel1, true);
-        verifyNoMoreInteractions(mockedFailedItemsTable);
-        verifyNoMoreInteractions(mockedIgnoredItemsTable);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void fetchFailedJobs_callbackWithSuccess_failedJobsAreFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedFailedItemsListView);
-        presenterImpl.jobId = "1234";
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getItemsCallback.onSuccess(testModels);
-
-        // Verify Test
-        // Called from start()
-        verify(mockedAllItemsTable).setRowCount(0);
-        verify(mockedFailedItemsTable).setRowCount(0);
-        verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedJobDiagnosticTable).setRowCount(0);
-        // Called from subject under test
-        verify(mockedFailedItemsTable).setRowCount(4);
-        verify(mockedFailedItemsTable).setRowData(OFFSET, testModels);
-        verify(mockedView).setSelectionEnabled(true);
-        verify(mockedSelectionModel).setSelected(testModel1, true);
-        verifyNoMoreInteractions(mockedAllItemsTable);
-        verifyNoMoreInteractions(mockedIgnoredItemsTable);
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void fetchIgnoredJobs_callbackWithSuccess_ignoredJobsAreFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedIgnoredItemsListView);
-        presenterImpl.jobId = "1234";
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-
-        // Test Subject Under Test
-        presenterImpl.getItemsCallback.onSuccess(testModels);
-
-        // Verify Test
-        // Called from start()
-        verify(mockedAllItemsTable).setRowCount(0);
-        verify(mockedFailedItemsTable).setRowCount(0);
-        verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedJobDiagnosticTable).setRowCount(0);
-        // Called from subject under test
-        verify(mockedIgnoredItemsTable).setRowCount(4);
-        verify(mockedIgnoredItemsTable).setRowData(OFFSET, testModels);
-        verify(mockedView).setSelectionEnabled(true);
-        verify(mockedSelectionModel).setSelected(testModel1, true);
-        verifyNoMoreInteractions(mockedAllItemsTable);
-        verifyNoMoreInteractions(mockedFailedItemsTable);
     }
 
     @Test

@@ -4,12 +4,14 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.view.client.RangeChangeEvent;
+import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
+
+import java.util.List;
 
 
 class Context {
@@ -29,6 +31,7 @@ public class View extends ViewWidget {
     Context allContext = new Context(allItemsList);
     Context failedContext = new Context(failedItemsList);
     Context ignoredContext = new Context(ignoredItemsList);
+    public AsyncItemViewDataProvider dataProvider;
 
     /**
      * Default constructor
@@ -38,11 +41,29 @@ public class View extends ViewWidget {
     public View(ClientFactory clientFactory) {
         super(clientFactory);
         setupColumns(allItemsList);
+        dataProvider = new AsyncItemViewDataProvider(clientFactory,this);
+        dataProvider.addDataDisplay(allItemsList.itemsTable);
         setupColumns(failedItemsList);
+        dataProvider.addDataDisplay(failedItemsList.itemsTable);
         setupColumns(ignoredItemsList);
+        dataProvider.addDataDisplay(ignoredItemsList.itemsTable);
         setupColumns(jobDiagnosticTabContent);
     }
 
+    /*
+     * Package scoped Constructor used for unit testing.
+     */
+    View(ClientFactory clientFactory, Boolean setupColumns) {
+        super(clientFactory);
+
+        dataProvider = new AsyncItemViewDataProvider(clientFactory, this);
+        if(setupColumns) {
+            setupColumns(allItemsList);
+            setupColumns(failedItemsList);
+            setupColumns(ignoredItemsList);
+            setupColumns(jobDiagnosticTabContent);
+        }
+    }
 
     /**
      * Enables or disables one of the items table in the view
@@ -65,6 +86,14 @@ public class View extends ViewWidget {
         }
     }
 
+    /**
+     * Force a data refresh of the itemsTables belonging to allItemsList, failedItemsList, ignoredItemsList.
+     */
+    public void refreshItemsTable() {
+        allItemsList.itemsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+        failedItemsList.itemsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+        ignoredItemsList.itemsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+    }
 
     /**
      * Enables or disables all selections in all Items Tables
@@ -77,6 +106,9 @@ public class View extends ViewWidget {
         enableSelection(enable, ignoredContext);
     }
 
+    public void setItemModels(ItemsListView listView, List<ItemModel> itemModels){
+        presenter.setItemModels(listView, itemModels);
+    }
 
     /**
      * Private methods
@@ -87,26 +119,15 @@ public class View extends ViewWidget {
      * It is called before data has been applied to the view - data is being applied in the setItems method
      */
     @SuppressWarnings("unchecked")
-    private void setupColumns(final ItemsListView listView) {
+    void setupColumns(final ItemsListView listView) {
         listView.itemsTable.addColumn(constructItemColumn(), texts.column_Item());
         listView.itemsTable.addColumn(constructStatusColumn(), texts.column_Status());
-        listView.itemsTable.addRangeChangeHandler(new RangeChangeEvent.Handler() {
-            @Override
-            public void onRangeChange(RangeChangeEvent event) {
-                if (listView == allItemsList) {
-                    presenter.allItemsTabSelected();
-                } else if (listView == failedItemsList) {
-                    presenter.failedItemsTabSelected();
-                } else if (listView == ignoredItemsList) {
-                    presenter.ignoredItemsTabSelected();
-                }
-            }
-        });
+        listView.itemsTable.setVisibleRange(0, 20);
         listView.itemsPager.setDisplay(listView.itemsTable);
     }
 
     @SuppressWarnings("unchecked")
-    private void setupColumns(final JobDiagnosticTabContent jobDiagnosticTabContent) {
+    void setupColumns(final JobDiagnosticTabContent jobDiagnosticTabContent) {
         jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticLevelColumn(), texts.column_Level());
         jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticMessageColumn(), texts.column_Message());
     }

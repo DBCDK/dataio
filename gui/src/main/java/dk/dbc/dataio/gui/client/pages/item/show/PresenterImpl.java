@@ -3,7 +3,6 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
@@ -21,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    protected static final int PAGE_SIZE = 20;
     private final Map<String, Integer> tabIndexes = new HashMap<String, Integer>(0);
 
     protected ClientFactory clientFactory;
@@ -67,14 +65,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         initializeView();
         listJobs(jobId);
     }
-
     /**
      * This method is called by the view, whenever the All Items tab has been selected
      */
     @Override
     public void allItemsTabSelected() {
         itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
-        listItems(ItemListCriteriaModel.ItemSearchType.ALL, allItemCounter, view.allItemsList);
+        listItems(ItemListCriteriaModel.ItemSearchType.ALL, view.allItemsList);
     }
 
     /**
@@ -83,7 +80,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void failedItemsTabSelected() {
         itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
-        listItems(ItemListCriteriaModel.ItemSearchType.FAILED, failedItemCounter, view.failedItemsList);
+        listItems(ItemListCriteriaModel.ItemSearchType.FAILED, view.failedItemsList);
     }
 
     /**
@@ -92,7 +89,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void ignoredItemsTabSelected() {
         itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
-        listItems(ItemListCriteriaModel.ItemSearchType.IGNORED, ignoredItemCounter, view.ignoredItemsList);
+        listItems(ItemListCriteriaModel.ItemSearchType.IGNORED, view.ignoredItemsList);
     }
 
     /**
@@ -116,9 +113,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Sets the view according to the supplied job model
      */
     private void initializeView() {
-        view.allItemsList.itemsPager.setPageSize(PAGE_SIZE);
-        view.failedItemsList.itemsPager.setPageSize(PAGE_SIZE);
-        view.ignoredItemsList.itemsPager.setPageSize(PAGE_SIZE);
         view.allItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.failedItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.ignoredItemsList.itemsTable.setRowCount(0); //clear table on startup
@@ -140,21 +134,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
      * @param itemSearchType The search type (ALL, FAILED or IGNORED)
-     * @param rowCount The number of rows in the data
      * @param listView The list view in question
      */
-    private void listItems(ItemListCriteriaModel.ItemSearchType itemSearchType, int rowCount, ItemsListView listView) {
+    private void listItems(ItemListCriteriaModel.ItemSearchType itemSearchType, ItemsListView listView) {
         final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
-        final int offset = listView.itemsTable.getVisibleRange().getStart();
-
         view.setSelectionEnabled(false);
         listView.detailedTabs.clear();
         listView.detailedTabs.setVisible(false);
         itemListCriteriaModel.setItemSearchType(itemSearchType);
         itemListCriteriaModel.setJobId(this.jobId);
-        itemListCriteriaModel.setLimit(listView.itemsPager.getPageSize());
-        itemListCriteriaModel.setOffset(offset);
-        jobStoreProxy.listItems(itemListCriteriaModel, new ItemsCallback(listView, rowCount, offset));
+        view.dataProvider.setBaseCriteria(listView, itemListCriteriaModel);
     }
 
     /**
@@ -175,15 +164,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Sets the view according to the supplied item model list
-     * @param table The CellTable in the View, hungering for data
+     *
      * @param itemModels The list of item models, containing the data to display in the view
      */
-    private void setItemModels(CellTable table, List<ItemModel> itemModels, int rowCount, int offset) {
-        table.setRowCount(rowCount);
-        table.setRowData(offset, itemModels);
+    @Override
+    public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
         view.setSelectionEnabled(true);
         if(itemModels.size() > 0) {
-            table.getSelectionModel().setSelected(itemModels.get(0), true);
+            listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
         }
     }
 
@@ -416,29 +404,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             if (jobModels != null && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
             }
-        }
-    }
-
-    /*
-     * Callback class for fetching Items
-     */
-    class ItemsCallback implements AsyncCallback<List<ItemModel>> {
-        private final ItemsListView listView;
-        private final int rowCount;
-        private final int offset;
-
-        public ItemsCallback(ItemsListView listView, int rowCount, int offset) {
-            this.listView = listView;
-            this.rowCount = rowCount;
-            this.offset = offset;
-        }
-        @Override
-        public void onFailure(Throwable throwable) {
-            view.setErrorText(texts.error_CouldNotFetchItems());
-        }
-        @Override
-        public void onSuccess(List<ItemModel> itemModels) {
-            setItemModels(listView.itemsTable, itemModels, rowCount, offset);
         }
     }
 

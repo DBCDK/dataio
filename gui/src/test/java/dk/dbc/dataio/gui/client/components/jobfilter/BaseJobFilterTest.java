@@ -3,12 +3,11 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
-import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -19,6 +18,7 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 /**
  * Base Job Filter unit tests
@@ -27,19 +27,20 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
-@Ignore
 @RunWith(GwtMockitoTestRunner.class)
 public class BaseJobFilterTest {
     String name;
     Widget thisAsWidget;
-    FlowPanel parentPanel;
-    JobFilterPanel decoratorPanel;
+    JobFilter parentJobFilter;
+    JobFilterPanel filterPanel;
     HandlerRegistration clickHandlerRegistration;
     boolean addJobFilterMethodCalled = false;
 
     @Mock Texts mockedTexts;
     @Mock Resources mockedResources;
-    @Mock FlowPanel mockedPanel;
+    @Mock ImageResource mockedImageResource;
+    @Mock JobFilter mockedJobFilter;
+    @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock HandlerRegistration mockedClickHandlerRegistration;
 
 
@@ -53,14 +54,6 @@ public class BaseJobFilterTest {
         public String getName() {
             return storedName;
         }
-
-        /**
-         * Signals, that this Job Filter has changed
-         */
-//        @Override
-//        void jobFilterHasChanged() {
-//        }
-
         public Texts getTexts() {
             return texts;
         }
@@ -70,16 +63,16 @@ public class BaseJobFilterTest {
         public Widget getThisAsWidget() {
             return thisAsWidget;
         }
-//        public void setParentPanel(FlowPanel panel) {
-//            this.parentPanel = panel;
-//        }
-        public FlowPanel getParentPanel() {
-            return parentPanel;
+        public void setParentJobFilter(JobFilter jobFilter) {
+            parentJobFilter = jobFilter;
         }
-        public void setDecoratorPanel(JobFilterPanel decoratorPanel) {
-            this.filterPanel = decoratorPanel;
+        public JobFilter getParentJobFilter() {
+            return parentJobFilter;
         }
-        public JobFilterPanel getDecoratorPanel() {
+        public void setFilterPanel(JobFilterPanel filterPanel) {
+            this.filterPanel = filterPanel;
+        }
+        public JobFilterPanel getFilterPanel() {
             return filterPanel;
         }
         public void setClickHandlerRegistration(HandlerRegistration reg) {
@@ -88,7 +81,6 @@ public class BaseJobFilterTest {
         public HandlerRegistration getClickHandlerRegistration() {
             return clickHandlerRegistration;
         }
-
         @Override
         public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
             return null;
@@ -111,8 +103,8 @@ public class BaseJobFilterTest {
         mockedTexts = jobFilter.getTexts();
         mockedResources = jobFilter.getResources();
         thisAsWidget = jobFilter.getThisAsWidget();
-        parentPanel = jobFilter.getParentPanel();
-        decoratorPanel = jobFilter.getDecoratorPanel();
+        parentJobFilter = jobFilter.getParentJobFilter();
+        filterPanel = jobFilter.getFilterPanel();
         clickHandlerRegistration = jobFilter.getClickHandlerRegistration();
     }
 
@@ -120,8 +112,8 @@ public class BaseJobFilterTest {
     public void clearAttributes() {
         name = null;
         thisAsWidget = null;
-        parentPanel = null;
-        decoratorPanel = null;
+        parentJobFilter = null;
+        filterPanel = null;
         clickHandlerRegistration = null;
     }
 
@@ -137,11 +129,11 @@ public class BaseJobFilterTest {
         // Verify test
         getAttributes(jobFilter);
         assertThat(name, is("-test name-"));
-        assertThat(mockedTexts, is(notNullValue()));
-        assertThat(mockedResources, is(notNullValue()));
+        assertThat(mockedTexts, is(mockedTexts));
+        assertThat(mockedResources, is(mockedResources));
         assertThat(thisAsWidget, is(notNullValue()));
-        assertThat(parentPanel, is(nullValue()));
-        assertThat(decoratorPanel, is(nullValue()));
+        assertThat(parentJobFilter, is(nullValue()));
+        assertThat(filterPanel, is(nullValue()));
         assertThat(clickHandlerRegistration, is(nullValue()));
     }
 
@@ -157,113 +149,97 @@ public class BaseJobFilterTest {
         assertThat(command, is(nullValue()));
     }
 
-//    @Test
-//    public void getAddCommand_callGetAddCommandWithNotNullParentTestAddJobFilter_ok() {
-//        // Test Preparation
-//        BaseJobFilterWithOverriddenAddMethod jobFilter = new BaseJobFilterWithOverriddenAddMethod("-test name-");
-//
-//        // Activate Subject Under Test
-//        Scheduler.ScheduledCommand command = jobFilter.getAddCommand(mockedPanel);
-//
-//        // Verify test
-//        assertThat(command, is(CoreMatchers.notNullValue()));
-//        assertThat(addJobFilterMethodCalled, is(false));
-//        getAttributes(jobFilter);
-//        assertThat(parentPanel, is(mockedPanel));
-//
-//        // Activate Command
-//        command.execute();
-//
-//        // Verify Test
-//        assertThat(addJobFilterMethodCalled, is(true));
-//        getAttributes(jobFilter);
-//        assertThat(parentPanel, is(mockedPanel));
-//    }
-//
-//    @Test
-//    public void addJobFilter_clickHandlerRegistrationIsNotNull_noAction() {
-//        // Test Preparation
-//        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
-//        jobFilter.getAddCommand(mockedPanel);
-//        jobFilter.setClickHandlerRegistration(new HandlerRegistration() {
-//            @Override
-//            public void removeHandler() {
-//            }
-//        });
-//        jobFilter.setDecoratorPanel(null);
-//
-//        // Activate Subject Under Test
-//        jobFilter.addJobFilter();
-//
-//        // Verify test
-//        getAttributes(jobFilter);
-//        // Now no action is expected, because handlerRegistration is not null - we simulate, that it has been registered already
-//        assertThat(filterPanel, is(nullValue()));
-//    }
+    @Test
+    public void getAddCommand_callGetAddCommandWithNotNullParentTestAddJobFilter_ok() {
+        // Test Preparation
+        BaseJobFilterWithOverriddenAddMethod jobFilter = new BaseJobFilterWithOverriddenAddMethod("-test name-");
+
+        // Activate Subject Under Test
+        Scheduler.ScheduledCommand command = jobFilter.getAddCommand(mockedJobFilter);
+
+        // Verify test
+        assertThat(command, is(notNullValue()));
+        assertThat(addJobFilterMethodCalled, is(false));
+        getAttributes(jobFilter);
+        assertThat(parentJobFilter, is(mockedJobFilter));
+
+        // Activate Command
+        command.execute();
+
+        // Verify Test
+        assertThat(addJobFilterMethodCalled, is(true));
+        getAttributes(jobFilter);
+        assertThat(parentJobFilter, is(mockedJobFilter));
+    }
 
     @Test
-    public void addJobFilter_clickHandlerRegistrationIsNull_okAction() {
+    public void addJobFilter_jobFilterPanelIsNotNull_noAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
-        jobFilter.setClickHandlerRegistration(null);
-        jobFilter.setDecoratorPanel(null);
-//        jobFilter.setParentPanel(mockedPanel);
+        jobFilter.setFilterPanel(mockedJobFilterPanel);
 
         // Activate Subject Under Test
         jobFilter.addJobFilter();
 
         // Verify test
         getAttributes(jobFilter);
-        assertThat(decoratorPanel, is(notNullValue()));
+        assertThat(filterPanel, is(mockedJobFilterPanel));  // No action at all...
+    }
+
+    @Test
+    public void addJobFilter_jobFilterPanelIsNull_okAction() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
+        jobFilter.setFilterPanel(null);
+        jobFilter.getAddCommand(mockedJobFilter);
+        when(mockedResources.deleteButton()).thenReturn(mockedImageResource);
+
+        // Activate Subject Under Test
+        jobFilter.addJobFilter();
+
+        // Verify test
+        getAttributes(jobFilter);
+        assertThat(filterPanel, is(notNullValue()));
+        verify(filterPanel.decorator).setTitle("-test name-");
+        verify(filterPanel.panel).setButtonImage(mockedImageResource);
         assertThat(clickHandlerRegistration, is(notNullValue()));
-        verify(parentPanel).add(decoratorPanel);
+        verify(parentJobFilter).add(jobFilter);
     }
 
     @Test
-    public void removeJobFilter_clickHandlerRegistrationIsNull_noAction() {
+    public void removeJobFilter_jobFilterPanelIsNull_noAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
-//        jobFilter.setParentPanel(mockedPanel);
-        jobFilter.setClickHandlerRegistration(null);
-
-        // Activate Subject Under Test
-        jobFilter.removeJobFilter();
-
-        // Verify test
-        verifyNoMoreInteractions(mockedPanel);
-    }
-
-    @Test
-    public void removeJobFilter_clickHandlerRegistrationIsNotNullParentPanelIsNull_okAction() {
-        // Test Preparation
-        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
-//        jobFilter.setParentPanel(null);
+        jobFilter.setFilterPanel(null);
         jobFilter.setClickHandlerRegistration(mockedClickHandlerRegistration);
+        jobFilter.setParentJobFilter(mockedJobFilter);
 
         // Activate Subject Under Test
         jobFilter.removeJobFilter();
 
         // Verify test
-        verify(mockedClickHandlerRegistration).removeHandler();
-        getAttributes(jobFilter);
-        assertThat(clickHandlerRegistration, is(nullValue()));
+        verifyNoMoreInteractions(mockedClickHandlerRegistration);
+        verifyNoMoreInteractions(mockedJobFilterPanel);
+        verifyNoMoreInteractions(mockedJobFilter);
     }
 
     @Test
-    public void removeJobFilter_clickHandlerRegistrationIsNotNullParentPanelIsNotNull_okAction() {
+    public void removeJobFilter_jobFilterPanelIsNotNullParentPanelIsNull_okAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
-//        jobFilter.setParentPanel(mockedPanel);
+        jobFilter.setFilterPanel(mockedJobFilterPanel);
         jobFilter.setClickHandlerRegistration(mockedClickHandlerRegistration);
+        jobFilter.setParentJobFilter(mockedJobFilter);
 
         // Activate Subject Under Test
         jobFilter.removeJobFilter();
 
         // Verify test
-        verify(mockedClickHandlerRegistration).removeHandler();
         getAttributes(jobFilter);
+        verify(mockedClickHandlerRegistration).removeHandler();
+        verify(mockedJobFilterPanel).clear();
+        verify(mockedJobFilter).remove(jobFilter);
         assertThat(clickHandlerRegistration, is(nullValue()));
-        verify(mockedPanel).remove(decoratorPanel);
     }
 
 }

@@ -175,7 +175,7 @@ public class JobStoreServiceConnector {
      * @throws NullPointerException when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
      */
-    public int countJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
+    public long countJobs(JobListCriteria criteria) throws NullPointerException, JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: listJobs();");
         final StopWatch stopWatch = new StopWatch();
         try {

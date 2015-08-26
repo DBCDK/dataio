@@ -89,8 +89,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public int countJobs(JobListCriteriaModel model) throws ProxyException {
-        final int jobCount;
+    public long countJobs(JobListCriteriaModel model) throws ProxyException {
+        final long jobCount;
         log.trace("JobStoreProxy: countJobs(\"{}\");", model.getSearchType());
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -157,6 +157,43 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             log.debug("JobStoreProxy: listItems took {} milliseconds", stopWatch.getElapsedTime());
         }
         return itemModels;
+    }
+
+    @Override
+    public long countItems(ItemListCriteriaModel model) throws ProxyException {
+        final long itemCount;
+        log.trace("JobStoreProxy: countItems(\"{}\");", model.getItemSearchType());
+        final StopWatch stopWatch = new StopWatch();
+
+        try {
+            switch (model.getItemSearchType()) {
+                case FAILED:
+                    itemCount = jobStoreServiceConnector.countItems(ItemListCriteriaModelMapper.toFailedItemListCriteria(model));
+                    break;
+                case IGNORED:
+                    itemCount = jobStoreServiceConnector.countItems(ItemListCriteriaModelMapper.toIgnoredItemListCriteria(model));
+                    break;
+                default:
+                    itemCount = jobStoreServiceConnector.countItems(ItemListCriteriaModelMapper.toItemListCriteriaAll(model));
+                    break;
+            }
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: countItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: countItems - Unexpected Status Code Exception", e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: countItems - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+        finally {
+            log.debug("JobStoreProxy: countItems took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return itemCount;
     }
 
     @Override

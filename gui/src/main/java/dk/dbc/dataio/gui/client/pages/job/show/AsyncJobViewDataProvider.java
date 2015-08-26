@@ -129,13 +129,13 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      *
      */
     public void updateCount()  {
-        jobStoreProxy.countJobs(currentCriteria, new FilteredAsyncCallback<Integer>() {
+        jobStoreProxy.countJobs(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
             JobListCriteriaModel criteriaOnRequestCall = currentCriteria;
             @Override
-            public void onSuccess(Integer integer) {
+            public void onSuccess(Long count) {
                 if (dataIsStillValid()) {
-                    updateRowCount(integer, true);
+                    updateRowCount(count.intValue(), true);
                 }
             }
 

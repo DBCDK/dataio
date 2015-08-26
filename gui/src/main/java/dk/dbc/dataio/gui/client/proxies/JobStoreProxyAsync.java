@@ -10,8 +10,9 @@ import java.util.List;
 
 public interface JobStoreProxyAsync {
     void listJobs(JobListCriteriaModel model, AsyncCallback<List<JobModel>> async);
-    void countJobs(JobListCriteriaModel model, AsyncCallback<Integer> async);
+    void countJobs(JobListCriteriaModel model, AsyncCallback<Long> async);
     void listItems(ItemListCriteriaModel model, AsyncCallback<List<ItemModel>> async);
+    void countItems(ItemListCriteriaModel model, AsyncCallback<Long> async);
     void getItemData(int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle, AsyncCallback<String> async);
     void getProcessedNextResult(int jobId, int chunkId, short itemId, AsyncCallback<String> async);
     void close(AsyncCallback<Void> async);

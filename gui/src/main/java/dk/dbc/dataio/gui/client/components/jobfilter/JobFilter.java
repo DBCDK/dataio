@@ -104,14 +104,16 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param jobFilter The job filter to add to the list of Job Filters
      */
     public void add(BaseJobFilter jobFilter) {
-        jobFilterPanel.add(jobFilter.filterPanel);
-        jobFilter.addChangeHandler(new ChangeHandler() {
-            @Override
-            public void onChange(ChangeEvent changeEvent) {
-                valueChanged();
-            }
-        });
-        valueChanged();  // Do assure, that whenever a filter is being applied, do the filtering
+        if (jobFilter != null) {
+            jobFilterPanel.add(jobFilter.filterPanel);
+            jobFilter.addChangeHandler(new ChangeHandler() {
+                @Override
+                public void onChange(ChangeEvent changeEvent) {
+                    valueChanged();
+                }
+            });
+            valueChanged();  // Do assure, that whenever a filter is being applied, do the filtering
+        }
     }
 
     /**
@@ -119,11 +121,11 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param jobFilter The job filter to remove from the list of Job Filters
      */
     public void remove(BaseJobFilter jobFilter) {
-        if (jobFilter.filterPanel != null) {
+        if (jobFilter != null && jobFilter.filterPanel != null) {
             jobFilterPanel.remove(jobFilter.filterPanel);
             jobFilter.filterPanel = null;
+            valueChanged();  // Do assure, that whenever a filter is being removed, do the filtering
         }
-        valueChanged();  // Do assure, that whenever a filter is being removed, do the filtering
     }
 
     /**

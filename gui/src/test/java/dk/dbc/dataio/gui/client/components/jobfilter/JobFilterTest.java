@@ -1,7 +1,9 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.ChangeEvent;
+import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
@@ -17,10 +19,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -32,17 +38,13 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JobFilterTest {
-    @Mock JobFilterList mockedJobFilterList;
     @Mock BaseJobFilter mockedBaseJobFilter1;
     @Mock BaseJobFilter mockedBaseJobFilter2;
+    @Mock ChangeHandler mockedChangeHandler;
+    @Mock JobFilterPanel mockedJobFilterPanel;
+    @Mock BaseJobFilter mockedBaseJobFilterWidget;
     List<BaseJobFilter> twoJobFilters = new ArrayList<BaseJobFilter>();
     List<BaseJobFilter> emptyJobFilters = new ArrayList<BaseJobFilter>();
-
-    @Mock ClickHandler mockedClickHandler;
-
-    @Mock
-    JobFilterPanel mockedJobFilterPanel;
-    @Mock BaseJobFilter mockedBaseJobFilterWidget;
 
 
     @Before
@@ -75,17 +77,111 @@ public class JobFilterTest {
         assertThat(capturedValues.get(1), is("Filter 2"));
     }
 
-//    @Test
-//    public void addClickHandler_callAddClickHandler_clickHandlerAdded() {
-//        // Test Preparation
-//        JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
-//
-//        // Activate Subject Under Test
-//        jobFilter.addClickHandler(mockedClickHandler);
-//
-//        // Verify test
-//        verify(jobFilter.filterButton).addClickHandler(mockedClickHandler);
-//    }
+    @Test
+    public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
+
+        // Activate Subject Under Test
+        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
+
+        // Verify test
+        assertThat(jobFilter.changeHandler, is(notNullValue()));
+        assertThat(handlerRegistration, is(notNullValue()));
+
+        // Call HandlerRegistration->removeHandler
+        handlerRegistration.removeHandler();
+
+        // Verify Test
+        assertThat(jobFilter.changeHandler, is(nullValue()));
+    }
+
+    @Test
+    public void addChildJobFilter_callAddWithNullValue_addNoJobFilters() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+
+        // Activate Subject Under Test
+        jobFilter.add(null);
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.jobFilterPanel);
+    }
+
+    @Test
+    public void addChildJobFilter_callAddWithNotNullValue_addJobFilter() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.changeHandler = null;
+
+        // Activate Subject Under Test
+        jobFilter.add(mockedBaseJobFilter1);
+
+        // Verify test
+        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
+        verifyNoMoreInteractions(mockedChangeHandler);
+
+        // Setup a change handler
+        jobFilter.changeHandler = mockedChangeHandler;
+
+        // Activate Subject Under Test once again
+        jobFilter.add(mockedBaseJobFilter1);
+
+        // Verify test
+        verify(mockedChangeHandler).onChange(any(ChangeEvent.class));
+    }
+
+    @Test
+    public void removeChildJobFilter_callRemoveWithNullValue_removeNoJobFilters() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.add(mockedBaseJobFilter1);
+
+        // Activate Subject Under Test
+        jobFilter.remove(null);
+
+        // Verify test
+        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
+        verifyNoMoreInteractions(jobFilter.jobFilterPanel);
+    }
+
+    @Test
+    public void removeChildJobFilter_callRemoveWithNullPanelValue_removeNoJobFilters() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.add(mockedBaseJobFilter1);
+        mockedBaseJobFilter1.filterPanel = null;
+
+        // Activate Subject Under Test
+
+        jobFilter.remove(mockedBaseJobFilter1);
+
+        // Verify test
+        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
+        verifyNoMoreInteractions(jobFilter.jobFilterPanel);
+    }
+
+    @Test
+    public void removeChildJobFilter_callRemoveWithNotNullValue_removeJobFilter() {
+        // Test Preparation
+        JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.add(mockedBaseJobFilter1);
+        jobFilter.changeHandler = mockedChangeHandler;
+
+        // Activate Subject Under Test
+
+        jobFilter.remove(mockedBaseJobFilter1);
+
+        // Verify test
+        verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
+        verify(jobFilter.jobFilterPanel).remove(mockedJobFilterPanel);
+        assertThat(mockedBaseJobFilter1.filterPanel, is(nullValue()));
+        verify(mockedChangeHandler).onChange(any(ChangeEvent.class));
+    }
 
     @Test
     public void getValue_getValueWithNoFilters_returnNonMergedModel() {

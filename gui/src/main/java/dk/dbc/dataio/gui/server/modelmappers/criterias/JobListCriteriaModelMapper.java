@@ -33,7 +33,7 @@ public final class JobListCriteriaModelMapper {
             if( model.getSubmitter() != null ) {
                 // Where Mode
                 jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS,
-                        String.format("{ \"submitterId\": \"%1$s\"}", model.getSubmitter())));
+                        String.format("{ \"submitterId\": %1$s}", model.getSubmitter())));
             }
             // And where search type equals...
             buildJobListCriteriaWithSearchType(jobListCriteria, model);

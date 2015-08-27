@@ -13,5 +13,9 @@ public class JndiConstants {
 
     public static final String CONFIG_RESOURCE_HARVESTER_RR = "config/dataio/harvester/rr";
 
+    public static final String JMS_QUEUE_PROCESSOR = "jms/dataio/processor"; //processorJmsQueue
+    public static final String JMS_QUEUE_SINK = "jms/dataio/sinks"; //sinksJmsQueue
+
+
     private JndiConstants() { }
 }

@@ -273,7 +273,7 @@ public class ViewTest {
         Column column = view.constructIgnoredCounterColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getIgnoredCounter())));
+        assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getProcessingIgnoredCounter())));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));

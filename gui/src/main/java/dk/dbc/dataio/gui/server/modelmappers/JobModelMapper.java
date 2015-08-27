@@ -45,6 +45,7 @@ public class JobModelMapper {
                 getTotal(jobInfoSnapshot.getState()),
                 getFailed(jobInfoSnapshot.getState()),
                 getIgnored(jobInfoSnapshot.getState()),
+                jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getIgnored(),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING)),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING)),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING)),
@@ -145,9 +146,16 @@ public class JobModelMapper {
      * @return number of ignored items.
      */
     private static int getIgnored(State state) {
-        return state.getPhase(State.Phase.PROCESSING).getIgnored();
-    }
-
+            int ignored;
+            if(state.getPhase(State.Phase.DELIVERING).getIgnored() != 0) {
+                ignored = state.getPhase(State.Phase.DELIVERING).getIgnored();
+            } else if(state.getPhase(State.Phase.PROCESSING).getIgnored() != 0) {
+                ignored = state.getPhase(State.Phase.PROCESSING).getIgnored();
+            } else {
+                ignored = state.getPhase(State.Phase.PARTITIONING).getIgnored();
+            }
+            return ignored;
+        }
     /**
      * This method retrieves all diagnostics.
      * @param diagnostics containing Warning or Error information

@@ -21,6 +21,7 @@ public class JobModel extends GenericBackendModel {
     private long itemCounter;
     private long failedCounter;
     private long ignoredCounter;
+    private long processingIgnoredCounter;
     private long partitionedCounter;
     private long processedCounter;
     private long deliveredCounter;
@@ -49,6 +50,7 @@ public class JobModel extends GenericBackendModel {
      * @param itemCounter                          The Item Counter
      * @param failedCounter                        The Failed Counter
      * @param ignoredCounter                       The Ignored Counter
+     * @param processingIgnoredCounter             The Failed Counter for processing phase
      * @param partitionedCounter                   The number of Partitioned Items
      * @param processedCounter                     The number of Processed Items
      * @param deliveredCounter                     The number of Delivered Items
@@ -74,6 +76,7 @@ public class JobModel extends GenericBackendModel {
                     long itemCounter,
                     long failedCounter,
                     long ignoredCounter,
+                    long processingIgnoredCounter,
                     long partitionedCounter,
                     long processedCounter,
                     long deliveredCounter,
@@ -98,6 +101,7 @@ public class JobModel extends GenericBackendModel {
         this.jobDone = jobDone;
         this.failedCounter = failedCounter;
         this.ignoredCounter = ignoredCounter;
+        this.processingIgnoredCounter = processingIgnoredCounter;
         this.partitionedCounter = partitionedCounter;
         this.processedCounter = processedCounter;
         this.deliveredCounter = deliveredCounter;
@@ -117,7 +121,7 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "", Type.TRANSIENT);
+        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "", Type.TRANSIENT);
     }
 
 
@@ -317,6 +321,24 @@ public class JobModel extends GenericBackendModel {
      */
     public void setIgnoredCounter(long ignoredCounter) {
         this.ignoredCounter = ignoredCounter;
+    }
+
+    /**
+     * Gets the Ignored Counter for processing phase
+     *
+     * @return The Processing Ignored Counter
+     */
+    public long getProcessingIgnoredCounter() {
+        return processingIgnoredCounter;
+    }
+
+    /**
+     * Sets the Processing Ignored Counter
+     *
+     * @param processingIgnoredCounter The Ignored Counter for processing phase
+     */
+    public void setProcessingIgnoredCounter(long processingIgnoredCounter) {
+        this.processingIgnoredCounter = processingIgnoredCounter;
     }
 
     /**

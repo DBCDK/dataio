@@ -189,7 +189,8 @@ public class JobModelMapperTest {
         assertThat(jobModel.isJobDone(), is(true));
         assertThat(jobModel.getItemCounter(), is(564L + 4L + 567L));
         assertThat(jobModel.getFailedCounter(), is(33L + 66L + 4L));
-        assertThat(jobModel.getIgnoredCounter(), is(8323L));
+        assertThat(jobModel.getIgnoredCounter(), is(643L));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(8323L));
         assertThat(jobModel.getPartitionedCounter(), is(565L - 1 + 5L - 1 + 568L - 1));
         assertThat(jobModel.getProcessedCounter(), is(44L - 1 + 67L - 1 + 8324L - 1));
         assertThat(jobModel.getDeliveredCounter(), is(124L - 1 + 34L - 1 + 644L - 1));
@@ -246,7 +247,7 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(8323L));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(8323L));
     }
 
     @Test
@@ -257,7 +258,31 @@ public class JobModelMapperTest {
         JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
 
         // Test Verification
-        assertThat(jobModel.getIgnoredCounter(), is(0L));
+        assertThat(jobModel.getProcessingIgnoredCounter(), is(0L));
+    }
+
+    @Test
+    public void toModel_deliveringIgnoredCountIsZero_processingIgnoredCount() {
+        // Subject Under Test
+        when(mockedDeliveringStateElement.getIgnored()).thenReturn(0);
+        when(mockedProcessingStateElement.getIgnored()).thenReturn(8323);
+        when(mockedPartitioningStateElement.getIgnored()).thenReturn(567);
+        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+
+        // Test Verification
+        assertThat(jobModel.getIgnoredCounter(), is(8323L));
+    }
+
+    @Test
+    public void toModel_deliveringAndProcessingIgnoredCountsAreZero_partitioningIgnoredCount() {
+        // Subject Under Test
+        when(mockedDeliveringStateElement.getIgnored()).thenReturn(0);
+        when(mockedProcessingStateElement.getIgnored()).thenReturn(0);
+        when(mockedPartitioningStateElement.getIgnored()).thenReturn(567);
+        JobModel jobModel = JobModelMapper.toModel(testJobInfoSnapshot);
+
+        // Test Verification
+        assertThat(jobModel.getIgnoredCounter(), is(567L));
     }
 
     @Test
@@ -288,7 +313,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).isJobDone(), is(true));
         assertThat(jobModels.get(0).getItemCounter(), is(564L + 4L + 567L));
         assertThat(jobModels.get(0).getFailedCounter(), is(33L + 66L + 4L));
-        assertThat(jobModels.get(0).getIgnoredCounter(), is(8323L));
+        assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(8323L));
         assertThat(jobModels.get(0).getPackaging(), is("packaginG"));
         assertThat(jobModels.get(0).getFormat(), is("formaT"));
         assertThat(jobModels.get(0).getCharset(), is("charseT"));
@@ -305,7 +330,8 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).isJobDone(), is(true));
         assertThat(jobModels.get(1).getItemCounter(), is(565L + 5L + 568L));
         assertThat(jobModels.get(1).getFailedCounter(), is(34L + 67L + 5L));
-        assertThat(jobModels.get(1).getIgnoredCounter(), is(8324L));
+        assertThat(jobModels.get(1).getIgnoredCounter(), is(644L));
+        assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(8324L));
         assertThat(jobModels.get(1).getPackaging(), is("packaginG2"));
         assertThat(jobModels.get(1).getFormat(), is("formaT2"));
         assertThat(jobModels.get(1).getCharset(), is("charseT2"));

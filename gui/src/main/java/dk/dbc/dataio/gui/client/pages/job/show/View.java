@@ -249,7 +249,7 @@ public class View extends ViewWidget {
         TextColumn<JobModel> column = new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return String.valueOf(model.getIgnoredCounter());
+                return String.valueOf(model.getProcessingIgnoredCounter());
             }
         };
         return column;

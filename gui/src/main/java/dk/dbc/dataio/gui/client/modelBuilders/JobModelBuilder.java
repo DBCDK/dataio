@@ -20,6 +20,7 @@ public class JobModelBuilder {
     private long itemCounter = 10L;
     private long failedCounter = 0L;
     private long ignoredCounter = 0L;
+    private long processingIgnoredCounter = 0L;
     private long partitionedCounter = 14;
     private long processedCounter = 15;
     private long deliveredCounter = 16;
@@ -87,6 +88,11 @@ public class JobModelBuilder {
 
     public JobModelBuilder setIgnoredCounter(long ignoredCounter) {
         this.ignoredCounter = ignoredCounter;
+        return this;
+    }
+
+    public JobModelBuilder setProcessingIgnoredCounter(long processingIgnoredCounter) {
+        this.processingIgnoredCounter = processingIgnoredCounter;
         return this;
     }
 
@@ -168,6 +174,7 @@ public class JobModelBuilder {
                 itemCounter,
                 failedCounter,
                 ignoredCounter,
+                processingIgnoredCounter,
                 partitionedCounter,
                 processedCounter,
                 deliveredCounter,

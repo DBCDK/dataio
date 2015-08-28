@@ -8,6 +8,32 @@ import java.util.List;
  */
 public class JobModel extends GenericBackendModel {
 
+
+    private final static String     JOB_ID_EMPTY = "";
+    private final static String     JOB_CREATION_TIME_EMPTY = "";
+    private final static String     SUBMITTER_NUMBER_EMPTY = "";
+    private final static String     SUBMITTER_NAME_EMPTY = "";
+    private final static String     FLOW_BINDER_NAME_EMPTY = "";
+    private final static long       SINK_ID_ZERO = 0;
+    private final static String     SINK_NAME_EMPTY = "";
+    private final static boolean    IS_JOB_DONE_FALSE = false;
+    private final static long       ITEM_COUNTER_ZERO = 0;
+    private final static long       FAILED_COUNTER_ZERO = 0;
+    private final static long       IGNORED_COUNTER_ZERO = 0;
+    private final static long       PROCESSING_IGNORED_COUNTER_ZERO = 0;
+    private final static long       PARTITIONED_COUNTER_ZERO = 0;
+    private final static long       PROCESSED_COUNTER_ZERO = 0;
+    private final static long       DELIVERED_COUNTER_ZERO = 0;
+    private final static ArrayList  LIST_OF_DIAGNOSTICS_EMPTY = new ArrayList<DiagnosticModel>();
+    private final static boolean    HAS_FATAL_DIAGNOSTIC_FALSE = false;
+    private final static String     PACKAGING_EMPTY = "";
+    private final static String     FORMAT_EMPTY = "";
+    private final static String     CHARSET_EMPTY = "";
+    private final static String     DESTINATION_EMPTY = "";
+    private final static String     MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY = "";
+    private final static String     MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY = "";
+    private final static String     RESULT_MAIL_INITIALS_EMPTY = "";
+
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 
     private String jobCreationTime;
@@ -97,8 +123,8 @@ public class JobModel extends GenericBackendModel {
         this.flowBinderName = flowBinderName;
         this.sinkId = sinkId;
         this.sinkName = sinkName;
-        this.itemCounter = itemCounter;
         this.jobDone = jobDone;
+        this.itemCounter = itemCounter;
         this.failedCounter = failedCounter;
         this.ignoredCounter = ignoredCounter;
         this.processingIgnoredCounter = processingIgnoredCounter;
@@ -121,7 +147,32 @@ public class JobModel extends GenericBackendModel {
      * Default empty constructor
      */
     public JobModel() {
-        this("", "", "", "", "", 0, "", false, 0, 0, 0, 0, 0, 0, 0, new ArrayList<DiagnosticModel>(), false, "", "", "", "", "", "", "", Type.TRANSIENT);
+        this(
+                JOB_CREATION_TIME_EMPTY,
+                JOB_ID_EMPTY,
+                SUBMITTER_NUMBER_EMPTY,
+                SUBMITTER_NAME_EMPTY,
+                FLOW_BINDER_NAME_EMPTY,
+                SINK_ID_ZERO,
+                SINK_NAME_EMPTY,
+                IS_JOB_DONE_FALSE,
+                ITEM_COUNTER_ZERO,
+                FAILED_COUNTER_ZERO,
+                IGNORED_COUNTER_ZERO,
+                PROCESSING_IGNORED_COUNTER_ZERO,
+                PARTITIONED_COUNTER_ZERO,
+                PROCESSED_COUNTER_ZERO,
+                DELIVERED_COUNTER_ZERO,
+                LIST_OF_DIAGNOSTICS_EMPTY,
+                HAS_FATAL_DIAGNOSTIC_FALSE,
+                PACKAGING_EMPTY,
+                FORMAT_EMPTY,
+                CHARSET_EMPTY,
+                DESTINATION_EMPTY,
+                MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY,
+                MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY,
+                RESULT_MAIL_INITIALS_EMPTY,
+                Type.TRANSIENT);
     }
 
 

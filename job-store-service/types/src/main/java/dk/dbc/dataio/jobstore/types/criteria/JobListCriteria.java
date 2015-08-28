@@ -20,7 +20,7 @@ public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobList
          * job last modification time
          */
         TIME_OF_LAST_MODIFICATION,
-         /*
+        /*
          * jobs failed while processing
          */
         STATE_PROCESSING_FAILED,
@@ -36,5 +36,9 @@ public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobList
          * job specification
          */
         SPECIFICATION,
+        /**
+         * jobs failed with a fatal error
+         */
+        WITH_FATAL_ERROR,
     }
 }

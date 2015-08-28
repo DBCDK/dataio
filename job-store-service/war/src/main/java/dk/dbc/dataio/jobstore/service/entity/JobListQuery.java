@@ -41,6 +41,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
         fieldMap.put(JobListCriteria.Field.STATE_PROCESSING_FAILED, new VerbatimField("(state->'states'->'PROCESSING'->>'failed' != '0')"));
         fieldMap.put(JobListCriteria.Field.STATE_DELIVERING_FAILED, new VerbatimField("(state->'states'->'DELIVERING'->>'failed' != '0')"));
         fieldMap.put(JobListCriteria.Field.SINK_ID, new BooleanOpField("((flowstorereferences->'references'->'SINK'->>'id')::INT)", new ObjectValue()));
+        fieldMap.put(JobListCriteria.Field.WITH_FATAL_ERROR, new VerbatimField("fatalerror = 't'"));
     }
 
     /**

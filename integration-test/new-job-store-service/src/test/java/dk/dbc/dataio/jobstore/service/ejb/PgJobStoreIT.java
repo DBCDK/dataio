@@ -633,21 +633,8 @@ public class PgJobStoreIT {
     public void addJob_failEventually() throws JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final String invalidXml =
-                  "<records>"
-                     + "<record>first</record>"
-                     + "<record>second</record>"
-                     + "<record>third</record>"
-                     + "<record>fourth</record>"
-                     + "<record>fifth</record>"
-                     + "<record>sixth</record>"
-                     + "<record>seventh</record>"
-                     + "<record>eighth</record>"
-                     + "<record>ninth</record>"
-                     + "<record>tenth</record>"
-                     + "<record>eleventh"
-                + "</records>";
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(invalidXml);
+
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(getInvalidXml());
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
@@ -1085,6 +1072,60 @@ public class PgJobStoreIT {
 
         // Then...
         assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(0));
+    }
+
+    /**
+     * Given    : a job store containing a number of jobs, where:
+     *               - One job has failed during job creation
+     *               - One job has been added without failure or diagnostics
+     *               - One job has been added without failure but has a diagnostic with level WARNING
+     *               - One job has failed during partitioning
+     *
+     * When     : requesting a job listing with a criteria selecting only jobs failed in job creation or partitioning
+     * Then     : two filtered snapshot is returned.
+     * And      : one snapshots is referring to the job that failed in job creation
+     * And      : one snapshots is referring to the job that failed in partitioning
+     * And      : both snapshot have been marked with fatal error.
+     */
+    @Test
+    public void listJobsWithFatalError() throws JobStoreException, FileStoreServiceConnectorException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+
+        // Adding job that fails in job creation
+        final JobInfoSnapshot jobFailedInJobCreation = addJobs(1, pgJobStore).get(0);
+
+        // Setup mock to prevent instant fail in job creation
+        setupExpectationOnGetByteSize();
+
+        // Adding job without failure
+        addJobs(1, pgJobStore);
+
+        // Adding job with diagnostic with level WARNING
+        addJobWithDiagnostic(pgJobStore, Diagnostic.Level.WARNING);
+
+        // Adding job that fails in partitioning
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(getInvalidXml());
+        final EntityTransaction transaction = entityManager.getTransaction();
+
+        transaction.begin();
+        final JobInfoSnapshot jobFailedInPartitioning = pgJobStore.addJob(mockedAddJobParam);
+        transaction.commit();
+
+        // When...
+        final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
+        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.listJobs(jobListCriteriaJobCreationFailed);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(2));
+
+        final JobInfoSnapshot returnedJobPartitioningFailedSnapshot = returnedSnapshots.get(0);
+        assertThat("Returned returnedJobPartitioningFailedSnapshot.jobId", returnedJobPartitioningFailedSnapshot.getJobId(), is(jobFailedInPartitioning.getJobId()));
+        assertThat("Returned returnedJobPartitioningFailedSnapshot.fatalError", returnedJobPartitioningFailedSnapshot.hasFatalError(), is(true));
+
+        final JobInfoSnapshot returnedJobCreationFailedSnapshot = returnedSnapshots.get(1);
+        assertThat("Returned returnedJobCreationFailedSnapshot.jobId", returnedJobCreationFailedSnapshot.getJobId(), is(jobFailedInJobCreation.getJobId()));
+        assertThat("Returned returnedJobCreationFailedSnapshot.fatalError", returnedJobCreationFailedSnapshot.hasFatalError(), is(true));
     }
 
     /**
@@ -1791,6 +1832,22 @@ public class PgJobStoreIT {
             assertThat(itemEntity.getProcessingOutcome().getData(), is(StringUtil.base64encode(getData(ExternalChunk.Type.PROCESSED))));
         }
         return itemState;
+    }
+
+    private String getInvalidXml() {
+        return "<records>"
+                + "<record>first</record>"
+                + "<record>second</record>"
+                + "<record>third</record>"
+                + "<record>fourth</record>"
+                + "<record>fifth</record>"
+                + "<record>sixth</record>"
+                + "<record>seventh</record>"
+                + "<record>eighth</record>"
+                + "<record>ninth</record>"
+                + "<record>tenth</record>"
+                + "<record>eleventh"
+                + "</records>";
     }
 
     private class MockedAddJobParam extends AddJobParam {

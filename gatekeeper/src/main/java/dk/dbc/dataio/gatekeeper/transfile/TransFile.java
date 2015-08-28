@@ -1,0 +1,126 @@
+package dk.dbc.dataio.gatekeeper.transfile;
+
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.regex.Pattern;
+
+/**
+ * Simple non-validating transfile parser
+ */
+public class TransFile {
+    public static final Pattern END_OF_FILE = Pattern.compile("slut", Pattern.CASE_INSENSITIVE);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
+
+    private boolean isComplete = false;
+    private List<Line> lines = new ArrayList<>();
+
+    /**
+     * Return new transfile representation
+     * @param transfile path of transfile to parse
+     * @throws NullPointerException if given null-valued transfile path
+     * @throws IOException if unable to read transfile
+     */
+    public TransFile(Path transfile) throws NullPointerException, IOException {
+        parse(InvariantUtil.checkNotNullOrThrow(transfile, "transfile"));
+    }
+
+    private void parse(Path transfile) throws IOException {
+        LOGGER.info("Parsing transfile {}", transfile.toAbsolutePath());
+        try (final Scanner fileScanner = new Scanner(transfile, StandardCharsets.UTF_8.name())) {
+            while (fileScanner.hasNextLine()) {
+                if (fileScanner.hasNext(END_OF_FILE)) {
+                    fileScanner.nextLine();
+                    isComplete = true;
+                    break;
+                }
+                final String nextLine = fileScanner.nextLine();
+                if (!nextLine.trim().isEmpty()) {
+                    lines.add(new Line(nextLine));
+                }
+            }
+        }
+    }
+
+    /**
+     * @return true if transfile contained end-of-file marker, otherwise false
+     */
+    public boolean isComplete() {
+        return isComplete;
+    }
+
+    /**
+     * @return Transfile lines as unmodifiable list
+     */
+    public List<Line> getLines() {
+        return Collections.unmodifiableList(lines);
+    }
+
+    /**
+     * Transfile line representation
+     */
+    public static class Line {
+        private final String line;
+        private final Map<String, String> fields = new HashMap<>();
+
+        /**
+         * Constructor
+         * @param line transfile raw line value
+         * @throws NullPointerException if given null-valued line
+         * @throws IllegalArgumentException if given empty-valued line
+         */
+        public Line(String line) throws NullPointerException, IllegalArgumentException {
+            this.line = InvariantUtil.checkNotNullNotEmptyOrThrow(line, "line");
+            parse();
+        }
+
+        /**
+         * @return line in its raw input form
+         */
+        public String getLine() {
+            return line;
+        }
+
+        /**
+         * @return list of field names extracted from line
+         */
+        public Set<String> getFieldNames() {
+            return fields.keySet();
+        }
+
+        /**
+         * Gets value of field
+         * @param fieldName name of field
+         * @return value of field or null if field did not exist in line
+         */
+        public String getField(String fieldName) {
+            return fields.get(fieldName);
+        }
+
+        private void parse() {
+            final StringTokenizer lineTokenizer = new StringTokenizer(line, ",");
+            while (lineTokenizer.hasMoreElements()) {
+                final String keyValuePair = lineTokenizer.nextToken();
+                final StringTokenizer keyValueTokenizer = new StringTokenizer(keyValuePair, "=");
+                if (keyValueTokenizer.countTokens() == 2) {
+                    fields.put(keyValueTokenizer.nextToken(), keyValueTokenizer.nextToken());
+                } else {
+                    LOGGER.error("Invalid key/value pair '{}'", keyValuePair);
+                }
+            }
+        }
+    }
+}

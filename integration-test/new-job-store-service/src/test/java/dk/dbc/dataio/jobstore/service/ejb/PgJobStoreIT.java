@@ -401,7 +401,7 @@ public class PgJobStoreIT {
      * And  : no entities are created
      */
     @Test
-    public void addAndScheduleJob_differentByteSize_throws() throws SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, JobStoreException {
+    public void addAndScheduleJob_differentByteSize_fatalDiagnosticExists() throws SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;

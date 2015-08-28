@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.jobstore.service.ejb.monitoring.JmsEmptyQueuesBean;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
@@ -60,12 +59,6 @@ public class BootstrapBean {
         }
     }
 
-
-//    @Schedule(hour = "*", minute = "*", second = "*/15", persistent = false)
-//    @AccessTimeout(unit = TimeUnit.DAYS, value = 1)
-//    public void addToQueue()  {
-//        this.jmsEmptyQueuesBean.addToQueue();
-//    }
     /**
      * Locates any chunk, that has not yet finished, and passes found chunk collision detection element
      * and sink on to the sequence analyser

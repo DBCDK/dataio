@@ -1,4 +1,4 @@
-package dk.dbc.dataio.jobstore.service.ejb.monitoring;
+package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import org.slf4j.Logger;

@@ -51,7 +51,7 @@ public class BootstrapBean {
     @Stopwatch
     public void initialize() {
         try {
-            this.jmsEmptyQueuesBean.emptyQueues();
+            //this.jmsEmptyQueuesBean.emptyQueues();
             restoreSystemState();
             jobSchedulerBean.jumpStart();
         } catch (JobStoreException e) {

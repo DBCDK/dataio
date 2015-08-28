@@ -361,7 +361,7 @@ public class PgJobStoreIT {
         setupSuccessfulMockedReturnsFromFileStore(mockedAddJobParam);
 
         // Set up mocked return for identical byte sizes
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long)MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length);
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
@@ -382,10 +382,12 @@ public class PgJobStoreIT {
 
         // And...
         assertThat("jobEntity.State : diagnostics", jobEntity.getState().getDiagnostics().size(), is(0));
+        assertThat("jobEntity.fatalError", jobEntity.hasFatalError(), is(false));
 
         // And ..
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(0));
+        assertThat("JobInforSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(false));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
         assertThat("JobInfoSnapshot submitter reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER), is(notNullValue()));
         assertThat("JobInfoSnapshot flowbinder reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), is(notNullValue()));
@@ -429,7 +431,7 @@ public class PgJobStoreIT {
         assertTrue(!jobInfoSnapshotAfterWait.getState().getDiagnostics().isEmpty());
         final Diagnostic diagnostic = jobInfoSnapshotAfterWait.getState().getDiagnostics().get(0);
         assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
-
+        assertThat("jobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
 
         // And...
         final String expectedStacktrace = "DataPartitioner.byteSize was: " + dataPartitionerByteSize + ". FileStore.byteSize was: " + fileStoreByteSize;
@@ -533,11 +535,13 @@ public class PgJobStoreIT {
 
         // And ...
         assertThat("jobEntity.State.Diagnostics contains FATAL diagnostic", jobEntity.getState().fatalDiagnosticExists(), is(true));
+        assertThat("jobEntity.fatalError", jobEntity.hasFatalError(), is(true));
 
         // And ..
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
         assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
         assertThat("JobInfoSnapshot submitter reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER), is(notNullValue()));
         assertThat("JobInfoSnapshot flowbinder reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), is(notNullValue()));
@@ -580,9 +584,11 @@ public class PgJobStoreIT {
         // And ...
         assertThat("jobEntity.State.Diagnostics", jobEntity.getState().getDiagnostics().size(), is(1));
         assertThat("jobEntity.State.Diagnostics contains FATAL diagnostic", jobEntity.getState().fatalDiagnosticExists(), is(true));
+        assertThat("jobEntity.fatalError", jobEntity.hasFatalError(), is(true));
 
         // And...
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
         assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
@@ -612,6 +618,7 @@ public class PgJobStoreIT {
 
         // Then...
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
         assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
@@ -650,6 +657,7 @@ public class PgJobStoreIT {
 
         // Then...
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
         assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
@@ -693,6 +701,7 @@ public class PgJobStoreIT {
 
         // And...
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(false));
         assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
         assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.WARNING));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));

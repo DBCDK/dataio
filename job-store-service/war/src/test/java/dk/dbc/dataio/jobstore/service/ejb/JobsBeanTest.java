@@ -118,6 +118,7 @@ public class JobsBeanTest {
 
         final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
         assertThat(returnedJobInfoSnapshot, is(notNullValue()));
+        assertThat(returnedJobInfoSnapshot.hasFatalError(), is(false));
         assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
         assertThat(returnedJobInfoSnapshot.getSpecification(), is(jobInfoSnapshot.getSpecification()));
         assertThat(returnedJobInfoSnapshot.getState(), is(jobInfoSnapshot.getState()));

@@ -170,8 +170,8 @@ public class PgJobStore {
      JobInfoSnapshot handlePartitioning(AddJobParam addJobParam, PgJobStore businessServiceProxy, JobEntity jobEntity) throws JobStoreException {
         final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
 
-        // Continue only if timeOfCompletion is not set (all required remote entities could be located).
-        if (jobEntity.getTimeOfCompletion() == null) {
+        // Continue only if no fatal error has occurred (all required remote entities could be located).
+        if (!jobEntity.hasFatalError()) {
 
             doPartitioningToChunksAndItems(addJobParam, businessServiceProxy, jobEntity, abortDiagnostics);
 
@@ -191,7 +191,7 @@ public class PgJobStore {
             Important that this is done after partitioning is done otherwise DataPartitioner is not updated with file info - hence filesize is 0.
             & it is also important that catching all possible exceptions and set diagnostics otherwise the transaction is rolled back hence state will be incorrect!
         */
-        if (!jobEntity.getState().fatalDiagnosticExists()) {
+        if (!jobEntity.hasFatalError()) {
             try {
                 compareByteSize(addJobParam.getDataFileId(), addJobParam.getDataPartitioner());
             } catch (Exception exception) {
@@ -416,6 +416,7 @@ public class PgJobStore {
             }
         } else {
             jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+            jobEntity.setFatalError(true);
         }
         entityManager.persist(jobEntity);
         entityManager.flush();
@@ -892,6 +893,7 @@ public class PgJobStore {
         final State jobState = new State(jobEntity.getState());
         jobState.getDiagnostics().addAll(diagnostics);
         jobEntity.setState(jobState);
+        jobEntity.setFatalError(true);
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         return jobEntity;
     }

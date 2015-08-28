@@ -62,6 +62,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
         final Diagnostic diagnostic = jobEntity.getState().getDiagnostics().get(0);
         final String diagnosticsStacktrace = diagnostic.getStacktrace();
@@ -84,6 +85,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
         final Diagnostic diagnostic = jobEntity.getState().getDiagnostics().get(0);
         final String diagnosticsMessage = diagnostic.getMessage();
@@ -105,6 +107,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
         assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
         assertThat("State.Phase.PARTITIONING.beginDate", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getBeginDate(), is(nullValue()));
 
@@ -138,6 +141,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error did not occur", jobInfoSnapshot.hasFatalError(), is(false));
         assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(EXPECTED_NUMBER_OF_CHUNKS));
         assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
@@ -176,6 +180,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedAddJobParam, pgJobStore, jobEntity);
 
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error did not occur", jobInfoSnapshot.hasFatalError(), is(false));
         assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(EXPECTED_NUMBER_OF_CHUNKS));
         assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));

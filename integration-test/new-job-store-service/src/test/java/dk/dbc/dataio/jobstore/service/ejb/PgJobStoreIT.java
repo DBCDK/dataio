@@ -1083,8 +1083,8 @@ public class PgJobStoreIT {
      *
      * When     : requesting a job listing with a criteria selecting only jobs failed in job creation or partitioning
      * Then     : two filtered snapshot is returned.
-     * And      : one snapshots is referring to the job that failed in job creation and has been marked with fatal error.
      * And      : one snapshots is referring to the job that failed in partitioning and has been marked with fatal error.
+     * And      : one snapshots is referring to the job that failed in job creation and has been marked with fatal error.
      */
     @Test
     public void listJobsWithFatalError() throws JobStoreException, FileStoreServiceConnectorException {
@@ -1122,7 +1122,7 @@ public class PgJobStoreIT {
         final JobInfoSnapshot returnedJobPartitioningFailedSnapshot = returnedSnapshots.get(0);
         assertThat("Returned returnedJobPartitioningFailedSnapshot.jobId", returnedJobPartitioningFailedSnapshot.getJobId(), is(jobFailedInPartitioning.getJobId()));
         assertThat("Returned returnedJobPartitioningFailedSnapshot.fatalError", returnedJobPartitioningFailedSnapshot.hasFatalError(), is(true));
-        
+
         // And...
         final JobInfoSnapshot returnedJobCreationFailedSnapshot = returnedSnapshots.get(1);
         assertThat("Returned returnedJobCreationFailedSnapshot.jobId", returnedJobCreationFailedSnapshot.getJobId(), is(jobFailedInJobCreation.getJobId()));

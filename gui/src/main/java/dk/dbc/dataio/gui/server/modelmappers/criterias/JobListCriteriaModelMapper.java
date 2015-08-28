@@ -99,6 +99,7 @@ public final class JobListCriteriaModelMapper {
             case DELIVERING_FAILED:
                 jobListCriteria.where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
                 break;
+            //TODO - failedInJobCreation
         }
     }
 

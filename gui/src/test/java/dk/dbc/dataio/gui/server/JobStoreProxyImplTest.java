@@ -159,6 +159,8 @@ public class JobStoreProxyImplTest {
         }
     }
 
+    //TODO list failedInJobCreation jobs
+
     @Test(expected = ProxyException.class)
     public void getItemData_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));

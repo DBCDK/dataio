@@ -50,7 +50,7 @@ public class JobModelMapper {
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING)),
                 getStateCount(jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING)),
                 getDiagnostics(jobInfoSnapshot.getState().getDiagnostics()),
-                hasFatalDiagnostic(jobInfoSnapshot.getState().getDiagnostics()), //TODO - should this be changed to look at the actual backend variable?
+                hasFatalDiagnostic(jobInfoSnapshot.getState().getDiagnostics()),
                 jobInfoSnapshot.getSpecification().getPackaging(),
                 jobInfoSnapshot.getSpecification().getFormat(),
                 jobInfoSnapshot.getSpecification().getCharset(),

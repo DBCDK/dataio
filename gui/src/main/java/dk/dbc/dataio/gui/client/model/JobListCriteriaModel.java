@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class JobListCriteriaModel extends GenericBackendModel {
 
-    public enum JobSearchType {ALL, PROCESSING_FAILED, DELIVERING_FAILED} //TODO failedInJobCreation
+    public enum JobSearchType {ALL, PROCESSING_FAILED, DELIVERING_FAILED}
     public enum JobType {TEST, TRANSIENT, PERSISTENT, ACCTEST}
 
     private JobSearchType jobSearchType;

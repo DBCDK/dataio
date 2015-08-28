@@ -1,0 +1,1 @@
+alter table job ADD COLUMN fatalError boolean NOT NULL DEFAULT FALSE;

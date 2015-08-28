@@ -24,6 +24,7 @@ public final class JobInfoSnapshotConverter {
         return new JobInfoSnapshot(
                 jobEntity.getId(),
                 jobEntity.isEoj(),
+                jobEntity.hasFatalError(),
                 jobEntity.getPartNumber(),
                 jobEntity.getNumberOfChunks(),
                 jobEntity.getNumberOfItems(),

@@ -38,6 +38,7 @@ public class JobEntity {
     private int id;
 
     private boolean eoj;
+    private boolean fatalError;
     private int partNumber;
     private int numberOfChunks;
     private int numberOfItems;
@@ -78,6 +79,14 @@ public class JobEntity {
 
     public void setEoj(boolean eoj) {
         this.eoj = eoj;
+    }
+
+    public boolean hasFatalError() {
+        return fatalError;
+    }
+
+    public void setFatalError(boolean fatalError) {
+        this.fatalError = fatalError;
     }
 
     public int getPartNumber() {

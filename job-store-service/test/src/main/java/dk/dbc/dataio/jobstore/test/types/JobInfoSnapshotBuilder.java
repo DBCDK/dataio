@@ -11,6 +11,7 @@ import java.util.Date;
 public class JobInfoSnapshotBuilder {
     private int jobId = 1;
     private boolean eoj = true;
+    private boolean fatalError = false;
     private int partNumber = 0;
     private int numberOfChunks = 2;
     private int numberOfItems = 11;
@@ -23,6 +24,11 @@ public class JobInfoSnapshotBuilder {
 
     public JobInfoSnapshotBuilder setEoj(boolean eoj) {
         this.eoj = eoj;
+        return this;
+    }
+
+    public JobInfoSnapshotBuilder setFatalError(boolean fatalError) {
+        this.fatalError = fatalError;
         return this;
     }
 
@@ -77,7 +83,7 @@ public class JobInfoSnapshotBuilder {
     }
 
     public JobInfoSnapshot build() {
-        return new JobInfoSnapshot(jobId, eoj, partNumber, numberOfChunks, numberOfItems, timeOfCreation,
+        return new JobInfoSnapshot(jobId, eoj, fatalError, partNumber, numberOfChunks, numberOfItems, timeOfCreation,
                 timeOfLastModification, timeOfCompletion, specification, state, flowStoreReferences);
     }
 }

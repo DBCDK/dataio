@@ -10,6 +10,7 @@ public class JobInfoSnapshot {
 
     private int jobId;
     private boolean eoj;
+    private boolean fatalError;
     private int partNumber;
     private int numberOfChunks;
     private int numberOfItems;
@@ -23,6 +24,7 @@ public class JobInfoSnapshot {
     @JsonCreator
     public JobInfoSnapshot(@JsonProperty ("jobId")int jobId,
                            @JsonProperty ("eoj")boolean eoj,
+                           @JsonProperty ("fatalError")boolean fatalError,
                            @JsonProperty ("partNumber")int partNumber,
                            @JsonProperty ("numberOfChunks")int numberOfChunks,
                            @JsonProperty ("numberOfItems")int numberOfItems,
@@ -35,6 +37,7 @@ public class JobInfoSnapshot {
 
         this.jobId = jobId;
         this.eoj = eoj;
+        this.fatalError = fatalError;
         this.partNumber = partNumber;
         this.numberOfChunks = numberOfChunks;
         this.numberOfItems = numberOfItems;
@@ -52,6 +55,10 @@ public class JobInfoSnapshot {
 
     public boolean isEoj() {
         return eoj;
+    }
+
+    public boolean hasFatalError() {
+        return fatalError;
     }
 
     public int getPartNumber() {

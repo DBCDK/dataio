@@ -2,12 +2,10 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.PromptedList;
@@ -16,6 +14,8 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
 
@@ -48,16 +48,6 @@ public class SinkJobFilter extends BaseJobFilter {
     }
 
     @UiField PromptedList sinkList;
-
-
-    /**
-     * Event handler for handling changes in the selected submitter
-     * @param event The ValueChangeEvent
-     */
-    @UiHandler("sinkList")
-    void filterSelectionChanged(ValueChangeEvent<String> event) {
-        setSinkId(sinkList.getSelectedKey());
-    }
 
     /**
      * Fetches the name of this filter
@@ -95,13 +85,15 @@ public class SinkJobFilter extends BaseJobFilter {
             for (SinkModel model: models) {
                 sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
             }
-            setSinkId(sinkList.getSelectedKey());
             sinkList.setEnabled(true);
         }
     }
 
-    private void setSinkId(String sinkId) {
-        jobListCriteriaModel.setSinkId(sinkId);
+    @Override
+    public JobListCriteria getValue() {
+        if( sinkList.getSelectedKey() == "0") return new JobListCriteria();
+
+        return new JobListCriteria().where( new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, sinkList.getSelectedKey()));
     }
 
 }

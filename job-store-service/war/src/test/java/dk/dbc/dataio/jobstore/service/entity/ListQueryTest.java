@@ -323,7 +323,7 @@ public class ListQueryTest {
         public static final String QUERY_BASE = "SELECT * FROM t";
 
         public ListQueryImpl() throws NullPointerException {
-            fieldMap.put(ListCriteriaImpl.Field.FIELD_OBJECT, new BooleanOpField(FIELD_OBJECT_NAME, new ObjectValue()));
+            fieldMap.put(ListCriteriaImpl.Field.FIELD_OBJECT, new BooleanOpField(FIELD_OBJECT_NAME, new NumricValue()));
             fieldMap.put(ListCriteriaImpl.Field.FIELD_TIMESTAMP, new BooleanOpField(FIELD_TIMESTAMP_NAME, new TimestampValue()));
             fieldMap.put(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, new VerbatimBooleanOpField(VERBATIM_FIELD_JSONB_NAME, new JsonbValue()));
             fieldMap.put(ListCriteriaImpl.Field.VERBATIM_FIELD, new VerbatimField(VERBATIM_VALUE));

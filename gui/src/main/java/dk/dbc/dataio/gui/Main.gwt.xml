@@ -25,12 +25,15 @@
     <set-property name="gwt.logging.systemHandler" value="ENABLED"/>
     <set-property name="gwt.logging.consoleHandler" value="ENABLED"/>
     <set-property name="user.agent" value="gecko1_8"/>
+    <extend-property name="user.agent" values="safari" />
     <set-configuration-property name="devModeRedirectEnabled" value="true"/>
 
     <inherits name="com.google.gwt.activity.Activity" />
     <inherits name="com.google.gwt.place.Place" />
 
     <inherits name="dk.dbc.dataio.commons.types.Types" />
+    <inherits name="dk.dbc.dataio.jobstore.types.Types"/>
+
 
     <entry-point class="dk.dbc.dataio.gui.client.MainEntryPoint"/>
 
@@ -52,4 +55,5 @@
     <!-- enable source maps -->
 
     <set-property name="compiler.useSourceMaps" value="true" />
+    <set-property name="rpc.XserializeFinalFields" value="true"/>
 </module>

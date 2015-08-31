@@ -58,6 +58,49 @@ public class ListCriteriaTest {
     }
 
     @Test
+    public void whereWithListCriteria() throws Exception {
+        final List<ListFilter<ListCriteriaImpl.Field>> filters = new ArrayList<>();
+        filters.add(new ListFilter<>(ListCriteriaImpl.Field.FIELD_1, ListFilter.Op.EQUAL, 1));
+        filters.add(new ListFilter<>(ListCriteriaImpl.Field.FIELD_2, ListFilter.Op.GREATER_THAN, 2));
+
+        final ListCriteriaImpl other = new ListCriteriaImpl()
+                .where(filters.get(0))
+                .and(filters.get(1));
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl().where(other);
+
+
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is( filters.get(0)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is( filters.get(1)));
+    }
+
+
+    @Test
+    public void andWithListCriteria() throws Exception {
+        final List<ListFilter<ListCriteriaImpl.Field>> filters = new ArrayList<>();
+        filters.add(new ListFilter<>(ListCriteriaImpl.Field.FIELD_1, ListFilter.Op.EQUAL, 1));
+        filters.add(new ListFilter<>(ListCriteriaImpl.Field.FIELD_2, ListFilter.Op.GREATER_THAN, 2));
+        filters.add(new ListFilter<>(ListCriteriaImpl.Field.FIELD_3, ListFilter.Op.EQUAL, 3));
+        filters.add(new ListFilter<>(ListCriteriaImpl.Field.FIELD_4, ListFilter.Op.GREATER_THAN, 4));
+
+
+        final ListCriteriaImpl other = new ListCriteriaImpl()
+                .where(filters.get(2))
+                .and(filters.get(3));
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(filters.get(0))
+                .and(filters.get(1))
+                .and(other);
+
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(0).getFilter(), is( filters.get(0)));
+        assertThat(listCriteria.getFiltering().get(0).getMembers().get(1).getFilter(), is( filters.get(1)));
+
+        assertThat(listCriteria.getFiltering().get(1).getMembers().get(0).getFilter(), is( filters.get(2)));
+        assertThat(listCriteria.getFiltering().get(1).getMembers().get(1).getFilter(), is( filters.get(3)));
+
+    }
+
+
+    @Test
     public void getFiltering_returnsImmutableListOfListFilterGroup() {
         final List<ListFilterGroup<ListCriteriaImpl.Field>> filtering = new ListCriteriaImpl().getFiltering();
         try {

@@ -35,24 +35,6 @@ public class SubmitterJobFilterTest {
     final String DEFAULT_SUBMITTER_NAME = "default submitter name";
 
     @Test
-    public void uiHandlerSelectionChanged_callFilterSelectionChanged_setSubmitterInJobListCriteriaModel() {
-        // Test Preparation
-        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.submitter.getValue()).thenReturn(DEFAULT_SUBMITTER_NAME);
-
-        // Activate Subject Under Test
-        class TestValueChangeEvent extends ValueChangeEvent<String> {
-            protected TestValueChangeEvent(String value) {
-                super(value);
-            }
-        }
-        jobFilter.filterSelectionChanged(new TestValueChangeEvent("Test Event"));
-
-        // Verify Test
-        assertThat(jobFilter.getValue().getSubmitter(), is(DEFAULT_SUBMITTER_NAME));
-    }
-
-    @Test
     public void getName_callGetName_fetchesStoredName() {
         // Constants
         final String MOCKED_NAME = "name from mocked Texts";

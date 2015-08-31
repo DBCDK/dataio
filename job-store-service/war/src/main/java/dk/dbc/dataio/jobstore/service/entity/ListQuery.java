@@ -231,7 +231,7 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     }
 
     public interface ParameterValue {
-        void set(Query query, int parameterIndex, Object value);
+        void set(Query query, int parameterIndex, String value);
     }
 
     public interface VerbatimValue {
@@ -241,10 +241,18 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
     /**
      * ParameterValue type where the object value is taken as-is
      */
-    public static class ObjectValue implements ParameterValue {
+    public static class StringValue implements ParameterValue {
         @Override
-        public void set(Query query, int parameterIndex, Object value) {
+        public void set(Query query, int parameterIndex, String value) {
             query.setParameter(parameterIndex, value);
+        }
+    }
+
+    public static class NumricValue implements ParameterValue {
+
+        @Override
+        public void set(Query query, int parameterIndex, String value) {
+            query.setParameter( parameterIndex, Long.valueOf(value));
         }
     }
 
@@ -253,15 +261,9 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
      */
     public static class TimestampValue implements ParameterValue {
         @Override
-        public void set(Query query, int parameterIndex, Object value) {
+        public void set(Query query, int parameterIndex, String value) {
             if (value != null) {
-                if (value instanceof Long) {
-                    // When value is taken from criteria unmarshalled from
-                    // JSON the Date type information is lost
-                    query.setParameter(parameterIndex, new Date((long) value));
-                } else {
-                    query.setParameter(parameterIndex, value);
-                }
+                query.setParameter(parameterIndex, new Date(Long.valueOf(value)));
             }
         }
     }

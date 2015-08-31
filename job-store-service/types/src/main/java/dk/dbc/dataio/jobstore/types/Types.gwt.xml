@@ -1,0 +1,10 @@
+<module>
+  <!-- 
+  <inherits name="dk.dbc.dataio.commons.utils.invariant.InvariantUtil" />
+  -->
+
+  <source path="">
+    <include name="**/*.java"/>
+  </source>
+</module>
+

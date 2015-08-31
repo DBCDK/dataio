@@ -2,10 +2,12 @@ package dk.dbc.dataio.jobstore.types.criteria;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Abstract base class for listings criteria
@@ -40,9 +42,9 @@ import java.util.List;
  *   whereIn(T, List&lt;Object&gt;)
  * </pre>
  */
-public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> {
+public abstract class ListCriteria<T extends ListFilterField, U extends ListCriteria<T,U>> implements Serializable {
     private LinkedList<ListFilterGroup<T>> filtering;
-    private List<ListOrderBy<T>> ordering;
+    private ArrayList<ListOrderBy<T>> ordering;
     private int limit;
     private int offset;
 
@@ -60,6 +62,16 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
     @SuppressWarnings("unchecked")
     public U and(ListFilter<T> filter) throws NullPointerException {
         filtering.getLast().addMember(new ListFilterGroup.Member<>(filter, ListFilterGroup.LOGICAL_OP.AND));
+        return (U)this;
+    }
+
+    public U where( ListCriteria<T,U> other) {
+        filtering.addAll(other.filtering);
+        return (U)this;
+    }
+
+    public U and(ListCriteria<T,U> other) {
+        filtering.addAll(other.filtering);
         return (U)this;
     }
 
@@ -105,5 +117,31 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
 
     public int getOffset() {
         return offset;
+    }
+
+    @Override
+    public String toString() {
+        return "ListCriteria{" +
+                "filtering=" + filtering +
+                ", ordering=" + ordering +
+                ", limit=" + limit +
+                ", offset=" + offset +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListCriteria)) return false;
+        ListCriteria<?, ?> that = (ListCriteria<?, ?>) o;
+        return Objects.equals(limit, that.limit) &&
+                Objects.equals(offset, that.offset) &&
+                Objects.equals(filtering, that.filtering) &&
+                Objects.equals(ordering, that.ordering);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(filtering, ordering, limit, offset);
     }
 }

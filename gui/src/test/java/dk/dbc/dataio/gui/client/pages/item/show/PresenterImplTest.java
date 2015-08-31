@@ -16,7 +16,6 @@ import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
@@ -24,6 +23,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -358,7 +358,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
-        verify(mockedJobStoreProxy).listJobs(any(JobListCriteriaModel.class), any(PresenterImpl.JobsCallback.class));
+        verify(mockedJobStoreProxy).listJobs(any(JobListCriteria.class), any(PresenterImpl.JobsCallback.class));
     }
 
     @Test

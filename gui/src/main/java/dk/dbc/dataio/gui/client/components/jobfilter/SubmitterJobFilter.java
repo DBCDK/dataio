@@ -2,16 +2,16 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
-import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 /**
  * Created by ja7 on 19-08-15.
@@ -36,18 +36,6 @@ public class SubmitterJobFilter extends BaseJobFilter {
 
     @UiField PromptedTextBox submitter;
 
-
-    /**
-     * Event handler for handling changes in the selected submitter
-     * @param event The ValueChangeEvent
-     */
-    @UiHandler("submitter")
-    void filterSelectionChanged(ValueChangeEvent<String> event) {
-        if( submitter.getValue().length() > 0 ) {
-            jobListCriteriaModel.setSubmitter(submitter.getValue());
-        }
-    }
-
     @Override
     public String getName() {
         return texts.submitterFilter_name();
@@ -59,4 +47,13 @@ public class SubmitterJobFilter extends BaseJobFilter {
     }
 
 
+
+    @Override
+    public JobListCriteria getValue() {
+        if( submitter.getValue().isEmpty() ) return new JobListCriteria();
+
+        String jsonMatch= new StringBuilder().append("{ \"submitterId\": ").append(submitter.getValue()).append("}").toString();
+        return new JobListCriteria().where( new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS,
+                               jsonMatch ));
+    }
 }

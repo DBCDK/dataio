@@ -13,7 +13,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.Widget;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import java.util.Iterator;
 
@@ -135,8 +135,8 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * Gets the current value of the Job List Criteria Model
      * @return The current value of the Job List Criteria Model
      */
-    public JobListCriteriaModel getValue() {
-        JobListCriteriaModel resultingJobListCriteriaModel = new JobListCriteriaModel();
+    public JobListCriteria getValue() {
+        JobListCriteria jobListCriteria = new JobListCriteria();
 
         // Now do find all derivatives of the BaseJobFilter - eg SinkJobFilter, and get it's JobListCriteriaModel
         for (Widget decoratorPanelWidget : jobFilterPanel) {
@@ -147,13 +147,13 @@ public class JobFilter extends Composite implements HasChangeHandlers {
                     Widget baseJobFilterWidget = baseJobFilterIterator.next();
                     if (baseJobFilterWidget instanceof BaseJobFilter) {
                         BaseJobFilter baseJobFilter = (BaseJobFilter) baseJobFilterWidget;
-                        JobListCriteriaModel model = baseJobFilter.getValue();
-                        resultingJobListCriteriaModel.and(model);
+                        JobListCriteria model = baseJobFilter.getValue();
+                        jobListCriteria.and(model);
                     }
                 }
             }
         }
-        return resultingJobListCriteriaModel;
+        return jobListCriteria;
     }
 
 

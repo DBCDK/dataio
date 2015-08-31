@@ -1,7 +1,8 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 /**
  *
@@ -24,12 +25,12 @@ public class PresenterTestJobsImpl extends PresenterImpl {
      */
     @Override
     protected void updateBaseQuery() {
-        JobListCriteriaModel model=new JobListCriteriaModel();
-        model.getJobTypes().remove(JobListCriteriaModel.JobType.TRANSIENT.name());
-        model.getJobTypes().remove(JobListCriteriaModel.JobType.PERSISTENT.name());
-        view.dataProvider.setBaseCriteria( model );
+        JobListCriteria criteria=new JobListCriteria()
+                .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
+                .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
+
+        // TODO this coud be simpler
+        view.dataProvider.setBaseCriteria( criteria );
 
     }
-
-
 }

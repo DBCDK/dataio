@@ -76,7 +76,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
                     public void onSuccess(List<ItemModel> itemModels) {
                         if (dataIsStillValid()) {
                             updateRowData(range.getStart(), itemModels);
-                            view.setItemModels(listView, itemModels);
+//                            view.setItemModels(listView, itemModels);
                         }
                     }
 

@@ -57,21 +57,6 @@ public class SinkJobFilterTest {
         verify(mockedFlowStoreProxy).findAllSinks(any(SinkJobFilter.FetchSinksCallback.class));
     }
 
-    @Test
-    public void changeFilterSelection_callFilterSelectionChanged_setSinkIdInModel() {
-        // Constants
-        final String SELECTED_KEY = "Elephant";
-
-        // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
-        when(jobFilter.sinkList.getSelectedKey()).thenReturn(SELECTED_KEY);
-
-        // Activate Subject Under Test
-        jobFilter.filterSelectionChanged(mockedValueChangeEvent);
-
-        // Verify test
-        assertThat(jobFilter.jobListCriteriaModel.getSinkId(), is(SELECTED_KEY));
-    }
 
     @Test
     public void getName_callGetName_fetchesStoredName() {

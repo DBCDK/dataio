@@ -4,15 +4,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class representing a logical grouping of filters
  * @param <T> ListFilterField subtype
  */
-public class ListFilterGroup<T extends ListFilterField> implements Iterable<ListFilterGroup.Member<T>> {
+public class ListFilterGroup<T extends ListFilterField> implements Iterable<ListFilterGroup.Member<T>>, Serializable{
     /**
      * Logical operators used to combine filter clauses
      */
@@ -21,7 +23,7 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
         OR
     }
 
-    public static class Member<T extends ListFilterField> {
+    public static class Member<T extends ListFilterField> implements Serializable {
         private final ListFilter<T> filter;
         private final LOGICAL_OP logicalOperator;
 
@@ -38,12 +40,39 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
             this.logicalOperator = InvariantUtil.checkNotNullOrThrow(logicalOperator, "logicalOperator");
         }
 
+        public Member() {
+            filter = null;
+            logicalOperator = null;
+        }
+
         public ListFilter<T> getFilter() {
             return filter;
         }
 
         public LOGICAL_OP getLogicalOperator() {
             return logicalOperator;
+        }
+
+        @Override
+        public String toString() {
+            return "Member{" +
+                    "filter=" + filter +
+                    ", logicalOperator=" + logicalOperator +
+                    '}';
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Member)) return false;
+            Member<?> member = (Member<?>) o;
+            return Objects.equals(filter, member.filter) &&
+                    Objects.equals(logicalOperator, member.logicalOperator);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(filter, logicalOperator);
         }
     }
 
@@ -66,5 +95,31 @@ public class ListFilterGroup<T extends ListFilterField> implements Iterable<List
     @Override
     public Iterator<Member<T>> iterator() {
         return members.iterator();
+    }
+
+    // Public to allow for tests
+    public List<Member<T>> getMembers() {
+        return members;
+    }
+
+
+    @Override
+    public String toString() {
+        return "ListFilterGroup{" +
+                "members=" + members +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListFilterGroup)) return false;
+        ListFilterGroup<?> that = (ListFilterGroup<?>) o;
+        return Objects.equals(members, that.members);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(members);
     }
 }

@@ -17,7 +17,6 @@ import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
-import javax.ejb.Startup;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +24,7 @@ import java.util.Map;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.NOT_PUBLISH_WORKLOAD;
 
 @Singleton
-@Startup
+//@Startup
 @DependsOn("StartupDBMigrator")
 public class BootstrapBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);

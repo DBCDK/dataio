@@ -9,11 +9,12 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -125,10 +126,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param jobId The id for the job model to fetch
      */
     private void listJobs(String jobId) {
-        final JobListCriteriaModel jobListCriteriaModel = new JobListCriteriaModel();
-        jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.ALL);
-        jobListCriteriaModel.setId(Long.valueOf(jobId));
-        jobStoreProxy.listJobs(jobListCriteriaModel, new JobsCallback());
+        final JobListCriteria jobListCriteria = new JobListCriteria().where(
+                new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+
+        jobStoreProxy.listJobs(jobListCriteria, new JobsCallback());
     }
 
     /**

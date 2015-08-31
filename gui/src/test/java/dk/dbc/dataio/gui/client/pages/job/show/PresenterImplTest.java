@@ -9,10 +9,11 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -76,10 +77,12 @@ public class PresenterImplTest {
 
         @Override
         protected void updateBaseQuery() {
-            JobListCriteriaModel model=new JobListCriteriaModel();
-            model.getJobTypes().remove(JobListCriteriaModel.JobType.TRANSIENT.name());
-            model.getJobTypes().remove(JobListCriteriaModel.JobType.PERSISTENT.name());
-            view.dataProvider.setBaseCriteria( model );
+
+            JobListCriteria criteria=new JobListCriteria()
+                     .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
+                     .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
+
+            view.dataProvider.setBaseCriteria( criteria );
         }
     }
 

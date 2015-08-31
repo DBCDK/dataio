@@ -7,16 +7,16 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import java.util.List;
 
 @RemoteServiceRelativePath("JobStoreProxy")
 public interface JobStoreProxy extends RemoteService {
 
-    List<JobModel> listJobs(JobListCriteriaModel model) throws ProxyException;
-    long countJobs(JobListCriteriaModel model) throws ProxyException;
+    List<JobModel> listJobs(JobListCriteria model) throws ProxyException;
+    long countJobs(JobListCriteria model) throws ProxyException;
     List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException;
     long countItems(ItemListCriteriaModel model) throws ProxyException;
 

@@ -14,6 +14,19 @@
   <name>dataio-job-store-service-types</name>
   <packaging>jar</packaging>
 
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/java</directory>
+        <includes>
+          <include>**/*.java</include>
+          <include>**/*.gwt.xml</include>
+        </includes>
+      </resource>
+    </resources>
+  </build>
+
+
   <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>

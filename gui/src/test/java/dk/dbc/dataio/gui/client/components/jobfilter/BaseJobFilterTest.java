@@ -7,6 +7,7 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +55,12 @@ public class BaseJobFilterTest {
         public String getName() {
             return storedName;
         }
+
+        @Override
+        public JobListCriteria getValue() {
+            return new JobListCriteria();
+        }
+
         public Texts getTexts() {
             return texts;
         }

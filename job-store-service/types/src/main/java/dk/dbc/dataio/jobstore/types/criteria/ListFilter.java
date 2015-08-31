@@ -4,13 +4,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.io.Serializable;
+import java.util.Date;
+
 /**
  * Class representing a listings filter clause
  * @param <T> ListFilterField subtype
  */
-public class ListFilter<T extends ListFilterField> {
+public class ListFilter<T extends ListFilterField> implements Serializable {
 
-    private final static Object NO_VAlUE = null;
+    private final static String NO_VAlUE = null;
+
     /**
      * Filter operators
      */
@@ -29,7 +33,7 @@ public class ListFilter<T extends ListFilterField> {
 
     private final T field;
     private final Op operator;
-    private final Object value;
+    private final String value;
 
     /**
      * Constructor
@@ -40,7 +44,7 @@ public class ListFilter<T extends ListFilterField> {
      */
     public ListFilter(@JsonProperty("field") T field,
                       @JsonProperty("operator") Op operator,
-                      @JsonProperty("value") Object value) throws NullPointerException {
+                      @JsonProperty("value") String value) throws NullPointerException {
 
         this.field = InvariantUtil.checkNotNullOrThrow(field, "field");
         this.operator = InvariantUtil.checkNotNullOrThrow(operator, "operator");
@@ -48,13 +52,34 @@ public class ListFilter<T extends ListFilterField> {
     }
 
     @JsonIgnore
+    public ListFilter( T field,
+                       Op operator,
+                       long integerValue) {
+        this(field, operator, String.valueOf(integerValue));
+    }
+    @JsonIgnore
+    public ListFilter( T field, Op operator, Date date) {
+        this(field, operator, String.valueOf(date.getTime()));
+    }
+
+    @JsonIgnore
     public ListFilter(@JsonProperty("field") T field) {
         this(field, Op.NOOP, NO_VAlUE);
     }
 
+
     @JsonIgnore
     public ListFilter(@JsonProperty("field") T field, @JsonProperty("operator") Op operator) {
-        this(field, operator, null);
+        this.field = field;
+        this.operator  = operator;
+        value = null;
+    }
+
+    @JsonIgnore
+    public ListFilter() {
+        field = null;
+        operator = null;
+        value = NO_VAlUE;
     }
 
     public T getField() {
@@ -65,7 +90,7 @@ public class ListFilter<T extends ListFilterField> {
         return operator;
     }
 
-    public Object getValue() {
+    public String getValue() {
         return value;
     }
 
@@ -99,5 +124,14 @@ public class ListFilter<T extends ListFilterField> {
         result = 31 * result + operator.hashCode();
         result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ListFilter{" +
+                "field=" + field +
+                ", operator=" + operator +
+                ", value='" + value + '\'' +
+                '}';
     }
 }

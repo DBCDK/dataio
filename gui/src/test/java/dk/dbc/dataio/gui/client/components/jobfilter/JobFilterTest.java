@@ -6,7 +6,8 @@ import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,10 +18,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -223,47 +222,28 @@ public class JobFilterTest {
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
 
         // Activate Subject Under Test
-        JobListCriteriaModel model = jobFilter.getValue();
+        JobListCriteria model = jobFilter.getValue();
 
+        assertThat(model.getFiltering().size(), is(0));
         // Verify test
-        assertDefaultJobListCriteriaModel(model);
     }
 
     @Test
     public void getValue_getValueWithOneSinkFilter_returnSinkMergedModel() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
-        JobListCriteriaModel filterModel = new JobListCriteriaModel();
-        filterModel.setSinkId("12345");
+        JobListCriteria filterModel = new JobListCriteria()
+                .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
+
         setupJobFilterToReturnModel(jobFilter, filterModel);
 
         // Activate Subject Under Test
-        JobListCriteriaModel model = jobFilter.getValue();
-
-        // Verify test
-        assertJobListCriteriaModel(model, "12345", JobListCriteriaModel.JobSearchType.PROCESSING_FAILED,
-                Arrays.asList("PERSISTENT", "ACCTEST", "TEST", "TRANSIENT"));
+        JobListCriteria model = jobFilter.getValue();
+        assertThat("filter is correct", model, is(filterModel));
     }
 
-    /*
-     * Private methods
-     */
-    private void assertJobListCriteriaModel(JobListCriteriaModel model, String sinkId, JobListCriteriaModel.JobSearchType jobSearchType, List<String> jobTypes) {
-        assertThat(model.getSinkId(), is(sinkId));
-        assertThat(model.getSearchType(), is(jobSearchType));
-        Set<String> modelJobTypes = model.getJobTypes();
-        assertThat(modelJobTypes.size(), is(jobTypes.size()));
-        for (String jobType: jobTypes) {
-            assertThat(modelJobTypes.contains(jobType), is(true));
-        }
-    }
 
-    private void assertDefaultJobListCriteriaModel(JobListCriteriaModel model) {
-        assertJobListCriteriaModel(model, "0", JobListCriteriaModel.JobSearchType.PROCESSING_FAILED,
-                Arrays.asList("PERSISTENT", "ACCTEST", "TEST", "TRANSIENT"));
-    }
-
-    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteriaModel model) {
+    private void setupJobFilterToReturnModel(JobFilter jobFilter, JobListCriteria model) {
         when(jobFilter.jobFilterPanel.iterator()).thenReturn(new Iterator<Widget>() {
             boolean next = true;
             @Override

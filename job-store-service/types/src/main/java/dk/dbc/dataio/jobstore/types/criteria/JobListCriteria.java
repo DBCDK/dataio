@@ -1,9 +1,11 @@
 package dk.dbc.dataio.jobstore.types.criteria;
 
+import java.io.Serializable;
+
 /**
  * Job listing ListCriteria implementation
  */
-public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobListCriteria> {
+public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobListCriteria> implements Serializable {
     /**
      * Available criteria fields
      */

@@ -6,7 +6,6 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -74,13 +73,15 @@ public class JobStoreProxyImplTest {
         }
     }
 
+
     @Test(expected = ProxyException.class)
     public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.listJobs(new JobListCriteriaModel());
+        jobStoreProxy.listJobs(new JobListCriteria());
     }
+
 
     @Test
     public void listJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
@@ -89,7 +90,7 @@ public class JobStoreProxyImplTest {
 
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(jobInfoSnapshots);
         try {
-            List<JobModel> jobModels = jobStoreProxy.listJobs(new JobListCriteriaModel());
+            List<JobModel> jobModels = jobStoreProxy.listJobs(new JobListCriteria());
             assertThat(jobModels, not(nullValue()));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listJobs()");

@@ -12,6 +12,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 /**
  * This is the Submitter Job Filter
@@ -66,6 +67,11 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
     }
 
     @Override
+    public JobListCriteria getValue() {
+        return new JobListCriteria();
+    }
+
+    @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
         callbackChangeHandler = changeHandler;
         return new HandlerRegistration() {
@@ -75,5 +81,7 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
             }
         };
     }
+
+
 
 }

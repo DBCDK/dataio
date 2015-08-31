@@ -4,10 +4,11 @@ import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
 
@@ -18,41 +19,42 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
     private JobStoreProxyAsync jobStoreProxy;
     private View view;
-    JobListCriteriaModel userCriteria;
+    // The 3 Radio Buttons
+    JobListCriteria userCriteria = null;
+    // The selection  from the left side
+    JobListCriteria baseCriteria = null;
 
-    JobListCriteriaModel baseCriteria;
-
-    JobListCriteriaModel currentCriteria;
+    private int criteriaIncarnation=0;
+    private JobListCriteria currentCriteriaAsJobListCriteria;
 
     public AsyncJobViewDataProvider(ClientFactory clientFactory, View view_ ) {
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
         view = view_;
-        baseCriteria = new JobListCriteriaModel();
-        userCriteria = new JobListCriteriaModel();
-
-        userCriteria.setSearchType(JobListCriteriaModel.JobSearchType.ALL);
 
         updateCurrentCriteria();
     }
 
-    void setBaseCriteria( JobListCriteriaModel newBaseCriteria) {
-        if( baseCriteria.equals( newBaseCriteria) ) return;
+    void setBaseCriteria( JobListCriteria newBaseCriteria) {
         baseCriteria = newBaseCriteria;
         updateCurrentCriteria();
     }
 
 
     void updateCurrentCriteria() {
-        JobListCriteriaModel newcurrentCriteria = new JobListCriteriaModel();
-        newcurrentCriteria.and(userCriteria);
+        criteriaIncarnation++;
+
+        currentCriteriaAsJobListCriteria=new JobListCriteria();
 
 
-        newcurrentCriteria.setJobTypes(baseCriteria.getJobTypes());
-
-        if( !newcurrentCriteria.equals( currentCriteria )) {
-            currentCriteria = newcurrentCriteria;
-            refresh();
+        if( baseCriteria != null) {
+            currentCriteriaAsJobListCriteria.and(baseCriteria);
         }
+
+        if (userCriteria != null) {
+            currentCriteriaAsJobListCriteria.where(userCriteria);
+        }
+
+        refresh();
 
     }
 
@@ -66,18 +68,20 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      *
      */
     void updateUserCriteria( ) {
+
         if (view.selectionModel.getSelectedObject() == null) {
-            final JobListCriteriaModel jobListCriteriaModel = view.jobFilter.getValue();
+            userCriteria = view.jobFilter.getValue();
             if (view.processingFailedJobsButton.getValue()) {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.PROCESSING_FAILED);
+                userCriteria.where(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
+
             } else if (view.deliveringFailedJobsButton.getValue()) {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.DELIVERING_FAILED);
+                userCriteria.where(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
+
             } else if (view.fatalJobsButton.getValue()) {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.FATAL);
+                userCriteria.where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR));
             } else {
-                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.ALL);
+                // Do notthing. implicit hit All jobs.
             }
-            userCriteria = jobListCriteriaModel;
         }
         updateCurrentCriteria();
     }
@@ -96,13 +100,14 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
         // Get the new range.
         final Range range = display.getVisibleRange();
 
-        currentCriteria.setLimit(range.getLength());
-        currentCriteria.setOffset(range.getStart());
+        currentCriteriaAsJobListCriteria.limit(range.getLength());
+        currentCriteriaAsJobListCriteria.offset(range.getStart());
 
-        jobStoreProxy.listJobs(currentCriteria, new FilteredAsyncCallback<List<JobModel>>() {
+
+        jobStoreProxy.listJobs(currentCriteriaAsJobListCriteria, new FilteredAsyncCallback<List<JobModel>>() {
                     // protection against old calls updating the view with old data.
-                    JobListCriteriaModel criteriaOnRequestCall = currentCriteria;
-                    int offsetOnRequestCall = currentCriteria.getOffset();
+                    int criteriaIncarnationOnRequestCall=criteriaIncarnation;
+                    int offsetOnRequestCall = currentCriteriaAsJobListCriteria.getOffset();
 
                     @Override
                     public void onSuccess(List<JobModel> jobModels) {
@@ -117,8 +122,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
 
                     private boolean dataIsStillValid() {
-                        return criteriaOnRequestCall.equals(currentCriteria) &&
-                                offsetOnRequestCall == criteriaOnRequestCall.getOffset();
+                        return criteriaIncarnationOnRequestCall == criteriaIncarnation &&
+                                offsetOnRequestCall == currentCriteriaAsJobListCriteria.getOffset();
                     }
 
                 }
@@ -131,9 +136,10 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      *
      */
     public void updateCount()  {
-        jobStoreProxy.countJobs(currentCriteria, new FilteredAsyncCallback<Long>() {
+        jobStoreProxy.countJobs(currentCriteriaAsJobListCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
-            JobListCriteriaModel criteriaOnRequestCall = currentCriteria;
+            int criteriaIncarnationOnCall=criteriaIncarnation;
+
             @Override
             public void onSuccess(Long count) {
                 if (dataIsStillValid()) {
@@ -147,7 +153,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
             }
 
             private boolean dataIsStillValid() {
-                return criteriaOnRequestCall.equals(currentCriteria);
+                return criteriaIncarnationOnCall == criteriaIncarnation;
             }
 
         });

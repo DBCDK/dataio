@@ -9,8 +9,8 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
-import dk.dbc.dataio.gui.client.model.JobListCriteriaModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 /**
  * This is the base class for Job Filters
@@ -24,7 +24,6 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     protected JobFilter parentJobFilter = null;
     protected JobFilterPanel filterPanel = null;
     protected HandlerRegistration clickHandlerRegistration = null;
-    protected JobListCriteriaModel jobListCriteriaModel = new JobListCriteriaModel();
 
     /**
      * Constructor
@@ -102,8 +101,6 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * Gets the value of the current Job List Criteria Model
      * @return The current value of the Job List Criteria Model
      */
-    public JobListCriteriaModel getValue() {
-        return jobListCriteriaModel;
-    }
+    abstract public JobListCriteria getValue();
 
 }

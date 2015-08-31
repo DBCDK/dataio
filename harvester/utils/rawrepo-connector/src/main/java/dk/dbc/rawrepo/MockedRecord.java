@@ -115,6 +115,16 @@ public class MockedRecord implements Record {
     }
 
     @Override
+    public String getTrackingId() {
+        return null;
+    }
+
+    @Override
+    public void setTrackingId(String s) {
+
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

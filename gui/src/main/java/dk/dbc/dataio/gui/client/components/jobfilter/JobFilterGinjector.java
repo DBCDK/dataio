@@ -12,4 +12,5 @@ import com.google.gwt.inject.client.Ginjector;
 public interface JobFilterGinjector extends Ginjector {
     SinkJobFilter getSinkJobFilter();
     SubmitterJobFilter getSubmitterJobFilter();
+    SuppressSubmitterJobFilter getSuppressSubmitterJobFilter();
 }

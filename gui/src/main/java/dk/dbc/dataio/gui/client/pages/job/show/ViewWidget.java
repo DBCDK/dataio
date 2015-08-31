@@ -57,11 +57,13 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiHandler("jobFilter")
     void jobFilterChanged(ChangeEvent event) {
+        GWT.log("jobFilter Changed Event");
         presenter.updateSelectedJobs();
     }
 
     @UiHandler("refreshButton")
     void refreshButtonPressed(ClickEvent event) {
+        GWT.log("Refresh button clicked Event");
         presenter.refresh();
     }
 

@@ -38,6 +38,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField RadioButton allJobsButton;
     @UiField RadioButton processingFailedJobsButton;
     @UiField RadioButton deliveringFailedJobsButton;
+    @UiField RadioButton fatalJobsButton;
     @UiField Button refreshButton;
 
 
@@ -48,7 +49,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         return new SimplePager(SimplePager.TextLocation.CENTER, true, FAST_FORWARD_PAGES * PAGE_SIZE, true);
     }
 
-    @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton"})
+    @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton", "fatalJobsButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
         pagerTop.firstPage();
         presenter.updateSelectedJobs();

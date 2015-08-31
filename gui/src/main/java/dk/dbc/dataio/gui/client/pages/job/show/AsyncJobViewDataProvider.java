@@ -72,6 +72,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
                 jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.PROCESSING_FAILED);
             } else if (view.deliveringFailedJobsButton.getValue()) {
                 jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.DELIVERING_FAILED);
+            } else if (view.fatalJobsButton.getValue()) {
+                jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.FATAL);
             } else {
                 jobListCriteriaModel.setSearchType(JobListCriteriaModel.JobSearchType.ALL);
             }

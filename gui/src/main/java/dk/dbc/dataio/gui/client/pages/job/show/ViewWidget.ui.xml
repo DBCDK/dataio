@@ -17,6 +17,7 @@
             <g:RadioButton ui:field="processingFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_ProcessingFailedJobs}" />
             <g:RadioButton ui:field="deliveringFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_DeliveringFailedJobs}" />
             <g:RadioButton ui:field="allJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_AllJobs}" />
+            <g:RadioButton ui:field="fatalJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_FatalJobs}" />
         </span>
 
         <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />

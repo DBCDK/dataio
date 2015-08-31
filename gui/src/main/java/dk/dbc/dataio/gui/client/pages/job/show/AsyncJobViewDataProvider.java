@@ -25,7 +25,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     JobListCriteria baseCriteria = null;
 
     private int criteriaIncarnation=0;
-    private JobListCriteria currentCriteriaAsJobListCriteria;
+    private JobListCriteria currentCriteriaAsJobListCriteria = new JobListCriteria();
 
     public AsyncJobViewDataProvider(ClientFactory clientFactory, View view_ ) {
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();

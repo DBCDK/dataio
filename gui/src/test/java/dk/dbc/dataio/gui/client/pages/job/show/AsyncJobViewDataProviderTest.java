@@ -47,8 +47,6 @@ public class AsyncJobViewDataProviderTest {
 
         objectUnderTest=new AsyncJobViewDataProvider(mockedClientFactory,mockedView );
 
-        verify(mockedView, times(1)).refreshJobsTable();
-
     }
 
     @Test
@@ -63,9 +61,7 @@ public class AsyncJobViewDataProviderTest {
         objectUnderTest.setBaseCriteria(criteria);
 
         // One from the constructor and one from the setBaseQuery
-        verify(mockedView, times(2)).refreshJobsTable();
-
-        verify(mockedView, times(2)).refreshJobsTable();
+        verify(mockedView, times(1)).refreshJobsTable();
     }
 
 
@@ -81,7 +77,7 @@ public class AsyncJobViewDataProviderTest {
 
         objectUnderTest.updateUserCriteria();
 
-        verify(mockedView, times(2)).refreshJobsTable();
+        verify(mockedView, times(1)).refreshJobsTable();
 
     }
 }

@@ -74,4 +74,26 @@ public class TransFileTest {
         } catch (UnsupportedOperationException e) {
         }
     }
+
+    @Test
+    public void getPath_returnsPathOfTransfile() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        final TransFile transFile = new TransFile(file);
+        assertThat(transFile.getPath(), is(file));
+    }
+
+    @Test
+    public void exists_transfileExistsOnTheFileSystem_returnsTrue() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        final TransFile transFile = new TransFile(file);
+        assertThat(transFile.exists(), is(true));
+    }
+
+    @Test
+    public void exists_transfileDoesNotExistOnTheFileSystem_returnsFalse() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        final TransFile transFile = new TransFile(file);
+        Files.delete(file);
+        assertThat(transFile.exists(), is(false));
+    }
 }

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,6 +26,7 @@ public class TransFile {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
 
+    private final Path path;
     private boolean isComplete = false;
     private List<Line> lines = new ArrayList<>();
 
@@ -35,7 +37,8 @@ public class TransFile {
      * @throws IOException if unable to read transfile
      */
     public TransFile(Path transfile) throws NullPointerException, IOException {
-        parse(InvariantUtil.checkNotNullOrThrow(transfile, "transfile"));
+        path = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
+        parse(path);
     }
 
     private void parse(Path transfile) throws IOException {
@@ -56,6 +59,13 @@ public class TransFile {
     }
 
     /**
+     * @return true if transfile exists in the file system, otherwise false
+     */
+    public boolean exists() {
+        return Files.exists(path);
+    }
+
+    /**
      * @return true if transfile contained end-of-file marker, otherwise false
      */
     public boolean isComplete() {
@@ -67,6 +77,13 @@ public class TransFile {
      */
     public List<Line> getLines() {
         return Collections.unmodifiableList(lines);
+    }
+
+    /**
+     * @return path of transfile
+     */
+    public Path getPath() {
+        return path;
     }
 
     /**
@@ -104,7 +121,7 @@ public class TransFile {
         /**
          * Gets value of field
          * @param fieldName name of field
-         * @return value of field or null if field did not exist in line
+         * @return value of field or null if field did not exist in line6
          */
         public String getField(String fieldName) {
             return fields.get(fieldName);

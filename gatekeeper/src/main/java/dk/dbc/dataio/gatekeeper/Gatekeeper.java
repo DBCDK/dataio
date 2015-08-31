@@ -17,26 +17,37 @@ import java.nio.file.Paths;
 public class Gatekeeper {
     private static final Logger LOGGER = LoggerFactory.getLogger(Gatekeeper.class);
 
-    public static void main(String[] args) throws ParseException {
-        final Gatekeeper gatekeeper = new Gatekeeper();
-        final CommandLine commandLine = gatekeeper.parseCommandLine(args);
-        final Path dir = Paths.get(commandLine.getOptionValue("d"));
+    private final JobDispatcher jobDispatcher;
+    private final Path dir;
 
-        try {
-            while (true) {
-                gatekeeper.standGuard(dir);
-                Thread.sleep(1000);
-            }
-        } catch (InterruptedException e) {
-            LOGGER.info("Interrupted", e);
+    public static void main(String[] args) throws InterruptedException, ParseException {
+        final CommandLine commandLine = parseCommandLine(args);
+        final Path dir = Paths.get(commandLine.getOptionValue("d"));
+        final Gatekeeper gatekeeper = new Gatekeeper(dir);
+
+        while (true) {
+            gatekeeper.standGuard();
         }
     }
 
-    public void standGuard(Path dir) {
-        LOGGER.info("Standing guard over {}", dir.toAbsolutePath());
+    public Gatekeeper(Path dir) {
+        this.dir = dir;
+        this.jobDispatcher = new JobDispatcher(dir);
     }
 
-    CommandLine parseCommandLine(String[] args) throws ParseException {
+    public void standGuard() throws InterruptedException {
+        try {
+            jobDispatcher.execute();
+        } catch (InterruptedException e) {
+            LOGGER.warn("Job dispatcher was interrupted", e);
+            throw e;
+        } catch (Exception e) {
+            LOGGER.error("Caught exception from job dispatcher - restarting guard operation", e);
+            Thread.sleep(1000);
+        }
+    }
+
+    public static CommandLine parseCommandLine(String[] args) throws ParseException {
         final CommandLineParser parser = new GnuParser();
         final HelpFormatter helpFormatter = new HelpFormatter();
         final Options options = getCommandLineOptions();
@@ -48,11 +59,11 @@ public class Gatekeeper {
         }
     }
 
-    Options getCommandLineOptions() {
+    private static Options getCommandLineOptions() {
         final Options options = new Options();
         options.addOption(new Option("h", "help", false, "Produce help message"));
 
-        @SuppressWarnings( "static-access" )
+        @SuppressWarnings("static-access")
         final Option dir = OptionBuilder.withArgName("dir")
                 .hasArg()
                 .isRequired()

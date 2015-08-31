@@ -16,7 +16,7 @@
     </rollingPolicy>
 
     <encoder>
-      <pattern>[%date] [%level] [%thread] [%X{HARVESTER_ID}] %logger.%method - %msg%n</pattern>
+      <pattern>[%date] [%level] [%thread] %logger.%method - %msg%n</pattern>
     </encoder>
   </appender>
 

@@ -24,7 +24,7 @@ public class JobInfoSnapshot {
     @JsonCreator
     public JobInfoSnapshot(@JsonProperty ("jobId")int jobId,
                            @JsonProperty ("eoj")boolean eoj,
-                           @JsonProperty ("fatalError")boolean fatalError,
+                           @JsonProperty ("hasFatalError")boolean fatalError,
                            @JsonProperty ("partNumber")int partNumber,
                            @JsonProperty ("numberOfChunks")int numberOfChunks,
                            @JsonProperty ("numberOfItems")int numberOfItems,
@@ -57,6 +57,7 @@ public class JobInfoSnapshot {
         return eoj;
     }
 
+    @JsonProperty
     public boolean hasFatalError() {
         return fatalError;
     }

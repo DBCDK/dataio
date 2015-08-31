@@ -68,8 +68,11 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     public JobFilter(JobFilterList availableJobFilters) {
         initWidget(ourUiBinder.createAndBindUi(this));
-        for (BaseJobFilter filter: availableJobFilters.getJobFilterList()) {
-            filterMenu.addItem(filter.getName(), filter.getAddCommand(this));
+        for (JobFilterList.JobFilterItem filter: availableJobFilters.getJobFilterList()) {
+            filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
+            if (filter.activeOnStartup) {
+                filter.jobFilter.getAddCommand(this).execute();
+            }
         }
     }
 

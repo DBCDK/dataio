@@ -11,7 +11,17 @@ import java.util.List;
  */
 final public class JobFilterList {
     JobFilterGinjector ginjector;
-    private List<? extends BaseJobFilter> jobFilterList;
+    private List<JobFilterItem> jobFilterList;
+
+    class JobFilterItem {
+        BaseJobFilter jobFilter;
+        boolean activeOnStartup;
+
+        public JobFilterItem(BaseJobFilter jobFilter, boolean activeOnStartup) {
+            this.jobFilter = jobFilter;
+            this.activeOnStartup = activeOnStartup;
+        }
+    }
 
     /**
      * Constructor for the JobFilterList
@@ -21,14 +31,14 @@ final public class JobFilterList {
     public JobFilterList() {
         ginjector = GWT.create(JobFilterGinjector.class);
         jobFilterList = Arrays.asList(
-                ginjector.getSinkJobFilter(),
-                ginjector.getSubmitterJobFilter(),
-                ginjector.getSuppressSubmitterJobFilter()
+                new JobFilterItem(ginjector.getSinkJobFilter(), false),
+                new JobFilterItem(ginjector.getSubmitterJobFilter(), false),
+                new JobFilterItem(ginjector.getSuppressSubmitterJobFilter(), true)
                 // Add new Job Filters here...
         );
     }
 
-    public JobFilterList(List<? extends BaseJobFilter> jobFilterList) {
+    public JobFilterList(List<JobFilterItem> jobFilterList) {
         this.jobFilterList = jobFilterList;
     }
 
@@ -36,7 +46,7 @@ final public class JobFilterList {
      * Getter for the Job Filter List
      * @return The list of Job Filters
      */
-    public List<? extends BaseJobFilter> getJobFilterList() {
+    public List<JobFilterItem> getJobFilterList() {
         return jobFilterList;
     }
 }

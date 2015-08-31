@@ -12,6 +12,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,22 +41,51 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class JobFilterTest {
-    @Mock BaseJobFilter mockedBaseJobFilter1;
-    @Mock BaseJobFilter mockedBaseJobFilter2;
+    @Mock JobFilter mockedParentJobFilter;
+    @Mock Scheduler.ScheduledCommand mockedAddCommand1;
+    @Mock Scheduler.ScheduledCommand mockedAddCommand2;
+    @Mock JobFilterList.JobFilterItem mockedJobFilterItem1;
+    @Mock JobFilterList.JobFilterItem mockedJobFilterItem2;
+    @Mock BaseJobFilter mockedJobFilter1;
+    @Mock BaseJobFilter mockedJobFilter2;
     @Mock ChangeHandler mockedChangeHandler;
     @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock BaseJobFilter mockedBaseJobFilterWidget;
-    List<BaseJobFilter> twoJobFilters = new ArrayList<BaseJobFilter>();
-    List<BaseJobFilter> emptyJobFilters = new ArrayList<BaseJobFilter>();
+    List<JobFilterList.JobFilterItem> twoJobFilters = new ArrayList<JobFilterList.JobFilterItem>();
+    List<JobFilterList.JobFilterItem> emptyJobFilters = new ArrayList<JobFilterList.JobFilterItem>();
 
+    boolean addCommand1Executed;
+    boolean addCommand2Executed;
 
     @Before
     public void prepareJobFilters() {
-        when(mockedBaseJobFilter1.getName()).thenReturn("Filter 1");
-        when(mockedBaseJobFilter2.getName()).thenReturn("Filter 2");
+        mockedJobFilterItem1.jobFilter = mockedJobFilter1;
+        mockedJobFilterItem2.jobFilter = mockedJobFilter2;
+        when(mockedJobFilter1.getName()).thenReturn("Filter 1");
+        when(mockedJobFilter2.getName()).thenReturn("Filter 2");
+        when(mockedJobFilter1.getAddCommand(any(JobFilter.class))).thenReturn(mockedAddCommand1);
+        when(mockedJobFilter2.getAddCommand(any(JobFilter.class))).thenReturn(mockedAddCommand2);
+        addCommand1Executed = false;
+        addCommand2Executed = false;
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                addCommand1Executed = true;
+                return null;
+            }
+        }).when(mockedAddCommand1).execute();
+        Mockito.doAnswer(new Answer() {
+            @Override
+            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
+                addCommand2Executed = true;
+                return null;
+            }
+        }).when(mockedAddCommand2).execute();
+        mockedJobFilterItem1.activeOnStartup = false;
+        mockedJobFilterItem2.activeOnStartup = true;
         twoJobFilters.clear();
-        twoJobFilters.add(mockedBaseJobFilter1);
-        twoJobFilters.add(mockedBaseJobFilter2);
+        twoJobFilters.add(mockedJobFilterItem1);
+        twoJobFilters.add(mockedJobFilterItem2);
     }
 
 
@@ -75,6 +107,8 @@ public class JobFilterTest {
         assertThat(capturedValues.size(), is(2));
         assertThat(capturedValues.get(0), is("Filter 1"));
         assertThat(capturedValues.get(1), is("Filter 2"));
+        assertThat(addCommand1Executed, is(false));
+        assertThat(addCommand2Executed, is(true));
     }
 
     @Test
@@ -112,11 +146,11 @@ public class JobFilterTest {
     public void addChildJobFilter_callAddWithNotNullValue_addJobFilter() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
-        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
+        mockedJobFilterItem1.jobFilter.filterPanel = mockedJobFilterPanel;
         jobFilter.changeHandler = null;
 
         // Activate Subject Under Test
-        jobFilter.add(mockedBaseJobFilter1);
+        jobFilter.add(mockedJobFilter1);
 
         // Verify test
         verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
@@ -126,7 +160,7 @@ public class JobFilterTest {
         jobFilter.changeHandler = mockedChangeHandler;
 
         // Activate Subject Under Test once again
-        jobFilter.add(mockedBaseJobFilter1);
+        jobFilter.add(mockedJobFilter1);
 
         // Verify test
         verify(mockedChangeHandler).onChange(any(ChangeEvent.class));
@@ -136,8 +170,8 @@ public class JobFilterTest {
     public void removeChildJobFilter_callRemoveWithNullValue_removeNoJobFilters() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
-        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
-        jobFilter.add(mockedBaseJobFilter1);
+        mockedJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.add(mockedJobFilter1);
 
         // Activate Subject Under Test
         jobFilter.remove(null);
@@ -151,13 +185,13 @@ public class JobFilterTest {
     public void removeChildJobFilter_callRemoveWithNullPanelValue_removeNoJobFilters() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
-        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
-        jobFilter.add(mockedBaseJobFilter1);
-        mockedBaseJobFilter1.filterPanel = null;
+        mockedJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.add(mockedJobFilter1);
+        mockedJobFilter1.filterPanel = null;
 
         // Activate Subject Under Test
 
-        jobFilter.remove(mockedBaseJobFilter1);
+        jobFilter.remove(mockedJobFilter1);
 
         // Verify test
         verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
@@ -168,18 +202,18 @@ public class JobFilterTest {
     public void removeChildJobFilter_callRemoveWithNotNullValue_removeJobFilter() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
-        mockedBaseJobFilter1.filterPanel = mockedJobFilterPanel;
-        jobFilter.add(mockedBaseJobFilter1);
+        mockedJobFilter1.filterPanel = mockedJobFilterPanel;
+        jobFilter.add(mockedJobFilter1);
         jobFilter.changeHandler = mockedChangeHandler;
 
         // Activate Subject Under Test
 
-        jobFilter.remove(mockedBaseJobFilter1);
+        jobFilter.remove(mockedJobFilter1);
 
         // Verify test
         verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
         verify(jobFilter.jobFilterPanel).remove(mockedJobFilterPanel);
-        assertThat(mockedBaseJobFilter1.filterPanel, is(nullValue()));
+        assertThat(mockedJobFilter1.filterPanel, is(nullValue()));
         verify(mockedChangeHandler).onChange(any(ChangeEvent.class));
     }
 

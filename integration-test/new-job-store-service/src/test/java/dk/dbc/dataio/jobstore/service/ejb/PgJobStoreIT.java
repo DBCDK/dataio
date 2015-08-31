@@ -1120,13 +1120,13 @@ public class PgJobStoreIT {
 
         // And...
         final JobInfoSnapshot returnedJobPartitioningFailedSnapshot = returnedSnapshots.get(0);
-        assertThat("Returned returnedJobPartitioningFailedSnapshot.jobId", returnedJobPartitioningFailedSnapshot.getJobId(), is(jobFailedInPartitioning.getJobId()));
-        assertThat("Returned returnedJobPartitioningFailedSnapshot.fatalError", returnedJobPartitioningFailedSnapshot.hasFatalError(), is(true));
+        assertThat("ReturnedJobPartitioningFailedSnapshot.jobId", returnedJobPartitioningFailedSnapshot.getJobId(), is(jobFailedInPartitioning.getJobId()));
+        assertThat("ReturnedJobPartitioningFailedSnapshot.fatalError", returnedJobPartitioningFailedSnapshot.hasFatalError(), is(true));
 
         // And...
         final JobInfoSnapshot returnedJobCreationFailedSnapshot = returnedSnapshots.get(1);
-        assertThat("Returned returnedJobCreationFailedSnapshot.jobId", returnedJobCreationFailedSnapshot.getJobId(), is(jobFailedInJobCreation.getJobId()));
-        assertThat("Returned returnedJobCreationFailedSnapshot.fatalError", returnedJobCreationFailedSnapshot.hasFatalError(), is(true));
+        assertThat("ReturnedJobCreationFailedSnapshot.jobId", returnedJobCreationFailedSnapshot.getJobId(), is(jobFailedInJobCreation.getJobId()));
+        assertThat("ReturnedJobCreationFailedSnapshot.fatalError", returnedJobCreationFailedSnapshot.hasFatalError(), is(true));
     }
 
     /**

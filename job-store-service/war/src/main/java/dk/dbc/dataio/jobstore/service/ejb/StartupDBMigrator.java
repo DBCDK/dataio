@@ -9,10 +9,11 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
+import javax.ejb.Startup;
 import javax.sql.DataSource;
 
 @Singleton
-//@Startup
+@Startup
 public class StartupDBMigrator {
     private static final Logger LOGGER = LoggerFactory.getLogger(StartupDBMigrator.class);
 

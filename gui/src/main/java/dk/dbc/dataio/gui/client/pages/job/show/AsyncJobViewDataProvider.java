@@ -41,20 +41,22 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
 
     void updateCurrentCriteria() {
-        criteriaIncarnation++;
-
-        currentCriteriaAsJobListCriteria=new JobListCriteria();
+        JobListCriteria newJobListCriteria=new JobListCriteria();
 
 
         if( baseCriteria != null) {
-            currentCriteriaAsJobListCriteria.and(baseCriteria);
+            newJobListCriteria.and(baseCriteria);
         }
 
         if (userCriteria != null) {
-            currentCriteriaAsJobListCriteria.where(userCriteria);
+            newJobListCriteria.where(userCriteria);
         }
 
-        refresh();
+        if( !currentCriteriaAsJobListCriteria.equals(newJobListCriteria)) {
+            criteriaIncarnation++;
+            currentCriteriaAsJobListCriteria = newJobListCriteria;
+            refresh();
+        }
 
     }
 
@@ -79,8 +81,6 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
             } else if (view.fatalJobsButton.getValue()) {
                 userCriteria.where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR));
-            } else {
-                // Do notthing. implicit hit All jobs.
             }
         }
         updateCurrentCriteria();

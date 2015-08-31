@@ -28,7 +28,6 @@ public class PresenterJobsImpl extends PresenterImpl {
         JobListCriteria criteria=new JobListCriteria()
                 .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
                 .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
-        // TODO this coud be simpler
         view.dataProvider.setBaseCriteria( criteria );
     }
 }

@@ -28,9 +28,6 @@ public class PresenterTestJobsImpl extends PresenterImpl {
         JobListCriteria criteria=new JobListCriteria()
                 .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
                 .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
-
-        // TODO this coud be simpler
         view.dataProvider.setBaseCriteria( criteria );
-
     }
 }

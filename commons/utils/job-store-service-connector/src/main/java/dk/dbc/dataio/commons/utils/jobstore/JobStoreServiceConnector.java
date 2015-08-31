@@ -206,14 +206,13 @@ public class JobStoreServiceConnector {
             final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT);
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                Long res=readResponseEntity(response, new GenericType<Long>() {
-                });
-                return (int) res.longValue();
+                Long res=readResponseEntity(response, new GenericType<Long>() {});
+                return res.longValue();
             } finally {
                 response.close();
             }
         } finally {
-            log.debug("JobStoreServiceConnector: listJobs took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: countJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

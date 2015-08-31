@@ -82,6 +82,4 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
         };
     }
 
-
-
 }

@@ -121,7 +121,7 @@ public class TransFile {
         /**
          * Gets value of field
          * @param fieldName name of field
-         * @return value of field or null if field did not exist in line6
+         * @return value of field or null if field did not exist in line
          */
         public String getField(String fieldName) {
             return fields.get(fieldName);

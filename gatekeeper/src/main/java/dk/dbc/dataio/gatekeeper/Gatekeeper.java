@@ -18,7 +18,6 @@ public class Gatekeeper {
     private static final Logger LOGGER = LoggerFactory.getLogger(Gatekeeper.class);
 
     private final JobDispatcher jobDispatcher;
-    private final Path dir;
 
     public static void main(String[] args) throws InterruptedException, ParseException {
         final CommandLine commandLine = parseCommandLine(args);
@@ -31,7 +30,6 @@ public class Gatekeeper {
     }
 
     public Gatekeeper(Path dir) {
-        this.dir = dir;
         this.jobDispatcher = new JobDispatcher(dir);
     }
 

@@ -65,11 +65,13 @@ public abstract class ListCriteria<T extends ListFilterField, U extends ListCrit
         return (U)this;
     }
 
+    @SuppressWarnings("unchecked")
     public U where( ListCriteria<T,U> other) {
         filtering.addAll(other.filtering);
         return (U)this;
     }
 
+    @SuppressWarnings("unchecked")
     public U and(ListCriteria<T,U> other) {
         filtering.addAll(other.filtering);
         return (U)this;

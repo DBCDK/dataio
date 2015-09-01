@@ -118,6 +118,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public void deleteFlow(long flowId, long version) throws NullPointerException, ProxyException {
+        final String callerMethodName = "deleteFlow";
+        log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", flowId, version);
+        try {
+            flowStoreServiceConnector.deleteFlow(flowId, version);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
+    @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         final String callerMethodName = "findAllFlows";
         List<Flow> flows = null;

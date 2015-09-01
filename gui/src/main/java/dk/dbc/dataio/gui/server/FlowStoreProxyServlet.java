@@ -40,6 +40,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public void deleteFlow(long flowId, long version) throws ProxyException {
+        flowStoreProxy.deleteFlow(flowId, version);
+    }
+
+    @Override
     public List<FlowModel> findAllFlows() throws ProxyException {
         return flowStoreProxy.findAllFlows();
     }

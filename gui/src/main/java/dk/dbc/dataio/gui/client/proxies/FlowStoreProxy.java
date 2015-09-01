@@ -17,6 +17,8 @@ public interface FlowStoreProxy extends RemoteService {
     // Flows
     FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException;
     FlowModel updateFlow(FlowModel FlowContent) throws NullPointerException, ProxyException;
+    void deleteFlow(long flowId, long version) throws ProxyException;
+
     List<FlowModel> findAllFlows() throws ProxyException;
     FlowModel getFlow(Long id) throws ProxyException;
 

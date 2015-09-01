@@ -743,6 +743,50 @@ public class FlowStoreProxyImplTest {
         }
     }
 
+     /*
+     * Test deleteFlow
+     */
+
+    @Test
+    public void deleteFlow_remoteServiceReturnsHttpStatusNoContent() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        try {
+            flowStoreProxy.deleteFlow(ID, 1L);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: deleteFlow()");
+        }
+    }
+
+    @Test
+    public void deleteFlow_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        deleteFlow_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void deleteFlow_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        deleteFlow_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void deleteFlow_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        deleteFlow_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    private void deleteFlow_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        doThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("msg", errorCodeToReturn)).when(flowStoreServiceConnector).deleteFlow(eq(ID), (eq(1L)));
+        try {
+            flowStoreProxy.deleteFlow(ID, 1);
+            fail("No " + expectedErrorName + " error was thrown by deleteFlow()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
     /*
     * Test findAllFlowBinders
     */

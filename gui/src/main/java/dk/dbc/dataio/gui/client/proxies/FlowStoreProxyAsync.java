@@ -13,6 +13,7 @@ public interface FlowStoreProxyAsync {
     // Flows
     void createFlow(FlowModel model, AsyncCallback<FlowModel> async);
     void updateFlow(FlowModel model, AsyncCallback<FlowModel> async);
+    void deleteFlow(long flowId, long version, AsyncCallback<Void> async);
     void findAllFlows(AsyncCallback<List<FlowModel>> async);
     void getFlow(Long id, AsyncCallback<FlowModel> async);
 

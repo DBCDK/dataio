@@ -340,7 +340,8 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() { });
+            return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {
+            });
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findAllSubmitters took {} milliseconds", stopWatch.getElapsedTime());
@@ -386,7 +387,8 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponent>>() { });
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponent>>() {
+            });
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findAllFlowComponents took {} milliseconds", stopWatch.getElapsedTime());
@@ -537,7 +539,8 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOWS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() { });
+            return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() {
+            });
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
@@ -610,6 +613,38 @@ public class FlowStoreServiceConnector {
             log.debug("FlowStoreServiceConnector: updateFlow took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
+
+    /**
+     * Deletes an existing flow from the flow-store
+     *
+     * @param flowId, the database related ID
+     * @param version, the current JPA version of the sink - Optimistic Locking
+     *
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
+     */
+    public void deleteFlow(long flowId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        log.trace("FlowStoreServiceConnector: deleteFlow({})", flowId);
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder pathBuilder = new PathBuilder(
+                FlowStoreServiceConstants.FLOW)
+                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(flowId));
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
+        final int actualStatus = response.getStatus();
+
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: deleteFlow took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
 
     // ************************************************** FlowBinder **************************************************
     /**

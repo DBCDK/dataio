@@ -198,7 +198,7 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
     public void updateFlow_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException {
-        updateFlow_mockedHttpWithSpecifiedReturnErrorCode( Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
+        updateFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "", ID, VERSION);
     }
 
     @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
@@ -271,5 +271,42 @@ public class FlowStoreServiceConnector_Flows_Test {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllFlows();
+    }
+
+    // **************************************** delete flow tests ****************************************
+    @Test
+    public void deleteFlow_flowIsDeleted() throws FlowStoreServiceConnectorException, JsonException {
+        final Flow flowToDelete = new FlowBuilder().build();
+        deleteFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), flowToDelete.getId(), flowToDelete.getVersion());
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void deleteFlow_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        deleteFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteFlow_responseWithVersionConflict_throws() throws FlowStoreServiceConnectorException{
+        deleteFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteFlow_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        deleteFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), ID, VERSION);
+    }
+
+    // Helper method
+    private void deleteFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id, long version) throws FlowStoreServiceConnectorException {
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
+                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(id));
+
+        when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.deleteFlow(id, version);
     }
 }

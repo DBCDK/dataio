@@ -4,29 +4,23 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.Mockito.times;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -36,7 +30,6 @@ import static org.mockito.Mockito.when;
  *
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
-@Ignore
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
     @Mock ClientFactory mockedClientFactory;
@@ -49,7 +42,10 @@ public class PresenterImplTest {
     @Mock RadioButton mockedAllJobsButton;
     @Mock RadioButton mockedProcessingFailedJobsButton;
     @Mock RadioButton mockedDeliveringFailedJobsButton;
+    @Mock RadioButton mockedFatalJobsButton;
     @Mock SingleSelectionModel<JobModel> mockedSingleSelectionModel;
+    @Mock AsyncJobViewDataProvider mockedAsyncJobViewDataProvider;
+    @Mock CellTable mockedJobsTable;
 
     // Setup mocked data
     @Before
@@ -58,10 +54,9 @@ public class PresenterImplTest {
         when(mockedClientFactory.getJobsShowView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
 
-        mockedView.allJobsButton = mockedAllJobsButton;
-        mockedView.processingFailedJobsButton = mockedProcessingFailedJobsButton;
-        mockedView.deliveringFailedJobsButton = mockedDeliveringFailedJobsButton;
         mockedView.selectionModel = mockedSingleSelectionModel;
+        mockedView.dataProvider = mockedAsyncJobViewDataProvider;
+        mockedView.jobsTable = mockedJobsTable;
     }
 
     // Subject Under Test
@@ -78,39 +73,13 @@ public class PresenterImplTest {
         @Override
         protected void updateBaseQuery() {
 
-            JobListCriteria criteria=new JobListCriteria()
+            JobListCriteria criteria = new JobListCriteria()
                      .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
                      .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
 
             view.dataProvider.setBaseCriteria( criteria );
         }
     }
-
-
-    // Test Data
-    private JobModel testModel1 = new JobModelBuilder()
-            .setJobId("1418716277429")
-            .setSubmitterNumber("150014")
-            .setItemCounter(20)
-            .setFailedCounter(5)
-            .setIgnoredCounter(5)
-            .setPartitionedCounter(31)
-            .setProcessedCounter(32)
-            .setDeliveredCounter(33)
-            .build();
-
-    private JobModel testModel2 = new JobModelBuilder()
-            .setJobId("1418773068083")
-            .setSubmitterNumber("424242")
-            .setItemCounter(10)
-            .setFailedCounter(0)
-            .setIgnoredCounter(5)
-            .setPartitionedCounter(34)
-            .setProcessedCounter(35)
-            .setDeliveredCounter(36)
-            .build();
-
-    private List<JobModel> testModels = new ArrayList<JobModel>(Arrays.asList(testModel1, testModel2));
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
@@ -123,7 +92,6 @@ public class PresenterImplTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void start_callStart_ok() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
@@ -136,53 +104,18 @@ public class PresenterImplTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void filterJobs_processingFailedSelected_jobsFailedInProcessingRequested() {
+    public void filterJobs_updateSelectedJobs() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedProcessingFailedJobsButton.getValue()).thenReturn(true);
 
         // Subject under test
         presenterImpl.updateSelectedJobs();
 
         // Verify Test
         verify(mockedView.selectionModel).clear();
-        verify(mockedProcessingFailedJobsButton, times(2)).getValue();
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void filterJobs_deliveringFailedSelected_jobsFailedInDeliveringRequested() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedProcessingFailedJobsButton.getValue()).thenReturn(false);
-        when(mockedDeliveringFailedJobsButton.getValue()).thenReturn(true);
-
-        // Subject under test
-        presenterImpl.updateSelectedJobs();
-
-        // Verify Test
-        verify(mockedView.selectionModel).clear();
-        verify(mockedProcessingFailedJobsButton, times(2)).getValue();
-        verify(mockedDeliveringFailedJobsButton, times(2)).getValue();
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void filterJobs_allJobsSelected_allJobsRequested() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        when(mockedProcessingFailedJobsButton.getValue()).thenReturn(false);
-        when(mockedDeliveringFailedJobsButton.getValue()).thenReturn(false);
-
-        // Subject under test
-        presenterImpl.updateSelectedJobs();
-
-        // Verify Test
-        verify(mockedView.selectionModel).clear();
-        verify(mockedProcessingFailedJobsButton, times(2)).getValue();
-        verify(mockedDeliveringFailedJobsButton, times(2)).getValue();
-        verifyZeroInteractions(mockedAllJobsButton);
+        verify(mockedAsyncJobViewDataProvider).updateUserCriteria();
+        verify(mockedAsyncJobViewDataProvider).updateCurrentCriteria();
+        verify(mockedAsyncJobViewDataProvider).setBaseCriteria(any(JobListCriteria.class));
     }
 
 }

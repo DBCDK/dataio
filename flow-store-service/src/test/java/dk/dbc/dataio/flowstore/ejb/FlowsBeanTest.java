@@ -172,7 +172,7 @@ public class FlowsBeanTest {
 
         when(JsonUtil.fromJson(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
-        flowsBean.updateFlow(null,null, 123L, 4321L, true);
+        flowsBean.updateFlow(null, null, 123L, 4321L, true);
     }
 
     @Test
@@ -258,6 +258,33 @@ public class FlowsBeanTest {
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
     }
+
+    @Test
+    public void deleteFlow_flowNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
+
+        final Response response = flowsBean.deleteFlow(12L, 1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void deleteFlow_flowFound_returnsNoContentHttpResponse() throws JsonException, ReferencedEntityNotFoundException {
+        final Flow flow = mock(Flow.class);
+        final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
+
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(flow)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
+        when(ENTITY_MANAGER.merge(any(Flow.class))).thenReturn(flow);
+
+        final Response response = flowsBean.deleteFlow(12L, 1L);
+
+        verify(flow).setVersion(1L);
+        verify(ENTITY_MANAGER).remove(flow);
+        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
 
     public static FlowsBean newFlowsBeanWithMockedEntityManager() {
         final FlowsBean flowsBean = new FlowsBean();

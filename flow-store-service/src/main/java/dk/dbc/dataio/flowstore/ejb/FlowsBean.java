@@ -18,6 +18,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -241,6 +242,41 @@ public class FlowsBean {
                 .entity(flowJson)
                 .tag(updatedFlow.getVersion().toString())
                 .build();
+    }
+
+    /**
+     * Deletes an existing flow
+     *
+     * @param flowId The flow ID
+     * @param version The version of the flow
+     *
+     * @return a HTTP 204 response with no content,
+     *         a HTTP 404 response in case of flow ID not found,
+     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     *         a HTTP 500 response in case of general error.
+     */
+    @DELETE
+    @Path(FlowStoreServiceConstants.FLOW)
+    public Response deleteFlow(
+            @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long flowId,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
+
+        final Flow flowEntity = entityManager.find(Flow.class, flowId);
+
+        if(flowEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // First we need to update the version no to see if any Optimistic Locking occurs!
+        entityManager.detach(flowEntity);
+        flowEntity.setVersion(version);
+        Flow versionUpdatedAndNoOptimisticLocking = entityManager.merge(flowEntity);
+
+        // If no Optimistic Locking - delete it!
+        entityManager.remove(versionUpdatedAndNoOptimisticLocking);
+        entityManager.flush();
+
+        return Response.noContent().build();
     }
 
 }

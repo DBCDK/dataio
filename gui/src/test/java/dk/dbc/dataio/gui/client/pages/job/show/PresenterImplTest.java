@@ -6,7 +6,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -39,10 +38,6 @@ public class PresenterImplTest {
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
-    @Mock RadioButton mockedAllJobsButton;
-    @Mock RadioButton mockedProcessingFailedJobsButton;
-    @Mock RadioButton mockedDeliveringFailedJobsButton;
-    @Mock RadioButton mockedFatalJobsButton;
     @Mock SingleSelectionModel<JobModel> mockedSingleSelectionModel;
     @Mock AsyncJobViewDataProvider mockedAsyncJobViewDataProvider;
     @Mock CellTable mockedJobsTable;

@@ -30,7 +30,6 @@ public class AsyncJobViewDataProviderTest {
     @Mock JobFilter mockedJobFilter;
     @Mock RadioButton mockedProcessingFailedJobsButton;
     @Mock RadioButton mockedDeliveringFailedJobsButton;
-    @Mock RadioButton mockedAllJobsButton;
     @Mock RadioButton mockedFatalJobsButton;
 
     private AsyncJobViewDataProvider objectUnderTest;
@@ -44,7 +43,6 @@ public class AsyncJobViewDataProviderTest {
         mockedView.processingFailedJobsButton = mockedProcessingFailedJobsButton;
         mockedView.deliveringFailedJobsButton = mockedDeliveringFailedJobsButton;
         mockedView.fatalJobsButton = mockedFatalJobsButton;
-        mockedView.allJobsButton = mockedAllJobsButton;
     }
 
     @Test

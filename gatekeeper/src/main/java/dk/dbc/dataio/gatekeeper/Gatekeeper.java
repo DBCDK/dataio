@@ -1,5 +1,8 @@
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
+import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
+import dk.dbc.dataio.gatekeeper.wal.WriteAheadLogH2;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -19,7 +22,7 @@ public class Gatekeeper {
 
     private final JobDispatcher jobDispatcher;
 
-    public static void main(String[] args) throws InterruptedException, ParseException {
+    public static void main(String[] args) throws InterruptedException, ParseException, ModificationLockedException {
         final CommandLine commandLine = parseCommandLine(args);
         final Path dir = Paths.get(commandLine.getOptionValue("d"));
         final Gatekeeper gatekeeper = new Gatekeeper(dir);
@@ -30,14 +33,18 @@ public class Gatekeeper {
     }
 
     public Gatekeeper(Path dir) {
-        this.jobDispatcher = new JobDispatcher(dir);
+        final WriteAheadLog wal = new WriteAheadLogH2();
+        jobDispatcher = new JobDispatcher(dir, wal);
     }
 
-    public void standGuard() throws InterruptedException {
+    public void standGuard() throws InterruptedException, ModificationLockedException {
         try {
             jobDispatcher.execute();
         } catch (InterruptedException e) {
             LOGGER.warn("Job dispatcher was interrupted", e);
+            throw e;
+        } catch (ModificationLockedException e) {
+            LOGGER.error("Job dispatcher caught WAL exception", e);
             throw e;
         } catch (Exception e) {
             LOGGER.error("Caught exception from job dispatcher - restarting guard operation", e);

@@ -2,6 +2,9 @@ package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
+import dk.dbc.dataio.gatekeeper.wal.Modification;
+import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
+import dk.dbc.dataio.gatekeeper.wal.WriteAheadLog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,15 +23,21 @@ public class JobDispatcher {
     private static final String TRANSFILE_EXTENSION = ".trans";
 
     private final Path dir;
+    private final WriteAheadLog wal;
+
     private WatchService dirMonitor;
 
-    public JobDispatcher(Path dir) throws NullPointerException {
+    public JobDispatcher(Path dir, WriteAheadLog wal) throws NullPointerException {
         this.dir = InvariantUtil.checkNotNullOrThrow(dir, "dir");
+        this.wal = InvariantUtil.checkNotNullOrThrow(wal, "wal");
     }
 
-    public void execute() throws IOException, InterruptedException {
+    public void execute() throws IOException, InterruptedException, ModificationLockedException {
         // Setup directory monitoring to start accumulating file system events
         reset();
+
+        // Process any existing entries in the write-ahead-log
+        processWal();
 
         // Process all stagnant file that may not experience any future file system events
         processStagnantTransfiles();
@@ -63,6 +72,14 @@ public class JobDispatcher {
             processedTransfiles.add(processTransfile(transFile));
         }
         return processedTransfiles;
+    }
+
+    private void processWal() throws ModificationLockedException {
+        Modification next = wal.next();
+        while (next != null) {
+            LOGGER.info("Processing WAL entry {}", next);
+            next = wal.next();
+        }
     }
 
     private TransFile processTransfile(TransFile transFile) {

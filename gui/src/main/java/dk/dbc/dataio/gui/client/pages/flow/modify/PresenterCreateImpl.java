@@ -37,5 +37,8 @@ public class PresenterCreateImpl extends PresenterImpl {
         flowStoreProxy.createFlow(model, new SaveFlowModelAsyncCallback());
     }
 
-
+    /**
+     * This has no implementation because "Create" does not have a delete button!
+     */
+    public void deleteButtonPressed() {}
 }

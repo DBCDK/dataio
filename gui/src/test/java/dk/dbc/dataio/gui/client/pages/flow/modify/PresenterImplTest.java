@@ -88,6 +88,11 @@ public class PresenterImplTest {
             saveModelHasBeenCalled = true;
         }
 
+        @Override
+        public void deleteButtonPressed() {
+            deleteButtonPressed();
+        }
+
         public SaveFlowModelAsyncCallback saveFlowCallback = new SaveFlowModelAsyncCallback();
 
         public FindAllFlowComponentsAsyncCallback findAllFlowComponentsCallback = new FindAllFlowComponentsAsyncCallback();

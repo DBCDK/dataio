@@ -12,5 +12,6 @@ public interface Presenter extends GenericPresenter {
     void saveButtonPressed();
     void addButtonPressed();
     void removeButtonPressed();
+    void deleteButtonPressed();
 
 }

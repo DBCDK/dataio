@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.place.shared.Place;
+import com.google.gwt.user.client.History;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -22,6 +23,7 @@ public class PresenterEditImpl extends PresenterImpl {
         view = clientFactory.getFlowEditView();
         EditPlace editPlace = (EditPlace) place;
         id = editPlace.getFlowId();
+        view.deleteButton.setVisible(true);
     }
 
     /**
@@ -42,9 +44,25 @@ public class PresenterEditImpl extends PresenterImpl {
         flowStoreProxy.updateFlow(model, new SaveFlowModelAsyncCallback());
     }
 
+    /**
+     * Deletes the embedded model as a Flow in the database
+     */
+    void deleteModel() {
+        flowStoreProxy.deleteFlow(model.getId(), model.getVersion(), new DeleteFlowModelFilteredAsyncCallback());
+    }
+
     // Private methods
     private void getFlow(final long flowId) {
         flowStoreProxy.getFlow(flowId, new GetFlowModelAsyncCallback());
+    }
+
+    /**
+     * A signal to the presenter, saying that the delete button has been pressed
+     */
+    public void deleteButtonPressed() {
+        if (model != null) {
+            deleteModel();
+        }
     }
 
     /**
@@ -60,6 +78,23 @@ public class PresenterEditImpl extends PresenterImpl {
         public void onSuccess(FlowModel model) {
             setFlowModel(model);
             updateAllFieldsAccordingToCurrentState();
+        }
+    }
+
+    /**
+     * Local call back class to be instantiated in the call to deleteFlow in flowstore proxy
+     */
+    class DeleteFlowModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            view.status.setText(texts.status_FlowSuccessfullyDeleted());
+            setFlowModel(null);
+            History.back();
         }
     }
 }

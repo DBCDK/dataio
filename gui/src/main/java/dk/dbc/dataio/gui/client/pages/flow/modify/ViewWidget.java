@@ -9,6 +9,7 @@ import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
@@ -27,10 +28,10 @@ public class ViewWidget extends ContentPanel<Presenter> {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @UiField
-    PromptedTextBox name;
+    @UiField PromptedTextBox name;
     @UiField PromptedTextArea description;
     @UiField PromptedMultiList flowComponents;
+    @UiField Button deleteButton;
     @UiField Label status;
 
 
@@ -60,6 +61,12 @@ public class ViewWidget extends ContentPanel<Presenter> {
     @UiHandler("saveButton")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
+    }
+
+    @UiHandler("deleteButton")
+    @SuppressWarnings("unused")
+    void deleteButtonPressed(ClickEvent event) {
+        presenter.deleteButtonPressed();
     }
 
     @UiHandler("flowComponents")

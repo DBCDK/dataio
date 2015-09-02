@@ -9,6 +9,8 @@
         <li><dio:PromptedTextArea ui:field="description" guiId="flowdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
         <li><dio:PromptedMultiList ui:field="flowComponents" guiId="flowcomponentslistpanel" prompt="{txt.label_FlowComponents}" /></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
+        <!-- Visibility of the delete button is controlled from PresenterEditImpl -->
+        <li><g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button></li>
         <li><g:Label ui:field="status"/></li>
 
     </g:HTMLPanel>

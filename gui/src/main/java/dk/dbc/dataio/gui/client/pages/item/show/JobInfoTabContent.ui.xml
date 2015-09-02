@@ -15,6 +15,8 @@
         <li><comp:PromptedLabel ui:field="mailForNotificationAboutProcessing" guiId="jobinfoMailForNotificationAboutProcessingPanel" prompt="{txt.prompt_MailForNotificationAboutProcessing}" /></li>
         <li><comp:PromptedLabel ui:field="resultMailInitials" guiId="jobinfoResultMailInitialsPanel" prompt="{txt.prompt_ResultMailInitials}" /></li>
         <li><comp:PromptedLabel ui:field="type" guiId="typePanel" prompt="{txt.prompt_Type}" /></li>
+        <li><comp:PromptedLabel ui:field="jobCreationTime" guiId="jobCreationTimePanel" prompt="{txt.prompt_JobCreationTime}" /></li>
+        <li><comp:PromptedLabel ui:field="jobCompletionTime" guiId="jobCompletionTimePanel" prompt="{txt.prompt_JobCompletionTime}" /></li>
 
     </g:HTMLPanel>
 

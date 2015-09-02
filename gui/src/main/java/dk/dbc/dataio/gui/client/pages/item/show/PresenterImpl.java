@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private final Map<String, Integer> tabIndexes = new HashMap<String, Integer>(0);
+    private final Map<String, Integer> tabIndexes = new HashMap<>(0);
 
     protected ClientFactory clientFactory;
     protected Texts texts;
@@ -127,7 +127,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void listJobs(String jobId) {
         final JobListCriteria jobListCriteria = new JobListCriteria().where(
-                new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+                new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
 
         jobStoreProxy.listJobs(jobListCriteria, new JobsCallback());
     }
@@ -274,6 +274,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         view.jobInfoTabContent.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
         view.jobInfoTabContent.resultMailInitials.setText(jobModel.getResultmailInitials());
         view.jobInfoTabContent.type.setText(jobModel.getType().name());
+        view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
+        view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
     }
 
 

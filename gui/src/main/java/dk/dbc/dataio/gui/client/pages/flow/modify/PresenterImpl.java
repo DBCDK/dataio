@@ -109,7 +109,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void flowComponentsChanged(Map<String, String> flowComponents) {
         if (model != null && flowComponents != null) {
-            List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>();
+            List<FlowComponentModel> flowComponentModels = new ArrayList<>();
             for (Map.Entry<String, String> entry: flowComponents.entrySet()) {
                 flowComponentModels.add(getFlowComponentModel(entry.getKey()));
             }
@@ -144,7 +144,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void addButtonPressed() {
         if (availableFlowComponentModels != null ) {
-            Map<String, String> listOfComponents = new LinkedHashMap<String, String>();
+            Map<String, String> listOfComponents = new LinkedHashMap<>();
             for (FlowComponentModel component : getNonSelectedFlowComponents()) {
                 listOfComponents.put(component.getName(), String.valueOf(component.getId()));
             }
@@ -209,8 +209,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private List<FlowComponentModel> getNonSelectedFlowComponents() {
-        List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<FlowComponentModel>();
-        List<Long> selectedFlowComponentIds = new ArrayList<Long>();
+        List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<>();
+        List<Long> selectedFlowComponentIds = new ArrayList<>();
         if (model != null) {
             for (FlowComponentModel selected: model.getFlowComponents()) {
                 selectedFlowComponentIds.add(selected.getId());

@@ -84,9 +84,12 @@ public class PresenterImplTest {
     @Mock PromptedLabel mockedMailForNotificationAboutProcessing;
     @Mock PromptedLabel mockedResultMailInitials;
     @Mock PromptedLabel mockedType;
+    @Mock PromptedLabel mockedJobCreationTime;
+    @Mock PromptedLabel mockedJobCompletionTime;
     @Mock TabBar mockedTabBar;
     @Mock AsyncItemViewDataProvider mockedDataProvider;
 
+    private final static String EMPTY = "";
     private final static int OFFSET = 0;
     private final static int ROW_COUNT = 4;
     static final int ALL_ITEMS_TAB_INDEX = 0;
@@ -136,6 +139,8 @@ public class PresenterImplTest {
         mockedView.jobInfoTabContent.mailForNotificationAboutProcessing = mockedMailForNotificationAboutProcessing;
         mockedView.jobInfoTabContent.resultMailInitials = mockedResultMailInitials;
         mockedView.jobInfoTabContent.type = mockedType;
+        mockedView.jobInfoTabContent.jobCreationTime = mockedJobCreationTime;
+        mockedView.jobInfoTabContent.jobCompletionTime = mockedJobCompletionTime;
         mockedView.dataProvider = mockedDataProvider;
     }
 
@@ -241,6 +246,8 @@ public class PresenterImplTest {
             .setMailForNotificationAboutVerification("mailNotificationA")
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
+            .setJobCreationTime("2015-09-02 10:38:43")
+            .setJobCompletionTime("2015-09-02 10:39:55")
             .setType(JobModel.Type.TRANSIENT)
             .build();
 
@@ -315,11 +322,11 @@ public class PresenterImplTest {
             .setType(JobModel.Type.ACCTEST)
             .build();
 
-    private List<JobModel> testJobModels0 = new ArrayList<JobModel>();
-    private List<JobModel> testJobModelsSucceeded = new ArrayList<JobModel>(Collections.singletonList(testJobModelSucceeded));
-    private List<JobModel> testJobModelsFailed = new ArrayList<JobModel>(Collections.singletonList(testJobModelFailed));
-    private List<JobModel> testJobModelsIgnored = new ArrayList<JobModel>(Collections.singletonList(testJobModelIgnored));
-    private List<JobModel> testJobModels2 = new ArrayList<JobModel>(Arrays.asList(testJobModel2, testJobModelSucceeded));
+    private List<JobModel> testJobModels0 = new ArrayList<>();
+    private List<JobModel> testJobModelsSucceeded = new ArrayList<>(Collections.singletonList(testJobModelSucceeded));
+    private List<JobModel> testJobModelsFailed = new ArrayList<>(Collections.singletonList(testJobModelFailed));
+    private List<JobModel> testJobModelsIgnored = new ArrayList<>(Collections.singletonList(testJobModelIgnored));
+    private List<JobModel> testJobModels2 = new ArrayList<>(Arrays.asList(testJobModel2, testJobModelSucceeded));
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
@@ -833,6 +840,8 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedJobCreationTime).setText("2015-08-13 14:56:11");
+        verify(mockedJobCompletionTime).setText(EMPTY);
         verify(mockedType).setText(JobSpecification.Type.TEST.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(FAILED_ITEMS_TAB_INDEX);
@@ -840,14 +849,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedPackaging);
-        verifyNoMoreInteractions(mockedFormat);
-        verifyNoMoreInteractions(mockedCharset);
-        verifyNoMoreInteractions(mockedDestination);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
-        verifyNoMoreInteractions(mockedResultMailInitials);
-        verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractionsForJobInfoFields();
     }
 
     @Test
@@ -869,6 +871,8 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedJobCreationTime).setText("2015-08-13 14:56:11");
+        verify(mockedJobCompletionTime).setText(EMPTY);
         verify(mockedType).setText(JobModel.Type.PERSISTENT.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(IGNORED_ITEMS_TAB_INDEX);
@@ -876,14 +880,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedPackaging);
-        verifyNoMoreInteractions(mockedFormat);
-        verifyNoMoreInteractions(mockedCharset);
-        verifyNoMoreInteractions(mockedDestination);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
-        verifyNoMoreInteractions(mockedResultMailInitials);
-        verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractionsForJobInfoFields();
     }
 
     @Test
@@ -905,6 +902,8 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationA");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingA");
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
+        verify(mockedJobCreationTime).setText("2015-09-02 10:38:43");
+        verify(mockedJobCompletionTime).setText("2015-09-02 10:39:55");
         verify(mockedType).setText(JobModel.Type.TRANSIENT.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
@@ -912,14 +911,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedPackaging);
-        verifyNoMoreInteractions(mockedFormat);
-        verifyNoMoreInteractions(mockedCharset);
-        verifyNoMoreInteractions(mockedDestination);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
-        verifyNoMoreInteractions(mockedResultMailInitials);
-        verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractionsForJobInfoFields();
     }
 
     @Test
@@ -941,6 +933,8 @@ public class PresenterImplTest {
         verify(mockedMailForNotificationAboutVerification).setText("mailNotificationB");
         verify(mockedMailForNotificationAboutProcessing).setText("mailProcessingB");
         verify(mockedResultMailInitials).setText("resultMailInitialsB");
+        verify(mockedJobCreationTime).setText("2014-12-17 00:37:48");
+        verify(mockedJobCompletionTime).setText(EMPTY);
         verify(mockedType).setText(JobModel.Type.ACCTEST.name());
         verify(mockedTabBar, times(2)).getTab(ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_INFO_TAB_CONTENT);
@@ -948,14 +942,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedPackaging);
-        verifyNoMoreInteractions(mockedFormat);
-        verifyNoMoreInteractions(mockedCharset);
-        verifyNoMoreInteractions(mockedDestination);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
-        verifyNoMoreInteractions(mockedResultMailInitials);
-        verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractionsForJobInfoFields();
     }
 
     @Test
@@ -974,14 +961,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
-        verifyNoMoreInteractions(mockedPackaging);
-        verifyNoMoreInteractions(mockedFormat);
-        verifyNoMoreInteractions(mockedCharset);
-        verifyNoMoreInteractions(mockedDestination);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutVerification);
-        verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
-        verifyNoMoreInteractions(mockedResultMailInitials);
-        verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractionsForJobInfoFields();
     }
 
     @Test
@@ -1000,6 +980,10 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(JOB_DIAGNOSTIC_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
+        verifyNoMoreInteractionsForJobInfoFields();
+    }
+
+    private void verifyNoMoreInteractionsForJobInfoFields() {
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedCharset);
@@ -1008,6 +992,8 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedMailForNotificationAboutProcessing);
         verifyNoMoreInteractions(mockedResultMailInitials);
         verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractions(mockedJobCreationTime);
+        verifyNoMoreInteractions(mockedJobCompletionTime);
     }
 
 }

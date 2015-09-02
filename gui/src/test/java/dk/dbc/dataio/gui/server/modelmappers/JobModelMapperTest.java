@@ -219,8 +219,7 @@ public class JobModelMapperTest {
     @Test
     public void toModel_nullJobTimeOfCompletionReference_emptyJobTimeOfCompletion() {
         // Subject Under Test
-        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setTimeOfCompletion(null).build();
-        JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
+        JobModel jobModel = JobModelMapper.toModel(new JobInfoSnapshotBuilder().setTimeOfCompletion(null).build());
 
         // Test Verification
         assertThat(jobModel.getJobCompletionTime(), is(""));

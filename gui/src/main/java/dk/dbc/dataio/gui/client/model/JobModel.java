@@ -11,6 +11,7 @@ public class JobModel extends GenericBackendModel {
 
     private final static String     JOB_ID_EMPTY = "";
     private final static String     JOB_CREATION_TIME_EMPTY = "";
+    private final static String     JOB_COMPLETION_TIME_EMPTY = "";
     private final static String     SUBMITTER_NUMBER_EMPTY = "";
     private final static String     SUBMITTER_NAME_EMPTY = "";
     private final static String     FLOW_BINDER_NAME_EMPTY = "";
@@ -37,6 +38,7 @@ public class JobModel extends GenericBackendModel {
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 
     private String jobCreationTime;
+    private String jobCompletionTime;
     private String jobId;
     private String submitterNumber;
     private String submitterName;
@@ -66,6 +68,7 @@ public class JobModel extends GenericBackendModel {
      * Constructor with full parameter list
      *
      * @param jobCreationTime                      The Job Creation Time
+     * @param jobCompletionTime                    The Job Completion Time
      * @param jobId                                The Job Id
      * @param submitterNumber                      The Submitter Number
      * @param submitterName                        The Submitter Name
@@ -92,6 +95,7 @@ public class JobModel extends GenericBackendModel {
      * @param type                                 The type of job (TRANSIENT, PERSISTENT, TEST, ACCTEST)
      */
     public JobModel(String jobCreationTime,
+                    String jobCompletionTime,
                     String jobId,
                     String submitterNumber,
                     String submitterName,
@@ -117,6 +121,7 @@ public class JobModel extends GenericBackendModel {
                     String resultmailInitials,
                     Type type) {
         this.jobCreationTime = jobCreationTime;
+        this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
         this.submitterNumber = submitterNumber;
         this.submitterName = submitterName;
@@ -149,6 +154,7 @@ public class JobModel extends GenericBackendModel {
     public JobModel() {
         this(
                 JOB_CREATION_TIME_EMPTY,
+                JOB_COMPLETION_TIME_EMPTY,
                 JOB_ID_EMPTY,
                 SUBMITTER_NUMBER_EMPTY,
                 SUBMITTER_NAME_EMPTY,
@@ -192,6 +198,24 @@ public class JobModel extends GenericBackendModel {
      */
     public void setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
+    }
+
+    /**
+     * Sets the Job Completion Time
+     *
+     * @param jobCompletionTime Job Completion Time
+     */
+    public void setJobCompletionTime(String jobCompletionTime) {
+        this.jobCompletionTime = jobCompletionTime;
+    }
+
+    /**
+     * Gets the Job Completion Time
+     *
+     * @return Job Completion Time
+     */
+    public String getJobCompletionTime() {
+        return jobCompletionTime;
     }
 
     /**

@@ -68,17 +68,17 @@ public class JobInfoSnapshotBuilder {
     }
 
     public JobInfoSnapshotBuilder setTimeOfCompletion(Date timeOfCompletion) {
-        this.timeOfCompletion = new Date(timeOfCompletion.getTime());
+        this.timeOfCompletion = (timeOfCompletion == null) ? null : new Date(timeOfCompletion.getTime());
         return this;
     }
 
     public JobInfoSnapshotBuilder setTimeOfCreation(Date timeOfCreation) {
-        this.timeOfCreation = new Date(timeOfCreation.getTime());
+        this.timeOfCreation = (timeOfCreation == null) ? null : new Date(timeOfCreation.getTime());
         return this;
     }
 
     public JobInfoSnapshotBuilder setTimeOfLastModification(Date timeOfLastModification) {
-        this.timeOfLastModification = new Date(timeOfLastModification.getTime());
+        this.timeOfLastModification = (timeOfLastModification == null) ? null : new Date(timeOfLastModification.getTime());
         return this;
     }
 

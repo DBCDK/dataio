@@ -180,6 +180,7 @@ public class JobModelMapperTest {
 
         // Test Verification
         assertThat(jobModel.getJobCreationTime(), is("2015-04-06 13:01:23"));
+        assertThat(jobModel.getJobCompletionTime(), is("2015-04-07 13:01:23"));
         assertThat(jobModel.getJobId(), is("1748"));
         assertThat(jobModel.getSubmitterNumber(), is("64646"));
         assertThat(jobModel.getSubmitterName(), is("submitteR"));
@@ -213,6 +214,16 @@ public class JobModelMapperTest {
         assertThat(jobModel.getSubmitterName(), is(""));
         assertThat(jobModel.getFlowBinderName(), is("flowbindeR"));
         assertThat(jobModel.getSinkName(), is("sinK"));
+    }
+
+    @Test
+    public void toModel_nullJobTimeOfCompletionReference_emptyJobTimeOfCompletion() {
+        // Subject Under Test
+        JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setTimeOfCompletion(null).build();
+        JobModel jobModel = JobModelMapper.toModel(jobInfoSnapshot);
+
+        // Test Verification
+        assertThat(jobModel.getJobCompletionTime(), is(""));
     }
 
     @Test
@@ -305,6 +316,7 @@ public class JobModelMapperTest {
         // Test Verification
         assertThat(jobModels.size(), is(2));
         assertThat(jobModels.get(0).getJobCreationTime(), is("2015-04-06 13:01:23"));
+        assertThat(jobModels.get(0).getJobCompletionTime(), is("2015-04-07 13:01:23"));
         assertThat(jobModels.get(0).getJobId(), is("1748"));
         assertThat(jobModels.get(0).getSubmitterNumber(), is("64646"));
         assertThat(jobModels.get(0).getSubmitterName(), is("submitteR"));
@@ -322,6 +334,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).getMailForNotificationAboutProcessing(), is("mail4ProcessinG"));
         assertThat(jobModels.get(0).getResultmailInitials(), is("mailInitialS"));
         assertThat(jobModels.get(1).getJobCreationTime(), is("2015-04-06 13:01:24"));
+        assertThat(jobModels.get(1).getJobCompletionTime(), is("2015-04-07 13:01:24"));
         assertThat(jobModels.get(1).getJobId(), is("1749"));
         assertThat(jobModels.get(1).getSubmitterNumber(), is("64647"));
         assertThat(jobModels.get(1).getSubmitterName(), is("submitteR2"));

@@ -10,6 +10,7 @@ import java.util.List;
 public class JobModelBuilder {
 
     private String jobCreationTime = "2015-08-13 14:56:11";
+    private String jobCompletionTime = "";
     private String jobId = "32";
     private String submitterNumber = "536278";
     private String submitterName = "Submitter name";
@@ -38,6 +39,11 @@ public class JobModelBuilder {
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
+        return this;
+    }
+
+    public JobModelBuilder setJobCompletionTime(String jobCompletionTime) {
+        this.jobCompletionTime = jobCompletionTime;
         return this;
     }
 
@@ -164,6 +170,7 @@ public class JobModelBuilder {
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
+                jobCompletionTime,
                 jobId,
                 submitterNumber,
                 submitterName,

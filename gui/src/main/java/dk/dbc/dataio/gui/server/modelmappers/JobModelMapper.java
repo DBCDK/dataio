@@ -19,7 +19,6 @@ import java.util.List;
  * The Job Model Mapper class maps a jobs from JobInfoSnapshot objects to JobModel objects
  */
 public class JobModelMapper {
-
     /*
      * Public Methods
      */
@@ -32,9 +31,9 @@ public class JobModelMapper {
     public static JobModel toModel(JobInfoSnapshot jobInfoSnapshot) {
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
-
         return new JobModel(
                 simpleDateFormat.format(jobInfoSnapshot.getTimeOfCreation()),
+                jobInfoSnapshot.getTimeOfCompletion() == null ? "" : simpleDateFormat.format(jobInfoSnapshot.getTimeOfCompletion()),
                 String.valueOf(jobInfoSnapshot.getJobId()),
                 Long.toString(jobInfoSnapshot.getSpecification().getSubmitterId()),
                 getSubmitterName(jobInfoSnapshot.getFlowStoreReferences()) ,
@@ -67,7 +66,7 @@ public class JobModelMapper {
      * @return The list of resulting JobModel objects
      */
     public static List<JobModel> toModel(List<JobInfoSnapshot> jobInfoSnapshots) {
-        List<JobModel> jobInfoSnapshotModels = new ArrayList<JobModel>(jobInfoSnapshots.size());
+        List<JobModel> jobInfoSnapshotModels = new ArrayList<>(jobInfoSnapshots.size());
 
         for(JobInfoSnapshot jobInfoSnapshot : jobInfoSnapshots) {
             jobInfoSnapshotModels.add(toModel(jobInfoSnapshot));
@@ -162,7 +161,7 @@ public class JobModelMapper {
      * @return list of diagnostic models. Empty list if no diagnostics were found.
      */
     private static List<DiagnosticModel> getDiagnostics(List<Diagnostic> diagnostics) {
-        List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(diagnostics.size());
+        List<DiagnosticModel> diagnosticModels = new ArrayList<>(diagnostics.size());
         for(Diagnostic diagnostic : diagnostics) {
             diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().name(), diagnostic.getMessage(), diagnostic.getStacktrace()));
         }

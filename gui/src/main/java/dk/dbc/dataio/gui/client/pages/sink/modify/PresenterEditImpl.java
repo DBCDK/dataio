@@ -82,7 +82,7 @@ public class PresenterEditImpl extends PresenterImpl {
     }
 
     /**
-     * Local call back class to be instantiated in the call to deleteSubmitter in flowstore proxy
+     * Local call back class to be instantiated in the call to deleteSink in flowstore proxy
      */
     class DeleteSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
         @Override

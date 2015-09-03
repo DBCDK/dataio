@@ -7,12 +7,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class FileDeleteOperation implements Operation {
-    public static final Opcode OPCODE = Opcode.DELETE_FILE;
+    private static final Opcode OPCODE = Opcode.DELETE_FILE;
 
     final Path file;
 
     public FileDeleteOperation(Path file) throws NullPointerException {
         this.file = InvariantUtil.checkNotNullOrThrow(file, "file");
+    }
+
+    @Override
+    public Opcode getOpcode() {
+        return OPCODE;
     }
 
     @Override

@@ -7,7 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class FileMoveOperation implements Operation {
-    public static final Opcode OPCODE = Opcode.MOVE_FILE;
+    private static final Opcode OPCODE = Opcode.MOVE_FILE;
 
     final Path source;
     final Path destination;
@@ -15,6 +15,11 @@ public class FileMoveOperation implements Operation {
     public FileMoveOperation(Path source, Path destination) throws NullPointerException {
         this.source = InvariantUtil.checkNotNullOrThrow(source, "source");
         this.destination = InvariantUtil.checkNotNullOrThrow(destination, "destination");
+    }
+
+    @Override
+    public Opcode getOpcode() {
+        return OPCODE;
     }
 
     @Override

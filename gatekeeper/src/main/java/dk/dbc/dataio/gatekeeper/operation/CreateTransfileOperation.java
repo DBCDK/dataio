@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 public class CreateTransfileOperation implements Operation {
-    public static final Opcode OPCODE = Opcode.CREATE_TRANSFILE;
+    private static final Opcode OPCODE = Opcode.CREATE_TRANSFILE;
 
     final Path destination;
     final String content;
@@ -18,6 +18,11 @@ public class CreateTransfileOperation implements Operation {
             throws NullPointerException, IllegalArgumentException {
         this.destination = InvariantUtil.checkNotNullOrThrow(destination, "destination");
         this.content = InvariantUtil.checkNotNullNotEmptyOrThrow(content, "content");
+    }
+
+    @Override
+    public Opcode getOpcode() {
+        return OPCODE;
     }
 
     @Override

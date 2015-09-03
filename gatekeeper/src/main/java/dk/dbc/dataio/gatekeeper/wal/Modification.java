@@ -18,7 +18,7 @@ public class Modification {
 
     @Lob
     @Column(nullable = false)
-    private String transfilePath;
+    private String transfileName;
 
     @Column(nullable = false)
     private Opcode opcode;
@@ -32,12 +32,12 @@ public class Modification {
 
     public Modification() {}
 
-    public String getTransfilePath() {
-        return transfilePath;
+    public String getTransfileName() {
+        return transfileName;
     }
 
-    public void setTransfilePath(String transfilePath) {
-        this.transfilePath = transfilePath;
+    public void setTransfileName(String transfileName) {
+        this.transfileName = transfileName;
     }
 
     public Opcode getOpcode() {
@@ -64,6 +64,10 @@ public class Modification {
         this.locked = true;
     }
 
+    public void unlock() {
+        this.locked = false;
+    }
+
     @PrePersist
     void preInsert() {
         if (locked == null) {
@@ -75,7 +79,7 @@ public class Modification {
     public String toString() {
         return "Modification{" +
                 "id=" + id +
-                ", transfilePath='" + transfilePath + '\'' +
+                ", transfileName='" + transfileName + '\'' +
                 ", opcode=" + opcode +
                 ", arg='" + arg + '\'' +
                 ", locked=" + locked +
@@ -103,10 +107,10 @@ public class Modification {
     }
 
     /**
-     * Package scoped constructor used for unit testing
+     * Constructor used for unit testing
      * @param id injected id
      */
-    Modification(Long id) {
+    public Modification(Long id) {
         this.id = id;
         this.locked = false;
     }

@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CreateJobOperation implements Operation {
-    public static final Opcode OPCODE = Opcode.CREATE_JOB;
+    private static final Opcode OPCODE = Opcode.CREATE_JOB;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateJobOperation.class);
 
@@ -37,6 +37,11 @@ public class CreateJobOperation implements Operation {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.workingDir = InvariantUtil.checkNotNullOrThrow(workingDir, "workingDir");
         this.transfileData = InvariantUtil.checkNotNullNotEmptyOrThrow(transfileData, "transfileData");
+    }
+
+    @Override
+    public Opcode getOpcode() {
+        return OPCODE;
     }
 
     @Override

@@ -17,8 +17,16 @@ public interface WriteAheadLog {
     Modification next() throws ModificationLockedException;
 
     /**
-     * Deletes given modification from the write-aheafd-log
+     * Deletes given modification from the write-ahead-log
      * @param modification modification to delete
      */
     void delete(Modification modification);
+
+    /**
+     * Unlocks given modification in the write-ahead-lock
+     * @param modification modification to unlock
+     * @return true if modification was locked and subsequently unlocked, false
+     * if modification was already unlocked
+     */
+    boolean unlock(Modification modification);
 }

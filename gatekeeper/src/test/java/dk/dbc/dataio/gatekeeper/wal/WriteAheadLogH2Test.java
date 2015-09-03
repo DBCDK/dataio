@@ -124,4 +124,29 @@ public class WriteAheadLogH2Test {
         verify(entityManager).remove(modification);
         verify(entityTransaction).commit();
     }
+
+    @Test
+    public void unlock_modificationArgIsNull_returnsFalse() {
+        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        assertThat(wal.unlock(null), is(false));
+    }
+
+    @Test
+    public void unlock_modificationIsNotLocked_returnsFalse() {
+        final Modification modification = new Modification(42L);
+        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        assertThat(wal.unlock(modification), is(false));
+    }
+
+    @Test
+    public void unlock_modificationIsLocked_unlocksReturnsTrue() {
+        final Modification modification = new Modification(42L);
+        modification.lock();
+        final WriteAheadLogH2 wal = new WriteAheadLogH2(entityManager);
+        assertThat("wal.unlock()", wal.unlock(modification), is(true));
+        assertThat("modification.isLocked()", modification.isLocked(), is(false));
+
+        verify(entityTransaction).begin();
+        verify(entityTransaction).commit();
+    }
 }

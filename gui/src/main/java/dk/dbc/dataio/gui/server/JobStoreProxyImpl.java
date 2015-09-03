@@ -86,11 +86,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     @Override
     public long countJobs(JobListCriteria criteria) throws ProxyException {
         final long jobCount;
-        //log.trace("JobStoreProxy: countJobs(\"{}\");", model.getSearchType());
         final StopWatch stopWatch = new StopWatch();
         try {
-
-            //JobListCriteria criteria=JobListCriteriaModelMapper.toJobListCriteria(model);
             jobCount = jobStoreServiceConnector.countJobs(criteria);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {

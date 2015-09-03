@@ -658,7 +658,7 @@ public class FlowStoreServiceConnector {
      * @throws FlowStoreServiceConnectorException                     on general failure to create flow binder
      */
     public FlowBinder createFlowBinder(FlowBinderContent flowBinderContent) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
-        log.trace("FlowStoreServiceConnector: updateFlow(\"{}\");", flowBinderContent.getName());
+        log.trace("FlowStoreServiceConnector: createFlowBinder(\"{}\");", flowBinderContent.getName());
         InvariantUtil.checkNotNullOrThrow(flowBinderContent, "flowBinderContent");
         final StopWatch stopWatch = new StopWatch();
         final Response response = doPostWithJson(httpClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
@@ -684,7 +684,8 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
         try {
             verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() { });
+            return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {
+            });
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findAllFlowBinders took {} milliseconds", stopWatch.getElapsedTime());
@@ -717,6 +718,37 @@ public class FlowStoreServiceConnector {
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: updateFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Deletes an existing flow binder from the flow-store
+     *
+     * @param flowBinderId, the database related ID
+     * @param version, the current JPA version of the flow binder - Optimistic Locking
+     *
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
+     */
+    public void deleteFlowBinder(long flowBinderId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        log.trace("FlowStoreServiceConnector: deleteFlowBinder({})", flowBinderId);
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder pathBuilder = new PathBuilder(
+                FlowStoreServiceConstants.FLOW_BINDER)
+                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, Long.toString(flowBinderId));
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
+        final int actualStatus = response.getStatus();
+
+        try {
+            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: deleteFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

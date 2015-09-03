@@ -220,6 +220,44 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.PRECONDITION_FAILED.getStatusCode(), "", ID, VERSION);
     }
 
+    // **************************************** delete flow binder tests ****************************************
+    @Test
+    public void deleteFlowBinder_flowBinderIsDeleted() throws FlowStoreServiceConnectorException, JsonException {
+        final FlowBinder flowBinderToDelete = new FlowBinderBuilder().build();
+        deleteFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), flowBinderToDelete.getId(), flowBinderToDelete.getVersion());
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void deleteFlowBinder_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        deleteFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteFlowBinder_responseWithVersionConflict_throws() throws FlowStoreServiceConnectorException{
+        deleteFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteFlowBinder_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        deleteFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), ID, VERSION);
+    }
+
+    // Helper method
+    private void deleteFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id, long version) throws FlowStoreServiceConnectorException {
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
+                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, Long.toString(id));
+
+        when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.deleteFlowBinder(id, version);
+    }
+
+
 
     // **************************************** get flow binder by search index tests ****************************************
     @Test

@@ -68,6 +68,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
     /**
      * This method is called by the view, whenever the All Items tab has been selected
+     * and defines the search criteria for locating all items within a job
      */
     @Override
     public void allItemsTabSelected() {
@@ -93,6 +94,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method is called by the view, whenever the Ignored Items tab has been selected
+     * and defines the search criteria for locating ignored items within a job
      */
     @Override
     public void ignoredItemsTabSelected() {

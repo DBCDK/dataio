@@ -85,14 +85,12 @@ public class WriteAheadLogH2 implements WriteAheadLog {
 
     @Override
     public boolean unlock(Modification modification) {
-        if (modification != null) {
-            if (modification.isLocked()) {
-                final EntityTransaction transaction = entityManager.getTransaction();
-                transaction.begin();
-                modification.unlock();
-                transaction.commit();
-                return true;
-            }
+        if (modification != null && modification.isLocked()) {
+            final EntityTransaction transaction = entityManager.getTransaction();
+            transaction.begin();
+            modification.unlock();
+            transaction.commit();
+            return true;
         }
         return false;
     }

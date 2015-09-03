@@ -864,6 +864,8 @@ public class FlowBindersIT {
 
      * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
      * And  : request returns with a CONFLICT http status code
+     * And  : assert that database tables: flow_binders_search_index and flow_binders_submitters have been
+     *        updated correctly
      */
     @Test
     public void deleteFlowBinder_OptimisticLocking() throws FlowStoreServiceConnectorException, SQLException {
@@ -913,7 +915,7 @@ public class FlowBindersIT {
             // And...
             assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
 
-            // And... Assert that database tables: flow_binders_search_index and flow_binders_submitters have been updated correctly
+            // And...
             assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
             assertSearchIndexEquals(flowBinderUpdated, submitter.getContent().getNumber());
             assertFlowBindersSubmitters(flowBinderUpdated.getId(), flowBinderUpdated.getContent().getSubmitterIds());

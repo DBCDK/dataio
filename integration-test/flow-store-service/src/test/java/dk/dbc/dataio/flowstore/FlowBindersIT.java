@@ -4,7 +4,11 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
@@ -12,19 +16,33 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.*;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
-import static org.hamcrest.CoreMatchers.*;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -54,16 +72,12 @@ public class FlowBindersIT {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
         dbConnection = newIntegrationTestConnection();
+        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
     }
 
     @AfterClass
     public static void tearDownClass() throws SQLException {
         JDBCUtil.closeConnection(dbConnection);
-    }
-
-    @Before
-    public void setUp() {
-        flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
     }
 
     @After
@@ -82,6 +96,7 @@ public class FlowBindersIT {
      */
     @Test
     public void createFlowBinder_ok() throws Exception{
+        FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         // Given...
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
@@ -91,7 +106,7 @@ public class FlowBindersIT {
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         // Then...
@@ -149,7 +164,7 @@ public class FlowBindersIT {
                 .setDestination("base1")
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         final FlowBinderContent duplicateFlowBinderContent = new FlowBinderContentBuilder()
@@ -157,7 +172,7 @@ public class FlowBindersIT {
                 .setDestination("base2")
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(validFlowBinderContent);
@@ -198,7 +213,7 @@ public class FlowBindersIT {
         FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(77373736L))
+                .setSubmitterIds(Collections.singletonList(77373736L))
                 .build();
         try {
             // When...
@@ -231,7 +246,7 @@ public class FlowBindersIT {
         FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                 .setFlowId(77373736)
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
         try {
             // When...
@@ -267,7 +282,7 @@ public class FlowBindersIT {
         FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                 .setFlowId(flow.getId())
                 .setSinkId(77373736)
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
         try {
             // When...
@@ -307,7 +322,7 @@ public class FlowBindersIT {
                 .setDestination("matchingSearchKey")
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         FlowBinderContent notAcceptableFlowBinderContent = new FlowBinderContentBuilder()
@@ -315,7 +330,7 @@ public class FlowBindersIT {
                 .setDestination("matchingSearchKey")
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(validFlowBinderContent);
@@ -368,9 +383,9 @@ public class FlowBindersIT {
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
 
-        final FlowBinder flowBinderSortsThird = createFlowBinder("c-flowbinder", "destination1", flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
-        final FlowBinder flowBinderSortsFirst = createFlowBinder("a-flowbinder", "destination2", flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
-        final FlowBinder flowBinderSortsSecond = createFlowBinder("b-flowbinder", "destination3", flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final FlowBinder flowBinderSortsThird = createFlowBinder("c-flowbinder", "destination1", flow.getId(), sink.getId(), Collections.singletonList(submitter.getId()));
+        final FlowBinder flowBinderSortsFirst = createFlowBinder("a-flowbinder", "destination2", flow.getId(), sink.getId(), Collections.singletonList(submitter.getId()));
+        final FlowBinder flowBinderSortsSecond = createFlowBinder("b-flowbinder", "destination3", flow.getId(), sink.getId(), Collections.singletonList(submitter.getId()));
 
         // When...
         List<FlowBinder> listOfFlowBinders = flowStoreServiceConnector.findAllFlowBinders();
@@ -398,7 +413,7 @@ public class FlowBindersIT {
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
         final String FLOW_BINDER_NAME = "The Flowbinder";
         final String FLOW_BINDER_DESTINATION = "The Destination";
-        final FlowBinder originalFlowBinder = createFlowBinder(FLOW_BINDER_NAME, FLOW_BINDER_DESTINATION, flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final FlowBinder originalFlowBinder = createFlowBinder(FLOW_BINDER_NAME, FLOW_BINDER_DESTINATION, flow.getId(), sink.getId(), Collections.singletonList(submitter.getId()));
         final long flowBinderId = originalFlowBinder.getId();
 
         // When...
@@ -426,12 +441,12 @@ public class FlowBindersIT {
         final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
         final String FLOW_BINDER_NAME = "The Flowbinder";
         final String FLOW_BINDER_DESTINATION = "The Destination";
-        final FlowBinder originalFlowBinder = createFlowBinder(FLOW_BINDER_NAME, FLOW_BINDER_DESTINATION, flow.getId(), sink.getId(), Arrays.asList(submitter.getId()));
+        final FlowBinder originalFlowBinder = createFlowBinder(FLOW_BINDER_NAME, FLOW_BINDER_DESTINATION, flow.getId(), sink.getId(), Collections.singletonList(submitter.getId()));
         final long flowBinderId = originalFlowBinder.getId();
 
         try {
             // When...
-            flowStoreServiceConnector.getFlowBinder(flowBinderId+1);  // Then we don't get the created FlowBinder
+            flowStoreServiceConnector.getFlowBinder(flowBinderId + 1);  // Then we don't get the created FlowBinder
             fail("It seems as if we do get a FlowBinder, though we didn't expect one!");
             // Then...
         } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e){
@@ -573,7 +588,7 @@ public class FlowBindersIT {
                 .setPackaging(FLOW_BINDER_PACKAGING_XML)
                 .setFlowId(flowBinderA.getContent().getFlowId())
                 .setSinkId(flowBinderA.getContent().getSinkId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         FlowBinder flowBinderB = flowStoreServiceConnector.createFlowBinder(flowBinderContent2);
@@ -584,7 +599,7 @@ public class FlowBindersIT {
                 .setPackaging(FLOW_BINDER_PACKAGING_TEXT)
                 .setFlowId(flowBinderA.getContent().getFlowId())
                 .setSinkId(flowBinderA.getContent().getSinkId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
         try {
             // When... (Attempting to save the second flow binder created with the same name as the first flow binder created)
@@ -648,7 +663,7 @@ public class FlowBindersIT {
                 .setPackaging(FLOW_BINDER_PACKAGING_TEXT)
                 .setFlowId(flowBinder.getContent().getFlowId())
                 .setSinkId(flowBinder.getContent().getSinkId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         final FlowBinderContent flowBinderContentSecondUser = new FlowBinderContentBuilder()
@@ -656,7 +671,7 @@ public class FlowBindersIT {
                 .setPackaging(FLOW_BINDER_PACKAGING_XML)
                 .setFlowId(flowBinder.getContent().getFlowId())
                 .setSinkId(flowBinder.getContent().getSinkId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         // And... First user updates the flow binder
@@ -713,7 +728,7 @@ public class FlowBindersIT {
         FlowBinderContent flowBinderContentForUpdate = getFlowBinderContentForUpdate(
                 NONE_EXISTING_ID,
                 createdFlowBinder.getContent().getSinkId(),
-                Arrays.asList(submitter.getId()));
+                Collections.singletonList(submitter.getId()));
 
         assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder, submitter.getContent().getNumber());
     }
@@ -736,7 +751,7 @@ public class FlowBindersIT {
         FlowBinderContent flowBinderContentForUpdate = getFlowBinderContentForUpdate(
                 createdFlowBinder.getContent().getFlowId(),
                 NONE_EXISTING_ID,
-                Arrays.asList(submitter.getId()));
+                Collections.singletonList(submitter.getId()));
 
         assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder, submitter.getContent().getNumber());
     }
@@ -760,10 +775,151 @@ public class FlowBindersIT {
         FlowBinderContent flowBinderContentForUpdate = getFlowBinderContentForUpdate(
                 createdFlowBinder.getContent().getFlowId(),
                 createdFlowBinder.getContent().getSinkId(),
-                Arrays.asList(NONE_EXISTING_ID));
+                Collections.singletonList(NONE_EXISTING_ID));
 
         // When...
         assertReferencedEntityNotFoundException(flowBinderContentForUpdate, createdFlowBinder, submitter.getContent().getNumber());
+    }
+
+    /**
+     * Given: a deployed flow-store service and a flow binder is stored and belonging search-index and entry in flow_binders_submitters exists
+     * When : attempting to delete the flow binder
+     * Then : the flow binder is deleted
+     * And  : assert that database tables: flow_binders_search_index and flow_binders_submitters have been
+     *        updated correctly
+     */
+    @Test
+    public void deleteFlowBinder_Ok() throws FlowStoreServiceConnectorException, SQLException {
+        // Given...
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+
+        // When...
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        // Then...
+        FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+
+        //Assert that the flow binder can be located through an existing search index
+        assertSearchIndexEquals(flowBinder, submitter.getContent().getNumber());
+
+        // Assert that the expected rows exist in the database table: flow_binders_submitters
+        assertFlowBindersSubmitters(flowBinder.getId(), flowBinder.getContent().getSubmitterIds());
+
+        // When...
+        flowStoreServiceConnector.deleteFlowBinder(flowBinder.getId(), flowBinder.getVersion());
+
+        // Then... Verify that the flow binder is deleted
+        try {
+            flowStoreServiceConnector.getFlowBinder(flowBinder.getId());
+            fail("FlowBinder was not deleted");
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+
+            // We expect this exception from getFlowBinder(...) method when no flow binder exists!
+            Assert.assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+
+            // And...
+            // Assert that the search index rows created for the flow binder has been removed from the database
+            assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
+
+            // Assert that the rows in flow_binders_submitters have been removed
+            assertFlowBindersSubmitters(flowBinder.getId(), new ArrayList<Long>());
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : attempting to delete a flow binder that does not exist
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void deleteFlowBinder_NoFlowBinderToDelete() throws ProcessingException {
+
+        // Given...
+        final long flowBinderIdNotExists = 9999;
+        final long versionNotExists = 9;
+
+        try {
+            // When...
+            flowStoreServiceConnector.deleteFlowBinder(flowBinderIdNotExists, versionNotExists);
+            fail("None existing flow binder was not detected");
+
+            // Then ...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // And...
+            Assert.assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service and a flow binder is stored.
+     * And  : the flow binder is updated and, valid JSON is POSTed to the flow binders path with an identifier (update)
+     *        and correct version number
+     * When : attempting to delete the flow binder with the previous version number, valid JSON is POSTed to the flow binders
+     *        path with an identifier (delete) and wrong version number
+
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a CONFLICT http status code
+     */
+    @Test
+    public void deleteFlowBinder_OptimisticLocking() throws FlowStoreServiceConnectorException, SQLException {
+
+        // Given...
+        final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
+        final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
+        final Submitter submitter = flowStoreServiceConnector.createSubmitter(new SubmitterContentBuilder().build());
+
+        // When...
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+                .setFlowId(flow.getId())
+                .setSinkId(sink.getId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        // Then...
+        FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+        long flowBinderId = flowBinder.getId();
+        long versionFirst = flowBinder.getVersion();
+        long versionSecond = versionFirst + 1;
+
+        final FlowBinderContent flowBinderContentFirstUser = new FlowBinderContentBuilder()
+                .setName("UpdatedFlowBinderName")
+                .setPackaging(FLOW_BINDER_PACKAGING_TEXT)
+                .setFlowId(flowBinder.getContent().getFlowId())
+                .setSinkId(flowBinder.getContent().getSinkId())
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
+                .build();
+
+        // And
+        final FlowBinder flowBinderUpdated = flowStoreServiceConnector.updateFlowBinder(flowBinderContentFirstUser, flowBinderId, versionFirst);
+        assertThat(flowBinderUpdated.getVersion(), is(versionSecond));
+
+        // Verify before delete
+        FlowBinder flowBinderBeforeDelete = flowStoreServiceConnector.getFlowBinder(flowBinderId);
+        assertThat(flowBinderBeforeDelete.getId(), is(flowBinderId));
+        assertThat(flowBinderBeforeDelete.getVersion(), is(versionSecond));
+
+        try {
+            // When...
+            flowStoreServiceConnector.deleteFlowBinder(flowBinderId, versionFirst);
+            fail("FlowBinder was deleted");
+
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // And...
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(CONFLICT));
+
+            // And... Assert that database tables: flow_binders_search_index and flow_binders_submitters have been updated correctly
+            assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
+            assertSearchIndexEquals(flowBinderUpdated, submitter.getContent().getNumber());
+            assertFlowBindersSubmitters(flowBinderUpdated.getId(), flowBinderUpdated.getContent().getSubmitterIds());
+        }
     }
 
     /**
@@ -1008,7 +1164,7 @@ public class FlowBindersIT {
                 .setPackaging(FLOW_BINDER_PACKAGING_XML)
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
         return flowStoreServiceConnector.createFlowBinder(flowBinderContent);

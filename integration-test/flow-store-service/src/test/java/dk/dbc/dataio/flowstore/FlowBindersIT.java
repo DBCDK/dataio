@@ -18,7 +18,6 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -95,8 +94,7 @@ public class FlowBindersIT {
      * And  : assert that the database table: flow_binders_submitters have been updated correctly
      */
     @Test
-    public void createFlowBinder_ok() throws Exception{
-        FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+    public void createFlowBinder_ok() throws Exception {
         // Given...
         final Flow flow           = flowStoreServiceConnector.createFlow(new FlowContentBuilder().build());
         final Sink sink           = flowStoreServiceConnector.createSink(new SinkContentBuilder().build());
@@ -821,7 +819,7 @@ public class FlowBindersIT {
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
 
             // We expect this exception from getFlowBinder(...) method when no flow binder exists!
-            Assert.assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
 
             // And...
             // Assert that the search index rows created for the flow binder has been removed from the database
@@ -853,7 +851,7 @@ public class FlowBindersIT {
             // Then ...
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
             // And...
-            Assert.assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
         }
     }
 

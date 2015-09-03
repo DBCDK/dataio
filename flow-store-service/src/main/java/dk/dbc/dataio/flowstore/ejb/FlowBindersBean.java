@@ -22,6 +22,7 @@ import javax.persistence.PersistenceException;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -243,6 +244,49 @@ public class FlowBindersBean {
                 .entity(updatedFlowBinderEntityJson)
                 .tag(updatedFlowBinderEntity.getVersion().toString())
                 .build();
+    }
+
+    /**
+     * Deletes an existing flow binder
+     *
+     * @param flowBinderId The flow binder ID
+     * @param version The version of the flow binder
+     *
+     * @return a HTTP 204 response with no content,
+     *         a HTTP 404 response in case of flow binder ID not found,
+     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     *         a HTTP 500 response in case of general error.
+     */
+    @DELETE
+    @Path(FlowStoreServiceConstants.FLOW_BINDER)
+    public Response deleteFlowBinder(
+            @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long flowBinderId,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
+
+        final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, flowBinderId);
+
+        if(flowBinderEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+
+        // First we need to update the version no to see if any Optimistic Locking occurs!
+        entityManager.detach(flowBinderEntity);
+        flowBinderEntity.setVersion(version);
+        FlowBinder versionUpdatedAndNoOptimisticLocking = entityManager.merge(flowBinderEntity);
+
+        // If no Optimistic Locking - delete it!
+
+        // Delete the existing search indexes
+        Response response = findAndDeleteSearchIndexesForFlowBinder(flowBinderEntity.getId());
+        if (response != null) {
+            return response;
+        }
+
+        // Delete the flow binder entity
+        entityManager.remove(versionUpdatedAndNoOptimisticLocking);
+        entityManager.flush();
+
+        return Response.noContent().build();
     }
 
     /**

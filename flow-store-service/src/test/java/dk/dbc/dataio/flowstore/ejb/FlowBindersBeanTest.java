@@ -28,7 +28,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -39,6 +39,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -115,7 +116,7 @@ public class FlowBindersBeanTest {
         Query query = mock(Query.class);
         when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(query);
 
-        when(query.getResultList()).thenReturn(Arrays.asList());
+        when(query.getResultList()).thenReturn(Collections.emptyList());
         Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
         assertThat(response.getStatus(), is(404));
     }
@@ -131,7 +132,7 @@ public class FlowBindersBeanTest {
         String flowBinderStr = new FlowBinderJsonBuilder().build();
         dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class);
 
-        when(query.getResultList()).thenReturn(Arrays.asList(flowBinder));
+        when(query.getResultList()).thenReturn(Collections.singletonList(flowBinder));
         Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
         assertThat(response.getStatus(), is(200));
     }
@@ -148,7 +149,7 @@ public class FlowBindersBeanTest {
         String flowBinderStr = new FlowBinderJsonBuilder().build();
         dk.dbc.dataio.commons.types.FlowBinder flowBinder = JsonUtil.fromJson(flowBinderStr, dk.dbc.dataio.commons.types.FlowBinder.class);
 
-        when(query.getResultList()).thenReturn(Arrays.asList(flowBinder));
+        when(query.getResultList()).thenReturn(Collections.singletonList(flowBinder));
         Response response = fbb.findAllFlowBinders();
         assertThat(response.getStatus(), is(200));
     }
@@ -220,7 +221,7 @@ public class FlowBindersBeanTest {
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
 
         flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
     }
@@ -242,7 +243,7 @@ public class FlowBindersBeanTest {
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
 
         flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
     }
@@ -266,7 +267,7 @@ public class FlowBindersBeanTest {
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
 
         flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
     }
@@ -295,13 +296,54 @@ public class FlowBindersBeanTest {
         when(JsonUtil.toJson(anyString())).thenReturn(new FlowBinderJsonBuilder().build());
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.getResultList()).thenReturn(Arrays.asList(new FlowBinderSearchIndexEntry()));
+        when(query.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
 
         final Response response = flowBindersBean.updateFlowBinder(flowBinderContentJson, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION);
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getEntityTag().getValue(), is(DEFAULT_TEST_ETAG_VALUE));
+    }
+
+    @Test
+    public void deleteFlowBinder_flowBinderNotFound_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(null);
+
+        final Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void deleteFlowBinder_flowBinderFound_returnsNoContentHttpResponse() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowBinder flowBinder = mock(FlowBinder.class);
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        mockStatic(JsonUtil.class);
+        when(JsonUtil.toJson(flowBinder)).thenReturn("test");
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
+        when(ENTITY_MANAGER.merge(any(FlowBinder.class))).thenReturn(flowBinder);
+
+        final Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
+
+        verify(flowBinder).setVersion(1L);
+        verify(ENTITY_MANAGER).remove(flowBinder);
+        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
+    @Test
+    public void deleteFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
+        final FlowBinder flowBinder = mock(FlowBinder.class);
+        final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+
+        final Query query = mock(Query.class);
+
+        when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
+        when(query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER, flowBinder.getId())).thenThrow(new IllegalArgumentException());
+
+        final Response response = flowBindersBean.deleteFlowBinder(1L, 1L);
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
     @Test
@@ -357,7 +399,7 @@ public class FlowBindersBeanTest {
     private Set<Submitter> testSubmitters() throws JsonException {
         Submitter submitter = new Submitter();
         submitter.setContent(new SubmitterContentJsonBuilder().build());
-        return new HashSet<>(Arrays.asList(submitter));
+        return new HashSet<>(Collections.singletonList(submitter));
     }
 
 }

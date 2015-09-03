@@ -2,16 +2,18 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,31 +41,28 @@ public class AsyncItemViewDataProviderTest {
 
         objectUnderTest = new AsyncItemViewDataProvider(mockedClientFactory, mockedView );
 
-        assertThat(objectUnderTest.baseCriteria, is(new ItemListCriteriaModel()));
-        verify(mockedView, times(1)).refreshItemsTable();
+        assertThat(objectUnderTest.baseCriteria, is(nullValue()));
+        verify(mockedView, times(0)).refreshItemsTable();
     }
 
     @Test
     public void testSetNewBaseCriteria_criteriaIdentical_RefreshNotInvoked() throws Exception {
 
         objectUnderTest = new AsyncItemViewDataProvider(mockedClientFactory, mockedView );
-        objectUnderTest.setBaseCriteria(itemsListView, objectUnderTest.baseCriteria);
+        objectUnderTest.setBaseCriteria(ItemListCriteria.Field.JOB_ID, itemsListView, objectUnderTest.baseCriteria);
 
-        // One from the constructor and one from the setBaseQuery
-        verify(mockedView, times(1)).refreshItemsTable();
+        verify(mockedView, times(0)).refreshItemsTable();
     }
 
     @Test
     public void testSetNewBaseCriteria_criteriaNotIdentical_RefreshInvoked() throws Exception {
 
         objectUnderTest = new AsyncItemViewDataProvider(mockedClientFactory, mockedView );
-        ItemListCriteriaModel model = new ItemListCriteriaModel();
-        model.setItemSearchType(ItemListCriteriaModel.ItemSearchType.IGNORED);
+        objectUnderTest.setBaseCriteria(ItemListCriteria.Field.STATE_FAILED, itemsListView, new ItemListCriteria());
 
-        objectUnderTest.setBaseCriteria(itemsListView, model);
+        objectUnderTest.setBaseCriteria(ItemListCriteria.Field.STATE_IGNORED, itemsListView, new ItemListCriteria().where(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED)));
 
-        // One from the constructor and one from the setBaseQuery
-        verify(mockedView, times(2)).refreshItemsTable();
+        verify(mockedView, times(1)).refreshItemsTable();
     }
 
 }

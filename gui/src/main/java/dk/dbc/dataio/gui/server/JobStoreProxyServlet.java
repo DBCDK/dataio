@@ -3,10 +3,10 @@ package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import javax.naming.NamingException;
@@ -39,13 +39,13 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
-    public List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException {
-        return jobStoreProxy.listItems(model);
+    public List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException {
+        return jobStoreProxy.listItems(searchType, criteria);
     }
 
     @Override
-    public long countItems(ItemListCriteriaModel model) throws ProxyException {
-        return jobStoreProxy.countItems(model);
+    public long countItems(ItemListCriteria criteria) throws ProxyException {
+        return jobStoreProxy.countItems(criteria);
     }
 
     @Override

@@ -7,12 +7,12 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.TabBar;
-import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -34,7 +34,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected int failedItemCounter;
     protected int ignoredItemCounter;
     protected JobModel.Type type;
-    protected ItemListCriteriaModel.ItemSearchType itemSearchType;
+    protected ItemListCriteria.Field itemSearchType;
 
     public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory) {
         this.clientFactory = clientFactory;
@@ -71,17 +71,24 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void allItemsTabSelected() {
-        itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
-        listItems(ItemListCriteriaModel.ItemSearchType.ALL, view.allItemsList);
+        itemSearchType = ItemListCriteria.Field.JOB_ID;
+        final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition);
+        listItems(itemSearchType, itemListCriteria, view.allItemsList);
     }
 
     /**
      * This method is called by the view, whenever the Failed Items tab has been selected
+     * and defines the search criteria for locating failed items within a job
      */
     @Override
     public void failedItemsTabSelected() {
-        itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
-        listItems(ItemListCriteriaModel.ItemSearchType.FAILED, view.failedItemsList);
+        itemSearchType = ItemListCriteria.Field.STATE_FAILED;
+        final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
+        final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_FAILED);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
+        listItems(itemSearchType, itemListCriteria, view.failedItemsList);
+
     }
 
     /**
@@ -89,8 +96,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void ignoredItemsTabSelected() {
-        itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
-        listItems(ItemListCriteriaModel.ItemSearchType.IGNORED, view.ignoredItemsList);
+        itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
+        final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
+        final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED);
+        final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
+        listItems(itemSearchType, itemListCriteria, view.ignoredItemsList);
     }
 
     /**
@@ -134,17 +144,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
-     * @param itemSearchType The search type (ALL, FAILED or IGNORED)
+     * @param itemListCriteria The search criteria
      * @param listView The list view in question
      */
-    private void listItems(ItemListCriteriaModel.ItemSearchType itemSearchType, ItemsListView listView) {
-        final ItemListCriteriaModel itemListCriteriaModel = new ItemListCriteriaModel();
+    private void listItems(ItemListCriteria.Field searchType, ItemListCriteria itemListCriteria, ItemsListView listView) {
         view.setSelectionEnabled(false);
         listView.detailedTabs.clear();
         listView.detailedTabs.setVisible(false);
-        itemListCriteriaModel.setItemSearchType(itemSearchType);
-        itemListCriteriaModel.setJobId(this.jobId);
-        view.dataProvider.setBaseCriteria(listView, itemListCriteriaModel);
+        view.dataProvider.setBaseCriteria(searchType, listView, itemListCriteria);
     }
 
     /**
@@ -365,15 +372,15 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
             }
             // Item failed in delivering: Show sink result
-            else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.DELIVERING) {
+            else if (itemSearchType == ItemListCriteria.Field.STATE_FAILED && status == ItemModel.LifeCycle.DELIVERING) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.SINK_RESULT_TAB_CONTENT));
             }
             // Item failed in processing: Show output post
-            else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.FAILED && status == ItemModel.LifeCycle.PROCESSING) {
+            else if (itemSearchType == ItemListCriteria.Field.STATE_FAILED && status == ItemModel.LifeCycle.PROCESSING) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
             }
             // Item ignored in processing or delivering: Show output post
-            else if (itemSearchType == ItemListCriteriaModel.ItemSearchType.IGNORED && (status == ItemModel.LifeCycle.PROCESSING || status == ItemModel.LifeCycle.DELIVERING)) {
+            else if (itemSearchType == ItemListCriteria.Field.STATE_IGNORED && (status == ItemModel.LifeCycle.PROCESSING || status == ItemModel.LifeCycle.DELIVERING)) {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.OUTPUT_POST_TAB_CONTENT));
             } else {
                 listView.detailedTabs.selectTab(tabIndexes.get(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT));

@@ -9,16 +9,15 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
-import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.server.modelmappers.ItemModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
-import dk.dbc.dataio.gui.server.modelmappers.criterias.ItemListCriteriaModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import org.glassfish.jersey.client.ClientConfig;
@@ -28,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,11 +57,10 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     @Override
     public List<JobModel> listJobs(JobListCriteria criteria) throws ProxyException {
         final List<JobInfoSnapshot> jobInfoSnapshotList;
-        //log.trace("JobStoreProxy: listJobs(\"{}\");", model.getSearchType());
+        log.trace("JobStoreProxy: listJobs()");
         final StopWatch stopWatch = new StopWatch();
         try {
-            //JobListCriteria criteria=JobListCriteriaModelMapper.toJobListCriteria(model);
-            criteria.orderBy(new ListOrderBy<JobListCriteria.Field>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.DESC));
+            criteria.orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.DESC));
             jobInfoSnapshotList = jobStoreServiceConnector.listJobs(criteria);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
@@ -118,27 +115,25 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public List<ItemModel> listItems(ItemListCriteriaModel model) throws ProxyException{
+    public List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException{
         List<ItemInfoSnapshot> itemInfoSnapshotList;
-        List<ItemModel> itemModels = new ArrayList<ItemModel>();
 
-        log.trace("JobStoreProxy: listItems(\"{}\", \"{}\", \"{}\", {}, {}, {});", model.getItemId(), model.getChunkId(), model.getJobId(), model.getItemSearchType(), model.getLimit(), model.getOffset());
+        log.trace("JobStoreProxy: listItems(\"{}\");", searchType);
         final StopWatch stopWatch = new StopWatch();
         try {
-            switch (model.getItemSearchType()) {
-                case FAILED:
-                    itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toFailedItemListCriteria(model));
-                    itemModels = ItemModelMapper.toFailedItemsModel(itemInfoSnapshotList);
-                    break;
-                case IGNORED:
-                    itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toIgnoredItemListCriteria(model));
-                    itemModels = ItemModelMapper.toIgnoredItemsModel(itemInfoSnapshotList);
-                    break;
-                case ALL:
-                    itemInfoSnapshotList = jobStoreServiceConnector.listItems(ItemListCriteriaModelMapper.toItemListCriteriaAll(model));
-                    itemModels = ItemModelMapper.toAllItemsModel(itemInfoSnapshotList);
-                    break;
+            criteria.orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC));
+            criteria.orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
+            itemInfoSnapshotList = jobStoreServiceConnector.listItems(criteria);
+
+            switch (searchType) {
+                case STATE_FAILED:
+                    return ItemModelMapper.toFailedItemsModel(itemInfoSnapshotList);
+                case STATE_IGNORED:
+                    return ItemModelMapper.toIgnoredItemsModel(itemInfoSnapshotList);
+                default:
+                    return ItemModelMapper.toAllItemsModel(itemInfoSnapshotList);
             }
+
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: listItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
@@ -154,27 +149,16 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } finally {
             log.debug("JobStoreProxy: listItems took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return itemModels;
     }
 
     @Override
-    public long countItems(ItemListCriteriaModel model) throws ProxyException {
+    public long countItems(ItemListCriteria criteria) throws ProxyException {
         final long itemCount;
-        log.trace("JobStoreProxy: countItems(\"{}\");", model.getItemSearchType());
+        log.trace("JobStoreProxy: countItems();");
         final StopWatch stopWatch = new StopWatch();
 
         try {
-            switch (model.getItemSearchType()) {
-                case FAILED:
-                    itemCount = jobStoreServiceConnector.countItems(ItemListCriteriaModelMapper.toFailedItemListCriteria(model));
-                    break;
-                case IGNORED:
-                    itemCount = jobStoreServiceConnector.countItems(ItemListCriteriaModelMapper.toIgnoredItemListCriteria(model));
-                    break;
-                default:
-                    itemCount = jobStoreServiceConnector.countItems(ItemListCriteriaModelMapper.toItemListCriteriaAll(model));
-                    break;
-            }
+            itemCount = jobStoreServiceConnector.countItems(criteria);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: countItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
@@ -258,7 +242,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
      * Determines if a string is xml alike:
      *  if TRUE : Adds tabs and new lines to a xml string
      *  if FALSE: Returns the string without formatting
-     * @param xmlString
+     * @param xmlString the string to format
      * @return formatted string if it should be displayed as xml, unformatted string if not
      */
     static String format(String xmlString) {

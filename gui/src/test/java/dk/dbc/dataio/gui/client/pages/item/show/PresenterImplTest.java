@@ -14,7 +14,6 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
-import dk.dbc.dataio.gui.client.model.ItemListCriteriaModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
@@ -23,6 +22,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Test;
@@ -383,7 +383,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedView.dataProvider).setBaseCriteria(eq(mockedAllItemsListView), any(ItemListCriteriaModel.class));
+        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.JOB_ID), eq(mockedAllItemsListView), any(ItemListCriteria.class));
 
         // Verifications from subject under test
         verify(mockedView).setSelectionEnabled(false);
@@ -411,7 +411,7 @@ public class PresenterImplTest {
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
         verify(mockedJobDiagnosticTable).setRowCount(0);
-        verify(mockedView.dataProvider).setBaseCriteria(eq(mockedFailedItemsListView), any(ItemListCriteriaModel.class));
+        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_FAILED), eq(mockedFailedItemsListView), any(ItemListCriteria.class));
 
         // Verifications from subject under test
         verify(mockedView).setSelectionEnabled(false);
@@ -438,7 +438,7 @@ public class PresenterImplTest {
         verify(mockedAllItemsTable).setRowCount(0);
         verify(mockedFailedItemsTable).setRowCount(0);
         verify(mockedIgnoredItemsTable).setRowCount(0);
-        verify(mockedView.dataProvider).setBaseCriteria(eq(mockedIgnoredItemsListView), any(ItemListCriteriaModel.class));
+        verify(mockedView.dataProvider).setBaseCriteria(eq(ItemListCriteria.Field.STATE_IGNORED), eq(mockedIgnoredItemsListView), any(ItemListCriteria.class));
 
         // Verifications from subject under test
         verify(mockedView).setSelectionEnabled(false);
@@ -575,7 +575,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.JOB_ID;
         presenterImpl.type = JobModel.Type.PERSISTENT;
 
         // Subject under test
@@ -590,7 +590,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedWithFatalDiagnostic_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.TRANSIENT;
 
@@ -606,7 +606,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedWithZeroDiagnostics_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.TRANSIENT;
 
@@ -622,7 +622,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedInDelivering_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.TRANSIENT;
 
@@ -638,7 +638,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedInProcessing_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.TRANSIENT;
 
@@ -654,7 +654,7 @@ public class PresenterImplTest {
     public void itemSelected_itemIgnoredInProcessing_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.TRANSIENT;
 
@@ -670,7 +670,7 @@ public class PresenterImplTest {
     public void itemSelected_itemIgnoredInDelivering_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.TRANSIENT;
 
@@ -686,7 +686,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedWithZeroDiagnosticsForAcceptanceTestJob_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.ACCTEST;
 
@@ -703,7 +703,7 @@ public class PresenterImplTest {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.ALL;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.JOB_ID;
         presenterImpl.type = JobModel.Type.ACCTEST;
 
         // Subject under test
@@ -718,7 +718,7 @@ public class PresenterImplTest {
     public void itemSelected_itemIgnoredInDeliveringForAcceptanceTestJob_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.ACCTEST;
 
@@ -734,7 +734,7 @@ public class PresenterImplTest {
     public void itemSelected_itemIgnoredInProcessingForAcceptanceTestJob_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.IGNORED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.ACCTEST;
 
@@ -750,7 +750,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedInProcessingForAcceptanceTestJob_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.ACCTEST;
 
@@ -766,7 +766,7 @@ public class PresenterImplTest {
     public void itemSelected_itemFailedInDeliveringForAcceptanceTestJob_callItemSelected_ok() {
         presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
         presenterImpl.jobId = "1234";
-        presenterImpl.itemSearchType = ItemListCriteriaModel.ItemSearchType.FAILED;
+        presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.type = JobModel.Type.ACCTEST;
 

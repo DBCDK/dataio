@@ -40,6 +40,7 @@ public class JobDispatcherTest {
     private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private ShutdownManager shutdownManager;
 
     @Before
     public void setupFileSystem() throws IOException {
@@ -50,28 +51,34 @@ public class JobDispatcherTest {
     @Before
     public void setupMocks() {
         wal.modifications.clear();
+        shutdownManager = new ShutdownManager();
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_dirArgIsNull_throws() {
-        new JobDispatcher(null, shadowDir, wal, connectorFactory);
+        new JobDispatcher(null, shadowDir, wal, connectorFactory, shutdownManager);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_shadowDirArgIsNull_throws() {
-        new JobDispatcher(dir, null, wal, connectorFactory);
+        new JobDispatcher(dir, null, wal, connectorFactory, shutdownManager);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_walArgIsNull_throws() {
-        new JobDispatcher(dir, shadowDir, null, connectorFactory);
+        new JobDispatcher(dir, shadowDir, null, connectorFactory, shutdownManager);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_connectorFactoryArgIsNull_throws() {
-        new JobDispatcher(dir, shadowDir, wal, null);
+        new JobDispatcher(dir, shadowDir, wal, null, shutdownManager);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_shutdownManagerArgIsNull_throws() {
+        new JobDispatcher(dir, shadowDir, wal, connectorFactory, null);
     }
 
     @Test
@@ -84,7 +91,7 @@ public class JobDispatcherTest {
     }
 
     @Test
-    public void processModification_executesOperation() throws OperationExecutionException {
+    public void processModification_executesOperation() throws OperationExecutionException, InterruptedException {
         final String filename = "file";
         writeFile(dir, filename, "data");
         final Modification modification = new Modification(42L);
@@ -94,11 +101,12 @@ public class JobDispatcherTest {
         final JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.processModification(modification);
 
-        assertThat(Files.exists(dir.resolve(filename)), is(false));
+        assertThat("file exists", Files.exists(dir.resolve(filename)), is(false));
+        assertThat("shutdownManager.isReadyToExit()", shutdownManager.isReadyToExit(), is(true));
     }
 
     @Test
-    public void processModification_operationThrows_unlocksAndRethrows() throws OperationExecutionException, IOException {
+    public void processModification_operationThrows_unlocksAndRethrows() throws OperationExecutionException, IOException, InterruptedException {
         // Delete operation will fail when trying to delete a
         // non-empty folder
         final Path subdir = dir.resolve("subdir");
@@ -113,8 +121,24 @@ public class JobDispatcherTest {
             jobDispatcher.processModification(modification);
             fail("No OperationExecutionException thrown");
         } catch (OperationExecutionException e) {
-            assertThat(modification.isLocked(), is(false));
+            assertThat("modification.isLocked()", modification.isLocked(), is(false));
         }
+        assertThat("shutdownManager.isReadyToExit()", shutdownManager.isReadyToExit(), is(true));
+    }
+
+    @Test
+    public void processModification_shutdownManagerInStateShutdownInProgress_unlocksAndThrows() throws OperationExecutionException {
+        shutdownManager.signalShutdownInProgress();
+        final Modification modification = new Modification(42L);
+        modification.lock();
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        try {
+            jobDispatcher.processModification(modification);
+            fail("No OperationExecutionException thrown");
+        } catch (InterruptedException e) {
+            assertThat("modification.isLocked()", modification.isLocked(), is(false));
+        }
+        assertThat("shutdownManager.isReadyToExit()", shutdownManager.isReadyToExit(), is(true));
     }
 
     @Test
@@ -185,7 +209,7 @@ public class JobDispatcherTest {
     }
 
     private JobDispatcher getJobDispatcher() {
-        return new JobDispatcher(dir, shadowDir, wal, connectorFactory);
+        return new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
     }
 
     private Path writeFile(Path folder, String filename, String content) {

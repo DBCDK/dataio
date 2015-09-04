@@ -28,18 +28,22 @@ public class Gatekeeper {
         final Path shadowDir = Paths.get(commandLine.getOptionValue("s"));
         final String jobStoreServiceUrl = commandLine.getOptionValue("j");
         final String fileStoreServiceUrl = commandLine.getOptionValue("f");
+        final ShutdownManager shutdownManager = new ShutdownManager();
 
-        final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir, jobStoreServiceUrl, fileStoreServiceUrl);
+        registerShutdownHook(shutdownManager);
 
+        final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir,
+                jobStoreServiceUrl, fileStoreServiceUrl, shutdownManager);
         while (true) {
             gatekeeper.standGuard();
         }
     }
 
-    public Gatekeeper(Path dir, Path shadowDir, String fileStoreServiceUrl, String jobStoreServiceUrl) {
+    public Gatekeeper(Path dir, Path shadowDir, String fileStoreServiceUrl, String jobStoreServiceUrl,
+                      ShutdownManager shutdownManager) {
         final WriteAheadLog wal = new WriteAheadLogH2();
         final ConnectorFactory connectorFactory = new ConnectorFactory(fileStoreServiceUrl, jobStoreServiceUrl);
-        jobDispatcher = new JobDispatcher(dir, shadowDir, wal, connectorFactory);
+        jobDispatcher = new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
     }
 
     public void standGuard() throws InterruptedException, ModificationLockedException {
@@ -55,6 +59,28 @@ public class Gatekeeper {
             LOGGER.error("Caught exception from job dispatcher - restarting guard operation", e);
             Thread.sleep(1000);
         }
+    }
+
+    public static void registerShutdownHook(final ShutdownManager shutdownManager) {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                shutdownManager.signalShutdownInProgress();
+                // Wait up to 30 seconds giving the job dispatcher a chance to finish.
+                for (int i = 0; i < 30; i++) {
+                    if (shutdownManager.isReadyToExit())
+                        break;
+                    try {
+                        wait(1000);
+                    } catch (InterruptedException e) {
+                        LOGGER.warn("Interrupted in shutdown hook", e);
+                    }
+                    if (!shutdownManager.isReadyToExit()) {
+                        LOGGER.error("Shutdown while job dispatcher in busy state - system corruption possible!");
+                    }
+                }
+            }
+        });
     }
 
     public static CommandLine parseCommandLine(String[] args) throws ParseException {

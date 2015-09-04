@@ -32,15 +32,18 @@ public class JobDispatcher {
     private final Path shadowDir;
     private final WriteAheadLog wal;
     private final ConnectorFactory connectorFactory;
+    private final ShutdownManager shutdownManager;
 
     private WatchService dirMonitor;
 
-    public JobDispatcher(Path dir, Path shadowDir, WriteAheadLog wal, ConnectorFactory connectorFactory)
+    public JobDispatcher(Path dir, Path shadowDir, WriteAheadLog wal, ConnectorFactory connectorFactory,
+                         ShutdownManager shutdownManager)
             throws NullPointerException {
         this.dir = InvariantUtil.checkNotNullOrThrow(dir, "dir");
         this.shadowDir = InvariantUtil.checkNotNullOrThrow(shadowDir, "shadowDir");
         this.wal = InvariantUtil.checkNotNullOrThrow(wal, "wal");
         this.connectorFactory = InvariantUtil.checkNotNullOrThrow(connectorFactory, "connectorFactory");
+        this.shutdownManager = InvariantUtil.checkNotNullOrThrow(shutdownManager, "shutdownManager");
     }
 
     public void execute() throws IOException, InterruptedException, ModificationLockedException, OperationExecutionException {
@@ -75,7 +78,7 @@ public class JobDispatcher {
     /* Process all stagnant file that may not experience any future file system events
      */
     private List<TransFile> processStagnantTransfiles()
-            throws IOException, ModificationLockedException, OperationExecutionException {
+            throws IOException, ModificationLockedException, OperationExecutionException, InterruptedException {
         List<TransFile> processedTransfiles = new ArrayList<>();
         for (TransFile transFile : getCompletedTransfiles()) {
             processTransfile(transFile);
@@ -84,7 +87,7 @@ public class JobDispatcher {
         return processedTransfiles;
     }
 
-    private void processWal() throws ModificationLockedException, OperationExecutionException {
+    private void processWal() throws ModificationLockedException, OperationExecutionException, InterruptedException {
         Modification next = wal.next();
         while (next != null) {
             LOGGER.info("Processing WAL entry {}", next);
@@ -94,7 +97,7 @@ public class JobDispatcher {
     }
 
     private TransFile processTransfile(TransFile transfile)
-            throws ModificationLockedException, OperationExecutionException {
+            throws ModificationLockedException, OperationExecutionException, InterruptedException {
         LOGGER.info("Processing transfile {}", transfile.getPath());
         writeWal(transfile);
         processWal();
@@ -154,23 +157,39 @@ public class JobDispatcher {
     }
 
     /**
-     * Converts given modification into its corresponding operation
-     * and executes it
+     * Converts given modification into its corresponding operation and executes it
      * @param modification modification to carry out
      * @throws OperationExecutionException if operation failed to complete (the
      * modification will also be unlocked in the WAL)
+     * @throws InterruptedException shutdown-in-progress state is detected in the
+     * shutdownManager. The modification will also be unlocked in the WAL.
      */
-    void processModification(Modification modification) throws OperationExecutionException {
-        final Operation operation = getOperation(modification);
-        LOGGER.info("Executing {}", operation.getOpcode());
-        try {
-            operation.execute();
-        } catch (OperationExecutionException e) {
-            // We need to unlock this modification, so that it will not
-            // throw a ModificationLockedException when this job dispatcher
-            // is reset
-            wal.unlock(modification);
-            throw e;
+    void processModification(Modification modification) throws OperationExecutionException, InterruptedException {
+        if (shutdownManager.signalBusy()) {
+            try {
+                final Operation operation = getOperation(modification);
+                LOGGER.info("Executing {}", operation.getOpcode());
+                operation.execute();
+            } catch (OperationExecutionException e) {
+                // We need to unlock this modification, so that it will not
+                // throw a ModificationLockedException when this job dispatcher
+                // is reset
+                wal.unlock(modification);
+                throw e;
+            } finally {
+                shutdownManager.signalReadyToExit();
+            }
+        } else {
+            // We didn't get the chance to work on this modification,
+            // so it should be safe to unlock
+            try {
+                wal.unlock(modification);
+            } catch (Exception e) {
+                LOGGER.error("Unable to unlock modification {}", modification, e);
+            }
+            // Slight misuse of InterruptedException, but shutdown is
+            // in progress and we need to exit in a consistent state
+            throw new InterruptedException("Shutdown detected");
         }
     }
 

@@ -5,16 +5,18 @@ import java.util.List;
 
 public class MockedWriteAheadLog implements WriteAheadLog {
     public LinkedList<Modification> modifications = new LinkedList<>();
+    public int modificationsAddedOverTime = 0;
 
     @Override
     public void add(List<Modification> modifications) {
+        modificationsAddedOverTime += modifications.size();
         this.modifications.addAll(modifications);
     }
 
     @Override
     public Modification next() throws ModificationLockedException {
         if (!modifications.isEmpty()) {
-            final Modification modification = modifications.remove();
+            final Modification modification = modifications.peek();
             modification.lock();
             return modification;
         }

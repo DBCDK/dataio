@@ -1,6 +1,7 @@
 package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateTransfileOperation;
@@ -12,6 +13,9 @@ import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.MockedWriteAheadLog;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
+import dk.dbc.dataio.gatekeeper.wal.ModificationLockedException;
+import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,11 +26,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -49,11 +58,12 @@ public class JobDispatcherTest {
     }
 
     @Before
-    public void setupMocks() {
-        wal.modifications.clear();
+    public void setupMocks() throws JobStoreServiceConnectorException {
+        wal = new MockedWriteAheadLog();
         shutdownManager = new ShutdownManager();
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().build());
     }
 
     @Test(expected = NullPointerException.class)
@@ -79,6 +89,87 @@ public class JobDispatcherTest {
     @Test(expected = NullPointerException.class)
     public void constructor_shutdownManagerArgIsNull_throws() {
         new JobDispatcher(dir, shadowDir, wal, connectorFactory, null);
+    }
+
+    @Test
+    public void processIfCompleteTransfile_fileDoesNotHaveTransfileExtension_notProcessedReturnsFalse()
+            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
+        final Path filePath = writeFile(dir, "file.dat", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(filePath), is(false));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
+    }
+
+    @Test
+    public void processIfCompleteTransfile_fileDoesNotExist_notProcessedReturnsFalse()
+            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
+        final Path transfilePath = dir.resolve("file.trans");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(false));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
+    }
+
+    @Test
+    public void processIfCompleteTransfile_fileIsIncomplete_notProcessedReturnsFalse()
+            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
+        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(false));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
+    }
+
+    @Test
+    public void processIfCompleteTransfile_fileIsComplete_processedReturnsTrue()
+            throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
+        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\nslut");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(true));
+
+        // We don't assert all the modifications
+        assertThat("Original transfile exists", Files.exists(transfilePath), is(false));
+        assertThat("New transfile is created", Files.exists(shadowDir.resolve("file.trans")), is(true));
+
+        // Assert WAL interaction
+        assertThat("WAL is empty", wal.modifications.isEmpty(), is(true));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(4));
+    }
+
+    @Test
+    public void processTransfile() throws IOException, OperationExecutionException, InterruptedException, ModificationLockedException {
+        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final TransFile transFile = new TransFile(transfilePath);
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        jobDispatcher.processTransfile(transFile);
+
+        // We don't assert all the modifications
+        assertThat("Original transfile exists", Files.exists(transfilePath), is(false));
+        assertThat("New transfile is created", Files.exists(shadowDir.resolve("file.trans")), is(true));
+
+        // Assert WAL interaction
+        assertThat("WAL is empty", wal.modifications.isEmpty(), is(true));
+        assertThat("WAL modifications", wal.modificationsAddedOverTime, is(4));
+    }
+
+    @Test
+    public void getCompleteTransfiles_noCompleteTransfiles_returnsEmptyList() throws IOException {
+        writeFile(dir, "file.trans", "data");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        final List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
+        assertThat(completeTransfiles.isEmpty(), is(true));
+    }
+
+    @Test
+    public void getCompleteTransfiles_returnsList() throws IOException {
+        writeFile(dir, "file1.trans", "data1\nslut");
+        writeFile(dir, "file2.trans", "data2\n");
+        writeFile(dir, "file3.trans", "data3\nslut");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        final List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
+        assertThat("Number of transfiles found", completeTransfiles.size(), is(2));
+        final Set<String> transfiles = new HashSet<>(2);
+        transfiles.add(completeTransfiles.get(0).getPath().getFileName().toString());
+        transfiles.add(completeTransfiles.get(1).getPath().getFileName().toString());
+        assertThat("transfiles found", transfiles, containsInAnyOrder("file1.trans", "file3.trans"));
     }
 
     @Test

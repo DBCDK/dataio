@@ -43,16 +43,18 @@ public class TransFile {
 
     private void parse(Path transfile) throws IOException {
         LOGGER.info("Parsing transfile {}", transfile.toAbsolutePath());
-        try (final Scanner fileScanner = new Scanner(transfile, StandardCharsets.UTF_8.name())) {
-            while (fileScanner.hasNextLine()) {
-                if (fileScanner.hasNext(END_OF_FILE)) {
-                    fileScanner.nextLine();
-                    isComplete = true;
-                    break;
-                }
-                final String nextLine = fileScanner.nextLine();
-                if (!nextLine.trim().isEmpty()) {
-                    lines.add(new Line(nextLine));
+        if (Files.exists(transfile)) {
+            try (final Scanner fileScanner = new Scanner(transfile, StandardCharsets.UTF_8.name())) {
+                while (fileScanner.hasNextLine()) {
+                    if (fileScanner.hasNext(END_OF_FILE)) {
+                        fileScanner.nextLine();
+                        isComplete = true;
+                        break;
+                    }
+                    final String nextLine = fileScanner.nextLine();
+                    if (!nextLine.trim().isEmpty()) {
+                        lines.add(new Line(nextLine));
+                    }
                 }
             }
         }

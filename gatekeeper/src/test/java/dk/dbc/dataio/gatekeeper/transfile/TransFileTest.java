@@ -7,9 +7,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -22,11 +20,6 @@ public class TransFileTest {
     @Test(expected = NullPointerException.class)
     public void constructor_transfileArgIsNull_throws() throws IOException {
         new TransFile(null);
-    }
-
-    @Test(expected = NoSuchFileException.class)
-    public void constructor_transfileDoesNotExist_throws() throws IOException {
-        new TransFile(Paths.get("no-such-file"));
     }
 
     @Test

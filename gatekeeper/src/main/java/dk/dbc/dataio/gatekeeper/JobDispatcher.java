@@ -77,16 +77,15 @@ public class JobDispatcher {
 
     /* Process all stagnant file that may not experience any future file system events
      */
-    private List<TransFile> processStagnantTransfiles()
+    private void processStagnantTransfiles()
             throws IOException, ModificationLockedException, OperationExecutionException, InterruptedException {
-        List<TransFile> processedTransfiles = new ArrayList<>();
-        for (TransFile transFile : getCompletedTransfiles()) {
+        for (TransFile transFile : getCompleteTransfiles()) {
             processTransfile(transFile);
-            processedTransfiles.add(processTransfile(transFile));
         }
-        return processedTransfiles;
     }
 
+    /* Process all modifications currently contained in the WAL
+     */
     private void processWal() throws ModificationLockedException, OperationExecutionException, InterruptedException {
         Modification next = wal.next();
         while (next != null) {
@@ -94,27 +93,6 @@ public class JobDispatcher {
             processModification(next);
             next = wal.next();
         }
-    }
-
-    private TransFile processTransfile(TransFile transfile)
-            throws ModificationLockedException, OperationExecutionException, InterruptedException {
-        LOGGER.info("Processing transfile {}", transfile.getPath());
-        writeWal(transfile);
-        processWal();
-        return transfile;
-    }
-
-    private List<TransFile> getCompletedTransfiles() throws IOException {
-        final ArrayList<TransFile> transfiles = new ArrayList<>();
-        for (Path transfilePath : FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSION)) {
-            final TransFile transfile = new TransFile(transfilePath);
-            if (transfile.isComplete()) {
-                transfiles.add(transfile);
-            } else {
-                LOGGER.warn("Transfile {} is incomplete", transfilePath);
-            }
-        }
-        return transfiles;
     }
 
     /* Wait for and process file system events
@@ -131,26 +109,78 @@ public class JobDispatcher {
                     throw new IllegalStateException("Directory monitoring overflowed");
                 } else {
                     final Path file = dir.resolve((Path) watchEvent.context());
-                    LOGGER.info("Detected event on {}", file);
-                    if (file.getFileName().toString().endsWith(TRANSFILE_EXTENSION)) {
-                        final TransFile transFile = new TransFile(file);
-                        if (!transFile.exists()) {
-                            LOGGER.warn("Transfile {} no longer exists in the file system", file);
-                            continue;
-                        }
-
-                        if (transFile.isComplete()) {
-                            processTransfile(transFile);
-                        } else {
-                            LOGGER.warn("Transfile {} is incomplete", file);
-                        }
-                    }
+                    processIfCompleteTransfile(file);
                 }
             }
             key.reset();
         }
     }
 
+    /**
+     * Processes given file if complete transfile
+     * @param file file to test and possibly process
+     * @return true if transfile was processed, false if not
+     * @throws IOException if unable to read transfile
+     * @throws ModificationLockedException if WAL modification is already locked
+     * @throws OperationExecutionException if an operation was unable to complete successfully
+     * @throws InterruptedException if shutdown was detected before WAL could be emptied
+     */
+    boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
+                                                         OperationExecutionException, InterruptedException {
+        if (file.getFileName().toString().endsWith(TRANSFILE_EXTENSION)) {
+            final TransFile transFile = new TransFile(file);
+            if (!transFile.exists()) {
+                LOGGER.warn("Transfile {} no longer exists in the file system", file);
+                return false;
+            }
+            if (transFile.isComplete()) {
+                processTransfile(transFile);
+                return true;
+            } else {
+                LOGGER.warn("Transfile {} is incomplete", file);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * First stores all modifications for given transfile into the WAL,
+     * and then subsequently executes their corresponding operations one
+     * after another
+     * @param transfile transfile for which modifications are to be added and processed
+     * @throws ModificationLockedException if WAL modification is already locked
+     * @throws OperationExecutionException if an operation was unable to complete successfully
+     * @throws InterruptedException if shutdown was detected before WAL could be emptied
+     */
+    void processTransfile(TransFile transfile)
+            throws ModificationLockedException, OperationExecutionException, InterruptedException {
+        LOGGER.info("Processing transfile {}", transfile.getPath());
+        writeWal(transfile);
+        processWal();
+    }
+
+    /**
+     * @return list of complete transfiles found in the monitored directory
+     * @throws IOException on failure to search working directory or
+     * if unable to read a found transfile
+     */
+    List<TransFile> getCompleteTransfiles() throws IOException {
+        final ArrayList<TransFile> transfiles = new ArrayList<>();
+        for (Path transfilePath : FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSION)) {
+            final TransFile transfile = new TransFile(transfilePath);
+            if (transfile.isComplete()) {
+                transfiles.add(transfile);
+            } else {
+                LOGGER.warn("Transfile {} is incomplete", transfilePath);
+            }
+        }
+        return transfiles;
+    }
+
+    /**
+     * Loads the necessary modifications for a given transfile into the WAL
+     * @param transfile transfile for which modifications are to be added
+     */
     void writeWal(TransFile transfile) {
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         wal.add(modificationFactory.getModifications());
@@ -170,6 +200,7 @@ public class JobDispatcher {
                 final Operation operation = getOperation(modification);
                 LOGGER.info("Executing {}", operation.getOpcode());
                 operation.execute();
+                wal.delete(modification);
             } catch (OperationExecutionException e) {
                 // We need to unlock this modification, so that it will not
                 // throw a ModificationLockedException when this job dispatcher

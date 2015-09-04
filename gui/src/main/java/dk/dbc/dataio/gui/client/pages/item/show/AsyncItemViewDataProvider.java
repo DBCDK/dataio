@@ -17,7 +17,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
     private JobStoreProxyAsync jobStoreProxy;
     private View view;
     private int criteriaIncarnation = 0;
-    private ItemListCriteria currentCriteriaAsItemListCriteria = new ItemListCriteria();
+    private ItemListCriteria currentCriteria = new ItemListCriteria();
 
     ItemListCriteria baseCriteria = null;
     ItemsListView listView;
@@ -44,9 +44,9 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
             newItemListCriteria.and(baseCriteria);
         }
 
-        if( !currentCriteriaAsItemListCriteria.equals(newItemListCriteria)) {
+        if( !currentCriteria.equals(newItemListCriteria)) {
             criteriaIncarnation++;
-            currentCriteriaAsItemListCriteria = newItemListCriteria;
+            currentCriteria = newItemListCriteria;
             refresh();
         }
     }
@@ -67,14 +67,14 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
         // Get the new range.
         final Range range = display.getVisibleRange();
 
-        currentCriteriaAsItemListCriteria.limit(range.getLength());
-        currentCriteriaAsItemListCriteria.offset(range.getStart());
+        currentCriteria.limit(range.getLength());
+        currentCriteria.offset(range.getStart());
 
         if(searchType != null) {
-            jobStoreProxy.listItems(searchType, currentCriteriaAsItemListCriteria, new FilteredAsyncCallback<List<ItemModel>>() {
+            jobStoreProxy.listItems(searchType, currentCriteria, new FilteredAsyncCallback<List<ItemModel>>() {
                         // protection against old calls updating the view with old data.
                         int criteriaIncarnationOnRequestCall = criteriaIncarnation;
-                        int offsetOnRequestCall = currentCriteriaAsItemListCriteria.getOffset();
+                        int offsetOnRequestCall = currentCriteria.getOffset();
 
                         @Override
                         public void onSuccess(List<ItemModel> itemModels) {
@@ -92,7 +92,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
 
                         private boolean dataIsStillValid() {
                             return criteriaIncarnationOnRequestCall == criteriaIncarnation &&
-                                    offsetOnRequestCall == currentCriteriaAsItemListCriteria.getOffset();
+                                    offsetOnRequestCall == currentCriteria.getOffset();
                         }
                     }
             );
@@ -105,7 +105,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
      *
      */
     public void updateCount()  {
-        jobStoreProxy.countItems(currentCriteriaAsItemListCriteria, new FilteredAsyncCallback<Long>() {
+        jobStoreProxy.countItems(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
             int criteriaIncarnationOnCall = criteriaIncarnation;
 

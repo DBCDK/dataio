@@ -74,7 +74,8 @@ public class JobDispatcher {
 
     /* Process all stagnant file that may not experience any future file system events
      */
-    private List<TransFile> processStagnantTransfiles() throws IOException {
+    private List<TransFile> processStagnantTransfiles()
+            throws IOException, ModificationLockedException, OperationExecutionException {
         List<TransFile> processedTransfiles = new ArrayList<>();
         for (TransFile transFile : getCompletedTransfiles()) {
             processTransfile(transFile);
@@ -92,9 +93,12 @@ public class JobDispatcher {
         }
     }
 
-   private TransFile processTransfile(TransFile transFile) {
-        LOGGER.info("Processing transfile {}", transFile.getPath());
-        return transFile;
+    private TransFile processTransfile(TransFile transfile)
+            throws ModificationLockedException, OperationExecutionException {
+        LOGGER.info("Processing transfile {}", transfile.getPath());
+        writeWal(transfile);
+        processWal();
+        return transfile;
     }
 
     private List<TransFile> getCompletedTransfiles() throws IOException {
@@ -112,7 +116,8 @@ public class JobDispatcher {
 
     /* Wait for and process file system events
      */
-    private void monitorDirEvents() throws InterruptedException, IOException {
+    private void monitorDirEvents() throws InterruptedException, IOException,
+                                           ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
         while (true) {
             final WatchKey key = dirMonitor.take();
@@ -141,6 +146,11 @@ public class JobDispatcher {
             }
             key.reset();
         }
+    }
+
+    void writeWal(TransFile transfile) {
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        wal.add(modificationFactory.getModifications());
     }
 
     /**

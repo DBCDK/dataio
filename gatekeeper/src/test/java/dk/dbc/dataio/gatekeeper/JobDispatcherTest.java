@@ -9,6 +9,7 @@ import dk.dbc.dataio.gatekeeper.operation.FileMoveOperation;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.operation.Operation;
 import dk.dbc.dataio.gatekeeper.operation.OperationExecutionException;
+import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.MockedWriteAheadLog;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
 import org.junit.Before;
@@ -71,6 +72,15 @@ public class JobDispatcherTest {
     @Test(expected = NullPointerException.class)
     public void constructor_connectorFactoryArgIsNull_throws() {
         new JobDispatcher(dir, shadowDir, wal, null);
+    }
+
+    @Test
+    public void writeWal_addModificationsToWal() throws IOException {
+        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final TransFile transFile = new TransFile(transfilePath);
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        jobDispatcher.writeWal(transFile);
+        assertThat("Number of WAL modifications", wal.modifications.size(), is(4));
     }
 
     @Test
@@ -178,9 +188,10 @@ public class JobDispatcherTest {
         return new JobDispatcher(dir, shadowDir, wal, connectorFactory);
     }
 
-    private void writeFile(Path folder, String filename, String content) {
+    private Path writeFile(Path folder, String filename, String content) {
         try {
-            Files.write(folder.resolve(filename), content.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
+            return Files.write(folder.resolve(filename), content.getBytes(StandardCharsets.UTF_8),
+                    StandardOpenOption.CREATE_NEW);
         } catch (IOException e) {
             throw new IllegalStateException(e);
         }

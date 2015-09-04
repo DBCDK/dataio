@@ -318,11 +318,14 @@ public class FlowBindersBeanTest {
     public void deleteFlowBinder_flowBinderFound_returnsNoContentHttpResponse() throws JsonException, ReferencedEntityNotFoundException {
         final FlowBinder flowBinder = mock(FlowBinder.class);
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
+        Query mockedQuery = mock(Query.class);
 
         mockStatic(JsonUtil.class);
         when(JsonUtil.toJson(flowBinder)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
         when(ENTITY_MANAGER.merge(any(FlowBinder.class))).thenReturn(flowBinder);
+
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(mockedQuery);
 
         final Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
 
@@ -335,12 +338,11 @@ public class FlowBindersBeanTest {
     public void deleteFlowBinder_errorWhileSettingParametersForQuery_returnsResponseWithHttpStatusNotFound() throws JsonException, ReferencedEntityNotFoundException {
         final FlowBinder flowBinder = mock(FlowBinder.class);
         final FlowBindersBean flowBindersBean = newFlowBindersBeanWithMockedEntityManager();
-
-        final Query query = mock(Query.class);
+        final Query mockedQuery = mock(Query.class);
 
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
-        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
-        when(query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER, flowBinder.getId())).thenThrow(new IllegalArgumentException());
+        when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(mockedQuery);
+        when(mockedQuery.setParameter(FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER, flowBinder.getId())).thenThrow(new IllegalArgumentException());
 
         final Response response = flowBindersBean.deleteFlowBinder(1L, 1L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));

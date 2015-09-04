@@ -18,4 +18,5 @@ public interface Presenter extends GenericPresenter {
     void sinkChanged(String selectedText);
     void keyPressed();
     void saveButtonPressed();
+    void deleteButtonPressed();
 }

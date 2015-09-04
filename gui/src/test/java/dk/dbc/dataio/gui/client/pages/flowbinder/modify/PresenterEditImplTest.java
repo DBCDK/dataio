@@ -155,5 +155,19 @@ public class PresenterEditImplTest {
         verify(editView.name).setText(FLOW_BINDER_MODEL_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
     }
 
+    @Test
+    public void deleteFlowBinderModelFilteredAsyncCallback_callback_invoked() {
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+
+        presenterEditImpl.deleteModel();
+
+        // Verify that the proxy call is invoked... Cannot emulate the callback as the return type is Void
+        verify(mockedFlowStoreProxy).deleteFlowBinder(
+                eq(presenterEditImpl.model.getId()),
+                eq(presenterEditImpl.model.getVersion()),
+                any(PresenterEditImpl.DeleteFlowBinderModelFilteredAsyncCallback.class));
+    }
+
 
 }

@@ -324,8 +324,8 @@ public class FlowBindersBeanTest {
         when(JsonUtil.toJson(flowBinder)).thenReturn("test");
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any())).thenReturn(flowBinder);
         when(ENTITY_MANAGER.merge(any(FlowBinder.class))).thenReturn(flowBinder);
-
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(mockedQuery);
+        when(mockedQuery.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
 
         final Response response = flowBindersBean.deleteFlowBinder(12L, 1L);
 

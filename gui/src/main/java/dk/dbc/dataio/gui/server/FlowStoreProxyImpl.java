@@ -287,6 +287,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public void deleteFlowBinder(long flowBinderId, long version) throws NullPointerException, ProxyException {
+        final String callerMethodName = "deleteFlowBinder";
+        log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", flowBinderId, version);
+        try {
+            flowStoreServiceConnector.deleteFlowBinder(flowBinderId, version);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
+    @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
         final String callerMethodName = "findAllFlowBinders";
         List<FlowBinder> flowBinders;

@@ -99,6 +99,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public void deleteFlowBinder(long flowBinderId, long version) throws NullPointerException, ProxyException {
+        flowStoreProxy.deleteFlowBinder(flowBinderId, version);
+    }
+
+    @Override
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
         return flowStoreProxy.findAllFlowBinders();
     }

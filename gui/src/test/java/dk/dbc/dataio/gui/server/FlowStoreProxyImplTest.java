@@ -1135,6 +1135,50 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
+     * Test deleteFlowBinder
+     */
+
+    @Test
+    public void deleteFlowBinder_remoteServiceReturnsHttpStatusNoContent() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        try {
+            flowStoreProxy.deleteFlowBinder(ID, 1L);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: deleteFlowBinder()");
+        }
+    }
+
+    @Test
+    public void deleteFlowBinder_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        deleteFlowBinder_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void deleteFlowBinder_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        deleteFlowBinder_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void deleteFlowBinder_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        deleteFlowBinder_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    private void deleteFlowBinder_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        doThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("msg", errorCodeToReturn)).when(flowStoreServiceConnector).deleteFlowBinder(eq(ID), (eq(1L)));
+        try {
+            flowStoreProxy.deleteFlowBinder(ID, 1);
+            fail("No " + expectedErrorName + " error was thrown by deleteFlowBinder()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    /*
     * Test getFlowComponent
     */
 
@@ -1294,7 +1338,7 @@ public class FlowStoreProxyImplTest {
     }
 
     private FlowModel getDefaultFlowModel(Flow flow) {
-        List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>();
+        List<FlowComponentModel> flowComponentModels = new ArrayList<>();
         for (FlowComponent flowComponent : flow.getContent().getComponents()) {
             flowComponentModels.add(FlowComponentModelMapper.toModel(flowComponent));
         }
@@ -1539,7 +1583,7 @@ public class FlowStoreProxyImplTest {
     }
 
     private JavaScriptProjectFetcher.fetchRequiredJavaScriptResult getDefaultJavaScripts() {
-        List<JavaScript> javaScripts = new ArrayList<JavaScript>(2);
+        List<JavaScript> javaScripts = new ArrayList<>(2);
         javaScripts.add(new JavaScript("javascript1", "javaScriptName1"));
         javaScripts.add(new JavaScript("javascript2", "javaScriptName2"));
         return new JavaScriptProjectFetcher.fetchRequiredJavaScriptResult(javaScripts, null);

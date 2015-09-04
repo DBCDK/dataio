@@ -32,6 +32,8 @@ public interface FlowStoreProxy extends RemoteService {
     // Flow Binders
     FlowBinderModel createFlowBinder(FlowBinderModel model) throws NullPointerException, ProxyException;
     FlowBinderModel updateFlowBinder(FlowBinderModel FlowBinderContent) throws NullPointerException, ProxyException;
+    void deleteFlowBinder(long flowBinderId, long version) throws NullPointerException, ProxyException;
+
     List<FlowBinderModel> findAllFlowBinders() throws ProxyException;
     FlowBinderModel getFlowBinder(long id) throws ProxyException;
 

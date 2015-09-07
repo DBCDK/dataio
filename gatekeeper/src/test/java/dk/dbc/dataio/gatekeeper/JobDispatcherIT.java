@@ -79,7 +79,7 @@ public class JobDispatcherIT {
         try {
             // When...
             t.start();
-            Thread.sleep(250);
+            Thread.sleep(500);
 
             // Then...
             assertThat("No exception from thread", exception, is(nullValue()));
@@ -108,7 +108,7 @@ public class JobDispatcherIT {
             // When...
             shutdownManager.signalShutdownInProgress();
             t.start();
-            Thread.sleep(250);
+            Thread.sleep(500);
 
             // Then...
             assertThat("Exception from thread", exception instanceof InterruptedException, is(true));
@@ -125,7 +125,7 @@ public class JobDispatcherIT {
         t = getJobDispatcherThread(jobDispatcher);
         try {
             t.start();
-            Thread.sleep(250);
+            Thread.sleep(500);
 
             assertThat("dir/file.trans exists", Files.exists(dir.resolve("file.trans")), is(false));
             assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
@@ -151,7 +151,7 @@ public class JobDispatcherIT {
         try {
             // When...
             t.start();
-            Thread.sleep(250);
+            Thread.sleep(500);
 
             // Then...
             assertThat("ModificationLockedException exception from thread",
@@ -179,7 +179,7 @@ public class JobDispatcherIT {
         try {
             // When...
             t.start();
-            Thread.sleep(250);
+            Thread.sleep(500);
 
             // Then...
             assertThat("No exception from thread", exception, is(nullValue()));
@@ -191,7 +191,7 @@ public class JobDispatcherIT {
 
             // When...
             appendToFile(transfile, "slut");
-            Thread.sleep(250);
+            Thread.sleep(500);
 
             // Then...
             assertThat("No exception from thread", exception, is(nullValue()));

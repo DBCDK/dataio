@@ -29,6 +29,7 @@ public class ListFilter<T extends ListFilterField> implements Serializable {
         IS_NULL,
         IS_NOT_NULL,
         JSON_LEFT_CONTAINS,
+        JSON_NOT_LEFT_CONTAINS,
     }
 
     private final T field;

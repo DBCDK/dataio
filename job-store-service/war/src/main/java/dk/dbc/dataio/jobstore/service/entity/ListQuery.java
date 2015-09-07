@@ -114,19 +114,19 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             FieldMapping fieldMapping = fieldMap.get(filter.getField());
             final String columnName = fieldMap.get(filter.getField()).getName();
 
+            ListFilter.Op operator = filter.getOperator();
             if(fieldMapping instanceof BooleanOpField) {
-                ListFilter.Op operator = filter.getOperator();
                 if (unaryOpSet.contains(operator)) {
-                    queryString.append(" ").append(columnName).append(filterOpToString(operator));
+                    queryString.append(filterOpToPrefixString(operator)).append(columnName).append(filterOpToString(operator));
                 } else {
                     // add column name, operator and value triplets to query
-                    queryString.append(" ").append(columnName).append(filterOpToString(operator)).append("?").append(nextParameterIndex);
+                    queryString.append(filterOpToPrefixString(operator)).append(columnName).append(filterOpToString(operator)).append("?").append(nextParameterIndex);
                     nextParameterIndex++;
                 }
             } else if (fieldMapping instanceof VerbatimBooleanOpField) {
-                queryString.append(" ").append(columnName).append(filterOpToString(filter.getOperator())).append(((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue()));
+                queryString.append(filterOpToPrefixString(operator)).append(columnName).append(filterOpToString(filter.getOperator())).append(((VerbatimBooleanOpField) fieldMapping).getValue().toString(filter.getValue()));
             } else {
-                queryString.append(" ").append(columnName);
+                queryString.append(filterOpToPrefixString(operator)).append(columnName);
             }
             memberIndex++;
         }
@@ -173,6 +173,24 @@ public abstract class ListQuery<T extends ListCriteria, U extends ListFilterFiel
             case IS_NULL:                   return " IS NULL";
             case IS_NOT_NULL:               return " IS NOT NULL";
             case JSON_LEFT_CONTAINS:        return "@>";
+            case JSON_NOT_LEFT_CONTAINS:    return "@>";
+            default: throw new IllegalArgumentException("Unknown filter operator " + op);
+        }
+    }
+
+    private static String filterOpToPrefixString(ListFilter.Op op) {
+        switch (op) {
+            case EQUAL:                     return " ";
+            case GREATER_THAN:              return " ";
+            case GREATER_THAN_OR_EQUAL_TO:  return " ";
+            case LESS_THAN:                 return " ";
+            case LESS_THAN_OR_EQUAL_TO:     return " ";
+            case NOT_EQUAL:                 return " ";
+            case IS_NULL:                   return " ";
+            case IS_NOT_NULL:               return " ";
+            case JSON_LEFT_CONTAINS:        return " ";
+            case JSON_NOT_LEFT_CONTAINS:    return " NOT ";
+            case NOOP:                      return " ";
             default: throw new IllegalArgumentException("Unknown filter operator " + op);
         }
     }

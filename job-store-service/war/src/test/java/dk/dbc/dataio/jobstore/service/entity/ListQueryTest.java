@@ -126,6 +126,15 @@ public class ListQueryTest {
     }
 
     @Test
+    public void buildQueryString_whereClauseWithBooleanOpFieldWithJsonNotLeftContainsOperator_returnsQueryString() {
+        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE NOT " + FIELD_OBJECT_NAME + "@>?1";
+        final ListQueryImpl listQuery = new ListQueryImpl();
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, "42"));
+        assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
+    }
+
+    @Test
     public void buildQueryString_whereClauseWithBooleanOpFieldWithObjectValue_returnsQueryString() {
         final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE " + FIELD_OBJECT_NAME + "=?1";
         final ListQueryImpl listQuery = new ListQueryImpl();
@@ -154,6 +163,16 @@ public class ListQueryTest {
     }
 
     @Test
+    public void buildQueryString_whereClauseWithVerbatimBooleanOpFieldWithNotJsonbValue_returnsEscapedQueryString() {
+        final String jsonObject = "{type:\"''\"}";
+        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'{type:\"''''\"}'::jsonb";
+        final ListQueryImpl listQuery = new ListQueryImpl();
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, jsonObject));
+        assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
+    }
+
+    @Test
     public void buildQueryString_whereClauseWithVerbatimField_returnsQueryString() {
         final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE " + VERBATIM_VALUE;
         final ListQueryImpl listQuery = new ListQueryImpl();
@@ -174,12 +193,34 @@ public class ListQueryTest {
     }
 
     @Test
+    public void buildQueryString_whereClauseWithMultipleFiltersStartingWithNegatedBooleanOpField_returnsQueryString() {
+        final String jsonObject = "{}";
+        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE " + FIELD_OBJECT_NAME + "=?1 AND NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'" + jsonObject + "'::jsonb";
+        final ListQueryImpl listQuery = new ListQueryImpl();
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.EQUAL, 42))
+                .and(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, jsonObject));
+        assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
+    }
+
+    @Test
     public void buildQueryString_whereClauseWithMultipleFiltersStartingWithVerbatimBooleanOpField_returnsQueryString() {
         final String jsonObject = "{}";
         final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE " + VERBATIM_FIELD_JSONB_NAME + "@>'" + jsonObject + "'::jsonb AND " + FIELD_OBJECT_NAME + "=?1";
         final ListQueryImpl listQuery = new ListQueryImpl();
         final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
                 .where(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_LEFT_CONTAINS, jsonObject))
+                .and(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.EQUAL, 42));
+        assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
+    }
+
+    @Test
+    public void buildQueryString_whereClauseWithMultipleFiltersStartingWithNegatedVerbatimBooleanOpField_returnsQueryString() {
+        final String jsonObject = "{}";
+        final String expectedQuery = ListQueryImpl.QUERY_BASE + " WHERE NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'" + jsonObject + "'::jsonb AND " + FIELD_OBJECT_NAME + "=?1";
+        final ListQueryImpl listQuery = new ListQueryImpl();
+        final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
+                .where(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, jsonObject))
                 .and(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.EQUAL, 42));
         assertThat(listQuery.buildQueryString(ListQueryImpl.QUERY_BASE, listCriteria), is(expectedQuery));
     }
@@ -256,7 +297,7 @@ public class ListQueryTest {
     public void buildQueryString_allConstructsCombined_returnsQueryString() {
         final String expectedQuery = ListQueryImpl.QUERY_BASE +
                 " WHERE ( " + FIELD_OBJECT_NAME + "=?1 AND value )" +
-                " AND ( " + FIELD_OBJECT_NAME + ">?2 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb )" +
+                " AND ( " + FIELD_OBJECT_NAME + ">?2 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb OR NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb )" +
                 " ORDER BY " + FIELD_OBJECT_NAME + " ASC, " + FIELD_TIMESTAMP_NAME + " DESC" +
                 " LIMIT 10" +
                 " OFFSET 2";
@@ -266,6 +307,7 @@ public class ListQueryTest {
                 .and(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD, ListFilter.Op.NOOP, 42))
                 .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.GREATER_THAN, 42))
                 .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_LEFT_CONTAINS, "{}"))
+                .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, "{}"))
                 .limit(100)
                 .limit(10)
                 .offset(20)
@@ -279,7 +321,7 @@ public class ListQueryTest {
     public void buildCountQueryString_allConstructsCombined_returnsQueryString() {
         final String expectedQuery = ListQueryImpl.QUERY_BASE +
                 " WHERE ( " + FIELD_OBJECT_NAME + "=?1 AND value )" +
-                " AND ( " + FIELD_OBJECT_NAME + ">?2 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb )";
+                " AND ( " + FIELD_OBJECT_NAME + ">?2 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb OR NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb )";
 
         final ListQueryImpl listQuery = new ListQueryImpl();
         final ListCriteriaImpl listCriteria = new ListCriteriaImpl()
@@ -287,6 +329,7 @@ public class ListQueryTest {
                 .and(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD, ListFilter.Op.NOOP, 42))
                 .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.GREATER_THAN, 42))
                 .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_LEFT_CONTAINS, "{}"))
+                .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, "{}"))
                 .limit(100)
                 .limit(10)
                 .offset(20)
@@ -301,7 +344,7 @@ public class ListQueryTest {
     public void buildQueryString_multipleFilterGroupsNoBindParameterInFirstGroup_returnsQueryString() {
         final String expectedQuery = ListQueryImpl.QUERY_BASE +
                 " WHERE ( value )" +
-                " AND ( " + FIELD_OBJECT_NAME + ">?1 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb )" +
+                " AND ( " + FIELD_OBJECT_NAME + ">?1 OR " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb OR NOT " + VERBATIM_FIELD_JSONB_NAME + "@>'{}'::jsonb )" +
                 " ORDER BY " + FIELD_OBJECT_NAME + " ASC, " + FIELD_TIMESTAMP_NAME + " DESC" +
                 " LIMIT 10" +
                 " OFFSET 2";
@@ -310,6 +353,7 @@ public class ListQueryTest {
                 .where(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD, ListFilter.Op.NOOP, 42))
                 .where(new ListFilter<>(ListCriteriaImpl.Field.FIELD_OBJECT, ListFilter.Op.GREATER_THAN, 42))
                 .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_LEFT_CONTAINS, "{}"))
+                .or(new ListFilter<>(ListCriteriaImpl.Field.VERBATIM_FIELD_JSONB, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, "{}"))
                 .limit(100)
                 .limit(10)
                 .offset(20)

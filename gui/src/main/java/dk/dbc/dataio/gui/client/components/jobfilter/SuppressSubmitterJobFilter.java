@@ -13,6 +13,7 @@ import com.google.gwt.user.client.ui.RadioButton;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 /**
  * This is the Submitter Job Filter
@@ -47,14 +48,6 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
      */
     @UiHandler(value={"showAllSubmittersButton", "suppressSubmittersButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
-        // Set value in JobListCriteria
-        if (showAllSubmittersButton.getValue()) {
-            GWT.log("SuppressSubmitterJobFilter - Show All Submitters");
-//            jobListCriteriaModel.???
-        } else if (suppressSubmittersButton.getValue()) {
-            GWT.log("SuppressSubmitterJobFilter - Suppress 870970 Submitters");
-//            jobListCriteriaModel.???
-        }
         // Signal change to caller
         if (callbackChangeHandler != null) {
             callbackChangeHandler.onChange(null);
@@ -68,12 +61,18 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
 
     @Override
     public JobListCriteria getValue() {
-        return new JobListCriteria();
+        if (suppressSubmittersButton.getValue()) {
+            String jsonMatch= "{ \"submitterId\": 870970}";
+            return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, jsonMatch));
+        } else {
+            return new JobListCriteria();  // No submitters suppressed
+        }
     }
 
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
         callbackChangeHandler = changeHandler;
+        callbackChangeHandler.onChange(null);
         return new HandlerRegistration() {
             @Override
             public void removeHandler() {

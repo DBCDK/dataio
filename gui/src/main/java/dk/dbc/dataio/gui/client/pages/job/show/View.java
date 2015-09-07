@@ -11,8 +11,6 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-import java.util.List;
-
 
 /**
 * This class is the View class for the New Jobs Show View
@@ -23,7 +21,7 @@ public class View extends ViewWidget {
 
     Column jobCreationTimeColumn;
     public AsyncJobViewDataProvider dataProvider;
-    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<JobModel>();
+    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>();
 
     // Enums
     enum JobStatus {
@@ -38,24 +36,18 @@ public class View extends ViewWidget {
      * @param headerText, the text to display in the header
      */
     public View(ClientFactory clientFactory, String headerText) {
-        super(clientFactory, headerText);
-        View.resources = clientFactory.getImageResources();
-
-        setupColumns();
-
-        dataProvider = new AsyncJobViewDataProvider( clientFactory,this);
+        this(clientFactory, headerText, true, true);
         dataProvider.addDataDisplay(jobsTable);
     }
 
     /* Package scoped Constructor used for unit testing. */
-    View(ClientFactory clientFactory, String headerText, Boolean setupColumns) {
+    View(ClientFactory clientFactory, String headerText, Boolean setupColumns, Boolean updateUserCriteria) {
         super(clientFactory, headerText);
         View.resources = clientFactory.getImageResources();
-
-        dataProvider = new AsyncJobViewDataProvider( clientFactory,this);
         if( setupColumns ) {
             setupColumns();
         }
+        dataProvider = new AsyncJobViewDataProvider(clientFactory, this, updateUserCriteria);
     }
 
 
@@ -69,14 +61,7 @@ public class View extends ViewWidget {
     public void refreshJobsTable() {
         jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
     }
-    /**
-     * This method is used to put data into the view
-     *
-     * @param jobs The list of jobs to put into the view
-     */
-    public void setJobs(List<JobModel> jobs) {
-        // TODO remove
-    }
+
 
     /**
      * Private methods
@@ -118,13 +103,12 @@ public class View extends ViewWidget {
      * @return the constructed JobCreationTime column
      */
     Column constructJobCreationTimeColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return model.getJobCreationTime();
             }
         };
-        return column;
     }
 
     /**
@@ -134,13 +118,12 @@ public class View extends ViewWidget {
      * @return the constructed JobId column
      */
     Column constructJobIdColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return model.getJobId();
             }
         };
-        return column;
     }
 
     /**
@@ -150,13 +133,12 @@ public class View extends ViewWidget {
      * @return the constructed SubmitterNumber column
      */
     Column constructSubmitterNumberColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return model.getSubmitterNumber();
             }
         };
-        return column;
     }
 
     /**
@@ -166,13 +148,12 @@ public class View extends ViewWidget {
      * @return the constructed SubmitterName column
      */
     Column constructSubmitterNameColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return model.getSubmitterName();
             }
         };
-        return column;
     }
 
     /**
@@ -182,13 +163,12 @@ public class View extends ViewWidget {
      * @return the constructed FlowBinderName column
      */
     Column constructFlowBinderNameColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return model.getFlowBinderName();
             }
         };
-        return column;
     }
 
     /**
@@ -198,13 +178,12 @@ public class View extends ViewWidget {
      * @return the constructed SinkName column
      */
     Column constructSinkNameColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return model.getSinkName();
             }
         };
-        return column;
     }
 
     /**
@@ -214,13 +193,12 @@ public class View extends ViewWidget {
      * @return the constructed item count column
      */
     Column constructItemCountColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return String.valueOf(model.getItemCounter());
             }
         };
-        return column;
     }
 
     /**
@@ -230,13 +208,12 @@ public class View extends ViewWidget {
      * @return the constructed failed count column
      */
     Column constructFailedCounterColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return String.valueOf(model.getFailedCounter());
             }
         };
-        return column;
     }
 
     /**
@@ -246,13 +223,12 @@ public class View extends ViewWidget {
      * @return the constructed ignored count column
      */
     Column constructIgnoredCounterColumn() {
-        TextColumn<JobModel> column = new TextColumn<JobModel>() {
+        return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
                 return String.valueOf(model.getProcessingIgnoredCounter());
             }
         };
-        return column;
     }
 
     /**

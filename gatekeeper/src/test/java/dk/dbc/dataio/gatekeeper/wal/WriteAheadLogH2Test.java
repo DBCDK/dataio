@@ -35,6 +35,16 @@ public class WriteAheadLogH2Test {
         when(query.setMaxResults(1)).thenReturn(query);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void constructorStringArg_walFileArgIsNull_throws() {
+        new WriteAheadLogH2((String) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructorStringArg_walFileArgIsEmpty_throws() {
+        new WriteAheadLogH2(" ");
+    }
+
     @Test
     public void add_whenGivenListOfModifications_persistsEachModificationInSingleTransaction() {
         final List<Modification> modifications = Arrays.asList(new Modification(1L), new Modification(2L));

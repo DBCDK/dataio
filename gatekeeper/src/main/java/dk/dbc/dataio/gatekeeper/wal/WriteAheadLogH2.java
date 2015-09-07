@@ -1,5 +1,7 @@
 package dk.dbc.dataio.gatekeeper.wal;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -21,10 +23,15 @@ public class WriteAheadLogH2 implements WriteAheadLog {
     final EntityManager entityManager;
 
     public WriteAheadLogH2() {
+        this("./gatekeeper.wal");
+    }
+
+    public WriteAheadLogH2(String walFile) throws NullPointerException, IllegalArgumentException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(walFile, "walFile");
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, "gatekeeper");
         properties.put(JDBC_PASSWORD, "gatekeeper");
-        properties.put(JDBC_URL, "jdbc:h2:file:./gatekeeper.wal");
+        properties.put(JDBC_URL, String.format("jdbc:h2:file:%s", walFile));
         properties.put(JDBC_DRIVER, "org.h2.Driver");
         properties.put("eclipselink.logging.level", "FINE");
         final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("gatekeeperWAL", properties);

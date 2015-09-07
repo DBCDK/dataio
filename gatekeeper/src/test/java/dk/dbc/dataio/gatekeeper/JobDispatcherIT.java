@@ -69,7 +69,7 @@ public class JobDispatcherIT {
      * When : the job dispatcher is started
      * Then : the transfile is processed
      */
-    @Test
+    @Test(timeout = 5000)
     public void stagnantTransfilesProcessed() throws Throwable {
         // Given...
         writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\nslut");
@@ -79,9 +79,9 @@ public class JobDispatcherIT {
         try {
             // When...
             t.start();
-            Thread.sleep(500);
 
             // Then...
+            waitWhileFileExists(dir.resolve("file.trans"));
             assertThat("No exception from thread", exception, is(nullValue()));
             assertThat("dir/file.trans exists", Files.exists(dir.resolve("file.trans")), is(false));
             assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
@@ -97,7 +97,7 @@ public class JobDispatcherIT {
      * Then : the transfile modifications are stored in the WAL
      * And  : when a new job dispatcher started all WAL entries are processed
      */
-    @Test
+    @Test(timeout = 5000)
     public void walProcessedAfterRestart() throws Throwable {
         // Given...
         writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\nslut");
@@ -108,9 +108,9 @@ public class JobDispatcherIT {
             // When...
             shutdownManager.signalShutdownInProgress();
             t.start();
-            Thread.sleep(500);
 
             // Then...
+            waitWhileNoException();
             assertThat("Exception from thread", exception instanceof InterruptedException, is(true));
             assertThat("dir/file.trans exists", Files.exists(dir.resolve("file.trans")), is(true));
             assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(false));
@@ -125,8 +125,8 @@ public class JobDispatcherIT {
         t = getJobDispatcherThread(jobDispatcher);
         try {
             t.start();
-            Thread.sleep(500);
 
+            waitWhileFileExists(dir.resolve("file.trans"));
             assertThat("dir/file.trans exists", Files.exists(dir.resolve("file.trans")), is(false));
             assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
             assertEmptyWal();
@@ -140,7 +140,7 @@ public class JobDispatcherIT {
      * When : the job dispatcher is started
      * Then : an exception is thrown
      */
-    @Test
+    @Test(timeout = 5000)
     public void walContainsAlreadyLockedModification() throws InterruptedException {
         // Given...
         insertLockedWalModification();
@@ -151,9 +151,9 @@ public class JobDispatcherIT {
         try {
             // When...
             t.start();
-            Thread.sleep(500);
 
             // Then...
+            waitWhileNoException();
             assertThat("ModificationLockedException exception from thread",
                     exception instanceof ModificationLockedException, is(true));
         } finally {
@@ -169,8 +169,8 @@ public class JobDispatcherIT {
      * When : the transfile is updated to be complete
      * Then : the transfile is processed
      */
-    @Test
-    public void test() throws InterruptedException {
+    @Test(timeout = 5000)
+    public void fileChangesDetected() throws InterruptedException {
         // Given...
         final Path transfile = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\n");
         final JobDispatcher jobDispatcher = getJobDispatcher();
@@ -191,9 +191,9 @@ public class JobDispatcherIT {
 
             // When...
             appendToFile(transfile, "slut");
-            Thread.sleep(500);
 
             // Then...
+            waitWhileFileExists(dir.resolve("file.trans"));
             assertThat("No exception from thread", exception, is(nullValue()));
             assertThat("dir/file.trans exists", Files.exists(dir.resolve("file.trans")), is(false));
             assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
@@ -217,6 +217,16 @@ public class JobDispatcherIT {
 
     private JobDispatcher getJobDispatcher() {
         return new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
+    }
+
+    private void waitWhileFileExists(Path file) throws InterruptedException {
+        while (Files.exists(file))
+            Thread.sleep(100);
+    }
+
+    private void waitWhileNoException() throws InterruptedException {
+        while (exception == null)
+            Thread.sleep(100);
     }
 
     private Path writeFile(Path folder, String filename, String content) {

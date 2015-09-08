@@ -1,0 +1,13 @@
+<xml>
+    <record>
+    <field tag="001" ind1="0" ind2="0">
+        <subfield code="a">123</subfield>
+        <subfield code="b">870970</subfield>
+    </field>
+    <field tag="002" ind1="0" ind2="">
+        <subfield code="x">data1</subfield>
+        <subfield code="x">data2</subfield>
+        <subfield code="x">data3</subfield>
+    </field>
+    </record>
+</xml>

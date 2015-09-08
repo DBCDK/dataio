@@ -1,10 +1,9 @@
 package dk.dbc.dataio.sink.diff;
 
-import dk.dbc.xmldiff.XmlDiff;
 import org.junit.Test;
-import org.xml.sax.SAXException;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -12,19 +11,6 @@ import static org.hamcrest.core.IsNot.not;
 
 public class XmlDiffGeneratorTest {
 
-    @Test
-    public void testHasDiff_contentEqual_returnsFalse() throws IOException, SAXException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
-        boolean hasDiff = xmlDiffGenerator.hasDiff(XmlDiff.Result.CONTENT_EQUAL);
-        assertThat(hasDiff, is(false));
-    }
-
-    @Test
-    public void testHasDiff_different_returnsTrue() throws IOException, SAXException {
-        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
-        boolean hasDiff = xmlDiffGenerator.hasDiff(XmlDiff.Result.DIFFERENT);
-        assertThat(hasDiff, is(true));
-    }
 
     @Test
     public void testGetDiff_semanticEqual_returnsEmptyString() throws DiffGeneratorException {
@@ -37,6 +23,27 @@ public class XmlDiffGeneratorTest {
     public void testGetDiff_different_returnsDiffString() throws DiffGeneratorException {
         XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
         String diff = xmlDiffGenerator.getDiff(getXml(), getXmlNext());
+        assertThat(diff, not(""));
+    }
+
+    @Test
+    public void testGetDiff_bug18965() throws DiffGeneratorException, IOException, URISyntaxException {
+        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        String diff = xmlDiffGenerator.getDiff(
+                readTestRecord("bug_18956.xml"),
+                readTestRecord("bug_18956-differences.xml")
+                );
+        assertThat(diff, not(""));
+    }
+
+
+    @Test
+    public void testGetDiff_output() throws DiffGeneratorException, IOException, URISyntaxException {
+        XmlDiffGenerator xmlDiffGenerator = new XmlDiffGenerator();
+        String diff = xmlDiffGenerator.getDiff(
+                readTestRecord("small-current.xml"),
+                readTestRecord("small-next.xml")
+        );
         assertThat(diff, not(""));
     }
 
@@ -87,4 +94,13 @@ public class XmlDiffGeneratorTest {
                 "</foo:datafield>" +
                 "</foo:record></foo:collection></data></data-container></dataio-harvester-datafile>").getBytes();
     }
+
+
+    static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
+        final java.net.URL url = XmlDiffGeneratorTest.class.getResource("/" + resourceName);
+        final java.nio.file.Path resPath;
+        resPath = java.nio.file.Paths.get(url.toURI());
+        return java.nio.file.Files.readAllBytes(resPath);
+    }
+
 }

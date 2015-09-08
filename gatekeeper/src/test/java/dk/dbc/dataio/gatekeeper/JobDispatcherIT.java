@@ -171,6 +171,10 @@ public class JobDispatcherIT {
      */
     @Test(timeout = 5000)
     public void fileChangesDetected() throws InterruptedException {
+        if (isOsX()) {  // Do NOT run on Mac OsX, because WatchService is poll based on OsX, and has a long poll time (10 sec)
+            return;
+        }
+
         // Given...
         final Path transfile = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\n");
         final JobDispatcher jobDispatcher = getJobDispatcher();
@@ -288,5 +292,9 @@ public class JobDispatcherIT {
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private boolean isOsX() {
+        return System.getProperty("os.name").toLowerCase().startsWith("mac");
     }
 }

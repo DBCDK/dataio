@@ -69,6 +69,8 @@ public class JobEntity {
     @Convert(converter = FlowStoreReferencesConverter.class)
     private FlowStoreReferences flowStoreReferences;
 
+    public JobEntity() {}
+
     public int getId() {
         return id;
     }
@@ -167,5 +169,11 @@ public class JobEntity {
 
     public void setCachedSink(SinkCacheEntity cachedSink) {
         this.cachedSink = cachedSink;
+    }
+
+    /* Package scoped constructor used for unit testing
+     */
+    JobEntity(int id) {
+        this.id = id;
     }
 }

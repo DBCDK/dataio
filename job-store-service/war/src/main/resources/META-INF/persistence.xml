@@ -18,6 +18,9 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>
@@ -36,6 +39,9 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>

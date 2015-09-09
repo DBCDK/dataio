@@ -1,0 +1,163 @@
+package dk.dbc.dataio.jobstore.service.entity;
+
+import dk.dbc.dataio.jobstore.types.JobNotification;
+
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import java.sql.Timestamp;
+import java.util.Date;
+
+@Entity
+@Table(name = "notification")
+public class NotificationEntity {
+    @Id
+    @SequenceGenerator(
+            name = "notification_id_seq",
+            sequenceName = "notification_id_seq",
+            allocationSize = 1)
+    @GeneratedValue(
+            strategy = GenerationType.SEQUENCE,
+            generator = "notification_id_seq")
+    @Column(updatable = false)
+    private int id;
+
+    @Column(insertable = false, updatable = false)
+    private Timestamp timeOfCreation;
+
+    @Column(insertable = false, updatable = false)
+    private Timestamp timeOfLastModification;
+
+    @Convert(converter = NotificationTypeConverter.class)
+    private JobNotification.Type type;
+
+    @Convert(converter = NotificationStatusConverter.class)
+    private JobNotification.Status status;
+
+    @Lob
+    private String statusMessage;
+
+    @Lob
+    private String destination;
+
+    @Lob
+    private String content;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job")
+    private JobEntity job;
+
+    private int jobId;
+
+    public NotificationEntity() {}
+
+    public int getId() {
+        return id;
+    }
+
+    public Timestamp getTimeOfCreation() {
+        return timeOfCreation;
+    }
+
+    public Timestamp getTimeOfLastModification() {
+        return timeOfLastModification;
+    }
+
+    public JobNotification.Type getType() {
+        return type;
+    }
+
+    public void setType(JobNotification.Type type) {
+        this.type = type;
+    }
+
+    public JobNotification.Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(JobNotification.Status status) {
+        this.status = status;
+    }
+
+    public String getStatusMessage() {
+        return statusMessage;
+    }
+
+    public void setStatusMessage(String statusMessage) {
+        this.statusMessage = statusMessage;
+    }
+
+    public String getDestination() {
+        return destination;
+    }
+
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public JobEntity getJob() {
+        return job;
+    }
+
+    public void setJob(JobEntity job) {
+        this.job = job;
+        this.jobId = job.getId();
+    }
+
+    public int getJobId() {
+        return jobId;
+    }
+
+    public JobNotification toJobNotification() {
+        return new JobNotification(
+                id,
+                toDate(timeOfCreation),
+                toDate(timeOfLastModification),
+                type,
+                status,
+                statusMessage,
+                destination,
+                content,
+                jobId
+        );
+    }
+
+    /* Package scoped constructor used for unit testing
+     */
+    NotificationEntity(int id, Date timeOfCreation, Date timeOfLastModification) {
+        this.id = id;
+        this.timeOfCreation = toTimestamp(timeOfCreation);
+        this.timeOfLastModification = toTimestamp(timeOfLastModification);
+    }
+
+    private Date toDate(Timestamp timestamp) {
+        if (timestamp != null) {
+            return new Date(timestamp.getTime());
+        }
+        return null;
+    }
+
+    private Timestamp toTimestamp(Date date) {
+        if (date != null) {
+            return new Timestamp(date.getTime());
+        }
+        return null;
+    }
+}

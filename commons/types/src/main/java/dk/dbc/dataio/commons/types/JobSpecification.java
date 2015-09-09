@@ -11,6 +11,7 @@ import java.io.Serializable;
  */
 public class JobSpecification implements Serializable {
     private static final long serialVersionUID = 731600708416455339L;
+    private static final Ancestry NO_ANCESTRY = null;
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION = "";
     public static final String EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING = "";
     public static final String EMPTY_RESULT_MAIL_INITIALS = "";
@@ -28,6 +29,7 @@ public class JobSpecification implements Serializable {
     // Due to GWT serialization issues we cannot use java.net.URI or java.net.URL
     private final String dataFile;
     private final Type type;
+    private final Ancestry ancestry;
 
     /**
      * Class constructor
@@ -42,6 +44,7 @@ public class JobSpecification implements Serializable {
      * @param resultmailInitials According to transfile spec: "Initialer til identifikation af resultatmail fra DanBib".
      * @param dataFile job data file
      * @param type job type
+     * @param ancestry job ancestry
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String argument
@@ -57,7 +60,8 @@ public class JobSpecification implements Serializable {
                             @JsonProperty("mailForNotificationAboutProcessing") String mailForNotificationAboutProcessing,
                             @JsonProperty("resultmailInitials") String resultmailInitials,
                             @JsonProperty("dataFile") String dataFile,
-                            @JsonProperty("type") Type type) throws NullPointerException, IllegalArgumentException {
+                            @JsonProperty("type") Type type,
+                            @JsonProperty("ancestry") Ancestry ancestry) throws NullPointerException, IllegalArgumentException {
 
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
@@ -69,6 +73,22 @@ public class JobSpecification implements Serializable {
         this.resultmailInitials = InvariantUtil.checkNotNullOrThrow(resultmailInitials, "resultmailInitials");
         this.dataFile = InvariantUtil.checkNotNullNotEmptyOrThrow(dataFile, "dataFile");
         this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
+        this.ancestry = ancestry;
+    }
+
+    public JobSpecification(String packaging,
+                            String format,
+                            String charset,
+                            String destination,
+                            long submitterId,
+                            String mailForNotificationAboutVerification,
+                            String mailForNotificationAboutProcessing,
+                            String resultmailInitials,
+                            String dataFile,
+                            Type type) throws NullPointerException, IllegalArgumentException {
+        this(packaging, format, charset, destination, submitterId,
+                mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials,
+                dataFile, type, NO_ANCESTRY);
     }
 
     public String getCharset() {
@@ -112,6 +132,10 @@ public class JobSpecification implements Serializable {
         return type;
     }
 
+    public Ancestry getAncestry() {
+        return ancestry;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -150,7 +174,11 @@ public class JobSpecification implements Serializable {
         if (!dataFile.equals(that.dataFile)) {
             return false;
         }
-        return type == that.type;
+        if (type != that.type) {
+            return false;
+        }
+        return !(ancestry != null ? !ancestry.equals(that.ancestry) : that.ancestry != null);
+
     }
 
     @Override
@@ -165,6 +193,7 @@ public class JobSpecification implements Serializable {
         result = 31 * result + resultmailInitials.hashCode();
         result = 31 * result + dataFile.hashCode();
         result = 31 * result + type.hashCode();
+        result = 31 * result + (ancestry != null ? ancestry.hashCode() : 0);
         return result;
     }
 
@@ -181,6 +210,74 @@ public class JobSpecification implements Serializable {
                 ", resultmailInitials='" + resultmailInitials + '\'' +
                 ", dataFile='" + dataFile + '\'' +
                 ", type='" + type + '\'' +
+                ", ancestry='" + ancestry + '\'' +
                 '}';
+    }
+
+    public static class Ancestry implements Serializable {
+        private final String transfile;
+        private final String datafile;
+        private final String batchId;
+
+
+        @JsonCreator
+        public Ancestry(
+                @JsonProperty("transfile") String transfile,
+                @JsonProperty("datafile") String datafile,
+                @JsonProperty("batchId") String batchId) {
+            this.transfile = transfile;
+            this.datafile = datafile;
+            this.batchId = batchId;
+        }
+
+        public String getTransfile() {
+            return transfile;
+        }
+
+        public String getDatafile() {
+            return datafile;
+        }
+
+        public String getBatchId() {
+            return batchId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Ancestry ancestry = (Ancestry) o;
+
+            if (transfile != null ? !transfile.equals(ancestry.transfile) : ancestry.transfile != null) {
+                return false;
+            }
+            if (datafile != null ? !datafile.equals(ancestry.datafile) : ancestry.datafile != null) {
+                return false;
+            }
+            return !(batchId != null ? !batchId.equals(ancestry.batchId) : ancestry.batchId != null);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = transfile != null ? transfile.hashCode() : 0;
+            result = 31 * result + (datafile != null ? datafile.hashCode() : 0);
+            result = 31 * result + (batchId != null ? batchId.hashCode() : 0);
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Ancestry{" +
+                    "transfile='" + transfile + '\'' +
+                    ", datafile='" + datafile + '\'' +
+                    ", batchId='" + batchId + '\'' +
+                    '}';
+        }
     }
 }

@@ -4,6 +4,8 @@ import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -107,9 +109,8 @@ public class JobSpecificationTest {
     }
 
     @Test
-    public void testJsonUnmarshalling() throws Exception {
-
-        String data =
+    public void testJsonUnmarshallingWithoutAncestry() throws Exception {
+        final String json =
                 "{ \"packaging\" : \"packaging\", \n" +
                     "    \"format\" : \"format\", \n" +
                     "    \"charset\" : \"charset\", \n" +
@@ -122,9 +123,40 @@ public class JobSpecificationTest {
                     "    \"type\" : \"TEST\"" +
                 "}";
 
-        final JobSpecification jobSpecification = JsonUtil.fromJson(data, JobSpecification.class);
+        final JobSpecification jobSpecification = JsonUtil.fromJson(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));
         assertThat(jobSpecification.getType(), is(TYPE));
+        assertThat(jobSpecification.getAncestry(), is(nullValue()));
     }
 
+    @Test
+    public void testJsonUnmarshallingWithAncestry() throws Exception {
+        final String json =
+                "{\n" +
+                    "    \"packaging\" : \"packaging\",\n" +
+                    "    \"format\" : \"format\",\n" +
+                    "    \"charset\" : \"charset\",\n" +
+                    "    \"destination\" : \"destination\",\n" +
+                    "    \"submitterId\" : 42,\n" +
+                    "    \"mailForNotificationAboutVerification\" : \"ab@cd.ef\",\n" +
+                    "    \"mailForNotificationAboutProcessing\" : \"ab@cd.ef\",\n" +
+                    "    \"resultmailInitials\" : \"abc\",\n" +
+                    "    \"dataFile\" : \"dataFile\",\n" +
+                    "    \"type\" : \"TEST\",\n" +
+                    "    \"ancestry\" : {\n" +
+                    "        \"transfile\" : \"file.trans\",\n" +
+                    "        \"datafile\" : \"file.dat\",\n" +
+                    "        \"batchId\" : \"01\"\n" +
+                    "    }\n" +
+                "}";
+
+        final JobSpecification jobSpecification = JsonUtil.fromJson(json, JobSpecification.class);
+        assertThat(jobSpecification.getPackaging(), is("packaging"));
+        assertThat(jobSpecification.getType(), is(TYPE));
+        final JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
+        assertThat(ancestry, is(notNullValue()));
+        assertThat(ancestry.getTransfile(), is("file.trans"));
+        assertThat(ancestry.getDatafile(), is("file.dat"));
+        assertThat(ancestry.getBatchId(), is("01"));
+    }
 }

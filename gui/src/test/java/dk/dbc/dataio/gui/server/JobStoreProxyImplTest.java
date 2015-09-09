@@ -11,6 +11,7 @@ import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -205,7 +206,34 @@ public class JobStoreProxyImplTest {
         }
     }
 
-    /*
+    @Test(expected = ProxyException.class)
+    public void listJobNotificationsForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listJobNotificationsForJob(any(Integer.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.listJobNotificationsForJob(123);
+    }
+
+
+    @Test
+    public void listJobNotificationsForJob_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        List<JobNotification> testJobNotifications = new ArrayList<>();
+        testJobNotifications.add(new JobNotification(11, null, null, JobNotification.Type.JOB_CREATED, JobNotification.Status.WAITING, "status1", "dest1", "content1", 1111));
+        testJobNotifications.add(new JobNotification(22, null, null, JobNotification.Type.JOB_COMPLETED, JobNotification.Status.COMPLETED, "status2", "dest2", "content2", 2222));
+        testJobNotifications.add(new JobNotification(33, null, null, JobNotification.Type.JOB_COMPLETED, JobNotification.Status.FAILED, "status3", "dest3", "content3", 3333));
+
+        when(jobStoreServiceConnector.listJobNotificationsForJob(any(Integer.class))).thenReturn(testJobNotifications);
+        try {
+            List<JobNotification> jobNotifications = jobStoreProxy.listJobNotificationsForJob(2222);
+            assertThat(jobNotifications, is(testJobNotifications));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: listJobs()");
+        }
+    }
+
+
+   /*
      * private methods
      */
 

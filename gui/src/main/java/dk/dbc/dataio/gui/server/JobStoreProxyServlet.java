@@ -6,6 +6,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -56,6 +57,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     @Override
     public String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException {
         return jobStoreProxy.getProcessedNextResult(jobId, chunkId, itemId);
+    }
+
+    @Override
+    public List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException {
+        return jobStoreProxy.listJobNotificationsForJob(jobId);
     }
 
     @Override

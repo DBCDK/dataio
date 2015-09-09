@@ -3,11 +3,16 @@ package dk.dbc.dataio.jobstore.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class JobNotification {
+public class JobNotification implements Serializable {
+    public JobNotification() {
+        this(1, null, null, Type.JOB_CREATED, Status.WAITING, "", "", "", 1);
+    }
+
     public enum Type {
         // Do not change these enum short values
         // since they are used as database attribute values

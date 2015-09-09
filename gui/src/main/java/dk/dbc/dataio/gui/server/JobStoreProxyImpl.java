@@ -16,6 +16,7 @@ import dk.dbc.dataio.gui.server.modelmappers.ItemModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -232,6 +233,34 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } finally {
             log.debug("JobStoreProxy: getProcessedNextResult took {} milliseconds", stopWatch.getElapsedTime());
         }
+    }
+
+    @Override
+    public List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException {
+        final List<JobNotification> jobNotifications;
+        log.trace("JobStoreProxy: listJobNotificationsForJob({})", jobId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            jobNotifications = jobStoreServiceConnector.listJobNotificationsForJob(jobId);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: listJobNotificationsForJob - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: listJobNotificationsForJob - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: listJobNotificationsForJob - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e) {
+            log.error("JobStoreProxy: listJobNotificationsForJob - Invalid Field Value Exception", e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("JobStoreProxy: listJobNotificationsForJob took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return jobNotifications;
     }
 
 

@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -23,6 +24,8 @@ public interface JobStoreProxy extends RemoteService {
 
     String getItemData(int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle) throws ProxyException;
     String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException;
+
+    List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException;
 
     void close();
 

@@ -10,6 +10,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -317,6 +318,32 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: getProcessedNextResult took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves job notifications identified by jobId from the job-store
+     * @param jobId
+     * @return list of selected job notifications
+     * @throws NullPointerException when given null-valued criteria argument
+     * @throws JobStoreServiceConnectorException on general failure to produce jobs listing
+     */
+    public List<JobNotification> listJobNotificationsForJob(int jobId) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: listJobNotificationsForJob();");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_NOTIFICATIONS)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, new GenericType<List<JobNotification>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: listJobNotificationsForJob took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

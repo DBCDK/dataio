@@ -20,6 +20,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -35,6 +36,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -585,6 +587,52 @@ public class JobStoreServiceConnectorTest {
         assertThat(data, is(ITEM_DATA));
     }
 
+    // ******************************************* listJobNotificationsForJob() tests *******************************************
+
+    @Test
+    public void listJobNotificationsForJob_JobIdIsZero_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.listJobNotificationsForJob(0);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void listJobNotificationsForJob_serviceReturnsUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        try {
+            listJobNotificationForJobId_mockedHttpWithSpecifiedReturnErrorCode(123, JobStoreServiceConstants.JOB_NOTIFICATIONS, 500, null);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(500));
+        }
+    }
+
+    @Test
+    public void listJobNotificationsForJob_serviceReturnsNullEntity_throws() throws JobStoreServiceConnectorException {
+        try {
+            listJobNotificationForJobId_mockedHttpWithSpecifiedReturnErrorCode(123, JobStoreServiceConstants.JOB_NOTIFICATIONS, 200, null);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void listJobNotificationsForJob_serviceReturnsEmptyListEntity_returnsEmptyList() throws JobStoreServiceConnectorException {
+        final List<JobNotification> expectedSnapshots = Collections.emptyList();
+        final List<JobNotification> returnedSnapshots = listJobNotificationForJobId_mockedHttpWithSpecifiedReturnErrorCode(123, JobStoreServiceConstants.JOB_NOTIFICATIONS, 200, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
+    @Test
+    public void listJobNotificationsForJob_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
+        final JobNotification testJobNotification = new JobNotification(234, new Date(), new Date(), JobNotification.Type.JOB_CREATED, JobNotification.Status.COMPLETED, "status message", "destination", "content", 345);
+        final List<JobNotification> expectedSnapshots = Arrays.asList(testJobNotification);
+        final List<JobNotification> returnedSnapshots = listJobNotificationForJobId_mockedHttpWithSpecifiedReturnErrorCode(123, JobStoreServiceConstants.JOB_NOTIFICATIONS, 200, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
     /*
      * Private methods
      */
@@ -654,6 +702,13 @@ public class JobStoreServiceConnectorTest {
         return instance.getItemData(jobId, chunkId, itemId, phase);
     }
 
+    private List<JobNotification> listJobNotificationForJobId_mockedHttpWithSpecifiedReturnErrorCode(int jobId, String pathString, int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildJobIdPath(jobId, pathString)))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.listJobNotificationsForJob(jobId);
+    }
+
     private String getProcessedNextResult_mockedHttpWithSpecifiedReturnErrorCode(int jobId, int chunkId, short itemId, String pathString, int statusCode, Object returnValue) throws JobStoreServiceConnectorException {
         when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildAddChunkItemPath(jobId, chunkId, itemId, pathString)))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -672,6 +727,12 @@ public class JobStoreServiceConnectorTest {
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                 .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, chunkId)
                 .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, itemId)
+                .build();
+    }
+
+    private String[] buildJobIdPath(int jobId, String pathString) {
+        return new PathBuilder(pathString)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
                 .build();
     }
 

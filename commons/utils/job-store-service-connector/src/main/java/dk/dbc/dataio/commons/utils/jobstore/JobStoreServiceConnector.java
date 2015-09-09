@@ -323,7 +323,7 @@ public class JobStoreServiceConnector {
 
     /**
      * Retrieves job notifications identified by jobId from the job-store
-     * @param jobId
+     * @param jobId The jobId
      * @return list of selected job notifications
      * @throws NullPointerException when given null-valued criteria argument
      * @throws JobStoreServiceConnectorException on general failure to produce jobs listing

@@ -116,6 +116,17 @@
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-marc</artifactId>
+      <version>1.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xmlmatchers</groupId>
+      <artifactId>xml-matchers</artifactId>
+      <version>1.0-RC1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>

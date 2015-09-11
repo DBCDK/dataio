@@ -1,5 +1,7 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,7 +13,7 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
     private String destination = "destination";
     private String charset = "charset";
     private String description = "description";
-    private String recordSplitter = "recordSplitter";
+    private String recordSplitter = RecordSplitterConstants.RecordSplitter.XML.name();
     private boolean sequenceAnalysis = true;
     private Long flowId = 42L;
     private List<Long> submitterIds = new ArrayList<>(Arrays.asList(43L));
@@ -52,8 +54,8 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public FlowBinderContentJsonBuilder setRecordSplitter(String recordSplitter) {
-        this.recordSplitter = recordSplitter;
+    public FlowBinderContentJsonBuilder setRecordSplitter(RecordSplitterConstants.RecordSplitter recordSplitter) {
+        this.recordSplitter = recordSplitter.name();
         return this;
     }
 

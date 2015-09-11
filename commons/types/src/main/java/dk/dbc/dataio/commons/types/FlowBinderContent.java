@@ -20,7 +20,7 @@ public class FlowBinderContent implements Serializable {
     private final String format;
     private final String charset;
     private final String destination;
-    private final String recordSplitter;
+    private final RecordSplitterConstants.RecordSplitter recordSplitter;
     private final boolean sequenceAnalysis;
     private final long flowId;
     private final List<Long> submitterIds;
@@ -52,7 +52,7 @@ public class FlowBinderContent implements Serializable {
                              @JsonProperty("format") String format,
                              @JsonProperty("charset") String charset,
                              @JsonProperty("destination") String destination,
-                             @JsonProperty("recordSplitter") String recordSplitter,
+                             @JsonProperty("recordSplitter") RecordSplitterConstants.RecordSplitter recordSplitter,
                              @JsonProperty("sequenceAnalysis") boolean sequenceAnalysis,
                              @JsonProperty("flowId") long flowId,
                              @JsonProperty("submitterIds") List<Long> submitterIds,
@@ -64,7 +64,7 @@ public class FlowBinderContent implements Serializable {
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
-        this.recordSplitter = InvariantUtil.checkNotNullNotEmptyOrThrow(recordSplitter, "recordSplitter");
+        this.recordSplitter = InvariantUtil.checkNotNullOrThrow(recordSplitter, "recordSplitter");
         this.sequenceAnalysis = sequenceAnalysis;
         this.flowId = InvariantUtil.checkLowerBoundOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.submitterIds = new ArrayList<Long>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
@@ -102,7 +102,7 @@ public class FlowBinderContent implements Serializable {
         return packaging;
     }
 
-    public String getRecordSplitter() {
+    public RecordSplitterConstants.RecordSplitter getRecordSplitter() {
         return recordSplitter;
     }
 
@@ -134,7 +134,7 @@ public class FlowBinderContent implements Serializable {
         if (!format.equals(that.format)) return false;
         if (!charset.equals(that.charset)) return false;
         if (!destination.equals(that.destination)) return false;
-        if (!recordSplitter.equals(that.recordSplitter)) return false;
+        if (recordSplitter != that.recordSplitter) return false;
         return submitterIds.equals(that.submitterIds);
 
     }

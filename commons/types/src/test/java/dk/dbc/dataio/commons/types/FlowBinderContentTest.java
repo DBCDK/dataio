@@ -24,7 +24,7 @@ public class FlowBinderContentTest {
     private static final String FORMAT = "format";
     private static final String CHARSET = "charset";
     private static final String DESTINATION = "destination";
-    private static final String RECORD_SPLITTER = "recordSplitter";
+    private static final RecordSplitterConstants.RecordSplitter RECORD_SPLITTER = RecordSplitterConstants.RecordSplitter.XML;
     private static final boolean SEQUENCE_ANALYSIS = true;
     private static final Long FLOW_ID = 42L;
     private static final List<Long> SUBMITTER_IDS = Arrays.asList(42L);
@@ -93,11 +93,6 @@ public class FlowBinderContentTest {
     @Test(expected = NullPointerException.class)
     public void constructor_recordSplitterArgIsNull_throws() {
         new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, null, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_recordSplitterArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, "", SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)

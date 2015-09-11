@@ -283,6 +283,7 @@ public class JobDispatcherTest {
     public void getOperation_modificationArgHasCreateJobOpcode_returnsCreateJobOperation() {
         final Modification modification = new Modification();
         modification.setOpcode(Opcode.CREATE_JOB);
+        modification.setTransfileName("123456.001.trans");
         modification.setArg("line");
 
         final JobDispatcher jobDispatcher = getJobDispatcher();

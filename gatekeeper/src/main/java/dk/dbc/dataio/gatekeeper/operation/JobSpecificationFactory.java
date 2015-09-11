@@ -21,14 +21,16 @@ public class JobSpecificationFactory {
      * Creates job specification from given transfile line using
      * "missing value" placeholders for missing field values
      * @param line transfile line to convert into job specification
+     * @param transfileName name of parent transfile
      * @param fileStoreId file-store service ID of data file referenced in transfile line
      * @return JobSpecification instance
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued fileStoreId argument
      */
-    public static JobSpecification createJobSpecification(TransFile.Line line, String fileStoreId)
+    public static JobSpecification createJobSpecification(TransFile.Line line, String transfileName, String fileStoreId)
             throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullOrThrow(line, "line");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileStoreId, "fileStoreId");
         return new JobSpecification(
                 getFieldValueOrMissing(line, "t"),
@@ -40,7 +42,8 @@ public class JobSpecificationFactory {
                 getFieldValueOrMissing(line, "M"),
                 getFieldValueOrMissing(line, "i"),
                 getFileStoreUrnOrMissing(line, fileStoreId),
-                JobSpecification.Type.PERSISTENT);
+                JobSpecification.Type.PERSISTENT,
+                getAncestry(transfileName, line));
     }
 
     private static String getFieldValueOrMissing(TransFile.Line line, String fieldName) {
@@ -78,5 +81,19 @@ public class JobSpecificationFactory {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Unable to create FileStoreUrn", e);
         }
+    }
+
+    private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line) {
+        final String datafileName = getFieldValueOrMissing(line, "f");
+        final String batchId = getBatchId(datafileName);
+        return new JobSpecification.Ancestry(transfileName, datafileName, batchId);
+    }
+
+    private static String getBatchId(String datafileName) {
+        final String[] split = datafileName.split("\\.");
+        if (split.length > 2) {
+            return split[1];
+        }
+        return "";
     }
 }

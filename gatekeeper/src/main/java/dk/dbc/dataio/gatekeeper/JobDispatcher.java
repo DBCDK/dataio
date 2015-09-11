@@ -246,7 +246,8 @@ public class JobDispatcher {
                 break;
             case CREATE_JOB:
                 op = new CreateJobOperation(connectorFactory.getJobStoreServiceConnector(),
-                        connectorFactory.getFileStoreServiceConnector(), dir.toAbsolutePath(), modification.getArg());
+                        connectorFactory.getFileStoreServiceConnector(), dir.toAbsolutePath(),
+                        modification.getTransfileName(), modification.getArg());
                 break;
             default:
                 throw new IllegalStateException(String.format("Unhandled opcode '%s'", modification.getOpcode()));

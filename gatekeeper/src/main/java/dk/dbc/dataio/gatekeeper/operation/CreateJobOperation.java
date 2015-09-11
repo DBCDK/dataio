@@ -26,16 +26,19 @@ public class CreateJobOperation implements Operation {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final Path workingDir;
+    private final String transfileName;
     private final String transfileData;
 
     public CreateJobOperation(JobStoreServiceConnector jobStoreServiceConnector,
                               FileStoreServiceConnector fileStoreServiceConnector,
                               Path workingDir,
+                              String transfileName,
                               String transfileData)
             throws NullPointerException, IllegalArgumentException {
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.workingDir = InvariantUtil.checkNotNullOrThrow(workingDir, "workingDir");
+        this.transfileName = InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
         this.transfileData = InvariantUtil.checkNotNullNotEmptyOrThrow(transfileData, "transfileData");
     }
 
@@ -50,7 +53,7 @@ public class CreateJobOperation implements Operation {
         final TransFile.Line transfileLine = new TransFile.Line(transfileData);
         final String fileStoreId = uploadToFileStore(transfileLine.getField("f"));
         final JobSpecification jobSpecification =
-                JobSpecificationFactory.createJobSpecification(transfileLine, fileStoreId);
+                JobSpecificationFactory.createJobSpecification(transfileLine, transfileName, fileStoreId);
 
         createJobInJobStore(jobSpecification, fileStoreId);
     }
@@ -65,6 +68,10 @@ public class CreateJobOperation implements Operation {
 
     public Path getWorkingDir() {
         return workingDir;
+    }
+
+    public String getTransfileName() {
+        return transfileName;
     }
 
     public String getTransfileData() {

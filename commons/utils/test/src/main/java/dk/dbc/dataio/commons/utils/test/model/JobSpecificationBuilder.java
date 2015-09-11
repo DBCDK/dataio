@@ -14,6 +14,7 @@ public class JobSpecificationBuilder {
     private String resultmailInitials = "-resultmailInitials-";
     private String dataFile = "-dataFile-";
     private JobSpecification.Type type = JobSpecification.Type.TEST;
+    private JobSpecification.Ancestry ancestry = null;
 
     public JobSpecificationBuilder setPackaging(String packaging) {
         this.packaging = packaging;
@@ -65,7 +66,39 @@ public class JobSpecificationBuilder {
         return this;
     }
 
+    public JobSpecificationBuilder setAncestry(JobSpecification.Ancestry ancestry) {
+        this.ancestry = ancestry;
+        return this;
+    }
+
     public JobSpecification build() {
-        return new JobSpecification(packaging, format, charset, destination, submitterId, mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials, dataFile, type);
+        return new JobSpecification(packaging, format, charset, destination, submitterId,
+                mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials,
+                dataFile, type, ancestry);
+    }
+
+    public static class AncestryBuilder {
+        private String transfile = "transfile";
+        private String datafile = "datafile";
+        private String batchId = "";
+
+        public AncestryBuilder setTransfile(String transfile) {
+            this.transfile = transfile;
+            return this;
+        }
+
+        public AncestryBuilder setDatafile(String datafile) {
+            this.datafile = datafile;
+            return this;
+        }
+
+        public AncestryBuilder setBatchId(String batchId) {
+            this.batchId = batchId;
+            return this;
+        }
+
+        public JobSpecification.Ancestry build() {
+            return new JobSpecification.Ancestry(transfile, datafile, batchId);
+        }
     }
 }

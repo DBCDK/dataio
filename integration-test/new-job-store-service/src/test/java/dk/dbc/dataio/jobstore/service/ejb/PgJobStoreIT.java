@@ -1876,7 +1876,7 @@ public class PgJobStoreIT {
             sink = new SinkBuilder().build();
             flowBinder = new FlowBinderBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
-            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink.getId());
             if (!utf8Data.equals(UNDEFINED_DATA)) {
                 dataFileInputStream = new ByteArrayInputStream(utf8Data.getBytes(StandardCharsets.UTF_8));
                 dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,

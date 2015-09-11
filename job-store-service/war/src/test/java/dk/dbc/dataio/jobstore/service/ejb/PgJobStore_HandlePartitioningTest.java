@@ -231,7 +231,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
             diagnostics = new ArrayList<>();
 
-            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink);
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink.getId());
             dataFileInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
             dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
                     StandardCharsets.UTF_8.name());

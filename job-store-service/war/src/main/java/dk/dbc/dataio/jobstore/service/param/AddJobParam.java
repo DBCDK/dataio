@@ -207,7 +207,7 @@ public class AddJobParam {
          if (flowBinder != null) {
              if (flowBinder.getContent().getSequenceAnalysis()) {
                  if (sink != null) {
-                     return new SequenceAnalyserSinkKeyGenerator(sink);
+                     return new SequenceAnalyserSinkKeyGenerator(sink.getId());
                  }
              } else {
                  return new SequenceAnalyserNoOrderKeyGenerator();

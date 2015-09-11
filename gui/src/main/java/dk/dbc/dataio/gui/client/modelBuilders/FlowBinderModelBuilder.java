@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gui.client.modelBuilders;
 
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -19,7 +20,7 @@ public class FlowBinderModelBuilder {
     private String format = "flowbinder-format";
     private String charset = "flowbinder-charset";
     private String destination = "flowbinder-destination";
-    private String recordSplitter = "flowbinder-recordsplitter";
+    private String recordSplitter = RecordSplitterConstants.RecordSplitter.XML.name();
     private boolean sequenceAnalysis = true;
     private FlowModel flowModel = new FlowModelBuilder().build();
     private List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>(Arrays.asList(new SubmitterModelBuilder().build()));
@@ -65,8 +66,8 @@ public class FlowBinderModelBuilder {
         return this;
     }
 
-    public FlowBinderModelBuilder setRecordSplitter(String recordSplitter) {
-        this.recordSplitter = recordSplitter;
+    public FlowBinderModelBuilder setRecordSplitter(RecordSplitterConstants.RecordSplitter recordSplitter) {
+        this.recordSplitter = recordSplitter.name();
         return this;
     }
 

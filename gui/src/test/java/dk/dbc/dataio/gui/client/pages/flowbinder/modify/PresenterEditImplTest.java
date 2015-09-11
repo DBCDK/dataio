@@ -4,6 +4,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
@@ -41,7 +42,6 @@ public class PresenterEditImplTest {
     private PresenterEditImpl presenterEditImpl;
 
     private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
-    private final static String DEFAULT_RECORD_SPLITTER = "Default Record Splitter";
     private final static long DEFAULT_FLOWBINDER_ID = 776L;
 
     class PresenterEditImplConcrete extends PresenterEditImpl {
@@ -61,7 +61,6 @@ public class PresenterEditImplTest {
         when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
-        when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
         when(mockedPlace.getFlowBinderId()).thenReturn(DEFAULT_FLOWBINDER_ID);
     }
 
@@ -99,7 +98,7 @@ public class PresenterEditImplTest {
         assertThat(presenterEditImpl.model.getFormat(), is(""));
         assertThat(presenterEditImpl.model.getCharset(), is(""));
         assertThat(presenterEditImpl.model.getDestination(), is(""));
-        assertThat(presenterEditImpl.model.getRecordSplitter(), is(""));
+        assertThat(presenterEditImpl.model.getRecordSplitter(), is(RecordSplitterConstants.RecordSplitter.XML.name()));
         assertThat(presenterEditImpl.model.getFlowModel(), is(notNullValue()));
         assertThat(presenterEditImpl.model.getFlowModel().getFlowName(), is(""));
         assertThat(presenterEditImpl.model.getSubmitterModels(), is(notNullValue()));

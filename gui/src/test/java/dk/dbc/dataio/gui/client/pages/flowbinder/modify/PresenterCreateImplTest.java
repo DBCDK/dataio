@@ -3,6 +3,7 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
@@ -40,7 +41,6 @@ public class PresenterCreateImplTest {
     private PresenterCreateImpl presenterCreateImpl;
 
     private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
-    private final static String DEFAULT_RECORD_SPLITTER = "Default Record Splitter";
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -50,7 +50,6 @@ public class PresenterCreateImplTest {
         when(mockedClientFactory.getFlowBinderCreateView()).thenReturn(createView);
         when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
-        when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
     }
 
     @Before
@@ -86,7 +85,7 @@ public class PresenterCreateImplTest {
         assertThat(presenterCreateImpl.model.getFormat(), is(""));
         assertThat(presenterCreateImpl.model.getCharset(), is(""));
         assertThat(presenterCreateImpl.model.getDestination(), is(""));
-        assertThat(presenterCreateImpl.model.getRecordSplitter(), is(DEFAULT_RECORD_SPLITTER));
+        assertThat(presenterCreateImpl.model.getRecordSplitter(), is(RecordSplitterConstants.RecordSplitter.XML.name()));
         assertThat(presenterCreateImpl.model.getFlowModel(), is(notNullValue()));
         assertThat(presenterCreateImpl.model.getFlowModel().getFlowName(), is(""));
         assertThat(presenterCreateImpl.model.getSubmitterModels(), is(notNullValue()));

@@ -12,7 +12,6 @@ import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -181,7 +180,6 @@ public class FlowBinderModelMapperTest {
         FlowBinderModelMapper.toFlowBinderContent(model);
     }
 
-    @Ignore
     @Test
     public void toFlowBinderContent_validInput_returnsValidFlowBinderContent() {
 

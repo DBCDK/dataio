@@ -4,6 +4,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
@@ -32,9 +33,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     // Application Models
     protected FlowBinderModel model = new FlowBinderModel();
-    protected List<SubmitterModel> availableSubmitters = new ArrayList<SubmitterModel>();
-    protected List<FlowModel> availableFlows = new ArrayList<FlowModel>();
-    protected List<SinkModel> availableSinks = new ArrayList<SinkModel>();
+    protected List<RecordSplitterConstants.RecordSplitter> availableRecordSplitters = new ArrayList<>();
+    protected List<SubmitterModel> availableSubmitters = new ArrayList<>();
+    protected List<FlowModel> availableFlows = new ArrayList<>();
+    protected List<SinkModel> availableSinks = new ArrayList<>();
 
 
     /**
@@ -67,6 +69,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         fetchAvailableFlows();
         fetchAvailableSinks();
         initializeModel();
+        setAvailableRecordSplitters();
     }
 
     private void initializeViewFields() {
@@ -82,7 +85,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(false);
         view.destination.clearText();
         view.destination.setEnabled(false);
-        view.recordSplitter.clearText();
+        view.recordSplitter.clear();
         view.recordSplitter.setEnabled(false);
         view.sequenceAnalysis.setEnabled(true);
         view.recordSplitter.setEnabled(false);
@@ -156,16 +159,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * A signal to the presenter, saying that the recordSplitter field has been changed
-     *
-     * @param recordSplitter, the new value
-     */
-    @Override
-    public void recordSplitterChanged(String recordSplitter) {
-        model.setRecordSplitter(recordSplitter);
-    }
-
-    /**
      * A signal to the presenter, saying that the sequenceAnalysis field has been changed
      *
      * @param sequenceAnalysis, the new value
@@ -176,13 +169,25 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the record splitter field has been changed
+     *
+     * @param recordSplitter, the selected record splitter
+     */
+    @Override
+    public void recordSplitterChanged(String recordSplitter) {
+        if (recordSplitter != null) {
+            model.setRecordSplitter(recordSplitter);
+        }
+    }
+
+    /**
      * A signal to the presenter, saying that the submitters field has been changed
      *
      * @param submitters, a map of the selected submitters
      */
     @Override
     public void submittersChanged(Map<String, String> submitters) {
-        List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
+        List<SubmitterModel> submitterModels = new ArrayList<>();
         for (String id : submitters.keySet()) {
             SubmitterModel sModel = getSubmitterModel(Long.parseLong(id));
             if (sModel != null) {
@@ -247,7 +252,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     protected void updateAllFieldsAccordingToCurrentState() {
-        model.setRecordSplitter(texts.label_DefaultRecordSplitter());
         view.name.setText(model.getName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
@@ -261,8 +265,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(true);
         view.destination.setText(model.getDestination());
         view.destination.setEnabled(true);
-        view.recordSplitter.setText(model.getRecordSplitter());
-        view.recordSplitter.setEnabled(false);
+        view.recordSplitter.setSelectedItem(model.getRecordSplitter());
+        view.recordSplitter.setEnabled(true);
         view.sequenceAnalysis.setValue(model.getSequenceAnalysis());
         view.sequenceAnalysis.setEnabled(true);
         view.submitters.setAvailableItems(getAvailableSubmitters(model));
@@ -275,7 +279,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private Map<String, String> getAvailableSubmitters(FlowBinderModel model) {
-        Map<String, String> availableSubmitterMap = new HashMap<String, String>();
+        Map<String, String> availableSubmitterMap = new HashMap<>();
         for (SubmitterModel submitterModel: this.availableSubmitters) {
             if (!isSubmitterSelected(submitterModel.getId(), model.getSubmitterModels())) {
                 availableSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
@@ -294,7 +298,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {
-        Map<String, String> selectedSubmitterMap = new HashMap<String, String>();
+        Map<String, String> selectedSubmitterMap = new HashMap<>();
         for (SubmitterModel submitterModel: model.getSubmitterModels()) {
             selectedSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
         }
@@ -303,7 +307,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     protected void setAvailableSubmitters(List<SubmitterModel> models) {
         this.availableSubmitters = models;
-        Map<String, String> submitters = new HashMap<String, String>(models.size());
+        Map<String, String> submitters = new HashMap<>(models.size());
         for (SubmitterModel model : models) {
             submitters.put(String.valueOf(model.getId()), formatSubmitterName(model));
         }
@@ -327,6 +331,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             view.sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
         }
         view.sink.setEnabled(true);
+    }
+
+    protected void setAvailableRecordSplitters() {
+        availableRecordSplitters = RecordSplitterConstants.getRecordSplitters();
+        view.recordSplitter.clear();
+        for (RecordSplitterConstants.RecordSplitter recordSplitter : availableRecordSplitters) {
+            view.recordSplitter.addAvailableItem(recordSplitter.name());
+        }
+        view.recordSplitter.setEnabled(true);
+        if (model.getRecordSplitter().isEmpty()) {
+            model.setRecordSplitter(availableRecordSplitters.get(0).name());
+        }
     }
 
     private void fetchAvailableSubmitters() {

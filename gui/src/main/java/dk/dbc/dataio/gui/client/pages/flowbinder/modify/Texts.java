@@ -36,9 +36,6 @@ public interface Texts extends Constants {
     String label_Sink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_DefaultRecordSplitter();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SequenceAnalysis();
 
     // Tooltips

@@ -83,6 +83,7 @@ public class PresenterImplTest {
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
             setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3));
+            setAvailableRecordSplitters();
             initializeModelHasBeenCalled = false;
             saveModelHasBeenCalled = false;
         }
@@ -130,20 +131,17 @@ public class PresenterImplTest {
 
     @Before
     public void setupSubmitterLists() {
-        availableSubmitterModelList = new ArrayList<SubmitterModel>(4);
+        availableSubmitterModelList = new ArrayList<>(4);
         availableSubmitterModelList.add(submitterModel1);
         availableSubmitterModelList.add(submitterModel2);
         availableSubmitterModelList.add(submitterModel3);
         availableSubmitterModelList.add(submitterModel4);
     }
 
-    final String DEFAULT_RECORD_SPLITTER = "-Default Record Splitter-";
-
     @Before
     public void setupMockedObjects() {
         when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
         when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
-        when(mockedTexts.label_DefaultRecordSplitter()).thenReturn(DEFAULT_RECORD_SPLITTER);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
@@ -174,7 +172,7 @@ public class PresenterImplTest {
         verify(mockedFlowStoreProxy).findAllSinks(any(FilteredAsyncCallback.class));
         assertThat(initializeModelHasBeenCalled, is(true));
         FlowBinderModel model = presenterImpl.model;
-        Map<String, String> selectedSubmitterModel = new HashMap<String, String>();
+        Map<String, String> selectedSubmitterModel = new HashMap<>();
         SubmitterModel sModel = model.getSubmitterModels().get(0);
         selectedSubmitterModel.put(String.valueOf(sModel.getId()), sModel.getNumber() + " (" + sModel.getName() + ")");
     }
@@ -269,7 +267,7 @@ public class PresenterImplTest {
     public void selectedSubmittersChanged_callSelectedSubmittersChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
         initializeAndStartPresenter();
 
-        Map<String, String> newSelectedSubmitters = new HashMap<String, String>();
+        Map<String, String> newSelectedSubmitters = new HashMap<>();
         newSelectedSubmitters.put("202", "85 (knallert)");
         presenterImpl.submittersChanged(newSelectedSubmitters);
 
@@ -283,7 +281,7 @@ public class PresenterImplTest {
     public void selectedSubmittersChanged_callSelectedSubmittersChangedWithUnknownSubmitter_throws() {
         initializeAndStartPresenter();
 
-        Map<String, String> newSelectedSubmitters = new HashMap<String, String>();
+        Map<String, String> newSelectedSubmitters = new HashMap<>();
         newSelectedSubmitters.put("210", "85 (knallert)");
         presenterImpl.submittersChanged(newSelectedSubmitters);
     }

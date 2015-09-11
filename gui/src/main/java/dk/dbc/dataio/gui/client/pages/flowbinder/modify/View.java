@@ -37,7 +37,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox format;
     @UiField PromptedTextBox charset;
     @UiField PromptedTextBox destination;
-    @UiField PromptedTextBox recordSplitter;
+    @UiField PromptedList recordSplitter;
     @UiField PromptedCheckBox sequenceAnalysis;
     @UiField PromptedDualList submitters;
     @UiField PromptedList flow;
@@ -76,8 +76,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("recordSplitter")
-    void recordSplitterChanged(BlurEvent event) {
-        presenter.recordSplitterChanged(recordSplitter.getText());
+    void recordSplitterChanged(ValueChangeEvent<String> event) {
+        presenter.recordSplitterChanged(recordSplitter.getSelectedKey());
+        presenter.keyPressed();
     }
 
     @UiHandler("sequenceAnalysis")
@@ -131,11 +132,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("destination")
     void keyPressedInDestinationField(KeyDownEvent event) {
-        presenter.keyPressed();
-    }
-
-    @UiHandler("recordSplitter")
-    void keyPressedInRecordsplitterField(KeyDownEvent event) {
         presenter.keyPressed();
     }
 

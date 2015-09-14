@@ -232,20 +232,18 @@ public class AddJobParam {
     }
 
     private DataPartitionerFactory.DataPartitioner newDataPartitioner() {
-        if (dataFileInputStream != null) {
-            if(flowBinder != null) {
-                final RecordSplitterConstants.RecordSplitter recordSplitter = flowBinder.getContent().getRecordSplitter();
-                switch (recordSplitter) {
-                    case XML:
-                        return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
-                                jobInputStream.getJobSpecification().getCharset());
-                    case ISO2709:
-                        return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream,
-                                jobInputStream.getJobSpecification().getCharset());
-                    default:
-                        diagnostics.add(new Diagnostic(
-                                Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitter));
-                }
+        if (dataFileInputStream != null && flowBinder != null) {
+            final RecordSplitterConstants.RecordSplitter recordSplitter = flowBinder.getContent().getRecordSplitter();
+            switch (recordSplitter) {
+                case XML:
+                    return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                            jobInputStream.getJobSpecification().getCharset());
+                case ISO2709:
+                    return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                            jobInputStream.getJobSpecification().getCharset());
+                default:
+                    diagnostics.add(new Diagnostic(
+                            Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitter));
             }
         }
         return null;

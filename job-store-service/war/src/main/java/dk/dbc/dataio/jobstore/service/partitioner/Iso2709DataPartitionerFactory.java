@@ -91,6 +91,11 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
                 public boolean hasNext() {
                     try {
                         document = Iso2709Unpacker.createMarcXChangeRecord(bufferedInputStream, danMarc2Charset, documentBuilderFactory);
+                        LOGGER.info("document: {}", document);
+                        if (document != null) {
+                            LOGGER.info("input encoding: {}", document.getInputEncoding());
+                            LOGGER.info("output encoding: {}", document.getXmlEncoding());
+                        }
                     } catch (IOException | ParserConfigurationException e) {
                         LOGGER.error("Exception caught while creating MarcXChange Record", e);
                         throw new InvalidDataException(e);

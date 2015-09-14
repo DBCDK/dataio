@@ -13,7 +13,6 @@ import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -92,11 +91,6 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
                 public boolean hasNext() {
                     try {
                         document = Iso2709Unpacker.createMarcXChangeRecord(bufferedInputStream, danMarc2Charset, documentBuilderFactory);
-                        LOGGER.info("document: {}", document);
-                        if (document != null) {
-                            LOGGER.info("input encoding: {}", document.getInputEncoding());
-                            LOGGER.info("output encoding: {}", document.getXmlEncoding());
-                        }
                     } catch (IOException | ParserConfigurationException e) {
                         LOGGER.error("Exception caught while creating MarcXChange Record", e);
                         throw new InvalidDataException(e);
@@ -147,7 +141,6 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
             DOMSource domSource = new DOMSource(document);
             StreamResult result = new StreamResult(new StringWriter());
             Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
             transformer.transform(domSource, result);
             return result.getWriter().toString();
         }

@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -13,6 +14,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -231,8 +233,20 @@ public class AddJobParam {
 
     private DataPartitionerFactory.DataPartitioner newDataPartitioner() {
         if (dataFileInputStream != null) {
-            return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
-                    jobInputStream.getJobSpecification().getCharset());
+            if(flowBinder != null) {
+                final RecordSplitterConstants.RecordSplitter recordSplitter = flowBinder.getContent().getRecordSplitter();
+                switch (recordSplitter) {
+                    case XML:
+                        return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                                jobInputStream.getJobSpecification().getCharset());
+                    case ISO2709:
+                        return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream,
+                                jobInputStream.getJobSpecification().getCharset());
+                    default:
+                        diagnostics.add(new Diagnostic(
+                                Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitter));
+                }
+            }
         }
         return null;
     }

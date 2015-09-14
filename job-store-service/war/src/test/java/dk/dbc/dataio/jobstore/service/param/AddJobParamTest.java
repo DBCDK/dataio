@@ -5,16 +5,21 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -118,6 +123,14 @@ public class AddJobParamTest {
 
         InputStream mockedInputStream = mock(InputStream.class);
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedInputStream);
+
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
 
         final AddJobParam addJobParam = constructAddJobParam(true);
 
@@ -334,43 +347,46 @@ public class AddJobParamTest {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
-
-        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
-
-        when(mockedFlowStoreServiceConnector.getFlowBinder(
-                eq(jobSpecification.getPackaging()),
-                eq(jobSpecification.getFormat()),
-                eq(jobSpecification.getCharset()),
-                eq(jobSpecification.getSubmitterId()),
-                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
-
-        when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenReturn(flow);
-        when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenReturn(sink);
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
-
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = getAddJobParamWithAllParametersSet(submitter, flow, sink, flowBinder);
 
         assertThat(addJobParam.getSequenceAnalyserKeyGenerator(), is(notNullValue()));
         assertThat(addJobParam.getDataPartitioner(), is(notNullValue()));
-
         assertThat(addJobParam.getDiagnostics().size(), is(0));
-
-        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
-        final FlowStoreReference submitterReference = new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName());
-        final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
-        final FlowStoreReference flowReference = new FlowStoreReference(flow.getId(), flow.getVersion(), flow.getContent().getName());
-        final FlowStoreReference sinkReference = new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName());
-        flowStoreReferences.setReference(FlowStoreReferences.Elements.SUBMITTER, submitterReference);
-        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER, flowBinderReference);
-        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW, flowReference);
-        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK, sinkReference);
-        assertThat(addJobParam.flowStoreReferences, is(flowStoreReferences));
+        assertThat(addJobParam.flowStoreReferences, is(getFlowStoreReferencesWithAllReferencesSet(submitter, flow, sink, flowBinder)));
 
         assertThat(addJobParam.getDataFileId(), is(DATA_FILE_ID));
         assertThat(addJobParam.getSubmitter(), is(submitter));
         assertThat(addJobParam.getFlowBinder(), is(flowBinder));
         assertThat(addJobParam.getFlow(), is(flow));
         assertThat(addJobParam.getSink(), is(sink));
+    }
+
+    @Test
+    public void addJobParam_defaultXmlDataPartitionerSetAsParameter_ok() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setRecordSplitter(RecordSplitterConstants.RecordSplitter.XML).build();
+        final FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
+        final AddJobParam addJobParam = getAddJobParamWithAllParametersSet(
+                new SubmitterBuilder().build(),
+                new FlowBuilder().build(),
+                new SinkBuilder().build(),
+                flowBinder);
+
+        assertThat(addJobParam.getDataPartitioner(), is(notNullValue()));
+        assertThat(addJobParam.getDataPartitioner().toString().contains(DefaultXmlDataPartitionerFactory.class.getName()), is(true));
+    }
+
+    @Test
+    public void addJobParam_iso2709DataPartitionerSetAsParameter_ok() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+        final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setRecordSplitter(RecordSplitterConstants.RecordSplitter.ISO2709).build();
+        final FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
+        final AddJobParam addJobParam = getAddJobParamWithAllParametersSet(
+                new SubmitterBuilder().build(),
+                new FlowBuilder().build(),
+                new SinkBuilder().build(),
+                flowBinder);
+
+        assertThat(addJobParam.getDataPartitioner(), is(notNullValue()));
+        assertThat(addJobParam.getDataPartitioner().toString().contains(Iso2709DataPartitionerFactory.class.getName()), is(true));
     }
 
     /*
@@ -392,5 +408,45 @@ public class AddJobParamTest {
             addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector, mockedFileStoreServiceConnector);
         }
         return addJobParam;
+    }
+
+    private FlowStoreReferences getFlowStoreReferencesWithAllReferencesSet(Submitter submitter, Flow flow, Sink sink, FlowBinder flowBinder) {
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+
+        flowStoreReferences.setReference(
+                FlowStoreReferences.Elements.SUBMITTER,
+                new FlowStoreReference(submitter.getId(), submitter.getVersion(), submitter.getContent().getName()));
+
+        flowStoreReferences.setReference(
+                FlowStoreReferences.Elements.FLOW_BINDER,
+                new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName()));
+
+        flowStoreReferences.setReference(
+                FlowStoreReferences.Elements.FLOW,
+                new FlowStoreReference(flow.getId(), flow.getVersion(), flow.getContent().getName()));
+
+        flowStoreReferences.setReference(
+                FlowStoreReferences.Elements.SINK,
+                new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName()));
+
+        return flowStoreReferences;
+    }
+
+    private AddJobParam getAddJobParamWithAllParametersSet(Submitter submitter, Flow flow, Sink sink, FlowBinder flowBinder) throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
+
+        when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenReturn(flow);
+        when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenReturn(sink);
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
+
+        return constructAddJobParam(true);
     }
 }

@@ -1,55 +1,32 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
-import dk.dbc.marc.Iso2709Unpacker;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Result;
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import static org.xmlmatchers.XmlMatchers.isEquivalentTo;
 import static org.xmlmatchers.transform.XmlConverters.the;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-        Iso2709Unpacker.class,
-        TransformerFactory.class})
-public class Iso2709DataPartitionerTest {
+public class Iso2709DataPartitioner_providedDataTest {
 
     private final static String SPECIFIED_ENCODING = "latin1";
 
     private final static String INPUT_RECORD_1_ISO = "test-record-1-danmarc2.iso";
     private final static String INPUT_RECORDS_3_ISO = "test-records-3-danmarc2.iso";
-
     private final static String OUTPUT_RECORD_1_MARCXCHANGE = "test-record-1-danmarc2.marcXChange";
-
 
     @Test
     public void specifiedEncodingDiffersFromActualEncoding_throws() throws IOException, URISyntaxException {
@@ -112,7 +89,6 @@ public class Iso2709DataPartitionerTest {
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
-    @Ignore
     @Test
     public void iso2709DataPartitioner_oneValidRecord_accepted() throws IOException, URISyntaxException {
 
@@ -129,7 +105,6 @@ public class Iso2709DataPartitionerTest {
         assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecord.length, dataPartitioner.getBytesRead(), is((long) isoRecord.length));
     }
 
-    @Ignore
     @Test
     public void iso2709DataPartitioner_multipleRecords_accepted() throws IOException, URISyntaxException {
         final byte[] isoRecords = readTestRecord(INPUT_RECORDS_3_ISO);
@@ -159,63 +134,23 @@ public class Iso2709DataPartitionerTest {
         assertThat("No records => hasNext() expected to be false", iterator.hasNext(), is(false));
     }
 
-    @Test
-    public void iso2709DataPartitioner_invalidIso2709_throws() throws ParserConfigurationException, IOException, URISyntaxException {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
-                .createDataPartitioner(asByteArrayInputStream(INPUT_RECORD_1_ISO), SPECIFIED_ENCODING);
-        final Iterator<String> iterator = dataPartitioner.iterator();
+    /*
+     * Package private methods
+     */
 
-        mockStatic(Iso2709Unpacker.class);
-        when(Iso2709Unpacker.createMarcXChangeRecord(
-                any(BufferedInputStream.class),
-                any(Charset.class),
-                any(DocumentBuilderFactory.class)))
-                .thenThrow(new IOException("Error msg"));
-
-        try {
-            iterator.hasNext();
-            fail("Expected error not thrown");
-        } catch (InvalidDataException e) {
-            assertThat("Expected throwable leading to InvalidDataException", e.getCause() instanceof IOException, is(true));
-        }
-    }
-
-    @Test
-    public void iso2709DataPartitioner_errorConvertingDocumentToString_throws() throws IOException, URISyntaxException, TransformerException {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
-                .createDataPartitioner(asByteArrayInputStream(INPUT_RECORD_1_ISO), SPECIFIED_ENCODING);
-        final Iterator<String> iterator = dataPartitioner.iterator();
-
-        mockStatic(TransformerFactory.class);
-        TransformerFactory mockedTransformerFactory = mock(TransformerFactory.class);
-        Transformer mockedTransformer = mock(Transformer.class);
-
-        when(TransformerFactory.newInstance()).thenReturn(mockedTransformerFactory);
-        when(mockedTransformerFactory.newTransformer()).thenReturn(mockedTransformer);
-        doThrow(new TransformerException("Error msg")).when(mockedTransformer).transform(any(Source.class), any(Result.class));
-
-        iterator.hasNext();
-        try {
-            iterator.next();
-            fail("Expected error not thrown");
-        } catch (InvalidDataException e) {
-            assertThat("Expected throwable leading to InvalidDataException", e.getCause() instanceof TransformerException, is(true));
-        }
-    }
-
-    private InputStream asByteArrayInputStream(String resourceName) throws IOException, URISyntaxException {
+    static InputStream asByteArrayInputStream(String resourceName) throws IOException, URISyntaxException {
         return new ByteArrayInputStream(readTestRecord(resourceName));
     }
 
-    private String getMarcXChangeOutputRecordAsString() throws IOException, URISyntaxException {
+    static String getMarcXChangeOutputRecordAsString() throws IOException, URISyntaxException {
         return new String(readTestRecord(OUTPUT_RECORD_1_MARCXCHANGE), StandardCharsets.UTF_8);
     }
 
-    private static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
-        final URL url = Iso2709DataPartitionerTest.class.getResource("/" + resourceName);
-        final java.nio.file.Path resPath;
-        resPath = java.nio.file.Paths.get(url.toURI());
-        return java.nio.file.Files.readAllBytes(resPath);
+    static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
+        final URL url = Iso2709DataPartitioner_providedDataTest.class.getResource("/" + resourceName);
+        final Path resPath;
+        resPath = Paths.get(url.toURI());
+        return Files.readAllBytes(resPath);
     }
 
 }

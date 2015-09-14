@@ -3,6 +3,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.marc.Iso2709Unpacker;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -111,6 +112,7 @@ public class Iso2709DataPartitionerTest {
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
+    @Ignore
     @Test
     public void iso2709DataPartitioner_oneValidRecord_accepted() throws IOException, URISyntaxException {
 
@@ -127,6 +129,7 @@ public class Iso2709DataPartitionerTest {
         assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecord.length, dataPartitioner.getBytesRead(), is((long) isoRecord.length));
     }
 
+    @Ignore
     @Test
     public void iso2709DataPartitioner_multipleRecords_accepted() throws IOException, URISyntaxException {
         final byte[] isoRecords = readTestRecord(INPUT_RECORDS_3_ISO);

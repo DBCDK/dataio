@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class RecordSplitterConstants {
+public abstract class RecordSplitterConstants {
 
     public enum RecordSplitter { XML, ISO2709 }
 

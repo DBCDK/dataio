@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -20,7 +21,7 @@ import static org.junit.Assert.fail;
 import static org.xmlmatchers.XmlMatchers.isEquivalentTo;
 import static org.xmlmatchers.transform.XmlConverters.the;
 
-public class Iso2709DataPartitioner_providedDataTest {
+public class Iso2709DataPartitioner_dataTest {
 
     private final static String SPECIFIED_ENCODING = "latin1";
 
@@ -89,6 +90,7 @@ public class Iso2709DataPartitioner_providedDataTest {
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
+    @Ignore
     @Test
     public void iso2709DataPartitioner_oneValidRecord_accepted() throws IOException, URISyntaxException {
 
@@ -105,6 +107,7 @@ public class Iso2709DataPartitioner_providedDataTest {
         assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecord.length, dataPartitioner.getBytesRead(), is((long) isoRecord.length));
     }
 
+    @Ignore
     @Test
     public void iso2709DataPartitioner_multipleRecords_accepted() throws IOException, URISyntaxException {
         final byte[] isoRecords = readTestRecord(INPUT_RECORDS_3_ISO);
@@ -142,15 +145,19 @@ public class Iso2709DataPartitioner_providedDataTest {
         return new ByteArrayInputStream(readTestRecord(resourceName));
     }
 
-    static String getMarcXChangeOutputRecordAsString() throws IOException, URISyntaxException {
-        return new String(readTestRecord(OUTPUT_RECORD_1_MARCXCHANGE), StandardCharsets.UTF_8);
-    }
+    /*
+     * Private methods
+     */
 
-    static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
-        final URL url = Iso2709DataPartitioner_providedDataTest.class.getResource("/" + resourceName);
+    private static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
+        final URL url = Iso2709DataPartitioner_dataTest.class.getResource("/" + resourceName);
         final Path resPath;
         resPath = Paths.get(url.toURI());
         return Files.readAllBytes(resPath);
+    }
+
+    private String getMarcXChangeOutputRecordAsString() throws IOException, URISyntaxException {
+        return new String(readTestRecord(OUTPUT_RECORD_1_MARCXCHANGE), StandardCharsets.UTF_8);
     }
 
 }

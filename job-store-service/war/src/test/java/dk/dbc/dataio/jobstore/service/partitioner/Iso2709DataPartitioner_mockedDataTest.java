@@ -20,7 +20,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 
-import static dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner_providedDataTest.asByteArrayInputStream;
+import static dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner_dataTest.asByteArrayInputStream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;

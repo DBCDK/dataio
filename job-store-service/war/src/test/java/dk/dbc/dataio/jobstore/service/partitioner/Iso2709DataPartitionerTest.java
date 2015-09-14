@@ -3,7 +3,6 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.marc.Iso2709Unpacker;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -24,9 +23,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -115,7 +111,6 @@ public class Iso2709DataPartitionerTest {
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
-    @Ignore
     @Test
     public void iso2709DataPartitioner_oneValidRecord_accepted() throws IOException, URISyntaxException {
 
@@ -132,7 +127,6 @@ public class Iso2709DataPartitionerTest {
         assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecord.length, dataPartitioner.getBytesRead(), is((long) isoRecord.length));
     }
 
-    @Ignore
     @Test
     public void iso2709DataPartitioner_multipleRecords_accepted() throws IOException, URISyntaxException {
         final byte[] isoRecords = readTestRecord(INPUT_RECORDS_3_ISO);
@@ -216,9 +210,9 @@ public class Iso2709DataPartitionerTest {
 
     private static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
         final URL url = Iso2709DataPartitionerTest.class.getResource("/" + resourceName);
-        final Path resPath;
-        resPath = Paths.get(url.toURI());
-        return Files.readAllBytes(resPath);
+        final java.nio.file.Path resPath;
+        resPath = java.nio.file.Paths.get(url.toURI());
+        return java.nio.file.Files.readAllBytes(resPath);
     }
 
 }

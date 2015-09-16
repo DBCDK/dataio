@@ -38,7 +38,7 @@ public class ChunkListQuery extends ListQuery<ChunkListCriteria, ChunkListCriter
      * @param criteria query criteria
      * @return list of entities for selected chunks
      * @throws NullPointerException if given null-valued criteria argument
-     * @throws javax.persistence.PersistenceException if unable to execute query
+     * @throws javax.persistence.PersistenceException if unable to flushNotifications query
      */
     @Override
     public List<ChunkEntity> execute(ChunkListCriteria criteria) throws NullPointerException, PersistenceException {

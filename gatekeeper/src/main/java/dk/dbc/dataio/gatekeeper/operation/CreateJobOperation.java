@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -81,12 +82,12 @@ public class CreateJobOperation implements Operation {
     private String uploadToFileStore(String dataFileName) throws OperationExecutionException {
         if (dataFileName == null || dataFileName.trim().isEmpty()) {
             LOGGER.warn("Datafile name was undefined");
-            return JobSpecificationFactory.MISSING_FIELD_VALUE;
+            return Constants.MISSING_FIELD_VALUE;
         }
         final Path dataFile = workingDir.resolve(dataFileName);
         if (!Files.exists(dataFile)) {
             LOGGER.warn("Datafile '{}' does not exist", dataFile);
-            return JobSpecificationFactory.MISSING_FIELD_VALUE;
+            return Constants.MISSING_FIELD_VALUE;
         }
 
         try (final InputStream is = new FileInputStream(dataFile.toFile())) {

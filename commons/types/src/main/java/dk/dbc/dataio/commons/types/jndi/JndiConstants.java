@@ -13,6 +13,8 @@ public class JndiConstants {
 
     public static final String CONFIG_RESOURCE_HARVESTER_RR = "config/dataio/harvester/rr";
 
+    public static final String MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS = "mail/dataio/jobstore/notifications";
+
     public static final String JMS_QUEUE_PROCESSOR = "jms/dataio/processor"; //processorJmsQueue
     public static final String JMS_QUEUE_SINK = "jms/dataio/sinks"; //sinksJmsQueue
 

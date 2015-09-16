@@ -49,7 +49,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
      * @param criteria query criteria
      * @return list of information snapshots for selected jobs
      * @throws NullPointerException if given null-valued criteria argument
-     * @throws PersistenceException if unable to execute query
+     * @throws PersistenceException if unable to flushNotifications query
      */
     @Override
     public List<JobInfoSnapshot> execute(JobListCriteria criteria) throws NullPointerException, PersistenceException {
@@ -75,7 +75,7 @@ public class JobListQuery extends ListQuery<JobListCriteria, JobListCriteria.Fie
      * @param criteria query criteria
      * @return list of information snapshots for selected jobs
      * @throws NullPointerException if given null-valued criteria argument
-     * @throws PersistenceException if unable to execute query
+     * @throws PersistenceException if unable to flushNotifications query
      */
     public long execute_count(JobListCriteria criteria) throws NullPointerException, PersistenceException {
         final String query = buildCountQueryString(QUERY_COUNT_BASE, criteria);

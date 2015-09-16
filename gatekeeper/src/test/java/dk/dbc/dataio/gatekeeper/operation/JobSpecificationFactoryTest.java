@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
@@ -72,20 +73,20 @@ public class JobSpecificationFactoryTest {
     @Test
     public void createJobSpecification_lineArgHasMissingFields_mapsFieldsToJobSpecification() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setSubmitterId(JobSpecificationFactory.MISSING_SUBMITTER_VALUE)
-                .setPackaging(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setCharset(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setFormat(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setResultmailInitials(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setDataFile(JobSpecificationFactory.MISSING_FIELD_VALUE)
+                .setDestination(Constants.MISSING_FIELD_VALUE)
+                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setPackaging(Constants.MISSING_FIELD_VALUE)
+                .setCharset(Constants.MISSING_FIELD_VALUE)
+                .setFormat(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
                 .setAncestry(
                         new JobSpecificationBuilder.AncestryBuilder()
                                 .setTransfile(transfileName)
-                                .setDatafile(JobSpecificationFactory.MISSING_FIELD_VALUE)
+                                .setDatafile(Constants.MISSING_FIELD_VALUE)
                                 .build()
                 )
                 .build();
@@ -98,20 +99,20 @@ public class JobSpecificationFactoryTest {
     @Test
     public void createJobSpecification_lineArgHasEmptyFields_mapsFieldsToJobSpecification() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
-                .setDestination(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setSubmitterId(JobSpecificationFactory.MISSING_SUBMITTER_VALUE)
-                .setPackaging(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setCharset(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setFormat(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutVerification(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setMailForNotificationAboutProcessing(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setResultmailInitials(JobSpecificationFactory.MISSING_FIELD_VALUE)
-                .setDataFile(JobSpecificationFactory.MISSING_FIELD_VALUE)
+                .setDestination(Constants.MISSING_FIELD_VALUE)
+                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setPackaging(Constants.MISSING_FIELD_VALUE)
+                .setCharset(Constants.MISSING_FIELD_VALUE)
+                .setFormat(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
                 .setAncestry(
                         new JobSpecificationBuilder.AncestryBuilder()
                                 .setTransfile(transfileName)
-                                .setDatafile(JobSpecificationFactory.MISSING_FIELD_VALUE)
+                                .setDatafile(Constants.MISSING_FIELD_VALUE)
                                 .build()
                 )
                 .build();
@@ -125,20 +126,20 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_fileFieldSubstringOutOfBounds_mapsToMissingField() {
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("f=123"), transfileName, "42");
-        assertThat(jobSpecification.getSubmitterId(), is(JobSpecificationFactory.MISSING_SUBMITTER_VALUE));
+        assertThat(jobSpecification.getSubmitterId(), is(Constants.MISSING_SUBMITTER_VALUE));
     }
 
     @Test
     public void createJobSpecification_fileFieldSubstringNaN_mapsToMissingField() {
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("f=abcdefhijklmnopq"), transfileName, "42");
-        assertThat(jobSpecification.getSubmitterId(), is(JobSpecificationFactory.MISSING_SUBMITTER_VALUE));
+        assertThat(jobSpecification.getSubmitterId(), is(Constants.MISSING_SUBMITTER_VALUE));
     }
 
     @Test
     public void createJobSpecification_fileStoreIdArgIsMissing_mapsToOriginalFieldValue() {
         final JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("f=123456.file"), transfileName, JobSpecificationFactory.MISSING_FIELD_VALUE);
+                .createJobSpecification(new TransFile.Line("f=123456.file"), transfileName, Constants.MISSING_FIELD_VALUE);
         assertThat(jobSpecification.getDataFile(), is("123456.file"));
     }
 }

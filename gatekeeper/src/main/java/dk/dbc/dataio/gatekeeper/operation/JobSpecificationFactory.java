@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -11,10 +12,6 @@ import java.net.URISyntaxException;
  * Factory class for the creation of job specifications from trans file entries
  */
 public class JobSpecificationFactory {
-    public static final String MISSING_FIELD_VALUE = "__MISSING__";
-    // I'm introducing the invariant that submitter number 1 indicates missing value.
-    public static final long MISSING_SUBMITTER_VALUE = 1;
-
     private JobSpecificationFactory() {}
 
     /**
@@ -49,31 +46,31 @@ public class JobSpecificationFactory {
     private static String getFieldValueOrMissing(TransFile.Line line, String fieldName) {
         final String fieldValue = line.getField(fieldName);
         if (fieldValue == null || fieldValue.trim().isEmpty()) {
-            return MISSING_FIELD_VALUE;
+            return Constants.MISSING_FIELD_VALUE;
         }
         return fieldValue;
     }
 
     private static long getSubmitterIdOrMissing(TransFile.Line line) {
         final String fieldValue = getFieldValueOrMissing(line, "f");
-        if (MISSING_FIELD_VALUE.equals(fieldValue)) {
-            return MISSING_SUBMITTER_VALUE;
+        if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
+            return Constants.MISSING_SUBMITTER_VALUE;
         }
         try {
             final String submitter = fieldValue.substring(0, 6);
             return Long.valueOf(submitter);
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
-            return MISSING_SUBMITTER_VALUE;
+            return Constants.MISSING_SUBMITTER_VALUE;
         }
     }
 
     private static String getFileStoreUrnOrMissing(TransFile.Line line, String fileStoreId)
             throws IllegalArgumentException {
         final String fieldValue = getFieldValueOrMissing(line, "f");
-        if (MISSING_FIELD_VALUE.equals(fieldValue)) {
-            return MISSING_FIELD_VALUE;
+        if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
+            return Constants.MISSING_FIELD_VALUE;
         }
-        if (MISSING_FIELD_VALUE.equals(fileStoreId)) {
+        if (Constants.MISSING_FIELD_VALUE.equals(fileStoreId)) {
             return fieldValue;
         }
         try {

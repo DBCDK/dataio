@@ -1,5 +1,6 @@
 package dk.dbc.dataio.gatekeeper.operation;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -104,7 +105,7 @@ public class CreateJobOperationTest {
         createJobOperation.execute();
 
         final JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
-        assertThat(jobInputStream.getJobSpecification().getDataFile(), is(JobSpecificationFactory.MISSING_FIELD_VALUE));
+        assertThat(jobInputStream.getJobSpecification().getDataFile(), is(Constants.MISSING_FIELD_VALUE));
 
         verify(fileStoreServiceConnector, times(0)).addFile(any(InputStream.class));
     }

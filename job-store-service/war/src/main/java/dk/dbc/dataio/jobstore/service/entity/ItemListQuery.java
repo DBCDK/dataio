@@ -43,7 +43,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
      * @param criteria query criteria
      * @return list of entities for selected items
      * @throws NullPointerException if given null-valued criteria argument
-     * @throws javax.persistence.PersistenceException if unable to execute query
+     * @throws javax.persistence.PersistenceException if unable to flushNotifications query
      */
     @Override
     public List<ItemEntity> execute(ItemListCriteria criteria) throws NullPointerException, PersistenceException {
@@ -60,7 +60,7 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
      * @param criteria query criteria
      * @return list of information snapshots for selected items
      * @throws NullPointerException if given null-valued criteria argument
-     * @throws PersistenceException if unable to execute query
+     * @throws PersistenceException if unable to flushNotifications query
      */
     public long execute_count(ItemListCriteria criteria) throws NullPointerException, PersistenceException {
         final String query = buildCountQueryString(QUERY_COUNT_BASE, criteria);

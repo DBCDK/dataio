@@ -39,6 +39,7 @@ public class ScheduledJobNotifierBean {
 
     /**
      * (Re)starts with given schedule.
+     * @param scheduleExpression schedule expression
      */
     public void start(ScheduleExpression scheduleExpression) {
         /* stop current timer (if any) and create new timer

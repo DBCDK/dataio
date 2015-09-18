@@ -1,10 +1,10 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.ImageResourceCell;
-import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -86,7 +86,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructProgressBarColumn(), texts.columnHeader_ProgressBar());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
         jobsTable.setSelectionModel(selectionModel);
-        jobsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
+        jobsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
 
         pagerTop.setDisplay(jobsTable);
         pagerBottom.setDisplay(jobsTable);
@@ -252,14 +252,22 @@ public class View extends ViewWidget {
         return new StatusColumn(resources, statusCell);
     }
 
-    class CellPreviewHandlerClass implements CellPreviewEvent.Handler<JobModel> {
-        @Override
-        public void onCellPreview(CellPreviewEvent<JobModel> cellPreviewEvent) {
-            if(BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())) {
-                selectionModel.setSelected(cellPreviewEvent.getValue(), true);
-                presenter.itemSelected(selectionModel.getSelectedObject());
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    private DoubleClickHandler getDoubleClickHandler(){
+        DoubleClickHandler handler = new DoubleClickHandler() {
+            @Override
+            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
+                JobModel selected = selectionModel.getSelectedObject();
+                if(selected != null) {
+                    presenter.itemSelected(selected);
+                }
             }
-        }
+        };
+        return handler;
     }
 
 }

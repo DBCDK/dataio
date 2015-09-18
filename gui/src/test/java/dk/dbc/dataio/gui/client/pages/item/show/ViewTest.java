@@ -22,11 +22,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNull.nullValue;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.times;
@@ -147,37 +144,37 @@ public class ViewTest {
         verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_MESSAGE));
     }
 
-    @Test
-    public void enableSelection_enableSelectionTrue_selectionEnabled() {
-        // Test setup
-        view = new View(mockedClientFactory, false);
-        Context context = new Context(mockedItemsList);
-        context.selectionModel = mockedSelectionModel;
-
-        // Subject Under Test
-        view.enableSelection(true, context);
-
-        // Verification
-        assertThat(context.listView, is(mockedItemsList));
-        assertThat(context.selectionModel, is(not(nullValue())));
-        verify(mockedSelectionModel).addSelectionChangeHandler(any(View.SelectionChangeHandlerClass.class));
-        verify(mockedItemsList.itemsTable).setSelectionModel(context.selectionModel);
-    }
-
-    @Test
-    public void enableSelection_enableSelectionFalse_selectionDisabled() {
-        // Test setup
-        view = new View(mockedClientFactory, false);
-        Context context = new Context(mockedItemsList);
-        context.handlerRegistration = mockedHandlerRegistration;
-
-        // Subject Under Test
-        view.enableSelection(false, context);
-
-        // Verification
-        verify(mockedHandlerRegistration).removeHandler();
-        verify(mockedItemsList.itemsTable).setSelectionModel(null);
-    }
+//    @Test
+//    public void enableSelection_enableSelectionTrue_selectionEnabled() {
+//        // Test setup
+//        view = new View(mockedClientFactory, false);
+//        Context context = new Context(mockedItemsList);
+//        context.selectionModel = mockedSelectionModel;
+//
+//        // Subject Under Test
+//        view.enableSelection(true, context);
+//
+//        // Verification
+//        assertThat(context.listView, is(mockedItemsList));
+//        assertThat(context.selectionModel, is(not(nullValue())));
+//        verify(mockedSelectionModel).addSelectionChangeHandler(any(View.SelectionChangeHandlerClass.class));
+//        verify(mockedItemsList.itemsTable).setSelectionModel(context.selectionModel);
+//    }
+//
+//    @Test
+//    public void enableSelection_enableSelectionFalse_selectionDisabled() {
+//        // Test setup
+//        view = new View(mockedClientFactory, false);
+//        Context context = new Context(mockedItemsList);
+//        context.handlerRegistration = mockedHandlerRegistration;
+//
+//        // Subject Under Test
+//        view.enableSelection(false, context);
+//
+//        // Verification
+//        verify(mockedHandlerRegistration).removeHandler();
+//        verify(mockedItemsList.itemsTable).setSelectionModel(null);
+//    }
 
     @Test
     public void setSelectionEnabled_setSelectionEnabled_selectionsEnabled() {

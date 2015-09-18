@@ -38,6 +38,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_CouldNotFetchData();
 
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CouldNotFetchJobNotifications();
+
 
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -92,6 +95,9 @@ public interface Texts extends Constants {
     String tab_JobDiagnostic();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_JobNotification();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_ItemDiagnostic();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -112,34 +118,75 @@ public interface Texts extends Constants {
 
     // JobInfo Prompt Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_Packaging();
+    String promptJobInfo_Packaging();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_Format();
+    String promptJobInfo_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_Charset();
+    String promptJobInfo_Charset();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_Destination();
+    String promptJobInfo_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_MailForNotificationAboutVerification();
+    String promptJobInfo_MailForNotificationAboutVerification();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_MailForNotificationAboutProcessing();
+    String promptJobInfo_MailForNotificationAboutProcessing();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_ResultMailInitials();
+    String promptJobInfo_ResultMailInitials();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_Type();
+    String promptJobInfo_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_JobCompletionTime();
+    String promptJobInfo_JobCompletionTime();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String prompt_JobCreationTime();
+    String promptJobInfo_JobCreationTime();
 
+
+    // JobNotification Prompt Labels
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_JobId();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_Destination();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_JobCreationTime();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_JobCompletionTime();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_Type();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_Status();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobNotification_StatusMessage();
+
+
+    // Type texts
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String typeJobCompleted();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String typeJobCreated();
+
+
+    // Status texts
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String statusCompleted();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String statusFailed();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String statusWaiting();
 
 }

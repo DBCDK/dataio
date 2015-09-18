@@ -7,11 +7,14 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.TabBar;
+import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -65,7 +68,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         containerWidget.setWidget(view.asWidget());
         initializeView();
         listJobs(jobId);
+        listNotifications(jobId);
     }
+
     /**
      * This method is called by the view, whenever the All Items tab has been selected
      * and defines the search criteria for locating all items within a job
@@ -145,6 +150,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /**
+     * This method fetches all Job Notifications associated with the job id given as a parameter in the call to the
+     * method. The callback takes care of further processing.
+     * @param jobId Job Id
+     */
+    private void listNotifications(String jobId) {
+        jobStoreProxy.listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
+    }
+
+
+    /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
      * @param itemListCriteria The search criteria
      * @param listView The list view in question
@@ -173,6 +188,44 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /**
+     * Sets the view according to the supplied job notifications
+     * @param jobNotifications The list of Job Notifications to view
+     */
+    private void setJobNotifications(List<JobNotification> jobNotifications) {
+        view.jobNotificationsTabContent.clear();
+        for (JobNotification notification: jobNotifications) {
+            JobNotificationPanel panel = new JobNotificationPanel();
+            panel.setJobId(String.valueOf(notification.getJobId()));
+            panel.setDestination(notification.getDestination());
+            panel.setTimeOfCreation(Format.formatLongDate(notification.getTimeOfCreation()));
+            panel.setTimeOfLastModification(Format.formatLongDate(notification.getTimeOfLastModification()));
+            panel.setType(formatType(notification.getType()));
+            panel.setStatus(formatStatus(notification.getStatus()));
+            panel.setStatusMessage(notification.getStatusMessage());
+            panel.setContent(notification.getContent());
+            view.jobNotificationsTabContent.add(panel);
+        }
+    }
+
+    private String formatType(JobNotification.Type type) {
+        switch (type) {
+            case JOB_COMPLETED: return texts.typeJobCompleted();
+            case JOB_CREATED:   return texts.typeJobCreated();
+            default: return "";
+        }
+    }
+
+    private String formatStatus(JobNotification.Status status) {
+        switch (status) {
+            case COMPLETED: return texts.statusCompleted();
+            case FAILED:    return texts.statusFailed();
+            case WAITING:   return texts.statusWaiting();
+            default: return "";
+        }
+    }
+
+
+    /**
      * Sets the view according to the supplied item model list
      *
      * @param itemModels The list of item models, containing the data to display in the view
@@ -198,6 +251,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, false);
         setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, false);
         setJobTabVisibility(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, false);
+        setJobTabVisibility(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT, false);
     }
 
     /**
@@ -221,6 +275,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         // Show diagnostic tab if one or more diagnostics exists
         if(!jobModel.getDiagnosticModels().isEmpty()) {
             setJobTabVisibility(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, true);
+        }
+        // Show notification tab if one or more notifications exists
+        if(view.jobNotificationsTabContent.getNotificationsCount() > 0) {
+            setJobTabVisibility(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT, true);
         }
         // Show item information if one or more items exist
         if(allItemCounter != 0){
@@ -415,6 +473,19 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onSuccess(List<JobModel> jobModels) {
             if (jobModels != null && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
+            }
+        }
+    }
+
+    class JobNotificationsCallback implements AsyncCallback<List<JobNotification>> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            view.setErrorText(texts.error_CouldNotFetchJobNotifications());
+        }
+        @Override
+        public void onSuccess(List<JobNotification> jobNotifications) {
+            if (jobNotifications != null && jobNotifications.size() > 0) {
+                setJobNotifications(jobNotifications);
             }
         }
     }

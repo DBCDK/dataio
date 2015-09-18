@@ -36,6 +36,9 @@
             <g:Tab text="{txt.tab_JobDiagnostic}">
                 <dio:JobDiagnosticTabContent ui:field="jobDiagnosticTabContent"/>
             </g:Tab>
+            <g:Tab text="{txt.tab_JobNotification}">
+                <dio:JobNotificationsTabContent ui:field="jobNotificationsTabContent"/>
+            </g:Tab>
         </g:DecoratedTabPanel>
     </g:HTMLPanel>
 

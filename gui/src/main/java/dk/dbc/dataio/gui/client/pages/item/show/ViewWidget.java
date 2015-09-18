@@ -14,11 +14,14 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     protected Texts texts;
+    // Please do note, that this list of sequential numbers are maintained manually
+    // They must follow the order, given in the UI Binder file ViewWidget.ui.xml
     static final int ALL_ITEMS_TAB_INDEX = 0;
     static final int FAILED_ITEMS_TAB_INDEX = 1;
     static final int IGNORED_ITEMS_TAB_INDEX = 2;
     static final int JOB_INFO_TAB_CONTENT = 3;
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
+    static final int JOB_NOTIFICATION_TAB_CONTENT = 5;
 
     interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
 
@@ -31,6 +34,8 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField ItemsListView ignoredItemsList;
     @UiField JobInfoTabContent jobInfoTabContent;
     @UiField JobDiagnosticTabContent jobDiagnosticTabContent;
+    @UiField JobNotificationsTabContent jobNotificationsTabContent;
+
 
     /**
      * Constructor with header and text

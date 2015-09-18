@@ -54,7 +54,7 @@ public final class Format {
      * @return A String Pair in the form: 'mainString (inBracketsString)'
      */
     public static String inBracketsPairString(String mainString, String inBracketsString) {
-        return new StringBuilder().append(mainString).append(" (").append(inBracketsString).append(")").toString();
+        return mainString + " (" + inBracketsString + ")";
     }
 
     /**
@@ -62,7 +62,16 @@ public final class Format {
      * @param date long value, the date that should be converted into longDateString format
      * @return A string representation of date
      */
-    public static String getLongDateTimeFormat(long date){
+    public static String formatLongDate(long date) {
+        return formatDate(new Date(date), LONG_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * Formats a Date value to a text String
+     * @param date Date value, the date that should be converted into longDateString format
+     * @return A string representation of date
+     */
+    public static String formatLongDate(Date date) {
         return formatDate(date, LONG_DATE_TIME_FORMAT);
     }
 
@@ -71,7 +80,7 @@ public final class Format {
      * @param date A textual representation of the date
      * @return A long representation of date
      */
-    public static long parseLongDate(String date){
+    public static long parseLongDate(String date) {
         return parseDate(date, LONG_DATE_TIME_FORMAT);
     }
 
@@ -92,7 +101,7 @@ public final class Format {
      * @return a list containing the matches found, empty list if no matches found
      */
     public static List<String> getPatternMatches(String input, String pattern) {
-        final List<String> matches = new ArrayList<String>();
+        final List<String> matches = new ArrayList<>();
         RegExp regExp = RegExp.compile(pattern, "g");
         for (MatchResult matcher = regExp.exec(input); matcher != null; matcher = regExp.exec(input)) {
             matches.add(matcher.getGroup(0));
@@ -103,9 +112,9 @@ public final class Format {
     /*
      * Private methods
      */
-    private static String formatDate(long date, String format) {
+    private static String formatDate(Date date, String format) {
         DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat(format);
-        return dateTimeFormat.format(new Date(date));
+        return dateTimeFormat.format(date);
     }
 
     private static long parseDate(String date, String format) {

@@ -14,20 +14,21 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import java.util.List;
 
 
-class Context {
-    SingleSelectionModel<ItemModel> selectionModel = new SingleSelectionModel<ItemModel>();
-    HandlerRegistration handlerRegistration = null;
-    ItemsListView listView;
-
-    public Context(ItemsListView listView) {
-        this.listView = listView;
-    }
-}
-
 /**
  * This class is the View class for the Items Show View
  */
 public class View extends ViewWidget {
+
+    class Context {
+        SingleSelectionModel<ItemModel> selectionModel = new SingleSelectionModel<>();
+        HandlerRegistration handlerRegistration = null;
+        ItemsListView listView;
+
+        public Context(ItemsListView listView) {
+            this.listView = listView;
+        }
+    }
+
     Context allContext = new Context(allItemsList);
     Context failedContext = new Context(failedItemsList);
     Context ignoredContext = new Context(ignoredItemsList);
@@ -40,8 +41,8 @@ public class View extends ViewWidget {
      */
     public View(ClientFactory clientFactory) {
         super(clientFactory);
-        setupColumns(allItemsList);
         dataProvider = new AsyncItemViewDataProvider(clientFactory,this);
+        setupColumns(allItemsList);
         dataProvider.addDataDisplay(allItemsList.itemsTable);
         setupColumns(failedItemsList);
         dataProvider.addDataDisplay(failedItemsList.itemsTable);

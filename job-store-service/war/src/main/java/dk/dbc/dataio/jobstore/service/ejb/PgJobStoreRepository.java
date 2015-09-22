@@ -69,7 +69,7 @@ import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
 /**
  * Created by ThomasBerg @LundOgBendsen on 02/09/15.
  *
- * This is an DAO Repository for internal use of the job-store-service -> hence package scoped methods.
+ * This is an DAO Repository for internal use of the job-store-service hence package scoped methods.
  */
 @Stateless
 public class PgJobStoreRepository extends RepositoryBase {
@@ -388,7 +388,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @throws DuplicateChunkException if attempting to update already existing chunk
      * @throws InvalidInputException if unable to find referenced items or if external chunk belongs to PARTITIONING
      * phase
-     * @throws JobStoreException
+     * @throws JobStoreException Job Store Exception
      */
     @Stopwatch
     public PgJobStoreRepository.ChunkItemEntities updateChunkItemEntities(ExternalChunk chunk) throws JobStoreException {

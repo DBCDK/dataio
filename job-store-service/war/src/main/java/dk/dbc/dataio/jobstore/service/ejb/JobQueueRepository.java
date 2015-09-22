@@ -32,11 +32,11 @@ public class JobQueueRepository extends RepositoryBase {
     /**
          1. hent job fra kø-tabel
          2. Hvis det ikke eksisterer i forvejen
-             1. hvis sinken ikke er optaget -> tilføj det med IN_PROGRESS
-             2. hvis sinken er optaget -> tilføj det med WAITING
+             1. hvis sinken ikke er optaget så tilføj job i status IN_PROGRESS
+             2. hvis sinken er optaget så tilføj job i status WAITING
          3. Hvis det eksisterer i forvejen
-             1. hvis sinken ikke er optaget -> opdater det til at være IN_PROGRESS
-             2. hvis sinken er optaget -> gør ingenting
+             1. hvis sinken ikke er optaget så opdater jobbet til status IN_PROGRESS
+             2. hvis sinken er optaget så gør ingenting
 
      * @param sinkId                Id of the concrete Sink - NOT the CachedSink
      * @param job                   Id of the job

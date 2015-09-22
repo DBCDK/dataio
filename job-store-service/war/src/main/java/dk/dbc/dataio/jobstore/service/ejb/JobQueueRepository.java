@@ -10,7 +10,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.NoResultException;
 import java.util.List;
-import java.util.logging.Logger;
 
 import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.AVAILABLE;
 import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.OCCUPIED;

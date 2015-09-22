@@ -50,7 +50,6 @@ public class JobQueueWatcher {
         boolean didWatcherStartAtLeastOneJob = false;
         for (Map.Entry<Long, List<JobQueueEntity>> sinkEntry : jobsGroupedBySink.entrySet()) {
 
-            final long uniqueSinkId = sinkEntry.getKey();
             final List<JobQueueEntity> jobsForUniqueSink = sinkEntry.getValue();
             if(!sinkOccupied(jobsForUniqueSink) && jobsForUniqueSink != null && !jobsForUniqueSink.isEmpty()) {
 

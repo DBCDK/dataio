@@ -1,4 +1,0 @@
-
-This directory is used by the js_require_test.groovy script to test the use of the Require-module as a replacement to E4X in dataio.
-
-The directory contains a job from production which contains code using our E4X-backend-wrapper. This can in the script be replaced to use the Require-backend-wrapper.

@@ -38,9 +38,9 @@ public class PgJobStore_CachesTest extends PgJobStoreBaseTest {
 
     @Test
     public void cacheFlow_flowArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         try {
-            pgJobStore.cacheFlow(null);
+            pgJobStore.jobStoreRepository.cacheFlow(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -48,9 +48,9 @@ public class PgJobStore_CachesTest extends PgJobStoreBaseTest {
 
     @Test
     public void cacheFlow_flowArgIsEmpty_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         try {
-            pgJobStore.cacheFlow(" ");
+            pgJobStore.jobStoreRepository.cacheFlow(" ");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
@@ -58,17 +58,17 @@ public class PgJobStore_CachesTest extends PgJobStoreBaseTest {
 
     @Test
     public void cacheFlow_flowArgIsCached_returnsFlowCacheEntityInstance() throws JobStoreException, JSONBException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        final String flowJson = pgJobStore.jsonbContext.marshall(new FlowBuilder().build());
-        final FlowCacheEntity flowCacheEntity = pgJobStore.cacheFlow(flowJson);
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final String flowJson = pgJobStore.jobStoreRepository.jsonbContext.marshall(new FlowBuilder().build());
+        final FlowCacheEntity flowCacheEntity = pgJobStore.jobStoreRepository.cacheFlow(flowJson);
         assertThat(flowCacheEntity, is(EXPECTED_FLOW_CACHE_ENTITY));
     }
 
     @Test
     public void cacheSink_sinkArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         try {
-            pgJobStore.cacheSink(null);
+            pgJobStore.jobStoreRepository.cacheSink(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -76,9 +76,9 @@ public class PgJobStore_CachesTest extends PgJobStoreBaseTest {
 
     @Test
     public void cacheSink_sinkArgIsEmpty_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         try {
-            pgJobStore.cacheSink(" ");
+            pgJobStore.jobStoreRepository.cacheSink(" ");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
@@ -86,9 +86,9 @@ public class PgJobStore_CachesTest extends PgJobStoreBaseTest {
 
     @Test
     public void cacheSink_sinkArgIsCached_returnsSinkCacheEntityInstance() throws JobStoreException, JSONBException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        final String sinkJson = pgJobStore.jsonbContext.marshall(new SinkBuilder().build());
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.cacheSink(sinkJson);
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final String sinkJson = pgJobStore.jobStoreRepository.jsonbContext.marshall(new SinkBuilder().build());
+        final SinkCacheEntity sinkCacheEntity = pgJobStore.jobStoreRepository.cacheSink(sinkJson);
         assertThat(sinkCacheEntity, is(EXPECTED_SINK_CACHE_ENTITY));
     }
 }

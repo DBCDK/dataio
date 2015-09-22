@@ -42,9 +42,7 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import java.util.Date;
 import java.util.List;
@@ -52,7 +50,7 @@ import java.util.List;
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
 
 @Stateless
-public class PgJobNotify {
+public class PgJobNotify extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobNotify.class);
 
     private static final int MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT = 100;
@@ -64,9 +62,6 @@ public class PgJobNotify {
 
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
-
-    @PersistenceContext(unitName = "jobstorePU")
-    EntityManager entityManager;
 
     /**
      * Flushes all waiting notifications in a separate transactional

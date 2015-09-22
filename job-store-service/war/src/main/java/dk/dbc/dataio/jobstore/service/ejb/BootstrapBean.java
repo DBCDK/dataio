@@ -60,19 +60,15 @@ public class BootstrapBean {
                 }};
 
     @EJB
-    PgJobStore jobStore;
+    PgJobStoreRepository jobStoreRepository;
 
     @EJB
     JobSchedulerBean jobSchedulerBean;
-
-    @EJB
-    private JmsEmptyQueuesBean jmsEmptyQueuesBean;
 
     @PostConstruct
     @Stopwatch
     public void initialize() {
         try {
-            //this.jmsEmptyQueuesBean.emptyQueues();
             restoreSystemState();
             jobSchedulerBean.jumpStart();
         } catch (JobStoreException e) {
@@ -99,12 +95,12 @@ public class BootstrapBean {
                     .offset(offset);
 
             final List<CollisionDetectionElement> collisionDetectionElements =
-                    jobStore.listChunksCollisionDetectionElements(chunkListCriteria);
+                    jobStoreRepository.listChunksCollisionDetectionElements(chunkListCriteria);
             for (CollisionDetectionElement collisionDetectionElement : collisionDetectionElements) {
                 long jobId = ((ChunkIdentifier) collisionDetectionElement.getIdentifier()).getJobId();
 
                 if (!cache.containsKey(jobId)) {
-                    ResourceBundle resourceBundle = jobStore.getResourceBundle((int) jobId);
+                    ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle((int) jobId);
                     cache.put(jobId, resourceBundle.getSink());
                 }
                 jobSchedulerBean.scheduleChunk(collisionDetectionElement, cache.get(jobId), NOT_PUBLISH_WORKLOAD);

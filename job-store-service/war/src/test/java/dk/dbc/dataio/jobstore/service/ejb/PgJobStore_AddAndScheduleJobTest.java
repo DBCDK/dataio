@@ -23,22 +23,29 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 
 import javax.persistence.LockModeType;
+import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -58,17 +65,31 @@ public class PgJobStore_AddAndScheduleJobTest extends PgJobStoreBaseTest {
 
     @Test
     public void addAndScheduleJob_jobAdded_returnsJobInfoSnapshot() throws Exception {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
         final String xml = getXml();
         final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
         setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
 
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE)))
-                .thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
+        final SinkCacheEntity mockedSinkCacheJob  = mock(SinkCacheEntity.class);
+        final TestableJobEntity jobEntity = new TestableJobEntity();
+        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
+        jobEntity.setState(new State());
+        jobEntity.setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences());
+        jobEntity.setSpecification(mockedAddJobParam.getJobInputStream().getJobSpecification());
+        jobEntity.setCachedSink(mockedSinkCacheJob);
+
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) xml.getBytes().length);
+
+        Long expectedNumberOfJobsBySink = 0l;
+        Query mockedNamedQueryFindJobsBySink = mock(Query.class);
+        when(entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)).thenReturn(mockedNamedQueryFindJobsBySink);
+        when(mockedNamedQueryFindJobsBySink.setParameter(eq(JobQueueEntity.FIELD_SINK_ID), anyLong())).thenReturn(mockedNamedQueryFindJobsBySink);
+        when(mockedNamedQueryFindJobsBySink.getSingleResult()).thenReturn(expectedNumberOfJobsBySink);
 
         try {
             final JobInfoSnapshot jobInfoSnapshotReturned = pgJobStore.addAndScheduleJob(jobInputStream);

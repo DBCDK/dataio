@@ -51,17 +51,17 @@ public class PgJobStore_ResourceBundleTest extends PgJobStoreBaseTest {
 
     @Test
     public void getResourceBundle_jobEntityNotFound_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(null);
         try {
-            pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+            pgJobStore.jobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
             fail("No exception thrown");
         } catch (JobStoreException e) {}
     }
 
     @Test
     public void getResourceBundle_flowIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Sink sink = new SinkBuilder().build();
 
         FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
@@ -76,14 +76,14 @@ public class PgJobStore_ResourceBundleTest extends PgJobStoreBaseTest {
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         try {
-            pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+            pgJobStore.jobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
             fail("No exception thrown");
         } catch (NullPointerException e) {}
     }
 
     @Test
     public void getResourceBundle_sinkIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Flow flow = new FlowBuilder().build();
 
         FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
@@ -98,14 +98,14 @@ public class PgJobStore_ResourceBundleTest extends PgJobStoreBaseTest {
         when(jobEntity.getCachedSink().getSink()).thenReturn(null);
 
         try {
-            pgJobStore.getResourceBundle(DEFAULT_JOB_ID);
+            pgJobStore.jobStoreRepository.getResourceBundle(DEFAULT_JOB_ID);
             fail("No exception thrown");
         } catch (NullPointerException e) {}
     }
 
     @Test
     public void getResourceBundle_resourcesAddedToBundle_returns() throws JobStoreException{
-        final PgJobStore pgJobStore = newPgJobStore();
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
 
@@ -120,7 +120,7 @@ public class PgJobStore_ResourceBundleTest extends PgJobStoreBaseTest {
         when(jobEntity.getCachedFlow().getFlow()).thenReturn(flow);
         when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
-        final ResourceBundle resourceBundle = pgJobStore.getResourceBundle(jobEntity.getId());
+        final ResourceBundle resourceBundle = pgJobStore.jobStoreRepository.getResourceBundle(jobEntity.getId());
         assertThat("ResourceBundle not null", resourceBundle, not(nullValue()));
         assertThat(String.format("ResourceBundle.flow: %s expected to match: %s", resourceBundle.getFlow(), flow), resourceBundle.getFlow(), is(flow));
         assertThat(String.format("ResourceBundle.sink: %s expected to match: %s", resourceBundle.getSink(), sink), resourceBundle.getSink(), is(sink));

@@ -66,8 +66,7 @@ public class JobSchedulerBean {
     ConcurrentHashMap<String, SequenceAnalyserComposite> sequenceAnalysers = new ConcurrentHashMap<>(16, 0.9F, 1);
     ConcurrentHashMap<ChunkIdentifier, Sink> toSinkMapping = new ConcurrentHashMap<>(16, 0.9F, 1);
 
-    @EJB
-    PgJobStore jobStoreBean;
+    @EJB PgJobStoreRepository jobStoreRepository;
 
     @EJB
     SequenceAnalyserMonitorBean sequenceAnalyserMonitorBean;
@@ -207,7 +206,7 @@ public class JobSchedulerBean {
         for (final CollisionDetectionElement element : elements) {
             final ChunkIdentifier identifier = (ChunkIdentifier) element.getIdentifier();
             try {
-                final ExternalChunk chunk = jobStoreBean.getChunk(
+                final ExternalChunk chunk = jobStoreRepository.getChunk(
                         ExternalChunk.Type.PARTITIONED,
                         (int) identifier.getJobId(),
                         (int) identifier.getChunkId());

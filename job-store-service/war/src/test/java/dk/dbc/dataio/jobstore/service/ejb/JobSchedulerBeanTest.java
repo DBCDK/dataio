@@ -66,7 +66,7 @@ public class JobSchedulerBeanTest {
     private final static Sink NO_SINK = null;
     private final SequenceAnalyser sequenceAnalyser = mock(SequenceAnalyser.class);
     private final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = mock(JobProcessorMessageProducerBean.class);
-    private final PgJobStore jobStoreBean = mock(PgJobStore.class);
+    private final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);
     private final SequenceAnalyserMonitorBean sequenceAnalyserMonitorBean = mock(SequenceAnalyserMonitorBean.class);
     private final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
     private final ChunkIdentifier chunkIdentifier = new ChunkIdentifier(chunk.getJobId(), chunk.getChunkId());
@@ -135,7 +135,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -152,7 +152,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
 
@@ -169,7 +169,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -250,7 +250,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -262,7 +262,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, NOT_PUBLISH_WORKLOAD);
-        verify(jobStoreBean, times(0)).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(0)).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(0)).send(chunk);
     }
 
@@ -279,7 +279,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
 
@@ -296,7 +296,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -358,7 +358,7 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -375,7 +375,7 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size()-1)).send(chunk);
     }
 
@@ -393,7 +393,7 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         injectSinkMapping(jobSchedulerBean);
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -452,7 +452,7 @@ public class JobSchedulerBeanTest {
         final JobSchedulerBean jobSchedulerBean = getJobSchedulerBean();
         injectSequenceAnalyserComposite(jobSchedulerBean, String.valueOf(sink.getId()));
         jobSchedulerBean.releaseChunk(chunkIdentifier);
-        verify(jobStoreBean, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(elements.size())).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(elements.size())).send(chunk);
     }
 
@@ -465,7 +465,7 @@ public class JobSchedulerBeanTest {
         injectSequenceAnalyserComposite(jobSchedulerBean, "sink1");
         injectSequenceAnalyserComposite(jobSchedulerBean, "sink2");
         jobSchedulerBean.jumpStart();
-        verify(jobStoreBean, times(2)).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
+        verify(mockedJobStoreRepository, times(2)).getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId());
         verify(jobProcessorMessageProducerBean, times(2)).send(chunk);
     }
 
@@ -525,7 +525,7 @@ public class JobSchedulerBeanTest {
     private JobSchedulerBean getJobSchedulerBean() {
         final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
         jobSchedulerBean.jobProcessorMessageProducerBean = jobProcessorMessageProducerBean;
-        jobSchedulerBean.jobStoreBean = jobStoreBean;
+        jobSchedulerBean.jobStoreRepository = mockedJobStoreRepository;
         jobSchedulerBean.sequenceAnalyserMonitorBean = sequenceAnalyserMonitorBean;
         return jobSchedulerBean;
     }
@@ -540,7 +540,7 @@ public class JobSchedulerBeanTest {
     }
 
     private OngoingStubbing<ExternalChunk> whenGetChunk() {
-        return when(jobStoreBean.getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId()));
+        return when(mockedJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, (int) chunk.getJobId(), (int) chunk.getChunkId()));
     }
 
     private List<CollisionDetectionElement> whenGetWorkloadThenReturn(int numElements) {

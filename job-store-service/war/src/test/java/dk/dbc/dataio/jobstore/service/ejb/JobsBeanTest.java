@@ -260,7 +260,7 @@ public class JobsBeanTest {
 
     @Test
     public void listJobs_jobStoreReturnsEmptyList_returnsStatusOkResponseWithEmptyList() throws JSONBException {
-        when(jobsBean.jobStore.listJobs(any(JobListCriteria.class))).thenReturn(Collections.<JobInfoSnapshot>emptyList());
+        when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(Collections.<JobInfoSnapshot>emptyList());
 
         final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
         assertThat("Response", response, is(notNullValue()));
@@ -291,7 +291,7 @@ public class JobsBeanTest {
     public void listJobs_jobStoreReturnsList_returnsStatusOkResponseWithJobInfoSnapshotList() throws JSONBException {
         final List<JobInfoSnapshot> expectedJobInfoSnapshots = new ArrayList<>();
         expectedJobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
-        when(jobsBean.jobStore.listJobs(any(JobListCriteria.class))).thenReturn(expectedJobInfoSnapshots);
+        when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(expectedJobInfoSnapshots);
 
         final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
         assertThat("Response", response, is(notNullValue()));
@@ -311,7 +311,7 @@ public class JobsBeanTest {
 
     @Test
     public void listItems_jobStoreReturnsEmptyList_returnsStatusOkResponseWithEmptyList() throws JSONBException {
-        when(jobsBean.jobStore.listItems(any(ItemListCriteria.class))).thenReturn(Collections.<ItemInfoSnapshot>emptyList());
+        when(jobsBean.jobStoreRepository.listItems(any(ItemListCriteria.class))).thenReturn(Collections.<ItemInfoSnapshot>emptyList());
 
         final Response response = jobsBean.listItems(asJson(new ItemListCriteria()));
         assertThat("Response", response, is(notNullValue()));
@@ -342,7 +342,7 @@ public class JobsBeanTest {
     public void listItems_jobStoreReturnsList_returnsStatusOkResponseWithItemInfoSnapshotList() throws JSONBException {
         final List<ItemInfoSnapshot> expectedItemInfoSnapshots = new ArrayList<>();
         expectedItemInfoSnapshots.add(new ItemInfoSnapshotBuilder().build());
-        when(jobsBean.jobStore.listItems(any(ItemListCriteria.class))).thenReturn(expectedItemInfoSnapshots);
+        when(jobsBean.jobStoreRepository.listItems(any(ItemListCriteria.class))).thenReturn(expectedItemInfoSnapshots);
 
         final Response response = jobsBean.listItems(asJson(new JobListCriteria()));
         assertThat("Response", response, is(notNullValue()));
@@ -362,7 +362,7 @@ public class JobsBeanTest {
 
     @Test
     public void countItems_jobStoreReturnsItemCount_returnsStatusOkResponseWithCountAsEntity() throws JSONBException {
-        when(jobsBean.jobStore.countItems(any(ItemListCriteria.class))).thenReturn(110L);
+        when(jobsBean.jobStoreRepository.countItems(any(ItemListCriteria.class))).thenReturn(110L);
 
         final Response response = jobsBean.countItems(asJson(new ItemListCriteria()));
         assertThat("Response", response, is(notNullValue()));
@@ -393,7 +393,7 @@ public class JobsBeanTest {
         SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessDataBuilder().build();
         ResourceBundle resourceBundle = new ResourceBundle(flow, sink, supplementaryProcessData);
 
-        when(jobsBean.jobStore.getResourceBundle(anyInt())).thenReturn(resourceBundle);
+        when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenReturn(resourceBundle);
 
         final Response response = jobsBean.getResourceBundle(JOB_ID);
         assertThat("Response not null", response, not(nullValue()));
@@ -409,7 +409,7 @@ public class JobsBeanTest {
         JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
 
-        when(jobsBean.jobStore.getResourceBundle(anyInt())).thenThrow(invalidInputException);
+        when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenThrow(invalidInputException);
 
         final Response response = jobsBean.getResourceBundle(JOB_ID);
         assertThat("Response not null", response, not(nullValue()));
@@ -425,7 +425,7 @@ public class JobsBeanTest {
     public void getItemData_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
         ItemData itemData = new ItemData("data", Charset.defaultCharset());
 
-        when(jobsBean.jobStore.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(itemData);
+        when(jobsBean.jobStoreRepository.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(itemData);
 
         final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
         assertThat("Response not null", response, not(nullValue()));
@@ -440,7 +440,7 @@ public class JobsBeanTest {
         JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
 
-        when(jobsBean.jobStore.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
+        when(jobsBean.jobStoreRepository.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
 
         final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
         assertThat("Response not null", response, not(nullValue()));
@@ -454,7 +454,7 @@ public class JobsBeanTest {
     public void getProcessedNextResult_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
         ChunkItem chunkItem = new ChunkItem(1, StringUtil.asBytes("Next data"), ChunkItem.Status.SUCCESS);
 
-        when(jobsBean.jobStore.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
+        when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
 
         final Response response = jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID);
         assertThat("Response not null", response, not(nullValue()));
@@ -469,7 +469,7 @@ public class JobsBeanTest {
         JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
 
-        when(jobsBean.jobStore.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenThrow(invalidInputException);
+        when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenThrow(invalidInputException);
 
         final Response response = jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID);
         assertThat("Response not null", response, not(nullValue()));
@@ -485,6 +485,7 @@ public class JobsBeanTest {
     private void initializeJobsBean() {
         jobsBean = new JobsBean();
         jobsBean.jobStore = mock(PgJobStore.class);
+        jobsBean.jobStoreRepository = mock(PgJobStoreRepository.class);
     }
 
     private String asJson(Object object) throws JSONBException {

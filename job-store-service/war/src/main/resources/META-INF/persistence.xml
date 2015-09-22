@@ -38,6 +38,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.JobQueueEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
@@ -59,6 +60,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ChunkItemConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ItemDataConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.FlowStoreReferencesConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.JobQueueEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>

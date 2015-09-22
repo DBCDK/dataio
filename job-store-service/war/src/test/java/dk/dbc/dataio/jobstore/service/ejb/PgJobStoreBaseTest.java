@@ -41,7 +41,10 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.Diagnostic;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -52,6 +55,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.net.URISyntaxException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -81,8 +85,18 @@ public abstract class PgJobStoreBaseTest {
             base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
     protected static final int EXPECTED_NUMBER_OF_ITEMS = EXPECTED_DATA_ENTRIES.size();
     protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    protected static final FlowCacheEntity EXPECTED_FLOW_CACHE_ENTITY = new FlowCacheEntity();
-    protected static final SinkCacheEntity EXPECTED_SINK_CACHE_ENTITY = new SinkCacheEntity();
+    protected final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);
+    protected final JobQueueRepository mockedJobQueueReposity = mock(JobQueueRepository.class);
+
+    protected static final FlowCacheEntity EXPECTED_FLOW_CACHE_ENTITY = mock(FlowCacheEntity.class);
+    protected static final SinkCacheEntity EXPECTED_SINK_CACHE_ENTITY = mock(SinkCacheEntity.class);
+
+    protected final static Sink EXPECTED_SINK = new SinkBuilder().build();
+    protected final static Flow EXPECTED_FLOW = new FlowBuilder().build();
+
+    protected final static boolean OCCUPIED = true;
+    protected final static boolean AVAILABLE = false;
+
     protected static final int DEFAULT_JOB_ID = 1;
 
     private final SessionContext sessionContext = mock(SessionContext.class);
@@ -105,33 +119,62 @@ public abstract class PgJobStoreBaseTest {
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);
         when(cacheFlowQuery.getSingleResult()).thenReturn(EXPECTED_FLOW_CACHE_ENTITY);
+        when(EXPECTED_FLOW_CACHE_ENTITY.getFlow()).thenReturn(EXPECTED_FLOW);
 
         final Query cacheSinkQuery = mock(Query.class);
         when(entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheSinkQuery);
         when(cacheSinkQuery.getSingleResult()).thenReturn(EXPECTED_SINK_CACHE_ENTITY);
-
-        //when(fileStoreServiceConnector.addFile(is)).thenReturn(fileId);
+        when(EXPECTED_SINK_CACHE_ENTITY.getSink()).thenReturn(EXPECTED_SINK);
     }
 
 
+    protected PgJobStoreRepository newPgJobStoreReposity() {
 
+        final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();
+        pgJobStoreRepository.entityManager = entityManager;
+
+        return pgJobStoreRepository;
+    }
+    protected JobQueueRepository newJobQueueRepository() {
+
+        final JobQueueRepository jobQueueRepository = new JobQueueRepository();
+        jobQueueRepository.entityManager = entityManager;
+
+        return jobQueueRepository;
+    }
     protected PgJobStore newPgJobStore() {
+
         final PgJobStore pgJobStore = new PgJobStore();
+        pgJobStore.jobStoreRepository = mockedJobStoreRepository;
+        pgJobStore.jobQueueRepository = mockedJobQueueReposity;
         pgJobStore.jobSchedulerBean = jobSchedulerBean;
-        pgJobStore.entityManager = entityManager;
-        pgJobStore.sessionContext = sessionContext;
+        pgJobStore.jobStoreRepository.entityManager = entityManager;
+//        pgJobStore.jobStoreRepository.sessionContext = sessionContext;
         pgJobStore.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
         pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
+
         return pgJobStore;
     }
+
+    protected PgJobStore newPgJobStore(PgJobStoreRepository jobStoreRepository) {
+
+        final PgJobStore pgJobStore = newPgJobStore();
+        pgJobStore.jobStoreRepository = jobStoreRepository;
+
+        return pgJobStore;
+    }
+
     protected JobInputStream getJobInputStream(String datafile) {
+
         JobSpecification jobSpecification = new JobSpecificationBuilder().setCharset("utf8").setDataFile(datafile).build();
+
         return new JobInputStream(jobSpecification, true, 3);
     }
     protected void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
+
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
@@ -143,10 +186,14 @@ public abstract class PgJobStoreBaseTest {
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
     }
     protected TestableJobEntity newTestableJobEntity(JobSpecification jobSpecification) {
+
         final TestableJobEntity jobEntity = new TestableJobEntity();
         jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
         jobEntity.setState(new State());
         jobEntity.setSpecification(jobSpecification);
+        final SinkCacheEntity mockedCachedSink = mock(SinkCacheEntity.class);
+        jobEntity.setCachedSink(mockedCachedSink);
+
         return jobEntity;
     }
     protected String getXml() {
@@ -167,6 +214,7 @@ public abstract class PgJobStoreBaseTest {
     }
 
     protected JobEntity getJobEntity(int numberOfItems, List<State.Phase> phasesDone) {
+
         final TestableJobEntity jobEntity = new TestableJobEntity();
         jobEntity.setNumberOfItems(numberOfItems);
         final StateChange jobStateChange = new StateChange();
@@ -183,6 +231,7 @@ public abstract class PgJobStoreBaseTest {
         jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         jobEntity.setSpecification(new JobSpecificationBuilder().build());
         jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
+
         return jobEntity;
     }
 
@@ -201,4 +250,30 @@ public abstract class PgJobStoreBaseTest {
             this.timeOfCreation = timeOfCreation;
         }
     }
+
+     class MockedAddJobParam extends AddJobParam {
+
+        public MockedAddJobParam() {
+            super(
+                new JobInputStream(new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build(), true, 0),
+                mockedFlowStoreServiceConnector);
+
+            submitter = new SubmitterBuilder().build();
+            flow = new FlowBuilder().build();
+            sink = new SinkBuilder().build();
+            flowBinder = new FlowBinderBuilder().build();
+            flowStoreReferences = new FlowStoreReferencesBuilder().build();
+            diagnostics = new ArrayList<>();
+        }
+
+        public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
+            this.flowStoreReferences = flowStoreReferences;
+        }
+
+        public void setDiagnostics(List<Diagnostic> diagnostics) {
+            this.diagnostics.clear();
+            this.diagnostics.addAll(diagnostics);
+        }
+    }
+
 }

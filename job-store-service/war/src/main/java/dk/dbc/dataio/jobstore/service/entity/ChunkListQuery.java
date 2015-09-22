@@ -38,7 +38,7 @@ public class ChunkListQuery extends ListQuery<ChunkListCriteria, ChunkListCriter
 
     static final String QUERY_BASE = "SELECT * FROM chunk";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ItemListQuery.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ChunkListQuery.class);
 
     private final EntityManager entityManager;
 

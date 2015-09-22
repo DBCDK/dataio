@@ -79,6 +79,9 @@ public class JobsBean {
     @EJB
     PgJobStore jobStore;
 
+    @EJB
+    PgJobStoreRepository jobStoreRepository;
+
     /**
      * This is a dummy service for TEST purposes.
      * @return always OK
@@ -208,7 +211,7 @@ public class JobsBean {
     public Response listJobs(String jobListCriteriaData) throws JSONBException {
         try {
             final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
-            final List<JobInfoSnapshot> jobInfoSnapshots = jobStore.listJobs(jobListCriteria);
+            final List<JobInfoSnapshot> jobInfoSnapshots = jobStoreRepository.listJobs(jobListCriteria);
             return Response.ok().entity(jsonbContext.marshall(jobInfoSnapshots)).build();
         } catch (JSONBException e) {
             LOGGER.warn("Bad request: {}", e.getMessage());
@@ -234,7 +237,7 @@ public class JobsBean {
     public Response countJobs(String jobListCriteriaData) throws JSONBException {
         try {
             final JobListCriteria jobListCriteria = jsonbContext.unmarshall(jobListCriteriaData, JobListCriteria.class);
-            final long count = jobStore.countJobs(jobListCriteria);
+            final long count = jobStoreRepository.countJobs(jobListCriteria);
             LOGGER.debug("count Response {}",count);
             return Response.ok().entity(jsonbContext.marshall(count)).build();
         } catch (JSONBException e) {
@@ -263,7 +266,7 @@ public class JobsBean {
     public Response listItems(String itemListCriteriaData) throws JSONBException {
         try {
             final ItemListCriteria itemListCriteria = jsonbContext.unmarshall(itemListCriteriaData, ItemListCriteria.class);
-            final List<ItemInfoSnapshot> itemInfoSnapshots = jobStore.listItems(itemListCriteria);
+            final List<ItemInfoSnapshot> itemInfoSnapshots = jobStoreRepository.listItems(itemListCriteria);
             return Response.ok().entity(jsonbContext.marshall(itemInfoSnapshots)).build();
 
         } catch (JSONBException e) {
@@ -290,7 +293,7 @@ public class JobsBean {
     public Response countItems(String itemListCriteriaData) throws JSONBException {
         try {
             final ItemListCriteria itemListCriteria = jsonbContext.unmarshall(itemListCriteriaData, ItemListCriteria.class);
-            final long count = jobStore.countItems(itemListCriteria);
+            final long count = jobStoreRepository.countItems(itemListCriteria);
             return Response.ok().entity(jsonbContext.marshall(count)).build();
         } catch (JSONBException e) {
             LOGGER.warn("Bad request: {}", e.getMessage());
@@ -317,7 +320,7 @@ public class JobsBean {
     @Stopwatch
     public Response getResourceBundle(@PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         try {
-            ResourceBundle resourceBundle = jobStore.getResourceBundle(jobId);
+            ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(jobId);
             return Response.ok().entity(jsonbContext.marshall(resourceBundle)).build();
         } catch (InvalidInputException e) {
             return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
@@ -409,7 +412,7 @@ public class JobsBean {
      */
     Response getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
-            ItemData itemData = jobStore.getItemData(jobId, chunkId, itemId, phase);
+            ItemData itemData = jobStoreRepository.getItemData(jobId, chunkId, itemId, phase);
             return  Response.ok().entity(StringUtil.base64decode(itemData.getData())).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
@@ -438,7 +441,7 @@ public class JobsBean {
             @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
         try {
-            ChunkItem chunkItem = jobStore.getNextProcessingOutcome(jobId, chunkId, itemId);
+            ChunkItem chunkItem = jobStoreRepository.getNextProcessingOutcome(jobId, chunkId, itemId);
             return Response.ok().entity(StringUtil.asString(chunkItem.getData())).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();

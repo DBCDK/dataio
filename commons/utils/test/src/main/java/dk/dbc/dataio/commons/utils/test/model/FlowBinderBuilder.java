@@ -27,7 +27,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 public class FlowBinderBuilder {
     private long id = 62L;
     private long version = 1L;
-    private FlowBinderContent content = new FlowBinderContentBuilder().build();
+    private FlowBinderContent content = new FlowBinderContentBuilder().setSequneceAnalysis(true).build();
 
     public FlowBinderBuilder setId(long id) {
         this.id = id;

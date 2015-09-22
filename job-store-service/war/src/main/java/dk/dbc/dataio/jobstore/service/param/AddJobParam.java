@@ -33,8 +33,6 @@ import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import java.util.ArrayList;
@@ -49,10 +47,8 @@ import java.util.List;
  * </p>
  */
 public class AddJobParam {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AddJobParam.class);
 
     protected final FlowStoreServiceConnector flowStoreServiceConnector;
-
     protected final JobInputStream jobInputStream;
     protected List<Diagnostic> diagnostics;
     protected Submitter submitter;

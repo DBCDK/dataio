@@ -5,7 +5,6 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
@@ -124,7 +123,7 @@ public class PartitioningParam {
         return null;
     }
 
-    private DataPartitionerFactory.DataPartitioner newDataPartitioner() {
+    private DataPartitioner newDataPartitioner() {
         if (dataFileInputStream != null) {
             switch (recordSplitterType) {
                 case XML:

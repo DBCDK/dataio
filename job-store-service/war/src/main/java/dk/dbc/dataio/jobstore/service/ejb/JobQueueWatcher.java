@@ -52,7 +52,7 @@ public class JobQueueWatcher {
 
             final long uniqueSinkId = sinkEntry.getKey();
             final List<JobQueueEntity> jobsForUniqueSink = sinkEntry.getValue();
-            if(!sinkOccupied(uniqueSinkId, jobsForUniqueSink) && jobsForUniqueSink != null && !jobsForUniqueSink.isEmpty()) {
+            if(!sinkOccupied(jobsForUniqueSink) && jobsForUniqueSink != null && !jobsForUniqueSink.isEmpty()) {
 
                 final JobEntity firstWaitingJob = sinkEntry.getValue().get(0).getJob();
                 LOGGER.info("----- starting job: " + firstWaitingJob.getId());
@@ -68,7 +68,7 @@ public class JobQueueWatcher {
         LOGGER.info("Done watching the queue table.");
     }
 
-    private boolean sinkOccupied(long uniqueSinkId, List<JobQueueEntity> jobsForUniqueSink) {
+    private boolean sinkOccupied(List<JobQueueEntity> jobsForUniqueSink) {
 
         for (JobQueueEntity jobQueueEntity : jobsForUniqueSink) {
 

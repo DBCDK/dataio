@@ -3,12 +3,14 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.NoResultException;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.AVAILABLE;
 import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.OCCUPIED;
@@ -20,6 +22,8 @@ import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State.WAITING
  */
 @Stateless
 public class JobQueueRepository extends RepositoryBase {
+
+    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(JobQueueRepository.class);
 
     public List<Long> getUniqueSinkIds() {
 
@@ -68,7 +72,7 @@ public class JobQueueRepository extends RepositoryBase {
             entityManager.remove(jobQueueEntityToDelete);
             entityManager.flush();
         } catch (NoResultException nre) {
-            // do nothing
+            LOGGER.info("Did not find any Job Queue Entity...");
         }
 
     }
@@ -93,7 +97,7 @@ public class JobQueueRepository extends RepositoryBase {
             entityManager.merge(jobQueueEntity);
             entityManager.flush();
         } catch (NoResultException nre) {
-            // Do nothing!
+            LOGGER.info("Did not find any Job Queue Entity...");
         }
 
     }

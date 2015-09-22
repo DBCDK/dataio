@@ -93,31 +93,4 @@ public class SpecializedFileSchemeHandlerTest {
         assertThat(javascripts.get(1).modulename, is("lower"));
     }
 
-    @Ignore
-    @Test
-    public void test() throws Throwable {
-        Path rootDir1 = (new File("/home/damkjaer/dbc/tmp/jscommon")).toPath();
-        Path rootDir2 = (new File("/home/damkjaer/dbc/tmp/datawell-convert")).toPath();
-
-        DirectoriesContainingJavascriptFinder finderJsCommon = new DirectoriesContainingJavascriptFinder();
-        Files.walkFileTree(rootDir1, finderJsCommon);
-        DirectoriesContainingJavascriptFinder finderDatawell = new DirectoriesContainingJavascriptFinder();
-        Files.walkFileTree(rootDir2, finderDatawell);
-
-        ModuleHandler mh = new ModuleHandler();
-        SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler("");
-        //FileSchemeHandler sfsh = new FileSchemeHandler("");
-        mh.registerHandler("file", sfsh);
-        for (Path p : finderJsCommon.getJavascriptDirectories()) {
-            mh.addSearchPath(new SchemeURI("file", p.toString()));
-        }
-        for (Path d : finderDatawell.getJavascriptDirectories()) {
-            mh.addSearchPath(new SchemeURI("file", d.toString()));
-        }
-
-        Environment jsEnvironment = new Environment();
-        jsEnvironment.registerUseFunction(mh);
-        jsEnvironment.evalFile("/home/damkjaer/dbc/tmp/datawell-convert/js/xml_datawell_3.0.js");
-
-    }
 }

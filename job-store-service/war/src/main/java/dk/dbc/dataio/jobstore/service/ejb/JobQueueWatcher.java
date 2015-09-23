@@ -42,7 +42,7 @@ public class JobQueueWatcher {
 
     @Schedule(second = "*/5", minute = "*", hour = "*")
     @Stopwatch
-    public void doWatch() throws JobStoreException{
+    public void doWatch() {
 
         LOGGER.info("Start watching the queue table...");
 
@@ -78,15 +78,23 @@ public class JobQueueWatcher {
         return AVAILABLE;
     }
 
-    private void startJob(JobEntity jobToStart) throws JobStoreException{
+    private void startJob(JobEntity jobToStart) {
 
         final JobQueueEntity jobQueueEntity = this.jobQueueRepository.getJobQueueEntityByJob(jobToStart);
-        jobStore.handlePartitioningAsynchronously(
-                new PartitioningParam(
-                        jobToStart,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        jobQueueEntity.isSequenceAnalysis(),
-                        jobQueueEntity.getRecordSplitterType()));
+        try{
+            jobStore.handlePartitioningAsynchronously(
+                    new PartitioningParam(
+                            jobToStart,
+                            fileStoreServiceConnectorBean.getConnector(),
+                            jobQueueEntity.isSequenceAnalysis(),
+                            jobQueueEntity.getRecordSplitterType()));
+        } catch (JobStoreException jse) {
+            LOGGER.info(
+                    "this job received an error and is rolled back hence stays in the queue!. Queue ID: {}, Job ID: {}, Sink ID: {}",
+                    jobQueueEntity.getId(),
+                    jobQueueEntity.getJob().getId(),
+                    jobQueueEntity.getSinkId());
+        }
     }
 
     private Hashtable<Long, List<JobQueueEntity>> buildJobQueueEntitiesGroupedBySink() {

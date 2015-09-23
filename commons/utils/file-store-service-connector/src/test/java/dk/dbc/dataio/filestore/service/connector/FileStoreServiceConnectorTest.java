@@ -37,6 +37,7 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -114,7 +115,7 @@ public class FileStoreServiceConnectorTest {
 
     @Test
     public void addFile_responseWithoutLocationHeader_throws() throws FileStoreServiceConnectorException {
-        when(HttpClient.getHeader(any(Response.class), eq("Location"))).thenReturn(Arrays.asList());
+        when(HttpClient.getHeader(any(Response.class), eq("Location"))).thenReturn(Collections.emptyList());
         when(HttpClient.doPost(eq(CLIENT), any(Entity.class), eq(FILE_STORE_URL), eq(FileStoreServiceConstants.FILES_COLLECTION)))
                 .thenReturn(new MockedResponse<>(Response.Status.CREATED.getStatusCode(), ""));
 

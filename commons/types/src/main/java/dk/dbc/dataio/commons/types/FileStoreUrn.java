@@ -75,11 +75,8 @@ public class FileStoreUrn {
 
         FileStoreUrn that = (FileStoreUrn) o;
 
-        if (!urn.equals(that.urn)) {
-            return false;
-        }
+        return urn.equals(that.urn);
 
-        return true;
     }
 
     @Override

@@ -77,10 +77,9 @@ public class SubmitterContent implements Serializable {
 
         SubmitterContent that = (SubmitterContent) o;
 
-        if (number != that.number) return false;
-        if (!name.equals(that.name)) return false;
-        return description.equals(that.description);
-
+        return number == that.number
+                && name.equals(that.name)
+                && description.equals(that.description);
     }
 
     @Override

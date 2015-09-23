@@ -23,6 +23,7 @@ package dk.dbc.dataio.common.utils.flowstore;
 
 public class FlowStoreServiceConnectorUnexpectedStatusCodeException extends FlowStoreServiceConnectorException{
 
+    private static final long serialVersionUID = -6137268696536418984L;
     private int status;
 
     /**

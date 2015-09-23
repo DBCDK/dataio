@@ -22,7 +22,7 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowComponentContentJsonBuilder extends JsonBuilder {
@@ -31,7 +31,7 @@ public class FlowComponentContentJsonBuilder extends JsonBuilder {
     private String svnProjectForInvocationJavascript = "svnprojectforinvocationjavascript";
     private long svnRevision = 1L;
     private String invocationJavascriptName = "invocationJavascriptName";
-    private List<String> javascripts = new ArrayList<>(Arrays.asList(
+    private List<String> javascripts = new ArrayList<>(Collections.singletonList(
             new JavaScriptJsonBuilder().build()));
     private String invocationMethod = "invocationMethod";
 

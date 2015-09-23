@@ -24,6 +24,7 @@ package dk.dbc.dataio.commons.utils.transfile;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,9 +47,9 @@ public class TransFileField {
         idMap.put ("i", TransFileFieldId.INITIALS);
     }
     private final static Set<String> VALID_TRANSFILE_b_CONTENT_VALUES = new HashSet<>(Arrays.asList("broend3", "databroendpr2", "fbs", "testbroend", "broend3-exttest"));
-    private final static Set<String> VALID_TRANSFILE_t_CONTENT_VALUES = new HashSet<>(Arrays.asList("xml"));
+    private final static Set<String> VALID_TRANSFILE_t_CONTENT_VALUES = new HashSet<>(Collections.singletonList("xml"));
     private final static Set<String> VALID_TRANSFILE_o_CONTENT_VALUES = new HashSet<>(Arrays.asList("nmalbum", "nmtrack", "katalog", "basis"));
-    private final static Set<String> VALID_TRANSFILE_c_CONTENT_VALUES = new HashSet<>(Arrays.asList("utf8"));
+    private final static Set<String> VALID_TRANSFILE_c_CONTENT_VALUES = new HashSet<>(Collections.singletonList("utf8"));
 
     // RFC822 compliant regex
     // http://www.ex-parrot.com/pdw/Mail-RFC822-Address.html
@@ -110,8 +111,8 @@ public class TransFileField {
 
     /**
      * Checks if the fieldContent is valid. If not, an exception (IllegalArgumentException) is thrown.
-     * @param fieldIdentifier
-     * @param fieldContent
+     * @param fieldIdentifier field identifier
+     * @param fieldContent field content
      * @throws IllegalArgumentException
      */
     private void checkValidFieldContentOrThrow(TransFileFieldId fieldIdentifier, String fieldContent) throws IllegalArgumentException {
@@ -146,7 +147,7 @@ public class TransFileField {
     /**
      * Checks if the supplied fieldContent is in the valid range (given by the validFieldContent parameter)
      * @param validFieldContent The valid range
-     * @param fieldContent
+     * @param fieldContent field content
      * @throws IllegalArgumentException
      */
     private void checkValidEnumeratedFieldContentValueOrThrow(final Set<String> validFieldContent, String fieldContent) throws IllegalArgumentException {
@@ -157,7 +158,7 @@ public class TransFileField {
 
     /**
      * Checks if the supplied email address is legal. Throws an IllegalArgumentException if not
-     * @param email
+     * @param email the supplied email
      * @throws IllegalArgumentException
      */
     private void checkValidEmailAddressOrThrow(String email) throws IllegalArgumentException {
@@ -168,7 +169,7 @@ public class TransFileField {
 
     /**
      * Checks if the supplied filename is a valid filename reference in the TransFile
-     * @param fieldContent
+     * @param fieldContent field content
      * @throws IllegalArgumentException
      */
     private void checkValidFileNameFieldOrThrow(String fieldContent) throws IllegalArgumentException {
@@ -179,7 +180,7 @@ public class TransFileField {
 
     /**
      * Checks if the supplied parameter is a valid Initials field
-     * @param fieldContent
+     * @param fieldContent field content
      * @throws IllegalArgumentException
      */
     private void checkValidInitialsOrThrow(String fieldContent) throws IllegalArgumentException {

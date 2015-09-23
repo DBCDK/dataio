@@ -22,13 +22,13 @@
 package dk.dbc.dataio.commons.utils.test.json;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowContentJsonBuilder extends JsonBuilder {
     private String name = "name";
     private String description = "description";
-    private List<String> components = new ArrayList<>(Arrays.asList(
+    private List<String> components = new ArrayList<>(Collections.singletonList(
             new FlowComponentJsonBuilder().build()));
 
     public FlowContentJsonBuilder setDescription(String description) {

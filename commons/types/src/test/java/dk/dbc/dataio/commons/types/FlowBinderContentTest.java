@@ -24,7 +24,7 @@ package dk.dbc.dataio.commons.types;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,7 +48,7 @@ public class FlowBinderContentTest {
     private static final RecordSplitterConstants.RecordSplitter RECORD_SPLITTER = RecordSplitterConstants.RecordSplitter.XML;
     private static final boolean SEQUENCE_ANALYSIS = true;
     private static final Long FLOW_ID = 42L;
-    private static final List<Long> SUBMITTER_IDS = Arrays.asList(42L);
+    private static final List<Long> SUBMITTER_IDS = Collections.singletonList(42L);
     private static final Long SINK_ID = 31L;
 
     @Test(expected = NullPointerException.class)

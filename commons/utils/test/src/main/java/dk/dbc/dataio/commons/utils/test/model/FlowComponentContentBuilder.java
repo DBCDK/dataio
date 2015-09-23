@@ -23,8 +23,9 @@ package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowComponentContentBuilder {
@@ -33,7 +34,7 @@ public class FlowComponentContentBuilder {
     private String svnProjectForInvocationJavascript = "svnprojectforinvocationjavascript";
     private long svnRevision = 1L;
     private String invocationJavascriptName = "invocationJavascriptName";
-    private List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(
+    private List<JavaScript> javascripts = new ArrayList<>(Collections.singletonList(
             new JavaScriptBuilder().build()));
     private String invocationMethod = "invocationMethod";
     private String requireCache = null;

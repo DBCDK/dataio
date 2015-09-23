@@ -30,7 +30,7 @@ import static org.junit.Assert.assertThat;
 public class TransFileDataTest {
     @Test (expected = NullPointerException.class)
     public void nullInput_generateException () {
-        TransFileData line = new TransFileData(null);
+        new TransFileData(null);
     }
 
     @Test
@@ -48,12 +48,12 @@ public class TransFileDataTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void oneSpaceLine_generateException() {
-        TransFileData line = new TransFileData(" ");
+        new TransFileData(" ");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void oneCommaLine_generateException() {
-        TransFileData line = new TransFileData(",");
+        new TransFileData(",");
     }
 
     @Test
@@ -72,12 +72,12 @@ public class TransFileDataTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void leadingEmptyField_generateException() {
-        TransFileData line = new TransFileData(",b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData(",b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void emptyFieldInTheMiddle_generateException() {
-        TransFileData line = new TransFileData("b=databroendpr2,,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData("b=databroendpr2,,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
     }
 
     @Test
@@ -96,12 +96,12 @@ public class TransFileDataTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void missingBaseName_generateException() {
-        TransFileData line = new TransFileData("f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData("f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void missingFileName_generateException() {
-        TransFileData line = new TransFileData("b=databroendpr2,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData("b=databroendpr2,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
     }
 
     @Test
@@ -148,7 +148,7 @@ public class TransFileDataTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void missingPrimaryEmailAddress_generateException() {
-        TransFileData line = new TransFileData("b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData("b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,M=secondary@dbc.dk,i=initialstext");
     }
 
     @Test
@@ -181,12 +181,12 @@ public class TransFileDataTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void duplicateFields_generateException() {
-        TransFileData line = new TransFileData("b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData("b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void basenameNotFirstField_generateException() {
-        TransFileData line = new TransFileData("f=150014.201305272202.albumTOTAL.001.xml,b=databroendpr2,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
+        new TransFileData("f=150014.201305272202.albumTOTAL.001.xml,b=databroendpr2,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext");
     }
 
 

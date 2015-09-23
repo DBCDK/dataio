@@ -52,10 +52,7 @@ public class DirectoriesContainingJavascriptFinder extends SimpleFileVisitor<Pat
 
     private boolean isFileAJavascript(Path file) {
         Path name = file.getFileName();
-        if (name != null && matcher.matches(name)) {
-            return true;
-        }
-        return false;
+        return name != null && matcher.matches(name);
     }
 
     public List<Path> getJavascriptDirectories() {

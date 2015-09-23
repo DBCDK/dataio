@@ -32,42 +32,42 @@ public class TransFileFieldTest {
     
     @Test (expected = NullPointerException.class)
     public void nullInput_generateException () {
-        TransFileField field = new TransFileField(null);
+        new TransFileField(null);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void invalidInput_generateException () {
-        TransFileField field = new TransFileField("");
+        new TransFileField("");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void noEqualSignInField_generateException () {
-        TransFileField field = new TransFileField("illegalField");
+        new TransFileField("illegalField");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void blanksInNameInField_generateException () {
-        TransFileField field = new TransFileField(" i=content");
+        new TransFileField(" i=content");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void blanksInContentInField_generateException () {
-        TransFileField field = new TransFileField("i=con tent");
+        new TransFileField("i=con tent");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fieldNameMissing_generateException () {
-        TransFileField field = new TransFileField("=content");
+        new TransFileField("=content");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fieldNameContainsMultipleChars_generateException () {
-        TransFileField field = new TransFileField("is=content");
+        new TransFileField("is=content");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fieldNameIsUnknown_generateException () {
-        TransFileField field = new TransFileField("x=content");
+        new TransFileField("x=content");
     }
 
     
@@ -75,12 +75,12 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void bFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("b=xxx");
+        new TransFileField("b=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void bFieldEqualsDatabroendpr2WithCapitalLetter_generateException () {
-        TransFileField field = new TransFileField("b=Databroendpr2");
+        new TransFileField("b=Databroendpr2");
     }
 
     @Test
@@ -95,22 +95,22 @@ public class TransFileFieldTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void fFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("f=xxx");
+        new TransFileField("f=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fFieldLibraryNumberNotNumeric_generateException () {
-        TransFileField field = new TransFileField("f=12345V.1234567890.file-name_X.001.xml");
+        new TransFileField("f=12345V.1234567890.file-name_X.001.xml");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fFieldTooShortLibraryNumber_generateException () {
-        TransFileField field = new TransFileField("f=12345.1234567890.file-name_X.001.xml");
+        new TransFileField("f=12345.1234567890.file-name_X.001.xml");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fFieldTooLongLibraryNumber_generateException () {
-        TransFileField field = new TransFileField("f=1234567.1234567890.file-name_X.001.xml");
+        new TransFileField("f=1234567.1234567890.file-name_X.001.xml");
     }
 
     @Test
@@ -129,12 +129,12 @@ public class TransFileFieldTest {
 
     @Test (expected = IllegalArgumentException.class)
     public void fFieldInvalidCharsInFileName_generateException () {
-        TransFileField field = new TransFileField("f=123456.1234567890.file-name_X:4.001.xml");
+        new TransFileField("f=123456.1234567890.file-name_X:4.001.xml");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void fFieldDanishCharsInFileName_generateException () {
-        TransFileField field = new TransFileField("f=123456.1234567890.file-næme_X.001.xml");
+        new TransFileField("f=123456.1234567890.file-næme_X.001.xml");
     }
 
     
@@ -142,12 +142,12 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void tFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("t=xxx");
+        new TransFileField("t=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void tFieldEqualsXmlWithCapitalLetter_generateException () {
-        TransFileField field = new TransFileField("t=XML");
+        new TransFileField("t=XML");
     }
 
     @Test
@@ -162,12 +162,12 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void oFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("o=xxx");
+        new TransFileField("o=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void oFieldEqualsNmalbumWithCapitalLetter_generateException () {
-        TransFileField field = new TransFileField("o=Nmalbum");
+        new TransFileField("o=Nmalbum");
     }
 
     @Test
@@ -189,12 +189,12 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void cFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("c=xxx");
+        new TransFileField("c=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void cFieldEqualsUtf8WithCapitalLetter_generateException () {
-        TransFileField field = new TransFileField("c=UTF8");
+        new TransFileField("c=UTF8");
     }
 
     @Test
@@ -209,22 +209,22 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void mFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("m=xxx");
+        new TransFileField("m=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void mFieldEmailAddressWithoutAt_generateException () {
-        TransFileField field = new TransFileField("m=mail.com");
+        new TransFileField("m=mail.com");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void mFieldEmailAddressWithoutSubdomain_generateException () {
-        TransFileField field = new TransFileField("m=mail@.com");
+        new TransFileField("m=mail@.com");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void mFieldEmailAddressWithoutDomain_generateException () {
-        TransFileField field = new TransFileField("m=mail@");
+        new TransFileField("m=mail@");
     }
 
     @Test
@@ -253,22 +253,22 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void MFieldEqualsXxx_generateException () {
-        TransFileField field = new TransFileField("M=xxx");
+        new TransFileField("M=xxx");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void MFieldEmailAddressWithoutAt_generateException () {
-        TransFileField field = new TransFileField("M=mail.com");
+        new TransFileField("M=mail.com");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void MFieldEmailAddressWithoutSubdomain_generateException () {
-        TransFileField field = new TransFileField("M=mail@.com");
+        new TransFileField("M=mail@.com");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void MFieldEmailAddressWithoutDomain_generateException () {
-        TransFileField field = new TransFileField("M=mail@");
+        new TransFileField("M=mail@");
     }
 
     @Test
@@ -297,22 +297,22 @@ public class TransFileFieldTest {
     
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsDanishChars_generateException () {
-        TransFileField field = new TransFileField("i=Æble");
+        new TransFileField("i=Æble");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsColon_generateException () {
-        TransFileField field = new TransFileField("i=Apple:Banana");
+        new TransFileField("i=Apple:Banana");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsDash_generateException () {
-        TransFileField field = new TransFileField("i=Apple-Banana");
+        new TransFileField("i=Apple-Banana");
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void iFieldContainsUnderscore_generateException () {
-        TransFileField field = new TransFileField("i=Apple_Banana");
+        new TransFileField("i=Apple_Banana");
     }
 
     @Test

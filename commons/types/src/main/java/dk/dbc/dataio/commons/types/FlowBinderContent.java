@@ -88,7 +88,7 @@ public class FlowBinderContent implements Serializable {
         this.recordSplitter = InvariantUtil.checkNotNullOrThrow(recordSplitter, "recordSplitter");
         this.sequenceAnalysis = sequenceAnalysis;
         this.flowId = InvariantUtil.checkLowerBoundOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
-        this.submitterIds = new ArrayList<Long>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
+        this.submitterIds = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
         this.sinkId = InvariantUtil.checkLowerBoundOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         if (this.submitterIds.size() == 0) {
             throw new IllegalArgumentException("submitterIds can not be empty");
@@ -136,7 +136,7 @@ public class FlowBinderContent implements Serializable {
     }
 
     public List<Long> getSubmitterIds() {
-        return new ArrayList<Long>(submitterIds);
+        return new ArrayList<>(submitterIds);
     }
 
     @Override
@@ -146,18 +146,17 @@ public class FlowBinderContent implements Serializable {
 
         FlowBinderContent that = (FlowBinderContent) o;
 
-        if (sequenceAnalysis != that.sequenceAnalysis) return false;
-        if (flowId != that.flowId) return false;
-        if (sinkId != that.sinkId) return false;
-        if (!name.equals(that.name)) return false;
-        if (!description.equals(that.description)) return false;
-        if (!packaging.equals(that.packaging)) return false;
-        if (!format.equals(that.format)) return false;
-        if (!charset.equals(that.charset)) return false;
-        if (!destination.equals(that.destination)) return false;
-        if (recordSplitter != that.recordSplitter) return false;
-        return submitterIds.equals(that.submitterIds);
-
+        return sequenceAnalysis == that.sequenceAnalysis
+                && flowId == that.flowId
+                && sinkId == that.sinkId
+                && name.equals(that.name)
+                && description.equals(that.description)
+                && packaging.equals(that.packaging)
+                && format.equals(that.format)
+                && charset.equals(that.charset)
+                && destination.equals(that.destination)
+                && recordSplitter == that.recordSplitter
+                && submitterIds.equals(that.submitterIds);
     }
 
     @Override

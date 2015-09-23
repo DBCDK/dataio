@@ -87,9 +87,9 @@ import java.io.Serializable;
 
          Flow flow = (Flow) o;
 
-         if (id != flow.id) return false;
-         if (version != flow.version) return false;
-         return content.equals(flow.content);
+         return id == flow.id
+                 && version == flow.version
+                 && content.equals(flow.content);
 
      }
 

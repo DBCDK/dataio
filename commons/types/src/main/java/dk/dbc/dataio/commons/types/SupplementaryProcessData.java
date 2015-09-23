@@ -29,6 +29,7 @@ import java.io.Serializable;
 
 public class SupplementaryProcessData  implements Serializable {
 
+    private static final long serialVersionUID = -1430528567227210658L;
     private final long submitter;
     private final String format;
 
@@ -56,10 +57,8 @@ public class SupplementaryProcessData  implements Serializable {
 
         SupplementaryProcessData that = (SupplementaryProcessData) o;
 
-        if (submitter != that.submitter) return false;
-        if (format != null ? !format.equals(that.format) : that.format != null) return false;
-
-        return true;
+        return submitter == that.submitter
+                && !(format != null ? !format.equals(that.format) : that.format != null);
     }
 
     @Override

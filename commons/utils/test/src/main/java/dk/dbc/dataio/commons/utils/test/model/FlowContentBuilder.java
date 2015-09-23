@@ -25,13 +25,13 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowContentBuilder {
     private String name = "name";
     private String description = "description";
-    private List<FlowComponent> components = new ArrayList<>(Arrays.asList(
+    private List<FlowComponent> components = new ArrayList<>(Collections.singletonList(
             new FlowComponentBuilder().build()));
 
     public FlowContentBuilder setDescription(String description) {

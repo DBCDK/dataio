@@ -186,7 +186,7 @@ public class SvnConnectorTest {
 
     @Test
     public void export_projectUrlPointsToEntireProject_exportsProject() throws Exception {
-        final File checkoutFolder = tempFolder.newFolder("workspace");
+        tempFolder.newFolder("workspace");
         final File exportFolder = tempFolder.newFolder("export");
 
         final SVNURL reposUrl = createTemporaryTestRepository();
@@ -198,7 +198,7 @@ public class SvnConnectorTest {
 
         // Get original file content from resources folder
         final List<String> expectedHelloFileContent = Arrays.asList("hello", "fisk");
-        final List<String> expectedWorldFileContent = Arrays.asList("world");
+        final List<String> expectedWorldFileContent = Collections.singletonList("world");
 
 
         // Get exported file content
@@ -242,7 +242,7 @@ public class SvnConnectorTest {
         SvnConnector.export(fileUrl.toDecodedString(), revision, exportFolder.toPath());
 
         // Get original file content from resources folder
-        final List<String> expectedHelloFileContent = Arrays.asList("hello");
+        final List<String> expectedHelloFileContent = Collections.singletonList("hello");
 
         // Get exported file content
         final List<String> exportedHelloFileContent = Files.readAllLines(
@@ -270,9 +270,4 @@ public class SvnConnectorTest {
         return SVNRepositoryFactory.createLocalRepository(newFolder, true, true);
     }
 
-    private void appendToFile(final Path filename, final String data) throws Exception {
-        try (PrintWriter output = new PrintWriter(new FileWriter(filename.toString(), true))) {
-            output.print(data);
-        }
-    }
 }

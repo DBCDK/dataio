@@ -67,10 +67,8 @@ public class JavaScript implements Serializable {
 
         JavaScript that = (JavaScript) o;
 
-        if (!javascript.equals(that.javascript)) return false;
-        if (!moduleName.equals(that.moduleName)) return false;
-
-        return true;
+        return javascript.equals(that.javascript)
+                && moduleName.equals(that.moduleName);
     }
 
     @Override

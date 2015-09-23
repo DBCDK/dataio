@@ -55,7 +55,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -375,7 +374,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listJobs_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final List<JobInfoSnapshot> expectedSnapshots = Arrays.asList(new JobInfoSnapshotBuilder().build());
+        final List<JobInfoSnapshot> expectedSnapshots = Collections.singletonList(new JobInfoSnapshotBuilder().build());
         final List<JobInfoSnapshot> returnedSnapshots = listJobsWithMockedHttpResponse(new JobListCriteria(), 200, expectedSnapshots);
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
@@ -433,7 +432,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void listItems_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
-        final List<ItemInfoSnapshot> expectedSnapshots = Arrays.asList(new ItemInfoSnapshotBuilder().build());
+        final List<ItemInfoSnapshot> expectedSnapshots = Collections.singletonList(new ItemInfoSnapshotBuilder().build());
         final List<ItemInfoSnapshot> returnedSnapshots = listItemsWithMockedHttpResponse(new ItemListCriteria(), 200, expectedSnapshots);
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
@@ -649,7 +648,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void listJobNotificationsForJob_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
         final JobNotification testJobNotification = new JobNotification(234, new Date(), new Date(), JobNotification.Type.JOB_CREATED, JobNotification.Status.COMPLETED, "status message", "destination", "content", 345);
-        final List<JobNotification> expectedSnapshots = Arrays.asList(testJobNotification);
+        final List<JobNotification> expectedSnapshots = Collections.singletonList(testJobNotification);
         final List<JobNotification> returnedSnapshots = listJobNotificationForJobId_mockedHttpWithSpecifiedReturnErrorCode(123, JobStoreServiceConstants.JOB_NOTIFICATIONS, 200, expectedSnapshots);
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
@@ -679,7 +678,7 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
         when(HttpClient.doPostWithJson(any(Client.class), any(JobListCriteria.class), anyString(), anyString()))
-                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), Arrays.asList(returnValue)));
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), Collections.singletonList(returnValue)));
 
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.addChunkIgnoreDuplicates(chunk, jobId, chunkId);

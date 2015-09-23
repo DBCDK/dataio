@@ -81,11 +81,9 @@ public class FlowContent implements Serializable {
 
         FlowContent that = (FlowContent) o;
 
-        if (!components.equals(that.components)) return false;
-        if (!description.equals(that.description)) return false;
-        if (!name.equals(that.name)) return false;
-
-        return true;
+        return components.equals(that.components)
+                && description.equals(that.description)
+                && name.equals(that.name);
     }
 
     @Override

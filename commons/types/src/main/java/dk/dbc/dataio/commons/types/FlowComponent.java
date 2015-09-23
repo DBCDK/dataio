@@ -89,17 +89,10 @@ public class FlowComponent implements Serializable {
 
         FlowComponent that = (FlowComponent) o;
 
-        if (id != that.id) {
-            return false;
-        }
-        if (version != that.version) {
-            return false;
-        }
-        if (!content.equals(that.content)) {
-            return false;
-        }
-        return !(next != null ? !next.equals(that.next) : that.next != null);
-
+        return id == that.id
+                && version == that.version
+                && content.equals(that.content)
+                && !(next != null ? !next.equals(that.next) : that.next != null);
     }
 
     @Override

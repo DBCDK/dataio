@@ -21,23 +21,17 @@
 
 package dk.dbc.dataio.commons.javascript;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import java.util.List;
 import org.junit.Test;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 import org.mozilla.javascript.EcmaError;
 import org.mozilla.javascript.EvaluatorException;
 
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+import java.io.StringReader;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 public class JavascriptUtilTest {
-
-    XLogger log = XLoggerFactory.getXLogger(JavascriptUtilTest.class);
 
     static {
         org.apache.log4j.BasicConfigurator.configure();

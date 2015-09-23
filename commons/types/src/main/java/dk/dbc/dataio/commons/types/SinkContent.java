@@ -77,10 +77,9 @@ public class SinkContent implements Serializable {
 
         SinkContent that = (SinkContent) o;
 
-        if (!name.equals(that.name)) return false;
-        if (!resource.equals(that.resource)) return false;
-        return !(description != null ? !description.equals(that.description) : that.description != null);
-
+        return name.equals(that.name)
+                && resource.equals(that.resource)
+                && !(description != null ? !description.equals(that.description) : that.description != null);
     }
 
     @Override

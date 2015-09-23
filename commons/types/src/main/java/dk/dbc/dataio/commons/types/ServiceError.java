@@ -29,8 +29,6 @@ public class ServiceError implements Serializable {
     private /* final */ String message;
     private /* final */ String details;
 
-    private ServiceError() { }
-
     public ServiceError(String message, String details) {
         this.message = message;
         this.details = details;

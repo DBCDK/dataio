@@ -139,7 +139,7 @@ public class TransFileData {
 
     /**
      * Checks if the accumulated data contains a mandatory field. If not, an exception is thrown
-     * @param mandatoryFieldId
+     * @param mandatoryFieldId file id
      * @throws IllegalArgumentException
      */
     private void checkMandatoryFieldOrThrow(TransFileField.TransFileFieldId mandatoryFieldId) throws IllegalArgumentException {
@@ -150,7 +150,7 @@ public class TransFileData {
 
     /**
      * Checks that the supplied string contains a key as supplied
-     * @param fieldString
+     * @param fieldString field string
      * @throws IllegalArgumentException
      */
     private void checkCorrectTransFileFieldIdOrThrow(String fieldString, TransFileField.TransFileFieldId matchKey) throws IllegalArgumentException {

@@ -44,8 +44,6 @@ public class RevisionInfo implements Serializable {
     private /* final */ Date date;
     private /* final */ List<ChangedItem> changedItems;
 
-    private RevisionInfo() { }
-
     /**
      * Class constructor
      *
@@ -63,15 +61,11 @@ public class RevisionInfo implements Serializable {
         this.author = InvariantUtil.checkNotNullOrThrow(author, "author");
         this.message = InvariantUtil.checkNotNullOrThrow(message, "message");
         this.date = new Date(InvariantUtil.checkNotNullOrThrow(date, "date").getTime());
-        this.changedItems = new ArrayList<ChangedItem>(InvariantUtil.checkNotNullOrThrow(changedItems, "changedItems"));
-    }
-
-    public String getAuthor() {
-        return author;
+        this.changedItems = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(changedItems, "changedItems"));
     }
 
     public List<ChangedItem> getChangedItems() {
-        return new ArrayList<ChangedItem>(changedItems);
+        return new ArrayList<>(changedItems);
     }
 
     public Date getDate() {
@@ -98,8 +92,6 @@ public class RevisionInfo implements Serializable {
 
         private /* final */ String path;
         private /* final */ String type;
-
-        private ChangedItem() { }
 
         /**
          * Class constructor

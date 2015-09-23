@@ -41,7 +41,7 @@ public class ByteCountingInputStreamTest {
         byte[] bytes = byteString.getBytes(StandardCharsets.UTF_8);
         ByteCountingInputStream byteCountingInputStream = new ByteCountingInputStream(asInputStream(byteString));
         byteCountingInputStream.read(new byte[bytes.length], 0, bytes.length);
-        assertThat(byteCountingInputStream.getBytesRead(), is(Long.valueOf(bytes.length)));
+        assertThat(byteCountingInputStream.getBytesRead(), is((long) bytes.length));
     }
 
     @Test
@@ -49,7 +49,7 @@ public class ByteCountingInputStreamTest {
         byte[] bytes = byteString.getBytes(StandardCharsets.UTF_8);
         ByteCountingInputStream byteCountingInputStream = new ByteCountingInputStream(asInputStream(byteString));
         byteCountingInputStream.read(new byte[bytes.length]);
-        assertThat(byteCountingInputStream.getBytesRead(), is(Long.valueOf(bytes.length)));
+        assertThat(byteCountingInputStream.getBytesRead(), is((long) bytes.length));
     }
 
     @Test

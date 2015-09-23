@@ -228,8 +228,7 @@ public class JobStoreServiceConnector {
             final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_SEARCHES_COUNT);
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                Long res=readResponseEntity(response, new GenericType<Long>() {});
-                return res.longValue();
+                return readResponseEntity(response, new GenericType<Long>() {});
             } finally {
                 response.close();
             }
@@ -253,8 +252,7 @@ public class JobStoreServiceConnector {
             final Response response = HttpClient.doPostWithJson(httpClient, criteria, baseUrl, JobStoreServiceConstants.ITEM_COLLECTION_SEARCHES_COUNT);
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                Long result = readResponseEntity(response, new GenericType<Long>() {});
-                return result;
+                return readResponseEntity(response, new GenericType<Long>() {});
             } finally {
                 response.close();
             }

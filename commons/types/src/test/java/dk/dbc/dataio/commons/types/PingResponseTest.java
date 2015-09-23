@@ -24,7 +24,7 @@ package dk.dbc.dataio.commons.types;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -40,7 +40,7 @@ import static org.junit.Assert.assertThat;
  */
 public class PingResponseTest {
     private static final PingResponse.Status STATUS = PingResponse.Status.OK;
-    private static final List<String> LOG = Arrays.asList("message");
+    private static final List<String> LOG = Collections.singletonList("message");
 
     @Test(expected = NullPointerException.class)
     public void constructor_statusArgIsNull_throws() {

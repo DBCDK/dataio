@@ -76,10 +76,9 @@ public class Submitter implements Serializable {
 
         Submitter submitter = (Submitter) o;
 
-        if (id != submitter.id) return false;
-        if (version != submitter.version) return false;
-        return content.equals(submitter.content);
-
+        return id == submitter.id
+                && version == submitter.version
+                && content.equals(submitter.content);
     }
 
     @Override

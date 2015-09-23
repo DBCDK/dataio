@@ -142,15 +142,14 @@ public class FlowComponentContent implements Serializable {
 
         FlowComponentContent that = (FlowComponentContent) o;
 
-        if (svnRevision != that.svnRevision) return false;
-        if (!name.equals(that.name)) return false;
-        if (!svnProjectForInvocationJavascript.equals(that.svnProjectForInvocationJavascript)) return false;
-        if (!invocationJavascriptName.equals(that.invocationJavascriptName)) return false;
-        if (!javascripts.equals(that.javascripts)) return false;
-        if (!invocationMethod.equals(that.invocationMethod)) return false;
-        if (requireCache != null ? !requireCache.equals(that.requireCache) : that.requireCache != null) return false;
-        return !(description != null ? !description.equals(that.description) : that.description != null);
-
+        return svnRevision == that.svnRevision
+                && name.equals(that.name)
+                && svnProjectForInvocationJavascript.equals(that.svnProjectForInvocationJavascript)
+                && invocationJavascriptName.equals(that.invocationJavascriptName)
+                && javascripts.equals(that.javascripts)
+                && invocationMethod.equals(that.invocationMethod)
+                && !(requireCache != null ? !requireCache.equals(that.requireCache) : that.requireCache != null)
+                && !(description != null ? !description.equals(that.description) : that.description != null);
     }
 
     @Override

@@ -28,7 +28,9 @@ import java.util.Scanner;
 
 public class TransFile {
     private static final String ENCODING = "UTF-8";
-    public static class UnexpectedEndOfFileException extends RuntimeException {}
+    public static class UnexpectedEndOfFileException extends RuntimeException {
+        private static final long serialVersionUID = 167415160914424658L;
+    }
 
     /**
      * TransFile constructor

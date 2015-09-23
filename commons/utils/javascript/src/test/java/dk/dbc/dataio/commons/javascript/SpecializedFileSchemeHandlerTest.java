@@ -21,29 +21,23 @@
 
 package dk.dbc.dataio.commons.javascript;
 
-import dk.dbc.jslib.Environment;
-import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.ScriptableObject;
-import org.slf4j.ext.XLogger;
-import org.slf4j.ext.XLoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Ignore;
 
 public class SpecializedFileSchemeHandlerTest {
-
-    XLogger log = XLoggerFactory.getXLogger(SpecializedFileSchemeHandlerTest.class);
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 

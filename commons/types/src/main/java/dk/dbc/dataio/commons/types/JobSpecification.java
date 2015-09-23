@@ -168,38 +168,16 @@ public class JobSpecification implements Serializable {
 
         JobSpecification that = (JobSpecification) o;
 
-        if (submitterId != that.submitterId) {
-            return false;
-        }
-        if (!packaging.equals(that.packaging)) {
-            return false;
-        }
-        if (!format.equals(that.format)) {
-            return false;
-        }
-        if (!charset.equals(that.charset)) {
-            return false;
-        }
-        if (!destination.equals(that.destination)) {
-            return false;
-        }
-        if (!mailForNotificationAboutVerification.equals(that.mailForNotificationAboutVerification)) {
-            return false;
-        }
-        if (!mailForNotificationAboutProcessing.equals(that.mailForNotificationAboutProcessing)) {
-            return false;
-        }
-        if (!resultmailInitials.equals(that.resultmailInitials)) {
-            return false;
-        }
-        if (!dataFile.equals(that.dataFile)) {
-            return false;
-        }
-        if (type != that.type) {
-            return false;
-        }
-        return !(ancestry != null ? !ancestry.equals(that.ancestry) : that.ancestry != null);
-
+        return submitterId == that.submitterId
+                && packaging.equals(that.packaging)
+                && format.equals(that.format)
+                && charset.equals(that.charset)
+                && destination.equals(that.destination)
+                && mailForNotificationAboutVerification.equals(that.mailForNotificationAboutVerification)
+                && mailForNotificationAboutProcessing.equals(that.mailForNotificationAboutProcessing)
+                && resultmailInitials.equals(that.resultmailInitials)
+                && dataFile.equals(that.dataFile) && type == that.type
+                && !(ancestry != null ? !ancestry.equals(that.ancestry) : that.ancestry != null);
     }
 
     @Override
@@ -274,14 +252,9 @@ public class JobSpecification implements Serializable {
 
             Ancestry ancestry = (Ancestry) o;
 
-            if (transfile != null ? !transfile.equals(ancestry.transfile) : ancestry.transfile != null) {
-                return false;
-            }
-            if (datafile != null ? !datafile.equals(ancestry.datafile) : ancestry.datafile != null) {
-                return false;
-            }
-            return !(batchId != null ? !batchId.equals(ancestry.batchId) : ancestry.batchId != null);
-
+            return !(transfile != null ? !transfile.equals(ancestry.transfile) : ancestry.transfile != null)
+                    && !(datafile != null ? !datafile.equals(ancestry.datafile) : ancestry.datafile != null)
+                    && !(batchId != null ? !batchId.equals(ancestry.batchId) : ancestry.batchId != null);
         }
 
         @Override

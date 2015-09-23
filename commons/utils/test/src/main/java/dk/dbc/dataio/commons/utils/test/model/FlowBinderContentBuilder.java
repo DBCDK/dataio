@@ -24,7 +24,7 @@ package dk.dbc.dataio.commons.utils.test.model;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowBinderContentBuilder {
@@ -37,7 +37,7 @@ public class FlowBinderContentBuilder {
     private RecordSplitterConstants.RecordSplitter recordSplitter = RecordSplitterConstants.RecordSplitter.XML;
     private boolean sequenceAnalysis = true;
     private long flowId = 47L;
-    private List<Long> submitterIds = Arrays.asList(78L);
+    private List<Long> submitterIds = Collections.singletonList(78L);
     private long sinkId = 24L;
 
 

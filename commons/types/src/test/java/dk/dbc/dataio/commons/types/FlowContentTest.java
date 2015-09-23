@@ -24,7 +24,7 @@ package dk.dbc.dataio.commons.types;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -41,7 +41,7 @@ import static org.junit.Assert.assertThat;
 public class FlowContentTest {
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
-    private static final List<FlowComponent> COMPONENTS = Arrays.asList(FlowComponentTest.newFlowComponentInstance());
+    private static final List<FlowComponent> COMPONENTS = Collections.singletonList(FlowComponentTest.newFlowComponentInstance());
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {

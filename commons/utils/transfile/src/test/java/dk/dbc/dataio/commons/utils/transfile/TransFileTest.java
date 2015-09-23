@@ -42,7 +42,7 @@ public class TransFileTest {
     @Test (expected = TransFile.UnexpectedEndOfFileException.class)
     public void emptyInputWithoutEndmark_generateException () throws UnsupportedEncodingException {
         InputStream stream = constructStream(emptyLine);
-        List<TransFileData> data = TransFile.process(stream);
+        TransFile.process(stream);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class TransFileTest {
     @Test (expected = TransFile.UnexpectedEndOfFileException.class)
     public void oneValidInputLineWithoutEndMark_generateException () throws UnsupportedEncodingException {
         InputStream stream = constructStream(validTransFileDataLine1);
-        List<TransFileData> data = TransFile.process(stream);
+        TransFile.process(stream);
     }
 
     @Test
@@ -109,25 +109,25 @@ public class TransFileTest {
     @Test (expected = IllegalArgumentException.class)
     public void oneInvalidInputLineWithEndMark_generateException () throws UnsupportedEncodingException {
         InputStream stream = constructStream(invalidTransFileDataLine, endMark);
-        List<TransFileData> data = TransFile.process(stream);
+        TransFile.process(stream);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void oneInvalidInputLineWithoutEndMark_generateException () throws UnsupportedEncodingException {
         InputStream stream = constructStream(invalidTransFileDataLine);
-        List<TransFileData> data = TransFile.process(stream);
+        TransFile.process(stream);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void oneValidAndOneInvalidInputLineWithEndMark_generateException () throws UnsupportedEncodingException {
         InputStream stream = constructStream(validTransFileDataLine1, invalidTransFileDataLine, endMark);
-        List<TransFileData> data = TransFile.process(stream);
+        TransFile.process(stream);
     }
 
     @Test (expected = IllegalArgumentException.class)
     public void oneValidAndOneInvalidInputLineWithoutEndMark_generateException () throws UnsupportedEncodingException {
         InputStream stream = constructStream(validTransFileDataLine1, invalidTransFileDataLine);
-        List<TransFileData> data = TransFile.process(stream);
+        TransFile.process(stream);
     }
 
 

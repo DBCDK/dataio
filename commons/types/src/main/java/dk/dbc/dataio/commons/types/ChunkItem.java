@@ -84,14 +84,9 @@ public class ChunkItem implements Serializable {
 
         ChunkItem chunkItem = (ChunkItem) o;
 
-        if (id != chunkItem.id) {
-            return false;
-        }
-        if (!Arrays.equals(data, chunkItem.data)) {
-            return false;
-        }
-        return status == chunkItem.status;
-
+        return id == chunkItem.id
+                && Arrays.equals(data, chunkItem.data)
+                && status == chunkItem.status;
     }
 
     @Override

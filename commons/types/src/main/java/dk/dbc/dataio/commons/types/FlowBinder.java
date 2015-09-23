@@ -77,10 +77,9 @@ public class FlowBinder implements Serializable {
 
         FlowBinder that = (FlowBinder) o;
 
-        if (id != that.id) return false;
-        if (version != that.version) return false;
-        return content.equals(that.content);
-
+        return id == that.id
+                && version == that.version
+                && content.equals(that.content);
     }
 
     @Override

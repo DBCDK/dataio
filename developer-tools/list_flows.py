@@ -47,8 +47,6 @@ parse_arguments()
 print()
 url="http://"+args.host+"/dataio/flow-store-service/flows"
 
-#url="http://"+args.host+"/~ja7/out.txt"
-
 start = time.time()
 
 response = requests.get( url )

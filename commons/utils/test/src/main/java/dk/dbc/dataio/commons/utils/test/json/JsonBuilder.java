@@ -54,7 +54,7 @@ public abstract class JsonBuilder {
     }
 
     protected String asBooleanMember(String memberName, boolean memberValue) {
-        final String memberValueAsString = (memberValue) ? "true"
+        final String memberValueAsString = memberValue ? "true"
                 : "false";
         return String.format("\"%s\": %s", memberName, memberValueAsString);
     }

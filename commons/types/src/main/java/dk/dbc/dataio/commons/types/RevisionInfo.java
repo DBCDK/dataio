@@ -64,6 +64,10 @@ public class RevisionInfo implements Serializable {
         this.changedItems = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(changedItems, "changedItems"));
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
     public List<ChangedItem> getChangedItems() {
         return new ArrayList<>(changedItems);
     }

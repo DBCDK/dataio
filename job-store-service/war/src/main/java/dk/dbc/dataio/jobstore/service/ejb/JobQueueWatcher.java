@@ -55,8 +55,8 @@ public class JobQueueWatcher {
 
                 final JobEntity firstWaitingJob = sinkEntry.getValue().get(0).getJob();
                 LOGGER.info("----- starting job: " + firstWaitingJob.getId());
-                didWatcherStartAtLeastOneJob = true;
                 this.startJob(firstWaitingJob);
+                didWatcherStartAtLeastOneJob = true;
             }
         }
 

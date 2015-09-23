@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,6 +37,7 @@ import static org.junit.Assert.assertThat;
 public class ExternalChunkTest {
     private static final ChunkItem CHUNK_ITEM = new ChunkItem(0L, "data".getBytes(), ChunkItem.Status.SUCCESS);
     private ExternalChunk chunk;
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Before
     public void newChunk() {
@@ -158,7 +159,7 @@ public class ExternalChunkTest {
     }
 
     @Test
-    public void convertToJsonAndBackAgain() throws JsonException {
+    public void convertToJsonAndBackAgain() throws JSONBException {
         final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
         final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
         final ChunkItem thirdItem = new ChunkItem(2L, "Third".getBytes(), ChunkItem.Status.FAILURE);
@@ -166,7 +167,7 @@ public class ExternalChunkTest {
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
 
-        final ExternalChunk unmarshalledChunk = JsonUtil.fromJson(JsonUtil.toJson(chunk), ExternalChunk.class);
+        final ExternalChunk unmarshalledChunk = jsonbContext.unmarshall(jsonbContext.marshall(chunk), ExternalChunk.class);
         final Iterator<ChunkItem> it = unmarshalledChunk.iterator();
         assertThat("chunk has first item", it.hasNext(), is(true));
         assertThat("first item", it.next(), is(firstItem));
@@ -177,16 +178,16 @@ public class ExternalChunkTest {
         assertThat("chunk has fourth item", it.hasNext(), is(false));
     }
 
-    @Test(expected = JsonException.class)
-    public void unmarshallFromJsonWhichDoNotUpholdInvariant() throws JsonException {
+    @Test(expected = JSONBException.class)
+    public void unmarshallFromJsonWhichDoNotUpholdInvariant() throws JSONBException {
         final String illegalJson = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"},{\"id\":0,\"data\":\"Second\",\"status\":\"SUCCESS\"}]}";
-        JsonUtil.fromJson(illegalJson, ExternalChunk.class);
+        jsonbContext.unmarshall(illegalJson, ExternalChunk.class);
     }
 
     @Test
-    public void unmarshallFromJsonWithoutNext() throws JsonException {
+    public void unmarshallFromJsonWithoutNext() throws JSONBException {
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
-        final ExternalChunk chunk = JsonUtil.fromJson(json, ExternalChunk.class);
+        final ExternalChunk chunk = jsonbContext.unmarshall(json, ExternalChunk.class);
         assertThat(chunk, is(notNullValue()));
     }
 }

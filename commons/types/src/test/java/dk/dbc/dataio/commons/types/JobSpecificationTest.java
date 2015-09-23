@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -47,6 +47,7 @@ public class JobSpecificationTest {
     private static final String RESULT_MAIL_INITIALS = "abc";
     private static final String DATA_FILE = "uri";
     private static final JobSpecification.Type TYPE = JobSpecification.Type.TEST;
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test(expected = NullPointerException.class)
     public void constructor_packagingArgIsNull_throws() {
@@ -144,7 +145,7 @@ public class JobSpecificationTest {
                     "    \"type\" : \"TEST\"" +
                 "}";
 
-        final JobSpecification jobSpecification = JsonUtil.fromJson(json, JobSpecification.class);
+        final JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));
         assertThat(jobSpecification.getType(), is(TYPE));
         assertThat(jobSpecification.getAncestry(), is(nullValue()));
@@ -171,7 +172,7 @@ public class JobSpecificationTest {
                     "    }\n" +
                 "}";
 
-        final JobSpecification jobSpecification = JsonUtil.fromJson(json, JobSpecification.class);
+        final JobSpecification jobSpecification = jsonbContext.unmarshall(json, JobSpecification.class);
         assertThat(jobSpecification.getPackaging(), is("packaging"));
         assertThat(jobSpecification.getType(), is(TYPE));
         final JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();

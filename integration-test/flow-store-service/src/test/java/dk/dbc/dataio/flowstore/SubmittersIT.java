@@ -26,7 +26,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -44,15 +43,13 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,8 +70,6 @@ import static org.junit.Assert.fail;
  * Integration tests for the submitters collection part of the flow store service
  */
 public class SubmittersIT {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(SubmittersIT.class);
 
     private static FlowStoreServiceConnector flowStoreServiceConnector;
     private static Client restClient;
@@ -106,10 +101,6 @@ public class SubmittersIT {
 
     private Submitter updateSubmitterFromConnector(SubmitterContent submitterContent, Long submitterId, Long version) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException  {
         return flowStoreServiceConnector.updateSubmitter(submitterContent, submitterId, version);
-    }
-
-    private Submitter getSubmitterById(long submitterId) throws Exception {
-        return flowStoreServiceConnector.getSubmitter(submitterId);
     }
 
     /*
@@ -162,7 +153,7 @@ public class SubmittersIT {
         // Verify that the submitter is deleted
         try {
 
-            Submitter submitterAfterDelete = flowStoreServiceConnector.getSubmitter(submitterId);
+            flowStoreServiceConnector.getSubmitter(submitterId);
 
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
 
@@ -238,10 +229,10 @@ public class SubmittersIT {
         final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
 
-        FlowBinder flowBinder = flowStoreServiceConnector.createFlowBinder(flowBinderContent);
+        flowStoreServiceConnector.createFlowBinder(flowBinderContent);
 
         // Get submitter - then the version is set correct before deletion
         Submitter submitterBeforeDelete = flowStoreServiceConnector.getSubmitter(submitterId);
@@ -261,7 +252,7 @@ public class SubmittersIT {
 
     /*
      * Given: a deployed flow-store service
-     * When: JSON posted to the submitters path causes JsonException
+     * When: JSON posted to the submitters path causes JSONBException
      * Then: request returns with a BAD REQUEST http status code
      */
     @Test
@@ -462,7 +453,7 @@ public class SubmittersIT {
 
     /*
      * Given: a deployed flow-store service with a submitter
-     * When : JSON posted to the submitters path with update causes JsonException
+     * When : JSON posted to the submitters path with update causes JSONBException
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test

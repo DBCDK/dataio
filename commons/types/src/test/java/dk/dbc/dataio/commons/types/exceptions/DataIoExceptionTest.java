@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.commons.types.exceptions;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
@@ -31,6 +31,9 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class DataIoExceptionTest {
+
+    private final JSONBContext jsonbContext = new JSONBContext();
+
     @Test
     public void zeroArgConstructor_setsProperties() {
         final DataIoException dataIoException = new DataIoException();
@@ -66,7 +69,7 @@ public class DataIoExceptionTest {
     }
 
     @Test
-    public void serializationOfSubType_followedBy_deserializationIntoSuperType() throws JsonException {
+    public void serializationOfSubType_followedBy_deserializationIntoSuperType() throws JSONBException {
         DataIoException dataIoException;
         final String message = "message";
         final String causedByDetail = "detail";
@@ -74,19 +77,15 @@ public class DataIoExceptionTest {
         try {
             throw new TestException(message, cause);
         } catch (DataIoException e) {
-            dataIoException = JsonUtil.fromJson(JsonUtil.toJson(e), DataIoException.class);
+            dataIoException = jsonbContext.unmarshall(jsonbContext.marshall(e), DataIoException.class);
         }
         assertThat(dataIoException.getType(), is(TestException.class.getName()));
-        //assertThat(dataIoException.getCause(), CoreMatchers.<Throwable>is(cause));
         assertThat(dataIoException.getMessage(), is(message));
         assertThat(dataIoException.getCausedBy(), is(cause.getClass().getName()));
         assertThat(dataIoException.getCausedByDetail(), is(causedByDetail));
     }
 
     private static final class TestException extends DataIoException {
-        public TestException() {
-            super();
-        }
 
         public TestException(String message, Exception cause) {
             super(message, cause);

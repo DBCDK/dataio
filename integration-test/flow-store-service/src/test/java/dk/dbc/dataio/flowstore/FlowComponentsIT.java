@@ -296,7 +296,7 @@ public class FlowComponentsIT {
 
     /**
      * Given: a deployed flow-store service
-     * When : JSON posted to the flow component path with update causes JsonException
+     * When : JSON posted to the flow component path with update causes JSONBException
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test

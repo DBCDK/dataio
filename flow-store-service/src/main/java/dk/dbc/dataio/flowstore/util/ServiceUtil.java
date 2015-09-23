@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.flowstore.util;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.flowstore.entity.VersionedEntity;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +48,9 @@ public class ServiceUtil {
      *
      * @return entity as managed object or null if no entity could be created
      *
-     * @throws JsonException if unable to handle entity content as JSON
+     * @throws JSONBException if unable to handle entity content as JSON
      */
-    public static <T extends VersionedEntity> T saveAsVersionedEntity(EntityManager entityManager, Class<T> entityClass, String content) throws JsonException {
+    public static <T extends VersionedEntity> T saveAsVersionedEntity(EntityManager entityManager, Class<T> entityClass, String content) throws JSONBException {
         T entity = null;
         try {
             entity = entityClass.newInstance();

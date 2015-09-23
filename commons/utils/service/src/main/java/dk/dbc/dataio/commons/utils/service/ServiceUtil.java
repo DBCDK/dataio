@@ -23,8 +23,8 @@ package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +43,8 @@ public class ServiceUtil {
     public static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
     private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";
     private static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
+
+    private static final JSONBContext jsonbContext = new JSONBContext();
 
     private ServiceUtil() { }
 
@@ -180,8 +182,8 @@ public class ServiceUtil {
     public static String asJsonError(String errorMessage) {
         String error = null;
         try {
-            error = JsonUtil.toJson(new ServiceError(errorMessage));
-        } catch (JsonException e) {
+            error = jsonbContext.marshall(new ServiceError(errorMessage));
+        } catch (JSONBException e) {
             log.error("Caught exception trying to create JSON representation of error", e);
         }
         return error;
@@ -199,8 +201,8 @@ public class ServiceUtil {
         String error = null;
         try {
             log.error("Generating error based on exception", ex);
-            error = JsonUtil.toJson(new ServiceError(ex.getMessage(), stackTraceToString(ex)));
-        } catch (JsonException e) {
+            error = jsonbContext.marshall(new ServiceError(ex.getMessage(), stackTraceToString(ex)));
+        } catch (JSONBException e) {
             log.error("Caught exception trying to create JSON representation of error", e);
         }
         return error;

@@ -26,10 +26,10 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -77,7 +77,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
     }
 
     @Test
-    public void createFlowBinder_flowBinderIsCreated_returnsFlowBinder() throws FlowStoreServiceConnectorException, JsonException {
+    public void createFlowBinder_flowBinderIsCreated_returnsFlowBinder() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowBinder expectedFlowBinder = new FlowBinderBuilder().build();
         final FlowBinder flowBinder = createFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedFlowBinder);
         assertThat(flowBinder, is(notNullValue()));
@@ -207,7 +207,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     // **************************************** update flow binder tests ****************************************
     @Test
-    public void updateFlowBinder_flowBinderIsUpdated_returnsFlowBinder() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateFlowBinder_flowBinderIsUpdated_returnsFlowBinder() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowBinder flowBinderToUpdate = new FlowBinderBuilder().build();
 
         FlowBinder updatedFlowBinder = updateFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(
@@ -243,7 +243,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
 
     // **************************************** delete flow binder tests ****************************************
     @Test
-    public void deleteFlowBinder_flowBinderIsDeleted() throws FlowStoreServiceConnectorException, JsonException {
+    public void deleteFlowBinder_flowBinderIsDeleted() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowBinder flowBinderToDelete = new FlowBinderBuilder().build();
         deleteFlowBinder_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), flowBinderToDelete.getId(), flowBinderToDelete.getVersion());
     }

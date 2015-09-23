@@ -22,8 +22,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.types.SubmitterContent;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -78,11 +78,11 @@ public class Submitter extends VersionedEntity {
      * {@inheritDoc}
      * @throws NullPointerException if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JsonException if non-json JSON string or if given JSON is invalid SubmitterContent
+     * @throws JSONBException if non-json JSON string or if given JSON is invalid SubmitterContent
      */
     @Override
-    protected void preProcessContent(String data) throws JsonException {
-        final SubmitterContent submitterContent = JsonUtil.fromJson(data, SubmitterContent.class);
+    protected void preProcessContent(String data) throws JSONBException {
+        final SubmitterContent submitterContent = new JSONBContext().unmarshall(data, SubmitterContent.class);
         nameIndexValue = submitterContent.getName();
         numberIndexValue = submitterContent.getNumber();
     }

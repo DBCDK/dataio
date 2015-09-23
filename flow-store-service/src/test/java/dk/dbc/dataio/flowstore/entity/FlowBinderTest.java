@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class FlowBinderTest {
         submitterIds.add(42L);
         submitterIds.add(43L);
         final String flowBinderContent = new FlowBinderContentJsonBuilder()
-                .setSubmitterIds(new ArrayList<Long>(submitterIds))
+                .setSubmitterIds(new ArrayList<>(submitterIds))
                 .build();
 
         final FlowBinder binder = new FlowBinder();
@@ -80,22 +80,22 @@ public class FlowBinderTest {
         assertThat(binder.getFlowId(), is(flowId));
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidFlowBinderContentJson_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         binder.setContent("{}");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
         binder.setContent("{");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final FlowBinder binder = new FlowBinder();
-        binder.setContent("");
+                binder.setContent("");
     }
 
     @Test(expected = NullPointerException.class)

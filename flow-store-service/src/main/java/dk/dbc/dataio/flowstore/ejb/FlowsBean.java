@@ -23,14 +23,14 @@ package dk.dbc.dataio.flowstore.ejb;
 
 
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +68,7 @@ public class FlowsBean {
 
     private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final String FLOW_CONTENT_DISPLAY_TEXT = "flowContent";
+    JSONBContext jsonbContext = new JSONBContext();
 
     @PersistenceContext
     EntityManager entityManager;
@@ -81,17 +82,20 @@ public class FlowsBean {
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException if unable to marshall value type into its JSON representation
+     * @throws JSONBException if unable to marshall value type into its JSON representation
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlow(@PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id) throws JsonException {
+    public Response getFlow(@PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id) throws JSONBException {
         final Flow flow = entityManager.find(Flow.class, id);
         if (flow == null) {
-            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+            return Response
+                    .status(Response.Status.NOT_FOUND)
+                    .entity(jsonbContext.marshall(new ServiceError(NOT_FOUND_MESSAGE)))
+                    .build();
         }
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flow));
+        return Response.ok().entity(jsonbContext.marshall(flow)).build();
     }
 
     /**
@@ -106,7 +110,7 @@ public class FlowsBean {
      *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
+     * @throws JSONBException when given invalid (null-valued, empty-valued or non-json)
      *                       JSON string, or if JSON object does not contain required
      *                       members
      */
@@ -114,14 +118,14 @@ public class FlowsBean {
     @Path(FlowStoreServiceConstants.FLOWS)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createFlow(@Context UriInfo uriInfo, String flowContent) throws JsonException {
+    public Response createFlow(@Context UriInfo uriInfo, String flowContent) throws JSONBException {
         log.trace("Called with: '{}'", flowContent);
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
 
         final Flow flow = saveAsVersionedEntity(entityManager, Flow.class, flowContent);
         entityManager.flush();
-        final String flowJson = JsonUtil.toJson(flow);
+        final String flowJson = jsonbContext.marshall(flow);
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flow)).entity(flowJson).build();
     }
 
@@ -140,7 +144,7 @@ public class FlowsBean {
      *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json flow
+     * @throws JSONBException on failure to create json flow
      * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
     @POST
@@ -152,7 +156,7 @@ public class FlowsBean {
             @Context UriInfo uriInfo,
             @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
-            @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JsonException, ReferencedEntityNotFoundException {
+            @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JSONBException, ReferencedEntityNotFoundException {
 
         Response response;
         if(isRefresh != null && isRefresh) {
@@ -168,15 +172,14 @@ public class FlowsBean {
      *
      * @return a HTTP OK response with result list as JSON
      *
-     * @throws JsonException on failure to create result list as JSON
+     * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOWS)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllFlows() throws JsonException {
+    public Response findAllFlows() throws JSONBException {
         final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
-        final List<Flow> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
     }
 
     // private methods
@@ -192,11 +195,11 @@ public class FlowsBean {
      *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json flow
+     * @throws JSONBException on failure to create json flow
      * @throws ReferencedEntityNotFoundException on failure to locate the flow component in the underlying database
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private Response refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JsonException, ReferencedEntityNotFoundException {
+    private Response refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JSONBException, ReferencedEntityNotFoundException {
 
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
 
@@ -205,26 +208,26 @@ public class FlowsBean {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
         }
         entityManager.detach(flowEntity);
-        FlowContent flowContent = JsonUtil.fromJson(flowEntity.getContent(), FlowContent.class);
+        FlowContent flowContent = jsonbContext.unmarshall(flowEntity.getContent(), FlowContent.class);
 
         for(dk.dbc.dataio.commons.types.FlowComponent flowComponent : flowContent.getComponents()){
             FlowComponent flowComponentWithLatestVersion = entityManager.find(FlowComponent.class, flowComponent.getId());
             if (flowComponentWithLatestVersion == null) {
                 throw new ReferencedEntityNotFoundException("Flow component with id: " + flowComponent.getId() + "could not be found in the underlying database");
             }
-            String flowComponentWithLatestVersionJson = JsonUtil.toJson(flowComponentWithLatestVersion);
-            dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = JsonUtil.fromJson(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
+            String flowComponentWithLatestVersionJson = jsonbContext.marshall(flowComponentWithLatestVersion);
+            dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = jsonbContext.unmarshall(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
             flowComponentsWithLatestVersion.add(updatedFlowComponent);
         }
 
         FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion);
 
-        flowEntity.setContent(JsonUtil.toJson(updatedFlowContent));
+        flowEntity.setContent(jsonbContext.marshall(updatedFlowContent));
         flowEntity.setVersion(version);
         entityManager.merge(flowEntity);
         entityManager.flush();
         final Flow updatedFlow = entityManager.find(Flow.class, id);
-        final String flowJson = JsonUtil.toJson(updatedFlow);
+        final String flowJson = jsonbContext.marshall(updatedFlow);
         return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlow)).entity(flowJson).build();
     }
 
@@ -239,10 +242,10 @@ public class FlowsBean {
      *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException JsonException on failure to create json flow
+     * @throws JSONBException JsonException on failure to create json flow
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
-    private Response updateFlowContent(String flowContent, Long id, Long version) throws JsonException {
+    private Response updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
         final Flow flowEntity = entityManager.find(Flow.class, id);
@@ -257,7 +260,7 @@ public class FlowsBean {
         entityManager.merge(flowEntity);
         entityManager.flush();
         final Flow updatedFlow = entityManager.find(Flow.class, id);
-        final String flowJson = JsonUtil.toJson(updatedFlow);
+        final String flowJson = jsonbContext.marshall(updatedFlow);
         return Response
                 .ok()
                 .entity(flowJson)

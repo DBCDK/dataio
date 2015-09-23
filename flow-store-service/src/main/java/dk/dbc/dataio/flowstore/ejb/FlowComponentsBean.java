@@ -23,10 +23,10 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +45,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.List;
 
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
 import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
@@ -61,6 +60,8 @@ public class FlowComponentsBean {
     private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
 
+    JSONBContext jsonbContext = new JSONBContext();
+
     @PersistenceContext
     EntityManager entityManager;
 
@@ -73,17 +74,17 @@ public class FlowComponentsBean {
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json flowComponent
+     * @throws JSONBException on failure to create json flowComponent
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlowComponent(@PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id) throws JsonException {
+    public Response getFlowComponent(@PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id) throws JSONBException {
         final FlowComponent flowComponent = entityManager.find(FlowComponent.class, id);
         if (flowComponent == null) {
             return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
         }
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowComponent));
+        return Response.ok().entity(jsonbContext.marshall(flowComponent)).build();
     }
 
     /**
@@ -98,18 +99,19 @@ public class FlowComponentsBean {
      *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException if unable to marshall value type into its JSON representation
+     * @throws JSONBException if unable to marshall value type into its JSON representation
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JsonException {
+    public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JSONBException {
         log.trace("Called with: '{}'", componentContent);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(componentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
 
         final FlowComponent component = saveAsVersionedEntity(entityManager, FlowComponent.class, componentContent);
         entityManager.flush();
-        final String componentJson = JsonUtil.toJson(component);
+        final String componentJson = jsonbContext.marshall(component);
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), component)).entity(componentJson).build();
     }
 
@@ -118,15 +120,14 @@ public class FlowComponentsBean {
      *
      * @return a HTTP OK response with result list as JSON
      *
-     * @throws JsonException on failure to create result list as JSON
+     * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_COMPONENTS)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllComponents() throws JsonException {
+    public Response findAllComponents() throws JSONBException {
         final TypedQuery<FlowComponent> query = entityManager.createNamedQuery(FlowComponent.QUERY_FIND_ALL, FlowComponent.class);
-        final List<FlowComponent> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
     }
 
     /**
@@ -142,14 +143,14 @@ public class FlowComponentsBean {
      *         a HTTP 409 response in case of Concurrent Update error
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json component
+     * @throws JSONBException on failure to create json component
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateFlowComponent(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id,
-                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+                               @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowComponentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
@@ -162,7 +163,7 @@ public class FlowComponentsBean {
         entityManager.merge(flowComponentEntity);
         entityManager.flush();
         final FlowComponent updatedFlowComponent = entityManager.find(FlowComponent.class, id);
-        final String flowComponentJson = JsonUtil.toJson(updatedFlowComponent);
+        final String flowComponentJson = jsonbContext.marshall(updatedFlowComponent);
         return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlowComponent)).entity(flowComponentJson).build();
     }
 
@@ -179,14 +180,14 @@ public class FlowComponentsBean {
      *         a HTTP 409 response in case of Concurrent Update error
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json component
+     * @throws JSONBException on failure to create json component
      */
     @POST
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateNext(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id,
-                                        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+                                        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
         if (flowComponentEntity == null) {
@@ -198,7 +199,7 @@ public class FlowComponentsBean {
         entityManager.merge(flowComponentEntity);
         entityManager.flush();
         final FlowComponent updatedFlowComponent = entityManager.find(FlowComponent.class, id);
-        final String flowComponentJson = JsonUtil.toJson(updatedFlowComponent);
+        final String flowComponentJson = jsonbContext.marshall(updatedFlowComponent);
         return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlowComponent)).entity(flowComponentJson).build();
     }
 

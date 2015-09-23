@@ -23,10 +23,10 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Submitter;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +34,15 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.Path;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.POST;
-import javax.ws.rs.GET;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.PathParam;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
@@ -61,6 +61,8 @@ public class SubmittersBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
 
+    JSONBContext jsonbContext = new JSONBContext();
+
     @PersistenceContext
     EntityManager entityManager;
 
@@ -76,7 +78,7 @@ public class SubmittersBean {
      *         a HTTP 406 NOT_ACCEPTABLE response if violating any uniqueness constraints.
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json)
+     * @throws JSONBException when given invalid (null-valued, empty-valued or non-json)
      *                       JSON string, or if JSON object does not contain required
      *                       members
      */
@@ -84,13 +86,13 @@ public class SubmittersBean {
     @Path(FlowStoreServiceConstants.SUBMITTERS)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JsonException {
+    public Response createSubmitter(@Context UriInfo uriInfo, String submitterContent) throws JSONBException {
         log.trace("Called with: '{}'", submitterContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
 
         final Submitter submitter = saveAsVersionedEntity(entityManager, Submitter.class, submitterContent);
         entityManager.flush();
-        final String submitterJson = JsonUtil.toJson(submitter);
+        final String submitterJson = jsonbContext.marshall(submitter);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), submitter))
                 .entity(submitterJson)
@@ -107,12 +109,12 @@ public class SubmittersBean {
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json submitter
+     * @throws JSONBException on failure to create json submitter
      */
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTER)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSubmitter(@PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id) throws JsonException {
+    public Response getSubmitter(@PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id) throws JSONBException {
         final Submitter submitter = entityManager.find(Submitter.class, id);
         if (submitter == null) {
             return Response
@@ -122,7 +124,7 @@ public class SubmittersBean {
         }
         return Response
                 .ok()
-                .entity(JsonUtil.toJson(submitter))
+                .entity(jsonbContext.marshall(submitter))
                 .tag(submitter.getVersion().toString())
                 .build();
     }
@@ -136,12 +138,12 @@ public class SubmittersBean {
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json submitter
+     * @throws JSONBException on failure to create json submitter
      */
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTER_SEARCHES_NUMBER)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JsonException {
+    public Response getSubmitterBySubmitterNumber(@PathParam(FlowStoreServiceConstants.SUBMITTER_NUMBER_VARIABLE) Long number) throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_BY_NUMBER, Submitter.class);
         query.setParameter(Submitter.DB_QUERY_PARAMETER_NUMBER, number);
 
@@ -155,7 +157,7 @@ public class SubmittersBean {
         Submitter submitter = query.getSingleResult();
         return Response
                 .ok()
-                .entity(JsonUtil.toJson(submitter))
+                .entity(jsonbContext.marshall(submitter))
                 .tag(submitter.getVersion().toString())
                 .build();
     }
@@ -173,14 +175,14 @@ public class SubmittersBean {
      *         a HTTP 409 response in case of Concurrent Update error,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json submitter
+     * @throws JSONBException on failure to create json submitter
      */
     @POST
     @Path(FlowStoreServiceConstants.SUBMITTER_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateSubmitter(String submitterContent, @PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id,
-        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
         final Submitter submitterEntity = entityManager.find(Submitter.class, id);
@@ -195,7 +197,7 @@ public class SubmittersBean {
         entityManager.merge(submitterEntity);
         entityManager.flush();
         final Submitter updatedSubmitter = entityManager.find(Submitter.class, id);
-        final String submitterJson = JsonUtil.toJson(updatedSubmitter);
+        final String submitterJson = jsonbContext.marshall(updatedSubmitter);
         return Response
                 .ok()
                 .entity(submitterJson)
@@ -246,15 +248,15 @@ public class SubmittersBean {
      * @return a HTTP 200 OK response with result list as JSON.
      *         a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws JsonException on failure to create result list as JSON
+     * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTERS)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllSubmitters() throws JsonException {
+    public Response findAllSubmitters() throws JSONBException {
         final TypedQuery<Submitter> query = entityManager.createNamedQuery(Submitter.QUERY_FIND_ALL, Submitter.class);
         final List<Submitter> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return ServiceUtil.buildResponse(Response.Status.OK, jsonbContext.marshall(results));
     }
 
 }

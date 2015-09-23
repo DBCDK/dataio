@@ -27,10 +27,10 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,11 +45,12 @@ public class AbstractSinkMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private String PAYLOAD;
+    private final JSONBContext jsonbContext = new JSONBContext();
     
     @Before
-    public void setup() throws JsonException {
+    public void setup() throws JSONBException {
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
-        PAYLOAD = JsonUtil.toJson(processedChunk);
+        PAYLOAD = jsonbContext.marshall(processedChunk);
     }
 
     @Test(expected = NullPointerException.class)
@@ -70,9 +71,9 @@ public class AbstractSinkMessageConsumerBeanTest {
     }
 
     @Test(expected = InvalidMessageException.class)
-    public void unmarshallPayload_consumedMessageArgPayloadIsEmptyProcessedChunk_throws() throws InvalidMessageException, JsonException {
+    public void unmarshallPayload_consumedMessageArgPayloadIsEmptyProcessedChunk_throws() throws InvalidMessageException, JSONBException {
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
-        final String emptyProcessedChunkJson = JsonUtil.toJson(processedChunk);
+        final String emptyProcessedChunkJson = jsonbContext.marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, emptyProcessedChunkJson);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }

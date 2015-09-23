@@ -26,10 +26,10 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,7 @@ public class FlowStoreServiceConnector_Flows_Test {
     }
 
     @Test
-    public void createFlow_flowIsCreated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+    public void createFlow_flowIsCreated_returnsFlow() throws FlowStoreServiceConnectorException, JSONBException {
         final Flow expectedFlow = new FlowBuilder().build();
         final Flow flow = createFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedFlow);
         assertThat(flow, is(notNullValue()));
@@ -142,7 +142,7 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     // ***************************************** update flow tests *****************************************
     @Test
-    public void refreshFlowComponents_componentsInFlowAreUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+    public void refreshFlowComponents_componentsInFlowAreUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JSONBException {
         final Flow flowToUpdate = new FlowBuilder().build();
         Flow updatedFlow = refreshFlowComponents_mockedHttpWithSpecifiedReturnErrorCode(
                 Response.Status.OK.getStatusCode(),
@@ -183,7 +183,7 @@ public class FlowStoreServiceConnector_Flows_Test {
     }
 
     @Test
-    public void updateFlow_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateFlow_flowIsUpdated_returnsFlow() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowContent flowContent = new FlowContentBuilder().build();
         final Flow flowToUpdate = new FlowBuilder().build();
 
@@ -296,7 +296,7 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     // **************************************** delete flow tests ****************************************
     @Test
-    public void deleteFlow_flowIsDeleted() throws FlowStoreServiceConnectorException, JsonException {
+    public void deleteFlow_flowIsDeleted() throws FlowStoreServiceConnectorException, JSONBException {
         final Flow flowToDelete = new FlowBuilder().build();
         deleteFlow_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), flowToDelete.getId(), flowToDelete.getVersion());
     }

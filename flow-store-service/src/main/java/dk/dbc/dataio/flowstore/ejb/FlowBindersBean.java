@@ -25,14 +25,14 @@ import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
 import dk.dbc.dataio.flowstore.entity.Sink;
 import dk.dbc.dataio.flowstore.entity.Submitter;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +72,7 @@ public class FlowBindersBean {
     private static final Logger log = LoggerFactory.getLogger(FlowBindersBean.class);
     private static final String FLOW_BINDER_CONTENT_DISPLAY_TEXT = "flowBinderContent";
     private static final String NOT_FOUND_MESSAGE = "resource not found";
+    JSONBContext jsonbContext = new JSONBContext();
 
     @PersistenceContext
     EntityManager entityManager;
@@ -91,7 +92,7 @@ public class FlowBindersBean {
      * a HTTP 404 NOT_FOUND response if flow binder is not found
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or
+     * @throws JSONBException when given invalid (null-valued, empty-valued or
      * non-json) JSON string
      */
     @GET
@@ -102,7 +103,7 @@ public class FlowBindersBean {
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
             @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitter_number,
-            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JsonException {
+            @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, FlowBinderFlowQuery.REST_PARAMETER_PACKAGING);
         InvariantUtil.checkNotNullNotEmptyOrThrow(format, FlowBinderFlowQuery.REST_PARAMETER_FORMAT);
@@ -133,7 +134,8 @@ public class FlowBindersBean {
             String msg = getMoreThanOneFlowFoundMessage(query);
             log.warn(msg);
         }
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinders.get(0)));
+
+        return Response.ok().entity(jsonbContext.marshall(flowBinders.get(0))).build();
     }
 
     /**
@@ -153,7 +155,7 @@ public class FlowBindersBean {
      * a HTTP 412 PRECONDITION_FAILED if a referenced submitter or flow no longer exists,
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or
+     * @throws JSONBException when given invalid (null-valued, empty-valued or
      * non-json) JSON string, or if JSON object does not comply with model
      * schema
      * @throws ReferencedEntityNotFoundException when unable to resolve any
@@ -163,7 +165,7 @@ public class FlowBindersBean {
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JsonException, ReferencedEntityNotFoundException {
+    public Response createFlowBinder(@Context UriInfo uriInfo, String flowBinderContent) throws JSONBException, ReferencedEntityNotFoundException {
         log.trace("Called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
         /* ATTENTION:
@@ -194,7 +196,7 @@ public class FlowBindersBean {
 
         entityManager.flush();
 
-        final String flowBinderJson = JsonUtil.toJson(flowBinder);
+        final String flowBinderJson = jsonbContext.marshall(flowBinder);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), flowBinder))
                 .entity(flowBinderJson)
@@ -222,7 +224,7 @@ public class FlowBindersBean {
      * a HTTP 412 PRECONDITION_FAILED on failure to locate one or more of the referenced objects
      * a HTTP 500 INTERNAL_SERVER_ERROR response in case of general error.
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or
+     * @throws JSONBException when given invalid (null-valued, empty-valued or
      * non-json) JSON string, or if JSON object does not comply with model
      * schema
      *
@@ -234,7 +236,7 @@ public class FlowBindersBean {
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateFlowBinder(String flowBinderContent,
                                      @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id,
-                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException, ReferencedEntityNotFoundException {
+                                     @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException, ReferencedEntityNotFoundException {
 
         log.trace("called with: '{}'", flowBinderContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowBinderContent, FLOW_BINDER_CONTENT_DISPLAY_TEXT);
@@ -259,7 +261,7 @@ public class FlowBindersBean {
         final FlowBinder updatedFlowBinderEntity = entityManager.find(FlowBinder.class, id);
 
         // Return the updated flow binder
-        String updatedFlowBinderEntityJson = JsonUtil.toJson(updatedFlowBinderEntity);
+        String updatedFlowBinderEntityJson = jsonbContext.marshall((updatedFlowBinderEntity));
         return Response
                 .ok()
                 .entity(updatedFlowBinderEntityJson)
@@ -315,15 +317,14 @@ public class FlowBindersBean {
      *
      * @return a HTTP OK response with result list as JSON
      *
-     * @throws JsonException on failure to create result list as JSON
+     * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDERS)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllFlowBinders() throws JsonException {
+    public Response findAllFlowBinders() throws JSONBException {
         final TypedQuery<dk.dbc.dataio.commons.types.FlowBinder> query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL, dk.dbc.dataio.commons.types.FlowBinder.class);
-        final List<dk.dbc.dataio.commons.types.FlowBinder> results = query.getResultList();
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(results));
+        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
     }
 
     /**
@@ -335,17 +336,17 @@ public class FlowBindersBean {
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException if unable to marshall value type into its JSON representation
+     * @throws JSONBException if unable to marshall value type into its JSON representation
      */
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JsonException {
+    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JSONBException {
         final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
         if (flowBinder == null) {
             return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
         }
-        return ServiceUtil.buildResponse(Response.Status.OK, JsonUtil.toJson(flowBinder));
+        return Response.ok().entity(jsonbContext.marshall(flowBinder)).build();
     }
 
 
@@ -408,7 +409,7 @@ public class FlowBindersBean {
             for (FlowBinderSearchIndexEntry newSearchIndexEntry : FlowBinder.generateSearchIndexEntries(flowBinderEntity)) {
                 entityManager.persist(newSearchIndexEntry);
             }
-        } catch (JsonException e) {
+        } catch (JSONBException e) {
             throw new PersistenceException("flow binder contains invalid JSON content", e.getCause());
         }
     }
@@ -420,7 +421,7 @@ public class FlowBindersBean {
      * @param version the current version of the flow binder
      * @throws PersistenceException if the objects referenced by the flow binder, could not be resolved
      */
-    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JsonException, ReferencedEntityNotFoundException {
+    private void updateFlowBinderEntity(FlowBinder flowBinderEntity, String flowBinderContentString, long version) throws JSONBException, ReferencedEntityNotFoundException {
             entityManager.detach(flowBinderEntity);
             flowBinderEntity.setContent(flowBinderContentString);
             flowBinderEntity.setVersion(version);

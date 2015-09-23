@@ -22,8 +22,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -66,11 +66,11 @@ public class Flow extends VersionedEntity {
      * {@inheritDoc}
      * @throws NullPointerException if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JsonException if non-json JSON string or if given JSON is invalid FlowContent
+     * @throws JSONBException if non-json JSON string or if given JSON is invalid FlowContent
      */
     @Override
-    protected void preProcessContent(String data) throws JsonException {
-        final FlowContent flowContent = JsonUtil.fromJson(data, FlowContent.class);
+    protected void preProcessContent(String data) throws JSONBException {
+        final FlowContent flowContent = new JSONBContext().unmarshall(data, FlowContent.class);
         nameIndexValue = flowContent.getName();
     }
 }

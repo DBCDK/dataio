@@ -22,8 +22,8 @@
 package dk.dbc.dataio.sinkservice.ejb;
 
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -59,19 +59,19 @@ public class PingBeanTest {
         pingBean.ping(null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = JSONBException.class)
     public void ping_sinkContentDataIsEmpty_throws() throws Exception {
         final PingBean pingBean = new PingBean();
         pingBean.ping("");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void ping_sinkContentDataIsInvalidJson_throws() throws Exception {
         final PingBean pingBean = new PingBean();
         pingBean.ping("{");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void ping_sinkContentDataIsInvalidSinkContent_throws() throws Exception {
         final PingBean pingBean = new PingBean();
         pingBean.ping("{\"name\": \"name\"}");
@@ -104,8 +104,8 @@ public class PingBeanTest {
         pingBean.ping(getValidSinkContent("unknown/resource"));
     }
 
-    private String getValidSinkContent(String resourceName) throws JsonException {
+    private String getValidSinkContent(String resourceName) throws JSONBException {
         final SinkContent sinkContent = new SinkContent("name", resourceName, "description");
-        return JsonUtil.toJson(sinkContent);
+        return new JSONBContext().marshall(sinkContent);
     }
 }

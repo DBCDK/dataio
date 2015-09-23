@@ -26,8 +26,6 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -77,11 +75,11 @@ public class EsCleanupBeanTest {
     private List<EsInFlight> emptyEsInFlightList = Collections.emptyList();
 
     @Before
-    public void setup() throws JsonException {
+    public void setup() throws JSONBException {
 
         final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setItems(
                 Collections.singletonList(new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build())).build();
-        String incompleteDeliveredChunkJson = JsonUtil.toJson(incompleteDeliveredChunk);
+        String incompleteDeliveredChunkJson = new JSONBContext().marshall(incompleteDeliveredChunk);
                 
         esInFlight41_1 = new EsInFlight();
         esInFlight41_1.setJobId(41L);

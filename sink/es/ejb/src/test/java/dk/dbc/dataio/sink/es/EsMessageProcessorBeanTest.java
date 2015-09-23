@@ -28,12 +28,12 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -76,11 +76,13 @@ public class EsMessageProcessorBeanTest {
     private static final String ES_DATABASE_NAME = "dbname";
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private static final String PROCESSING_TAG = "dataio:sink-processing";
+    private JSONBContext jsonbContext = new JSONBContext();
     private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
     private EsConnectorBean esConnector;
     private EsInFlightBean esInFlightAdmin;
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     private JobStoreServiceConnector jobStoreServiceConnector;
+
 
     @Before
     public void setupMocks() {
@@ -93,10 +95,10 @@ public class EsMessageProcessorBeanTest {
     }
 
     @Test
-    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkAdded() throws JMSException, SinkException, JsonException, JobStoreServiceConnectorException {
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkAdded() throws JMSException, SinkException, JSONBException, JobStoreServiceConnectorException {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
-        final String processedChunkJson = JsonUtil.toJson(processedChunk);
+        final String processedChunkJson = jsonbContext.marshall(processedChunk);
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
@@ -285,10 +287,10 @@ public class EsMessageProcessorBeanTest {
             final ChunkItem item = new ChunkItemBuilder()
                     .setData(StringUtil.asBytes(getResourceAsString(resourceName)))
                     .build();
-            return JsonUtil.toJson(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+            return jsonbContext.marshall(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                     .setItems(Collections.singletonList(item))
                     .build());
-        } catch (JsonException e) {
+        } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }
     }

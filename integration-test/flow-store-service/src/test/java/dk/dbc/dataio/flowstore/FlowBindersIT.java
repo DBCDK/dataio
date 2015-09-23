@@ -148,7 +148,7 @@ public class FlowBindersIT {
 
     /**
      * Given: a deployed flow-store service
-     * When: JSON posted to the flow binders path causes JsonException
+     * When: JSON posted to the flow binders path causes JSONBException
      * Then: request returns with a BAD REQUEST http status code
      */
     @Test
@@ -535,7 +535,7 @@ public class FlowBindersIT {
 
     /**
      * Given: a deployed flow-store service
-     * When : JSON posted to the flow binders path with update causes JsonException
+     * When : JSON posted to the flow binders path with update causes JSONBException
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test

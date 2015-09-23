@@ -46,7 +46,6 @@ import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.integrationtest.ITUtil;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
@@ -88,6 +87,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class PerformanceIT {
@@ -101,6 +101,12 @@ public class PerformanceIT {
     private static final String ENCODING = "utf8";
     private static final String DESTINATION = "dummysink";
     private static final String SINK_RESOURCE = "jdbc/dataio/dummy";
+    private static final String FILE_STORE_BASE_URL = String.format("http://%s:%s%s",
+            System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("file-store-service.context"));
+    public static final String FLOW_STORE_BASE_URL = String.format("http://%s:%s%s",
+            System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("flow-store-service.context"));
+    public static final String JOB_STORE_BASE_URL = String.format("http://%s:%s%s",
+            System.getProperty("container.hostname"), System.getProperty("container.http.port"), System.getProperty("job-store-service.context"));
 
     private static final long RECORDS_PER_TEST = 10000;
     private static long lowContentTimingResult = 0; // to be set from low-content test
@@ -127,9 +133,9 @@ public class PerformanceIT {
 
         final Client httpClient = HttpClient.newClient(config);
 
-        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, ITUtil.FILE_STORE_BASE_URL);
-        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, ITUtil.FLOW_STORE_BASE_URL);
-        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, ITUtil.JOB_STORE_BASE_URL);
+        fileStoreServiceConnector = new FileStoreServiceConnector(httpClient, FILE_STORE_BASE_URL);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(httpClient, FLOW_STORE_BASE_URL);
+        jobStoreServiceConnector = new JobStoreServiceConnector(httpClient, JOB_STORE_BASE_URL);
     }
 
     @BeforeClass
@@ -257,9 +263,7 @@ public class PerformanceIT {
         try (BufferedWriter bw = Files.newBufferedWriter(f.toPath(), Charset.forName("utf-8"))) {
             bw.write(head);
             for (long i = 0; i < numberOfElements; i++) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("  <record>").append(data).append(i).append("</record>\n");
-                bw.write(sb.toString());
+                bw.write("  <record>" + data + i + "</record>\n");
             }
             bw.write(tail);
         }
@@ -285,7 +289,7 @@ public class PerformanceIT {
         // insert flow:
         final FlowContent flowContent = new FlowContentBuilder()
                 .setName(id)
-                .setComponents(Arrays.asList(flowComponent))
+                .setComponents(Collections.singletonList(flowComponent))
                 .build();
         final Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
@@ -306,7 +310,7 @@ public class PerformanceIT {
                 .setSequneceAnalysis(true)
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
-                .setSubmitterIds(Arrays.asList(submitter.getId()))
+                .setSubmitterIds(Collections.singletonList(submitter.getId()))
                 .build();
         flowStoreServiceConnector.createFlowBinder(flowBinderContent);
     }
@@ -413,6 +417,7 @@ public class PerformanceIT {
     private String readResourceFromClassPath(String resource) throws IOException {
 
         URL url = this.getClass().getClassLoader().getResource(resource);
+        assert url != null;
         LOGGER.info("Reading resource '{}' from '{}'", resource, url.toString());
         final int byteArrayLength = 1024;
         byte[] buffer = new byte[byteArrayLength];
@@ -421,7 +426,7 @@ public class PerformanceIT {
             if (in == null) {
                 throw new AssertionError("The ressource '" + resource + "' could not be found on the classpath");
             }
-            int sz = -1;
+            int sz;
             do {
                 sz = in.read(buffer, 0, buffer.length);
                 if (sz > 0) {

@@ -30,10 +30,10 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -59,11 +59,11 @@ public class DummyMessageProcessorBeanTest {
     }
 
     @Test
-    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JsonException, JobStoreServiceConnectorException {
+    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
         final String messageId = "id";
         final String payloadType = JmsConstants.CHUNK_PAYLOAD_TYPE;
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
-        final String payload = JsonUtil.toJson(processedChunk);
+        final String payload = new JSONBContext().marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);
         getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
 

@@ -30,10 +30,10 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -53,6 +53,7 @@ import static org.mockito.Mockito.when;
 public class DiffMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Before
     public void setupMocks() {
@@ -60,11 +61,11 @@ public class DiffMessageProcessorBeanTest {
     }
 
     @Test
-    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JsonException, JobStoreServiceConnectorException {
+    public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JobStoreServiceConnectorException, JSONBException {
         final String messageId = "id";
         final String payloadType = JmsConstants.CHUNK_PAYLOAD_TYPE;
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
-        final String payload = JsonUtil.toJson(processedChunk);
+        final String payload = jsonbContext.marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);
         getDiffMessageProcessorBean().handleConsumedMessage(consumedMessage);
 

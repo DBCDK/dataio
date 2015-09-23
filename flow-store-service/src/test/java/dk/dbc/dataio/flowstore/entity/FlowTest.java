@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -48,19 +48,19 @@ public class FlowTest {
         assertThat(flow.getNameIndexValue(), is(name));
     }
 
-     @Test(expected = JsonException.class)
+     @Test(expected = JSONBException.class)
      public void setContent_jsonDataArgIsInvalidFlowContent_throws() throws Exception {
          final Flow flow = new Flow();
          flow.setContent("{}");
      }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
         final Flow flow = new Flow();
         flow.setContent("{");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final Flow flow = new Flow();
         flow.setContent("");

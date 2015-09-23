@@ -25,8 +25,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -65,6 +65,8 @@ uniqueConstraints = {
 })
 public class FlowBinder extends VersionedEntity {
 
+    private static final JSONBContext jsonbContext = new JSONBContext();
+
     public static final String TABLE_NAME = "flow_binders";
     public static final String SUBMITTER_JOIN_TABLE_NAME = "flow_binders_submitters";
     public static final String SUBMITTER_IDS_FIELD = "submitterIds";
@@ -78,14 +80,6 @@ public class FlowBinder extends VersionedEntity {
     public static final String DB_QUERY_PARAMETER_CHARSET = "charset";
     public static final String DB_QUERY_PARAMETER_PACKAGING = "packaging";
     public static final String DB_QUERY_PARAMETER_FLOWBINDER = "flowBinder";
-    public static final String FIND_FLOW_QUERY_STRING =
-            "SELECT indexes.flowBinder.flow"
-            + " FROM FlowBinderSearchIndexEntry indexes"
-            + " WHERE indexes.packaging = :" + FlowBinder.DB_QUERY_PARAMETER_PACKAGING
-            + " AND indexes.format = :" + FlowBinder.DB_QUERY_PARAMETER_FORMAT
-            + " AND indexes.charset = :" + FlowBinder.DB_QUERY_PARAMETER_CHARSET
-            + " AND indexes.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER
-            + " AND indexes.destination = :" + FlowBinder.DB_QUERY_PARAMETER_DESTINATION;
     public static final String FIND_FLOWBINDER_QUERY_STRING =
             "SELECT indexes.flowBinder"
             + " FROM FlowBinderSearchIndexEntry indexes"
@@ -169,11 +163,11 @@ public class FlowBinder extends VersionedEntity {
      * {@inheritDoc}
      * @throws NullPointerException if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JsonException if non-json JSON string or if given JSON is invalid FlowBinderContent.
+     * @throws JSONBException if non-json JSON string or if given JSON is invalid FlowBinderContent.
      */
     @Override
-    protected void preProcessContent(String data) throws JsonException {
-        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(data, FlowBinderContent.class);
+    protected void preProcessContent(String data) throws JSONBException {
+        final FlowBinderContent flowBinderContent = jsonbContext.unmarshall(data, FlowBinderContent.class);
         nameIndexValue = flowBinderContent.getName();
         submitterIds = new HashSet<>(flowBinderContent.getSubmitterIds());
         flowId = flowBinderContent.getFlowId();
@@ -188,18 +182,18 @@ public class FlowBinder extends VersionedEntity {
      * @return list of search index entries
      *
      * @throws NullPointerException if given null-valued flow binder
-     * @throws JsonException if flow binder contains invalid JSON content
+     * @throws JSONBException if flow binder contains invalid JSON content
      */
-    public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JsonException {
+    public static List<FlowBinderSearchIndexEntry> generateSearchIndexEntries(final FlowBinder flowBinder) throws JSONBException {
         InvariantUtil.checkNotNullOrThrow(flowBinder, "flowBinder");
-        final FlowBinderContent flowBinderContent = JsonUtil.fromJson(flowBinder.getContent(), FlowBinderContent.class);
+        final FlowBinderContent flowBinderContent = jsonbContext.unmarshall(flowBinder.getContent(), FlowBinderContent.class);
         final String packaging = flowBinderContent.getPackaging();
         final String format = flowBinderContent.getFormat();
         final String charset = flowBinderContent.getCharset();
         final String destination = flowBinderContent.getDestination();
         final List<FlowBinderSearchIndexEntry> index = new ArrayList<>(flowBinder.getSubmitterIds().size());
         for (final Submitter submitter : flowBinder.submitters) {
-            final SubmitterContent submitterContent = JsonUtil.fromJson(submitter.getContent(), SubmitterContent.class);
+            final SubmitterContent submitterContent = jsonbContext.unmarshall(submitter.getContent(), SubmitterContent.class);
             final FlowBinderSearchIndexEntry entry = new FlowBinderSearchIndexEntry();
             entry.setPackaging(packaging);
             entry.setFormat(format);

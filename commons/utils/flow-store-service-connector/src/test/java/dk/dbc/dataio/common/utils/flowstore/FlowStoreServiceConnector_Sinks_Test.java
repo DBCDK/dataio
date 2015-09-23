@@ -26,10 +26,10 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,7 +75,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
     }
 
     @Test
-    public void createSink_sinkIsCreated_returnsSink() throws FlowStoreServiceConnectorException, JsonException {
+    public void createSink_sinkIsCreated_returnsSink() throws FlowStoreServiceConnectorException, JSONBException {
         final Sink expectedSink = new SinkBuilder().build();
         final Sink sink = createSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedSink);
 
@@ -142,7 +142,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
     // **************************************** update sink tests ****************************************
     @Test
-    public void updateSink_sinkIsUpdated_returnsSink() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateSink_sinkIsUpdated_returnsSink() throws FlowStoreServiceConnectorException, JSONBException {
         final Sink sinkToUpdate = new SinkBuilder().build();
 
         Sink updatedSink = updateSink_mockedHttpWithSpecifiedReturnErrorCode(
@@ -189,7 +189,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
      // **************************************** delete sink tests ****************************************
     @Test
-    public void deleteSink_sinkIsDeleted() throws FlowStoreServiceConnectorException, JsonException {
+    public void deleteSink_sinkIsDeleted() throws FlowStoreServiceConnectorException, JSONBException {
         final Sink sinkToDelete = new SinkBuilder().build();
         deleteSink_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), sinkToDelete.getId(), sinkToDelete.getVersion());
     }

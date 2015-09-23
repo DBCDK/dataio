@@ -28,9 +28,9 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,8 +56,8 @@ public class JobProcessorMessageConsumerBeanTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
     @Before
-    public void setup() throws JsonException {
-        PAYLOAD = JsonUtil.toJson(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+    public void setup() throws JSONBException {
+        PAYLOAD = new JSONBContext().marshall(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
     }
 
     @Before

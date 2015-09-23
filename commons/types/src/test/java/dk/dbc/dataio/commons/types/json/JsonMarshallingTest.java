@@ -49,90 +49,93 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SubmitterContentTest;
 import dk.dbc.dataio.commons.types.SubmitterTest;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
 public class JsonMarshallingTest {
+
+    private final JSONBContext jsonbContext = new JSONBContext();
+
     @Test
     public void verify_jsonMarshallingForSubmitter() throws Exception {
-        final String json = JsonUtil.toJson(SubmitterTest.newSubmitterInstance());
-        JsonUtil.fromJson(json, Submitter.class);
+        final String json = jsonbContext.marshall(SubmitterTest.newSubmitterInstance());
+        jsonbContext.unmarshall(json, Submitter.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSubmitterContent() throws Exception {
-        final String json = JsonUtil.toJson(SubmitterContentTest.newSubmitterContentInstance());
-        JsonUtil.fromJson(json, SubmitterContent.class);
+        final String json = jsonbContext.marshall(SubmitterContentTest.newSubmitterContentInstance());
+        jsonbContext.unmarshall(json, SubmitterContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForJavaScript() throws Exception {
-        final String json = JsonUtil.toJson(JavaScriptTest.newJavaScriptInstance());
-        JsonUtil.fromJson(json, JavaScript.class);
+        final String json = jsonbContext.marshall(JavaScriptTest.newJavaScriptInstance());
+        jsonbContext.unmarshall(json, JavaScript.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlow() throws Exception {
-        final String json = JsonUtil.toJson(FlowTest.newFlowInstance());
-        JsonUtil.fromJson(json, Flow.class);
+        final String json = jsonbContext.marshall(FlowTest.newFlowInstance());
+        jsonbContext.unmarshall(json, Flow.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowContent() throws Exception {
-        final String json = JsonUtil.toJson(FlowContentTest.newFlowContentInstance());
-        JsonUtil.fromJson(json, FlowContent.class);
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
+        jsonbContext.unmarshall(json, FlowContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowComponent() throws Exception {
-        final String json = JsonUtil.toJson(FlowComponentTest.newFlowComponentInstance());
-        JsonUtil.fromJson(json, FlowComponent.class);
+        final String json = jsonbContext.marshall(FlowComponentTest.newFlowComponentInstance());
+        jsonbContext.unmarshall(json, FlowComponent.class);
     }
     @Test
         public void verify_jsonMarshallingForFlowComponentContent() throws Exception {
-        final String json = JsonUtil.toJson(FlowComponentContentTest.newFlowComponentContentInstance());
-        JsonUtil.fromJson(json, FlowComponentContent.class);
+        final String json = jsonbContext.marshall(FlowComponentContentTest.newFlowComponentContentInstance());
+        jsonbContext.unmarshall(json, FlowComponentContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowBinder() throws Exception {
-        final String json = JsonUtil.toJson(FlowBinderTest.newFlowBinderInstance());
-        JsonUtil.fromJson(json, FlowBinder.class);
+        final String json = jsonbContext.marshall(FlowBinderTest.newFlowBinderInstance());
+        jsonbContext.unmarshall(json, FlowBinder.class);
     }
 
     @Test
     public void verify_jsonMarshallingForFlowBinderContent() throws Exception {
-        final String json = JsonUtil.toJson(FlowBinderContentTest.newFlowBinderContentInstance());
-        JsonUtil.fromJson(json, FlowBinderContent.class);
+        final String json = jsonbContext.marshall(FlowBinderContentTest.newFlowBinderContentInstance());
+        jsonbContext.unmarshall(json, FlowBinderContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForJobSpecification() throws Exception {
-        final String json = JsonUtil.toJson(JobSpecificationTest.newJobSpecificationInstance());
-        JsonUtil.fromJson(json, JobSpecification.class);
+        final String json = jsonbContext.marshall(JobSpecificationTest.newJobSpecificationInstance());
+        jsonbContext.unmarshall(json, JobSpecification.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSink() throws Exception {
-        final String json = JsonUtil.toJson(SinkTest.newSinkInstance());
-        JsonUtil.fromJson(json, Sink.class);
+        final String json = jsonbContext.marshall(SinkTest.newSinkInstance());
+        jsonbContext.unmarshall(json, Sink.class);
     }
 
     @Test
     public void verify_jsonMarshallingForSinkContent() throws Exception {
-        final String json = JsonUtil.toJson(SinkContentTest.newSinkContentInstance());
-        JsonUtil.fromJson(json, SinkContent.class);
+        final String json = jsonbContext.marshall(SinkContentTest.newSinkContentInstance());
+        jsonbContext.unmarshall(json, SinkContent.class);
     }
 
     @Test
     public void verify_jsonMarshallingForPingResponse() throws Exception {
-        final String json = JsonUtil.toJson(PingResponseTest.newPingResponse());
-        JsonUtil.fromJson(json, PingResponse.class);
+        final String json = jsonbContext.marshall(PingResponseTest.newPingResponse());
+        jsonbContext.unmarshall(json, PingResponse.class);
     }
 
     @Test
     public void verify_jsonMarshallingForChunkItem() throws Exception {
-        final String json = JsonUtil.toJson(ChunkItemTest.newChunkItemInstance());
-        JsonUtil.fromJson(json, ChunkItem.class);
+        final String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstance());
+        jsonbContext.unmarshall(json, ChunkItem.class);
     }
 }

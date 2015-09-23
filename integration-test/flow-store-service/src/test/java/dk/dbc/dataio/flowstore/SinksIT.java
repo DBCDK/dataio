@@ -120,7 +120,7 @@ public class SinksIT {
 
     /**
      * Given: a deployed flow-store service
-     * When : JSON posted to the sinks path causes JsonException
+     * When : JSON posted to the sinks path causes JSONBException
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test
@@ -245,7 +245,7 @@ public class SinksIT {
 
     /**
      * Given: a deployed flow-store service
-     * When : JSON posted to the sinks path with update causes JsonException
+     * When : JSON posted to the sinks path with update causes JSONBException
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test

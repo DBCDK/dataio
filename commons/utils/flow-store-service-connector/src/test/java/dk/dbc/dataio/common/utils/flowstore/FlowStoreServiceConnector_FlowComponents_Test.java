@@ -26,10 +26,10 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     }
 
     @Test
-    public void createFlowComponent_flowComponentIsCreated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+    public void createFlowComponent_flowComponentIsCreated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowComponent expectedFlowComponent = new FlowComponentBuilder().build();
         final FlowComponent flowComponent
                 = createFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedFlowComponent);
@@ -146,7 +146,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
 
     // ************************************** update flow component tests **************************************
     @Test
-    public void updateFlowComponent_flowComponentIsUpdated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateFlowComponent_flowComponentIsUpdated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowComponent flowComponentToUpdate = new FlowComponentBuilder().build();
 
         FlowComponent updatedFlowComponent
@@ -192,7 +192,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     // ******************************************** update next tests ********************************************
 
     @Test
-    public void updateNext_flowComponentIsUpdated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateNext_flowComponentIsUpdated_returnsFlowComponent() throws FlowStoreServiceConnectorException, JSONBException {
         FlowComponentContent next = new FlowComponentContentBuilder().setSvnRevision(34).build();
         final FlowComponent flowComponentToUpdate = new FlowComponentBuilder().setNext(next).build();
 
@@ -211,7 +211,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     }
 
     @Test
-    public void updateNext_flowComponentIsUpdatedWithNull_returnsFlowComponent() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateNext_flowComponentIsUpdatedWithNull_returnsFlowComponent() throws FlowStoreServiceConnectorException, JSONBException {
         final FlowComponent flowComponentToUpdate = new FlowComponentBuilder().setNext(null).build();
 
         FlowComponent updatedFlowComponent

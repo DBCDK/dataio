@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.test.jms.queue.ejb;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +59,8 @@ import java.util.Map;
 public class JmsQueueBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JmsQueueBean.class);
 
+    JSONBContext jsonbContext = new JSONBContext();
+
     @Resource
     private ConnectionFactory messageQueueConnectionFactory;
 
@@ -76,11 +78,11 @@ public class JmsQueueBean {
                 while (queue.hasMoreElements()) {
                     messages.add(toMockedJmsTextMessage((Message) queue.nextElement()));
                 }
-                listOfMessagesAsJson = JsonUtil.toJson(messages);
+                listOfMessagesAsJson = jsonbContext.marshall(messages);
                 LOGGER.info("Content of queue {} <{}>", queueName, listOfMessagesAsJson);
             }
 
-        } catch (JMSException | JsonException | NamingException e) {
+        } catch (JMSException | JSONBException | NamingException e) {
             throw new EJBException(e);
         }
         return Response.ok().entity(listOfMessagesAsJson).build();
@@ -93,9 +95,9 @@ public class JmsQueueBean {
         LOGGER.info("Putting message on queue {} <{}>", queueName, message);
 
         try (JMSContext context = messageQueueConnectionFactory.createContext()) {
-            MockedJmsTextMessage mockedJmsTextMessage = JsonUtil.fromJson(message, MockedJmsTextMessage.class);
+            MockedJmsTextMessage mockedJmsTextMessage = jsonbContext.unmarshall(message, MockedJmsTextMessage.class);
             context.createProducer().send(getQueueResource(queueName), toTextMessage(mockedJmsTextMessage, context));
-        } catch (JMSException | JsonException | NamingException e) {
+        } catch (JMSException | JSONBException | NamingException e) {
             throw new EJBException(e);
         }
         return Response.ok().build();

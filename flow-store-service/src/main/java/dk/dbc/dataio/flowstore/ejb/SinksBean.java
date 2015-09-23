@@ -23,10 +23,10 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Sink;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -55,6 +55,8 @@ public class SinksBean {
     private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final String SINK_CONTENT_DISPLAY_TEXT = "sinkContent";
 
+    JSONBContext jsonbContext = new JSONBContext();
+
     @PersistenceContext
     EntityManager entityManager;
 
@@ -67,12 +69,12 @@ public class SinksBean {
      *         a HTTP 404 response with error content as JSON if not found,
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json sink
+     * @throws JSONBException on failure to create json sink
      */
     @GET
     @Path(FlowStoreServiceConstants.SINK)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JsonException {
+    public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JSONBException {
         final Sink sink = entityManager.find(Sink.class, id);
         if (sink == null) {
             return Response
@@ -82,7 +84,7 @@ public class SinksBean {
         }
         return Response
                 .ok()
-                .entity(JsonUtil.toJson(sink))
+                .entity(jsonbContext.marshall(sink))
                 .tag(sink.getVersion().toString())
                 .build();
     }
@@ -98,18 +100,18 @@ public class SinksBean {
      *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json sink
+     * @throws JSONBException on failure to create json sink
      */
     @POST
     @Path(FlowStoreServiceConstants.SINKS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createSink(@Context UriInfo uriInfo, String sinkContent) throws JsonException {
+    public Response createSink(@Context UriInfo uriInfo, String sinkContent) throws JSONBException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
 
         final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContent);
         entityManager.flush();
-        final String sinkJson = JsonUtil.toJson(sink);
+        final String sinkJson = jsonbContext.marshall(sink);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink))
                 .entity(sinkJson)
@@ -130,14 +132,14 @@ public class SinksBean {
      *         a HTTP 409 response in case of Concurrent Update error
      *         a HTTP 500 response in case of general error.
      *
-     * @throws JsonException on failure to create json sink
+     * @throws JSONBException on failure to create json sink
      */
     @POST
     @Path(FlowStoreServiceConstants.SINK_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response updateSink(String sinkContent, @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id,
-        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JsonException {
+        @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
         final Sink sinkEntity = entityManager.find(Sink.class, id);
@@ -152,7 +154,7 @@ public class SinksBean {
         entityManager.merge(sinkEntity);
         entityManager.flush();
         final Sink updatedSink = entityManager.find(Sink.class, id);
-        final String sinkJson = JsonUtil.toJson(updatedSink);
+        final String sinkJson = jsonbContext.marshall(updatedSink);
         return Response
                 .ok()
                 .entity(sinkJson)
@@ -201,17 +203,17 @@ public class SinksBean {
      *
      * @return a HTTP OK response with result list as JSON
      *
-     * @throws JsonException on failure to create result list as JSON
+     * @throws JSONBException on failure to create result list as JSON
      */
     @GET
     @Path(FlowStoreServiceConstants.SINKS)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllSinks() throws JsonException {
+    public Response findAllSinks() throws JSONBException {
         final TypedQuery<Sink> query = entityManager.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class);
         final List<Sink> results = query.getResultList();
         return Response
                 .ok()
-                .entity(JsonUtil.toJson(results))
+                .entity(jsonbContext.marshall(results))
                 .build();
     }
 }

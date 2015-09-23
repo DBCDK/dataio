@@ -26,10 +26,10 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +74,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
     }
 
     @Test
-    public void createSubmitter_submitterIsCreated_returnsSubmitter() throws FlowStoreServiceConnectorException, JsonException {
+    public void createSubmitter_submitterIsCreated_returnsSubmitter() throws FlowStoreServiceConnectorException, JSONBException {
         final Submitter expectedSubmitter = new SubmitterBuilder().build();
         final Submitter submitter = createSubmitter_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), expectedSubmitter);
         assertThat(submitter, is(notNullValue()));
@@ -173,7 +173,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     // **************************************** update submitter tests ****************************************
     @Test
-    public void updateSubmitter_submitterIsUpdated_returnsSubmitter() throws FlowStoreServiceConnectorException, JsonException {
+    public void updateSubmitter_submitterIsUpdated_returnsSubmitter() throws FlowStoreServiceConnectorException, JSONBException {
         final SubmitterContent submitterContent = new SubmitterContentBuilder().build();
         final Submitter submitterToUpdate = new SubmitterBuilder().build();
         final Map<String, String> headers = new HashMap<>(1);

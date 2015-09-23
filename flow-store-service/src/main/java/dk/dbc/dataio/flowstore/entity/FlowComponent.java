@@ -23,8 +23,8 @@ package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -81,11 +81,11 @@ public class FlowComponent extends VersionedEntity {
      * {@inheritDoc}
      * @throws NullPointerException if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JsonException if non-json JSON string or if given JSON is invalid FlowComponentContent.
+     * @throws JSONBException if non-json JSON string or if given JSON is invalid FlowComponentContent.
      */
     @Override
-    protected void preProcessContent(String data) throws JsonException {
-        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
+    protected void preProcessContent(String data) throws JSONBException {
+        final FlowComponentContent flowComponentContent = new JSONBContext().unmarshall(data, FlowComponentContent.class);
         nameIndexValue = flowComponentContent.getName();
     }
 }

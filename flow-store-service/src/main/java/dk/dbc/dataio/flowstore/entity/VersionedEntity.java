@@ -22,10 +22,16 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Lob;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.Version;
 
 /**
  * Base class for flow store entities where id is auto
@@ -69,9 +75,9 @@ public class VersionedEntity {
      *
      * @param content entity data as JSON string
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
+     * @throws JSONBException when given invalid (null-valued, empty-valued or non-json) JSON string
      */
-    public void setContent(String content) throws JsonException {
+    public void setContent(String content) throws JSONBException {
         preProcessContent(content);
         this.content = content;
     }
@@ -82,10 +88,10 @@ public class VersionedEntity {
      *
      * @param data entity content
      *
-     * @throws JsonException when given invalid (null-valued, empty-valued or non-json) JSON string
+     * @throws JSONBException when given invalid (null-valued, empty-valued or non-json) JSON string
      */
-    protected void preProcessContent(String data) throws JsonException {
-        JsonUtil.getJsonRoot(data);
+    protected void preProcessContent(String data) throws JSONBException {
+        new JSONBContext().getJsonTree(data);
     }
 }
 

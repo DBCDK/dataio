@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sinkservice.rest;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -40,7 +40,7 @@ public class JsonExceptionMapperTest {
     @Test
     public void toResponse_argIsJsonException_returnsStatusBadRequestResponse() {
         final JsonExceptionMapper instance = new JsonExceptionMapper();
-        final Response response = instance.toResponse(new JsonException("die"));
+        final Response response = instance.toResponse(new JSONBException("die"));
         assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
     }
 }

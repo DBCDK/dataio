@@ -21,11 +21,11 @@
 
 package dk.dbc.dataio.commons.types;
 
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -46,9 +46,10 @@ public class FlowComponentContentTest {
     private static final long SVN_REVISION = 1L;
     private static final String JAVA_SCRIPT_NAME = "invocationJavascriptName";
     private static final String INVOCATION_METHOD = "method";
-    private static final List<JavaScript> JAVASCRIPTS = Arrays.asList(JavaScriptTest.newJavaScriptInstance());
+    private static final List<JavaScript> JAVASCRIPTS = Collections.singletonList(JavaScriptTest.newJavaScriptInstance());
     private static final String REQUIRE_CACHE="";
     private static final String DESCRIPTION = "description";
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
@@ -164,7 +165,7 @@ public class FlowComponentContentTest {
                 "}"
                 ;
 
-        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
+        final FlowComponentContent flowComponentContent = jsonbContext.unmarshall(data, FlowComponentContent.class);
         assertThat("fisk", flowComponentContent.getName(), is("test"));
         assertThat( flowComponentContent.getRequireCache(), is(nullValue()));
         assertThat( flowComponentContent.getDescription(), is(nullValue()));
@@ -192,7 +193,7 @@ public class FlowComponentContentTest {
                 "}"
                 ;
 
-        final FlowComponentContent flowComponentContent = JsonUtil.fromJson(data, FlowComponentContent.class);
+        final FlowComponentContent flowComponentContent = jsonbContext.unmarshall(data, FlowComponentContent.class);
         assertThat(flowComponentContent.getName(), is("test"));
         assertThat(flowComponentContent.getRequireCache(), is("RequireCacheString"));
         assertThat(flowComponentContent.getDescription(), is("description"));

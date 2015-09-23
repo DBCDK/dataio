@@ -22,8 +22,8 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -58,11 +58,11 @@ public class Sink extends VersionedEntity {
      * {@inheritDoc}
      * @throws NullPointerException if given null-valued data argument
      * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JsonException if non-json JSON string or if given JSON is invalid SinkContent.
+     * @throws JSONBException if non-json JSON string or if given JSON is invalid SinkContent.
      */
     @Override
-    protected void preProcessContent(String data) throws JsonException {
-        final SinkContent sinkContent = JsonUtil.fromJson(data, SinkContent.class);
+    protected void preProcessContent(String data) throws JSONBException {
+        final SinkContent sinkContent = new JSONBContext().unmarshall(data, SinkContent.class);
         nameIndexValue = sinkContent.getName();
     }
 }

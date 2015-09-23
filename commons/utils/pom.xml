@@ -45,7 +45,6 @@
     <module>flow-store-service-connector</module>
     <module>job-store-service-connector</module>
     <module>io</module>
-    <module>json</module>
     <module>json-binding</module>
     <module>logback</module>
     <module>svn</module>

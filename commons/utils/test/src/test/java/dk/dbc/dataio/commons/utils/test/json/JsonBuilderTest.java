@@ -35,80 +35,82 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 public class JsonBuilderTest {
 
+    private final JSONBContext jsonbContext = new JSONBContext();
+
     @Test
-    public void ChunkItemJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new ChunkItemJsonBuilder().build(), ChunkItem.class);
+    public void ChunkItemJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new ChunkItemJsonBuilder().build(), ChunkItem.class);
     }
 
     @Test
-    public void FlowBinderContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowBinderContentJsonBuilder().build(), FlowBinderContent.class);
+    public void FlowBinderContentJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new FlowBinderContentJsonBuilder().build(), FlowBinderContent.class);
     }
 
     @Test
-    public void FlowBinderJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowBinderJsonBuilder().build(), FlowBinder.class);
+    public void FlowBinderJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new FlowBinderJsonBuilder().build(), FlowBinder.class);
     }
 
     @Test
-    public void FlowComponentContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowComponentContentJsonBuilder().build(), FlowComponentContent.class);
+    public void FlowComponentContentJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new FlowComponentContentJsonBuilder().build(), FlowComponentContent.class);
     }
 
     @Test
-    public void FlowComponentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowComponentJsonBuilder().build(), FlowComponent.class);
+    public void FlowComponentJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new FlowComponentJsonBuilder().build(), FlowComponent.class);
     }
 
     @Test
-    public void FlowContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowContentJsonBuilder().build(), FlowContent.class);
+    public void FlowContentJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new FlowContentJsonBuilder().build(), FlowContent.class);
     }
 
     @Test
-    public void FlowJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new FlowJsonBuilder().build(), Flow.class);
+    public void FlowJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new FlowJsonBuilder().build(), Flow.class);
     }
 
     @Test
-    public void JavaScriptJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new JavaScriptJsonBuilder().build(), JavaScript.class);
+    public void JavaScriptJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new JavaScriptJsonBuilder().build(), JavaScript.class);
     }
 
     @Test
-    public void JobSpecificationJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new JobSpecificationJsonBuilder().build(), JobSpecification.class);
+    public void JobSpecificationJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new JobSpecificationJsonBuilder().build(), JobSpecification.class);
     }
 
     @Test
-    public void SinkContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SinkContentJsonBuilder().build(), SinkContent.class);
+    public void SinkContentJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SinkContentJsonBuilder().build(), SinkContent.class);
     }
 
     @Test
-    public void SinkJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SinkJsonBuilder().build(), Sink.class);
+    public void SinkJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SinkJsonBuilder().build(), Sink.class);
     }
 
     @Test
-    public void SubmitterContentJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SubmitterContentJsonBuilder().build(), SubmitterContent.class);
+    public void SubmitterContentJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SubmitterContentJsonBuilder().build(), SubmitterContent.class);
     }
 
     @Test
-    public void SubmitterJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SubmitterJsonBuilder().build(), Submitter.class);
+    public void SubmitterJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SubmitterJsonBuilder().build(), Submitter.class);
     }
 
     @Test
-    public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JsonException {
-        JsonUtil.fromJson(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class);
+    public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class);
     }
 
     @Test

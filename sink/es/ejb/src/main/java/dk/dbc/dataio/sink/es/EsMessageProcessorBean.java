@@ -30,9 +30,9 @@ import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.sink.es.entity.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
@@ -64,6 +64,8 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
+    JSONBContext jsonbContext = new JSONBContext();
 
     @PostConstruct
     public void setup() {
@@ -105,7 +107,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 esInFlight.setChunkId(deliveredChunk.getChunkId());
                 esInFlight.setRecordSlots(workload.getAddiRecords().size());
                 esInFlight.setTargetReference(targetReference);
-                esInFlight.setIncompleteDeliveredChunk(JsonUtil.toJson(deliveredChunk));
+                esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(deliveredChunk));
                 esInFlightAdmin.addEsInFlight(esInFlight);
 
                 LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",

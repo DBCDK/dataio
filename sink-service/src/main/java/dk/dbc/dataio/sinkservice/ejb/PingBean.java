@@ -24,8 +24,8 @@ package dk.dbc.dataio.sinkservice.ejb;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sinkservice.ping.ResourcePing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +51,8 @@ import javax.ws.rs.core.Response;
 public class PingBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(PingBean.class);
 
+    JSONBContext jsonbContext = new JSONBContext();
+
     /**
      * Pings sink defined by given content
      *
@@ -62,15 +64,15 @@ public class PingBean {
      *
      * @throws EJBException when unable to obtain initial context, or if pinging
      * unknown resource type != {^jdbc/.*$, ^url/.*$}
-     * @throws JsonException when given non-json sinkContent argument,
+     * @throws JSONBException when given non-json sinkContent argument,
      * or if JSON object does not comply with model schema
      */
     @POST
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response ping(String sinkContentData) throws EJBException, JsonException {
+    public Response ping(String sinkContentData) throws EJBException, JSONBException {
         LOGGER.trace("SinkContent: {}", sinkContentData);
-        final SinkContent sinkContent = JsonUtil.fromJson(sinkContentData, SinkContent.class);
+        final SinkContent sinkContent = jsonbContext.unmarshall(sinkContentData, SinkContent.class);
         final InitialContext initialContext = getInitialContext();
         final PingResponse pingResponse;
         try {
@@ -84,7 +86,7 @@ public class PingBean {
         } finally {
             closeInitialContext(initialContext);
         }
-        return Response.ok().entity(JsonUtil.toJson(pingResponse)).build();
+        return Response.ok().entity(jsonbContext.marshall(pingResponse)).build();
     }
 
     private static InitialContext getInitialContext() throws EJBException {

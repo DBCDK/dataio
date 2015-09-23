@@ -462,7 +462,7 @@ public class FlowsIT {
 
     /*
      * Given: a deployed flow-store service with a flow
-     * When : JSON posted to the flows path with update causes JsonException
+     * When : JSON posted to the flows path with update causes JSONBException
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test
@@ -767,7 +767,7 @@ public class FlowsIT {
         assertThat(flow1.getId(), is(flow2.getId()));
         if(!isRefresh) {
             assertThat(flow1.getVersion(), is(flow2.getVersion()));
-            assertFlowContentEquals(isRefresh, flow1.getContent(), flow2.getContent());
+            assertFlowContentEquals(false, flow1.getContent(), flow2.getContent());
         }
     }
 

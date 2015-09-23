@@ -25,11 +25,12 @@ import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.json.JsonException;
-import dk.dbc.dataio.commons.utils.json.JsonUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 
 public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final String PAYLOAD_TYPE = "ChunkResult";
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Unmarshalls payload from given consumed message into ChunkResult
@@ -47,8 +48,8 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
         }
         ExternalChunk processedChunk;
         try {
-            processedChunk= JsonUtil.fromJson(consumedMessage.getMessagePayload(), ExternalChunk.class);
-        } catch (JsonException e) {
+            processedChunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
+        } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid ExternalChunk type",
                     consumedMessage.getMessageId()), e);
         }

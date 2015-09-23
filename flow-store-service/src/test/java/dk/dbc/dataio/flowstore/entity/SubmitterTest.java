@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -60,19 +60,19 @@ public class SubmitterTest {
         assertThat(submitter.getNumberIndexValue(), is(number));
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidSubmitterContent_throws() throws Exception {
         final Submitter submitter = new Submitter();
         submitter.setContent("{}");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
         final Submitter submitter = new Submitter();
         submitter.setContent("{");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final Submitter submitter = new Submitter();
         submitter.setContent("");

@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.utils.json.JsonException;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -49,19 +49,19 @@ public class FlowComponentTest {
         assertThat(flowComponent.getNameIndexValue(), is(name));
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidFlowComponentContent_throws() throws Exception {
         final FlowComponent flowComponent = new FlowComponent();
         flowComponent.setContent("{}");
     }
 
-    @Test(expected = JsonException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsInvalidJson_throws() throws Exception {
         final FlowComponent flowComponent = new FlowComponent();
         flowComponent.setContent("{");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = JSONBException.class)
     public void setContent_jsonDataArgIsEmpty_throws() throws Exception {
         final FlowComponent flowComponent = new FlowComponent();
         flowComponent.setContent("");
@@ -76,7 +76,7 @@ public class FlowComponentTest {
     @Test
     public void setNext_jsonDataArgIsEmpty_setsNextToNull() {
         final FlowComponent flowComponent = new FlowComponent();
-        flowComponent.setNext(new String());
+        flowComponent.setNext("");
         assertThat(flowComponent.getNext(), is(nullValue()));
     }
 

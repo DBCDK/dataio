@@ -45,7 +45,6 @@ import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 
 /**
- * Created by sma on 29/04/14.
  *
  * FlowStoreServiceConnector - dataIO flow-store REST service client.
  * <p>

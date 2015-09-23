@@ -4,7 +4,7 @@ dataIO log-store design dokument
 
 .. |date| date::
 
-:author: Jan Bauer Nielsen <jbn@dbc.dk>
+:author: jbn
 :date: |date|
 
 .. header::

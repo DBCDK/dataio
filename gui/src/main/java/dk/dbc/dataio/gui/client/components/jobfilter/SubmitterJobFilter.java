@@ -35,7 +35,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 /**
- * Created by ja7 on 19-08-15.
  * This is the Submitter Job Filter
  */
 public class SubmitterJobFilter extends BaseJobFilter {

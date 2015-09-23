@@ -22,17 +22,15 @@
 package dk.dbc.dataio.commons.utils.transfile;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import static org.hamcrest.CoreMatchers.is;
 
-/**
- *
- * @author slf
- */
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+
 public class TransFileTest {
     
     private final static String validTransFileDataLine1  = "b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext";

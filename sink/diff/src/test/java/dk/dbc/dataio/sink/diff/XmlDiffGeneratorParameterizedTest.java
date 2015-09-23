@@ -38,10 +38,6 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsNot.not;
 
-/**
- * Created by ja7 on 07-09-15.
- */
-
 @RunWith(Parameterized.class)
 public class XmlDiffGeneratorParameterizedTest {
 

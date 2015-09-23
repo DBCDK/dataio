@@ -26,10 +26,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.hamcrest.CoreMatchers.is;
 
-/**
- *
- * @author slf
- */
 public class TransFileFieldTest {
     
     // Illegal input values

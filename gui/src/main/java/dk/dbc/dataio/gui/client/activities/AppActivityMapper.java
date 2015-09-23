@@ -26,10 +26,6 @@ import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-/**
- *
- * @author slf
- */
 public class AppActivityMapper implements ActivityMapper {
     private ClientFactory clientFactory;
 

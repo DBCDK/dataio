@@ -34,7 +34,6 @@ import javax.ejb.Startup;
 import javax.sql.DataSource;
 
 /**
- * Created by ja7 on 04-04-15.
  *
  * Startup Single ton for creating the database.
  */

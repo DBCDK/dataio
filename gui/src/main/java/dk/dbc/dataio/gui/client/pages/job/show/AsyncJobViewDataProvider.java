@@ -33,9 +33,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
 
-/**
- * Created by ja7 on 21-08-15.
- */
 public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
     private JobStoreProxyAsync jobStoreProxy;

@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Created by ja7 on 19-08-15.
+ *
  * Test for SubmitterJobFilter
  */
 

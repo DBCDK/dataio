@@ -44,6 +44,8 @@ public class RevisionInfo implements Serializable {
     private /* final */ Date date;
     private /* final */ List<ChangedItem> changedItems;
 
+    private RevisionInfo() { }
+
     /**
      * Class constructor
      *
@@ -96,6 +98,8 @@ public class RevisionInfo implements Serializable {
 
         private /* final */ String path;
         private /* final */ String type;
+
+        private ChangedItem() { }
 
         /**
          * Class constructor

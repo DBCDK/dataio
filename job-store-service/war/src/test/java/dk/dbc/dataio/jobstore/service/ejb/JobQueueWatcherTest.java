@@ -15,11 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State.IN_PROGRESS;
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State.WAITING;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -36,8 +33,6 @@ public class JobQueueWatcherTest {
     private final JobQueueRepository mockedJobQueueRepository = mock(JobQueueRepository.class);
     private final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);
     private final PgJobStore mockedJobStore = mock(PgJobStore.class);
-//        verify(mockedJobStore).handlePartitioningAsynchronously(any(PartitioningParam.class));
-//        when(mockedJobQueueRepository.getUniqueSinkIds()).thenReturn(getEmptyListOfSinkIds());
 
     @Test
     public void doWatch_startNoJobs() throws JobStoreException {
@@ -76,13 +71,9 @@ public class JobQueueWatcherTest {
         when(mockedJobQueueRepository.getUniqueSinkIds()).thenReturn(buildListOfSinkIds(sinkId));
 
         final JobEntity jobEntity1 = buildJobEntity("42");
-        final JobEntity jobEntity2 = buildJobEntity("43");
-        final List<JobQueueEntity> jobQueueEntitiesForSink = new ArrayList<>(Arrays.<JobQueueEntity>asList(
-                new JobQueueEntityBuilder().setJob(jobEntity1).setSinkId(sinkId).setState(WAITING).build(),
-                new JobQueueEntityBuilder().setJob(jobEntity2).setSinkId(sinkId).setState(WAITING).build()
-        ));
-        when(mockedJobQueueRepository.getJobQueueEntitiesBySink(sinkId)).thenReturn(jobQueueEntitiesForSink);
+        final JobQueueEntity firstWaitingJob = new JobQueueEntityBuilder().setJob(jobEntity1).build();
 
+        when(mockedJobQueueRepository.getFirstWaitingJobQueueEntityBySink(sinkId)).thenReturn(firstWaitingJob);
         when(mockedJobQueueRepository.getJobEntityById(anyInt())).thenReturn(jobEntity1);
         when(mockedJobQueueRepository.getJobQueueEntityByJob(any(JobEntity.class))).thenReturn(new JobQueueEntity());
 
@@ -116,11 +107,11 @@ public class JobQueueWatcherTest {
 
         final JobEntity jobEntity1 = buildJobEntity("42");
         final JobEntity jobEntity2 = buildJobEntity("43");
-        final List<JobQueueEntity> jobQueueEntitiesForSink = new ArrayList<>(Arrays.<JobQueueEntity>asList(
-                new JobQueueEntityBuilder().setJob(jobEntity1).setSinkId(sinkId1).setState(WAITING).build(),
-                new JobQueueEntityBuilder().setJob(jobEntity2).setSinkId(sinkId1).setState(WAITING).build()
-        ));
-        when(mockedJobQueueRepository.getJobQueueEntitiesBySink(anyLong())).thenReturn(jobQueueEntitiesForSink);
+        final JobQueueEntity firstWaitingJobForFirstSink = new JobQueueEntityBuilder().setJob(jobEntity1).build();
+        final JobQueueEntity firstWaitingJobForSecondSink = new JobQueueEntityBuilder().setJob(jobEntity2).build();
+
+        when(mockedJobQueueRepository.getFirstWaitingJobQueueEntityBySink(sinkId1)).thenReturn(firstWaitingJobForFirstSink);
+        when(mockedJobQueueRepository.getFirstWaitingJobQueueEntityBySink(sinkId2)).thenReturn(firstWaitingJobForSecondSink);
 
         when(mockedJobQueueRepository.getJobEntityById(anyInt())).thenReturn(jobEntity1);
         when(mockedJobQueueRepository.getJobQueueEntityByJob(any(JobEntity.class))).thenReturn(new JobQueueEntity());
@@ -148,17 +139,15 @@ public class JobQueueWatcherTest {
         final List<Long> listOfSinkIdsWithOneSink = new ArrayList<>(Arrays.asList(sinkId));
         when(mockedJobQueueRepository.getUniqueSinkIds()).thenReturn(listOfSinkIdsWithOneSink);
 
-
-        final List<JobQueueEntity> jobQueueEntitiesForSink = new ArrayList<>(Arrays.<JobQueueEntity>asList(
-                new JobQueueEntityBuilder().setJob(buildJobEntity("42")).setSinkId(sinkId).setState(IN_PROGRESS).build(),
-                new JobQueueEntityBuilder().setJob(buildJobEntity("43")).setSinkId(sinkId).setState(WAITING).build()
-        ));
-        when(mockedJobQueueRepository.getJobQueueEntitiesBySink(sinkId)).thenReturn(jobQueueEntitiesForSink);
+        final JobEntity jobEntity1 = buildJobEntity("42");
+        final JobQueueEntity firstWaitingJobForFirstSink = new JobQueueEntityBuilder().setJob(jobEntity1).build();
+        when(mockedJobQueueRepository.getFirstWaitingJobQueueEntityBySink(sinkId)).thenReturn(firstWaitingJobForFirstSink);
+        when(mockedJobQueueRepository.isSinkOccupied(sinkId)).thenReturn(true);
 
         // Subject Under Test
         jobQueueWatcher.doWatch();
 
-        // Verifications - their is only 1 interaction with JobStore Bean (method: handlePartitioningAsynchronously)
+        // Verifications - their is NO interactions with JobStore Bean (method: handlePartitioningAsynchronously)
         verifyZeroInteractions(mockedJobStore);
     }
 

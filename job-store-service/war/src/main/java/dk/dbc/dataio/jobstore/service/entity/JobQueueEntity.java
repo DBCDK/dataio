@@ -1,7 +1,5 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-import net.logstash.logback.encoder.org.apache.commons.lang.builder.ReflectionToStringBuilder;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -29,8 +27,8 @@ import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter
         @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_JOB,
                 query = "SELECT jq FROM JobQueueEntity jq WHERE jq.job = :" + JobQueueEntity.FIELD_JOB_ID),
 
-        @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_SINK,
-                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID + " ORDER BY jq.timeOfEntry"),
+        @NamedQuery(name = JobQueueEntity.NQ_FIND_WAITING_JOBS_BY_SINK,
+                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID + " AND jq.state = :" + JobQueueEntity.FIELD_STATE + " ORDER BY jq.timeOfEntry"),
 
         @NamedQuery(name = JobQueueEntity.NQ_FIND_UNIQUE_SINKS,
                 query = "SELECT DISTINCT(jq.sinkId) FROM JobQueueEntity jq")
@@ -42,8 +40,9 @@ public class JobQueueEntity {
 
     public static final String NQ_FIND_NUMBER_OF_JOBS_BY_SINK = "NQ_FIND_NUMBER_OF_JOBS_BY_SINK";
     public static final String NQ_FIND_BY_JOB = "NQ_FIND_BY_JOB";
-    public static final String NQ_FIND_BY_SINK = "NQ_FIND_BY_SINK";
+    public static final String NQ_FIND_WAITING_JOBS_BY_SINK = "NQ_FIND_WAITING_JOBS_BY_SINK";
     public static final String NQ_FIND_UNIQUE_SINKS = "NQ_FIND_UNIQUE_SINKS";
+
     public static final String FIELD_SINK_ID = "sinkId";
     public static final String FIELD_JOB_ID = "job";
     public static final String FIELD_STATE = "state";
@@ -90,12 +89,6 @@ public class JobQueueEntity {
         this.timeOfEntry = new Timestamp(System.currentTimeMillis());
         this.sequenceAnalysis = doSequenceAnalysis;
         this.recordSplitterType = recordSplitterType;
-    }
-
-    @Override
-    public String toString() {
-
-        return ReflectionToStringBuilder.reflectionToString(this);
     }
 
     public int getId() {

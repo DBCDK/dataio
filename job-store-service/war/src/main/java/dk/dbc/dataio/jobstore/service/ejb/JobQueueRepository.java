@@ -76,13 +76,38 @@ public class JobQueueRepository extends RepositoryBase {
 
     }
 
+    public boolean isSinkOccupied(long sinkId) {
+
+        Long numberOfJobsBySink = (Long)entityManager
+                .createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)
+                .setParameter(JobQueueEntity.FIELD_SINK_ID, sinkId)
+                .setParameter(JobQueueEntity.FIELD_STATE, JobQueueEntity.State.IN_PROGRESS)
+                .getSingleResult();
+
+        return numberOfJobsBySink > 0 ? OCCUPIED : AVAILABLE;
+    }
+
     public JobQueueEntity getJobQueueEntityByJob(JobEntity job) {
 
         return (JobQueueEntity)entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_JOB).setParameter(JobQueueEntity.FIELD_JOB_ID, job).getSingleResult();
     }
 
-    public List<JobQueueEntity> getJobQueueEntitiesBySink(Long sinkId) {
-        return entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_SINK).setParameter(JobQueueEntity.FIELD_SINK_ID, sinkId).getResultList();
+    public JobQueueEntity getFirstWaitingJobQueueEntityBySink(Long sinkId) {
+
+        JobQueueEntity firstWaitingJob = null;
+        try {
+            firstWaitingJob = (JobQueueEntity)entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_WAITING_JOBS_BY_SINK)
+                    .setFirstResult(0)
+                    .setMaxResults(1)
+                    .setParameter(JobQueueEntity.FIELD_SINK_ID, sinkId)
+                    .setParameter(JobQueueEntity.FIELD_STATE, WAITING)
+                    .getSingleResult();
+
+        } catch (NoResultException nre) {
+            LOGGER.info("Did not find any Job Queue Entity...");
+        }
+
+        return firstWaitingJob;
     }
 
     /*
@@ -113,16 +138,6 @@ public class JobQueueRepository extends RepositoryBase {
         } catch (NoResultException nre) {
             return NEW_JOB;
         }
-    }
-    private boolean isSinkOccupied(long sinkId) {
-
-        Long numberOfJobsBySink = (Long)entityManager
-                .createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)
-                .setParameter(JobQueueEntity.FIELD_SINK_ID, sinkId)
-                .setParameter(JobQueueEntity.FIELD_STATE, JobQueueEntity.State.IN_PROGRESS)
-                .getSingleResult();
-
-        return numberOfJobsBySink > 0 ? OCCUPIED : AVAILABLE;
     }
     private void addAsWaiting(
             long sinkId,

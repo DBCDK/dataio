@@ -14,12 +14,7 @@ import javax.ejb.EJB;
 import javax.ejb.Schedule;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
-
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.AVAILABLE;
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.OCCUPIED;
 
 @Singleton
 @Startup
@@ -44,39 +39,20 @@ public class JobQueueWatcher {
     @Stopwatch
     public void doWatch() {
 
-        LOGGER.info("Start watching the queue table...");
+        final List<Long> uniqueSinkIds = jobQueueRepository.getUniqueSinkIds();
 
-        final Hashtable<Long, List<JobQueueEntity>> jobsGroupedBySink = buildJobQueueEntitiesGroupedBySink();
-        boolean didWatcherStartAtLeastOneJob = false;
-        for (Map.Entry<Long, List<JobQueueEntity>> sinkEntry : jobsGroupedBySink.entrySet()) {
+        if(uniqueSinkIds != null && !uniqueSinkIds.isEmpty()) {
+            for (Long uniqueSinkId : uniqueSinkIds) {
 
-            final List<JobQueueEntity> jobsForUniqueSink = sinkEntry.getValue();
-            if(!sinkOccupied(jobsForUniqueSink) && jobsForUniqueSink != null && !jobsForUniqueSink.isEmpty()) {
+                final JobQueueEntity firstWaitingJobToStart = jobQueueRepository.getFirstWaitingJobQueueEntityBySink(uniqueSinkId);
+                if (!jobQueueRepository.isSinkOccupied(uniqueSinkId) && firstWaitingJobToStart != null) {
 
-                final JobEntity firstWaitingJob = sinkEntry.getValue().get(0).getJob();
-                LOGGER.info("----- starting job: " + firstWaitingJob.getId());
-                this.startJob(firstWaitingJob);
-                didWatcherStartAtLeastOneJob = true;
+                    this.startJob(firstWaitingJobToStart.getJob());
+                }
             }
         }
-
-        if(!didWatcherStartAtLeastOneJob) {
-            LOGGER.info("----- Watcher did NOT start any jobs.");
-        }
-
-        LOGGER.info("Done watching the queue table.");
     }
 
-    private boolean sinkOccupied(List<JobQueueEntity> jobsForUniqueSink) {
-
-        for (JobQueueEntity jobQueueEntity : jobsForUniqueSink) {
-
-            if(jobQueueEntity.getState() == JobQueueEntity.State.IN_PROGRESS) {
-                return OCCUPIED;
-            }
-        }
-        return AVAILABLE;
-    }
 
     private void startJob(JobEntity jobToStart) {
 
@@ -95,21 +71,5 @@ public class JobQueueWatcher {
                     jobQueueEntity.getJob().getId(),
                     jobQueueEntity.getSinkId());
         }
-    }
-
-    private Hashtable<Long, List<JobQueueEntity>> buildJobQueueEntitiesGroupedBySink() {
-
-        Hashtable<Long, List<JobQueueEntity>> mapOfJobQueueEntitiesGroupedBySink = new Hashtable();
-
-        final List<Long> uniqueSinkIds = jobQueueRepository.getUniqueSinkIds();
-
-        for (Long uniqueSinkId : uniqueSinkIds) {
-
-            mapOfJobQueueEntitiesGroupedBySink.put(
-                    uniqueSinkId,
-                    jobQueueRepository.getJobQueueEntitiesBySink(uniqueSinkId));
-        }
-
-        return mapOfJobQueueEntitiesGroupedBySink;
     }
 }

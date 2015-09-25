@@ -33,7 +33,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.sink.es.entity.EsInFlight;
+import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import oracle.jdbc.pool.OracleDataSource;
 import org.junit.After;
 import org.junit.Before;

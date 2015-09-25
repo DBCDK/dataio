@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.dataio.sink.es.entity.EsInFlight;
+import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;

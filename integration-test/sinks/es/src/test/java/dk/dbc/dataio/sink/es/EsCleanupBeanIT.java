@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.sink.es.entity.EsInFlight;
+import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import org.junit.Test;
 
 import javax.jms.JMSException;

@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.sink.es.entity;
+package dk.dbc.dataio.sink.es.entity.inflight;
 
 public class EsInFlightPK {
     private String resourceName;

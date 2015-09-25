@@ -1,6 +1,8 @@
 package dk.dbc.dataio.sink.es.entity.es;
 
-import org.eclipse.persistence.annotations.ReadOnly;
+//import org.eclipse.persistence.annotations.ReadOnly;
+
+//import org.eclipse.persistence.annotations.ReadOnly;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -12,7 +14,7 @@ import java.math.BigInteger;
  *  Entity Class for reading from updatePackagesView
  */
 @Entity
-@ReadOnly
+//@ReadOnly
 @Table(name="updatepackages")
 public class UpdatePackageEntity {
     @Id

@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.es.entity.es;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.eclipse.persistence.annotations.Customizer;
+//import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+//import org.eclipse.persistence.annotations.Customizer;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Convert;
@@ -29,9 +29,10 @@ import java.util.Map;
 @Entity
 @DiscriminatorValue("5")
 @Table(name = "taskspecificupdate")
-@Customizer(SetMultiTableConstraintDependentInheritanceCustomizer.class)
+//@Customizer(SetMultiTableConstraintDependentInheritanceCustomizer.class)
 
-@SuppressFBWarnings(value = {"EI"}, justification = "Entity Class don't own the array")
+//@SuppressFBWarnings(value = {"EI"}, justification = "Entity Class don't own the array")
+
 public class TaskSpecificUpdateEntity extends TaskPackageEntity {
 
     public enum UpdateStatus{ UNKNOWN, SUCCESS, PARTIAL, FAILURE}

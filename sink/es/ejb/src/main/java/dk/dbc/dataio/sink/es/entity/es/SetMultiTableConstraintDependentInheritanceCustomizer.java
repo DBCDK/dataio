@@ -1,7 +1,7 @@
 package dk.dbc.dataio.sink.es.entity.es;
 
-import org.eclipse.persistence.config.DescriptorCustomizer;
-import org.eclipse.persistence.descriptors.ClassDescriptor;
+//import org.eclipse.persistence.config.DescriptorCustomizer;
+//import org.eclipse.persistence.descriptors.ClassDescriptor;
 
 /**
  * Created by ja7 on 24-09-14.
@@ -13,9 +13,11 @@ import org.eclipse.persistence.descriptors.ClassDescriptor;
  * http://stackoverflow.com/questions/21384589/jpa-inheritance-foreign-key-constraint-fails
  *
  */
-public class SetMultiTableConstraintDependentInheritanceCustomizer implements DescriptorCustomizer {
+public class SetMultiTableConstraintDependentInheritanceCustomizer /*implements DescriptorCustomizer*/ {
+/*
     @Override
     public void customize(ClassDescriptor descriptor) throws Exception {
         descriptor.setHasMultipleTableConstraintDependecy(true);
     }
+*/
 }

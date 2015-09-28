@@ -90,6 +90,7 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
      * Supplies available flow components, that will be show in the dialog box
      * @param availableFlowComponents Flow components to be shown in the list
      * @param clickHandler, the click handler
+     * @param presenter, the flow modify presenter
      */
     public SelectFlowComponentDialogBox(Map<String, String> availableFlowComponents, ClickHandler clickHandler, Presenter presenter) {
         initWidget(ourUiBinder.createAndBindUi(this));

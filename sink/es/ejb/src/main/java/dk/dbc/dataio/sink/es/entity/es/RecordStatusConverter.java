@@ -4,10 +4,6 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 import static dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity.RecordStatus;
-import static dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity.RecordStatus.SUCCESS;
-import static dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity.RecordStatus.QUEUED;
-import static dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity.RecordStatus.IN_PROCESS;
-import static dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity.RecordStatus.FAILURE;
 
 
 /**
@@ -44,13 +40,13 @@ public class RecordStatusConverter  implements AttributeConverter<RecordStatus, 
     public RecordStatus convertToEntityAttribute(Integer integer) {
         switch ( integer ) {
             case 1:
-                return SUCCESS;
+                return RecordStatus.SUCCESS;
             case 2:
-                return QUEUED;
+                return RecordStatus.QUEUED;
             case 3:
-                return IN_PROCESS;
+                return RecordStatus.IN_PROCESS;
             case 4:
-                return FAILURE;
+                return RecordStatus.FAILURE;
             default:
         }
         return null;

@@ -24,8 +24,6 @@ package dk.dbc.dataio.sink.es.entity.es;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.eclipse.persistence.annotations.Customizer;
 
-import org.eclipse.persistence.annotations.Customizer;
-
 import javax.persistence.CascadeType;
 import javax.persistence.Convert;
 import javax.persistence.DiscriminatorValue;

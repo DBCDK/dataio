@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 
-import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
@@ -45,7 +44,6 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     public void initializeModel() {
-        model = new FlowModel();
         updateAllFieldsAccordingToCurrentState();
     }
 
@@ -55,7 +53,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.createFlow(model, new SaveFlowModelAsyncCallback());
+        flowStoreProxy.createFlow(view.model, new SaveFlowModelAsyncCallback());
     }
 
     /**

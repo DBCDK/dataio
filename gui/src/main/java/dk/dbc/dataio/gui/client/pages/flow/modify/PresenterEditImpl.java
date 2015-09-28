@@ -62,14 +62,14 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateFlow(model, new SaveFlowModelAsyncCallback());
+        flowStoreProxy.updateFlow(view.model, new SaveFlowModelAsyncCallback());
     }
 
     /**
      * Deletes the embedded model as a Flow in the database
      */
     void deleteModel() {
-        flowStoreProxy.deleteFlow(model.getId(), model.getVersion(), new DeleteFlowModelFilteredAsyncCallback());
+        flowStoreProxy.deleteFlow(view.model.getId(), view.model.getVersion(), new DeleteFlowModelFilteredAsyncCallback());
     }
 
     // Private methods
@@ -81,9 +81,7 @@ public class PresenterEditImpl extends PresenterImpl {
      * A signal to the presenter, saying that the delete button has been pressed
      */
     public void deleteButtonPressed() {
-        if (model != null) {
-            deleteModel();
-        }
+        deleteModel();
     }
 
     /**
@@ -97,7 +95,9 @@ public class PresenterEditImpl extends PresenterImpl {
         }
         @Override
         public void onSuccess(FlowModel model) {
-            setFlowModel(model);
+            if(!view.showAvailableFlowComponents) {
+                setFlowModel(model);
+            }
             updateAllFieldsAccordingToCurrentState();
         }
     }
@@ -114,7 +114,7 @@ public class PresenterEditImpl extends PresenterImpl {
         @Override
         public void onSuccess(Void aVoid) {
             view.status.setText(texts.status_FlowSuccessfullyDeleted());
-            setFlowModel(null);
+            setFlowModel(new FlowModel());
             History.back();
         }
     }

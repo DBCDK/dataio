@@ -36,9 +36,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -102,10 +102,10 @@ public class PresenterCreateImplTest {
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
         // Verify, that the model is cleared and updated accordingly
-        assertThat(presenterCreateImpl.model, is(notNullValue()));
-        assertThat(presenterCreateImpl.model.getFlowName(), is(""));
-        assertThat(presenterCreateImpl.model.getDescription(), is(""));
-        assertThat(presenterCreateImpl.model.getFlowComponents().size(), is(0));
+        assertThat(createView.model, is(notNullValue()));
+        assertThat(createView.model.getFlowName(), is(""));
+        assertThat(createView.model.getDescription(), is(""));
+        assertThat(createView.model.getFlowComponents().size(), is(0));
 
         // Verify, that the view is updated accordingly
         verify(createView.name).setText("");
@@ -114,6 +114,7 @@ public class PresenterCreateImplTest {
         verify(createView.description).setEnabled(true);
         verify(createView.flowComponents, times(2)).clear();
         verify(createView.flowComponents).setEnabled(false);
+        assertThat(createView.showAvailableFlowComponents, is(false));
         verifyNoMoreInteractions(createView.flowComponents);  // To make sure, that there are no addValue() calls
     }
 
@@ -129,14 +130,14 @@ public class PresenterCreateImplTest {
 
         presenterCreateImpl.nameChanged(FLOW_NAME);
         presenterCreateImpl.descriptionChanged(DESCRIPTION);
-        Map<String, String> flowComponents = new HashMap<String, String>();
+        Map<String, String> flowComponents = new HashMap<>();
         flowComponents.put(String.valueOf(FLOW_COMPONENT_ID), FLOW_COMPONENT_NAME);
         presenterCreateImpl.availableFlowComponentModels = Collections.singletonList(new FlowComponentModelBuilder().setId(FLOW_COMPONENT_ID).setName(FLOW_COMPONENT_NAME).build());
         presenterCreateImpl.flowComponentsChanged(flowComponents);
 
         presenterCreateImpl.saveModel();
 
-        verify(mockedFlowStoreProxy).createFlow(eq(presenterCreateImpl.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
+        verify(mockedFlowStoreProxy).createFlow(eq(createView.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
     }
 
 }

@@ -36,6 +36,7 @@ import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Map;
@@ -43,10 +44,14 @@ import java.util.Map;
 public class ViewWidget extends ContentPanel<Presenter> {
     interface FlowUiBinder extends UiBinder<HTMLPanel, ViewWidget> {}
     private static FlowUiBinder uiBinder = GWT.create(FlowUiBinder.class);
+    protected FlowModel model;
+    protected boolean showAvailableFlowComponents;
 
     public ViewWidget(String header) {
         super(header);
         add(uiBinder.createAndBindUi(this));
+        this.model = new FlowModel();
+        this.showAvailableFlowComponents = false;
     }
 
     @UiField PromptedTextBox name;

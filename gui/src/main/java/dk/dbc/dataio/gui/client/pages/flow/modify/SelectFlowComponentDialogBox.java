@@ -40,6 +40,9 @@ import java.util.Map;
  * This is the dialog box for selecting a Flow Component
  */
 public class SelectFlowComponentDialogBox extends Composite implements HasClickHandlers {
+    /*
+    public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
+     */
     interface SelectFlowComponentDialogBoxUiBinder extends UiBinder<HTMLPanel, SelectFlowComponentDialogBox> {
     }
     private static SelectFlowComponentDialogBoxUiBinder ourUiBinder = GWT.create(SelectFlowComponentDialogBoxUiBinder.class);
@@ -47,7 +50,7 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
     ClickHandler selectButtonClickHandler = null;  // Is package private due to test
 
     private final int MAX_NUMBER_OF_SHOWN_ITEMS = 10;
-
+    private Presenter presenter;
 
     @UiField DialogBox availableFlowComponentsDialog;
     @UiField ListBox flowComponentsList;
@@ -75,14 +78,25 @@ public class SelectFlowComponentDialogBox extends Composite implements HasClickH
     }
 
     /**
+     * UI Handler for clicks on the New Flowcomponent button in the dialog
+     * @param event The Click Event
+     */
+    @UiHandler("newFlowComponentButton")
+    void newFlowComponentButtonPressed(ClickEvent event) {
+        availableFlowComponentsDialog.hide();
+        presenter.newFlowComponentButtonPressed();
+    }
+
+    /**
      * Constructor
      * Activates and shows the Dialog Box
      * Supplies available flow components, that will be show in the dialog box
      * @param availableFlowComponents Flow components to be shown in the list
      * @param clickHandler, the click handler
      */
-    public SelectFlowComponentDialogBox(Map<String, String> availableFlowComponents, ClickHandler clickHandler) {
+    public SelectFlowComponentDialogBox(Map<String, String> availableFlowComponents, ClickHandler clickHandler, Presenter presenter) {
         initWidget(ourUiBinder.createAndBindUi(this));
+        this.presenter = presenter;
         availableFlowComponentsDialog.setGlassEnabled(true);
         availableFlowComponentsDialog.setAnimationEnabled(true);
         for (Map.Entry<String, String> item : availableFlowComponents.entrySet()) {

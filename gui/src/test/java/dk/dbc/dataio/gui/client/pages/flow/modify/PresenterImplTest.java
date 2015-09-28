@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -61,23 +62,19 @@ import static org.mockito.Mockito.when;
 */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest {
-    @Mock
-    ClientFactory mockedClientFactory;
-    @Mock
-    FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock
-    Texts mockedTexts;
-    @Mock
-    AcceptsOneWidget mockedContainerWidget;
-    @Mock
-    EventBus mockedEventBus;
-    @Mock
-    ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock ClientFactory mockedClientFactory;
+    @Mock FlowStoreProxyAsync mockedFlowStoreProxy;
+    @Mock Texts mockedTexts;
+    @Mock AcceptsOneWidget mockedContainerWidget;
+    @Mock EventBus mockedEventBus;
+    @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock PlaceController mockedPlaceController;
 
     private ViewWidget viewWidget;
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
+    private static boolean addButtonHasBeenPressed;
     List<FlowComponentModel> selectedFlowComponentModelList;
     List<FlowComponentModel> availableFlowComponentModelList;
     FlowComponentModel flowComponentModel1;
@@ -95,9 +92,12 @@ public class PresenterImplTest {
             super(clientFactory);
             view = PresenterImplTest.this.viewWidget;
             flowStoreProxy = mockedFlowStoreProxy;
-            model = new FlowModelBuilder().setId(DEFAULT_ID).setVersion(DEFAULT_VERSION).setName(DEFAULT_NAME).setDescription(DEFAULT_DESCRIPTION).setComponents(selectedFlowComponentModelList).build();
+            placeController = mockedPlaceController;
+            viewWidget.model = new FlowModelBuilder().setId(DEFAULT_ID).setVersion(DEFAULT_VERSION).setName(DEFAULT_NAME).setDescription(DEFAULT_DESCRIPTION).setComponents(selectedFlowComponentModelList).build();
             availableFlowComponentModels = availableFlowComponentModelList;
             saveModelHasBeenCalled = false;
+            addButtonHasBeenPressed = false;
+
         }
 
         @Override
@@ -111,7 +111,11 @@ public class PresenterImplTest {
 
         @Override
         public void deleteButtonPressed() {
-            deleteButtonPressed();
+        }
+
+        @Override
+        public void addButtonPressed() {
+            addButtonHasBeenPressed = true;
         }
 
         public SaveFlowModelAsyncCallback saveFlowCallback = new SaveFlowModelAsyncCallback();
@@ -142,10 +146,10 @@ public class PresenterImplTest {
         flowComponentModel2 = new FlowComponentModelBuilder().setId(222).setName("FlowComponentName2").build();
         flowComponentModel3 = new FlowComponentModelBuilder().setId(333).setName("FlowComponentName3").build();
         flowComponentModel4 = new FlowComponentModelBuilder().setId(444).setName("FlowComponentName4").build();
-        selectedFlowComponentModelList = new ArrayList<FlowComponentModel>();  // Selected Flow Components contains elements 1 and 3
+        selectedFlowComponentModelList = new ArrayList<>();  // Selected Flow Components contains elements 1 and 3
         selectedFlowComponentModelList.add(flowComponentModel1);
         selectedFlowComponentModelList.add(flowComponentModel3);
-        availableFlowComponentModelList = new ArrayList<FlowComponentModel>();  // Available Flow Components contains elements 1, 2, 3 and 4
+        availableFlowComponentModelList = new ArrayList<>();  // Available Flow Components contains elements 1, 2, 3 and 4
         availableFlowComponentModelList.add(flowComponentModel1);
         availableFlowComponentModelList.add(flowComponentModel2);
         availableFlowComponentModelList.add(flowComponentModel3);
@@ -199,7 +203,7 @@ public class PresenterImplTest {
 
         presenterImpl.nameChanged(CHANGED_NAME);
 
-        assertThat(presenterImpl.model.getFlowName(), is(CHANGED_NAME));
+        assertThat(viewWidget.model.getFlowName(), is(CHANGED_NAME));
     }
 
     @Test
@@ -210,7 +214,7 @@ public class PresenterImplTest {
 
         presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
 
-        assertThat(presenterImpl.model.getDescription(), is(CHANGED_DESCRIPTION));
+        assertThat(viewWidget.model.getDescription(), is(CHANGED_DESCRIPTION));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -219,7 +223,7 @@ public class PresenterImplTest {
 
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
-        HashMap<String, String> changedFlowComponentsMap = new HashMap<String, String>();
+        HashMap<String, String> changedFlowComponentsMap = new HashMap<>();
         changedFlowComponentsMap.put("123", NEW_AND_UNKNOWN_FLOW_COMPONENT);
         presenterImpl.flowComponentsChanged(changedFlowComponentsMap);
     }
@@ -228,12 +232,12 @@ public class PresenterImplTest {
     public void flowComponentsChanged_callFlowComponentsChangedWithKnownFlowComponent_flowComponentsAreChangedAccordingly() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
-        HashMap<String, String> changedFlowComponentsMap = new HashMap<String, String>();
+        HashMap<String, String> changedFlowComponentsMap = new HashMap<>();
         changedFlowComponentsMap.put(String.valueOf(flowComponentModel4.getId()), flowComponentModel4.getName());
         presenterImpl.flowComponentsChanged(changedFlowComponentsMap);
 
-        assertThat(presenterImpl.model.getFlowComponents().size(), is(1));
-        assertThat(presenterImpl.model.getFlowComponents().get(0).getName(), is(flowComponentModel4.getName()));
+        assertThat(viewWidget.model.getFlowComponents().size(), is(1));
+        assertThat(viewWidget.model.getFlowComponents().get(0).getName(), is(flowComponentModel4.getName()));
     }
 
     @Test
@@ -248,7 +252,7 @@ public class PresenterImplTest {
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.model.setFlowName("");
+        viewWidget.model.setFlowName("");
 
         presenterImpl.saveButtonPressed();
 
@@ -258,7 +262,7 @@ public class PresenterImplTest {
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.model.setDescription("");
+        viewWidget.model.setDescription("");
 
         presenterImpl.saveButtonPressed();
 
@@ -268,7 +272,7 @@ public class PresenterImplTest {
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithFlowComponentListEmpty_ErrorTextIsDisplayed() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.model.setFlowComponents(new ArrayList<FlowComponentModel>());
+        viewWidget.model.setFlowComponents(new ArrayList<FlowComponentModel>());
 
         presenterImpl.saveButtonPressed();
 
@@ -278,7 +282,7 @@ public class PresenterImplTest {
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        presenterImpl.model.setFlowName("*(Flow name)*_%€");
+        viewWidget.model = new FlowModelBuilder().setName("*(Flow name)*_%€").build();
 
         presenterImpl.saveButtonPressed();
 
@@ -288,10 +292,18 @@ public class PresenterImplTest {
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithValidData_SaveModelIsCalled() {
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-
+        viewWidget.model = new FlowModelBuilder().build();
         presenterImpl.saveButtonPressed();
 
         assertThat(saveModelHasBeenCalled, is(true));
+    }
+
+    @Test
+    public void newFlowComponentButtonPressed_call_gotoCreateFlowComponentPlace() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl.newFlowComponentButtonPressed();
+        assertThat(presenterImpl.view.showAvailableFlowComponents, is(true));
+        verify(mockedPlaceController).goTo(any(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace.class));
     }
 
     @Test
@@ -300,9 +312,8 @@ public class PresenterImplTest {
         final String EXTRA_NAME = "Extra Name";
         presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
-        List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>(availableFlowComponentModelList);
+        List<FlowComponentModel> flowComponentModels = new ArrayList<>(availableFlowComponentModelList);
         flowComponentModels.add(new FlowComponentModelBuilder().setId(EXTRA_ID).setName(EXTRA_NAME).build());
-
         presenterImpl.findAllFlowComponentsCallback.onSuccess(flowComponentModels);
 
         verify(viewWidget.name).setText(DEFAULT_NAME);
@@ -326,6 +337,18 @@ public class PresenterImplTest {
         assertThat(texts.get(1), is(flowComponentModel3.getName()));
         assertThat(keys.get(0), is(String.valueOf(flowComponentModel1.getId())));
         assertThat(keys.get(1), is(String.valueOf(flowComponentModel3.getId())));
+    }
+
+    @Test
+    public void findAllFlowComponentsAsyncCallback_successfulCallback_showAvailableFlowComponentsIsTrueAddButtonPressed() {
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        viewWidget.showAvailableFlowComponents = true;
+
+        presenterImpl.findAllFlowComponentsCallback.onSuccess(availableFlowComponentModelList);
+
+        assertThat(addButtonHasBeenPressed, is(true));
+        assertThat(viewWidget.showAvailableFlowComponents, is(false));
+        verify(viewWidget.flowComponents).setEnabled(true);
     }
 
     @Test

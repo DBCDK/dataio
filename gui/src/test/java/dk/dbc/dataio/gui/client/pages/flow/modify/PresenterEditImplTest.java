@@ -47,7 +47,6 @@ import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -118,12 +117,11 @@ public class PresenterEditImplTest {
     public void saveModel_flowContentOk_updateFlowCalled() {
         presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.model = new FlowModel();
 
-        presenterEditImpl.availableFlowComponentModels = new ArrayList<FlowComponentModel>();
+        presenterEditImpl.availableFlowComponentModels = new ArrayList<>();
         presenterEditImpl.availableFlowComponentModels.add(new FlowComponentModelBuilder().setId(1).setVersion(2).build());
 
-        Map<String, String> flowModelMap = new HashMap<String, String>();
+        Map<String, String> flowModelMap = new HashMap<>();
         flowModelMap.put(Long.toString(presenterEditImpl.availableFlowComponentModels.get(0).getId()), presenterEditImpl.availableFlowComponentModels.get(0).getName());
 
         presenterEditImpl.nameChanged("a");                                     // Name is ok
@@ -132,7 +130,7 @@ public class PresenterEditImplTest {
 
         presenterEditImpl.saveModel();
 
-        verify(mockedFlowStoreProxy).updateFlow(eq(presenterEditImpl.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
+        verify(mockedFlowStoreProxy).updateFlow(eq(editView.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
     }
 
     @Test
@@ -142,18 +140,19 @@ public class PresenterEditImplTest {
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
         FlowModel model =
                 getValidFlowModel(4, 5);
-        assertThat(presenterEditImplConcrete.model, is(nullValue()));
+        assertThat(editView.model, is(notNullValue()));
 
         presenterEditImplConcrete.callback.onSuccess(model);  // Emulate a successful callback from flowstore
 
         // Assert that the sink model has been updated correctly
-        assertThat(presenterEditImplConcrete.model, is(notNullValue()));
-        assertThat(presenterEditImplConcrete.model.getId(), is(model.getId()));
-        assertThat(presenterEditImplConcrete.model.getVersion(), is(model.getVersion()));
-        assertThat(presenterEditImplConcrete.model.getFlowName(), is(model.getFlowName()));
-        assertThat(presenterEditImplConcrete.model.getDescription(), is(model.getDescription()));
+        assertThat(editView.model, is(notNullValue()));
+        assertThat(editView.model.getId(), is(model.getId()));
+        assertThat(editView.model.getVersion(), is(model.getVersion()));
+        assertThat(editView.model.getFlowName(), is(model.getFlowName()));
+        assertThat(editView.model.getDescription(), is(model.getDescription()));
+        assertThat(editView.showAvailableFlowComponents, is(false));
 
-        assertFlowComponentModelsEquals(presenterEditImplConcrete.model.getFlowComponents(), model.getFlowComponents());
+        assertFlowComponentModelsEquals(editView.model.getFlowComponents(), model.getFlowComponents());
 
         // Assert that the view is displaying the correct values
         verify(editView.name).setText(model.getFlowName());
@@ -184,14 +183,13 @@ public class PresenterEditImplTest {
     public void deleteFlowModelFilteredAsyncCallback_callback_invoked() {
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        presenterEditImpl.model = new FlowModelBuilder().build();
 
         presenterEditImpl.deleteModel();
 
         // Verify that the proxy call is invoked... Cannot emulate the callback as the return type is Void
         verify(mockedFlowStoreProxy).deleteFlow(
-                eq(presenterEditImpl.model.getId()),
-                eq(presenterEditImpl.model.getVersion()),
+                eq(editView.model.getId()),
+                eq(editView.model.getVersion()),
                 any(PresenterEditImpl.DeleteFlowModelFilteredAsyncCallback.class));
     }
 

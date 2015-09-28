@@ -25,6 +25,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -54,8 +55,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected ViewWidget view;
 
     // Application Models
-    protected FlowModel model;
     protected List<FlowComponentModel> availableFlowComponentModels;
+    protected PlaceController placeController;
 
 
     /**
@@ -69,6 +70,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         texts = clientFactory.getFlowModifyTexts();
         proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+        placeController = clientFactory.getPlaceController();
     }
 
     /**
@@ -105,8 +107,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void nameChanged(String name) {
-        if (model != null && name != null) {
-            model.setFlowName(name);
+        if (view.model != null && name != null) {
+            view.model.setFlowName(name);
         }
     }
 
@@ -117,8 +119,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void descriptionChanged(String description) {
-        if (model != null && description != null) {
-            model.setDescription(description);
+        if (view.model != null && description != null) {
+            view.model.setDescription(description);
         }
     }
 
@@ -129,12 +131,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void flowComponentsChanged(Map<String, String> flowComponents) {
-        if (model != null && flowComponents != null) {
+        if (flowComponents != null) {
             List<FlowComponentModel> flowComponentModels = new ArrayList<>();
             for (Map.Entry<String, String> entry: flowComponents.entrySet()) {
                 flowComponentModels.add(getFlowComponentModel(entry.getKey()));
             }
-            model.setFlowComponents(flowComponentModels);
+            view.model.setFlowComponents(flowComponentModels);
         }
     }
 
@@ -151,14 +153,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
-        if (model != null) {
-            if (model.isInputFieldsEmpty()) {
-                view.setErrorText(texts.error_InputFieldValidationError());
-            } else if (!model.getDataioPatternMatches().isEmpty()) {
-                view.setErrorText(texts.error_NameFormatValidationError());
-            } else {
-                saveModel();
-            }
+        if (view.model.isInputFieldsEmpty()) {
+            view.setErrorText(texts.error_InputFieldValidationError());
+        } else if (!view.model.getDataioPatternMatches().isEmpty()) {
+            view.setErrorText(texts.error_NameFormatValidationError());
+        } else {
+            saveModel();
         }
     }
 
@@ -169,27 +169,34 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             for (FlowComponentModel component : getNonSelectedFlowComponents()) {
                 listOfComponents.put(component.getName(), String.valueOf(component.getId()));
             }
-            selectFlowComponentDialogBox = new SelectFlowComponentDialogBox(listOfComponents, new SelectFlowComponentClickHandler());
+            selectFlowComponentDialogBox = new SelectFlowComponentDialogBox(listOfComponents, new SelectFlowComponentClickHandler(), this);
         }
     }
 
     @Override
     public void removeButtonPressed() {
-        if (model != null) {
-            try {
-                List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
-                flowComponentModels.remove(getFlowComponentModelIndex(view.flowComponents.getSelectedItem()));
-                model.setFlowComponents(flowComponentModels);
-                updateAllFieldsAccordingToCurrentState();
-            } catch (Exception e) {  // NOPMD
-                // NOPMD
-                // Exceptions are not caught intentionally here - If an exception occurs, nothing is being removed
-            }
+        try {
+            List<FlowComponentModel> flowComponentModels = view.model.getFlowComponents();
+            flowComponentModels.remove(getFlowComponentModelIndex(view.flowComponents.getSelectedItem()));
+            view.model.setFlowComponents(flowComponentModels);
+            updateAllFieldsAccordingToCurrentState();
+        } catch (Exception e) {  // NOPMD
+            // NOPMD
+            // Exceptions are not caught intentionally here - If an exception occurs, nothing is being removed
         }
     }
 
+    /**
+     * This method opens a new view, for creating a new flow component
+     */
+    @Override
+    public void newFlowComponentButtonPressed() {
+        view.showAvailableFlowComponents = true;
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace());
+    }
 
-        /*
+
+    /*
      * Protected methods
      */
 
@@ -197,20 +204,23 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * This method opdates all the fields in the view according to the stored model.
      */
     protected void updateAllFieldsAccordingToCurrentState() {
-        if (model != null) {
-            view.name.setText(model.getFlowName());
-            view.name.setEnabled(true);
-            view.description.setText(model.getDescription());
-            view.description.setEnabled(true);
-            view.flowComponents.clear();
-            for (FlowComponentModel flowComponentModel: model.getFlowComponents()) {
-                view.flowComponents.addValue(flowComponentModel.getName(), Long.toString(flowComponentModel.getId()));
-            }
-            if (availableFlowComponentModels != null) {
-                view.flowComponents.setEnabled(true);
-            }
-            view.name.setFocus(true);
+        view.name.setText(view.model.getFlowName());
+        view.name.setEnabled(true);
+        view.description.setText(view.model.getDescription());
+        view.description.setEnabled(true);
+        view.flowComponents.clear();
+        for (FlowComponentModel flowComponentModel: view.model.getFlowComponents()) {
+            view.flowComponents.addValue(flowComponentModel.getName(), Long.toString(flowComponentModel.getId()));
         }
+        if (availableFlowComponentModels != null) {
+            view.flowComponents.setEnabled(true);
+            if(view.showAvailableFlowComponents) {
+                addButtonPressed();
+                view.showAvailableFlowComponents = false;
+            }
+        }
+        view.name.setFocus(true);
+
     }
 
     /**
@@ -218,7 +228,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param model The model to save
      */
     protected void setFlowModel(FlowModel model) {
-        this.model = model;
+        this.view.model = model;
     }
 
 
@@ -232,8 +242,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private List<FlowComponentModel> getNonSelectedFlowComponents() {
         List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<>();
         List<Long> selectedFlowComponentIds = new ArrayList<>();
-        if (model != null) {
-            for (FlowComponentModel selected: model.getFlowComponents()) {
+        if (view.model != null) {
+            for (FlowComponentModel selected: view.model.getFlowComponents()) {
                 selectedFlowComponentIds.add(selected.getId());
             }
         }
@@ -259,7 +269,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private int getFlowComponentModelIndex(String idString) {
         long id = Long.parseLong(idString);
-        List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
+        List<FlowComponentModel> flowComponentModels = view.model.getFlowComponents();
         for (int index = 0; index < flowComponentModels.size(); index++) {
             if (flowComponentModels.get(index).getId() == id) {
                 return index;
@@ -299,7 +309,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(FlowModel model) {
             view.status.setText(texts.status_FlowSuccessfullySaved());
-            setFlowModel(model);
+            setFlowModel(new FlowModel());
             History.back();
         }
     }
@@ -310,16 +320,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SelectFlowComponentClickHandler implements ClickHandler {
         @Override
         public void onClick(ClickEvent event) {
-            if (model != null) {
-                int selected = selectFlowComponentDialogBox.flowComponentsList.getSelectedIndex();
-                if (selected >= 0) {
-                    String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
-                    FlowComponentModel selectedModel = getFlowComponentModel(value);
-                    List<FlowComponentModel> flowComponentModels = model.getFlowComponents();
-                    flowComponentModels.add(selectedModel);
-                    model.setFlowComponents(flowComponentModels);
-                    updateAllFieldsAccordingToCurrentState();
-                }
+            int selected = selectFlowComponentDialogBox.flowComponentsList.getSelectedIndex();
+            if (selected >= 0) {
+                String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
+                FlowComponentModel selectedModel = getFlowComponentModel(value);
+                List<FlowComponentModel> flowComponentModels = view.model.getFlowComponents();
+                flowComponentModels.add(selectedModel);
+                view.model.setFlowComponents(flowComponentModels);
+                updateAllFieldsAccordingToCurrentState();
             }
         }
     }

@@ -35,4 +35,5 @@ public interface Presenter extends GenericPresenter {
     void removeButtonPressed();
     void deleteButtonPressed();
 
+    void newFlowComponentButtonPressed();
 }

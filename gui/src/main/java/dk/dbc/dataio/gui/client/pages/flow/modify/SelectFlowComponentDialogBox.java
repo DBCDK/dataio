@@ -40,9 +40,6 @@ import java.util.Map;
  * This is the dialog box for selecting a Flow Component
  */
 public class SelectFlowComponentDialogBox extends Composite implements HasClickHandlers {
-    /*
-    public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
-     */
     interface SelectFlowComponentDialogBoxUiBinder extends UiBinder<HTMLPanel, SelectFlowComponentDialogBox> {
     }
     private static SelectFlowComponentDialogBoxUiBinder ourUiBinder = GWT.create(SelectFlowComponentDialogBoxUiBinder.class);

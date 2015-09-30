@@ -133,6 +133,7 @@
         </configuration>
       </plugin>
 
+<!--
       <plugin>
         <groupId>dk.dbc</groupId>
         <artifactId>postgresql-maven-plugin</artifactId>
@@ -161,6 +162,7 @@
           </execution>
         </executions>
       </plugin>
+-->
 
     </plugins>
   </build>

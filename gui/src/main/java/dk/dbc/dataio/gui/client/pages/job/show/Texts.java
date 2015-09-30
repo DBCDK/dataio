@@ -30,6 +30,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Jobs();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_JobId();
+
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_JobId();
@@ -79,4 +82,17 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Refresh();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_ShowJob();
+
+    // Error texts
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_InputFieldValidationError();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_NumericInputFieldValidationError();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_JobNotFound();
 }

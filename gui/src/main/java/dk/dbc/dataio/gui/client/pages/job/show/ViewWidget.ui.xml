@@ -26,10 +26,57 @@
     <ui:with type="dk.dbc.dataio.gui.client.pages.job.show.Texts" field="txt"/>
 
     <ui:style>
+        .outerHtmlPanel {
+            width: 100%;
+            max-width: 125em;
+            min-width: 88em;
+
+            /*
+             * min-width:
+             * This value determines when the horizontal scroll bar is shown.
+             * If adding new columns to the jobsTable: Make sure the value is larger than the
+             * jobsTable minimum 'collapse ability'.
+             */
+        }
+
         .radio-buttons {
         }
+
+        .innerHtmlPanel {
+            width: inherit;
+            min-width: inherit;
+        }
+
+        .searchJobLabel {
+            width: 3.5em;
+            margin-right: 0.2em;
+        }
+
+        .searchJobTextBox {
+            width: 7em;
+            font-family: Arial Unicode MS, Arial, sans-serif;
+            font-size: small;
+        }
+
+        .searchJobButton {
+            width: 2.5em;
+            margin-left: 0.2em;
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            color: darkslategrey;
+        }
+
+        .jobsTable {
+            width: inherit;
+            min-width: inherit;
+            background-color: #e5e9f4;
+            border-top: slategray solid 2px;
+            border-bottom: slategray solid 2px;
+        }
     </ui:style>
-    <g:HTMLPanel styleName="{res.css.jobsShowTable}">
+
+    <g:HTMLPanel styleName="{style.outerHtmlPanel}">
 
         <jobs:JobFilter ui:field="jobFilter" />
 
@@ -42,9 +89,28 @@
 
         <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />
 
-        <c:SimplePager ui:field="pagerTop" />
-        <c:CellTable pageSize='20' ui:field='jobsTable' />
-        <c:SimplePager ui:field="pagerBottom" />
+        <g:HTMLPanel addStyleNames="{style.innerHtmlPanel}">
+
+            <g:HorizontalPanel width="100%">
+
+                <g:cell horizontalAlignment="left">
+                    <c:SimplePager ui:field="pagerTop" />
+                </g:cell>
+
+                <g:cell horizontalAlignment="right">
+                    <g:HorizontalPanel verticalAlignment="middle" horizontalAlignment="right" width="14em">
+                        <g:Label text="{txt.label_JobId}" addStyleNames="{style.searchJobLabel}"/>
+                        <g:TextBox ui:field="jobIdInputField" addStyleNames="{style.searchJobTextBox}"/>
+                        <g:PushButton ui:field="showJobButton" text="{txt.button_ShowJob}" addStyleNames="{style.searchJobButton}"/>
+                    </g:HorizontalPanel>
+                </g:cell>
+
+            </g:HorizontalPanel>
+
+        </g:HTMLPanel>
+
+        <c:CellTable pageSize='20' ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
+        <c:SimplePager ui:field="pagerBottom"/>
 
     </g:HTMLPanel>
 

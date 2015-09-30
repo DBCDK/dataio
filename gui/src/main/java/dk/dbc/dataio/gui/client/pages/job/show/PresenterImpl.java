@@ -26,9 +26,12 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.view.client.Range;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 
 /**
@@ -38,6 +41,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected View view;
     protected JobStoreProxyAsync jobStoreProxy;
     private PlaceController placeController;
+    private Texts texts;
+    private String jobId;
 
     /**
      * Default constructor
@@ -47,7 +52,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public PresenterImpl(ClientFactory clientFactory) {
         placeController = clientFactory.getPlaceController();
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
+        this.texts = clientFactory.getJobsShowTexts();
     }
+
+    /*
+     * Overrides
+     */
 
 
     /**
@@ -64,11 +74,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         containerWidget.setWidget(view.asWidget());
         updateBaseQuery();
     }
-
-
-    /*
-     * Overrides
-     */
 
     /**
      * This method is a result of a click on one job in the list, and activates the Item Show page
@@ -94,13 +99,86 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * Method used to look up a specified job and display the job in the items show view
+     */
+    @Override
+    public void showJob() {
+        this.jobId = view.jobIdInputField.getValue().trim();
+        if(isJobIdValid()) {
+            countExistingJobsWithJobId();
+        }
+    }
+
+    /*
+     * Private methods
+     */
+
+
+    /**
+     * validates if the job id is in a valid format (not empty and numeric)
+     * @return true if the format is valid, otherwise false
+     */
+    private boolean isJobIdValid() {
+        if(jobId.isEmpty()) {
+            view.setErrorText(texts.error_InputFieldValidationError());
+            return false;
+        }
+        return isJobIdValidNumber();
+    }
+
+    /**
+     * Validates that the job id is numeric
+     * @return true if the job id is numeric, otherwise false
+     */
+    private boolean isJobIdValidNumber() {
+        try {
+            Long.valueOf(jobId);
+        } catch (NumberFormatException e) {
+            view.setErrorText(texts.error_NumericInputFieldValidationError());
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Fetches count for a specific job id
+     */
+    private void countExistingJobsWithJobId() {
+        JobListCriteria jobListCriteria = new JobListCriteria().where(new ListFilter<>(
+                JobListCriteria.Field.JOB_ID,
+                ListFilter.Op.EQUAL,
+                Long.valueOf(jobId).intValue()));
+
+        jobStoreProxy.countJobs(jobListCriteria, new countExistingJobsWithJobIdCallBack());
+    }
+
+
+    /**
      * Abstract Methods
      */
 
     protected abstract void updateBaseQuery();
 
 
+    /*
+     * Protected classes
+     */
 
+    protected class countExistingJobsWithJobIdCallBack extends FilteredAsyncCallback<Long> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
 
+        @Override
+        public void onSuccess(Long count) {
+            if (count == 0) {
+                view.setErrorText(view.texts.error_JobNotFound());
+            } else {
+                view.jobIdInputField.setText("");
+                placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(jobId));
+            }
+        }
+    }
 
 }

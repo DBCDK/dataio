@@ -28,4 +28,5 @@ public interface Presenter extends GenericPresenter {
     void itemSelected(JobModel jobModel);
     void updateSelectedJobs();
     void refresh();
+    void showJob();
 }

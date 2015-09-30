@@ -32,7 +32,9 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RadioButton;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -61,6 +63,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField RadioButton deliveringFailedJobsButton;
     @UiField RadioButton fatalJobsButton;
     @UiField Button refreshButton;
+    @UiField TextBox jobIdInputField;
+    @UiField PushButton showJobButton;
 
 
     @UiFactory SimplePager makeSimplePager() {
@@ -86,6 +90,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     void refreshButtonPressed(ClickEvent event) {
         GWT.log("Refresh button clicked Event");
         presenter.refresh();
+    }
+
+    @UiHandler("showJobButton")
+    void showJobButtonPressed(ClickEvent event) {
+        presenter.showJob();
     }
 
     /**

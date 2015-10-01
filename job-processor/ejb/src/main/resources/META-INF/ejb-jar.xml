@@ -54,13 +54,6 @@
         </activation-config-property>
       </activation-config>
     </message-driven>
-    <session>
-      <ejb-name>SinkMessageProducerBean</ejb-name>
-      <message-destination-ref>
-        <message-destination-ref-name>sinksJmsQueue</message-destination-ref-name>
-        <message-destination-type>javax.jms.Queue</message-destination-type>
-      </message-destination-ref>
-    </session>
   </enterprise-beans>
   <assembly-descriptor>
   </assembly-descriptor>

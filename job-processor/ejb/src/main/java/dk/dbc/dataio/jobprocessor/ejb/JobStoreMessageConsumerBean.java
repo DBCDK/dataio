@@ -52,9 +52,6 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
     JobStoreServiceConnectorBean jobStoreServiceConnector;
 
     @EJB
-    SinkMessageProducerBean sinkMessageProducer;
-
-    @EJB
     ChunkProcessorBean chunkProcessor;
 
     JSONBContext jsonbContext = new JSONBContext();
@@ -91,7 +88,6 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
             }
             throw new EJBException(e);
         }
-        sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
     }
 
     private ResourceBundle getResourceBundle(ExternalChunk chunk) throws JobProcessorException {

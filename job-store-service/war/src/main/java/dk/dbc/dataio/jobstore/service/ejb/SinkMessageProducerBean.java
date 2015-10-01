@@ -19,12 +19,12 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.jobprocessor.ejb;
+package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
@@ -63,28 +63,37 @@ public class SinkMessageProducerBean {
      * @param destination Sink instance for sink target
      *
      * @throws NullPointerException when given null-valued argument
-     * @throws JobProcessorException when unable to send given processor result to destination
+     * @throws JobStoreException when unable to send given processor result to destination
      */
-    public void send(ExternalChunk processedChunk, Sink destination) throws NullPointerException, JobProcessorException {
+    public void send(ExternalChunk processedChunk, Sink destination) throws NullPointerException, JobStoreException {
+
         LOGGER.info("Sending processor for chunk {} in job {} to sink {}",
-                processedChunk.getChunkId(), processedChunk.getJobId(), destination.getContent().getName());
+                processedChunk.getChunkId(),
+                processedChunk.getJobId(),
+                destination.getContent().getName());
+
         try (JMSContext context = sinksQueueConnectionFactory.createContext()) {
+
             final TextMessage message = createMessage(context, processedChunk, destination);
+
             context.createProducer().send(sinksQueue, message);
         } catch (JSONBException | JMSException e) {
-            final String errorMessage = String.format("Exception caught while sending processor result for chunk %d in job %s",
-                    processedChunk.getChunkId(), processedChunk.getJobId());
-            throw new JobProcessorException(errorMessage, e);
+
+            final String errorMessage = String.format(
+                    "Exception caught while sending processor result for chunk %d in job %s",
+                    processedChunk.getChunkId(),
+                    processedChunk.getJobId());
+            throw new JobStoreException(errorMessage, e);
         }
     }
 
     /**
      * Creates new TextMessage with given processor result instance as JSON payload with
-     * header properties '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#SOURCE_PROPERTY_NAME}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PAYLOAD_PROPERTY_NAME}'
-     * set to '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#PROCESSOR_SOURCE_VALUE}'
-     * and '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively,
-     * and header property '{@value dk.dbc.dataio.commons.types.jms.JmsConstants#RESOURCE_PROPERTY_NAME}'
+     * header properties '{@value JmsConstants#SOURCE_PROPERTY_NAME}'
+     * and '{@value JmsConstants#PAYLOAD_PROPERTY_NAME}'
+     * set to '{@value JmsConstants#PROCESSOR_SOURCE_VALUE}'
+     * and '{@value JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively,
+     * and header property '{@value JmsConstants#RESOURCE_PROPERTY_NAME}'
      * to the resource value contained in given Sink instance.
      *
      * @param context active JMS context

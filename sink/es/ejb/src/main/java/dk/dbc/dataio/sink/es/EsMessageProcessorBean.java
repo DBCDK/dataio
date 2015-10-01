@@ -33,6 +33,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
@@ -87,8 +88,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
         try {
             if (workload.getAddiRecords().isEmpty()) {
-                LOGGER.info("chunk {} of job {} contained no Addi records - sending result",
-                        deliveredChunk.getChunkId(), deliveredChunk.getJobId());
+                LOGGER.info("chunk {} of job {} contained no Addi records - sending result", deliveredChunk.getChunkId(), deliveredChunk.getJobId());
                 try {
                     jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
                 } catch (JobStoreServiceConnectorException e) {
@@ -101,17 +101,8 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 }
             } else {
                 final int targetReference = esConnector.insertEsTaskPackage(workload);
-                final EsInFlight esInFlight = new EsInFlight();
-                esInFlight.setResourceName(configuration.getEsResourceName());
-                esInFlight.setJobId(deliveredChunk.getJobId());
-                esInFlight.setChunkId(deliveredChunk.getChunkId());
-                esInFlight.setRecordSlots(workload.getAddiRecords().size());
-                esInFlight.setTargetReference(targetReference);
-                esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(deliveredChunk));
-                esInFlightAdmin.addEsInFlight(esInFlight);
-
-                LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}",
-                        targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
+                esInFlightAdmin.addEsInFlight( buildEsInFlight(deliveredChunk, targetReference, workload.getAddiRecords().size()) );
+                LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}", targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             }
         } catch (Exception e) {
             throw new SinkException("Exception caught during workload processing", e);
@@ -177,5 +168,18 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             preprocessedAddiRecords.add(addiRecordPreprocessor.execute(addiRecord));
         }
         return preprocessedAddiRecords;
+    }
+
+    private EsInFlight buildEsInFlight(ExternalChunk deliveredChunk, int targetReference, int iRecordsSize) throws JSONBException {
+
+        final EsInFlight esInFlight = new EsInFlight();
+        esInFlight.setResourceName(configuration.getEsResourceName());
+        esInFlight.setJobId(deliveredChunk.getJobId());
+        esInFlight.setChunkId(deliveredChunk.getChunkId());
+        esInFlight.setRecordSlots(iRecordsSize);
+        esInFlight.setTargetReference(targetReference);
+        esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(deliveredChunk));
+
+        return esInFlight;
     }
 }

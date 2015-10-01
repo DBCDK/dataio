@@ -24,13 +24,13 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.jobprocessor.ejb.SinkMessageProducerBean;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
@@ -43,6 +43,7 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
+import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -79,7 +80,6 @@ public abstract class SinkIT {
     protected JSONBContext jsonbContext = new JSONBContext();
     protected JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     protected MockedJobStoreServiceConnector jobStoreServiceConnector;
-    protected SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
 
     static {
         ES_INFLIGHT_DATASOURCE = new PGSimpleDataSource();
@@ -220,8 +220,13 @@ public abstract class SinkIT {
 
     protected MockedJmsTextMessage getSinkMessage(ExternalChunk chunk) throws JMSException, JSONBException {
         final Sink sink = new SinkBuilder().build();
-        final MockedJmsTextMessage message = (MockedJmsTextMessage) sinkMessageProducerBean
-                .createMessage(jmsContext, chunk, sink);
+
+        final TextMessage basicMessage = jmsContext.createTextMessage(jsonbContext.marshall(chunk));
+        basicMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
+        basicMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+        basicMessage.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, sink.getContent().getResource());
+        final MockedJmsTextMessage message = (MockedJmsTextMessage) basicMessage;
+
         message.setText(jsonbContext.marshall(chunk));
         return message;
     }

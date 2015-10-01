@@ -82,6 +82,9 @@ public class JobsBean {
     @EJB
     PgJobStoreRepository jobStoreRepository;
 
+    @EJB
+    SinkMessageProducerBean sinkMessageProducer;
+
     /**
      * This is a dummy service for TEST purposes.
      * @return always OK
@@ -157,13 +160,25 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
     public Response addChunkProcessed(
-        @Context UriInfo uriInfo, String externalChunkData,
+        @Context UriInfo uriInfo,
+        String externalChunkData,
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
-        return addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.PROCESSED, externalChunkData);
-    }
 
+        final ExternalChunk processedChunk;
+        try {
+            processedChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
+        } catch (JSONBException e) {
+            return buildErrorResponse(e);
+        }
+
+        final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.PROCESSED, processedChunk);
+        ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(safeLongToInt(jobId));
+        sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
+
+        return addChunkResponse;
+    }
 
     /**
      * Adds chunk with type: DELIVERED (updates existing job by adding external chunk)
@@ -189,11 +204,19 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
     public Response addChunkDelivered(
-        @Context UriInfo uriInfo, String externalChunkData,
+        @Context UriInfo uriInfo,
+        String externalChunkData,
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
-        return addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.DELIVERED, externalChunkData);
+        final ExternalChunk deliveredChunk;
+        try {
+            deliveredChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
+        } catch (JSONBException e) {
+            return buildErrorResponse(e);
+        }
+
+        return addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.DELIVERED, deliveredChunk);
     }
 
     /**
@@ -464,16 +487,17 @@ public class JobsBean {
         long jobId,
         long chunkId,
         ExternalChunk.Type type,
-        String externalChunkData) throws JobStoreException, JSONBException {
+        //String externalChunkData,
+        ExternalChunk chunk) throws JobStoreException, JSONBException {
 
-        final ExternalChunk chunk;
-        try {
-            chunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
-        } catch (JSONBException e) {
-            return Response.status(BAD_REQUEST)
-                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
-                    .build();
-        }
+//        final ExternalChunk chunk;
+//        try {
+//            chunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
+//        } catch (JSONBException e) {
+//            return Response.status(BAD_REQUEST)
+//                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+//                    .build();
+//        }
 
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
@@ -525,5 +549,18 @@ public class JobsBean {
                     JobError.NO_STACKTRACE);
         }
         return jobError;
+    }
+
+    public static int safeLongToInt(long l) {
+        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(l + " cannot be cast to int without changing its value.");
+        }
+        return (int) l;
+    }
+
+    private Response buildErrorResponse(JSONBException e) throws JSONBException {
+        return Response.status(BAD_REQUEST).entity(
+                jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                .build();
     }
 }

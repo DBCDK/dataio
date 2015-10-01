@@ -156,8 +156,7 @@ public class JobsBeanTest {
 
         when(jobsBean.jobStore.addChunk(any(ExternalChunk.class))).thenReturn(jobInfoSnapshot);
 
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED, asJson(chunk));
+        final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED, chunk);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.getLocation().toString(), is(LOCATION));
         assertThat(response.hasEntity(), is(true));
@@ -171,8 +170,7 @@ public class JobsBeanTest {
     public void addChunk_invalidJobId_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, chunk.getJobId() + 1, chunk.getChunkId(), ExternalChunk.Type.PROCESSED, asJson(chunk));
+        final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId() + 1, chunk.getChunkId(), ExternalChunk.Type.PROCESSED, chunk);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
@@ -184,8 +182,7 @@ public class JobsBeanTest {
     public void addChunk_invalidChunkId_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, chunk.getJobId(), chunk.getChunkId() + 1, ExternalChunk.Type.PROCESSED, asJson(chunk));
+        final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId() + 1, ExternalChunk.Type.PROCESSED, chunk);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
@@ -197,8 +194,7 @@ public class JobsBeanTest {
     public void addChunk_invalidChunkType_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, chunk.getJobId(), chunk.getChunkId() + 1, ExternalChunk.Type.DELIVERED, asJson(chunk));
+        final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId() + 1, ExternalChunk.Type.DELIVERED, chunk);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
@@ -208,8 +204,8 @@ public class JobsBeanTest {
 
     @Test
     public void addChunk_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, JOB_ID, CHUNK_ID, ExternalChunk.Type.DELIVERED, "invalid json");
+
+        final Response response = jobsBean.addChunkDelivered(mockedUriInfo, "invalid json", JOB_ID, CHUNK_ID);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
@@ -223,12 +219,10 @@ public class JobsBeanTest {
         final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, "illegal number of items", "stack trace");
         final InvalidInputException invalidInputException = new InvalidInputException("error message", jobError);
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
-        final String externalChunkJson = asJson(chunk);
 
         when(jobsBean.jobStore.addChunk(any(ExternalChunk.class))).thenThrow(invalidInputException);
 
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED, externalChunkJson);
+        final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED, chunk);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
@@ -242,7 +236,7 @@ public class JobsBeanTest {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
         when(jobsBean.jobStore.addChunk(any(ExternalChunk.class))).thenThrow(new JobStoreException("Error"));
 
-        jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.DELIVERED, jsonbContext.marshall(chunk));
+        jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.DELIVERED, chunk);
     }
 
     @Test
@@ -250,8 +244,7 @@ public class JobsBeanTest {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
         when(jobsBean.jobStore.addChunk(any(ExternalChunk.class))).thenThrow(new DuplicateChunkException("Error", null));
 
-        final Response response = jobsBean.addChunk(
-                mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.DELIVERED, jsonbContext.marshall(chunk));
+        final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.DELIVERED, chunk);
         assertThat(response.hasEntity(), is(true));
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.ACCEPTED.getStatusCode()));
     }

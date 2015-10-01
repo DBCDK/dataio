@@ -133,6 +133,26 @@
         </configuration>
       </plugin>
 
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>1.7</version>
+          <executions>
+              <execution>
+                  <id>reserve-network-port</id>
+                  <goals>
+                      <goal>reserve-network-port</goal>
+                  </goals>
+                  <phase>initialize</phase>
+                  <configuration>
+                      <portNames>
+                          <portName>espostgresql.port</portName>
+                      </portNames>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+
 
       <plugin>
         <groupId>dk.dbc</groupId>
@@ -146,7 +166,7 @@
               <goal>start</goal>
             </goals>
             <configuration>
-              <pgPort>${postgresql.port}</pgPort>
+              <pgPort>${espostgresql.port}</pgPort>
               <pgDbName>es</pgDbName>
               <pgDbScripts>
                 <param>${basedir}/src/test/resources/crejob-postgresql.sql</param>

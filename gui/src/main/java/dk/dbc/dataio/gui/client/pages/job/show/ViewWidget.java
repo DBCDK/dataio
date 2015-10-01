@@ -24,6 +24,8 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.KeyCodes;
+import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -95,6 +97,13 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiHandler("showJobButton")
     void showJobButtonPressed(ClickEvent event) {
         presenter.showJob();
+    }
+
+    @UiHandler("jobIdInputField")
+    void onKeyDown(KeyDownEvent event) {
+        if(event.getNativeKeyCode() == KeyCodes.KEY_ENTER) {
+            presenter.showJob();
+        }
     }
 
     /**

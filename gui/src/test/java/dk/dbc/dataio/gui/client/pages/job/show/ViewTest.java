@@ -149,6 +149,8 @@ public class ViewTest {
         verify(view.pagerTop).setDisplay(view.jobsTable);
         verify(view.pagerBottom).setDisplay(view.jobsTable);
         assertThat(view.refreshButton, not(nullValue()));
+        assertThat(view.showJobButton, not(nullValue()));
+        assertThat(view.jobIdInputField, not(nullValue()));
     }
 
     @Test

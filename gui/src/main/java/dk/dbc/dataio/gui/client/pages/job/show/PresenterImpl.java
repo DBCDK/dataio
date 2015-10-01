@@ -41,7 +41,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected View view;
     protected JobStoreProxyAsync jobStoreProxy;
     private PlaceController placeController;
-    private Texts texts;
     private String jobId;
 
     /**
@@ -52,7 +51,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public PresenterImpl(ClientFactory clientFactory) {
         placeController = clientFactory.getPlaceController();
         jobStoreProxy = clientFactory.getJobStoreProxyAsync();
-        this.texts = clientFactory.getJobsShowTexts();
     }
 
     /*
@@ -120,7 +118,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     private boolean isJobIdValid() {
         if(jobId.isEmpty()) {
-            view.setErrorText(texts.error_InputFieldValidationError());
+            view.setErrorText(view.texts.error_InputFieldValidationError());
             return false;
         }
         return isJobIdValidNumber();
@@ -134,7 +132,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         try {
             Long.valueOf(jobId);
         } catch (NumberFormatException e) {
-            view.setErrorText(texts.error_NumericInputFieldValidationError());
+            view.setErrorText(view.texts.error_NumericInputFieldValidationError());
             return false;
         }
         return true;
@@ -149,7 +147,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 ListFilter.Op.EQUAL,
                 Long.valueOf(jobId).intValue()));
 
-        jobStoreProxy.countJobs(jobListCriteria, new countExistingJobsWithJobIdCallBack());
+        jobStoreProxy.countJobs(jobListCriteria, new CountExistingJobsWithJobIdCallBack());
     }
 
 
@@ -164,7 +162,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Protected classes
      */
 
-    protected class countExistingJobsWithJobIdCallBack extends FilteredAsyncCallback<Long> {
+    protected class CountExistingJobsWithJobIdCallBack extends FilteredAsyncCallback<Long> {
         @Override
         public void onFilteredFailure(Throwable e) {
             view.setErrorText(e.getClass().getName() + " - " + e.getMessage());

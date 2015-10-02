@@ -38,6 +38,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
@@ -71,21 +72,18 @@ public class PgJobNotify extends RepositoryBase {
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void flushNotifications() {
-        final Query getWaitingNotificationsQuery = entityManager.createQuery(SELECT_NOTIFICATIONS_STATEMENT)
-                .setParameter("status", JobNotification.Status.WAITING)
-                .setMaxResults(MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
 
+        final Query waitingNotificationsQuery = getWaitingNotificationsQuery();
         int numberOfNotificationsFound;
         do {
             @SuppressWarnings("unchecked")
-            final List<NotificationEntity> notifications =
-                    (List<NotificationEntity>) getWaitingNotificationsQuery.getResultList();
+            final List<NotificationEntity> waitingNotifications = (List<NotificationEntity>) waitingNotificationsQuery.getResultList();
 
-            numberOfNotificationsFound = notifications.size();
+            numberOfNotificationsFound = waitingNotifications.size();
             if (numberOfNotificationsFound > 0) {
                 final PgJobNotify jobNotifyProxy = getProxyToSelf();
-                for (NotificationEntity notification : notifications) {
-                    jobNotifyProxy.processNotification(notification);
+                for (NotificationEntity waitingNotification : waitingNotifications) {
+                    jobNotifyProxy.processNotification(waitingNotification);
                 }
             }
         } while (numberOfNotificationsFound == MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
@@ -104,8 +102,7 @@ public class PgJobNotify extends RepositoryBase {
         entityManager.refresh(notification);
 
         if (notification.getStatus() != JobNotification.Status.WAITING) {
-            LOGGER.warn("Processing of notification {} aborted since it has status {}",
-                    notification.getId(), notification.getStatus());
+            LOGGER.warn("Processing of notification {} aborted since it has status {}", notification.getId(), notification.getStatus());
             return false;
         }
 
@@ -132,16 +129,20 @@ public class PgJobNotify extends RepositoryBase {
         return true;
     }
 
+    private Query getWaitingNotificationsQuery() {
+        return entityManager.createQuery(SELECT_NOTIFICATIONS_STATEMENT)
+                .setParameter("status", JobNotification.Status.WAITING)
+                .setMaxResults(MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
+    }
+
     private PgJobNotify getProxyToSelf() {
         return sessionContext.getBusinessObject(PgJobNotify.class);
     }
 
     private String getDestination(JobNotification.Type type, JobSpecification jobSpecification) {
         switch (type) {
-            case JOB_CREATED:
-                return getDestinationForJobCreatedNotification(jobSpecification);
-            case JOB_COMPLETED:
-                return getDestinationForJobCompletedNotification(jobSpecification);
+            case JOB_CREATED:   return getDestinationForJobCreatedNotification(jobSpecification);
+            case JOB_COMPLETED: return getDestinationForJobCompletedNotification(jobSpecification);
             default:
                 LOGGER.error("Unhandled notification type {}", type);
                 return MISSING_FIELD_VALUE;
@@ -167,17 +168,22 @@ public class PgJobNotify extends RepositoryBase {
 
     private void sendNotification(NotificationEntity notification) throws JobStoreException {
         try {
-            final MimeMessage message = new MimeMessage(mailSession);
             final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"));
             final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
-            message.setFrom(fromAddress);
-            message.setRecipients(Message.RecipientType.TO, toAddresses);
-            message.setSubject("DBC dataIO notification");
-            message.setSentDate(new Date());
-            message.setText(notification.getContent());
-            Transport.send(message);
+
+            Transport.send( buildMimeMessage(notification.getContent(), fromAddress, toAddresses) );
         } catch (Exception e) {
             throw new JobStoreException("Unable to send notification", e);
         }
+    }
+
+    private MimeMessage buildMimeMessage(String notificationContent, InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException {
+        final MimeMessage message = new MimeMessage(mailSession);
+        message.setFrom(fromAddress);
+        message.setRecipients(Message.RecipientType.TO, toAddresses);
+        message.setSubject("DBC dataIO notification");
+        message.setSentDate(new Date());
+        message.setText(notificationContent);
+        return message;
     }
 }

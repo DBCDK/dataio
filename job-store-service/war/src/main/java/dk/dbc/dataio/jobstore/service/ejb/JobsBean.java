@@ -535,13 +535,6 @@ public class JobsBean {
         return jobError;
     }
 
-    public static int safeLongToInt(long l) {
-        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException(l + " cannot be cast to int without changing its value.");
-        }
-        return (int) l;
-    }
-
     private Response buildErrorResponse(JSONBException e) throws JSONBException {
         return Response.status(BAD_REQUEST).entity(
                 jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
@@ -551,6 +544,13 @@ public class JobsBean {
     private void sendChunkAsMessageToSink(long jobId, ExternalChunk processedChunk) throws JobStoreException {
         ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(safeLongToInt(jobId));
         sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
+    }
+
+    private static int safeLongToInt(long l) {
+        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+            throw new IllegalArgumentException(l + " cannot be cast to int without changing its value.");
+        }
+        return (int) l;
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

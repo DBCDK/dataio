@@ -24,19 +24,20 @@ public class JobQueueRepository extends RepositoryBase {
 
     private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(JobQueueRepository.class);
 
+    /**
+     *
+     * @return list of unique Sink id's.
+     */
     public List<Long> getUniqueSinkIds() {
 
         return entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_UNIQUE_SINKS).getResultList();
     }
 
     /**
-         1. hent job fra kø-tabel
-         2. Hvis det ikke eksisterer i forvejen
-             1. hvis sinken ikke er optaget så tilføj job i status IN_PROGRESS
-             2. hvis sinken er optaget så tilføj job i status WAITING
-         3. Hvis det eksisterer i forvejen
-             1. hvis sinken ikke er optaget så opdater jobbet til status IN_PROGRESS
-             2. hvis sinken er optaget så gør ingenting
+
+             1. hvis sinken er optaget så tilføj job i status WAITING
+             2. Hvis sinken ikke er optaget og jobbet allerede venter så opdater jobbet til status IN_PROGRESS
+             3. hvis sinken ikke er optaget og jobbet ikke venter så tilføj job i status IN_PROGRESS
 
      * @param sinkId                Id of the concrete Sink - NOT the CachedSink
      * @param job                   Id of the job
@@ -63,6 +64,10 @@ public class JobQueueRepository extends RepositoryBase {
         return sinkOccupied;
     }
 
+    /**
+     *
+     * @param job JobEntity to delete in database
+     */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void removeJobFromJobQueueIfExists(JobEntity job) {
 
@@ -76,6 +81,11 @@ public class JobQueueRepository extends RepositoryBase {
 
     }
 
+    /**
+     *
+     * @param sinkId    The SinkId of the Sink to see if occupied.
+     * @return          true if Sink is occupied
+     */
     public boolean isSinkOccupied(long sinkId) {
 
         Long numberOfJobsBySink = (Long)entityManager
@@ -87,11 +97,21 @@ public class JobQueueRepository extends RepositoryBase {
         return numberOfJobsBySink > 0 ? OCCUPIED : AVAILABLE;
     }
 
+    /**
+     *
+     * @param job   JobEntity
+     * @return      Job Queue element from the database
+     */
     public JobQueueEntity getJobQueueEntityByJob(JobEntity job) {
 
         return (JobQueueEntity)entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_JOB).setParameter(JobQueueEntity.FIELD_JOB_ID, job).getSingleResult();
     }
 
+    /**
+     *
+     * @param sinkId    The SinkId of the Sink to find first waiting job for.
+     * @return          null if Queue element is not found
+     */
     public JobQueueEntity getFirstWaitingJobQueueEntityBySink(Long sinkId) {
 
         JobQueueEntity firstWaitingJob = null;
@@ -110,9 +130,8 @@ public class JobQueueRepository extends RepositoryBase {
         return firstWaitingJob;
     }
 
-    /*
-            Private methods
-    */
+    /* Private methods */
+
     private void updateJobToBeInProgressIfExists(JobEntity job) {
 
         try {

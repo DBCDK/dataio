@@ -12,9 +12,7 @@ import javax.persistence.EntityManager;
  */
 public abstract class RepositoryBase {
 
-    @Inject
-    @JobstoreDB
-    protected EntityManager entityManager;
+    @Inject @JobstoreDB protected EntityManager entityManager;
 
     protected void persist(JobQueueEntity jobQueueEntity) {
 
@@ -25,5 +23,15 @@ public abstract class RepositoryBase {
     protected JobEntity getJobEntityById(int jobId) {
 
         return entityManager.find(JobEntity.class, jobId);
+    }
+
+    /**
+     * The EJB specification requires these to be public because they are called from another EJB!
+     */
+    public void flushEntityManager() {
+        entityManager.flush();
+    }
+    public void refreshFromDatabase(JobEntity jobEntity) {
+        entityManager.refresh(jobEntity);
     }
 }

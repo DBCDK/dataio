@@ -67,20 +67,11 @@ public class PgJobStore {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStore.class);
 
     /* These instances are not private otherwise they were not accessible from automatic test */
-    @EJB
-    JobSchedulerBean jobSchedulerBean;
-
-    @EJB
-    FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
-
-    @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
-
-    @EJB
-    PgJobStoreRepository jobStoreRepository;
-
-    @EJB
-    JobQueueRepository jobQueueRepository;
+    @EJB JobSchedulerBean jobSchedulerBean;
+    @EJB FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    @EJB PgJobStoreRepository jobStoreRepository;
+    @EJB JobQueueRepository jobQueueRepository;
 
     @Stopwatch
     public String testMe() {
@@ -308,8 +299,7 @@ public class PgJobStore {
             // update job
             final JobEntity jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, chunkEntity.getKey().getJobId());
             if (jobEntity == null) {
-                throw new JobStoreException(String.format("JobEntity.%d could not be found",
-                        chunkEntity.getKey().getJobId()));
+                throw new JobStoreException(String.format("JobEntity.%d could not be found", chunkEntity.getKey().getJobId()));
             }
             final State jobState = jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
             if (jobState.allPhasesAreDone()) {

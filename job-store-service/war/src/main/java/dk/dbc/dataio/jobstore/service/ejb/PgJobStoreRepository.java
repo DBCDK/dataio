@@ -174,8 +174,9 @@ public class PgJobStoreRepository extends RepositoryBase {
                 String sinkJson;
                 if (addJobParam.getJobInputStream().getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
                     LOGGER.info("Forcing diff sink on ACCTEST job");
-                    sinkJson = jsonbContext.marshall(new Sink(1, 1, new SinkContent(
-                            "DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality")));
+                    sinkJson = jsonbContext.marshall(
+                            new Sink(1, 1,
+                                new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality")));
                 } else {
                     flowJson = new FlowTrimmer(jsonbContext).trim(flowJson);
                     sinkJson = jsonbContext.marshall(addJobParam.getSink());
@@ -345,12 +346,9 @@ public class PgJobStoreRepository extends RepositoryBase {
             throwInvalidInputException(String.format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
         }
         switch(phase) {
-            case PARTITIONING:
-                return itemEntity.getPartitioningOutcome();
-            case PROCESSING:
-                return itemEntity.getProcessingOutcome();
-            default:
-                return itemEntity.getDeliveringOutcome();
+            case PARTITIONING:  return itemEntity.getPartitioningOutcome();
+            case PROCESSING:    return itemEntity.getProcessingOutcome();
+            default:            return itemEntity.getDeliveringOutcome();
         }
     }
 
@@ -373,14 +371,6 @@ public class PgJobStoreRepository extends RepositoryBase {
         return itemEntity.getNextProcessingOutcome();
     }
 
-    public void flushEntityManager() {
-        entityManager.flush();
-    }
-
-    public void refreshFromDatabase(JobEntity jobEntity) {
-        entityManager.refresh(jobEntity);
-    }
-
     /**
      * Updates item entities for given chunk
      * @param chunk external chunk
@@ -391,7 +381,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @throws JobStoreException Job Store Exception
      */
     @Stopwatch
-    public PgJobStoreRepository.ChunkItemEntities updateChunkItemEntities(ExternalChunk chunk) throws JobStoreException {
+    public ChunkItemEntities updateChunkItemEntities(ExternalChunk chunk) throws JobStoreException {
 
         Date nextItemBegin = new Date();
 
@@ -517,7 +507,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 final State itemState = new State();
                 itemState.updateState(stateChange);
 
-                chunkItemEntities.entities.add(createItem(jobId, chunkId, itemCounter++, itemState, itemData));
+                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, itemData));
                 chunkItemEntities.records.add(record);
                 chunkItemEntities.chunkStateChange.incSucceeded(1);
 
@@ -542,7 +532,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             itemState.getDiagnostics().add(diagnostic);
             itemState.updateState(stateChange);
 
-            chunkItemEntities.entities.add(createItem(jobId, chunkId, itemCounter, itemState, null));
+            chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter, itemState, null));
             chunkItemEntities.chunkStateChange.incFailed(1);
         }
         return chunkItemEntities;
@@ -558,7 +548,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return created item entity (managed)
      */
     @Stopwatch
-    ItemEntity createItem(int jobId, int chunkId, short itemId, State state, ItemData data) {
+    private ItemEntity persistItemInDatabase(int jobId, int chunkId, short itemId, State state, ItemData data) {
         final ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(new ItemEntity.Key(jobId, chunkId, itemId));
         itemEntity.setState(state);

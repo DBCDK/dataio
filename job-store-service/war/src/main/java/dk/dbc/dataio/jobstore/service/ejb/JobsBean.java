@@ -165,7 +165,6 @@ public class JobsBean {
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
-
         final ExternalChunk processedChunk;
         try {
             processedChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
@@ -174,8 +173,8 @@ public class JobsBean {
         }
 
         final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.PROCESSED, processedChunk);
-        ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(safeLongToInt(jobId));
-        sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
+
+        sendChunkAsMessageToSink(jobId, processedChunk);
 
         return addChunkResponse;
     }
@@ -476,7 +475,7 @@ public class JobsBean {
      * @param jobId job id
      * @param chunkId chunk id
      * @param type external chunk type (PARTITIONED, PROCESSED, DELIVERED)
-     * @param externalChunkData chunk data as json
+     * @param chunk chunk data
      *
      * @return HTTP 201 CREATED response on success, HTTP 400 BAD_REQUEST response on failure to update job
      * @throws JSONBException on marshalling failure
@@ -487,17 +486,7 @@ public class JobsBean {
         long jobId,
         long chunkId,
         ExternalChunk.Type type,
-        //String externalChunkData,
         ExternalChunk chunk) throws JobStoreException, JSONBException {
-
-//        final ExternalChunk chunk;
-//        try {
-//            chunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
-//        } catch (JSONBException e) {
-//            return Response.status(BAD_REQUEST)
-//                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
-//                    .build();
-//        }
 
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
@@ -515,11 +504,6 @@ public class JobsBean {
         } catch(DuplicateChunkException e) {
             return Response.status(ACCEPTED).entity(jsonbContext.marshall(e.getJobError())).build();
         }
-    }
-
-    private URI getUri(UriInfo uriInfo, String jobId) {
-        final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
-        return absolutePathBuilder.path(jobId).build();
     }
 
     /**
@@ -562,5 +546,15 @@ public class JobsBean {
         return Response.status(BAD_REQUEST).entity(
                 jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                 .build();
+    }
+
+    private void sendChunkAsMessageToSink(long jobId, ExternalChunk processedChunk) throws JobStoreException {
+        ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(safeLongToInt(jobId));
+        sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
+    }
+
+    private URI getUri(UriInfo uriInfo, String jobId) {
+        final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
+        return absolutePathBuilder.path(jobId).build();
     }
 }

@@ -32,7 +32,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
-import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
@@ -42,15 +41,10 @@ import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.ejb.MessageDrivenContext;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import java.util.Arrays;
 
@@ -67,21 +61,10 @@ import static org.mockito.Mockito.when;
 public class JobStoreMessageConsumerBeanTest {
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
-    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
-    private JMSContext jmsContext = mock(JMSContext.class);
-    private MockedJmsProducer jmsProducer = new MockedJmsProducer();
-    private JSONBContext jsonbContext = new JSONBContext();
 
     @Before
     public void setupMocks() {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
-        when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
-        when(jmsContext.createProducer()).thenReturn(jmsProducer);
-    }
-
-    @After
-    public void clearMocks() {
-        jmsProducer.clearMessages();
     }
 
     @Test
@@ -134,25 +117,6 @@ public class JobStoreMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_happyPath() throws Exception {
-        when(jmsContext.createTextMessage(any(String.class)))
-                .thenAnswer(new Answer<MockedJmsTextMessage>() {
-                    @Override
-                    public MockedJmsTextMessage answer(InvocationOnMock invocation) throws Throwable {
-                        final Object[] args = invocation.getArguments();
-                        final MockedJmsTextMessage message = new MockedJmsTextMessage();
-                        message.setText((String) args[0]);
-                        return message;
-                    }
-                })
-                .thenAnswer(new Answer<MockedJmsTextMessage>() {
-                    @Override
-                    public MockedJmsTextMessage answer(InvocationOnMock invocation) throws Throwable {
-                        final Object[] args = invocation.getArguments();
-                        final MockedJmsTextMessage message = new MockedJmsTextMessage();
-                        message.setText((String) args[0]);
-                        return message;
-                    }
-                });
 
         final ChunkProcessorBeanTest jsFactory = new ChunkProcessorBeanTest();
         final Flow flow = jsFactory.getFlow(new ChunkProcessorBeanTest.ScriptWrapper(jsFactory.javaScriptReturnUpperCase,
@@ -170,42 +134,15 @@ public class JobStoreMessageConsumerBeanTest {
         final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, jsonChunk);
         jobStoreMessageConsumerBean.handleConsumedMessage(message);
 
-        // The beneath asserts does not make sense her because the logic of sending messages to the Sink has been re-located to job-store.
-        //assertThat("Number of JMS messages", jmsProducer.messages.size(), is(1));
-        //assertChunk(chunk, assertProcessorMessageForSink(jmsProducer.messages.pop(), sink.getContent().getResource()));
         // This is called when the processor has processed the data.
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
     }
-
-    /* Look at the explanation above!
-    private ExternalChunk assertProcessorMessageForSink(MockedJmsTextMessage message, String resource) throws JMSException, JSONBException {
-        assertThat("sink JMS msg", message, is(notNullValue()));
-        assertThat("sink JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
-        assertThat("sink JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
-        assertThat("sink JMS msg resource", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(resource));
-        return jsonbContext.unmarshall(message.getText(), ExternalChunk.class);
-    }
-
-    private void assertChunk(ExternalChunk in, ExternalChunk out) {
-        assertThat("chunk type", out.getType(), is(ExternalChunk.Type.PROCESSED));
-        assertThat("chunk jobId", out.getJobId(), is(in.getJobId()));
-        assertThat("chunk chunkId", out.getChunkId(), is(in.getChunkId()));
-        assertThat("chunk size", out.size(), is(in.size()));
-        final Iterator<ChunkItem> inIterator = in.iterator();
-        for (ChunkItem item : out) {
-            assertThat("chunk item data", StringUtil.asString(item.getData()), is(StringUtil.asString(inIterator.next().getData()).toUpperCase()));
-        }
-    }
-    */
 
     private TestableJobStoreMessageConsumerBean getInitializedBean() {
         final TestableJobStoreMessageConsumerBean jobStoreMessageConsumerBean = new TestableJobStoreMessageConsumerBean();
         jobStoreMessageConsumerBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
         jobStoreMessageConsumerBean.jobStoreServiceConnector = jobStoreServiceConnectorBean;
         jobStoreMessageConsumerBean.chunkProcessor = new ChunkProcessorBean();
-        //final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
-        //sinkMessageProducerBean.sinksQueueConnectionFactory = jmsConnectionFactory;
-        //jobStoreMessageConsumerBean.sinkMessageProducer = sinkMessageProducerBean;
         return jobStoreMessageConsumerBean;
     }
 

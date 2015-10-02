@@ -28,7 +28,11 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
+import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -50,9 +54,15 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSContext;
+import javax.jms.JMSException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -60,7 +70,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -85,6 +97,10 @@ public class JobsBeanTest {
     private JobsBean jobsBean;
     private JSONBContext jsonbContext;
 
+    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
+    private JMSContext jmsContext = mock(JMSContext.class);
+    private MockedJmsProducer jmsProducer = new MockedJmsProducer();
+
     @Before
     public void setup() throws URISyntaxException {
         initializeJobsBean();
@@ -98,7 +114,16 @@ public class JobsBeanTest {
 
         final URI uri = new URI(LOCATION);
         when(mockedUriBuilder.build()).thenReturn(uri);
+
+        when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
+        when(jmsContext.createProducer()).thenReturn(jmsProducer);
     }
+
+    @After
+    public void clearMocks() {
+        jmsProducer.clearMessages();
+    }
+
 
     // ************************************* ADD JOB TESTS **************************************************************
 
@@ -164,6 +189,70 @@ public class JobsBeanTest {
         final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
         assertThat(returnedJobInfoSnapshot, is(notNullValue()));
         assertThat((long) returnedJobInfoSnapshot.getJobId(), is(chunk.getJobId()));
+    }
+
+    @Test
+    public void addChunkProcessed_messageIsSentToSink() throws Exception {
+
+        when(jmsContext.createTextMessage(any(String.class)))
+        .thenAnswer(new Answer<MockedJmsTextMessage>() {
+            @Override
+            public MockedJmsTextMessage answer(InvocationOnMock invocation) throws Throwable {
+                final Object[] args = invocation.getArguments();
+                final MockedJmsTextMessage message = new MockedJmsTextMessage();
+                message.setText((String) args[0]);
+                return message;
+            }
+        })
+        .thenAnswer(new Answer<MockedJmsTextMessage>() {
+            @Override
+            public MockedJmsTextMessage answer(InvocationOnMock invocation) throws Throwable {
+                final Object[] args = invocation.getArguments();
+                final MockedJmsTextMessage message = new MockedJmsTextMessage();
+                message.setText((String) args[0]);
+                return message;
+            }
+        });
+
+        final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
+        sinkMessageProducerBean.sinksQueueConnectionFactory = jmsConnectionFactory;
+        jobsBean.sinkMessageProducer = sinkMessageProducerBean;
+
+        final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
+        final String jsonChunk = new JSONBContext().marshall(chunk);
+
+        final Sink sink = new SinkBuilder().build();
+        final Flow flow = new FlowBuilder().build();
+        final ResourceBundle resourceBundle = new ResourceBundle(flow, sink, new SupplementaryProcessDataBuilder().build());
+        when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenReturn(resourceBundle);
+
+        // Subject Under Test
+        final Response response = jobsBean.addChunkProcessed(mockedUriInfo, jsonChunk, chunk.getJobId(), chunk.getChunkId());
+        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        assertThat(response.getLocation().toString(), is(LOCATION));
+        assertThat(response.hasEntity(), is(true));
+
+        assertThat("Number of JMS messages", jmsProducer.messages.size(), is(1));
+        assertChunk(chunk, assertProcessorMessageForSink(jmsProducer.messages.pop(), sink.getContent().getResource()));
+    }
+
+    private ExternalChunk assertProcessorMessageForSink(MockedJmsTextMessage message, String resource) throws JMSException, JSONBException {
+        assertThat("sink JMS msg", message, is(notNullValue()));
+        assertThat("sink JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
+        assertThat("sink JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
+        assertThat("sink JMS msg resource", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(resource));
+        return jsonbContext.unmarshall(message.getText(), ExternalChunk.class);
+    }
+    private void assertChunk(ExternalChunk in, ExternalChunk out) {
+        assertThat("chunk type", out.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat("chunk jobId", out.getJobId(), is(in.getJobId()));
+        assertThat("chunk chunkId", out.getChunkId(), is(in.getChunkId()));
+        assertThat("chunk size", out.size(), is(in.size()));
+        final Iterator<ChunkItem> inIterator = in.iterator();
+        for (ChunkItem item : out) {
+            assertThat("chunk item data", StringUtil.asString(item.getData()), is(StringUtil.asString(inIterator.next().getData())));
+        }
     }
 
     @Test

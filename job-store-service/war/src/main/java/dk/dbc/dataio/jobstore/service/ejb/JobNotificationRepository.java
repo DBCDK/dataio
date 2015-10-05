@@ -60,8 +60,8 @@ import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
 import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
 
 @Stateless
-public class PgJobNotify extends RepositoryBase {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PgJobNotify.class);
+public class JobNotificationRepository extends RepositoryBase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobNotificationRepository.class);
     private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
     private static final String JOB_CREATED_FAIL_TEMPLATE = "/notifications/job_created_fail.template";
     private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
@@ -95,7 +95,7 @@ public class PgJobNotify extends RepositoryBase {
 
             numberOfNotificationsFound = waitingNotifications.size();
             if (numberOfNotificationsFound > 0) {
-                final PgJobNotify jobNotifyProxy = getProxyToSelf();
+                final JobNotificationRepository jobNotifyProxy = getProxyToSelf();
                 for (NotificationEntity waitingNotification : waitingNotifications) {
                     jobNotifyProxy.processNotification(waitingNotification);
                 }
@@ -156,8 +156,8 @@ public class PgJobNotify extends RepositoryBase {
                 .setMaxResults(MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
     }
 
-    private PgJobNotify getProxyToSelf() {
-        return sessionContext.getBusinessObject(PgJobNotify.class);
+    private JobNotificationRepository getProxyToSelf() {
+        return sessionContext.getBusinessObject(JobNotificationRepository.class);
     }
 
     private String getDestination(JobNotification.Type type, JobSpecification jobSpecification) {

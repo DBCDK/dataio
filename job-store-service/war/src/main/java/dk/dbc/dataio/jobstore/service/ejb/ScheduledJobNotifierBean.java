@@ -44,7 +44,7 @@ public class ScheduledJobNotifierBean {
     TimerService timerService;
 
     @EJB
-    PgJobNotify jobNotify;
+    JobNotificationRepository jobNotificationRepository;
 
     /**
      * Starts default (every 30s) notifications schedule.
@@ -83,6 +83,6 @@ public class ScheduledJobNotifierBean {
 
     @Timeout
     public void scheduleNotifications(Timer timer) {
-        jobNotify.flushNotifications();
+        jobNotificationRepository.flushNotifications();
     }
 }

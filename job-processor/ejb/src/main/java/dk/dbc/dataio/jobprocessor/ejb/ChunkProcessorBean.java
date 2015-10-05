@@ -54,6 +54,8 @@ import java.util.List;
 @LocalBean
 public class ChunkProcessorBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ChunkProcessorBean.class);
+    private static final String FLOW_NAME_MDC_KEY = "flowName";
+    private static final String FLOW_VERSION_MDC_KEY = "flowVersion";
 
     // A per bean instance LRU flow cache
     private final FlowCache flowCache = new FlowCache();
@@ -70,6 +72,8 @@ public class ChunkProcessorBean {
     public ExternalChunk process(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
         final StopWatch stopWatchForChunk = new StopWatch();
         try {
+            MDC.put(FLOW_NAME_MDC_KEY, flow.getContent().getName());
+            MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
             LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
             final ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
             processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
@@ -93,6 +97,8 @@ public class ChunkProcessorBean {
         } finally {
             LOGGER.info("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds",
                     chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
+            MDC.remove(FLOW_NAME_MDC_KEY);
+            MDC.remove(FLOW_VERSION_MDC_KEY);
         }
     }
 

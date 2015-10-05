@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -54,6 +55,10 @@ public class JsonValueTemplateEngine {
 
     public JsonValueTemplateEngine() {
         jsonbContext = new JSONBContext();
+    }
+
+    public JsonValueTemplateEngine(JSONBContext jsonbContext) throws NullPointerException {
+        this.jsonbContext = InvariantUtil.checkNotNullOrThrow(jsonbContext, "jsonbContext");
     }
 
     /**

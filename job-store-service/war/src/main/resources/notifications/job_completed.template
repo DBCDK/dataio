@@ -1,0 +1,14 @@
+***************************
+Besked fra DanBibs Posthus
+***************************
+
+Bibliotek: ${specification.submitterId}
+Batchnummer: ${specification.ancestry.batchId}
+Transfil: ${specification.ancestry.transfile}
+Filnavn: ${specification.ancestry.datafile}
+Initialer: ${specification.resultmailInitials}
+Antal Poster: ${numberOfItems}
+Dato: __DATE__{timeOfCompletion}
+Job: ${jobId}
+Status: OK
+

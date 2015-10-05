@@ -26,8 +26,11 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.service.util.JsonValueTemplateEngine;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +48,23 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
+import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
 
 @Stateless
 public class PgJobNotify extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobNotify.class);
+    private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
+    private static final String JOB_CREATED_FAIL_TEMPLATE = "/notifications/job_created_fail.template";
+    private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
 
     private static final int MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT = 100;
     private static final String SELECT_NOTIFICATIONS_STATEMENT =
@@ -63,6 +75,8 @@ public class PgJobNotify extends RepositoryBase {
 
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
+
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Flushes all waiting notifications in a separate transactional
@@ -114,10 +128,17 @@ public class PgJobNotify extends RepositoryBase {
         }
 
         notification.setDestination(destination);
-        notification.setContent("notification body");
+        try {
+            notification.setContent(buildNotificationContent(notification));
+        } catch (JSONBException e) {
+            LOGGER.error("Notification processing failed", e);
+            notification.setStatus(JobNotification.Status.FAILED);
+            notification.setStatusMessage(StringUtil.getStackTraceString(e, ""));
+            return false;
+        }
 
         try {
-            sendNotification(notification);
+            sendMailNotification(notification);
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);
             notification.setStatus(JobNotification.Status.FAILED);
@@ -166,12 +187,11 @@ public class PgJobNotify extends RepositoryBase {
         return destination;
     }
 
-    private void sendNotification(NotificationEntity notification) throws JobStoreException {
+    private void sendMailNotification(NotificationEntity notification) throws JobStoreException {
         try {
             final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"));
             final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
-
-            Transport.send( buildMimeMessage(notification.getContent(), fromAddress, toAddresses) );
+            Transport.send(buildMimeMessage(notification.getContent(), fromAddress, toAddresses));
         } catch (Exception e) {
             throw new JobStoreException("Unable to send notification", e);
         }
@@ -183,7 +203,36 @@ public class PgJobNotify extends RepositoryBase {
         message.setRecipients(Message.RecipientType.TO, toAddresses);
         message.setSubject("DBC dataIO notification");
         message.setSentDate(new Date());
-        message.setText(notificationContent);
+        message.setText(notificationContent, StandardCharsets.UTF_8.name());
         return message;
+    }
+
+    private String buildNotificationContent(NotificationEntity notification) throws JSONBException {
+        final JsonValueTemplateEngine templateEngine = new JsonValueTemplateEngine(jsonbContext);
+        return templateEngine.apply(getNotificationTemplate(notification),
+                jsonbContext.marshall(toJobInfoSnapshot(notification.getJob())));
+    }
+
+    private String getNotificationTemplate(NotificationEntity notification) {
+        String resource;
+        if (notification.getType() == JobNotification.Type.JOB_COMPLETED) {
+            resource = JOB_COMPLETED_TEMPLATE;
+        } else {
+            if (notification.getJob().getState().fatalDiagnosticExists()) {
+                resource = JOB_CREATED_FAIL_TEMPLATE;
+            } else {
+                resource = JOB_CREATED_OK_TEMPLATE;
+            }
+        }
+        return getNotificationTemplateResource(resource);
+    }
+
+    private String getNotificationTemplateResource(String resource) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(getClass().getResource(resource).toURI())),
+                    StandardCharsets.UTF_8);
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -1,0 +1,14 @@
+********************************
+Fejlmeddelelse fra postmesteren
+********************************
+
+Bibliotek: ${specification.submitterId}
+Batchnummer: ${specification.ancestry.batchId}
+Transfil: ${specification.ancestry.transfile}
+Filnavn: ${specification.ancestry.datafile}
+Initialer: ${specification.resultmailInitials}
+Job: ${jobId}
+
+${state.diagnostics.message}
+
+__DATE__{timeOfCreation}

@@ -38,7 +38,7 @@ public class JobQueueWatcher {
     @Schedule(second = "*/5", minute = "*", hour = "*")
     @Stopwatch
     public void doWatch() {
-
+        LOGGER.info("Wather...");
         final List<Long> uniqueSinkIds = jobQueueRepository.getUniqueSinkIds();
 
         if(uniqueSinkIds != null && !uniqueSinkIds.isEmpty()) {
@@ -55,7 +55,7 @@ public class JobQueueWatcher {
 
 
     private void startJob(JobEntity jobToStart) {
-
+        LOGGER.info("Starter job: " + jobToStart.getId());
         final JobQueueEntity jobQueueEntity = this.jobQueueRepository.getJobQueueEntityByJob(jobToStart);
         try{
             jobStore.handlePartitioningAsynchronously(

@@ -9,6 +9,7 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.Schedule;
@@ -35,10 +36,16 @@ public class JobQueueWatcher {
     @EJB
     PgJobStore jobStore;
 
-    @Schedule(second = "*/5", minute = "*", hour = "*")
+    @PostConstruct
+    public void init() {
+        LOGGER.info("Jeg er simpelthen i live!");
+    }
+
+//    @Schedule(second = "*/5", minute = "*", hour = "*")
     @Stopwatch
+    @Schedule(hour = "*", minute = "*", second = "*/5")
     public void doWatch() {
-        LOGGER.info("Wather...");
+        LOGGER.info("Watcher...");
         final List<Long> uniqueSinkIds = jobQueueRepository.getUniqueSinkIds();
 
         if(uniqueSinkIds != null && !uniqueSinkIds.isEmpty()) {

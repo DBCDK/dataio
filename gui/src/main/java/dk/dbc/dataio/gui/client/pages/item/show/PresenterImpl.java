@@ -180,9 +180,9 @@ NB: This disables the fetching of Job Notifications - to be disabled until backe
      * method. The callback takes care of further processing.
      * @param jobId Job Id
      */
-    private void listNotifications(String jobId) {
-        jobStoreProxy.listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
-    }
+//    private void listNotifications(String jobId) {
+//        jobStoreProxy.listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
+//    }
 
 
     /**

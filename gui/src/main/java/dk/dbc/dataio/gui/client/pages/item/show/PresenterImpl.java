@@ -89,7 +89,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         containerWidget.setWidget(view.asWidget());
         initializeView();
         listJobs(jobId);
+/*
+
+NB: This disables the fetching of Job Notifications - to be disabled until backend is ready...
+
         listNotifications(jobId);
+*/
     }
 
     /**

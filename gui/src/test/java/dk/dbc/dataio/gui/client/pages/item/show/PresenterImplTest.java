@@ -44,6 +44,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -408,26 +409,28 @@ public class PresenterImplTest {
     private List<JobModel> testJobModelsIgnored2 = Arrays.asList(testJobModelIgnored2, testJobModelSucceeded);
 
     private List<JobNotification> testJobNotificationsEmpty = new ArrayList<>();
-    private JobNotification testJobNotificationCompleted = new JobNotification(
-            123,
-            new Date(12345886L),
-            new Date(8457987548L),
-            JobNotification.Type.JOB_COMPLETED,
-            JobNotification.Status.COMPLETED,
-            "Status Completed",
-            "Destination Completed",
-            "Content Completed",
-            234);
-    private JobNotification testJobNotificationFailed = new JobNotification(
-            124,
-            new Date(12345887L),
-            new Date(8457987547L),
-            JobNotification.Type.JOB_CREATED,
-            JobNotification.Status.FAILED,
-            "Status Failed",
-            "Destination Failed",
-            "Content Failed",
-            235);
+    private JobNotification testJobNotificationCompleted = new JobNotificationBuilder().
+            setId(123).
+            setTimeOfCreation(new Date(12345886L)).
+            setTimeOfLastModification(new Date(8457987548L)).
+            setType(JobNotification.Type.JOB_COMPLETED).
+            setStatus(JobNotification.Status.COMPLETED).
+            setStatusMessage("Status Completed").
+            setDestination("Destination Completed").
+            setContent("Content Completed").
+            setJobId(234).
+            build();
+    private JobNotification testJobNotificationFailed = new JobNotificationBuilder().
+            setId(124).
+            setTimeOfCreation(new Date(12345887L)).
+            setTimeOfLastModification(new Date(8457987547L)).
+            setType(JobNotification.Type.JOB_CREATED).
+            setStatus(JobNotification.Status.FAILED).
+            setStatusMessage("Status Failed").
+            setDestination("Destination Failed").
+            setContent("Content Failed").
+            setJobId(235).
+            build();
     private List<JobNotification> testJobNotifications = Arrays.asList(testJobNotificationCompleted, testJobNotificationFailed);
 
 
@@ -482,7 +485,12 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verifyNoMoreInteractions(mockedTabBar);
         verify(mockedJobStoreProxy).listJobs(any(JobListCriteria.class), any(PresenterImpl.JobsCallback.class));
+/*
+
+Please remember to re-enable, whenever List Notifications are enabled again!
+
         verify(mockedJobStoreProxy).listJobNotificationsForJob(any(Integer.class), any(PresenterImpl.JobNotificationsCallback.class));
+*/
         verifyNoMoreInteractions(mockedJobStoreProxy);
     }
 

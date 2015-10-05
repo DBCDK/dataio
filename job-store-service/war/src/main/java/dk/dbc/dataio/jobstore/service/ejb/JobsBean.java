@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -169,7 +170,7 @@ public class JobsBean {
         try {
             processedChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
         } catch (JSONBException e) {
-            return buildErrorResponse(e);
+            return buildBadRequestResponse(e);
         }
 
         final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.PROCESSED, processedChunk);
@@ -212,7 +213,7 @@ public class JobsBean {
         try {
             deliveredChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
         } catch (JSONBException e) {
-            return buildErrorResponse(e);
+            return buildBadRequestResponse(e);
         }
 
         return addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.DELIVERED, deliveredChunk);
@@ -535,22 +536,14 @@ public class JobsBean {
         return jobError;
     }
 
-    private Response buildErrorResponse(JSONBException e) throws JSONBException {
+    private Response buildBadRequestResponse(JSONBException e) throws JSONBException {
         return Response.status(BAD_REQUEST).entity(
                 jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                 .build();
     }
 
     private void sendChunkAsMessageToSink(long jobId, ExternalChunk processedChunk) throws JobStoreException {
-        ResourceBundle resourceBundle = jobStoreRepository.getResourceBundle(safeLongToInt(jobId));
-        sinkMessageProducer.send(processedChunk, resourceBundle.getSink());
-    }
-
-    private static int safeLongToInt(long l) {
-        if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
-            throw new IllegalArgumentException(l + " cannot be cast to int without changing its value.");
-        }
-        return (int) l;
+        sinkMessageProducer.send(processedChunk, jobStoreRepository.getSinkByJobId(jobId));
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

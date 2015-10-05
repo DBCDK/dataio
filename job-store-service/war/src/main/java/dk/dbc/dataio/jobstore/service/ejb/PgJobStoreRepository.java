@@ -429,6 +429,23 @@ public class PgJobStoreRepository extends RepositoryBase {
         return chunkItemEntities;
     }
 
+    /**
+     *
+     * @param jobId                 Job ID
+     * @return SinkCacheEntity      SinkCacheEntity matching the specified Job ID
+     */
+    @Stopwatch
+    public Sink getSinkByJobId(long jobId) {
+
+        SinkCacheEntity cachedSink =
+                (SinkCacheEntity)entityManager
+                .createNamedQuery(JobEntity.NQ_FIND_SINK_BY_JOB_ID)
+                .setParameter(JobEntity.FIELD_JOB_ID, jobId)
+                    .getSingleResult();
+
+        return cachedSink.getSink();
+    }
+
     // ***** PRIVATE METHODS *****
     /**
      * private method made with package scope for testing purposes.

@@ -82,6 +82,7 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyShort;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -224,8 +225,7 @@ public class JobsBeanTest {
 
         final Sink sink = new SinkBuilder().build();
         final Flow flow = new FlowBuilder().build();
-        final ResourceBundle resourceBundle = new ResourceBundle(flow, sink, new SupplementaryProcessDataBuilder().build());
-        when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenReturn(resourceBundle);
+        when(jobsBean.jobStoreRepository.getSinkByJobId(anyLong())).thenReturn(sink);
 
         // Subject Under Test
         final Response response = jobsBean.addChunkProcessed(mockedUriInfo, jsonChunk, chunk.getJobId(), chunk.getChunkId());

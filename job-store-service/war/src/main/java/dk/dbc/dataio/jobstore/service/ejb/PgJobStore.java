@@ -380,13 +380,20 @@ public class PgJobStore {
             String logPattern = "TIMER jobId={} numberOfItems={} numberOfChunks={} submitterNumber={} destination={}";
 
             // Time of creation will never be null. This check is only added for testing purpose.
+            long timeOfCreation = 0;
             if (jobEntity.getTimeOfCreation() != null) {
+                timeOfCreation = jobEntity.getTimeOfCreation().getTime();
                 logPattern += " timeOfCreation={}";
-                logArguments.add(jobEntity.getTimeOfCreation().getTime());
+                logArguments.add(timeOfCreation);
             }
             if (jobEntity.getTimeOfCompletion() != null) {
+                final long timeOfCompletion = jobEntity.getTimeOfCompletion().getTime();
                 logPattern += " timeOfCompletion={}";
-                logArguments.add(jobEntity.getTimeOfCompletion().getTime());
+                logArguments.add(timeOfCompletion);
+                if (jobEntity.getNumberOfItems() > 0) {
+                    logPattern += " avgDurationPerItemInMs={}";
+                    logArguments.add((timeOfCompletion - timeOfCreation) / jobEntity.getNumberOfItems());
+                }
             }
             LOGGER.info(logPattern, logArguments.toArray());
         }

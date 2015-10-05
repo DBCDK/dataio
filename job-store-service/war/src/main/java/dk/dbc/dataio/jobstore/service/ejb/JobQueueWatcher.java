@@ -41,9 +41,8 @@ public class JobQueueWatcher {
         LOGGER.info("Jeg er simpelthen i live!");
     }
 
-//    @Schedule(second = "*/5", minute = "*", hour = "*")
     @Stopwatch
-    @Schedule(hour = "*", minute = "*", second = "*/5")
+    @Schedule(second = "*/5", minute = "*", hour = "*", persistent = false)
     public void doWatch() {
         LOGGER.info("Watcher...");
         final List<Long> uniqueSinkIds = jobQueueRepository.getUniqueSinkIds();

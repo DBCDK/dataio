@@ -89,12 +89,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         containerWidget.setWidget(view.asWidget());
         initializeView();
         listJobs(jobId);
-/*
-
-NB: This disables the fetching of Job Notifications - to be disabled until backend is ready...
-
         listNotifications(jobId);
-*/
     }
 
     /**
@@ -180,9 +175,9 @@ NB: This disables the fetching of Job Notifications - to be disabled until backe
      * method. The callback takes care of further processing.
      * @param jobId Job Id
      */
-//    private void listNotifications(String jobId) {
-//        jobStoreProxy.listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
-//    }
+    private void listNotifications(String jobId) {
+        jobStoreProxy.listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
+    }
 
 
     /**

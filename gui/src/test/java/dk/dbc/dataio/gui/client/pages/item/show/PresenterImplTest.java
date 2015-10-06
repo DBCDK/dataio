@@ -485,12 +485,7 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verifyNoMoreInteractions(mockedTabBar);
         verify(mockedJobStoreProxy).listJobs(any(JobListCriteria.class), any(PresenterImpl.JobsCallback.class));
-/*
-
-Please remember to re-enable, whenever List Notifications are enabled again!
-
         verify(mockedJobStoreProxy).listJobNotificationsForJob(any(Integer.class), any(PresenterImpl.JobNotificationsCallback.class));
-*/
         verifyNoMoreInteractions(mockedJobStoreProxy);
     }
 

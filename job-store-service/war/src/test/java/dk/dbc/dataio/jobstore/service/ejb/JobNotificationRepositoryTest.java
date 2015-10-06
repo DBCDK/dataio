@@ -41,6 +41,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -272,6 +273,44 @@ public class JobNotificationRepositoryTest {
         final String content = (String) inbox.get(0).getContent();
         assertThat("Message contains 'Besked fra DanBibs Posthus'", content.contains("Besked fra DanBibs Posthus"), is(true));
         assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
+    }
+
+    @Test
+    public void getNotificationsForJob_repositoryQueryReturnsEmptyResultList_returnsEmptyList() {
+        final Query query = mock(Query.class);
+        when(entityManager.createQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(42);
+        assertThat("Return value", notifications, is(notNullValue()));
+        assertThat("Number of notifications", notifications.size(), is(0));
+    }
+
+    @Test
+    public void getNotificationsForJob_repositoryQueryReturnsNonEmptyResultList_returns() {
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final List<NotificationEntity> entities = Arrays.asList(
+                getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
+                getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification)
+        );
+
+        final Query query = mock(Query.class);
+        when(entityManager.createQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.getResultList()).thenReturn(entities);
+
+        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(42);
+        assertThat("Return value", notifications, is(notNullValue()));
+        assertThat("Number of notifications", notifications.size(), is(2));
+
+        int i = 0;
+        for (JobNotification notification : notifications) {
+            assertThat("Notification " + i, notification, is(entities.get(i).toJobNotification()));
+            i++;
+        }
     }
 
     private JobNotificationRepository getPgJobNotificationRepository() {

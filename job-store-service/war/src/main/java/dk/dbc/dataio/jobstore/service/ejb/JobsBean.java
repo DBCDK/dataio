@@ -27,7 +27,6 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -35,6 +34,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
@@ -82,6 +82,9 @@ public class JobsBean {
 
     @EJB
     PgJobStoreRepository jobStoreRepository;
+
+    @EJB
+    JobNotificationRepository jobNotificationRepository;
 
     @EJB
     SinkMessageProducerBean sinkMessageProducer;
@@ -469,6 +472,22 @@ public class JobsBean {
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
         }
+    }
+
+    /**
+     * Retrieves list of notifications associated with job
+     * @param jobId id of job for which to retrieve notifications
+     * @return a HTTP 200 OK response with list of notifications as JSON String
+     * @throws JSONBException on marshalling failure
+     */
+    @GET
+    @Path(JobStoreServiceConstants.JOB_NOTIFICATIONS)
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response getNotificationsForJob(
+            @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException {
+        final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(jobId);
+        return Response.ok().entity(jsonbContext.marshall(notifications)).build();
     }
 
     /**

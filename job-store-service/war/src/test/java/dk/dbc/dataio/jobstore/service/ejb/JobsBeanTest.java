@@ -40,6 +40,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -47,6 +48,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
@@ -559,15 +561,29 @@ public class JobsBeanTest {
         assertThat("Response entity", response.hasEntity(), is(false));
     }
 
+    @Test
+    public void getNotificationsForJob_repositoryReturnsList_returnsStatusOkResponseWithJsonEntity() throws JSONBException {
+        when(jobsBean.jobNotificationRepository.getNotificationsForJob(JOB_ID)).thenReturn(
+                Collections.singletonList(new JobNotificationBuilder().build()));
+
+        final Response response = jobsBean.getNotificationsForJob(JOB_ID);
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response has entity", response.hasEntity(), is(true));
+        final List<JobNotification> notifications = jsonbContext.unmarshall(response.getEntity().toString(),
+                jsonbContext.getTypeFactory().constructCollectionType(List.class, JobNotification.class));
+        assertThat("Number of notifications returned", notifications.size(), is(1));
+    }
+
     /*
      Private methods
     */
-
 
     private void initializeJobsBean() {
         jobsBean = new JobsBean();
         jobsBean.jobStore = mock(PgJobStore.class);
         jobsBean.jobStoreRepository = mock(PgJobStoreRepository.class);
+        jobsBean.jobNotificationRepository = mock(JobNotificationRepository.class);
     }
 
     private String asJson(Object object) throws JSONBException {

@@ -53,6 +53,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -67,8 +68,10 @@ public class JobNotificationRepository extends RepositoryBase {
     private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
 
     private static final int MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT = 100;
-    private static final String SELECT_NOTIFICATIONS_STATEMENT =
+    private static final String SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT =
             "SELECT n from NotificationEntity n WHERE n.status=:status ORDER BY n.id ASC";
+    private static final String SELECT_NOTIFICATIONS_BY_JOB_STATEMENT =
+            "SELECT n from NotificationEntity n WHERE n.jobId=:jobId ORDER BY n.id ASC";
 
     @Resource
     SessionContext sessionContext;
@@ -77,6 +80,26 @@ public class JobNotificationRepository extends RepositoryBase {
     Session mailSession;
 
     private final JSONBContext jsonbContext = new JSONBContext();
+
+    /**
+     * Gets all notifications associated with job
+     * @param jobId id of job for which to get notifications
+     * @return list of notifications
+     */
+    @Stopwatch
+    public List<JobNotification> getNotificationsForJob(long jobId) {
+        final Query notificationsByJobId = entityManager.createQuery(SELECT_NOTIFICATIONS_BY_JOB_STATEMENT)
+                .setParameter("jobId", jobId);
+        @SuppressWarnings("unchecked")
+        final List<NotificationEntity> entities = (List<NotificationEntity>) notificationsByJobId.getResultList();
+
+        // Can be simplified when we can utilize map from java8 stream API
+        final List<JobNotification> notifications = new ArrayList<>(entities.size());
+        for (NotificationEntity entity : entities) {
+            notifications.add(entity.toJobNotification());
+        }
+        return notifications;
+    }
 
     /**
      * Flushes all waiting notifications in a separate transactional
@@ -151,7 +174,7 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     private Query getWaitingNotificationsQuery() {
-        return entityManager.createQuery(SELECT_NOTIFICATIONS_STATEMENT)
+        return entityManager.createQuery(SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT)
                 .setParameter("status", JobNotification.Status.WAITING)
                 .setMaxResults(MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
     }

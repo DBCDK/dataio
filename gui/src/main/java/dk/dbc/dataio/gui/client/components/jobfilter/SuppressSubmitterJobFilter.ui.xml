@@ -26,8 +26,8 @@
     <g:HTMLPanel>
 
         <span>
-            <g:RadioButton ui:field="showAllSubmittersButton" name="submitterShowButton" value="false" enabled="true" text="{txt.suppressSubmitterFilter_ShowAllSubmitterJobs}" />
             <g:RadioButton ui:field="suppressSubmittersButton" name="submitterShowButton" value="true" enabled="true" text="{txt.suppressSubmitterFilter_SuppressSubmitterJobs}" />
+            <g:RadioButton ui:field="showAllSubmittersButton" name="submitterShowButton" value="false" enabled="true" text="{txt.suppressSubmitterFilter_ShowAllSubmitterJobs}" />
         </span>
 
     </g:HTMLPanel>

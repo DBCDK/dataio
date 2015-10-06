@@ -28,17 +28,16 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
-import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
 
 import java.util.Iterator;
 
 /**
- * This class implements the DecoratorPanel with a title on the top of it
+ * This class implements the TittledDecoratorPanel
  * <pre>
  * {@code
- * +- Panel Title --------------------------------------+
+ * +----------------------------------------------------+
  * | Panel Content                                      |
  * +----------------------------------------------------+
  * }
@@ -46,18 +45,17 @@ import java.util.Iterator;
  * In UiBinder, the component is used as follows:
  *
  * {@code
- * <dio:TitledDecoratorPanel title="Panel Title">
+ * <dio:TittledDecoratorPanel>
  *    <g:Label>Panel Content</g:Label>
- * </dio:TitledDecoratorPanel>
+ * </dio:DecoratorPanel>
  * }</pre>
  */
 public class TitledDecoratorPanel extends Composite implements HasWidgets {
-    interface TitledDecoraterPanelUiBinder extends UiBinder<HTMLPanel, TitledDecoratorPanel> {
+    interface TitledDecoratorPanelUiBinder extends UiBinder<HTMLPanel, TitledDecoratorPanel> {
     }
 
-    private static TitledDecoraterPanelUiBinder ourUiBinder = GWT.create(TitledDecoraterPanelUiBinder.class);
+    private static TitledDecoratorPanelUiBinder ourUiBinder = GWT.create(TitledDecoratorPanelUiBinder.class);
 
-    @UiField Label title;
     @UiField SimplePanel contentPanel;
 
     /**
@@ -104,22 +102,6 @@ public class TitledDecoratorPanel extends Composite implements HasWidgets {
     @Override
     public boolean remove(Widget widget) {
         return this.contentPanel.remove(widget);
-    }
-
-    /**
-     * Sets the title of the TitledDecoratorPanel
-     * @param title The title of the TitledDecoratorPanel
-     */
-    public void setTitle(String title) {
-        this.title.setText(title);
-    }
-
-    /**
-     * Gets the title of the TitledDecoratorPanel
-     * @return The title of the TitledDecoratorPanel
-     */
-    public String getTitle() {
-        return this.title.getText();
     }
 
 }

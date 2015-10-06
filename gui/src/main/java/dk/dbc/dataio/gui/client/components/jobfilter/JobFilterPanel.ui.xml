@@ -23,14 +23,16 @@
              xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
     <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
     <ui:style>
+        .horizontalFlowPanel {
+            display: inline-block;
+            margin-right: 12px;
+        }
         .filterPanel {
-            margin: 0.5em 0.5em 0 0.5em;
-            width: 60em;
         }
         .simplePanel {
         }
     </ui:style>
-    <g:HTMLPanel>
+    <g:HTMLPanel addStyleNames="{style.horizontalFlowPanel}">
 
         <dio:TitledDecoratorPanel ui:field="decorator" title="" addStyleNames="{style.filterPanel}">
             <dio:SimplePanelWithButton ui:field="panel" buttonImage="{img.deleteButton}" addStyleNames="{style.simplePanel}" />

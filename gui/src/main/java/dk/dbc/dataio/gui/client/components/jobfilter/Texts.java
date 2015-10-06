@@ -53,9 +53,6 @@ public interface Texts extends Constants{
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String submitterFilter_PromptText();
 
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String submitterFilter_toolTip();
-
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String suppressSubmitterFilter_name();

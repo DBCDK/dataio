@@ -70,6 +70,7 @@
 
         .searchJobButton:hover {
             border-color: darkgreen;
+            background: #e3efff;
         }
 
         .jobsTable {
@@ -82,9 +83,9 @@
     </ui:style>
 
     <g:HTMLPanel styleName="{style.outerHtmlPanel}">
-
-        <jobs:JobFilter ui:field="jobFilter" />
-
+        <g:HorizontalPanel horizontalAlignment="left">
+            <jobs:JobFilter ui:field="jobFilter" />
+        </g:HorizontalPanel>
         <span class="{style.radio-buttons}">
             <g:RadioButton ui:field="processingFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_ProcessingFailedJobs}" />
             <g:RadioButton ui:field="deliveringFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_DeliveringFailedJobs}" />

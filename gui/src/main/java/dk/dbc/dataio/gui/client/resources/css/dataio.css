@@ -18,7 +18,7 @@
  *  we need to tell GWT not to obfuscate the css class names.
  *  This is done by declaring them @external like listed below.
  */
-@external .gwt-Tree, .gwt-TreeItem, .gwt-Button;
+@external .gwt-Tree, .gwt-TreeItem, .gwt-Button .gwt-TextBox .gwt-ListBox .gwt-RadioButton .gwt-PushButton-up .gwt-PushButton-up-hovering .gwt-PushButton-down-hovering;
 @external .gwtQuery-draggable-dragging;
 @external .dual-list-removeitem-class, .dual-list-additem-class, .fixed-empty-listbox-width, .dual-list-selection-buttons-pane-class;
 @external .dio-PromptedData, .dio-PromptedData-PromptClass, .dio-SaveButton-ResultLabel;
@@ -27,6 +27,7 @@
 @external .sortable-widget-entry-selected, .sortable-widget-entry-deselected, sortable-widget-entry-disabled;
 @external .dio-MultiProgressBar;
 @external .deleteButton;
+@external .job-filter-list;
 
 
 
@@ -207,4 +208,53 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 }
 
 .jobsShowTable {}
+
+.job-filter-list .dio-PromptedData {
+    margin-bottom: 0px;
+    margin-left: 6px;
+}
+
+.job-filter-list .dio-PromptedData-PromptClass {
+    width: auto;
+    vertical-align: middle;
+}
+
+.job-filter-list .dio-PromptedData-DataClass {
+    font-size: 12px;
+    font-family: Arial;
+    width: auto;
+    height: auto;
+}
+
+.job-filter-list .gwt-TextBox {
+    padding: 1.5px;
+    margin-left: 1.2em;
+    vertical-align: middle;
+}
+.job-filter-list .gwt-ListBox {
+    padding: 0.5px;
+    margin-left: 1.2em;
+    vertical-align: middle;
+}
+
+.job-filter-list .gwt-PushButton-up, .job-filter-list .gwt-PushButton-up-hovering , .job-filter-list .gwt-PushButton-down-hovering {
+    padding: 0px;
+    border: solid 1px rgb(204,204,204);
+    outline: none;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    user-focus: none;
+}
+
+
+.job-filter-list .gwt-PushButton-up-hovering {
+    border: 1px outset darkgreen;
+    background: #e3efff;
+}
+
+.job-filter-list .gwt-RadioButton {
+    vertical-align: middle;
+}
+
 

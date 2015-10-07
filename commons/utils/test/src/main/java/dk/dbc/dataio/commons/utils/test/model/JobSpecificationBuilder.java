@@ -30,9 +30,9 @@ public class JobSpecificationBuilder {
     private String charset = "-charset-";
     private String destination = "-destination-";
     private long submitterId = 222;
-    private String mailForNotificationAboutVerification = "-mailForNotificationAboutVerification-";
-    private String mailForNotificationAboutProcessing = "-mailForNotificationAboutProcessing-";
-    private String resultmailInitials = "-resultmailInitials-";
+    private String mailForNotificationAboutVerification = "";
+    private String mailForNotificationAboutProcessing = "";
+    private String resultmailInitials = "";
     private String dataFile = "-dataFile-";
     private JobSpecification.Type type = JobSpecification.Type.TEST;
     private JobSpecification.Ancestry ancestry = null;

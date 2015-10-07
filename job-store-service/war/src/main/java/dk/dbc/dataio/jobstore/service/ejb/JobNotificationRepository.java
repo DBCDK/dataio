@@ -135,6 +135,8 @@ public class JobNotificationRepository extends RepositoryBase {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public boolean processNotification(NotificationEntity notification) {
+        notification = entityManager.merge(notification);
+
         // lock notification to avoid dual processing
         entityManager.lock(notification, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(notification);

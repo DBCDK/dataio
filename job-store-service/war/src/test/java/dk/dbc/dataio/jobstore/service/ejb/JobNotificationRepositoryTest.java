@@ -49,6 +49,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -64,6 +65,11 @@ public class JobNotificationRepositoryTest {
     @Before
     public void clearMailBoxes() {
         Mailbox.clearAll();
+    }
+
+    @Before
+    public void setupExpectations() {
+        when(entityManager.merge(any(NotificationEntity.class))).then(returnsFirstArg());
     }
 
     @Test
@@ -149,7 +155,9 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void processNotification_sendingOfNotificationSucceeds_completesNotificationAndReturnsTrue() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
+                .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
@@ -160,6 +168,7 @@ public class JobNotificationRepositoryTest {
     @Test
     public void processNotification_typeJobCreated_setDestinationToMailForNotificationAboutVerification() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
                 .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
                 .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
@@ -172,7 +181,9 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void processNotification_typeJobCompleted_setDestinationToMailForNotificationAboutProcessing() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutProcessing("processing@company.com")
+                .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
 
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
@@ -184,6 +195,7 @@ public class JobNotificationRepositoryTest {
     @Test
     public void processNotification_typeJobCompletedWithoutMailForNotificationAboutProcessing_setsDestinationToMailForNotificationAboutVerification() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
                 .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
                 .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);

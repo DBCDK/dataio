@@ -66,6 +66,9 @@ public class JobSpecificationFactoryTest {
                 .setSubmitterId(submitter)
                 .setDataFile("urn:dataio-fs:42")
                 .setType(JobSpecification.Type.PERSISTENT)
+                .setMailForNotificationAboutVerification("verification@company.com")
+                .setMailForNotificationAboutProcessing("processing@company.com")
+                .setResultmailInitials("ABC")
                 .setAncestry(
                         new JobSpecificationBuilder.AncestryBuilder()
                                 .setTransfile(transfileName)

@@ -75,9 +75,9 @@ public class JobSpecificationJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("charset", charset)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("destination", destination)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("dataFile", dataFile)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("mailForNotificationAboutVerification", "ab@cd.ef")); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("mailForNotificationAboutProcessing", "ab@cd.ef")); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asTextMember("resultmailInitials", "abc"));stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("mailForNotificationAboutVerification", "")); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("mailForNotificationAboutProcessing", "")); stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("resultmailInitials", ""));stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("submitterId", submitterId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("type", type.name()));
         stringBuilder.append(END_OBJECT);

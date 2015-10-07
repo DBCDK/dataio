@@ -22,9 +22,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -44,9 +42,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
-import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -74,20 +70,13 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
-import org.postgresql.ds.PGSimpleDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 import java.io.ByteArrayInputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -95,17 +84,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static dk.dbc.dataio.jobstore.types.Diagnostic.Level.FATAL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -117,18 +99,10 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PgJobStoreIT {
+public class PgJobStoreIT extends AbstractJobStoreIT {
 
     private static final long SLEEP_INTERVAL_IN_MS = 1000;
     private static final long MAX_WAIT_IN_MS = 10000;
-
-    public static final String DATABASE_NAME = "jobstore";
-    public static final String JOB_TABLE_NAME = "job";
-    public static final String CHUNK_TABLE_NAME = "chunk";
-    public static final String ITEM_TABLE_NAME = "item";
-    public static final String FLOW_CACHE_TABLE_NAME = "flowcache";
-    public static final String SINK_CACHE_TABLE_NAME = "sinkcache";
-    public static final String JOBQUEUE_TABLE_NAME = "jobqueue";
 
     private static final String ERROR_MESSAGE = "Referenced entity not found";
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
@@ -136,14 +110,6 @@ public class PgJobStoreIT {
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
 
     private static final State.Phase PROCESSING = State.Phase.PROCESSING;
-    private static final PGSimpleDataSource datasource;
-
-    private final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
-    private final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
-    private final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-    private final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-
-    private EntityManager entityManager;
 
     static {
         try {
@@ -151,56 +117,6 @@ public class PgJobStoreIT {
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }
-        datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName(DATABASE_NAME);
-        datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port")));
-        datasource.setUser(System.getProperty("user.name"));
-        datasource.setPassword(System.getProperty("user.name"));
-    }
-
-    @BeforeClass
-    public static void createDb() {
-        final StartupDBMigrator dbMigrator = new StartupDBMigrator();
-        dbMigrator.dataSource = datasource;
-        dbMigrator.onStartup();
-    }
-
-    @Before
-    public void initialiseEntityManager() {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, System.getProperty("user.name"));
-        properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/jobstore", System.getProperty("postgresql.port")));
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put("eclipselink.logging.level", "FINE");
-
-        final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", properties);
-        entityManager = entityManagerFactory.createEntityManager(properties);
-    }
-
-    @After
-    public void clearJobStore() throws SQLException {
-        if( entityManager.getTransaction().isActive()) entityManager.getTransaction().rollback();
-
-        try (final Connection connection = newConnection()) {
-            for (String tableName : Arrays.asList(
-                    JOB_TABLE_NAME, CHUNK_TABLE_NAME, ITEM_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, JOBQUEUE_TABLE_NAME)) {
-                JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
-            }
-            connection.commit();
-        }
-    }
-
-    @Before
-    public void clearJobStoreBefore() throws SQLException {
-        clearJobStore();
-    }
-
-    @After
-    public void clearEntityManagerCache() {
-        entityManager.clear();
-        entityManager.getEntityManagerFactory().getCache().evictAll();
     }
 
     @Test
@@ -1741,12 +1657,6 @@ public class PgJobStoreIT {
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
         jobTransaction.commit();
         return jobInfoSnapshot;
-    }
-
-    private Connection newConnection() throws SQLException {
-        final Connection connection = datasource.getConnection();
-        connection.setAutoCommit(false);
-        return connection;
     }
 
     private void setupSuccessfulMockedReturnsFromFlowStore(MockedAddJobParam mockedAddJobParam) throws FlowStoreServiceConnectorException {

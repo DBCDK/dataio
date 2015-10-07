@@ -19,24 +19,38 @@
     along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 -->
 <ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
-             xmlns:g='urn:import:com.google.gwt.user.client.ui'
-             xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
+             xmlns:g='urn:import:com.google.gwt.user.client.ui'>
     <ui:with field="img" type="dk.dbc.dataio.gui.client.resources.Resources"/>
     <ui:style>
-        .horizontalFlowPanel {
+        .filterPanel {
             display: inline-block;
             margin-right: 12px;
         }
-        .filterPanel {
+        .dockPanel {
+            width: 100%;
+            margin-right: 16px;
+            background-color: white;
+            border: solid 2px #b5cfe8;
         }
-        .simplePanel {
+        .buttonContainer {
+            text-align: -moz-right;
+            vertical-align: middle;
+        }
+        .button {
+        }
+        .contentPanel {
         }
     </ui:style>
-    <g:HTMLPanel addStyleNames="{style.horizontalFlowPanel}">
-
-        <dio:TitledDecoratorPanel ui:field="decorator" title="" addStyleNames="{style.filterPanel}">
-            <dio:SimplePanelWithButton ui:field="panel" buttonImage="{img.deleteButton}" addStyleNames="{style.simplePanel}" />
-        </dio:TitledDecoratorPanel>
-
+    <g:HTMLPanel addStyleNames="{style.filterPanel}">
+        <g:DockPanel addStyleNames="{style.dockPanel}">
+            <g:Dock direction="EAST">
+                <g:HTMLPanel addStyleNames="{style.buttonContainer}">
+                    <g:PushButton ui:field='button' addStyleNames="{style.button}" />
+                </g:HTMLPanel>
+            </g:Dock>
+            <g:Dock direction="NORTH">
+                <g:SimplePanel ui:field="content" addStyleNames="{style.contentPanel}" />
+            </g:Dock>
+        </g:DockPanel>
     </g:HTMLPanel>
 </ui:UiBinder>

@@ -32,23 +32,23 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.HasWidgets;
+import com.google.gwt.user.client.ui.Image;
+import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.SimplePanel;
 import com.google.gwt.user.client.ui.Widget;
-import dk.dbc.dataio.gui.client.components.SimplePanelWithButton;
-import dk.dbc.dataio.gui.client.components.TitledDecoratorPanel;
 
 import java.util.Iterator;
 
 /**
- * This class combines the TitledDecoratorPanel and the SimplePanelWithButton panels
- *
+ * This class implements a SimplePanel, with a button added to the right of the panel:
  * <pre>
  * {@code
- * +- Panel Title --------------------------------------+
- * | Panel Content                              +-----+ |
+ * +----------------------------------------------------+
+ * | Panel content...                           +-----+ |
  * |                                            | btn | |
  * |                                            +-----+ |
  * +----------------------------------------------------+
-}
+ * }
  *
  * In UiBinder, the component is used as follows:
  *
@@ -59,8 +59,9 @@ import java.util.Iterator;
  *    <g:Label>Panel content...</g:Label>
  * </dio:JobFilterPanel>
  * }</pre>
+ *
  */
-public class JobFilterPanel extends Composite implements HasWidgets, HasClickHandlers/*, HasChangeHandlers*/ {
+public class JobFilterPanel extends Composite implements HasWidgets, HasClickHandlers {
     interface TitledJobFilterPanelUiBinder extends UiBinder<HTMLPanel, JobFilterPanel> {
     }
 
@@ -70,36 +71,36 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
         initWidget(ourUiBinder.createAndBindUi(this));
     }
 
-    @UiField TitledDecoratorPanel decorator;
-    @UiField SimplePanelWithButton panel;
+    @UiField PushButton button;
+    protected @UiField SimplePanel content;
 
     /**
      * Constructor taking the title of the panel and the button image as parameters (mandatory in UI Binder)
-     * @param title The title of the Decorated panel
+     * @param title The title of the panel
      * @param buttonImage the button image
      */
     @UiConstructor
     public JobFilterPanel(String title, ImageResource buttonImage) {
         initWidget(ourUiBinder.createAndBindUi(this));
         setTitle(title);
-        this.panel.setButtonImage(buttonImage);
+        setButtonImage(buttonImage);
     }
 
     /**
-     * Adds a widget to the TitledDecoratorPanel
-     * @param widget The widget to add
+     * Adds a widget to the panel
+     * @param widget The widget to add to the panel
      */
     @Override
     public void add(Widget widget) {
-        this.panel.add(widget);
+        this.content.add(widget);
     }
 
     /**
-     * Clears all widgets from the TitledDecoratorPanel
+     * Clears all widgets from the panel
      */
     @Override
     public void clear() {
-        this.panel.clear();
+        this.content.clear();
     }
 
     /**
@@ -108,17 +109,17 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
      */
     @Override
     public Iterator<Widget> iterator() {
-        return this.panel.iterator();
+        return this.content.iterator();
     }
 
     /**
-     * Removes a widget in the TitledDecoratorPanel
+     * Removes a widget from this panel
      * @param widget The widget to be removed
      * @return True if the widget was present
      */
     @Override
     public boolean remove(Widget widget) {
-        return this.panel.remove(widget);
+        return this.content.remove(widget);
     }
 
     /**
@@ -128,24 +129,15 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
      */
     @Override
     public HandlerRegistration addClickHandler(ClickHandler clickHandler) {
-        return panel.addClickHandler(clickHandler);
+        return button.addClickHandler(clickHandler);
     }
 
     /**
-     * Sets the title of the TitledDecoratorPanel
-     * @param title The title of the TitledDecoratorPanel
+     * Sets the button image
+     * @param buttonImage The image to be shown on the button
      */
-    public void setTitle(String title) {
-        this.decorator.setTitle(title);
+    public void setButtonImage(ImageResource buttonImage) {
+        this.button.getUpFace().setImage(new Image(buttonImage));
     }
-
-    /**
-     * Gets the title of the TitledDecoratorPanel
-     * @return The title of the TitledDecoratorPanel
-     */
-    public String getTitle() {
-        return this.decorator.getTitle();
-    }
-
 
 }

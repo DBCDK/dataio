@@ -228,8 +228,6 @@ public class BaseJobFilterTest {
         // Verify test
         getAttributes(jobFilter);
         assertThat(filterPanel, is(notNullValue()));
-        verify(filterPanel.decorator).setTitle("-test name-");
-        verify(filterPanel.panel).setButtonImage(mockedImageResource);
         assertThat(clickHandlerRegistration, is(notNullValue()));
         verify(parentJobFilter).add(jobFilter);
     }

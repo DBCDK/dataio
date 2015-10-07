@@ -30,7 +30,6 @@
             margin-bottom: 2px;
         }
         .jobFilterList {
-            margin-right: 2em;
         }
     </ui:style>
     <g:HTMLPanel>

@@ -1,17 +1,44 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.jvnet.mock_javamail.Mailbox;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -73,6 +100,16 @@ public class AbstractJobStoreIT {
         entityManager = entityManagerFactory.createEntityManager(properties);
     }
 
+    @Before
+    public void clearMailBoxes() {
+        Mailbox.clearAll();
+    }
+
+    @Before
+    public void clearJobStoreBefore() throws SQLException {
+        clearJobStore();
+    }
+
     @After
     public void clearJobStore() throws SQLException {
         if (entityManager.getTransaction().isActive()) entityManager.getTransaction().rollback();
@@ -87,11 +124,6 @@ public class AbstractJobStoreIT {
         }
     }
 
-    @Before
-    public void clearJobStoreBefore() throws SQLException {
-        clearJobStore();
-    }
-
     @After
     public void clearEntityManagerCache() {
         entityManager.clear();
@@ -102,5 +134,26 @@ public class AbstractJobStoreIT {
         final Connection connection = datasource.getConnection();
         connection.setAutoCommit(false);
         return connection;
+    }
+
+    protected void persist(Object entity) {
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        entityManager.persist(entity);
+        transaction.commit();
+    }
+
+    protected JobEntity newJobEntity() {
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
+        jobEntity.setState(new State());
+        return jobEntity;
+    }
+
+    protected JobEntity newPersistedJobEntity() {
+        final JobEntity jobEntity = newJobEntity();
+        persist(jobEntity);
+        return jobEntity;
     }
 }

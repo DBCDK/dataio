@@ -156,7 +156,7 @@
     <dependency>
       <groupId>org.jvnet.mock-javamail</groupId>
       <artifactId>mock-javamail</artifactId>
-      <version>1.9</version>
+      <version>${mock-javamail.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

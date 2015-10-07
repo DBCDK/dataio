@@ -49,11 +49,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -110,7 +109,6 @@ public class JobNotificationRepository extends RepositoryBase {
     @Asynchronous
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void flushNotifications() {
-
         final Query waitingNotificationsQuery = getWaitingNotificationsQuery();
         int numberOfNotificationsFound;
         do {
@@ -269,11 +267,15 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     private String getNotificationTemplateResource(String resource) {
-        try {
-            return new String(Files.readAllBytes(Paths.get(getClass().getResource(resource).toURI())),
-                    StandardCharsets.UTF_8);
-        } catch (IOException | URISyntaxException e) {
+        final StringBuilder buffer = new StringBuilder();
+        try (
+                final InputStreamReader isr = new InputStreamReader(getClass().getResourceAsStream(resource), StandardCharsets.UTF_8);
+                final BufferedReader br = new BufferedReader(isr)) {
+            for (int c = br.read(); c != -1; c = br.read())
+                buffer.append((char) c);
+        } catch (IOException e) {
             throw new IllegalStateException(e);
         }
+        return buffer.toString();
     }
 }

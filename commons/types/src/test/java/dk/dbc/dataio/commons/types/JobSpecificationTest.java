@@ -125,6 +125,21 @@ public class JobSpecificationTest {
         new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, null);
     }
 
+    @Test
+    public void hasNotificationDestination_returnsTrueOnAnyNonEmptyMailAddr() {
+        JobSpecification jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, "", RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat("mailForNotificationAboutVerification is non-empty", jobSpecification.hasNotificationDestination(), is(true));
+        jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, "", PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat("mailForNotificationAboutProcessing is non-empty", jobSpecification.hasNotificationDestination(), is(true));
+        jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat("Both are non-empty", jobSpecification.hasNotificationDestination(), is(true));
+    }
+
+    @Test
+    public void hasNotificationDestination_returnsFalseOnEmptyMailAddr() {
+        final JobSpecification jobSpecification = new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, "  ", "  ", RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
+        assertThat(jobSpecification.hasNotificationDestination(), is(false));
+    }
 
     public static JobSpecification newJobSpecificationInstance() {
         return new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);

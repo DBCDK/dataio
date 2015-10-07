@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.JsonValueTemplateEngine;
 import dk.dbc.dataio.jobstore.types.JobNotification;
@@ -171,6 +172,21 @@ public class JobNotificationRepository extends RepositoryBase {
 
         notification.setStatus(JobNotification.Status.COMPLETED);
         return true;
+    }
+
+    /**
+     * Adds waiting notification entity of given type linked to given job
+     * @param type type of notification
+     * @param job associated job
+     * @return managed instance of notification entity
+     */
+    public NotificationEntity addNotification(JobNotification.Type type, JobEntity job) {
+        final NotificationEntity notificationEntity = new NotificationEntity();
+        notificationEntity.setType(type);
+        notificationEntity.setStatus(JobNotification.Status.WAITING);
+        notificationEntity.setJob(job);
+        entityManager.persist(notificationEntity);
+        return notificationEntity;
     }
 
     private Query getWaitingNotificationsQuery() {

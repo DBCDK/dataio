@@ -42,6 +42,7 @@ import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -72,6 +73,7 @@ public class PgJobStore {
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB PgJobStoreRepository jobStoreRepository;
     @EJB JobQueueRepository jobQueueRepository;
+    @EJB JobNotificationRepository jobNotificationRepository;
 
     @Stopwatch
     public String testMe() {
@@ -191,6 +193,10 @@ public class PgJobStore {
                     }
                 }
 
+                // What should happen if any of these two methods throws?
+                // Currently all database changes to jobs table will be rolled back,
+                // not sure if this is a good idea though...
+                addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
                 jobQueueRepository.removeJobFromJobQueueIfExists(jobEntity);
 
             } else {
@@ -304,6 +310,7 @@ public class PgJobStore {
             final State jobState = jobStoreRepository.updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
             if (jobState.allPhasesAreDone()) {
                 jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_COMPLETED, jobEntity);
                 logTimerMessage(jobEntity);
             }
 
@@ -367,6 +374,12 @@ public class PgJobStore {
         jobEntity.setFatalError(true);
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         return jobEntity;
+    }
+
+    private void addNotificationIfSpecificationHasDestination(JobNotification.Type type, JobEntity jobEntity) {
+        if (jobEntity.getSpecification().hasNotificationDestination()) {
+            jobNotificationRepository.addNotification(type, jobEntity);
+        }
     }
 
     private void logTimerMessage(JobEntity jobEntity) {

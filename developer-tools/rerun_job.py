@@ -36,6 +36,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser("")
     parser.add_argument("jobid", type=int, help="job nummeret")
     parser.add_argument("--host", help="host til dataio systemet brug dataio-be-s01:8080 for staging", required=True)
+    parser.add_argument("--notify", help="Email address for job notifications", default="")
 
     args = parser.parse_args()
 
@@ -66,10 +67,12 @@ def get_job_specifiction(job_id):
     else :
         print "Error from server : "+ str(response.status_code)
         print response.content
-        raise Exception("Unable to get job Specifciatoin.")
+        raise Exception("Unable to get job Specification.")
 
 
 def create_job(job_specification):
+    job_specification['mailForNotificationAboutVerification'] = args.notify
+    job_specification['mailForNotificationAboutProcessing'] = args.notify
     add_job_arguments = {"jobSpecification": job_specification, "isEndOfJob": True, "partNumber": 0}
 
     createJobUrl = "http://" + args.host + "/dataio/job-store-service/jobs"

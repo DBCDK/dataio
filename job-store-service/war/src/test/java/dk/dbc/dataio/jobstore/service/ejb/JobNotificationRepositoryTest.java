@@ -53,6 +53,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JobNotificationRepositoryTest {
@@ -311,6 +312,18 @@ public class JobNotificationRepositoryTest {
             assertThat("Notification " + i, notification, is(entities.get(i).toJobNotification()));
             i++;
         }
+    }
+
+    @Test
+    public void addNotification_persistsAndReturnsEntityInWaitingState() {
+        final JobEntity jobEntity = new JobEntity();
+        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity);
+        assertThat("getStatus()", notificationEntity.getStatus(), is(JobNotification.Status.WAITING));
+        assertThat("getType()", notificationEntity.getType(), is(JobNotification.Type.JOB_COMPLETED));
+        assertThat("getJob()", notificationEntity.getJob(), is(jobEntity));
+
+        verify(entityManager).persist(notificationEntity);
     }
 
     private JobNotificationRepository getPgJobNotificationRepository() {

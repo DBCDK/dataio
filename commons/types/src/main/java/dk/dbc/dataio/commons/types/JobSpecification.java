@@ -22,6 +22,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
@@ -155,6 +156,12 @@ public class JobSpecification implements Serializable {
 
     public Ancestry getAncestry() {
         return ancestry;
+    }
+
+    @JsonIgnore
+    public boolean hasNotificationDestination() {
+        return !(mailForNotificationAboutVerification.trim().isEmpty())
+                || !(mailForNotificationAboutProcessing.trim().isEmpty());
     }
 
     @Override

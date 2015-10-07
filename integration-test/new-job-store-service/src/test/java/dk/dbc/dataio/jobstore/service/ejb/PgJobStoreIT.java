@@ -1703,6 +1703,9 @@ public class PgJobStoreIT {
         pgJobStore.jobQueueRepository = new JobQueueRepository();
         pgJobStore.jobQueueRepository.entityManager = entityManager;
 
+        pgJobStore.jobNotificationRepository = new JobNotificationRepository();
+        pgJobStore.jobNotificationRepository.entityManager = entityManager;
+
         // Mocks
         pgJobStore.jobSchedulerBean = JOB_SCHEDULER_BEAN;
         pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;

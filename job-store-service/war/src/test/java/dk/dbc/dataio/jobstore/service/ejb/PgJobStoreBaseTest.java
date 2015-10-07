@@ -87,6 +87,7 @@ public abstract class PgJobStoreBaseTest {
     protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     protected final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);
     protected final JobQueueRepository mockedJobQueueReposity = mock(JobQueueRepository.class);
+    protected final JobNotificationRepository mockedJobNotificationRepository = mock(JobNotificationRepository.class);
 
     protected static final FlowCacheEntity EXPECTED_FLOW_CACHE_ENTITY = mock(FlowCacheEntity.class);
     protected static final SinkCacheEntity EXPECTED_SINK_CACHE_ENTITY = mock(SinkCacheEntity.class);
@@ -147,9 +148,9 @@ public abstract class PgJobStoreBaseTest {
         final PgJobStore pgJobStore = new PgJobStore();
         pgJobStore.jobStoreRepository = mockedJobStoreRepository;
         pgJobStore.jobQueueRepository = mockedJobQueueReposity;
+        pgJobStore.jobNotificationRepository = mockedJobNotificationRepository;
         pgJobStore.jobSchedulerBean = jobSchedulerBean;
         pgJobStore.jobStoreRepository.entityManager = entityManager;
-//        pgJobStore.jobStoreRepository.sessionContext = sessionContext;
         pgJobStore.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
         pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);

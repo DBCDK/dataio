@@ -227,12 +227,12 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 }
 
 .job-filter-list .gwt-TextBox {
-    padding: 1.5px;
+    padding: 1.7px;
     margin-left: 1.2em;
     vertical-align: middle;
 }
 .job-filter-list .gwt-ListBox {
-    padding: 0.5px;
+    padding: 0.7px;
     margin-left: 1.2em;
     vertical-align: middle;
 }

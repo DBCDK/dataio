@@ -26,6 +26,7 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -40,9 +41,17 @@ public class View extends ViewWidget {
 
     private static Resources resources;
 
+    private boolean dataHasNotYetBeenLoaded = true;
+
     Column jobCreationTimeColumn;
     public AsyncJobViewDataProvider dataProvider;
-    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>();
+    ProvidesKey<JobModel> keyProvider = new ProvidesKey<JobModel>() {
+        @Override
+        public Object getKey(JobModel jobModel) {
+            return (jobModel == null) ? null : jobModel.getJobId();
+        }
+    };
+    SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>(keyProvider);
 
     // Enums
     enum JobStatus {
@@ -77,14 +86,25 @@ public class View extends ViewWidget {
      */
 
     /**
-     * Force a refresh of the jobsTable data.
+     * Refreshes the content of the Jobs Table
      */
     public void refreshJobsTable() {
-        jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+        jobsTable.setVisibleRangeAndClearData(this.jobsTable.getVisibleRange(), true);
+    }
+
+    /**
+     * Loads the content of the Jobs Table
+     * If the table has been loaded, don't reload
+     */
+    public void loadJobsTable() {
+        if (dataProvider != null && dataHasNotYetBeenLoaded) {
+            dataHasNotYetBeenLoaded = false;
+            jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+        }
     }
 
 
-    /**
+    /*
      * Private methods
      */
 

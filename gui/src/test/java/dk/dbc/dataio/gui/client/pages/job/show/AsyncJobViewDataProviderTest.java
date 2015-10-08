@@ -68,13 +68,13 @@ public class AsyncJobViewDataProviderTest {
 
     @Test
     public void InitialSetup() throws Exception {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory,mockedView );
+        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory, mockedView);
     }
 
     @Test
     public void testSetBaseCriteria() throws Exception {
 
-        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory,mockedView );
+        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory, mockedView);
 
         JobListCriteria criteria = new JobListCriteria()
                  .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
@@ -83,7 +83,7 @@ public class AsyncJobViewDataProviderTest {
         objectUnderTest.setBaseCriteria(criteria);
 
         // One from the constructor and one from the setBaseQuery
-        verify(mockedView, times(1)).refreshJobsTable();
+        verify(mockedView, times(1)).loadJobsTable();
     }
 
     @Test
@@ -122,7 +122,7 @@ public class AsyncJobViewDataProviderTest {
         objectUnderTest.updateUserCriteria();
 
         assertThat(mockedView.jobFilter.getValue().getFiltering().get(0).getMembers().get(0).getFilter().getField(), is(field));
-        verify(mockedView, times(1)).refreshJobsTable();
+        verify(mockedView, times(1)).loadJobsTable();
     }
 }
 

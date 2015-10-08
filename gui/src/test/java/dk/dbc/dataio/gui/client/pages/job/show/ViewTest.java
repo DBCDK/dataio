@@ -26,6 +26,7 @@ import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.view.client.CellPreviewEvent;
+import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -42,9 +43,12 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
 import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -154,6 +158,60 @@ public class ViewTest {
     }
 
     @Test
+    public void refreshJobsTable_call_ok() {
+        // Subject Under Test
+        view = new View(mockedClientFactory, "Header Text", false, false);
+
+        // Subject Under Test
+        view.refreshJobsTable();
+
+        // Verify test
+        verify(view.jobsTable).getVisibleRange();
+        verify(view.jobsTable).setVisibleRangeAndClearData(any(Range.class), eq(true));
+    }
+
+    @Test
+    public void loadJobsTable_dataProviderNotSetup_nop() {
+        // Subject Under Test
+        view = new View(mockedClientFactory, "Header Text", false, false);
+        view.dataProvider = null;
+
+        // Subject Under Test
+        view.loadJobsTable();
+
+        // Verify test
+        verifyNoMoreInteractions(view.jobsTable);
+    }
+
+    @Test
+    public void loadJobsTable_oneLoad_setVisibleRangeAndClearData() {
+        // Subject Under Test
+        view = new View(mockedClientFactory, "Header Text", false, false);
+
+        // Subject Under Test
+        view.loadJobsTable();
+
+        // Verify test
+        verify(view.jobsTable, times(1)).setVisibleRangeAndClearData(any(Range.class), eq(true));
+        verifyNoMoreInteractions(view.jobsTable);
+    }
+
+    @Test
+    public void loadJobsTable_twoLoads_setVisibleRangeAndClearData() {
+        // Subject Under Test
+        view = new View(mockedClientFactory, "Header Text", false, false);
+
+        // Subject Under Test
+        view.loadJobsTable();
+        view.loadJobsTable();  // This one does not generate new calls to setVisibleRangeAndClearData !
+
+        // Verify test
+        verify(view.jobsTable, times(1)).setVisibleRangeAndClearData(any(Range.class), eq(true));
+        verifyNoMoreInteractions(view.jobsTable);
+    }
+
+
+    @Test
     @SuppressWarnings("unchecked")
     public void constructJobCreationTimeColumn_call_correctlySetup() {
         view = new View(mockedClientFactory, "Header Text", false, false);
@@ -163,9 +221,6 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat((String) column.getValue(testModel1), is(testModel1.getJobCreationTime()));
-
-
-
     }
 
     @Test
@@ -178,7 +233,6 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat((String) column.getValue(testModel1), is(testModel1.getJobId()));
-
     }
 
     @Test
@@ -194,7 +248,6 @@ public class ViewTest {
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
-
     }
 
     @Test
@@ -210,7 +263,6 @@ public class ViewTest {
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
-
     }
 
     @Test
@@ -227,7 +279,6 @@ public class ViewTest {
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
-
     }
 
     @Test
@@ -243,7 +294,6 @@ public class ViewTest {
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
-
     }
 
 
@@ -261,7 +311,6 @@ public class ViewTest {
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
-
     }
 
     @Test

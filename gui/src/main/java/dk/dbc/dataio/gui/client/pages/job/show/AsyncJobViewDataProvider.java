@@ -85,7 +85,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     }
 
     void refresh( ) {
-        view.refreshJobsTable();
+        view.loadJobsTable();
     }
 
     /**

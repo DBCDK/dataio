@@ -51,6 +51,9 @@ public interface Texts extends Constants {
     String error_CouldNotFetchJob();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CouldNotFindJob();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_CouldNotFetchItems();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

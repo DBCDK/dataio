@@ -46,6 +46,7 @@ import java.util.Map;
 
 public class PresenterImpl extends AbstractActivity implements Presenter {
     private final Map<String, Integer> tabIndexes = new HashMap<>(0);
+    private static final String EMPTY ="";
 
     protected ClientFactory clientFactory;
     protected Texts texts;
@@ -232,7 +233,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         switch (type) {
             case JOB_COMPLETED: return texts.typeJobCompleted();
             case JOB_CREATED:   return texts.typeJobCreated();
-            default: return "";
+            default: return EMPTY;
         }
     }
 
@@ -241,7 +242,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             case COMPLETED: return texts.statusCompleted();
             case FAILED:    return texts.statusFailed();
             case WAITING:   return texts.statusWaiting();
-            default: return "";
+            default: return EMPTY;
         }
     }
 
@@ -276,14 +277,25 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /**
-     * This method constructs a Job Header Text from a Job Id, a Submitter Number and a Sink Name
+     * This method constructs a Job Header Text from a job model
      * @param jobModel containing the job data
      * @return The resulting Job Header Text
      */
     private String constructJobHeaderText(JobModel jobModel) {
-        return texts.text_JobId() + " " + jobModel.getJobId() + ", "
-                + texts.text_Submitter() + " " + jobModel.getSubmitterNumber() + ", "
-                + texts.text_Sink() + " " + jobModel.getSinkName();
+        return constructJobHeaderText(jobModel.getJobId(), jobModel.getSubmitterNumber(), jobModel.getSinkName());
+    }
+
+    /**
+     * This method constructs a Job Header Text from a Job Id, a Submitter Number and a Sink Name
+     * @param jobId the job id
+     * @param submitterNumber the submitter number
+     * @param sinkName the sink name
+     * @return The resulting Job Header Text
+     */
+    private String constructJobHeaderText(String jobId, String submitterNumber, String sinkName) {
+        return texts.text_JobId() + " " + jobId + ", "
+                + texts.text_Submitter() + " " + submitterNumber + ", "
+                + texts.text_Sink() + " " + sinkName;
     }
 
     /**
@@ -478,6 +490,19 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         listView.itemDiagnosticTabContent.itemDiagnosticTable.setRowData(0, itemModel.getDiagnosticModels());
     }
 
+    /**
+     * Prepares the view for display in case of no jobs returned from the underlying data-store.
+     * 1) The method builds a new header containing the id of the sought out job.
+     * 2) The method displays an empty job-info tab.
+     * 3) The method sets an error message for the user.
+     */
+    private void prepareViewForJobNotFoundDisplay() {
+        view.jobHeader.setText(constructJobHeaderText(jobId, EMPTY, EMPTY));
+        setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, true);
+        view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        view.setErrorText(texts.error_CouldNotFindJob());
+    }
+
     /*
      * ================================ > Private async callback classes < =====================================
      */
@@ -494,6 +519,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onSuccess(List<JobModel> jobModels) {
             if (jobModels != null && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
+            } else {
+                prepareViewForJobNotFoundDisplay();
             }
         }
     }

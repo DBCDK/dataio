@@ -174,6 +174,7 @@ public class PresenterImplTest {
     final static String MOCKED_COLUMN_LEVEL = "Niveau";
     final static String MOCKED_COLUMN_MESSAGE = "Besked";
     final static String MOCKED_ERROR_COULDNOTFETCHJOB = "Mocked Det var ikke muligt at hente jobbet fra Job Store";
+    final static String MOCKED_ERROR_COULDNOTFINDJOB = "Mocked Kunne ikke finde det ønskede job i Job Store";
     final static String MOCKED_ERROR_COULDNOTFETCHITEMS = "Mocked Det var ikke muligt at hente poster fra Job Store";
     final static String MOCKED_ERROR_CANNOTNOTFETCHJAVASCRIPTLOG = "Mocked Det var ikke muligt at hente java script loggen";
     final static String MOCKED_ERROR_COULDNOTFETCHDATA = "Det var ikke muligt at hente data fra Job Store";
@@ -232,6 +233,7 @@ public class PresenterImplTest {
         when(mockedText.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
         when(mockedText.column_Message()).thenReturn(MOCKED_COLUMN_MESSAGE);
         when(mockedText.error_CouldNotFetchJob()).thenReturn(MOCKED_ERROR_COULDNOTFETCHJOB);
+        when(mockedText.error_CouldNotFindJob()).thenReturn(MOCKED_ERROR_COULDNOTFINDJOB);
         when(mockedText.error_CouldNotFetchItems()).thenReturn(MOCKED_ERROR_COULDNOTFETCHITEMS);
         when(mockedText.error_CannotFetchJavaScriptLog()).thenReturn(MOCKED_ERROR_CANNOTNOTFETCHJAVASCRIPTLOG);
         when(mockedText.error_CouldNotFetchData()).thenReturn(MOCKED_ERROR_COULDNOTFETCHDATA);
@@ -1083,9 +1085,10 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
-        verifyNoMoreInteractions(mockedView.jobHeader);
+        verify(mockedView.jobHeader).setText(buildHeaderText(presenterImpl.jobId, "", ""));
+        verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFINDJOB);
         verifyNoMoreInteractionsForJobInfoFields();
     }
 
@@ -1102,9 +1105,10 @@ public class PresenterImplTest {
         verify(mockedTabBar).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
-        verifyNoMoreInteractions(mockedView.jobHeader);
+        verify(mockedView.jobHeader).setText(buildHeaderText(presenterImpl.jobId, "", ""));
+        verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFINDJOB);
         verifyNoMoreInteractionsForJobInfoFields();
     }
 
@@ -1159,11 +1163,16 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
     }
 
-
-
     /*
      * Private methods
      */
+
+    private String buildHeaderText(String jobId, String submitterNumber, String sinkName) {
+        return MOCKED_TEXT_JOBID + " " + jobId + ", "
+                + MOCKED_TEXT_SUBMITTER + " " + submitterNumber + ", "
+                + MOCKED_TEXT_SINK + " " + sinkName;
+    }
+
     private void verifyNoMoreInteractionsForJobInfoFields() {
         verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);

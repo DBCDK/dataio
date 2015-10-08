@@ -39,6 +39,7 @@ import org.junit.BeforeClass;
 import org.jvnet.mock_javamail.Mailbox;
 import org.postgresql.ds.PGSimpleDataSource;
 
+import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
@@ -72,6 +73,7 @@ public class AbstractJobStoreIT {
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     protected final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    protected final SessionContext mockedSessionContext = mock(SessionContext.class);
 
     protected EntityManager entityManager;
 

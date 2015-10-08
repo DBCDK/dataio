@@ -104,6 +104,7 @@ public abstract class PgJobStoreBaseTest {
     private final JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
     private final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+    private final SessionContext mockedSessionContext = mock(SessionContext.class);
 
     static {
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
@@ -153,9 +154,11 @@ public abstract class PgJobStoreBaseTest {
         pgJobStore.jobStoreRepository.entityManager = entityManager;
         pgJobStore.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
         pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
+        pgJobStore.sessionContext = mockedSessionContext;
         when(sessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
+        when(mockedSessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
 
         return pgJobStore;
     }

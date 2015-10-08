@@ -49,8 +49,10 @@ import dk.dbc.dataio.jobstore.types.StateChange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
+import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -74,6 +76,8 @@ public class PgJobStore {
     @EJB PgJobStoreRepository jobStoreRepository;
     @EJB JobQueueRepository jobQueueRepository;
     @EJB JobNotificationRepository jobNotificationRepository;
+
+    @Resource SessionContext sessionContext;
 
     @Stopwatch
     public String testMe() {
@@ -112,7 +116,8 @@ public class PgJobStore {
             LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
         }
 
-        handlePartitioningAsynchronously(
+
+        getProxyToSelf().handlePartitioningAsynchronously(
                 new PartitioningParam(
                         jobEntity,
                         fileStoreServiceConnectorBean.getConnector(),
@@ -121,7 +126,9 @@ public class PgJobStore {
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
-
+    private PgJobStore getProxyToSelf() {
+        return sessionContext.getBusinessObject(PgJobStore.class);
+    }
     /**
      * This method is a public wrapper to support asynchronous behavior
      *

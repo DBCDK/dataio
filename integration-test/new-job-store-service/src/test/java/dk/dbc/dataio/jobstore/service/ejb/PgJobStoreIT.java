@@ -1626,10 +1626,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         pgJobStore.jobSchedulerBean = JOB_SCHEDULER_BEAN;
         pgJobStore.flowStoreServiceConnectorBean = mockedFlowStoreServiceConnectorBean;
         pgJobStore.fileStoreServiceConnectorBean = mockedFileStoreServiceConnectorBean;
+        pgJobStore.sessionContext = mockedSessionContext;
 
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8)));
+        when(mockedSessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
 
         return pgJobStore;
     }

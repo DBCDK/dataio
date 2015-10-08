@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
@@ -67,6 +68,41 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         }
     }
 
+    /**
+     * Given: a job repository containing items from multiple jobs
+     * When : the items are purged for a job
+     * Then : all the items associated with the given job are deleted
+     * And  : the remaining items do not belong to the purged job
+     */
+    @Test
+    public void purgeItems() {
+        // Given...
+        final int job1 = 1;
+        final int job2 = 2;
+        final int chunkId = 0;
+        newPersistedItemEntity(new ItemEntity.Key(job1, chunkId, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(job1, chunkId, (short)1));
+        newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)1));
+        newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)2));
+
+        // When...
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        assertThat("Number of items purged", pgJobStoreRepository.purgeItems(job2), is(3));
+        transaction.commit();
+
+        // Then...
+        final List<ItemEntity> remainingItems = findAllItems();
+        assertThat("Number of remaining items", remainingItems.size(), is(2));
+
+        // And...
+        for (ItemEntity entity : remainingItems) {
+            assertThat("Job ID of remaining item", entity.getKey().getJobId(), is(not(job2)));
+        }
+    }
+
     private PgJobStoreRepository newPgJobStoreRepository() {
         final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();
         pgJobStoreRepository.entityManager = entityManager;
@@ -76,5 +112,10 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
     public List<ChunkEntity> findAllChunks() {
         final Query query = entityManager.createQuery("SELECT e FROM ChunkEntity e");
         return (List<ChunkEntity>) query.getResultList();
+    }
+
+    public List<ItemEntity> findAllItems() {
+        final Query query = entityManager.createQuery("SELECT e FROM ItemEntity e");
+        return (List<ItemEntity>) query.getResultList();
     }
 }

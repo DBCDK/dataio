@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
@@ -173,5 +174,18 @@ public class AbstractJobStoreIT {
         final ChunkEntity chunkEntity = newChunkEntity(key);
         persist(chunkEntity);
         return chunkEntity;
+    }
+
+    protected ItemEntity newItemEntity(ItemEntity.Key key) {
+        final ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setKey(key);
+        itemEntity.setState(new State());
+        return itemEntity;
+    }
+
+    protected ItemEntity newPersistedItemEntity(ItemEntity.Key key) {
+        final ItemEntity itemEntity = newItemEntity(key);
+        persist(itemEntity);
+        return itemEntity;
     }
 }

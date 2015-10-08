@@ -458,6 +458,18 @@ public class PgJobStoreRepository extends RepositoryBase {
         return deleteQuery.executeUpdate();
     }
 
+    /**
+     * Deletes all items associated with specified job
+     * @param jobId ID of job for which to delete items
+     * @return number of items deleted
+     */
+    @Stopwatch
+    public int purgeItems(int jobId) {
+        final Query deleteQuery = entityManager.createQuery("DELETE FROM ItemEntity e WHERE e.key.jobId = :jobId")
+                .setParameter("jobId", jobId);
+        return deleteQuery.executeUpdate();
+    }
+
     // ***** PRIVATE METHODS *****
     /**
      * private method made with package scope for testing purposes.

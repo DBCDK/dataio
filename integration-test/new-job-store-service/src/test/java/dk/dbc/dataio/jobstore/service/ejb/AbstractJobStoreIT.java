@@ -27,8 +27,10 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.After;
 import org.junit.Before;
@@ -43,6 +45,7 @@ import javax.persistence.Persistence;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -155,5 +158,20 @@ public class AbstractJobStoreIT {
         final JobEntity jobEntity = newJobEntity();
         persist(jobEntity);
         return jobEntity;
+    }
+
+    protected ChunkEntity newChunkEntity(ChunkEntity.Key key) {
+        final ChunkEntity chunkEntity = new ChunkEntity();
+        chunkEntity.setKey(key);
+        chunkEntity.setState(new State());
+        chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.<String>emptySet()));
+        chunkEntity.setDataFileId("");
+        return chunkEntity;
+    }
+
+    protected ChunkEntity newPersistedChunkEntity(ChunkEntity.Key key) {
+        final ChunkEntity chunkEntity = newChunkEntity(key);
+        persist(chunkEntity);
+        return chunkEntity;
     }
 }

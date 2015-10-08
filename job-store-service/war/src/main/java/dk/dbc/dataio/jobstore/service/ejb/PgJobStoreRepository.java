@@ -446,6 +446,18 @@ public class PgJobStoreRepository extends RepositoryBase {
         return cachedSink.getSink();
     }
 
+    /**
+     * Deletes all chunks associated with specified job
+     * @param jobId ID of job for which to delete chunks
+     * @return number of chunks deleted
+     */
+    @Stopwatch
+    public int purgeChunks(int jobId) {
+        final Query deleteQuery = entityManager.createQuery("DELETE FROM ChunkEntity e WHERE e.key.jobId = :jobId")
+                .setParameter("jobId", jobId);
+        return deleteQuery.executeUpdate();
+    }
+
     // ***** PRIVATE METHODS *****
     /**
      * private method made with package scope for testing purposes.

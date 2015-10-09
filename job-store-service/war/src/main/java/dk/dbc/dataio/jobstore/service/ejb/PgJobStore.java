@@ -111,24 +111,26 @@ public class PgJobStore {
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
         // Creates job entity in its own transactional scope to enable external visibility
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
-        if(!jobEntity.hasFatalError()) {
-            LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
-        }
+        LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
 
         addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
 
-        getProxyToSelf().handlePartitioningAsynchronously(
-                new PartitioningParam(
-                        jobEntity,
-                        fileStoreServiceConnectorBean.getConnector(),
-                        addJobParam.getFlowBinder().getContent().getSequenceAnalysis(),
-                        addJobParam.getFlowBinder().getContent().getRecordSplitter()));
+        if(!jobEntity.hasFatalError()) {
+            getProxyToSelf().handlePartitioningAsynchronously(
+                    new PartitioningParam(
+                            jobEntity,
+                            fileStoreServiceConnectorBean.getConnector(),
+                            addJobParam.getFlowBinder().getContent().getSequenceAnalysis(),
+                            addJobParam.getFlowBinder().getContent().getRecordSplitter()));
+        }
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
+
     private PgJobStore getProxyToSelf() {
         return sessionContext.getBusinessObject(PgJobStore.class);
     }
+
     /**
      * This method is a public wrapper to support asynchronous behavior
      *

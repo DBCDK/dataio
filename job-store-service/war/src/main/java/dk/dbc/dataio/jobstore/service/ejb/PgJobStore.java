@@ -109,13 +109,13 @@ public class PgJobStore {
      */
     @Stopwatch
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
-
         // Creates job entity in its own transactional scope to enable external visibility
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
         if(!jobEntity.hasFatalError()) {
             LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
         }
 
+        addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
 
         getProxyToSelf().handlePartitioningAsynchronously(
                 new PartitioningParam(
@@ -200,10 +200,6 @@ public class PgJobStore {
                     }
                 }
 
-                // What should happen if any of these two methods throws?
-                // Currently all database changes to jobs table will be rolled back,
-                // not sure if this is a good idea though...
-                addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
                 jobQueueRepository.removeJobFromJobQueueIfExists(jobEntity);
 
             } else {

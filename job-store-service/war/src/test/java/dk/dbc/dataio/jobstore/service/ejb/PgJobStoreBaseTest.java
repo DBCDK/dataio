@@ -242,6 +242,20 @@ public abstract class PgJobStoreBaseTest {
         return jobEntity;
     }
 
+    protected JobEntity getJobEntity(int jobId) {
+        final FlowCacheEntity mockedFlowCacheEntity = mock(FlowCacheEntity.class);
+        final SinkCacheEntity mockedSinkCacheEntity = mock(SinkCacheEntity.class);
+
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setSpecification(new JobSpecificationBuilder().build());
+        jobEntity.setCachedFlow(mockedFlowCacheEntity);
+        jobEntity.setCachedSink(mockedSinkCacheEntity);
+
+        when(entityManager.find(JobEntity.class, jobId)).thenReturn(jobEntity);
+
+        return jobEntity;
+    }
+
     private void whenGetFlowBinderThenReturnFlowBinder(JobSpecification jobSpecification, FlowBinder flowBinder) throws FlowStoreServiceConnectorException {
         when(mockedFlowStoreServiceConnector.getFlowBinder(
                 jobSpecification.getPackaging(),

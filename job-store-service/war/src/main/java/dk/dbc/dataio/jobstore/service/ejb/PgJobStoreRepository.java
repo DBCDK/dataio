@@ -450,22 +450,24 @@ public class PgJobStoreRepository extends RepositoryBase {
      * Purges all chunks and items associated with specified job,
      * and resets the internal state of the job
      * @param jobId ID of job to be reset
-     * @return managed entity for job
+     * @return managed entity for job, or null if no job could be found
      */
     @Stopwatch
     public JobEntity resetJob(int jobId) {
         LOGGER.info("Resetting job {}", jobId);
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
 
-        final int numberOfPurgedChunks = purgeChunks(jobId);
-        LOGGER.info("Purged {} chunks from job {}", numberOfPurgedChunks, jobId);
+        if (jobEntity != null) {
+            final int numberOfPurgedChunks = purgeChunks(jobId);
+            LOGGER.info("Purged {} chunks from job {}", numberOfPurgedChunks, jobId);
 
-        final int numberOfPurgedItems = purgeItems(jobId);
-        LOGGER.info("Purged {} items from job {}", numberOfPurgedItems, jobId);
+            final int numberOfPurgedItems = purgeItems(jobId);
+            LOGGER.info("Purged {} items from job {}", numberOfPurgedItems, jobId);
 
-        jobEntity.setNumberOfChunks(0);
-        jobEntity.setNumberOfItems(0);
-        jobEntity.setState(new State());
+            jobEntity.setNumberOfChunks(0);
+            jobEntity.setNumberOfItems(0);
+            jobEntity.setState(new State());
+        }
 
         return jobEntity;
     }

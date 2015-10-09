@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
@@ -101,6 +102,37 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         for (ItemEntity entity : remainingItems) {
             assertThat("Job ID of remaining item", entity.getKey().getJobId(), is(not(job2)));
         }
+    }
+
+    /**
+     * Given: a job repository containing job with chunks and items
+     * When : the job is reset
+     * Then : the purged job is returned
+     * And  : all chunks associated with the job are deleted
+     * And  : all items associated with the job are deleted
+     */
+    @Test
+    public void resetJob() {
+        // Given...
+        final int chunkId = 0;
+        final JobEntity job = newPersistedJobEntity();
+        newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
+        newPersistedItemEntity(new ItemEntity.Key(job.getId(), chunkId, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(job.getId(), chunkId, (short)1));
+
+        // When...
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        final JobEntity purgedJob = pgJobStoreRepository.resetJob(job.getId());
+        transaction.commit();
+
+        // Then...
+        assertThat(purgedJob.getId(), is(job.getId()));
+        // And...
+        assertThat(findAllChunks().size(), is(0));
+        // And..
+        assertThat(findAllItems().size(), is(0));
     }
 
     private PgJobStoreRepository newPgJobStoreRepository() {

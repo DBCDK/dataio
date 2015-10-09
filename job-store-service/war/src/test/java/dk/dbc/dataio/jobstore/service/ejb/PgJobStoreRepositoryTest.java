@@ -28,14 +28,10 @@ import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 
 import javax.persistence.LockModeType;
-import javax.persistence.Query;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
@@ -69,12 +65,5 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         assertThat(pgJobStoreRepository.resetJob(jobId), is(nullValue()));
-    }
-
-    private Query whenCreateQueryThenReturn() {
-        final Query query = mock(Query.class);
-        when(query.setParameter(anyString(), anyInt())).thenReturn(query);
-        when(entityManager.createQuery(anyString())).thenReturn(query);
-        return query;
     }
 }

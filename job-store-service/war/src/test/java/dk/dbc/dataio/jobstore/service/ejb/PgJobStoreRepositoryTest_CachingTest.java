@@ -26,7 +26,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
@@ -34,61 +33,60 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class PgJobStore_CachesTest extends PgJobStoreBaseTest {
-
+public class PgJobStoreRepositoryTest_CachingTest extends PgJobStoreBaseTest {
     @Test
-    public void cacheFlow_flowArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+    public void cacheFlow_flowArgIsNull_throws() {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStore.jobStoreRepository.cacheFlow(null);
+            pgJobStoreRepository.cacheFlow(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void cacheFlow_flowArgIsEmpty_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+    public void cacheFlow_flowArgIsEmpty_throws() {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStore.jobStoreRepository.cacheFlow(" ");
+            pgJobStoreRepository.cacheFlow(" ");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
     }
 
     @Test
-    public void cacheFlow_flowArgIsCached_returnsFlowCacheEntityInstance() throws JobStoreException, JSONBException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final String flowJson = pgJobStore.jobStoreRepository.jsonbContext.marshall(new FlowBuilder().build());
-        final FlowCacheEntity flowCacheEntity = pgJobStore.jobStoreRepository.cacheFlow(flowJson);
+    public void cacheFlow_flowArgIsCached_returnsFlowCacheEntityInstance() throws JSONBException {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final String flowJson = pgJobStoreRepository.jsonbContext.marshall(new FlowBuilder().build());
+        final FlowCacheEntity flowCacheEntity = pgJobStoreRepository.cacheFlow(flowJson);
         assertThat(flowCacheEntity, is(EXPECTED_FLOW_CACHE_ENTITY));
     }
 
     @Test
-    public void cacheSink_sinkArgIsNull_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+    public void cacheSink_sinkArgIsNull_throws() {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStore.jobStoreRepository.cacheSink(null);
+            pgJobStoreRepository.cacheSink(null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
 
     @Test
-    public void cacheSink_sinkArgIsEmpty_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+    public void cacheSink_sinkArgIsEmpty_throws() {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStore.jobStoreRepository.cacheSink(" ");
+            pgJobStoreRepository.cacheSink(" ");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
     }
 
     @Test
-    public void cacheSink_sinkArgIsCached_returnsSinkCacheEntityInstance() throws JobStoreException, JSONBException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final String sinkJson = pgJobStore.jobStoreRepository.jsonbContext.marshall(new SinkBuilder().build());
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.jobStoreRepository.cacheSink(sinkJson);
+    public void cacheSink_sinkArgIsCached_returnsSinkCacheEntityInstance() throws JSONBException {
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final String sinkJson = pgJobStoreRepository.jsonbContext.marshall(new SinkBuilder().build());
+        final SinkCacheEntity sinkCacheEntity = pgJobStoreRepository.cacheSink(sinkJson);
         assertThat(sinkCacheEntity, is(EXPECTED_SINK_CACHE_ENTITY));
     }
 }

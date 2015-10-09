@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -29,7 +28,6 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -51,6 +49,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
+import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -58,13 +57,11 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
-
+public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     private static final int DEFAULT_CHUNK_ID = 1;
     private static final short DEFAULT_ITEM_ID = 1;
 
@@ -80,8 +77,7 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void listJobs_queryReturnsEmptyList_returnsEmptySnapshotList() {
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(JobEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
@@ -92,30 +88,24 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void listJobs_queryReturnsNonEmptyList_returnsSnapshotList() {
-        final Query query = mock(Query.class);
         final JobEntity jobEntity1 = new JobEntity();
         jobEntity1.setNumberOfItems(42);
-        jobEntity1.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
         final JobEntity jobEntity2 = new JobEntity();
         jobEntity2.setNumberOfItems(4242);
-        jobEntity2.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
-        when(entityManager.createNativeQuery(anyString(), eq(JobEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Arrays.asList(jobEntity1, jobEntity2));
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         final List<JobInfoSnapshot> jobInfoSnapshots = pgJobStoreRepository.listJobs(new JobListCriteria());
         assertThat("List of JobInfoSnapshot", jobInfoSnapshots, is(notNullValue()));
         assertThat("List of JobInfoSnapshot size", jobInfoSnapshots.size(), is(2));
-        assertThat("List of JobInfoSnapshot first element numberOfItems",
-                jobInfoSnapshots.get(0).getNumberOfItems(), is(jobEntity1.getNumberOfItems()));
-        assertThat("List of JobInfoSnapshot second element numberOfItems",
-                jobInfoSnapshots.get(1).getNumberOfItems(), is(jobEntity2.getNumberOfItems()));
+        assertThat("List of JobInfoSnapshot first element", jobInfoSnapshots.get(0), is(toJobInfoSnapshot(jobEntity1)));
+        assertThat("List of JobInfoSnapshot second element", jobInfoSnapshots.get(1), is(toJobInfoSnapshot(jobEntity2)));
     }
 
     @Test
     public void listItems_queryReturnsEmptyList_returnsEmptySnapshotList() {
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
@@ -126,12 +116,11 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void listItems_queryReturnsNonEmptyList_returnsSnapshotList() {
-        final Query query = mock(Query.class);
         final ItemEntity itemEntity1 = new ItemEntity();
         itemEntity1.setKey(new ItemEntity.Key(1, 0, (short) 0));
         final ItemEntity itemEntity2 = new ItemEntity();
         itemEntity2.setKey(new ItemEntity.Key(1, 0,(short) 1));
-        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Arrays.asList(itemEntity1, itemEntity2));
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
@@ -169,14 +158,11 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void countItems_queryReturnsItemCount() {
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
-
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getSingleResult()).thenReturn(2L);
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final Long count = pgJobStoreRepository.countItems(new ItemListCriteria());
-        assertThat(count, is(2L));
+        assertThat(pgJobStoreRepository.countItems(new ItemListCriteria()), is(2L));
     }
 
     @Test
@@ -191,19 +177,18 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void listChunksCollisionDetectionElements_queryReturnsEmptyList_returnsEmptyCollisionDetectionElementList() {
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(ChunkEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStoreRepository.listChunksCollisionDetectionElements(new ChunkListCriteria());
+        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStoreRepository
+                .listChunksCollisionDetectionElements(new ChunkListCriteria());
         assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
         assertThat("List of CollisionDetectionElement is empty", collisionDetectionElements.isEmpty(), is(true));
     }
 
     @Test
     public void listChunksCollisionDetectionElements_queryReturnsNonEmptyList_returnsCollisionDetectionElementList() {
-        final Query query = mock(Query.class);
         final SequenceAnalysisData mockedSequenceAnalysisData = mock(SequenceAnalysisData.class);
         final ChunkEntity chunkEntity1 = new ChunkEntity();
         chunkEntity1.setKey(new ChunkEntity.Key(1, 1));
@@ -213,12 +198,12 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
         chunkEntity2.setKey(new ChunkEntity.Key(0, 1));
         chunkEntity2.setSequenceAnalysisData(mockedSequenceAnalysisData);
 
-        when(entityManager.createNativeQuery(anyString(), eq(ChunkEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Arrays.asList(chunkEntity1, chunkEntity2));
 
-
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStoreRepository.listChunksCollisionDetectionElements(new ChunkListCriteria());
+        final List<CollisionDetectionElement> collisionDetectionElements = pgJobStoreRepository
+                .listChunksCollisionDetectionElements(new ChunkListCriteria());
         assertThat("List of CollisionDetectionElement", collisionDetectionElements, is(notNullValue()));
         assertThat("List of CollisionDetectionElement size", collisionDetectionElements.size(), is(2));
         assertThat("List of CollisionDetectionElement first element numberOfItems",
@@ -229,9 +214,9 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void getChunk_typeArgIsNull_throws() {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStore.jobStoreRepository.getChunk(null, 2, 1);
+            pgJobStoreRepository.getChunk(null, 2, 1);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -239,23 +224,21 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void getChunk_queryReturnsEmptyList_returnsNull() {
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
-        final PgJobStore pgJobStore = newPgJobStore();
-        assertThat(pgJobStore.jobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1), is(nullValue()));
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        assertThat(pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1), is(nullValue()));
     }
 
     @Test
     public void getChunk_queryReturnsItemEntityWithoutData_throws() {
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.singletonList(new ItemEntity()));
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStore.jobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+            pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -279,12 +262,11 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
         entity2.setPartitioningOutcome(data2);
         entity2.setState(state2);
 
-        final Query query = mock(Query.class);
-        when(entityManager.createNativeQuery(anyString(), eq(ItemEntity.class))).thenReturn(query);
+        final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Arrays.asList(entity1, entity2));
 
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final ExternalChunk chunk = pgJobStore.jobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final ExternalChunk chunk = pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
         assertThat("chunk", chunk, is(notNullValue()));
         assertThat("chunk.size()", chunk.size(), is(2));
         assertThat("chunk.getEncoding()", chunk.getEncoding(), is(data1.getEncoding()));
@@ -299,22 +281,21 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void getItemData_itemEntityNotFound_throws() throws JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
         try {
-            pgJobStore.jobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
+            pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
             fail("No exception thrown");
         } catch (JobStoreException e) {}
     }
 
     @Test
     public void getItemData_phasePartitioning_returnsItemData() throws JobStoreException{
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-
-        ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final ItemData itemData = pgJobStore.jobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final ItemData itemData = pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
         assertThat("itemData not null", itemData, not(nullValue()));
         assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getPartitioningOutcome().getData()),
                 itemData.getData(), is(itemEntity.getPartitioningOutcome().getData()));
@@ -323,12 +304,11 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void getItemData_phaseProcessing_returnsItemData() throws JobStoreException{
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-
-        ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final ItemData itemData = pgJobStore.jobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final ItemData itemData = pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
         assertThat("itemData not null", itemData, not(nullValue()));
         assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getProcessingOutcome().getData()),
                 itemData.getData(), is(itemEntity.getProcessingOutcome().getData()));
@@ -336,12 +316,11 @@ public class PgJobStore_QueriesTest extends PgJobStoreBaseTest {
 
     @Test
     public void getItemData_phaseDelivering_returnsItemData() throws JobStoreException{
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-
-        ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
-        final ItemData itemData = pgJobStore.jobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final ItemData itemData = pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
         assertThat("itemData not null", itemData, not(nullValue()));
         assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getDeliveringOutcome().getData()),
                 itemData.getData(), is(itemEntity.getDeliveringOutcome().getData()));

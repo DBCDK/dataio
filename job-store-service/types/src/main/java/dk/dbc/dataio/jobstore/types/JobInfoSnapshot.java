@@ -28,7 +28,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import java.util.Date;
 
 public class JobInfoSnapshot {
-
     private int jobId;
     private boolean eoj;
     private boolean fatalError;
@@ -117,5 +116,70 @@ public class JobInfoSnapshot {
 
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        JobInfoSnapshot that = (JobInfoSnapshot) o;
+
+        if (jobId != that.jobId) {
+            return false;
+        }
+        if (eoj != that.eoj) {
+            return false;
+        }
+        if (fatalError != that.fatalError) {
+            return false;
+        }
+        if (partNumber != that.partNumber) {
+            return false;
+        }
+        if (numberOfChunks != that.numberOfChunks) {
+            return false;
+        }
+        if (numberOfItems != that.numberOfItems) {
+            return false;
+        }
+        if (timeOfCreation != null ? !timeOfCreation.equals(that.timeOfCreation) : that.timeOfCreation != null) {
+            return false;
+        }
+        if (timeOfLastModification != null ? !timeOfLastModification.equals(that.timeOfLastModification) : that.timeOfLastModification != null) {
+            return false;
+        }
+        if (timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null) {
+            return false;
+        }
+        if (specification != null ? !specification.equals(that.specification) : that.specification != null) {
+            return false;
+        }
+        if (state != null ? !state.equals(that.state) : that.state != null) {
+            return false;
+        }
+        return !(flowStoreReferences != null ? !flowStoreReferences.equals(that.flowStoreReferences) : that.flowStoreReferences != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = jobId;
+        result = 31 * result + (eoj ? 1 : 0);
+        result = 31 * result + (fatalError ? 1 : 0);
+        result = 31 * result + partNumber;
+        result = 31 * result + numberOfChunks;
+        result = 31 * result + numberOfItems;
+        result = 31 * result + (timeOfCreation != null ? timeOfCreation.hashCode() : 0);
+        result = 31 * result + (timeOfLastModification != null ? timeOfLastModification.hashCode() : 0);
+        result = 31 * result + (timeOfCompletion != null ? timeOfCompletion.hashCode() : 0);
+        result = 31 * result + (specification != null ? specification.hashCode() : 0);
+        result = 31 * result + (state != null ? state.hashCode() : 0);
+        result = 31 * result + (flowStoreReferences != null ? flowStoreReferences.hashCode() : 0);
+        return result;
     }
 }

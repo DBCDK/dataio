@@ -61,6 +61,9 @@ import java.util.Date;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -246,6 +249,21 @@ public abstract class PgJobStoreBaseTest {
                 jobSpecification.getCharset(),
                 jobSpecification.getSubmitterId(),
                 jobSpecification.getDestination())).thenReturn(flowBinder);
+    }
+
+    protected Query whenCreateQueryThenReturn() {
+        final Query query = mock(Query.class);
+        when(query.setParameter(anyString(), anyInt())).thenReturn(query);
+        when(entityManager.createQuery(anyString())).thenReturn(query);
+        return query;
+    }
+
+    protected Query whenCreateNativeQueryThenReturn() {
+        final Query query = mock(Query.class);
+        when(query.setParameter(anyString(), anyInt())).thenReturn(query);
+        when(entityManager.createNativeQuery(anyString(), any(Class.class))).thenReturn(query);
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
+        return query;
     }
 
     // Inner classes

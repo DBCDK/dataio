@@ -37,7 +37,11 @@ public class SinkServiceProxyServlet extends RemoteServiceServlet implements Sin
     @Override
     public void init() throws ServletException {
         super.init();
-        sinkServiceProxy = new SinkServiceProxyImpl();
+        try {
+            sinkServiceProxy = new SinkServiceProxyImpl();
+        } catch (ProxyException e) {
+            throw new ServletException(e);
+        }
     }
 
     @Override

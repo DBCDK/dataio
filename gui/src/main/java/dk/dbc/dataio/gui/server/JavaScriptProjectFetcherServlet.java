@@ -42,7 +42,12 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
     @Override
     public void init() throws ServletException {
         super.init();
-        final String subversionScmEndpoint = ServletUtil.getSubversionScmEndpoint();
+        final String subversionScmEndpoint;
+        try {
+            subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
+        } catch (NamingException e) {
+            throw new ServletException(e);
+        }
         javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
     }
 

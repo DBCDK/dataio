@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.rest.SinkServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
@@ -38,17 +39,28 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.ServletException;
+import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 
 public class SinkServiceProxyImpl implements SinkServiceProxy {
     private static final Logger log = LoggerFactory.getLogger(SinkServiceProxyImpl.class);
     private Client client = null;
+    final String baseUrl;
 
-    public SinkServiceProxyImpl() {
+    public SinkServiceProxyImpl() throws ProxyException {
+
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
+
+        try {
+            baseUrl = ServiceUtil.getSinkServiceEndpoint();
+        } catch (NamingException e) {
+            log.error("SinkServiceProxy: ping - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        }
+
+        log.info("SinkServiceProxy: Using Base URL {}", baseUrl);
     }
 
     @Override
@@ -59,13 +71,8 @@ public class SinkServiceProxyImpl implements SinkServiceProxy {
 
         final Response response;
         final PingResponse result;
-        try {
-            response = HttpClient.doPostWithJson(client, SinkModelMapper.toSinkContent(model),
-                    ServletUtil.getSinkServiceEndpoint(), SinkServiceConstants.PING);
-        } catch (ServletException e) {
-            log.error("SinkServiceProxy: ping - Service Not Found Exception", e);
-            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        }
+
+        response = HttpClient.doPostWithJson(client, SinkModelMapper.toSinkContent(model), baseUrl, SinkServiceConstants.PING);
         try {
             assertStatusCode(response, Response.Status.OK);
             result = response.readEntity(PingResponse.class);

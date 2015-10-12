@@ -79,12 +79,6 @@ public class SinkServiceProxyImplTest {
         when(ServiceUtil.getSinkServiceEndpoint()).thenThrow(new NamingException());
 
         final SinkServiceProxyImpl sinkServiceProxy = new SinkServiceProxyImpl();
-        try {
-            sinkServiceProxy.ping(getValidSinkModel());
-        } catch (ProxyException e) {
-            assertThat(e.getErrorCode(), is(ProxyError.SERVICE_NOT_FOUND));
-            throw e;
-        }
     }
 
     @Test(expected = ProxyException.class)

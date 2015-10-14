@@ -23,15 +23,13 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.sink.util.DocumentTransformer;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,10 +39,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class AddiRecordPreprocessorTest {
-    private final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-    {
-        documentBuilderFactory.setNamespaceAware(true);
-    }
 
     @Test
     public void execute_noProcessingTag_returnsUnchangedMetadataWithUnchangedContent() {
@@ -85,32 +79,27 @@ public class AddiRecordPreprocessorTest {
     }
 
     private boolean hasProcessingTag(AddiRecord addiRecord) {
-        final Document metadata = getDocument(addiRecord.getMetaData());
+        final Document metadata;
+        try {
+            metadata = DocumentTransformer.byteArrayToDocument(addiRecord.getMetaData());
+        } catch (IOException | SAXException e) {
+            throw new IllegalStateException(e);
+        }
         return metadata.getElementsByTagName(AddiRecordPreprocessor.PROCESSING_TAG).getLength() > 0;
     }
 
-    private Document getDocument(byte[] byteArray) {
-        final DocumentBuilder builder = getDocumentBuilder();
-        final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+    private byte[] to2709(byte[] bytes) {
         try {
-            return builder.parse(byteArrayInputStream);
-        } catch (SAXException | IOException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private DocumentBuilder getDocumentBuilder() {
-        try {
-            return documentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private byte[] to2709(byte[] document) {
-        try {
-            return Iso2709Packer.create2709FromMarcXChangeRecord(getDocument(document), new DanMarc2Charset());
+            return Iso2709Packer.create2709FromMarcXChangeRecord(getDocument(bytes), new DanMarc2Charset());
         } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private Document getDocument(byte[] bytes) {
+        try {
+            return DocumentTransformer.byteArrayToDocument(bytes);
+        } catch (IOException | SAXException e) {
             throw new IllegalStateException(e);
         }
     }

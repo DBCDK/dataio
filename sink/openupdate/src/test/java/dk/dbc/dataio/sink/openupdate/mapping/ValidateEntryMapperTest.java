@@ -10,6 +10,7 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.xml.bind.JAXBException;
 import java.math.BigInteger;
 import java.util.List;
 
@@ -68,7 +69,7 @@ public class ValidateEntryMapperTest {
     }
 
     @Test
-    public void testMap_validationError() throws Exception {
+    public void testMap_validationError_asJson() throws Exception {
 
         OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_validation).map();
         final String json = openUpdateResponseDTO.asJson();
@@ -95,5 +96,19 @@ public class ValidateEntryMapperTest {
             assertEquals(1l, node.findValues("ordinalPositionOfSubField").get(0).asLong());
             assertTrue(!node.findValues("errorMessage").get(0).asText().isEmpty());
         }
+    }
+
+    @Test
+    public void testMap_validationError_asXml() throws JAXBException {
+
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_validation).map();
+        final String xml = openUpdateResponseDTO.asXml();
+        assertNotNull(xml);
+        assertTrue(xml.contains("errorMessages"));
+        assertTrue(xml.contains("status"));
+        assertTrue(xml.contains("errorMessage"));
+        assertTrue(xml.contains("type"));
+        assertTrue(xml.contains("ordinalPositionOfField"));
+        assertTrue(xml.contains("ordinalPositionOfSubField"));
     }
 }

@@ -1,7 +1,6 @@
 package dk.dbc.dataio.sink.openupdate.mapping;
 
 import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 
 public class OpenUpdateErrorMessageDTO {
 
@@ -13,10 +12,6 @@ public class OpenUpdateErrorMessageDTO {
     private Long ordinalPositionOfField;
     private Long ordinalPositionOfSubField;
     private String errorMessage;
-
-    public String asJson() throws JSONBException {
-        return jsonbContext.marshall(this);
-    }
 
     public ErrorType getType() {
         return type;

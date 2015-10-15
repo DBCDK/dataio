@@ -56,7 +56,7 @@ public class ValidateEntryMapperTest {
     public void testMap_ok() throws Exception {
 
         OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_ok).map();
-        final String json = jsonbContext.marshall(openUpdateResponseDTO);
+        String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
 
         final JsonNode jsonTree = jsonbContext.getJsonTree(json);
@@ -71,7 +71,7 @@ public class ValidateEntryMapperTest {
     public void testMap_validationError() throws Exception {
 
         OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_validation).map();
-        final String json = jsonbContext.marshall(openUpdateResponseDTO);
+        final String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
         System.out.println(json);
 

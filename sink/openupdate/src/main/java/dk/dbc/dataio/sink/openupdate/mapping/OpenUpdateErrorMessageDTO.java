@@ -1,17 +1,22 @@
 package dk.dbc.dataio.sink.openupdate.mapping;
 
-/**
- * Created by ThomasBerg on 14/10/15.
- */
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
+
 public class OpenUpdateErrorMessageDTO {
 
     public enum ErrorType {ERROR, WARNING}
+    private JSONBContext jsonbContext = new JSONBContext();
 
     // Optional values
     private ErrorType type;
     private Long ordinalPositionOfField;
     private Long ordinalPositionOfSubField;
     private String errorMessage;
+
+    public String asJson() throws JSONBException {
+        return jsonbContext.marshall(this);
+    }
 
     public ErrorType getType() {
         return type;

@@ -7,7 +7,7 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
  * In case the OpenUpdate webservice response contains error messages this ValidateEntryMapper
  * can do the mapping between 1 webservice error message to the OpenUpdateErrorMessageDTO.
  *
- * @param <OpenUpdateWebServiceErrorMessage>
+ * @param <OpenUpdateWebServiceErrorMessage>    ValidateEntry received from the Open Update web service in case of errors
  */
 public class ValidateEntryMapper<OpenUpdateWebServiceErrorMessage extends ValidateEntry> {
 

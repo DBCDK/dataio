@@ -1,5 +1,7 @@
 package dk.dbc.dataio.sink.openupdate.mapping;
 
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
@@ -13,11 +15,12 @@ import java.util.List;
  * web service and the JSON OpenUpdateResonseDTO.
  * The OpenUpdateResponseDTO can generate JSON by calling asJson method and this is persistable in the data-part of an ExternalChunk.
  *
- * @param <OpenUpdateWebServiceResponse>
+ * @param <OpenUpdateWebServiceResponse>    UpdateRecordResult received from the web service.
  */
 public class UpdateRecordResponseMapper<OpenUpdateWebServiceResponse extends UpdateRecordResult> {
 
     private OpenUpdateWebServiceResponse openUpdateWebServiceResponse;
+    private JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * @param openUpdateWebServiceResponse  UpdateRecordResult received from the OpenUpdate web service
@@ -47,6 +50,9 @@ public class UpdateRecordResponseMapper<OpenUpdateWebServiceResponse extends Upd
         return dto;
     }
 
+    public String asJson() throws JSONBException {
+        return jsonbContext.marshall(this);
+    }
 
     private void mapStatus(UpdateStatusEnum updateStatus, OpenUpdateResponseDTO dto) {
 

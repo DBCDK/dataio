@@ -1,11 +1,8 @@
 package dk.dbc.dataio.sink.openupdate.mapping;
 
-import dk.dbc.dataio.jsonb.JSONBContext;
-
 public class OpenUpdateErrorMessageDTO {
 
     public enum ErrorType {ERROR, WARNING}
-    private JSONBContext jsonbContext = new JSONBContext();
 
     // Optional values
     private ErrorType type;

@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.sink.util.AddiUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -95,34 +96,35 @@ public class ESTaskPackageUtilTest {
     public void getAddiRecordsFromChunk_twoAddiInOneRecord_throws() throws Exception {
         final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
         final ExternalChunk processedChunk = newProcessedChunk(addiWithTwoRecords);
-        ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
+        AddiUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test(expected = NumberFormatException.class)
     public void getAddiRecordsFromChunk_notAddi_throws() throws Exception {
         final String notAddi = "string";
         final ExternalChunk processedChunk = newProcessedChunk(notAddi);
-        ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
+        AddiUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test
     public void getAddiRecordsFromChunk_singleSimpleRecordInChunk_happyPath() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
         final ExternalChunk processedChunk = newProcessedChunk(simpleAddiString);
-        final List<AddiRecord> addiRecordsFromChunk = ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk);
+
+        final List<AddiRecord> addiRecordsFromChunk = AddiUtil.getAddiRecordsFromChunk(processedChunk);
         assertThat(addiRecordsFromChunk.size(), is(1));
     }
 
     @Test(expected = NullPointerException.class)
     public void getAddiRecordsFromChunkItem_chunkItemArgIsNull_throws() throws Exception {
-        ESTaskPackageUtil.getAddiRecordsFromChunkItem(null);
+        AddiUtil.getAddiRecordsFromChunkItem(null);
     }
 
     @Test
     public void getAddiRecordsFromChunkItem_twoAddiInOneRecord_throws() throws Exception {
         final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
         final ChunkItem chunkItem = newChunkItem(addiWithTwoRecords);
-        final List<AddiRecord> addiRecords = ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
         assertThat("Number of Addi records returned", addiRecords.size(), is(2));
         assertThat("first Addi record", addiRecords.get(0), is(notNullValue()));
         assertThat("second Addi record", addiRecords.get(1), is(notNullValue()));
@@ -131,14 +133,14 @@ public class ESTaskPackageUtilTest {
     @Test(expected = NumberFormatException.class)
     public void getAddiRecordsFromChunkItem_chunkItemArgContainsNonAddiData_throws() throws Exception {
         final ChunkItem chunkItem = newChunkItem("non-addi");
-        ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
     }
 
     @Test
     public void getAddiRecordsFromChunkItem_chunkItemArgContainsValidAddi_returnsAddiRecordInstance() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
         final ChunkItem chunkItem = newChunkItem(simpleAddiString);
-        final List<AddiRecord> addiRecords = ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
         assertThat("Number of Addi records returned", addiRecords.size(), is(1));
         assertThat("Addi record", addiRecords.get(0), is(notNullValue()));
     }

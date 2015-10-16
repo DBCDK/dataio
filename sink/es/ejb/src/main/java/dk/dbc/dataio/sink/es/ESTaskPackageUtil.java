@@ -21,8 +21,6 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.commons.addi.AddiReader;
-import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
@@ -32,8 +30,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -61,18 +57,18 @@ public class ESTaskPackageUtil {
      * @throws NullPointerException if given null-valued list
      * @throws IllegalArgumentException if given sublistSize less than or equal to zero
      */
-    public static <T> List<List<T>> chopUp(List<T> list, int sublistSize)
-            throws NullPointerException, IllegalArgumentException {
-        if (list == null)
+    static <T> List<List<T>> chopUp(List<T> list, int sublistSize) throws NullPointerException, IllegalArgumentException {
+        if (list == null) {
             throw new NullPointerException("list can not be null");
-        if (!(sublistSize > 0))
+        }
+        if (!(sublistSize > 0)) {
             throw new IllegalArgumentException("sublistSize must be larger than zero");
+        }
 
         final List<List<T>> parts = new ArrayList<>();
         final int listSize = list.size();
         for (int i = 0; i < listSize; i += sublistSize) {
-            parts.add(new ArrayList<>(
-                list.subList(i, Math.min(listSize, i + sublistSize))));
+            parts.add(new ArrayList<>(list.subList(i, Math.min(listSize, i + sublistSize))));
         }
         return parts;
     }
@@ -121,8 +117,7 @@ public class ESTaskPackageUtil {
                 // has an upper bound of 1000 members of the IN condition we split into multiple
                 // iterations if necessary
                 for (List<Integer> trefs : chopUp(targetReferences, MAX_WHERE_IN_SIZE)) {
-                    String deleteStatement = "delete from taskpackage where targetreference in ("
-                            + commaSeparatedQuestionMarks(trefs.size()) + ")";
+                    String deleteStatement = "delete from taskpackage where targetreference in (" + commaSeparatedQuestionMarks(trefs.size()) + ")";
                     LOGGER.info(deleteStatement);
                     LOGGER.info("targetRefs to delete: {}", Arrays.toString(trefs.toArray()));
                     int deleted = JDBCUtil.update(conn, deleteStatement, trefs.toArray());
@@ -151,56 +146,6 @@ public class ESTaskPackageUtil {
     }
 
     /**
-     * Extracts addi-records from given chunk result.
-     *
-     * Records in chunk result items are assumed to be base64 encoded.
-     *
-     * @param processedChunk Object containing base64 encoded addi-record items
-     *
-     * @return list of AddiRecord objects.
-     *
-     * @throws IOException if an error occurs during reading of the addi-data.
-     * @throws IllegalStateException if any contained addi-records are invalid.
-     * @throws NumberFormatException if any contained records are not
-     * addi-format or not base64 encoded.
-     */
-    public static List<AddiRecord> getAddiRecordsFromChunk(ExternalChunk processedChunk) throws IllegalStateException, NumberFormatException, IOException {
-        final List<AddiRecord> addiRecords = new ArrayList<>();
-        for (ChunkItem item : processedChunk) {
-            final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(item.getData()));
-            addiRecords.add(addiReader.getNextRecord());
-            if (addiReader.getNextRecord() != null) {
-                throw new IllegalStateException(String.format("More than one Addi in record in: [jobId, chunkId] [%d, %d]", processedChunk.getJobId(), processedChunk.getChunkId()));
-            }
-        }
-        return addiRecords;
-    }
-
-    /**
-     * Extracts addi-record(s) from given chunk item
-     * @param chunkItem Object containing addi-record data
-     * @return list of AddiRecord objects
-     * @throws NullPointerException if given any null-valued argument
-     * @throws IOException if an error occurs during reading of the addi-data
-     * @throws IllegalStateException if contained addi-record is invalid
-     * @throws NumberFormatException if contained record is not addi-format
-     */
-    public static List<AddiRecord> getAddiRecordsFromChunkItem(ChunkItem chunkItem)
-            throws NullPointerException, IllegalStateException, NumberFormatException, IOException {
-        if (chunkItem.getData().length == 0) {
-            throw new IllegalStateException("No data in ChunkItem");
-        }
-        final List<AddiRecord> addiRecords = new ArrayList<>();
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-        AddiRecord nextRecord = addiReader.getNextRecord();
-        while (nextRecord != null) {
-            addiRecords.add(nextRecord);
-            nextRecord = addiReader.getNextRecord();
-        }
-        return addiRecords;
-    }
-
-    /**
      * Inserts the addi-records contained in given workload into the ES-base
      * with the given dbname.
      *
@@ -225,21 +170,6 @@ public class ESTaskPackageUtil {
                 esWorkload.getDeliveredChunk().getEncoding(), creator, esWorkload.userId, esWorkload.getPackageType(), esWorkload.getAction());
         validateTaskPackageState(insertionResult, esWorkload);
         return insertionResult.getTargetReference();
-    }
-
-    private static void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, EsWorkload esWorkload) throws IllegalStateException {
-        final int recordSlots = esWorkload.getAddiRecords().size();
-        if (recordSlots != insertionResult.getNumberOfInsertedRecords()) {
-            throw new IllegalStateException(String.format("The number of records in the chunk and the number of records in the taskpackage differ. Chunk size: %d  TaskPackage size: %d", recordSlots, insertionResult.getNumberOfInsertedRecords()));
-        }
-    }
-
-    private static String createCreatorString(long jobId, long chunkId) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(ES_TASKPACKAGE_CREATOR_FIELD_PREFIX);
-        sb.append("[ jobid: ").append(jobId);
-        sb.append(" , chunkId: ").append(chunkId).append(" ]");
-        return sb.toString();
     }
 
     public static ExternalChunk getChunkForTaskPackage(Connection connection, int targetReference, ExternalChunk placeholderChunk) throws SQLException {
@@ -368,6 +298,21 @@ public class ESTaskPackageUtil {
             JDBCUtil.closeStatement(ps);
         }
         return taskPackageRecordsStructureDatas;
+    }
+
+    private static void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, EsWorkload esWorkload) throws IllegalStateException {
+        final int recordSlots = esWorkload.getAddiRecords().size();
+        if (recordSlots != insertionResult.getNumberOfInsertedRecords()) {
+            throw new IllegalStateException(String.format("The number of records in the chunk and the number of records in the taskpackage differ. Chunk size: %d  TaskPackage size: %d", recordSlots, insertionResult.getNumberOfInsertedRecords()));
+        }
+    }
+
+    private static String createCreatorString(long jobId, long chunkId) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(ES_TASKPACKAGE_CREATOR_FIELD_PREFIX);
+        sb.append("[ jobid: ").append(jobId);
+        sb.append(" , chunkId: ").append(chunkId).append(" ]");
+        return sb.toString();
     }
 
     public static class TaskStatus {

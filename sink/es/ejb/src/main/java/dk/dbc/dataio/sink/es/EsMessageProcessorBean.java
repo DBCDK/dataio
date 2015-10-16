@@ -36,6 +36,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.util.AddiUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -157,7 +158,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
-        final List<AddiRecord> addiRecords = ESTaskPackageUtil.getAddiRecordsFromChunkItem(chunkItem);
+        final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
         final List<AddiRecord> preprocessedAddiRecords = new ArrayList<>(addiRecords.size());
         for (AddiRecord addiRecord : addiRecords) {
             preprocessedAddiRecords.add(addiRecordPreprocessor.execute(addiRecord));

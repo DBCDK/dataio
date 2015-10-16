@@ -136,29 +136,24 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         // in-flight database to store the number of Addi records from the
                         // original record - this information is used by the EsCleanupBean
                         // when creating the resulting sink chunk.
-                        incompleteDeliveredChunk.insertItem(new ChunkItem(
-                                chunkItem.getId(), asBytes(Integer.toString(addiRecordsFromItem.size())), ChunkItem.Status.SUCCESS));
+                        incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), asBytes(Integer.toString(addiRecordsFromItem.size())), ChunkItem.Status.SUCCESS));
                     } catch (RuntimeException | IOException e) {
-                        incompleteDeliveredChunk.insertItem(new ChunkItem(
-                                chunkItem.getId(), asBytes(e.getMessage()), ChunkItem.Status.FAILURE));
+                        incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), asBytes(e.getMessage()), ChunkItem.Status.FAILURE));
                     } finally {
                         LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
                     }
                     break;
-                case FAILURE:
-                    incompleteDeliveredChunk.insertItem(new ChunkItem(
-                            chunkItem.getId(), asBytes("Failed by processor"), ChunkItem.Status.IGNORE));
-                    break;
-                case IGNORE:
-                    incompleteDeliveredChunk.insertItem(new ChunkItem(
-                            chunkItem.getId(), asBytes("Ignored by processor"), ChunkItem.Status.IGNORE));
-                    break;
-                default:
-                    throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
+                case FAILURE:   incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), asBytes("Failed by processor"), ChunkItem.Status.IGNORE));     break;
+                case IGNORE:    incompleteDeliveredChunk.insertItem(new ChunkItem(chunkItem.getId(), asBytes("Ignored by processor"), ChunkItem.Status.IGNORE));    break;
+                default:        throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
             }
         }
-        return new EsWorkload(incompleteDeliveredChunk, addiRecords,
-                configuration.getEsUserId(), configuration.getEsPackageType(), configuration.getEsAction());
+        return new EsWorkload(
+                incompleteDeliveredChunk,
+                addiRecords,
+                configuration.getEsUserId(),
+                configuration.getEsPackageType(),
+                configuration.getEsAction());
     }
 
     private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {

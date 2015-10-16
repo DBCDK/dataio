@@ -30,6 +30,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.IGNORE;
+
 /**
  * Chunk-type for using outside of the job-store. Internally in the job-store, a
  * chunk entity will be used.
@@ -150,9 +154,20 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         }
     }
 
+    public void insertItemWithStatusSuccess(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
+        insertItem(new ChunkItem(itemId, itemContent, SUCCESS));
+    }
+    public void insertItemWithStatusFailed(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
+        insertItem(new ChunkItem(itemId, itemContent, FAILURE));
+    }
+    public void insertItemWithStatusIgnored(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
+        insertItem(new ChunkItem(itemId, itemContent, IGNORE));
+    }
+
     public void insertItem(ChunkItem item) throws IllegalArgumentException {
-        if (item == ChunkItem.UNDEFINED)
+        if (item == ChunkItem.UNDEFINED) {
             throw new IllegalArgumentException("item can not be null");
+        }
         insert(items, item);
     }
 

@@ -21,27 +21,109 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
 
+    @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
         final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
-
         LOGGER.info("External Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
+
+        final ExternalChunk chunkForDelivery = buildBasicDeliveredChunkFromProcessedChunk(processedChunk);
+
+        if(processedChunk.isEmpty()) {
+
+            LOGGER.info("OpenUpdate Sink received chunk {} of job {} with no Addi records - sending result", chunkForDelivery.getChunkId(), chunkForDelivery.getJobId());
+            addChunkInJobStore(chunkForDelivery);
+        } else {
+
+//            final List<AddiRecord> addiRecords = new ArrayList<>(processedChunk.size());
+            // Call the OpenUpdate web service for each ChunkItem if processed successfully.
+            for(ChunkItem processedChunkItem : processedChunk) {
+
+                switch (processedChunkItem.getStatus()) {
+
+                    case SUCCESS:
+                        try {
+                            //final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
+//                            addiRecords.addAll(addiRecordsFromItem);
+
+
+                            // We use the data property of the ChunkItem placeholder kept in the ES
+                            // in-flight database to store the number of Addi records from the
+                            // original record - this information is used by the EsCleanupBean
+                            // when creating the resulting sink chunk.
+
+
+
+                            chunkForDelivery.insertItemWithStatusSuccess(processedChunkItem.getId(), asBytes("Suuuuccess =D"));
+                        } catch (RuntimeException /*| IOException */ e) {
+                            chunkForDelivery.insertItemWithStatusFailed(processedChunkItem.getId(), asBytes(e.getMessage()));
+                        }
+                        break;
+
+                    case FAILURE:   chunkForDelivery.insertItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));   break;
+
+                    case IGNORE:    chunkForDelivery.insertItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor"));  break;
+
+                    default:        throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
+                }
+            }
+        }
+    }
+
+    private void addChunkInJobStore(ExternalChunk chunkForDelivery) {
+        try {
+            jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(chunkForDelivery, chunkForDelivery.getJobId(), chunkForDelivery.getChunkId());
+        } catch (JobStoreServiceConnectorException e) {
+            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+                if (jobError != null) {
+                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
+                }
+            }
+        }
+    }
+
+    private ExternalChunk buildBasicDeliveredChunkFromProcessedChunk(ExternalChunk processedChunk) {
+        final ExternalChunk incompleteDeliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
+        return incompleteDeliveredChunk;
+    }
+
+    private ExternalChunk mapWebServiceResultToExternalChunk(UpdateRecordResult updateRecordResult) {
+        return null;
+    }
+
+    private UpdateRecordResult callWebService() {
+        AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
+        return addiRecordPreprocessor.execute(new AddiRecord(new byte[0], new byte[0]));
     }
 }

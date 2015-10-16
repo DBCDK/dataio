@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.sink.util.AddiUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -269,7 +270,7 @@ public class ESTaskPackageUtilIT {
                 deliveredChunk.insertItem(item);
             }
             deliveredChunk.setEncoding(processedChunk.getEncoding());
-            EsWorkload esWorkload = new EsWorkload(deliveredChunk, ESTaskPackageUtil.getAddiRecordsFromChunk(processedChunk),
+            EsWorkload esWorkload = new EsWorkload(deliveredChunk, AddiUtil.getAddiRecordsFromChunk(processedChunk),
                     USER_ID, PACKAGE_TYPE, ACTION);
             return ESTaskPackageUtil.insertTaskPackage(conn, dbname, esWorkload);
         }

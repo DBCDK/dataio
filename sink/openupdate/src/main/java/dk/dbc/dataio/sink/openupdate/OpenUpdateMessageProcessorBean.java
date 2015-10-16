@@ -70,24 +70,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
                 switch (processedChunkItem.getStatus()) {
 
-                    case SUCCESS:
-                        try {
-                            //final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
-//                            addiRecords.addAll(addiRecordsFromItem);
-
-
-                            // We use the data property of the ChunkItem placeholder kept in the ES
-                            // in-flight database to store the number of Addi records from the
-                            // original record - this information is used by the EsCleanupBean
-                            // when creating the resulting sink chunk.
-
-
-
-                            chunkForDelivery.insertItemWithStatusSuccess(processedChunkItem.getId(), asBytes("Suuuuccess =D"));
-                        } catch (RuntimeException /*| IOException */ e) {
-                            chunkForDelivery.insertItemWithStatusFailed(processedChunkItem.getId(), asBytes(e.getMessage()));
-                        }
-                        break;
+                    case SUCCESS:   callOpenUpdateWebServiceAndInsertChunkItem(chunkForDelivery, processedChunkItem);                           break;
 
                     case FAILURE:   chunkForDelivery.insertItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));   break;
 
@@ -96,6 +79,27 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                     default:        throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
                 }
             }
+
+            addChunkInJobStore(chunkForDelivery);
+        }
+    }
+
+    private void callOpenUpdateWebServiceAndInsertChunkItem(ExternalChunk chunkForDelivery, ChunkItem processedChunkItem) {
+        try {
+            //final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
+//                            addiRecords.addAll(addiRecordsFromItem);
+
+
+            // We use the data property of the ChunkItem placeholder kept in the ES
+            // in-flight database to store the number of Addi records from the
+            // original record - this information is used by the EsCleanupBean
+            // when creating the resulting sink chunk.
+
+
+
+            chunkForDelivery.insertItemWithStatusSuccess(processedChunkItem.getId(), asBytes("Suuuuccess =D"));
+        } catch (RuntimeException /*| IOException */ e) {
+            chunkForDelivery.insertItemWithStatusFailed(processedChunkItem.getId(), asBytes(e.getMessage()));
         }
     }
 

@@ -59,7 +59,6 @@ import static org.mockito.Mockito.when;
 public abstract class SinkIT {
     protected static final DataSource ES_INFLIGHT_DATASOURCE;
     protected static final DataSource ES_DATASOURCE;
-    //protected static final String ES_INFLIGHT_DATABASE_NAME = "esinflight";
     protected static final String ES_INFLIGHT_DATABASE_NAME = "testdb";
     protected static final String ES_RESOURCE_NAME = "test/resource";
     protected static final String ES_DATABASE_NAME = "dbname";

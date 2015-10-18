@@ -30,6 +30,7 @@ public class JPATestUtils {
 
     public static final String POSTGRESQL_DBNAME = "postgresql.dbname";
     public static final String POSTGRESQL_HOST = "postgresql.host";
+    public static final String POSTGRESQL_PORT = "espostgresql.port";
 
     // Static Utility class
     private JPATestUtils() {
@@ -78,14 +79,14 @@ public class JPATestUtils {
     }
 
     public static DataSource getTestDataSource( String dataBaseName ) {
-        if ( System.getProperty("espostgresql.port") == null) {
+        if ( System.getProperty(POSTGRESQL_PORT) == null) {
             // Hack
             dataBaseName = System.getenv("USER");
         }
         PGSimpleDataSource ES_INFLIGHT_DATASOURCE = new PGSimpleDataSource();
         ES_INFLIGHT_DATASOURCE.setDatabaseName(dataBaseName);
         ES_INFLIGHT_DATASOURCE.setServerName("localhost");
-        ES_INFLIGHT_DATASOURCE.setPortNumber(Integer.parseInt(System.getProperty("espostgresql.port", "5432")));
+        ES_INFLIGHT_DATASOURCE.setPortNumber(Integer.parseInt(System.getProperty(POSTGRESQL_PORT, "5432")));
         ES_INFLIGHT_DATASOURCE.setUser(System.getProperty("user.name"));
         ES_INFLIGHT_DATASOURCE.setPassword(System.getProperty("user.name"));
         return ES_INFLIGHT_DATASOURCE;
@@ -130,9 +131,9 @@ public class JPATestUtils {
 
         public GetTestConnectInfo invoke() {
             password = null;
-            String dataBaseName = "es";
+            String dataBaseName = "testdb";
             String dataBaseHost = "localhost";
-            String port = System.getProperty("espostgresql.port");
+            String port = System.getProperty(POSTGRESQL_PORT);
             if (port == null) {
                 port = "5432";
                 password = System.getenv("USER");

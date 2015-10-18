@@ -22,7 +22,6 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
@@ -187,7 +186,7 @@ public class ESTaskPackageUtil {
         }
         taskPackage.setSuppliedRecords(records);
 
-        return taskPackage.getTargetreference().intValue();
+        return taskPackage.getTargetreference();
     }
 
     public static ExternalChunk getChunkForTaskPackage( TaskSpecificUpdateEntity taskSpecificUpdateEntity, ExternalChunk placeholderChunk) throws SQLException {
@@ -211,7 +210,7 @@ public class ESTaskPackageUtil {
 
         final int numberOfRecords = Integer.parseInt(StringUtil.asString(placeholderChunkItem.getData()));
         ChunkItem.Status status = ChunkItem.Status.SUCCESS;
-        int targetReference=taskSpecificUpdateEntity.getTargetreference().intValue();
+        int targetReference=taskSpecificUpdateEntity.getTargetreference();
         final StringBuilder itemData = new StringBuilder(String.format("Task package: %d\n",targetReference));
         final String recordHeader = "Record %d: id=%s\n";
         final String recordResult = "\t%s\n";
@@ -277,13 +276,6 @@ public class ESTaskPackageUtil {
 
         }
         return diagnostic;
-    }
-
-    private static void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, EsWorkload esWorkload) throws IllegalStateException {
-        final int recordSlots = esWorkload.getAddiRecords().size();
-        if (recordSlots != insertionResult.getNumberOfInsertedRecords()) {
-            throw new IllegalStateException(String.format("The number of records in the chunk and the number of records in the taskpackage differ. Chunk size: %d  TaskPackage size: %d", recordSlots, insertionResult.getNumberOfInsertedRecords()));
-        }
     }
 
     private static String createCreatorString(long jobId, long chunkId) {

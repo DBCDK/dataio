@@ -21,21 +21,28 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.es.ESUtil;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
+import dk.dbc.dataio.sink.es.entity.es.SuppliedRecordsEntity;
+import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
+import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
+import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
+import dk.dbc.dataio.sink.es.entity.es.TaskStatusConverter;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
+import javax.persistence.EntityManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -77,11 +84,11 @@ public class ESTaskPackageUtil {
     public static Map<Integer, TaskStatus> findCompletionStatusForTaskpackages(Connection conn, List<Integer> targetreferences) throws SQLException {
         LOGGER.entry();
         try {
-            Map<Integer, TaskStatus> taskStatuses = new HashMap<>();
+            final Map<Integer, TaskStatus> taskStatuses = new HashMap<>();
             // Since the 'SELECT ... WHERE targetreference IN' construct used to get completion status
             // has an upper bound of 1000 members of the IN condition we split into multiple
             // iterations if necessary
-            for (List<Integer> trefs : chopUp(targetreferences, MAX_WHERE_IN_SIZE)) {
+            for (final List<Integer> trefs : chopUp(targetreferences, MAX_WHERE_IN_SIZE)) {
                 final String retrieveStatement = "select targetreference, taskstatus from taskpackage where targetreference in ("
                         + commaSeparatedQuestionMarks(trefs.size()) + ")";
                 PreparedStatement ps = null;
@@ -90,9 +97,9 @@ public class ESTaskPackageUtil {
                     ps = JDBCUtil.query(conn, retrieveStatement, trefs.toArray());
                     rs = ps.getResultSet();
                     while (rs.next()) {
-                        int targetreference = rs.getInt(1);
-                        int statusCode = rs.getInt(2);
-                        taskStatuses.put(targetreference, new TaskStatus(statusCode, targetreference));
+                        final int targetreference = rs.getInt(1);
+                        final TaskPackageEntity.TaskStatus taskStatus = new TaskStatusConverter().convertToEntityAttribute( rs.getInt(2));
+                        taskStatuses.put(targetreference, new TaskStatus(taskStatus, targetreference));
                     }
                 } catch (SQLException ex) {
                     LOGGER.warn("SQLException caught while trying to find completion status for taskpackages with retrieve statement: {}", retrieveStatement, ex);
@@ -109,24 +116,16 @@ public class ESTaskPackageUtil {
     }
 
     // Tested through integrationtests
-    public static void deleteTaskpackages(Connection conn, List<Integer> targetReferences) throws SQLException {
+    public static void deleteTaskpackages(EntityManager em, List<Integer> targetReferences) {
         LOGGER.entry();
         try {
             if (!targetReferences.isEmpty()) {
-                // Since the 'DELETE ... WHERE targetreference IN' construct used to delete task packages
-                // has an upper bound of 1000 members of the IN condition we split into multiple
-                // iterations if necessary
-                for (List<Integer> trefs : chopUp(targetReferences, MAX_WHERE_IN_SIZE)) {
-                    String deleteStatement = "delete from taskpackage where targetreference in (" + commaSeparatedQuestionMarks(trefs.size()) + ")";
-                    LOGGER.info(deleteStatement);
-                    LOGGER.info("targetRefs to delete: {}", Arrays.toString(trefs.toArray()));
-                    int deleted = JDBCUtil.update(conn, deleteStatement, trefs.toArray());
-                    LOGGER.info("Deleted {} rows", deleted);
+                for( final Integer targetRef : targetReferences ) {
+                    em.getTransaction().begin();
+                    em.createNativeQuery(String.format("delete from taskpackage where targetreference=%1$d", targetRef)).executeUpdate();
+                    em.getTransaction().commit();
                 }
             }
-        } catch (SQLException ex) {
-            LOGGER.warn("SQLException caught while deleting taskpackages: ", ex);
-            throw ex;
         } finally {
             LOGGER.exit();
         }
@@ -149,7 +148,7 @@ public class ESTaskPackageUtil {
      * Inserts the addi-records contained in given workload into the ES-base
      * with the given dbname.
      *
-     * @param esConn Database connection to the ES-base.
+     * @param entityManager Database connection to the ES-base.
      * @param dbname ES internal database name in which the task package shall
      * be associated.
      * @param esWorkload Object containing both the addi-records to insert into
@@ -161,43 +160,68 @@ public class ESTaskPackageUtil {
      *
      * @return target reference
      */
-    public static int insertTaskPackage(Connection esConn, String dbname, EsWorkload esWorkload) throws IllegalStateException, SQLException {
-        InvariantUtil.checkNotNullOrThrow(esConn, "esConn");
+    public static int insertTaskPackage(EntityManager entityManager, String dbname, EsWorkload esWorkload) throws IllegalStateException, SQLException {
+        InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
         InvariantUtil.checkNotNullNotEmptyOrThrow(dbname, "dbname");
         InvariantUtil.checkNotNullOrThrow(esWorkload, "esInFlight");
         final String creator = createCreatorString(esWorkload.getDeliveredChunk().getJobId(), esWorkload.getDeliveredChunk().getChunkId());
-        final ESUtil.AddiListInsertionResult insertionResult = ESUtil.insertAddiList(esConn, esWorkload.getAddiRecords(), dbname,
-                esWorkload.getDeliveredChunk().getEncoding(), creator, esWorkload.userId, esWorkload.getPackageType(), esWorkload.getAction());
-        validateTaskPackageState(insertionResult, esWorkload);
-        return insertionResult.getTargetReference();
+
+        final TaskSpecificUpdateEntity taskPackage=new TaskSpecificUpdateEntity();
+
+        taskPackage.setCreator( creator );
+        taskPackage.setDatabasename( dbname );
+        taskPackage.setUserid( esWorkload.userId );
+        taskPackage.setAction( esWorkload.getAction());
+        entityManager.persist( taskPackage );
+
+
+        List<SuppliedRecordsEntity> records=new ArrayList<>();
+        int i=0;
+        for( AddiRecord addi : esWorkload.getAddiRecords()) {
+            SuppliedRecordsEntity suppliedRecord=new SuppliedRecordsEntity();
+            suppliedRecord.metaData = new String(addi.getMetaData(), esWorkload.getDeliveredChunk().getEncoding());
+            suppliedRecord.record = addi.getContentData();
+            suppliedRecord.targetreference = taskPackage.getTargetreference();
+            suppliedRecord.lbnr=++i;
+            records.add( suppliedRecord );
+        }
+        taskPackage.setSuppliedRecords(records);
+
+        return taskPackage.getTargetreference().intValue();
     }
 
-    public static ExternalChunk getChunkForTaskPackage(Connection connection, int targetReference, ExternalChunk placeholderChunk) throws SQLException {
+    public static ExternalChunk getChunkForTaskPackage( TaskSpecificUpdateEntity taskSpecificUpdateEntity, ExternalChunk placeholderChunk) throws SQLException {
         final ExternalChunk chunk = new ExternalChunk(placeholderChunk.getJobId(),
                 placeholderChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
         chunk.setEncoding(placeholderChunk.getEncoding());
-        final LinkedList<TaskPackageRecordsStructureData> taskPackageRecordsStructureDataList =
-                new LinkedList<>(getDataFromTaskPackageRecordStructure(connection, targetReference));
+        final LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList =
+                new LinkedList<>(taskSpecificUpdateEntity.getTaskpackageRecordStructures());
         for (ChunkItem chunkItem : placeholderChunk) {
             if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
-                chunkItem = getChunkItemFromTaskPackageRecordStructureData(connection, targetReference, chunkItem, taskPackageRecordsStructureDataList);
+                chunkItem = getChunkItemFromTaskPackageRecordStructureData(taskSpecificUpdateEntity, chunkItem, taskPackageRecordStructureEntityList);
             }
             chunk.insertItem(chunkItem);
         }
         return chunk;
     }
 
-    private static ChunkItem getChunkItemFromTaskPackageRecordStructureData(Connection connection, int targetReference, ChunkItem placeholderChunkItem,
-            LinkedList<TaskPackageRecordsStructureData> taskPackageRecordsStructureDataList) throws NumberFormatException, SQLException {
+    private static ChunkItem getChunkItemFromTaskPackageRecordStructureData(TaskSpecificUpdateEntity taskSpecificUpdateEntity, ChunkItem placeholderChunkItem,
+            LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList) throws NumberFormatException, SQLException {
+
+
         final int numberOfRecords = Integer.parseInt(StringUtil.asString(placeholderChunkItem.getData()));
         ChunkItem.Status status = ChunkItem.Status.SUCCESS;
+        int targetReference=taskSpecificUpdateEntity.getTargetreference().intValue();
         final StringBuilder itemData = new StringBuilder(String.format("Task package: %d\n",targetReference));
         final String recordHeader = "Record %d: id=%s\n";
         final String recordResult = "\t%s\n";
+
+        List<TaskPackageRecordStructureEntity> recordStructureMap=taskSpecificUpdateEntity.getTaskpackageRecordStructures();
+
         for (int i = 1; i <= numberOfRecords; i++) {
-            TaskPackageRecordsStructureData recordData;
+            TaskPackageRecordStructureEntity recordData;
             try {
-                recordData = taskPackageRecordsStructureDataList.remove();
+                recordData = taskPackageRecordStructureEntityList.remove();
             } catch (NoSuchElementException e) {
                 status = ChunkItem.Status.FAILURE;
                 itemData.append(String.format(recordHeader, i, null));
@@ -205,99 +229,54 @@ public class ESTaskPackageUtil {
                 continue;
             }
 
-            LOGGER.info("targetRef: {}  status: {} recordDiag: {}", targetReference,
-                    recordData.recordstatus, recordData.recordOrSurDiag2);
+            LOGGER.info("targetRef: {}  status: {} recordDiag: {}", targetReference, recordData.recordStatus.name(), recordData.diagnosticId);
 
             itemData.append(String.format(recordHeader, i, recordData.record_id));
             // A task package must only be completed if all its records have been completed.
             // Therefore: if the status of a record is anything but success or failure,
             // an error has occurred. The record will be accepted as failed, with a message
             // in the chunk item telling that the record was not completed.
-            switch (recordData.recordstatus) {
-                case 1:
-                    // success
+            TaskPackageRecordStructureEntity recordStructure=recordStructureMap.get( recordData.lbnr );
+            switch ( recordStructure.recordStatus ) {
+                case SUCCESS:
                     itemData.append(String.format(recordResult, "OK"));
                     break;
-                case 2:
-                    // queued
+                case QUEUED:
                     status = ChunkItem.Status.FAILURE;
                     itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " is queued"));
                     break;
-                case 3:
-                    // inProcess
+                case IN_PROCESS:
                     status = ChunkItem.Status.FAILURE;
                     itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " is in process"));
                     break;
-                case 4:
-                    // failed
+                case FAILURE:
                     status = ChunkItem.Status.FAILURE;
-                    itemData.append(String.format(recordResult, getFailureDiagnostic(connection, recordData.recordOrSurDiag2)));
+                    itemData.append(String.format(recordResult, getFailureDiagnostic(recordStructure)));
                     break;
                 default:
                     status = ChunkItem.Status.FAILURE;
-                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " has unknown completion status " + recordData.recordstatus));
+                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " has unknown completion status " + recordData.recordStatus.name()));
             }
         }
         return new ChunkItem(placeholderChunkItem.getId(), StringUtil.asBytes(itemData.toString()), status);
     }
 
-    private static class TaskPackageRecordsStructureData {
 
-        public final int lbnr;
-        public final int recordstatus;
-        public final String record_id;
-        public final int recordOrSurDiag2;
-        public TaskPackageRecordsStructureData(int lbnr, int recordstatus, String record_id, int recordOrSurDiag2) {
-            this.lbnr = lbnr;
-            this.recordstatus = recordstatus;
-            this.record_id = record_id;
-            this.recordOrSurDiag2 = recordOrSurDiag2;
-        }
-    }
 
-    private static String getFailureDiagnostic(Connection conn, int diagnosticId) throws SQLException {
-        final String stmt = "SELECT addInfo FROM diagnostics WHERE id = ?";
+    private static String getFailureDiagnostic(TaskPackageRecordStructureEntity recordStructure) throws SQLException {
+        List<DiagnosticsEntity> diags=recordStructure.getDiagnosticsEntities();
         String diagnostic = "";
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = JDBCUtil.query(conn, stmt, diagnosticId);
-            rs = ps.getResultSet();
-            if(rs.next()) {
-                diagnostic = rs.getString(1);
+        boolean first=true;
+        for(DiagnosticsEntity diag: diags) {
+            if( first) {
+                diagnostic = diag.additionalInformation;
+                first = false;
+            } else {
+                LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", recordStructure.diagnosticId, diag.additionalInformation);
             }
-            while(rs.next()) {
-                LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", diagnosticId, rs.getString(1));
-            }
-        } catch (SQLException ex) {
-            LOGGER.warn("SQLException caught while getting results from diagnostics with diagnosticId: {}", diagnosticId, ex);
-            throw ex;
-        } finally {
-            JDBCUtil.closeResultSet(rs);
-            JDBCUtil.closeStatement(ps);
+
         }
         return diagnostic;
-    }
-
-    private static List<TaskPackageRecordsStructureData> getDataFromTaskPackageRecordStructure(Connection conn, int targetReference) throws SQLException {
-        final String stmt = "select lbnr, recordstatus, record_id, recordorsurdiag2 from taskpackagerecordstructure where targetreference = ?";
-        List<TaskPackageRecordsStructureData> taskPackageRecordsStructureDatas = new ArrayList<>();
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try {
-            ps = JDBCUtil.query(conn, stmt, targetReference);
-            rs = ps.getResultSet();
-            while (rs.next()) {
-                taskPackageRecordsStructureDatas.add(new ESTaskPackageUtil.TaskPackageRecordsStructureData(rs.getInt(1), rs.getInt(2), rs.getString(3), rs.getInt(4)));
-            }
-        } catch (SQLException ex) {
-            LOGGER.warn("SQLException caught while getting results from taskpackagerecordstructure with targetreference: " + targetReference, ex);
-            throw ex;
-        } finally {
-            JDBCUtil.closeResultSet(rs);
-            JDBCUtil.closeStatement(ps);
-        }
-        return taskPackageRecordsStructureDatas;
     }
 
     private static void validateTaskPackageState(ESUtil.AddiListInsertionResult insertionResult, EsWorkload esWorkload) throws IllegalStateException {
@@ -316,15 +295,15 @@ public class ESTaskPackageUtil {
     }
 
     public static class TaskStatus {
-        private final Code taskStatus;
+        private final TaskPackageEntity.TaskStatus taskStatus;
         private final int targetreference;
 
-        public TaskStatus(int taskStatus, int targetreference) {
-            this.taskStatus = Code.getCode(taskStatus);
+        public TaskStatus(TaskPackageEntity.TaskStatus taskStatus, int targetreference) {
+            this.taskStatus = taskStatus;
             this.targetreference = targetreference;
         }
 
-        public Code getTaskStatus() {
+        public TaskPackageEntity.TaskStatus getTaskStatus() {
             return taskStatus;
         }
 
@@ -354,25 +333,6 @@ public class ESTaskPackageUtil {
             int result = taskStatus.hashCode();
             result = 31 * result + targetreference;
             return result;
-        }
-
-        public enum Code {
-            PENDING, ACTIVE, COMPLETE, ABORTED;
-
-            private static Code getCode(int i) {
-                switch (i) {
-                    case 0:
-                        return PENDING;
-                    case 1:
-                        return ACTIVE;
-                    case 2:
-                        return COMPLETE;
-                    case 3:
-                        return ABORTED;
-                    default:
-                        throw new IllegalArgumentException(i + " is not a valid taskstatus code.");
-                }
-            }
         }
     }
 }

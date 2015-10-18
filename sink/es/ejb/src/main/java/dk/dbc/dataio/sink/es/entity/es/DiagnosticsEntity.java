@@ -23,13 +23,10 @@ package dk.dbc.dataio.sink.es.entity.es;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
 /**
@@ -42,47 +39,40 @@ import javax.persistence.Table;
 @IdClass(DiagnosticsEntityPK.class)
 @NamedQueries({
         @NamedQuery(name = "Diagnostics.findById",
-                query = "select d from DiagnosticsEntity d where d.id=:id order by d.lbNr asc "
+                query = "select d from DiagnosticsEntity d where d.id=:id order by d.lbnr asc "
         ),
         @NamedQuery(name = "Diagnostics.findMaxLbNr",
-                query = "select max(d.lbNr) from  DiagnosticsEntity d where d.id=:id"
+                query = "select max(d.lbnr) from  DiagnosticsEntity d where d.id=:id"
         )
 })
 public class DiagnosticsEntity {
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DiagnosticRefSeqName")
-    @SequenceGenerator(
-            name = "DiagnosticRefSeqName",
-            sequenceName = "diagidseq",
-            allocationSize = 1
-    )
     public Integer id;
     @Id
-    public
     @Column(name = "lbnr", nullable = false, insertable = true, updatable = true, precision = 0)
-    Integer lbNr;
+    public Integer lbnr;
 
     @Column(name = "diagnosticsetid")
     public String diagnosticSetId = "1.2.840.10003.4.1";
     @Column(name = "condition")
     public Integer errorCode = 100;
     @Column(name = "addinfo")
-    public String additionalInformation;
+    public String additionalInformation="";
 
 
     public DiagnosticsEntity() {
-        this.lbNr = 0;
+        this.lbnr = 0;
     }
 
-    public DiagnosticsEntity(int lbNr, String additionalInformation) {
-        this.lbNr = lbNr;
+    public DiagnosticsEntity(int lbnr, String additionalInformation) {
+        this.lbnr = lbnr;
         this.additionalInformation = additionalInformation;
     }
 
-    public DiagnosticsEntity(int id, int lbNr, String additionalInformation) {
+    public DiagnosticsEntity(int id, int lbnr, String additionalInformation) {
         this.id = id;
-        this.lbNr = lbNr;
+        this.lbnr = lbnr;
         this.additionalInformation = additionalInformation;
     }
 
@@ -91,7 +81,7 @@ public class DiagnosticsEntity {
     public String toString() {
         return "DiagnosticsEntity{" +
                 "id=" + id +
-                ", lbNr=" + lbNr +
+                ", lbnr=" + lbnr +
                 ", diagnosticSetId='" + diagnosticSetId + '\'' +
                 ", errorCode=" + errorCode +
                 ", additionalInformation='" + additionalInformation + '\'' +
@@ -111,7 +101,7 @@ public class DiagnosticsEntity {
             return false;
         if (errorCode != null ? !errorCode.equals(that.errorCode) : that.errorCode != null) return false;
         if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (lbNr != null ? !lbNr.equals(that.lbNr) : that.lbNr != null) return false;
+        if (lbnr != null ? !lbnr.equals(that.lbnr) : that.lbnr != null) return false;
 
         return true;
     }
@@ -119,7 +109,7 @@ public class DiagnosticsEntity {
     @Override
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (lbNr != null ? lbNr.hashCode() : 0);
+        result = 31 * result + (lbnr != null ? lbnr.hashCode() : 0);
         result = 31 * result + (diagnosticSetId != null ? diagnosticSetId.hashCode() : 0);
         result = 31 * result + (errorCode != null ? errorCode.hashCode() : 0);
         result = 31 * result + (additionalInformation != null ? additionalInformation.hashCode() : 0);

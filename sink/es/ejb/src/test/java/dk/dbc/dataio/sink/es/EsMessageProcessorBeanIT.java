@@ -46,6 +46,8 @@ public class EsMessageProcessorBeanIT extends SinkIT {
     @Test
     public void onMessage_chunkWithAllRecordsFailedOrIgnored_noTaskPackageInFlight()
             throws JSONBException, JMSException, JobStoreServiceConnectorException {
+
+
         // Mock JobInfoSnapshot returned from jobStoreServiceConnector.addChunk() call
         jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
 
@@ -77,6 +79,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
 
     @Test
     public void onMessage_chunkWithValidAddi_createsTaskPackageAndInFlight() throws JSONBException, JMSException {
+
         final List<ChunkItem> items = new ArrayList<>(4);
         items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.IGNORE).build());
         items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(getValidAddi()).build());
@@ -87,8 +90,11 @@ public class EsMessageProcessorBeanIT extends SinkIT {
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
         final EntityTransaction transaction = esInFlightEntityManager.getTransaction();
+        final EntityTransaction esTransaction = esMessageProcessorBean.esConnector.entityManager.getTransaction();
         transaction.begin();
+        esTransaction.begin();
         esMessageProcessorBean.onMessage(sinkMessage);
+        esTransaction.commit();
         transaction.commit();
 
         final List<EsInFlight> esInFlights = listEsInFlight();
@@ -128,9 +134,12 @@ public class EsMessageProcessorBeanIT extends SinkIT {
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
         final EntityTransaction transaction = esInFlightEntityManager.getTransaction();
+        final EntityTransaction esTransaction = esMessageProcessorBean.esConnector.entityManager.getTransaction();
+        esTransaction.begin();
         transaction.begin();
         esMessageProcessorBean.onMessage(sinkMessage);
         transaction.commit();
+        esTransaction.commit();
 
         final List<EsInFlight> esInFlights = listEsInFlight();
 

@@ -53,7 +53,7 @@ public class ESTaskPackageIntegrationTestUtil {
      * @throws SQLException
      */
     public static List<Integer> findTaskpackagesForDBName(Connection connection, String dbname) throws SQLException {
-        final String stmt = "SELECT targetreference FROM updatepackages WHERE databasename = ? ORDER BY update_priority , creationdate , targetreference";
+        final String stmt = "SELECT targetreference FROM taskspecificupdate WHERE databasename = ? order by targetreference";
         List<Integer> taskpackages = new ArrayList<>();
 
         PreparedStatement ps = null;

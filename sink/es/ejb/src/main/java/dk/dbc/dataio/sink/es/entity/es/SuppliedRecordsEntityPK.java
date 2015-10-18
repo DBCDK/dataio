@@ -24,7 +24,6 @@ package dk.dbc.dataio.sink.es.entity.es;
 import javax.persistence.Column;
 import javax.persistence.Id;
 import java.io.Serializable;
-import java.math.BigInteger;
 
 /**
  * Created by ja7 on 23-09-14.
@@ -33,19 +32,10 @@ import java.math.BigInteger;
 public class SuppliedRecordsEntityPK implements Serializable {
     @Id
     @Column(name = "targetreference", nullable = false, insertable = true, updatable = true, precision = 0)
-    public BigInteger targetreference;
+    public Integer targetreference;
     @Id
-    @Column(name = "lbNr", nullable = false, insertable = true, updatable = true, precision = 0)
-    public BigInteger lbnr;
-
-    public SuppliedRecordsEntityPK(long tReference, long lbNr) {
-        this.targetreference = BigInteger.valueOf(tReference);
-        this.lbnr = BigInteger.valueOf(lbNr);
-
-    }
-
-    public SuppliedRecordsEntityPK() {
-    }
+    @Column(name = "lbnr", nullable = false, insertable = true, updatable = true, precision = 0)
+    public Integer lbnr;
 
     @Override
     public boolean equals(Object o) {

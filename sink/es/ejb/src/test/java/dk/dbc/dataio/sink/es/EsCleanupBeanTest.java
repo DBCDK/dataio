@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
+import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
@@ -113,10 +114,10 @@ public class EsCleanupBeanTest {
         esInFlight43_1.setResourceName("resource 1");
         esInFlight43_1.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
 
-        taskStatus_122 = new TaskStatus(3, 122);
-        taskStatus_123 = new TaskStatus(2, 123);
-        taskStatus_124 = new TaskStatus(1, 124);
-        taskStatus_125 = new TaskStatus(0, 125);
+        taskStatus_122 = new TaskStatus(TaskPackageEntity.TaskStatus.ABORTED, 122);
+        taskStatus_123 = new TaskStatus(TaskPackageEntity.TaskStatus.COMPLETE, 123);
+        taskStatus_124 = new TaskStatus(TaskPackageEntity.TaskStatus.ACTIVE, 124);
+        taskStatus_125 = new TaskStatus(TaskPackageEntity.TaskStatus.PENDING, 125);
     }
 
     @Before

@@ -34,7 +34,6 @@ import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import java.math.BigInteger;
 
 /**
  * Created by ja7 on 19-09-14.
@@ -46,13 +45,15 @@ import java.math.BigInteger;
 @Table(name = "taskpackage")
 public abstract class TaskPackageEntity {
 
-    private BigInteger targetreference;
-    private BigInteger userid;
-    private BigInteger packagetype;
+    public enum TaskStatus {PENDING, ACTIVE, COMPLETE, ABORTED}
+
+
+    private Integer targetreference;
+    private Integer userid;
+    private Integer packagetype;
     private String packagename;
     private String creator;
     private String description;
-    private Long subStatus;
     private TaskStatus taskStatus;
 
     @Id
@@ -63,31 +64,36 @@ public abstract class TaskPackageEntity {
             sequenceName = "taskpackageRefSeq",
             allocationSize = 1
     )
-    public BigInteger getTargetreference() {
+    public Integer getTargetreference() {
         return targetreference;
     }
 
-    public void setTargetreference(BigInteger targetreference) {
+    public void setTargetreference(Integer targetreference) {
         this.targetreference = targetreference;
     }
 
     @Basic
     @Column(name = "userid", nullable = true, insertable = true, updatable = true, precision = 0)
-    public BigInteger getUserid() {
+    public Integer getUserid() {
         return userid;
     }
 
-    public void setUserid(BigInteger userid) {
+    // for JPA
+    public void setUserid(Integer userid) {
+            this.userid = userid;
+    }
+    // For user code
+    public void setUserid(int userid) {
         this.userid = userid;
     }
 
     @Basic
     @Column(name = "packagetype", nullable = false, insertable = true, updatable = true, precision = 0)
-    public BigInteger getPackagetype() {
+    public Integer getPackagetype() {
         return packagetype;
     }
 
-    public void setPackagetype(BigInteger packagetype) {
+    public void setPackagetype(Integer packagetype) {
         this.packagetype = packagetype;
     }
 
@@ -119,14 +125,6 @@ public abstract class TaskPackageEntity {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public Long getSubStatus() {
-        return subStatus;
-    }
-
-    public void setSubStatus(Long subStatus) {
-        this.subStatus = subStatus;
     }
 
     @Convert(converter = TaskStatusConverter.class)
@@ -167,6 +165,5 @@ public abstract class TaskPackageEntity {
         return result;
     }
 
-    public enum TaskStatus {PENDING, ACTIVE, COMPLETE, ABORTED}
 
 }

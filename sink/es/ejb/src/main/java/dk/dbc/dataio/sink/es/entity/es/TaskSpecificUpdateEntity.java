@@ -28,17 +28,14 @@ import javax.persistence.CascadeType;
 import javax.persistence.Convert;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.JoinColumn;
-import javax.persistence.MapKey;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
-import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by ja7 on 19-09-14.
@@ -55,25 +52,25 @@ import java.util.Map;
 @SuppressFBWarnings(value = {"EI"}, justification = "Entity Class don't own the array")
 public class TaskSpecificUpdateEntity extends TaskPackageEntity {
 
+
     public enum UpdateStatus{ UNKNOWN, SUCCESS, PARTIAL, FAILURE}
+    public enum UpdateAction { INSERT, REPLACE, DELETE, ELEMENT_UPDATE, SPECIAL_UPDATE }
 
-
-
-    private Integer action;
+    private UpdateAction action;
     private String elementsetname;
     private byte[] actionqualifier;
     private String databasename;
     private String schema;
-    private UpdateStatus updatestatus;
+    private UpdateStatus updatestatus=UpdateStatus.UNKNOWN;
 
-    private List<SuppliedRecordsEntity> suppliedRecords = new LinkedList<>();
-    private Map<BigInteger, TaskPackageRecordStructureEntity> taskpackageRecordStructureEntityMap = new HashMap<>();
+    private List<SuppliedRecordsEntity> suppliedRecords = new ArrayList<>();
+    private List<TaskPackageRecordStructureEntity> taskpackageRecordStructures = new ArrayList<>();
 
-    public Integer getAction() {
+    public UpdateAction getAction() {
         return action;
     }
 
-    public void setAction(Integer action) {
+    public void setAction(UpdateAction action) {
         this.action = action;
     }
 
@@ -110,7 +107,7 @@ public class TaskSpecificUpdateEntity extends TaskPackageEntity {
     }
 
 
-    @OneToMany(cascade = CascadeType.DETACH)
+    @OneToMany(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "targetreference")
     @OrderBy("lbnr")
     public List<SuppliedRecordsEntity> getSuppliedRecords() {
@@ -123,13 +120,13 @@ public class TaskSpecificUpdateEntity extends TaskPackageEntity {
 
     @OneToMany
     @JoinColumn(name = "targetreference")
-    @MapKey(name = "lbnr")
-    public Map<BigInteger, TaskPackageRecordStructureEntity> getTaskpackageRecordStructureEntityMap() {
-        return taskpackageRecordStructureEntityMap;
+    @OrderBy("lbnr")
+    public List<TaskPackageRecordStructureEntity> getTaskpackageRecordStructures() {
+        return taskpackageRecordStructures;
     }
 
-    public void setTaskpackageRecordStructureEntityMap(Map<BigInteger, TaskPackageRecordStructureEntity> taskpackageRecordStructureEntityMap) {
-        this.taskpackageRecordStructureEntityMap = taskpackageRecordStructureEntityMap;
+    public void setTaskpackageRecordStructures(List<TaskPackageRecordStructureEntity> taskpackageRecordStructureEntityMap) {
+        this.taskpackageRecordStructures = taskpackageRecordStructureEntityMap;
     }
 
     @Convert(converter = UpdateStatusConverter.class)
@@ -140,6 +137,19 @@ public class TaskSpecificUpdateEntity extends TaskPackageEntity {
     public void setUpdatestatus(UpdateStatus updatestatus) {
         this.updatestatus = updatestatus;
     }
+
+    /**
+     * Hack Method to ensure the Diagnostics is Loaded.
+     * @param entityManager used for loading the diags
+     */
+    public void loadDiagsIfExists(EntityManager entityManager) {
+        // Uses getTaskpackageRecordStructures() instead of local Member
+        // to Allow JPA to do Using Dynamic Weaving
+        for( TaskPackageRecordStructureEntity recordStructure : getTaskpackageRecordStructures()) {
+            recordStructure.loadDiagnosticsEntities( entityManager );
+        }
+    }
+
 
     @Override
     public boolean equals(Object o) {

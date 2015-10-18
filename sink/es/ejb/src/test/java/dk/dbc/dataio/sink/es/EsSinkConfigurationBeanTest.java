@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.commons.es.ESUtil;
+import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -63,29 +63,17 @@ public class EsSinkConfigurationBeanTest {
         assertThat(configuration.getEsUserId(), is(userId));
     }
 
-    @Test
-    public void getEsPackageType_esPackageTypeResourceIsNotSet_returnsDefaultValue() {
-        final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
-        assertThat(configuration.getEsPackageType(), is(ESUtil.PackageType.valueOf(EsSinkConfigurationBean.DEFAULT_PACKAGE_TYPE)));
-    }
-
-    @Test
-    public void getEsPackageType_esPackageTypeResourceIsSet_returnsValue() {
-        final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
-        configuration.esPackageType = ESUtil.PackageType.PERSISTENT_QUERY.name().toLowerCase();
-        assertThat(configuration.getEsPackageType(), is(ESUtil.PackageType.PERSISTENT_QUERY));
-    }
 
     @Test
     public void getEsAction_esActionResourceIsNotSet_returnsDefaultValue() {
         final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
-        assertThat(configuration.getEsAction(), is(ESUtil.Action.valueOf(EsSinkConfigurationBean.DEFAULT_ACTION)));
+        assertThat(configuration.getEsAction(), is(TaskSpecificUpdateEntity.UpdateAction.valueOf(EsSinkConfigurationBean.DEFAULT_ACTION)));
     }
 
     @Test
     public void getEsAction_esActionResourceIsSet_returnsValue() {
         final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
-        configuration.esAction = ESUtil.Action.INSERT.name().toLowerCase();
-        assertThat(configuration.getEsAction(), is(ESUtil.Action.INSERT));
+        configuration.esAction = TaskSpecificUpdateEntity.UpdateAction.INSERT.name().toLowerCase();
+        assertThat(configuration.getEsAction(), is(TaskSpecificUpdateEntity.UpdateAction.INSERT));
     }
 }

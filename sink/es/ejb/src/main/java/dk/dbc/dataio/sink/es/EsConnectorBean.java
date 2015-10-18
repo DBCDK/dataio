@@ -22,6 +22,7 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,8 @@ import javax.ejb.EJBException;
 import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -44,6 +47,10 @@ public class EsConnectorBean {
 
     @EJB
     EsSinkConfigurationBean configuration;
+
+    @PersistenceContext(unitName = "esPU")
+    EntityManager entityManager;
+
 
     public Connection getConnection() throws SQLException, NamingException {
         LOGGER.debug("Looking up datasource");
@@ -62,13 +69,13 @@ public class EsConnectorBean {
         return initialContext;
     }
 
+
     public int insertEsTaskPackage(EsWorkload esWorkload) throws SinkException {
         LOGGER.debug("Getting connection");
-        try (final Connection connection = getConnection()) {
+        try {
             LOGGER.debug("Inserting task package");
-            return ESTaskPackageUtil.insertTaskPackage(
-                    connection, configuration.getEsDatabaseName(), esWorkload);
-        } catch (SQLException | NamingException e) {
+            return ESTaskPackageUtil.insertTaskPackage(entityManager, configuration.getEsDatabaseName(), esWorkload);
+        } catch (SQLException e) {
             throw new SinkException("Failed to insert ES task package", e);
         }
     }
@@ -82,18 +89,21 @@ public class EsConnectorBean {
     }
 
     public void deleteESTaskpackages(List<Integer> targetReferences) throws SinkException {
-        try (final Connection connection = getConnection()) {
-            ESTaskPackageUtil.deleteTaskpackages(connection, targetReferences);
-        } catch (SQLException | NamingException e) {
+        try {
+            ESTaskPackageUtil.deleteTaskpackages(entityManager, targetReferences);
+        } catch (Exception e) {
             LOGGER.warn("Exception caught while deleting ES-taskpackages.", e);
             throw new SinkException("Failed to delete task packages", e);
         }
     }
 
     public ExternalChunk getChunkForTaskPackage(int targetReference, ExternalChunk placeholderChunk) throws SinkException {
-        try (final Connection connection = getConnection()) {
-            return ESTaskPackageUtil.getChunkForTaskPackage(connection, targetReference, placeholderChunk);
-        } catch (SQLException | NamingException e) {
+
+        TaskSpecificUpdateEntity tpu = entityManager.find(TaskSpecificUpdateEntity.class, targetReference);
+        tpu.loadDiagsIfExists( entityManager);
+        try {
+            return ESTaskPackageUtil.getChunkForTaskPackage(tpu, placeholderChunk);
+        } catch (Exception e) {
             LOGGER.warn("Exception caught while creating chunk for ES task package", e);
             throw new SinkException("Failed to create chunk for task package", e);
         }

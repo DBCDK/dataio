@@ -35,7 +35,7 @@ public class DiagnosticsEntityPK implements Serializable {
     public Integer id;
     @Id
     @Column(name = "lbnr", nullable = false, insertable = true, updatable = true, precision = 0)
-    public Integer lbNr;
+    public Integer lbnr;
 
     @Override
     public boolean equals(Object o) {
@@ -45,7 +45,7 @@ public class DiagnosticsEntityPK implements Serializable {
         DiagnosticsEntityPK that = (DiagnosticsEntityPK) o;
 
         if (!id.equals(that.id)) return false;
-        if (!lbNr.equals(that.lbNr)) return false;
+        if (!lbnr.equals(that.lbnr)) return false;
 
         return true;
     }
@@ -53,7 +53,7 @@ public class DiagnosticsEntityPK implements Serializable {
     @Override
     public int hashCode() {
         int result = id.hashCode();
-        result = 31 * result + lbNr.hashCode();
+        result = 31 * result + lbnr.hashCode();
         return result;
     }
 

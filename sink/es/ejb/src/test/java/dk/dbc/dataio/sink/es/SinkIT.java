@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.commons.es.ESUtil;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -34,11 +33,9 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
-import oracle.jdbc.pool.OracleDataSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSContext;
@@ -46,34 +43,26 @@ import javax.jms.JMSException;
 import javax.jms.TextMessage;
 import javax.naming.Context;
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
+import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public abstract class SinkIT {
-    protected static final PGSimpleDataSource ES_INFLIGHT_DATASOURCE;
-    protected static final OracleDataSource ES_DATASOURCE;
-    protected static final String ES_INFLIGHT_DATABASE_NAME = "esinflight";
-    protected static final String ES_RESOURCE_NAME = "jdbc/dataio/es";
-    protected static final String ES_DATABASE_NAME;
+    protected static final DataSource ES_INFLIGHT_DATASOURCE;
+    protected static final DataSource ES_DATASOURCE;
+    //protected static final String ES_INFLIGHT_DATABASE_NAME = "esinflight";
+    protected static final String ES_INFLIGHT_DATABASE_NAME = "testdb";
+    protected static final String ES_RESOURCE_NAME = "test/resource";
+    protected static final String ES_DATABASE_NAME = "dbname";
 
     protected EntityManager esInFlightEntityManager;
     protected JMSContext jmsContext = mock(JMSContext.class);
@@ -82,23 +71,8 @@ public abstract class SinkIT {
     protected MockedJobStoreServiceConnector jobStoreServiceConnector;
 
     static {
-        ES_INFLIGHT_DATASOURCE = new PGSimpleDataSource();
-        ES_INFLIGHT_DATASOURCE.setDatabaseName(ES_INFLIGHT_DATABASE_NAME);
-        ES_INFLIGHT_DATASOURCE.setServerName("localhost");
-        ES_INFLIGHT_DATASOURCE.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port")));
-        ES_INFLIGHT_DATASOURCE.setUser(System.getProperty("user.name"));
-        ES_INFLIGHT_DATASOURCE.setPassword(System.getProperty("user.name"));
-
-        ES_DATABASE_NAME = System.getProperty("es.dbname");
-
-        try {
-            ES_DATASOURCE = new OracleDataSource();
-            ES_DATASOURCE.setURL("jdbc:oracle:thin:@tora1.dbc.dk:1521/tora1.dbc.dk");
-            ES_DATASOURCE.setUser("jbn");
-            ES_DATASOURCE.setPassword("jbn");
-        } catch (SQLException e) {
-            throw new IllegalStateException(e);
-        }
+        ES_INFLIGHT_DATASOURCE = JPATestUtils.getTestDataSource( ES_INFLIGHT_DATABASE_NAME );
+        ES_DATASOURCE = JPATestUtils.getTestDataSource( ES_INFLIGHT_DATABASE_NAME );
     }
 
     @BeforeClass
@@ -132,46 +106,18 @@ public abstract class SinkIT {
 
     @Before
     public void initialiseEsInFlightDbEntityManager() {
-        final Map<String, String> properties = new HashMap<>();
-        properties.put(JDBC_USER, System.getProperty("user.name"));
-        properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/%s",
-                System.getProperty("postgresql.port"), ES_INFLIGHT_DATABASE_NAME));
-        properties.put(JDBC_DRIVER, "org.postgresql.Driver");
-        properties.put("eclipselink.logging.level", "FINE");
+        esInFlightEntityManager = JPATestUtils.createEntityManagerForIntegrationTest("esInFlightIT");
+        esInFlightEntityManager.getTransaction().begin();
+        esInFlightEntityManager.createNativeQuery("delete from taskpackage").executeUpdate();
+        esInFlightEntityManager.createNativeQuery("delete from esinflight").executeUpdate();
+        esInFlightEntityManager.getTransaction().commit();
 
-        final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("esInFlightIT", properties);
-        esInFlightEntityManager = entityManagerFactory.createEntityManager(properties);
-    }
-
-    @Before
-    public void createEsDatabase() throws SQLException {
-        try (final Connection connection = ES_DATASOURCE.getConnection()) {
-            ESUtil.createDatabaseIfNotExisting(connection, ES_DATABASE_NAME);
-        }
     }
 
     @After
     public void clearEntityManagerCache() {
         esInFlightEntityManager.clear();
         esInFlightEntityManager.getEntityManagerFactory().getCache().evictAll();
-    }
-
-    @After
-    public void clearEsInFlight() {
-        final EntityTransaction transaction = esInFlightEntityManager.getTransaction();
-        transaction.begin();
-        final Query nativeQuery = esInFlightEntityManager.createNativeQuery("DELETE FROM esinflight");
-        nativeQuery.executeUpdate();
-        transaction.commit();
-    }
-
-    @After
-    public void removeEsDatabase() throws SQLException {
-        try (final Connection connection = ES_DATASOURCE.getConnection()) {
-            ESUtil.deleteTaskpackages(connection, ES_DATABASE_NAME);
-            ESUtil.deleteDatabase(connection, ES_DATABASE_NAME);
-        }
     }
 
     @After
@@ -208,6 +154,7 @@ public abstract class SinkIT {
     protected EsConnectorBean getEsConnectorBean() {
         final EsConnectorBean esConnectorBean = new EsConnectorBean();
         esConnectorBean.configuration = getEsSinkConfigurationBean();
+        esConnectorBean.entityManager = JPATestUtils.createEntityManagerForIntegrationTest( "esIT");
         return esConnectorBean;
     }
 

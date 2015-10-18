@@ -44,6 +44,9 @@ public class TaskStatusConverter implements AttributeConverter<TaskStatus,Intege
 
     @Override
     public Integer convertToDatabaseColumn(TaskStatus taskStatus) {
+        if (taskStatus == null) {
+            return 0;
+        }
         switch ( taskStatus ) {
             case PENDING: return 0;
             case ACTIVE: return 1;

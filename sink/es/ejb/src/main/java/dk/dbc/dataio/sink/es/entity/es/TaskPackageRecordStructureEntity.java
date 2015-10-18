@@ -21,9 +21,6 @@
 
 package dk.dbc.dataio.sink.es.entity.es;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -32,7 +29,7 @@ import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
 import javax.persistence.TypedQuery;
-import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,59 +40,48 @@ import java.util.List;
 @Table(name = "taskpackagerecordstructure")
 @IdClass(SuppliedRecordsEntityPK.class)
 public class TaskPackageRecordStructureEntity {
-    private static final Logger log = LoggerFactory.getLogger(TaskPackageRecordStructureEntity.class);
     @Id
     @Column(name = "targetreference", nullable = false, insertable = true, updatable = true, precision = 0)
-    public BigInteger targetreference;
+    public Integer targetreference;
     @Id
     @Column(name = "lbnr", nullable = false, insertable = true, updatable = true, precision = 0)
-    public BigInteger lbnr;
+    public Integer lbnr;
     @Column(name = "recordstatus")
     @Convert(converter = RecordStatusConverter.class)
     public RecordStatus recordStatus;
     @Column(name = "recordorsurdiag2")
     public Integer diagnosticId;
+    @Column(name = "record_id")
+    public String record_id;
 
-    public List<DiagnosticsEntity> getDiagnosticsEntityList(EntityManager em) {
+    /*
+    https://en.wikibooks.org/wiki/Java_Persistence/OneToMany#Unidirectional_OneToMany.2C_No_Inverse_ManyToOne.2C_No_Join_Table_.28JPA_2.0_ONLY.29
+    */
+
+    private transient List<DiagnosticsEntity> diagnosticsEntities=new ArrayList<>();
+
+    public List<DiagnosticsEntity> getDiagnosticsEntities( ) {
+        if( diagnosticsEntities.isEmpty() && diagnosticId!=null) {
+            throw new IllegalStateException("loadDiagnosticsEntities must be called before getDiagnosticesEntities");
+        }
+        return diagnosticsEntities;
+    }
+
+    public void setDiagnosticsEntities(List<DiagnosticsEntity> diagnosticsEntities) {
+        this.diagnosticsEntities = diagnosticsEntities;
+    }
+
+    private void fetch_DiagnosticsEntityList(EntityManager em) {
         TypedQuery<DiagnosticsEntity> q = em.createNamedQuery("Diagnostics.findById", DiagnosticsEntity.class);
         q.setParameter("id", diagnosticId);
-        return q.getResultList();
-
+        diagnosticsEntities=q.getResultList();
     }
 
-    public void appendDiagnostics(String additionalInfo, EntityManager em) {
-        DiagnosticsEntity diagnosticsEntity = new DiagnosticsEntity(0, additionalInfo);
-        Integer nextLbnr = 0;
-        if (diagnosticId != null) {
-            TypedQuery<Integer> q = em.createNamedQuery("Diagnostics.findMaxLbNr", Integer.class);
-            q.setParameter("id", diagnosticId);
-            Integer curMaxLbnr = q.getSingleResult();
-            if (curMaxLbnr != null) {
-                nextLbnr = curMaxLbnr + 1;
-            }
-            diagnosticsEntity.id = diagnosticId;
-        }
-
-        diagnosticsEntity.lbNr = nextLbnr;
-        em.persist(diagnosticsEntity);
-        diagnosticId = diagnosticsEntity.id;
-        recordStatus = RecordStatus.FAILURE;
-        log.trace("appended diagnostics id {} lbNr {} to tref {} lbNr", diagnosticsEntity.id, diagnosticsEntity.lbNr, targetreference, lbnr);
+    public void loadDiagnosticsEntities(EntityManager entityManager) {
+        fetch_DiagnosticsEntityList( entityManager );
     }
 
-    /**
-     * Test Tp se if the Taskpackage is Complete.
-     *
-     * @return True if the Taskpackage has Completed
-     */
-    public boolean isRecordProcessingComplete() {
-        switch (recordStatus) {
-            case QUEUED:
-            case IN_PROCESS:
-                return false;
-        }
-        return true;
-    }
 
+    //*/
     public enum RecordStatus {SUCCESS, QUEUED, IN_PROCESS, FAILURE}
 }

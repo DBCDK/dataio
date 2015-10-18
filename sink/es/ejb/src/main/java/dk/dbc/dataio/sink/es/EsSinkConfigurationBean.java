@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.commons.es.ESUtil;
+import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,8 +41,7 @@ public class EsSinkConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsSinkConfigurationBean.class);
     // Default values taken from opret_tp_addi project in svn.
     static final int DEFAULT_USER_ID = 3;
-    static final String DEFAULT_PACKAGE_TYPE = ESUtil.PackageType.DATABASE_UPDATE.name();
-    static final String DEFAULT_ACTION = ESUtil.Action.DELETE.name();
+    static final String DEFAULT_ACTION = TaskSpecificUpdateEntity.UpdateAction.DELETE.name();
 
     @Resource(name = "esResourceName")
     String esResourceName;
@@ -64,7 +63,6 @@ public class EsSinkConfigurationBean {
         LOGGER.info("esResourceName={}", esResourceName);
         LOGGER.info("esDatabaseName={}", esDatabaseName);
         LOGGER.info("esUserId={}", getEsUserId());
-        LOGGER.info("esPackageType={}", getEsPackageType());
         LOGGER.info("esAction={}", getEsAction());
     }
 
@@ -82,15 +80,9 @@ public class EsSinkConfigurationBean {
         return esUserId;
     }
 
-    public ESUtil.PackageType getEsPackageType() {
-        if (esPackageType == null || esPackageType.isEmpty())
-            return ESUtil.PackageType.valueOf(DEFAULT_PACKAGE_TYPE);
-        return ESUtil.PackageType.valueOf(esPackageType.toUpperCase());
-    }
-
-    public ESUtil.Action getEsAction() {
+    public TaskSpecificUpdateEntity.UpdateAction getEsAction() {
         if (esAction == null || esAction.isEmpty())
-            return ESUtil.Action.valueOf(DEFAULT_ACTION);
-        return ESUtil.Action.valueOf(esAction.toUpperCase());
+            return TaskSpecificUpdateEntity.UpdateAction.valueOf(DEFAULT_ACTION);
+        return TaskSpecificUpdateEntity.UpdateAction.valueOf(esAction.toUpperCase());
     }
 }

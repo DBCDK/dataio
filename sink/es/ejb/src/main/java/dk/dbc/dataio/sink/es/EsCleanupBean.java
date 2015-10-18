@@ -33,6 +33,7 @@ import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
+import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
@@ -143,7 +144,7 @@ public class EsCleanupBean {
         final List<Integer> finishedTaskPackages = new ArrayList<>();
         for (Map.Entry<Integer, TaskStatus> entry : taskStatusMap.entrySet()) {
             final TaskStatus ts = entry.getValue();
-            if (ts.getTaskStatus() == TaskStatus.Code.COMPLETE || ts.getTaskStatus() == TaskStatus.Code.ABORTED) {
+            if (ts.getTaskStatus() == TaskPackageEntity.TaskStatus.COMPLETE || ts.getTaskStatus() == TaskPackageEntity.TaskStatus.ABORTED) {
                 finishedTaskPackages.add(entry.getKey());
             }
         }

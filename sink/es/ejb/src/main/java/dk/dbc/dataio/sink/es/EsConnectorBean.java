@@ -100,6 +100,7 @@ public class EsConnectorBean {
     public ExternalChunk getChunkForTaskPackage(int targetReference, ExternalChunk placeholderChunk) throws SinkException {
 
         TaskSpecificUpdateEntity tpu = entityManager.find(TaskSpecificUpdateEntity.class, targetReference);
+        entityManager.refresh( tpu ); // Force Reload of Task package from DB after changes from TPWorkers
         tpu.loadDiagsIfExists( entityManager);
         try {
             return ESTaskPackageUtil.getChunkForTaskPackage(tpu, placeholderChunk);

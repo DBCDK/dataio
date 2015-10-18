@@ -75,17 +75,17 @@ public class JPATestUtils {
         Class.forName("org.postgresql.Driver");
         GetTestConnectInfo getTestConnectInfo = new GetTestConnectInfo().invoke();
         return DriverManager.getConnection(getTestConnectInfo.getJdbc(), getTestConnectInfo.getLogin(), getTestConnectInfo.getPassword());
-    };
+    }
 
     public static DataSource getTestDataSource( String dataBaseName ) {
-        if ( System.getProperty("postgresql.port") == null) {
+        if ( System.getProperty("espostgresql.port") == null) {
             // Hack
             dataBaseName = System.getenv("USER");
         }
         PGSimpleDataSource ES_INFLIGHT_DATASOURCE = new PGSimpleDataSource();
         ES_INFLIGHT_DATASOURCE.setDatabaseName(dataBaseName);
         ES_INFLIGHT_DATASOURCE.setServerName("localhost");
-        ES_INFLIGHT_DATASOURCE.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
+        ES_INFLIGHT_DATASOURCE.setPortNumber(Integer.parseInt(System.getProperty("espostgresql.port", "5432")));
         ES_INFLIGHT_DATASOURCE.setUser(System.getProperty("user.name"));
         ES_INFLIGHT_DATASOURCE.setPassword(System.getProperty("user.name"));
         return ES_INFLIGHT_DATASOURCE;
@@ -132,7 +132,7 @@ public class JPATestUtils {
             password = null;
             String dataBaseName = "es";
             String dataBaseHost = "localhost";
-            String port = System.getProperty("postgresql.port");
+            String port = System.getProperty("espostgresql.port");
             if (port == null) {
                 port = "5432";
                 password = System.getenv("USER");

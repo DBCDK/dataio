@@ -179,8 +179,9 @@ public class ESTaskPackageUtil {
             suppliedRecord.metaData = new String(addi.getMetaData(), esWorkload.getDeliveredChunk().getEncoding());
             suppliedRecord.record = addi.getContentData();
             suppliedRecord.targetreference = taskPackage.getTargetreference();
-            suppliedRecord.lbnr=++i;
+            suppliedRecord.lbnr=i;
             records.add( suppliedRecord );
+            i++;
         }
         taskPackage.setSuppliedRecords(records);
 

@@ -70,8 +70,8 @@ public class SortHelper {
      * @return 0 if equal, negative if s1 is smaller than s2, positive if s1 is greater than s2
      */
     public static int compareLongDates(String s1, String s2) {
-        Long l1 = Format.parseLongDate(s1);
-        Long l2 = Format.parseLongDate(s2);
+        Long l1 = Format.parseLongDateAsLong(s1);
+        Long l2 = Format.parseLongDateAsLong(s2);
         return l1.equals(l2) ? 0 : (l1 < l2) ? -1 : 1;
     }
 

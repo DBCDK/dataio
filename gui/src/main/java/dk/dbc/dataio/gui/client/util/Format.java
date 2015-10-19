@@ -101,8 +101,17 @@ public final class Format {
      * @param date A textual representation of the date
      * @return A long representation of date
      */
-    public static long parseLongDate(String date) {
+    public static long parseLongDateAsLong(String date) {
         return parseDate(date, LONG_DATE_TIME_FORMAT);
+    }
+
+    /**
+     *
+     * @param date A textual representation of the date
+     * @return A long representation of date
+     */
+    public static Date parseLongDateAsDate(String date) {
+        return new Date(parseDate(date, LONG_DATE_TIME_FORMAT));
     }
 
     /**

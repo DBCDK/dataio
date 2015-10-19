@@ -154,4 +154,8 @@ public interface Resources extends ClientBundle {
     @Source("img/navigationbg.gif")
     ImageResource navigationBackground();
 
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/calendar-icon.png")
+    ImageResource calendarIcon();
+
 }

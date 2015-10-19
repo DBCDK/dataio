@@ -48,6 +48,17 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     final static char TIME_SEPARATOR = ':';
     final static char DATE_TIME_SEPARATOR = ' ';
     final static String SEPARATORS = new String(new char[]{DATE_SEPARATOR, TIME_SEPARATOR, DATE_TIME_SEPARATOR});
+    final static String DEFAULT_FORMATTED_EMPTY_YEAR = "2000";
+    final static String DEFAULT_FORMATTED_EMPTY_DAY_MONTH = "01";
+    final static String DEFAULT_FORMATTED_EMPTY_TIME = "00";
+    final static String DEFAULT_FORMATTED_EMPTY_DATE =
+            DEFAULT_FORMATTED_EMPTY_YEAR + DATE_SEPARATOR
+            + DEFAULT_FORMATTED_EMPTY_DAY_MONTH + DATE_SEPARATOR
+            + DEFAULT_FORMATTED_EMPTY_DAY_MONTH + DATE_TIME_SEPARATOR
+            + DEFAULT_FORMATTED_EMPTY_TIME + TIME_SEPARATOR
+            + DEFAULT_FORMATTED_EMPTY_TIME + TIME_SEPARATOR
+            + DEFAULT_FORMATTED_EMPTY_TIME;
+
 
     interface DateTimeBoxUiBinder extends UiBinder<HTMLPanel, DateTimeBox> {
     }
@@ -89,8 +100,10 @@ public class DateTimeBox extends Composite implements HasValue<String> {
                     case KeyCodes.KEY_RIGHT:
                     case KeyCodes.KEY_LEFT:
                     case KeyCodes.KEY_TAB:
-                    case KeyCodes.KEY_ENTER:
                         // These characters are all legal, and shall therefore not be cancelled
+                        break;
+                    case KeyCodes.KEY_ENTER:
+                        acceptEnteredData();
                         break;
                     default:
                         // All other characters are not to be used, and shall be cancelled
@@ -102,6 +115,10 @@ public class DateTimeBox extends Composite implements HasValue<String> {
 
     @UiHandler("textBox")
     void textBoxLostFocus(BlurEvent event) {
+        acceptEnteredData();
+    }
+
+    private void acceptEnteredData() {
         textBox.setValue(formatStringDate(textBox.getValue()));
         datePicker.setValue(Format.parseLongDateAsDate(formatStringDate(textBox.getValue())));
     }
@@ -274,43 +291,80 @@ public class DateTimeBox extends Composite implements HasValue<String> {
      * @return Output date according to rules above
      */
     static String formatStringDate(String input) {
-        String result = "";
+        String year;
+        String month = DEFAULT_FORMATTED_EMPTY_DAY_MONTH;
+        String day = DEFAULT_FORMATTED_EMPTY_DAY_MONTH;
+        String hour = DEFAULT_FORMATTED_EMPTY_TIME;
+        String minute = DEFAULT_FORMATTED_EMPTY_TIME;
+        String second = DEFAULT_FORMATTED_EMPTY_TIME;
         int size;
 
         // Filter out illegal characters
         input = input.replaceAll("[^0-9]", "");
         size = input.length();
 
-        // Format year - position 0:3
-        if (size < 4) return input;
-        result += input.substring(0,4);
-        if (size == 4) return input;
+        // Year
+        if (size > 4) {
+            year = input.substring(0, 4);
+        } else {
+            year = rightJustify(DEFAULT_FORMATTED_EMPTY_YEAR, input.substring(0, size));
+        }
+        // Month
+        if (size > 6) {
+            month = input.substring(4, 6);
+        } else {
+            if (size > 4) {
+                month = rightJustify(DEFAULT_FORMATTED_EMPTY_DAY_MONTH, input.substring(4, size));
+            }
+        }
+        // Day
+        if (size > 8) {
+            day = input.substring(6, 8);
+        } else {
+            if (size > 6) {
+                day = rightJustify(DEFAULT_FORMATTED_EMPTY_DAY_MONTH, input.substring(6, size));
+            }
+        }
+        // Hour
+        if (size > 10) {
+            hour = input.substring(8, 10);
+        } else {
+            if (size > 8) {
+                hour = rightJustify(DEFAULT_FORMATTED_EMPTY_TIME, input.substring(8, size));
+            }
+        }
+        // Minute
+        if (size > 12) {
+            minute = input.substring(10, 12);
+        } else {
+            if (size > 10) {
+                minute = rightJustify(DEFAULT_FORMATTED_EMPTY_TIME, input.substring(10, size));
+            }
+        }
+        // Second
+        if (size > 14) {
+            second = input.substring(12, 14);
+        } else {
+            if (size > 12) {
+                second = rightJustify(DEFAULT_FORMATTED_EMPTY_TIME, input.substring(12, size));
+            }
+        }
 
-        // Format month - position 4:5
-        if (size < 6) return result + DATE_SEPARATOR + input.substring(4);
-        result += DATE_SEPARATOR + input.substring(4,6);
-        if (size == 6) return result;
+    return year + DATE_SEPARATOR + month + DATE_SEPARATOR + day + DATE_TIME_SEPARATOR
+            + hour + TIME_SEPARATOR + minute + TIME_SEPARATOR + second;
+    }
 
-        // Format day - position 6:7
-        if (size < 8) return result + DATE_SEPARATOR + input.substring(6);
-        result += DATE_SEPARATOR + input.substring(6,8);
-        if (size == 8) return result;
-
-        // Format hour - position 8:9
-        if (size < 10) return result + DATE_TIME_SEPARATOR + input.substring(8);
-        result += DATE_TIME_SEPARATOR + input.substring(8,10);
-        if (size == 10) return result;
-
-        // Format minute - position 10:11
-        if (size < 12) return result + TIME_SEPARATOR + input.substring(10);
-        result += TIME_SEPARATOR + input.substring(10,12);
-        if (size == 12) return result;
-
-        // Format seconds - position 12:13
-        if (size < 14) return result + TIME_SEPARATOR + input.substring(12);
-        result += TIME_SEPARATOR + input.substring(12,14);
-        if (size == 14) return result;
-
-        return result;
+    /**
+     * Right justifies a date in a pre-filled text string (the text overwrites the existing default text)
+     * @param defaultString The pre filled text to use as a default string
+     * @param text The text to right justify, and overwrite the default string
+     * @return The resulting string
+     */
+    static String rightJustify(String defaultString, String text) {
+        if (text.length() > defaultString.length()) {
+            return text.substring(0, defaultString.length());  // Cutoff to size of defaultString
+        } else {
+            return defaultString.substring(0, defaultString.length() - text.length()) + text;
+        }
     }
 }

@@ -166,7 +166,6 @@ public class DateTimeBoxTest {
         // Test of all legal action keys
         testLegalActionKey(KeyCodes.KEY_BACKSPACE);
         testLegalActionKey(KeyCodes.KEY_DELETE);
-        testLegalActionKey(KeyCodes.KEY_ENTER);
         testLegalActionKey(KeyCodes.KEY_RIGHT);
         testLegalActionKey(KeyCodes.KEY_LEFT);
         testLegalActionKey(KeyCodes.KEY_TAB);
@@ -274,8 +273,18 @@ public class DateTimeBoxTest {
     }
 
     @Test
+    public void rightJustify_AllCombinations_ok() {
+        assertThat(DateTimeBox.rightJustify("1234", ""),          is("1234"));
+        assertThat(DateTimeBox.rightJustify("1234", "5"),         is("1235"));
+        assertThat(DateTimeBox.rightJustify("1234", "56"),        is("1256"));
+        assertThat(DateTimeBox.rightJustify("1234", "567"),       is("1567"));
+        assertThat(DateTimeBox.rightJustify("1234", "5678"),      is("5678"));
+        assertThat(DateTimeBox.rightJustify("1234", "56789"),     is("5678"));
+        assertThat(DateTimeBox.rightJustify("1234", "567891011"), is("5678"));
+    }
+
+    @Test
     public void normalizeStringDate_AllCombinations_ok() {
-        assertThat(DateTimeBox.normalizeStringDate("+aAå1Å´4@"),            is("20140101000000"));
         assertThat(DateTimeBox.normalizeStringDate(""),                     is("20000101000000"));
         assertThat(DateTimeBox.normalizeStringDate("1"),                    is("20010101000000"));
         assertThat(DateTimeBox.normalizeStringDate("12"),                   is("20120101000000"));
@@ -296,27 +305,28 @@ public class DateTimeBoxTest {
         assertThat(DateTimeBox.normalizeStringDate("2015-10-31 14:23:"),    is("20151031142300"));
         assertThat(DateTimeBox.normalizeStringDate("2015-10-31 14:23:5"),   is("20151031142305"));
         assertThat(DateTimeBox.normalizeStringDate("2015-10-31 14:23:56"),  is("20151031142356"));
+        assertThat(DateTimeBox.normalizeStringDate("+aAå1Å´4@"),            is("20140101000000"));
     }
 
     @Test
     public void formatStringDate_AllCombinations_ok() {
-        assertThat(DateTimeBox.formatStringDate("+aAå1Å´4@:- "),            is("14"));
-        assertThat(DateTimeBox.formatStringDate(""),                        is(""));
-        assertThat(DateTimeBox.formatStringDate("2"),                       is("2"));
-        assertThat(DateTimeBox.formatStringDate("20"),                      is("20"));
-        assertThat(DateTimeBox.formatStringDate("201"),                     is("201"));
-        assertThat(DateTimeBox.formatStringDate("2015"),                    is("2015"));
-        assertThat(DateTimeBox.formatStringDate("20151"),                   is("2015-1"));
-        assertThat(DateTimeBox.formatStringDate("201510"),                  is("2015-10"));
-        assertThat(DateTimeBox.formatStringDate("2015103"),                 is("2015-10-3"));
-        assertThat(DateTimeBox.formatStringDate("20151031"),                is("2015-10-31"));
-        assertThat(DateTimeBox.formatStringDate("201510311"),               is("2015-10-31 1"));
-        assertThat(DateTimeBox.formatStringDate("2015103114"),              is("2015-10-31 14"));
-        assertThat(DateTimeBox.formatStringDate("20151031142"),             is("2015-10-31 14:2"));
-        assertThat(DateTimeBox.formatStringDate("201510311423"),            is("2015-10-31 14:23"));
-        assertThat(DateTimeBox.formatStringDate("2015103114235"),           is("2015-10-31 14:23:5"));
+        assertThat(DateTimeBox.formatStringDate(""),                        is("2000-01-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("2"),                       is("2002-01-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("20"),                      is("2020-01-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("201"),                     is("2201-01-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("2015"),                    is("2015-01-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("20152"),                   is("2015-02-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("201510"),                  is("2015-10-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("2015103"),                 is("2015-10-03 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("20151031"),                is("2015-10-31 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate("201510311"),               is("2015-10-31 01:00:00"));
+        assertThat(DateTimeBox.formatStringDate("2015103114"),              is("2015-10-31 14:00:00"));
+        assertThat(DateTimeBox.formatStringDate("20151031142"),             is("2015-10-31 14:02:00"));
+        assertThat(DateTimeBox.formatStringDate("201510311423"),            is("2015-10-31 14:23:00"));
+        assertThat(DateTimeBox.formatStringDate("2015103114235"),           is("2015-10-31 14:23:05"));
         assertThat(DateTimeBox.formatStringDate("20151031142356"),          is("2015-10-31 14:23:56"));
         assertThat(DateTimeBox.formatStringDate("201510311423567"),         is("2015-10-31 14:23:56"));
+        assertThat(DateTimeBox.formatStringDate("+aAå1Å´4@:- "),            is("2014-01-01 00:00:00"));
     }
 
 }

@@ -154,13 +154,13 @@ public class ExternalChunk implements Iterable<ChunkItem> {
         }
     }
 
-    public void insertItemWithStatusSuccess(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
+    public void addItemWithStatusSuccess(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
         insertItem(new ChunkItem(itemId, itemContent, SUCCESS));
     }
-    public void insertItemWithStatusFailed(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
+    public void addItemWithStatusFailed(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
         insertItem(new ChunkItem(itemId, itemContent, FAILURE));
     }
-    public void insertItemWithStatusIgnored(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
+    public void addItemWithStatusIgnored(long itemId, byte[] itemContent) throws IllegalArgumentException, NullPointerException {
         insertItem(new ChunkItem(itemId, itemContent, IGNORE));
     }
 

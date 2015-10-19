@@ -32,7 +32,10 @@ import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ExternalChunkTest {
     private static final ChunkItem CHUNK_ITEM = new ChunkItem(0L, "data".getBytes(), ChunkItem.Status.SUCCESS);
@@ -189,5 +192,67 @@ public class ExternalChunkTest {
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
         final ExternalChunk chunk = jsonbContext.unmarshall(json, ExternalChunk.class);
         assertThat(chunk, is(notNullValue()));
+    }
+
+    @Test
+    public void addItemWithStatusSuccess() throws JSONBException {
+
+        // Preconditions
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
+        assertThat(externalChunk, is(notNullValue()));
+        assertTrue(externalChunk.size() == 1);
+
+        // Subject Under Test
+        externalChunk.addItemWithStatusSuccess(1l, new byte[0]);
+        assertTrue(externalChunk.size() == 2);
+        assertStatus(externalChunk, 1l, ChunkItem.Status.SUCCESS);
+    }
+
+    @Test
+    public void addItemWithStatusIgnored() throws JSONBException {
+
+        // Preconditions
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
+        assertThat(externalChunk, is(notNullValue()));
+        assertTrue(externalChunk.size() == 1);
+
+        // Subject Under Test
+        externalChunk.addItemWithStatusIgnored(1l, new byte[0]);
+        assertTrue(externalChunk.size() == 2);
+        assertStatus(externalChunk, 1l, ChunkItem.Status.IGNORE);
+    }
+
+    @Test
+    public void addItemWithStatusFailed() throws JSONBException {
+
+        // Preconditions
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
+        assertThat(externalChunk, is(notNullValue()));
+        assertTrue(externalChunk.size() == 1);
+
+        // Subject Under Test
+        externalChunk.addItemWithStatusFailed(1l, new byte[0]);
+        assertTrue(externalChunk.size() == 2);
+        assertStatus(externalChunk, 1l, ChunkItem.Status.FAILURE);
+    }
+
+    private void assertStatus(ExternalChunk externalChunk, long itemIdToStatusMatch, ChunkItem.Status expectedStatus) {
+        final ChunkItem ITEM_NOT_FOUND = null;
+        ChunkItem itemToMatch = ITEM_NOT_FOUND;
+        for (ChunkItem item : externalChunk) {
+            if(item.getId() == itemIdToStatusMatch) {
+                itemToMatch = item;
+            }
+        }
+
+        if(itemToMatch == null) {
+            fail("Matching ChunkItem expected with itemId: " + itemIdToStatusMatch);
+        } else {
+            assertTrue(itemToMatch.getId() == itemIdToStatusMatch);
+            assertEquals(expectedStatus, itemToMatch.getStatus());
+        }
     }
 }

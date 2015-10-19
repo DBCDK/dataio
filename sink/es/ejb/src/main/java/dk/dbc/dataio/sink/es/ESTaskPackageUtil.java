@@ -119,10 +119,8 @@ public class ESTaskPackageUtil {
         LOGGER.entry();
         try {
             if (!targetReferences.isEmpty()) {
-                for( final Integer targetRef : targetReferences ) {
-                    em.getTransaction().begin();
+                for (final Integer targetRef : targetReferences) {
                     em.createNativeQuery(String.format("delete from taskpackage where targetreference=%1$d", targetRef)).executeUpdate();
-                    em.getTransaction().commit();
                 }
             }
         } finally {

@@ -32,7 +32,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -120,7 +119,6 @@ public class ESTaskPackageUtilIT {
         JPATestUtils.runSqlFromResource(em, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
 
 
-        ESTaskPackageUtil.MAX_WHERE_IN_SIZE = 6;
 
         List<Integer> targetReferences = new ArrayList<>();
 
@@ -128,7 +126,9 @@ public class ESTaskPackageUtilIT {
             targetReferences.add(i);
         }
 
+        em.getTransaction().begin();
         ESTaskPackageUtil.deleteTaskpackages(em, targetReferences);
+        em.getTransaction().commit();
 
         final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
                 ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getEsConnection(), targetReferences);

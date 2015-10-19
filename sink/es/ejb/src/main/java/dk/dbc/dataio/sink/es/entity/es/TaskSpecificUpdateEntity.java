@@ -29,6 +29,7 @@ import javax.persistence.Convert;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.EntityManager;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
@@ -107,7 +108,7 @@ public class TaskSpecificUpdateEntity extends TaskPackageEntity {
     }
 
 
-    @OneToMany(cascade = CascadeType.PERSIST)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "targetreference")
     @OrderBy("lbnr")
     public List<SuppliedRecordsEntity> getSuppliedRecords() {
@@ -118,7 +119,7 @@ public class TaskSpecificUpdateEntity extends TaskPackageEntity {
         this.suppliedRecords = suppliedRecords;
     }
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "targetreference")
     @OrderBy("lbnr")
     public List<TaskPackageRecordStructureEntity> getTaskpackageRecordStructures() {

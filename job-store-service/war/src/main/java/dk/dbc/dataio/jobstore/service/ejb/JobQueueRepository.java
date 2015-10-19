@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import org.slf4j.LoggerFactory;
@@ -146,6 +147,18 @@ public class JobQueueRepository extends RepositoryBase {
         }
 
         return firstWaitingJob;
+    }
+
+    /**
+     * @return list of job queue entries currently marked as being in-progress
+     */
+    @Stopwatch
+    public List<JobQueueEntity> getInProgress() {
+        @SuppressWarnings("unchecked")
+        final List<JobQueueEntity> inProgress = entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_STATE)
+                .setParameter(JobQueueEntity.FIELD_STATE, JobQueueEntity.State.IN_PROGRESS)
+                .getResultList();
+        return inProgress;
     }
 
     /* Private methods */

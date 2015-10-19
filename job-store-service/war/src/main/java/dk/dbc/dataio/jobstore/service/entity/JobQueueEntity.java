@@ -31,7 +31,10 @@ import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter
                 query = "SELECT jq FROM JobQueueEntity jq WHERE jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID + " AND jq.state = :" + JobQueueEntity.FIELD_STATE + " ORDER BY jq.timeOfEntry"),
 
         @NamedQuery(name = JobQueueEntity.NQ_FIND_UNIQUE_SINKS,
-                query = "SELECT DISTINCT(jq.sinkId) FROM JobQueueEntity jq")
+                query = "SELECT DISTINCT(jq.sinkId) FROM JobQueueEntity jq"),
+
+        @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_STATE,
+                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.state = :" + JobQueueEntity.FIELD_STATE),
 })
 public class JobQueueEntity {
 
@@ -42,6 +45,7 @@ public class JobQueueEntity {
     public static final String NQ_FIND_BY_JOB = "NQ_FIND_BY_JOB";
     public static final String NQ_FIND_WAITING_JOBS_BY_SINK = "NQ_FIND_WAITING_JOBS_BY_SINK";
     public static final String NQ_FIND_UNIQUE_SINKS = "NQ_FIND_UNIQUE_SINKS";
+    public static final String NQ_FIND_BY_STATE = "NQ_FIND_BY_STATE";
 
     public static final String FIELD_SINK_ID = "sinkId";
     public static final String FIELD_JOB_ID = "job";

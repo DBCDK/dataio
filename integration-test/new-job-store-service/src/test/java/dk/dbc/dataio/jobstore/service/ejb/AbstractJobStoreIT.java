@@ -24,12 +24,14 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
@@ -46,8 +48,10 @@ import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,8 +126,8 @@ public class AbstractJobStoreIT {
 
         try (final Connection connection = newConnection()) {
             for (String tableName : Arrays.asList(
-                    JOB_TABLE_NAME, CHUNK_TABLE_NAME, ITEM_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME,
-                    JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME)) {
+                    CHUNK_TABLE_NAME, ITEM_TABLE_NAME, JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME,
+                    JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME)) {
                 JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
             }
             connection.commit();
@@ -189,5 +193,22 @@ public class AbstractJobStoreIT {
         final ItemEntity itemEntity = newItemEntity(key);
         persist(itemEntity);
         return itemEntity;
+    }
+
+    protected JobQueueEntity newJobQueueEntity(JobEntity job) {
+        final JobQueueEntity jobQueueEntity = new JobQueueEntity();
+        jobQueueEntity.setJob(job);
+        jobQueueEntity.setRecordSplitterType(RecordSplitterConstants.RecordSplitter.XML);
+        jobQueueEntity.setSequenceAnalysis(true);
+        jobQueueEntity.setSinkId(0);
+        jobQueueEntity.setState(JobQueueEntity.State.WAITING);
+        jobQueueEntity.setTimeOfEntry(new Timestamp(new Date().getTime()));
+        return jobQueueEntity;
+    }
+
+    protected JobQueueEntity newPersistedJobQueueEntity(JobEntity job) {
+        final JobQueueEntity jobQueueEntity = newJobQueueEntity(job);
+        persist(jobQueueEntity);
+        return jobQueueEntity;
     }
 }

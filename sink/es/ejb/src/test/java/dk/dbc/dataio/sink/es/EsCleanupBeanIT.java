@@ -45,11 +45,14 @@ public class EsCleanupBeanIT extends SinkIT {
         assertThat("Number of task packages in ES", findTaskPackages().size(), is(2));
 
         final EsCleanupBean esCleanupBean = getEsCleanupBean();
-        EntityTransaction transaction = esCleanupBean.esConnector.entityManager.getTransaction();
-        transaction.begin();
+        EntityTransaction esTransaction = esCleanupBean.esConnector.entityManager.getTransaction();
+        EntityTransaction inFlightTransaction = esInFlightEntityManager.getTransaction();
+        esTransaction.begin();
+        inFlightTransaction.begin();
         esCleanupBean.startup();
         esCleanupBean.cleanup();
-        transaction.commit();
+        inFlightTransaction.commit();
+        esTransaction.commit();
 
         // Assert that one ES task package is still in-flight
         assertThat("Number of ES task packages in-flight", listEsInFlight().size(), is(2));
@@ -72,12 +75,17 @@ public class EsCleanupBeanIT extends SinkIT {
 
 
         final EsCleanupBean esCleanupBean = getEsCleanupBean();
-        EntityTransaction transaction=esCleanupBean.esConnector.entityManager.getTransaction() ;
-        transaction.begin();
+        EntityTransaction esTransaction=esCleanupBean.esConnector.entityManager.getTransaction() ;
+        EntityTransaction inFlightTransaction = esInFlightEntityManager.getTransaction();
+        inFlightTransaction.begin();
+        esTransaction.begin();
         esCleanupBean.startup();
         esCleanupBean.cleanup();
-        transaction.commit();
+        inFlightTransaction.commit();
+        esTransaction.commit();
 
+
+        JPATestUtils.clearEntityManagerCache(esInFlightEntityManager);
         // Assert that no ES task package are in-flight
         assertThat("Number of ES task packages in-flight", listEsInFlight().size(), is(0));
 

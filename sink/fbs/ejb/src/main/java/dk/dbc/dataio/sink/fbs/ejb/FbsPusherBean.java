@@ -24,7 +24,6 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -34,6 +33,9 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.xml.ws.WebServiceException;
+
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 
 @Stateless
 public class FbsPusherBean {
@@ -54,72 +56,44 @@ public class FbsPusherBean {
     public ExternalChunk push(ExternalChunk processedChunk) throws WebServiceException {
         final StopWatch stopWatch = new StopWatch();
         LOGGER.info("Examining chunk {} for job {}", processedChunk.getChunkId(), processedChunk.getJobId());
-        final ExternalChunk deliveredChunk = new ExternalChunk(
-                processedChunk.getJobId(),
-                processedChunk.getChunkId(), 
-                ExternalChunk.Type.DELIVERED);
-        deliveredChunk.setEncoding(processedChunk.getEncoding());
+        final ExternalChunk chunkForDelivery = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        chunkForDelivery.setEncoding(processedChunk.getEncoding());
         
-        int itemsPushed = 0;
-        for (ChunkItem chunkItem : processedChunk) {
-            if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
-                ChunkItem deliveredItem = executeUpdateOperation(chunkItem, processedChunk.getJobId(), processedChunk.getChunkId());
-                deliveredChunk.insertItem(deliveredItem);
-                itemsPushed++;
+        int numberOfItemsPushed = 0;
+        for (ChunkItem processedChunkItem : processedChunk) {
+            if (processedChunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+                executeUpdateOperation(processedChunk, processedChunkItem, chunkForDelivery);
+                numberOfItemsPushed++;
             } else {
-                deliveredChunk.insertItem(newIgnoredChunkItem(chunkItem.getId(),
-                        String.format("Processor item status was: %s", chunkItem.getStatus())));
+                chunkForDelivery.addItemWithStatusIgnored( processedChunkItem.getId(), asBytes(String.format("Processor item status was: %s", processedChunkItem.getStatus())) );
             }
         }
-        LOGGER.info("Pushed {} items from chunk {} for job {} in {} ms",
-                itemsPushed, processedChunk.getChunkId(), processedChunk.getJobId(), stopWatch.getElapsedTime());
 
-        return deliveredChunk;
+        LOGGER.info("Pushed {} items from chunk {} for job {} in {} ms", numberOfItemsPushed, processedChunk.getChunkId(), processedChunk.getJobId(), stopWatch.getElapsedTime());
+        return chunkForDelivery;
     }
 
-    private ChunkItem executeUpdateOperation(ChunkItem chunkItem, long jobId, long chunkId) throws WebServiceException {
-        final String trackingId = String.format("%d-%d-%d", jobId, chunkId, chunkItem.getId());
+    private void executeUpdateOperation(ExternalChunk processedChunk, ChunkItem processedChunkItem, ExternalChunk chunkForDelivery) throws WebServiceException {
+        final String trackingId = String.format("%d-%d-%d", processedChunk.getJobId(), processedChunk.getChunkId(), processedChunkItem.getId());
         final FbsUpdateConnector connector = fbsUpdateConnector.getConnector();
-        ChunkItem deliveredItem;
         try {
-            final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(
-                    StringUtil.asString(chunkItem.getData()), trackingId);
+            final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(asString(processedChunkItem.getData()), trackingId);
             switch(updateMarcXchangeResult.getUpdateMarcXchangeStatus()) {
                 case OK:
-                    deliveredItem = newSuccessfulChunkItem(
-                            chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage());
+                    chunkForDelivery.addItemWithStatusSuccess(processedChunkItem.getId(), asBytes(updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
                     break;
                 case UPDATE_FAILED_PLEASE_RESEND_LATER:
                     throw new WebServiceException("Service responded with 'please resend later' message");
                 default:
-                    deliveredItem = newFailedChunkItem(
-                            chunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage());
+                    chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
             }
         } catch (WebServiceException e) {
-            LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}",
-                    chunkItem.getId(), chunkId, jobId, e);
+            LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId(), e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception",
-                    chunkItem.getId(), chunkId, jobId, e);
-            deliveredItem = newFailedChunkItem(chunkItem.getId(), ServiceUtil.stackTraceToString(e));
+            LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId(), e);
+            chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(ServiceUtil.stackTraceToString(e)));
+
         }
-        return deliveredItem;
-    }
-
-    private ChunkItem newSuccessfulChunkItem(long chunkItemId, String data) {
-        return newChunkItem(chunkItemId, data, ChunkItem.Status.SUCCESS);
-    }
-
-    private ChunkItem newFailedChunkItem(long chunkItemId, String data) {
-        return newChunkItem(chunkItemId, data, ChunkItem.Status.FAILURE);
-    }
-
-    private ChunkItem newIgnoredChunkItem(long chunkItemId, String data) {
-        return newChunkItem(chunkItemId, data, ChunkItem.Status.IGNORE);
-    }
-
-    private ChunkItem newChunkItem(long chunkItemId, String data, ChunkItem.Status status) {
-        return new ChunkItem(chunkItemId, StringUtil.asBytes(data), status);
     }
 }

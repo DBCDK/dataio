@@ -31,42 +31,45 @@ import dk.dbc.oss.ns.catalogingupdate.RecordData;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
-public class AddiRecordPreprocessor {
-    static final String TEMPLATE_TAG        = "dataio:sink-update-template";
-    static final String NODE_NAME           = "updateTemplate";
-    static final String RECORD_SCHEMA       = "info:lc/xmlns/marcxchange-v1";
-    static final String RECORD_PACKAGING    = "xml";
+public class AddiRecordPreprocessor extends DocumentTransformer{
+    static final String NAMESPACE_URI             = "dk.dbc.dataio.processing";
+    static final String ELEMENT                   = "sink-update-template";
+    static final String UPDATE_TEMPLATE_ATTRIBUTE = "updateTemplate";
+    static final String RECORD_SCHEMA             = "info:lc/xmlns/marcxchange-v1";
+    static final String RECORD_PACKAGING          = "xml";
 
     /**
      * This method pre-processes an addi record according to the following rules:
      *
-     * If the template tag(dataio:sink-update-template) is not found within the meta data,
+     * If the processing tag is not found within the meta data,
      * null is returned.
      *
-     * If template tag is found, updateRecord is called, with the tag value and content
-     * data of the addi record.
+     * If processing tag is found with attribute updateTemplate, updateRecord is called, with the attribute value and
+     * content data of the addi record.
      *
      * @param addiRecord Addi record to pre-process
-     * @return updateRecordResult if the template tag is located, null if the template tag is not located
+     * @return updateRecordResult if the template tag is located, null if the processing tag is not located
      * @throws IllegalArgumentException on invalid metadata or content
      */
     public UpdateRecordResult execute(AddiRecord addiRecord) throws IllegalArgumentException {
         UpdateRecordResult updateRecordResult = null;
         try {
-            final Document metaDataDocument = DocumentTransformer.byteArrayToDocument(addiRecord.getMetaData());
-            final NodeList nodeList = metaDataDocument.getElementsByTagName(TEMPLATE_TAG);
+            final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
+            final NodeList nodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
 
-            if (nodeList.getLength() > 0) { // The template tag has been located
+            if (nodeList.getLength() > 0) { // The processing tag has been located
+                final Node processingNode = nodeList.item(0);
 
                 // Create UpdateRecordRequest
-                Document contentDataDocument = DocumentTransformer.byteArrayToDocument(addiRecord.getContentData());
-                UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(nodeList.item(0), contentDataDocument);
+                Document contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
+                UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(processingNode, contentDataDocument);
 
                 // Call UpdateRecord
                 CatalogingUpdateServices catalogingUpdateServices = new CatalogingUpdateServices();
@@ -87,7 +90,7 @@ public class AddiRecordPreprocessor {
      */
     private UpdateRecordRequest buildUpdateRecordRequest(Node node, Document document) {
         UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
-        updateRecordRequest.setSchemaName(DocumentTransformer.getNodeValue(NODE_NAME, node));
+        updateRecordRequest.setSchemaName(((Element) node).getAttribute(UPDATE_TEMPLATE_ATTRIBUTE));
         updateRecordRequest.setBibliographicRecord(getMarcXChangeRecord(document));
         return updateRecordRequest;
     }

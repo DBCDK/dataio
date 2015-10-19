@@ -40,6 +40,8 @@ import static org.junit.Assert.fail;
 
 public class AddiRecordPreprocessorTest {
 
+    private final DocumentTransformer documentTransformer = new DocumentTransformer();
+
     @Test
     public void execute_noProcessingTag_returnsUnchangedMetadataWithUnchangedContent() {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
@@ -54,7 +56,7 @@ public class AddiRecordPreprocessorTest {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
         final AddiRecord addiRecord = toAddiRecord(getValidAddiWithProcessingFalse());
         final AddiRecord preprocessed = preprocessor.execute(addiRecord);
-        assertThat("AddiRecord.metadata has processing tag", hasProcessingTag(preprocessed), is(false));
+        assertThat("AddiRecord.metadata has processing tag", hasSinkProcessingElement(preprocessor, preprocessed), is(false));
         assertThat("AddiRecord.content is unchanged", preprocessed.getContentData(), is(addiRecord.getContentData()));
     }
 
@@ -63,7 +65,7 @@ public class AddiRecordPreprocessorTest {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
         final AddiRecord addiRecord = toAddiRecord(getValidAddiWithProcessingTrueAndValidMarcXContentData());
         final AddiRecord preprocessed = preprocessor.execute(addiRecord);
-        assertThat("AddiRecord.metadata has processing tag", hasProcessingTag(preprocessed), is(false));
+        assertThat("AddiRecord.metadata has processing tag", hasSinkProcessingElement(preprocessor, preprocessed), is(false));
         assertThat("AddiRecord.content is 2709 encoded", preprocessed.getContentData(), is(to2709(addiRecord.getContentData())));
     }
 
@@ -78,14 +80,14 @@ public class AddiRecordPreprocessorTest {
         }
     }
 
-    private boolean hasProcessingTag(AddiRecord addiRecord) {
+    private boolean hasSinkProcessingElement(AddiRecordPreprocessor preprocessor, AddiRecord addiRecord) {
         final Document metadata;
         try {
-            metadata = DocumentTransformer.byteArrayToDocument(addiRecord.getMetaData());
+            metadata = preprocessor.byteArrayToDocument(addiRecord.getMetaData());
         } catch (IOException | SAXException e) {
             throw new IllegalStateException(e);
         }
-        return metadata.getElementsByTagName(AddiRecordPreprocessor.PROCESSING_TAG).getLength() > 0;
+        return metadata.getElementsByTagNameNS(AddiRecordPreprocessor.NAMESPACE_URI, AddiRecordPreprocessor.ELEMENT).getLength() > 0;
     }
 
     private byte[] to2709(byte[] bytes) {
@@ -98,7 +100,7 @@ public class AddiRecordPreprocessorTest {
 
     private Document getDocument(byte[] bytes) {
         try {
-            return DocumentTransformer.byteArrayToDocument(bytes);
+            return documentTransformer.byteArrayToDocument(bytes);
         } catch (IOException | SAXException e) {
             throw new IllegalStateException(e);
         }

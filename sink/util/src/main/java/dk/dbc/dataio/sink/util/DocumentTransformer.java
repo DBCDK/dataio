@@ -1,3 +1,24 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dk.dbc.dataio.sink.util;
 
 import org.w3c.dom.Document;
@@ -20,13 +41,21 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public abstract class DocumentTransformer {
+public class DocumentTransformer {
 
-    private final static DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-    private final static TransformerFactory transformerFactory = TransformerFactory.newInstance();
+    private DocumentBuilder documentBuilder;
+    private Transformer transformer;
 
-    static {
+    public DocumentTransformer() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setNamespaceAware(true);
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        try {
+            documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            transformer = transformerFactory.newTransformer();
+        } catch (ParserConfigurationException | TransformerConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -37,25 +66,20 @@ public abstract class DocumentTransformer {
      * @throws IOException If any IO errors occur.
      * @throws SAXException If any parse errors occur
      */
-    public static Document byteArrayToDocument(byte[] byteArray) throws IOException, SAXException {
-        final DocumentBuilder documentBuilder;
-        try {
-            documentBuilder = documentBuilderFactory.newDocumentBuilder();
-            final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
-            return documentBuilder.parse(byteArrayInputStream);
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
+    public Document byteArrayToDocument(byte[] byteArray) throws IOException, SAXException {
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArray);
+        documentBuilder.reset();
+        return documentBuilder.parse(byteArrayInputStream);
     }
 
     /**
      * This method removes all nodes in given node list from the dom
      * @param nodes the nodes to remove
      */
-    public static void removeFromDom(NodeList nodes) {
+    public void removeFromDom(NodeList nodes) {
         while(nodes.getLength() > 0) {
             final Node node = nodes.item(0);
-            node.getParentNode().removeChild(node); // Removes node from dom
+            node.getParentNode().removeChild(node); // Remove node from dom
         }
     }
 
@@ -67,28 +91,12 @@ public abstract class DocumentTransformer {
      * @throws TransformerException If an unrecoverable error occurs
      *         during the course of the transformation.
      */
-    public static byte[] documentToByteArray(Document document) throws TransformerException{
-        final Source source = new DOMSource(document);
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        final Result result = new StreamResult(byteArrayOutputStream);
-        final Transformer transformer;
-        try {
-            transformer = transformerFactory.newTransformer();
-            transformer.transform(source, result);
-            return byteArrayOutputStream.toByteArray();
-        } catch (TransformerConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /**
-     * This method retrieves the value of a specified node
-     * @param name the specified name of the node
-     * @param node the node
-     * @return the node value, null if the specified node is not found
-     */
-    public static String getNodeValue(String name, Node node) {
-        final Node namedItem = node.getAttributes().getNamedItem(name);
-        return namedItem == null ? null : namedItem.getNodeValue();
+    public byte[] documentToByteArray(Document document) throws TransformerException {
+        Source source = new DOMSource(document);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        Result result = new StreamResult(byteArrayOutputStream);
+        transformer.reset();
+        transformer.transform(source, result);
+        return byteArrayOutputStream.toByteArray();
     }
 }

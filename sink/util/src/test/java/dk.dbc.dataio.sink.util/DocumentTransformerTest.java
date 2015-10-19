@@ -1,3 +1,24 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dk.dbc.dataio.sink.util;
 
 import org.junit.Test;
@@ -18,54 +39,36 @@ import static org.junit.Assert.fail;
 
 public class DocumentTransformerTest {
 
-    private static final String TAG_NAME = "dataio:sink-tag-test";
-    private static final String TAG_EXTRA = "dataio:sink-tag-extra";
-    private static final String NODE_NAME = "testNodeName";
-    private static final String NODE_VALUE = "testValue";
+    private static final String NAMESPACE_URI = "dk.dbc.dataio.processing";
+    private static final String ELEMENT_1 = "sink-update-template";
+    private static final String ELEMENT_2 = "sink-processing";
+    private final DocumentTransformer documentTransformer = new DocumentTransformer();
+
+    @Test
+    public void setDocumentTransformer_newInstance_returnsNewDocumentTransformer() {
+        DocumentTransformer documentTransformer = new DocumentTransformer();
+        assertThat(documentTransformer, not(nullValue()));
+    }
 
     @Test
     public void documentTransformer_callGetDocumentWithValidXml_returnsDocument() throws IOException, SAXException {
         // Subject under test
-        Document document = DocumentTransformer.byteArrayToDocument(getByteArray(getContentXml()));
+        Document document = documentTransformer.byteArrayToDocument(getByteArray(getContentXml()));
 
         // Verification
-        assertThat(document, not(nullValue()));
+        assertThat("Document not null", document, not(nullValue()));
     }
 
     @Test
     public void documentTransformer_callGetDocumentWithInvalidXml_throws() throws IOException {
         try {
             // Subject under test
-            DocumentTransformer.byteArrayToDocument(getByteArray(getInvalidContentXml()));
+            documentTransformer.byteArrayToDocument(getByteArray(getInvalidContentXml()));
             fail();
         } catch (Exception e) {
             // Verification
             assertThat(e instanceof SAXParseException, is(true));
         }
-    }
-
-    @Test
-    public void documentTransformer_callGetNodeValueByExistingName_returnsNodeValue() throws IOException, SAXException {
-        final Document metaDataDocument = getDocument(getByteArray(getMetaXml()));
-        final NodeList nodeList = metaDataDocument.getElementsByTagName(TAG_NAME);
-
-        // Subject under test
-        final String nodeValue = DocumentTransformer.getNodeValue(NODE_NAME, nodeList.item(0));
-
-        // Verification
-        assertThat(nodeValue, is(NODE_VALUE));
-    }
-
-    @Test
-    public void documentTransformer_callGetNodeValueByNoneExistingName_returnsNull() throws IOException, SAXException {
-        final Document metaDataDocument = getDocument(getByteArray(getMetaXml()));
-        final NodeList nodeList = metaDataDocument.getElementsByTagName(TAG_NAME);
-
-        // Subject under test
-        final String nodeValue = DocumentTransformer.getNodeValue("fisk", nodeList.item(0));
-
-        // Verification
-        assertThat(nodeValue, is(nullValue()));
     }
 
     @Test
@@ -75,24 +78,24 @@ public class DocumentTransformerTest {
         Document document = getDocument(inputByteArray);
 
         // Subject under test
-        byte[] returnedByteArray = DocumentTransformer.documentToByteArray(document);
+        byte[] returnedByteArray = documentTransformer.documentToByteArray(document);
 
         // Verification
-        assertThat(returnedByteArray.length > 0, is(true));
-        assertThat(new String(returnedByteArray, StandardCharsets.UTF_8).contains(contentDataAsString), is(true));
+        assertThat("Length of byte array", returnedByteArray.length > 0, is(true));
+        assertThat("Content contains" + contentDataAsString, new String(returnedByteArray, StandardCharsets.UTF_8).contains(contentDataAsString), is(true));
     }
 
     @Test
     public void documentTransformer_removeFromDom_removesChildNodesFromDom() {
         final Document metaDataDocument = getDocument(getByteArray(getMetaXml()));
-        final NodeList nodeListContainingElementsWithTagName = metaDataDocument.getElementsByTagName(TAG_NAME);
-        final NodeList nodeListContainingElementsWithTagExtra = metaDataDocument.getElementsByTagName(TAG_EXTRA);
+        final NodeList nodeListContainingElementsWithTagName = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_1);
+        final NodeList nodeListContainingElementsWithTagExtra = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_2);
 
-        assertThat(nodeListContainingElementsWithTagName.getLength(), is(2));
+        assertThat("Nodelist containing elements with ", nodeListContainingElementsWithTagName.getLength(), is(2));
         assertThat(nodeListContainingElementsWithTagExtra.getLength(), is(1));
 
         // Subject under test
-        DocumentTransformer.removeFromDom(nodeListContainingElementsWithTagName);
+        documentTransformer.removeFromDom(nodeListContainingElementsWithTagName);
 
         // Verification
         assertThat(nodeListContainingElementsWithTagName.getLength(), is(0));
@@ -101,7 +104,7 @@ public class DocumentTransformerTest {
 
     private Document getDocument(byte[] bytes) {
         try {
-            return DocumentTransformer.byteArrayToDocument(bytes);
+            return documentTransformer.byteArrayToDocument(bytes);
         } catch (IOException | SAXException e) {
             throw new IllegalArgumentException(e);
         }
@@ -114,9 +117,9 @@ public class DocumentTransformerTest {
     private String getMetaXml() {
         return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
                 "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-tag-test xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
-                "<dataio:sink-tag-test xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
-                "<dataio:sink-tag-extra xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
+                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
+                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
+                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
                 "</es:referencedata>";
     }
 

@@ -26,6 +26,7 @@ import dk.dbc.dataio.sink.util.DocumentTransformer;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -33,19 +34,20 @@ import org.xml.sax.SAXException;
 import javax.xml.transform.TransformerException;
 import java.io.IOException;
 
-public class AddiRecordPreprocessor {
-    static final String PROCESSING_TAG  = "dataio:sink-processing";
-    static final String NODE_NAME       = "encodeAs2709";
+public class AddiRecordPreprocessor extends DocumentTransformer {
+    static final String NAMESPACE_URI            = "dk.dbc.dataio.processing";
+    static final String ELEMENT                  = "sink-processing";
+    static final String ENCODE_AS_2709_ATTRIBUTE = "encodeAs2709";
 
     /**
      * This method pre-processes an addi record according to the following rules:
      *
-     * If the processing tag(dataio:sink-processing) is not found within the meta data,
+     * If the processing tag is not found within the meta data,
      * the Addi record is returned unchanged
      *
-     * If processing tag is found with value FALSE, the tag is removed from the meta data.
+     * If processing tag is found with attribute encodeAs2709 value FALSE, the tag is removed from the meta data.
      *
-     * If processing tag is found with value TRUE, the tag is removed from the meta data
+     * If processing tag is found with attribute encodeAs2709 value TRUE, the tag is removed from the meta data
      * and the content data is converted to iso2709.
      *
      * @param addiRecord Addi record to pre-process
@@ -54,20 +56,20 @@ public class AddiRecordPreprocessor {
      */
     public AddiRecord execute(AddiRecord addiRecord) throws IllegalArgumentException {
         try {
-            final Document metaDataDocument = DocumentTransformer.byteArrayToDocument(addiRecord.getMetaData());
-            final NodeList nodeList = metaDataDocument.getElementsByTagName(PROCESSING_TAG);
+            final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
+            final NodeList nodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
 
             if (nodeList.getLength() > 0) { // The specific tag has been located
                 byte[] content = addiRecord.getContentData();
                 final Node processingNode = nodeList.item(0);
 
-                if (Boolean.valueOf(DocumentTransformer.getNodeValue(NODE_NAME, processingNode))) {
-                    final Document contentDataDocument = DocumentTransformer.byteArrayToDocument(addiRecord.getContentData());
+                if (Boolean.valueOf(((Element) processingNode).getAttribute(ENCODE_AS_2709_ATTRIBUTE))) {
+                    final Document contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
                     content = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
                 }
 
-                DocumentTransformer.removeFromDom(nodeList);
-                return new AddiRecord(DocumentTransformer.documentToByteArray(metaDataDocument), content);
+                removeFromDom(nodeList);
+                return new AddiRecord(documentToByteArray(metaDataDocument), content);
             }
             return addiRecord;
         } catch (IOException | SAXException | TransformerException e) {

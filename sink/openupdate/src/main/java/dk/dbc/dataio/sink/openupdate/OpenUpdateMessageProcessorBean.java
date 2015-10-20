@@ -48,6 +48,9 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
+    @EJB
+    OpenUpdateServiceConnectorBean updateServiceConnector;
+
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
@@ -128,6 +131,8 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     private UpdateRecordResult callWebService() {
         try {
             final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(new AddiRecord(new byte[0], new byte[0]));
+            final OpenUpdateServiceConnector connector = updateServiceConnector.getConnector();
+            return connector.updateRecord(addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
 
         } catch (IllegalArgumentException e) {
             throw new EJBException(e);

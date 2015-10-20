@@ -162,4 +162,31 @@ public class ESTaskPackageUtilIT {
           }
       }
 
+
+    @Test
+    public void insertMultiblePackages() throws Exception {
+        final String simpleAddiString = "1\na\n1\nb\n";
+        List<Integer> targetRefences=new ArrayList<>();
+
+        for( int i=0; i<10 ; ++i) {
+            final EsWorkload esWorkload = new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setJobId(i).build(),
+                    Collections.singletonList(newAddiRecordFromString(simpleAddiString)), USER_ID, ACTION);
+
+
+            em.getTransaction().begin();
+            int targetRefernce = ESTaskPackageUtil.insertTaskPackage(em, DB_NAME, esWorkload);
+            targetRefences.add( targetRefernce );
+            em.getTransaction().commit();
+        }
+        JPATestUtils.clearEntityManagerCache( em );
+
+        for( Integer targetRefernce : targetRefences ) {
+            TaskSpecificUpdateEntity resultTP = em.find(TaskSpecificUpdateEntity.class, targetRefernce);
+
+            assertThat(targetRefernce, is(resultTP.getTargetreference().intValue()));
+        };
+
+
+
+    }
 }

@@ -24,17 +24,24 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -46,6 +53,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -53,6 +61,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
@@ -206,9 +215,51 @@ public class AbstractJobStoreIT {
         return jobQueueEntity;
     }
 
+    protected FlowCacheEntity newPersistedFlowCacheEntity() {
+        final Flow flow = new FlowBuilder().build();
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        try {
+            return pgJobStoreRepository.cacheFlow(pgJobStoreRepository.jsonbContext.marshall(flow));
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    protected SinkCacheEntity newPersistedSinkCacheEntity() {
+        final Sink sink = new SinkBuilder().build();
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        try {
+            return pgJobStoreRepository.cacheSink(pgJobStoreRepository.jsonbContext.marshall(sink));
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     protected JobQueueEntity newPersistedJobQueueEntity(JobEntity job) {
         final JobQueueEntity jobQueueEntity = newJobQueueEntity(job);
         persist(jobQueueEntity);
         return jobQueueEntity;
+    }
+
+    protected JobQueueRepository newJobQueueRepository() {
+        final JobQueueRepository jobQueueRepository = new JobQueueRepository();
+        jobQueueRepository.entityManager = entityManager;
+        return jobQueueRepository;
+    }
+
+    protected PgJobStoreRepository newPgJobStoreRepository() {
+        final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();
+        pgJobStoreRepository.entityManager = entityManager;
+        return pgJobStoreRepository;
+    }
+
+    protected List<ChunkEntity> findAllChunks() {
+        final Query query = entityManager.createQuery("SELECT e FROM ChunkEntity e");
+        return (List<ChunkEntity>) query.getResultList();
+    }
+
+    protected List<ItemEntity> findAllItems() {
+        final Query query = entityManager.createQuery("SELECT e FROM ItemEntity e");
+        return (List<ItemEntity>) query.getResultList();
     }
 }

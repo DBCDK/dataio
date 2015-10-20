@@ -66,10 +66,4 @@ public class JobQueueRepositoryIT extends AbstractJobStoreIT {
         assertThat("Queue entries", new HashSet<>(Arrays.asList(inProgress.get(0).getId(), inProgress.get(1).getId())),
                 is(new HashSet<>(Arrays.asList(job1QueueEntry.getId(), job3QueueEntry.getId()))));
     }
-
-    private JobQueueRepository newJobQueueRepository() {
-        final JobQueueRepository jobQueueRepository = new JobQueueRepository();
-        jobQueueRepository.entityManager = entityManager;
-        return jobQueueRepository;
-    }
 }

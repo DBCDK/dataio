@@ -27,7 +27,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -135,19 +134,5 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         assertThat(findAllItems().size(), is(0));
     }
 
-    private PgJobStoreRepository newPgJobStoreRepository() {
-        final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();
-        pgJobStoreRepository.entityManager = entityManager;
-        return pgJobStoreRepository;
-    }
 
-    public List<ChunkEntity> findAllChunks() {
-        final Query query = entityManager.createQuery("SELECT e FROM ChunkEntity e");
-        return (List<ChunkEntity>) query.getResultList();
-    }
-
-    public List<ItemEntity> findAllItems() {
-        final Query query = entityManager.createQuery("SELECT e FROM ItemEntity e");
-        return (List<ItemEntity>) query.getResultList();
-    }
 }

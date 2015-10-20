@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
@@ -63,16 +64,31 @@ public class BootstrapBean {
     PgJobStoreRepository jobStoreRepository;
 
     @EJB
+    JobQueueRepository jobQueueRepository;
+
+    @EJB
     JobSchedulerBean jobSchedulerBean;
 
     @PostConstruct
     @Stopwatch
     public void initialize() {
         try {
+            resetJobsInterruptedDuringPartitioning();
             restoreSystemState();
             jobSchedulerBean.jumpStart();
         } catch (JobStoreException e) {
             throw new EJBException(e);
+        }
+    }
+
+    /**
+     * Locates and resets any job interrupted in its partitioning phase during a previous shutdown,
+     * restoring the corresponding job queue entry to its waiting state
+     */
+    private void resetJobsInterruptedDuringPartitioning() {
+        for (JobQueueEntity inProgress : jobQueueRepository.getInProgress()) {
+            jobStoreRepository.resetJob(inProgress.getJob().getId());
+            inProgress.setState(JobQueueEntity.State.WAITING);
         }
     }
 

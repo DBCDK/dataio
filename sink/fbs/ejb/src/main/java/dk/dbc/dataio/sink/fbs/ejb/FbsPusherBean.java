@@ -62,7 +62,7 @@ public class FbsPusherBean {
         int numberOfItemsPushed = 0;
         for (ChunkItem processedChunkItem : processedChunk) {
             if (processedChunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
-                executeUpdateOperation(processedChunk, processedChunkItem, chunkForDelivery);
+                executeUpdateOperation(processedChunkItem, chunkForDelivery);
                 numberOfItemsPushed++;
             } else {
                 chunkForDelivery.addItemWithStatusIgnored( processedChunkItem.getId(), asBytes(String.format("Processor item status was: %s", processedChunkItem.getStatus())) );
@@ -73,8 +73,8 @@ public class FbsPusherBean {
         return chunkForDelivery;
     }
 
-    private void executeUpdateOperation(ExternalChunk processedChunk, ChunkItem processedChunkItem, ExternalChunk chunkForDelivery) throws WebServiceException {
-        final String trackingId = String.format("%d-%d-%d", processedChunk.getJobId(), processedChunk.getChunkId(), processedChunkItem.getId());
+    private void executeUpdateOperation(ChunkItem processedChunkItem, ExternalChunk chunkForDelivery) throws WebServiceException {
+        final String trackingId = String.format("%d-%d-%d", chunkForDelivery.getJobId(), chunkForDelivery.getChunkId(), processedChunkItem.getId());
         final FbsUpdateConnector connector = fbsUpdateConnector.getConnector();
         try {
             final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(asString(processedChunkItem.getData()), trackingId);
@@ -88,10 +88,10 @@ public class FbsPusherBean {
                     chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
             }
         } catch (WebServiceException e) {
-            LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId(), e);
+            LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}", processedChunkItem.getId(), chunkForDelivery.getChunkId(), chunkForDelivery.getJobId(), e);
             throw e;
         } catch (Exception e) {
-            LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId(), e);
+            LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception", processedChunkItem.getId(), chunkForDelivery.getChunkId(), chunkForDelivery.getJobId(), e);
             chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(ServiceUtil.stackTraceToString(e)));
 
         }

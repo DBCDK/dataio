@@ -1,4 +1,3 @@
-
 /*
  * DataIO - Data IO
  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
@@ -23,91 +22,59 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
-import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdateServices;
 import dk.dbc.oss.ns.catalogingupdate.ExtraRecordData;
 import dk.dbc.oss.ns.catalogingupdate.RecordData;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
-public class AddiRecordPreprocessor extends DocumentTransformer{
+public class AddiRecordPreprocessor extends DocumentTransformer {
     static final String NAMESPACE_URI             = "dk.dbc.dataio.processing";
     static final String ELEMENT                   = "sink-update-template";
-    static final String UPDATE_TEMPLATE_ATTRIBUTE = "updateTemplate";
     static final String RECORD_SCHEMA             = "info:lc/xmlns/marcxchange-v1";
     static final String RECORD_PACKAGING          = "xml";
+    static final String UPDATE_TEMPLATE_ATTRIBUTE = "updateTemplate";
 
-    /**
-     * This method pre-processes an addi record according to the following rules:
-     *
-     * If the processing tag is not found within the meta data,
-     * null is returned.
-     *
-     * If processing tag is found with attribute updateTemplate, updateRecord is called, with the attribute value and
-     * content data of the addi record.
-     *
-     * @param addiRecord Addi record to pre-process
-     * @return updateRecordResult if the template tag is located, null if the processing tag is not located
-     * @throws IllegalArgumentException on invalid metadata or content
-     */
-    public UpdateRecordResult execute(AddiRecord addiRecord) throws IllegalArgumentException {
-        UpdateRecordResult updateRecordResult = null;
+    private final Document contentDataDocument;
+    private final String template;
+
+    public AddiRecordPreprocessor(AddiRecord addiRecord) throws NullPointerException{
+        InvariantUtil.checkNotNullOrThrow(addiRecord, "addiRecord");
         try {
+            contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
             final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
             final NodeList nodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
 
-            if (nodeList.getLength() > 0) { // The processing tag has been located
-                final Node processingNode = nodeList.item(0);
-
-                // Create UpdateRecordRequest
-                Document contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
-                UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(processingNode, contentDataDocument);
-
-                // Call UpdateRecord
-                CatalogingUpdateServices catalogingUpdateServices = new CatalogingUpdateServices();
-                updateRecordResult = catalogingUpdateServices.getCatalogingUpdatePort().updateRecord(updateRecordRequest);
+            if(nodeList.getLength() > 0) { // element found
+                template = ((Element) nodeList.item(0)).getAttribute(UPDATE_TEMPLATE_ATTRIBUTE);
+            } else {
+                throw new IllegalArgumentException(String.format(
+                        "No element found matching local name: %s and namespace URI: %s",
+                        ELEMENT,
+                        NAMESPACE_URI));
             }
-            return updateRecordResult;
         } catch (IOException | SAXException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
     /**
-     * Builds an UpdateRecordRequest
-     * @param node containing the schema name
-     * @param document containing addi content data as MarcXChange
-     *
-     * @return a new updateRecordRequest
-     */
-    private UpdateRecordRequest buildUpdateRecordRequest(Node node, Document document) {
-        UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
-        updateRecordRequest.setSchemaName(((Element) node).getAttribute(UPDATE_TEMPLATE_ATTRIBUTE));
-        updateRecordRequest.setBibliographicRecord(getMarcXChangeRecord(document));
-        return updateRecordRequest;
-    }
-
-    /**
      * Creates a bibliographical record
-     * @param document containing addi content data as MarcXChange
      * @return bibliographical record
      */
-    private BibliographicRecord getMarcXChangeRecord(Document document){
-
+    public BibliographicRecord getMarcXChangeRecord() {
         BibliographicRecord bibliographicRecord = new BibliographicRecord();
         bibliographicRecord.setRecordSchema(RECORD_SCHEMA);
         bibliographicRecord.setRecordPacking(RECORD_PACKAGING);
 
         RecordData recordData = new RecordData();
-        recordData.getContent().add(document.getDocumentElement());
+        recordData.getContent().add(contentDataDocument.getDocumentElement());
         bibliographicRecord.setRecordData(recordData);
 
         ExtraRecordData extraRecordData = new ExtraRecordData();
@@ -115,4 +82,13 @@ public class AddiRecordPreprocessor extends DocumentTransformer{
 
         return bibliographicRecord;
     }
+
+    /**
+     * Retrieves the template
+     * @return template
+     */
+    public String getTemplate() {
+        return template;
+    }
+
 }

@@ -119,14 +119,20 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         return incompleteDeliveredChunk;
     }
+
 /*
     private ExternalChunk mapWebServiceResultToExternalChunk(UpdateRecordResult updateRecordResult) {
         return null;
     }
 
     private UpdateRecordResult callWebService() {
-        AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
-        return addiRecordPreprocessor.execute(new AddiRecord(new byte[0], new byte[0]));
+        try {
+            final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(new AddiRecord(new byte[0], new byte[0]));
+
+        } catch (IllegalArgumentException e) {
+            throw new EJBException(e);
+        }
     }
 */
+
 }

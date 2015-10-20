@@ -166,6 +166,7 @@ public class ESTaskPackageUtil {
         final TaskSpecificUpdateEntity taskPackage=new TaskSpecificUpdateEntity();
 
         taskPackage.setCreator( creator );
+        taskPackage.setPackagename( creator );
         taskPackage.setDatabasename( dbname );
         taskPackage.setUserid( esWorkload.userId );
         taskPackage.setAction( esWorkload.getAction());

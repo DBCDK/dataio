@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
-import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
@@ -33,6 +32,8 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.dataio.sink.util.AddiUtil;
+import dk.dbc.dataio.sink.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,13 +48,11 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-
-    @EJB
-    OpenUpdateServiceConnectorBean updateServiceConnector;
+    @EJB OpenUpdateServiceConnectorBean openUpdateServiceConnectorBean;
 
     @Stopwatch
     @Override
-    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
         final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
         LOGGER.info("External Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
 
@@ -65,13 +64,11 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             addChunkInJobStore(chunkForDelivery);
         } else {
 
-//            final List<AddiRecord> addiRecords = new ArrayList<>(processedChunk.size());
-            // Call the OpenUpdate web service for each ChunkItem if processed successfully.
             for(ChunkItem processedChunkItem : processedChunk) {
 
                 switch (processedChunkItem.getStatus()) {
 
-                    case SUCCESS:   callOpenUpdateWebServiceAndAddChunkItem(chunkForDelivery, processedChunkItem);                              break;
+                    case SUCCESS:   callOpenUpdateWebServiceAndAddChunkItem(chunkForDelivery, processedChunkItem);                           break;
 
                     case FAILURE:   chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));   break;
 
@@ -86,21 +83,19 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     }
 
     private void callOpenUpdateWebServiceAndAddChunkItem(ExternalChunk chunkForDelivery, ChunkItem processedChunkItem) {
+
         try {
-            //final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
-//                            addiRecords.addAll(addiRecordsFromItem);
-
-
-            // We use the data property of the ChunkItem placeholder kept in the ES
-            // in-flight database to store the number of Addi records from the
-            // original record - this information is used by the EsCleanupBean
-            // when creating the resulting sink chunk.
-
-
-
-            chunkForDelivery.addItemWithStatusSuccess(processedChunkItem.getId(), asBytes("Suuuuccess =D"));
-        } catch (RuntimeException /*| IOException */ e) {
-            chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(e.getMessage()));
+            ItemToAddiRecordsWrapper itemToAddiRecordsWrapper = new ItemToAddiRecordsWrapper(
+                    AddiUtil.getAddiRecordsFromChunkItem(processedChunkItem),
+                    openUpdateServiceConnectorBean.getConnector());
+            
+            if(itemToAddiRecordsWrapper.callOpenUpdateWebServiceForEachAddiRecord() == ItemToAddiRecordsWrapper.ItemStatus.OK) {
+                chunkForDelivery.addItemWithStatusSuccess(processedChunkItem.getId(), asBytes(itemToAddiRecordsWrapper.getItemContent()));
+            } else {
+                chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(itemToAddiRecordsWrapper.getItemContent()));
+            }
+        } catch (Throwable t) {
+            chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes("Failed when reading Addi records for " + processedChunkItem.getId() + " -> " + ExceptionUtil.stackTraceAsString(t)));
         }
     }
 
@@ -122,22 +117,4 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         return incompleteDeliveredChunk;
     }
-
-/*
-    private ExternalChunk mapWebServiceResultToExternalChunk(UpdateRecordResult updateRecordResult) {
-        return null;
-    }
-
-    private UpdateRecordResult callWebService() {
-        try {
-            final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(new AddiRecord(new byte[0], new byte[0]));
-            final OpenUpdateServiceConnector connector = updateServiceConnector.getConnector();
-            return connector.updateRecord(addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
-
-        } catch (IllegalArgumentException e) {
-            throw new EJBException(e);
-        }
-    }
-*/
-
 }

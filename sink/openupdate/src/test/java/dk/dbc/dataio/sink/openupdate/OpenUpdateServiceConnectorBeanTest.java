@@ -21,44 +21,16 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
-import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
-import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import org.junit.Test;
 
 import javax.ejb.EJBException;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class OpenUpdateServiceConnectorBeanTest {
-
-    private static final String template = "bog";
 
     @Test(expected = EJBException.class)
     public void initializeConnector_urlResourceLookupThrowNamingException_throws() {
         final OpenUpdateServiceConnectorBean openUpdateServiceConnectorBean = new OpenUpdateServiceConnectorBean();
         openUpdateServiceConnectorBean.initializeConnector();
-    }
-
-    @Test
-    public void updateRecord_returnsUpdateRecordResult() {
-        final OpenUpdateServiceConnector openUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
-
-        final OpenUpdateServiceConnectorBean openUpdateServiceConnectorBean = new OpenUpdateServiceConnectorBean();
-        openUpdateServiceConnectorBean.openUpdateServiceConnector = openUpdateServiceConnector;
-
-        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
-
-        when(openUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(updateRecordResult);
-
-        UpdateRecordResult returnedUpdateRecordResult = openUpdateServiceConnectorBean.getConnector().updateRecord(template, new BibliographicRecord());
-
-        assertThat(returnedUpdateRecordResult, is(updateRecordResult));
     }
 
 }

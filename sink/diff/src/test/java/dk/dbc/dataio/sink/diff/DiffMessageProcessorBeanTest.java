@@ -34,6 +34,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -100,15 +101,17 @@ public class DiffMessageProcessorBeanTest {
     }
 
     @Test
-    public void processPayload_FailDifferentContent() {
+    public void processPayload_FailDifferentContent() throws SinkException {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
                 new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
+                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build(),
+                new ChunkItemBuilder().setId(3L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build());
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(getXmlNext()).setStatus(ChunkItem.Status.FAILURE).build(),
                 new ChunkItemBuilder().setId(1L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
+                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build(),
+                new ChunkItemBuilder().setId(3L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build());
 
         final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
@@ -120,18 +123,20 @@ public class DiffMessageProcessorBeanTest {
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item0 = iterator.next();
-        assertThat(item0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(item0.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat(item1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item2 = iterator.next();
-        assertThat(item2.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(item2.getStatus(), is(ChunkItem.Status.IGNORE));
+        ChunkItem item3 = iterator.next();
+        assertThat(item3.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat(iterator.hasNext(), is(false));
     }
 
     @Test
-    public void processPayload_FailDifferentOrInvalidAddiContent() throws IOException {
+    public void processPayload_FailDifferentOrInvalidAddiContent() throws IOException, SinkException {
         final byte[] addi1 = getAddi(getMeta("current"), getContent("current title"));
         final byte[] addi2 = getAddi(getMeta("next"), getContent("current title"));
         final byte[] addi3 = getAddi(getMeta("current"), getContent("next title"));
@@ -174,7 +179,7 @@ public class DiffMessageProcessorBeanTest {
     }
 
     @Test
-    public void processPayload_FailDifferentStatus() {
+    public void processPayload_FailDifferentStatus() throws SinkException {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
                 new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),

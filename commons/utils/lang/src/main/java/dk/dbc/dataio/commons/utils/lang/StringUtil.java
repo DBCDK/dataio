@@ -23,6 +23,8 @@ package dk.dbc.dataio.commons.utils.lang;
 
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -100,5 +102,12 @@ public class StringUtil {
         }
 
         return sb.toString();
+    }
+
+    public static String getStackTraceAsString(Throwable t) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        t.printStackTrace(printWriter);
+        return stringWriter.toString();
     }
 }

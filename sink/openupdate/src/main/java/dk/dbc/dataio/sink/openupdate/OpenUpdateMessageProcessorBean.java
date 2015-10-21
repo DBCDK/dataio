@@ -32,8 +32,6 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.dataio.sink.util.AddiUtil;
-import dk.dbc.dataio.sink.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,6 +39,8 @@ import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
+
+
 
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
@@ -56,7 +56,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
         LOGGER.info("External Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
 
-        final ExternalChunk chunkForDelivery = buildBasicDeliveredChunkFromProcessedChunk(processedChunk);
+        final ExternalChunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
 
         if(processedChunk.isEmpty()) {
 
@@ -68,34 +68,17 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
                 switch (processedChunkItem.getStatus()) {
 
-                    case SUCCESS:   callOpenUpdateWebServiceAndAddChunkItem(chunkForDelivery, processedChunkItem);                           break;
+                    case SUCCESS:   chunkForDelivery.insertItem( new AddiRecordsToItemWrapper(processedChunkItem, openUpdateServiceConnectorBean.getConnector()).callOpenUpdateWebServiceForEachAddiRecord() );     break;
 
-                    case FAILURE:   chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));   break;
+                    case FAILURE:   chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));  break;
 
-                    case IGNORE:    chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor"));  break;
+                    case IGNORE:    chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor")); break;
 
                     default:        throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
                 }
             }
 
             addChunkInJobStore(chunkForDelivery);
-        }
-    }
-
-    private void callOpenUpdateWebServiceAndAddChunkItem(ExternalChunk chunkForDelivery, ChunkItem processedChunkItem) {
-
-        try {
-            ItemToAddiRecordsWrapper itemToAddiRecordsWrapper = new ItemToAddiRecordsWrapper(
-                    AddiUtil.getAddiRecordsFromChunkItem(processedChunkItem),
-                    openUpdateServiceConnectorBean.getConnector());
-            
-            if(itemToAddiRecordsWrapper.callOpenUpdateWebServiceForEachAddiRecord() == ItemToAddiRecordsWrapper.ItemStatus.OK) {
-                chunkForDelivery.addItemWithStatusSuccess(processedChunkItem.getId(), asBytes(itemToAddiRecordsWrapper.getItemContent()));
-            } else {
-                chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(itemToAddiRecordsWrapper.getItemContent()));
-            }
-        } catch (Throwable t) {
-            chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes("Failed when reading Addi records for " + processedChunkItem.getId() + " -> " + ExceptionUtil.stackTraceAsString(t)));
         }
     }
 
@@ -112,7 +95,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         }
     }
 
-    private ExternalChunk buildBasicDeliveredChunkFromProcessedChunk(ExternalChunk processedChunk) {
+    private ExternalChunk buildBasicChunkForDeliveryFromProcessedChunk(ExternalChunk processedChunk) {
         final ExternalChunk incompleteDeliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         return incompleteDeliveredChunk;

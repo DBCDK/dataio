@@ -50,12 +50,16 @@ public class AbstractOpenUpdateSinkTestBase {
     }
 
     protected byte[] getAddi(String metaXml, String contentXml) {
-        return (metaXml.trim().getBytes().length +
-                System.lineSeparator() +
-                metaXml +
-                System.lineSeparator() +
-                contentXml.trim().getBytes().length +
-                System.lineSeparator() +
-                contentXml).getBytes();
+        return getAddiAsString(metaXml, contentXml).getBytes();
+    }
+
+    protected String getAddiAsString(String metaXml, String contentXml) {
+        return metaXml.trim().getBytes().length
+        + System.lineSeparator()
+        + metaXml
+        + System.lineSeparator()
+        + contentXml.trim().getBytes().length
+        + System.lineSeparator()
+        + contentXml;
     }
 }

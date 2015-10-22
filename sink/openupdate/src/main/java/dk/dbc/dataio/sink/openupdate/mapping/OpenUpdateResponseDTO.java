@@ -10,6 +10,9 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.StringWriter;
 import java.util.List;
 
+/**
+ * This is a DTO class for marshelling and unmarshelling with JAXB hence all the getters and setters are required.
+ */
 @XmlRootElement
 public class OpenUpdateResponseDTO {
 
@@ -23,6 +26,11 @@ public class OpenUpdateResponseDTO {
         return jsonbContext.marshall(this);
     }
 
+    /**
+     *
+     * @return  this DTO and sub DTO's as an XML String
+     * @throws JAXBException
+     */
     public String asXml() throws JAXBException {
 
         StringWriter stringWriter = new StringWriter();

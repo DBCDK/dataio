@@ -1,5 +1,8 @@
 package dk.dbc.dataio.sink.openupdate.mapping;
 
+/**
+ * This is a DTO class for marshelling and unmarshelling with JAXB hence all the getters and setters are required.
+ */
 public class OpenUpdateErrorMessageDTO {
 
     public enum ErrorType {ERROR, WARNING}

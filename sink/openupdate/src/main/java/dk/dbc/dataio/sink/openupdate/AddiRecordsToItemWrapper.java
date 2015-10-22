@@ -22,7 +22,7 @@ import static dk.dbc.dataio.commons.utils.lang.StringUtil.getStackTraceAsString;
  */
 public class AddiRecordsToItemWrapper {
 
-    private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION};
+    private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
     private StringBuilder crossAddiRecordsMessage = new StringBuilder();
     private OpenUpdateServiceConnector openUpdateServiceConnector;
     private ChunkItem processedChunkItem;
@@ -30,6 +30,12 @@ public class AddiRecordsToItemWrapper {
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
 
+    /**
+     *
+     * @param processedChunkItem
+     * @param openUpdateServiceConnector
+     * @throws NullPointerException
+     */
     public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, OpenUpdateServiceConnector openUpdateServiceConnector) throws NullPointerException {
 
         InvariantUtil.checkNotNullOrThrow(processedChunkItem, "processedChunkItem");
@@ -39,6 +45,10 @@ public class AddiRecordsToItemWrapper {
         this.openUpdateServiceConnector = openUpdateServiceConnector;
     }
 
+    /**
+     * calls the openupdate web service for all Addi records and concatenate all the result to a single result in the ChunkItem data part.
+     * @return  returns the ChunkItem ready to store in JobStore.
+     */
     public ChunkItem callOpenUpdateWebServiceForEachAddiRecord() {
         addiRecordIndex = 1;
         List<AddiRecord> addiRecordsForItem;
@@ -65,14 +75,16 @@ public class AddiRecordsToItemWrapper {
         for(AddiStatus addiStatus : listOfAddiStatus) {
             if(addiStatus != AddiStatus.OK) {
                 itemStatus = FAILURE;
+                break;
             }
         }
-
+        System.out.println(this.getItemContentCrossAddiRecords());
         return new ChunkItem(processedChunkItem.getId(), asBytes(this.getItemContentCrossAddiRecords()), itemStatus);
     }
 
 
-    private AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord) {
+    // Package scoped for test reasons - originally private visibility.
+    AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord) {
         try {
             AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
 

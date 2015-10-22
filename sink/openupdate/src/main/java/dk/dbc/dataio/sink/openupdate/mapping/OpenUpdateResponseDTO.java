@@ -28,8 +28,8 @@ public class OpenUpdateResponseDTO {
 
     /**
      *
-     * @return  this DTO and sub DTO's as an XML String
-     * @throws JAXBException
+     * @return                  this DTO and sub DTO's as an XML String
+     * @throws JAXBException    if marshelling fails
      */
     public String asXml() throws JAXBException {
 

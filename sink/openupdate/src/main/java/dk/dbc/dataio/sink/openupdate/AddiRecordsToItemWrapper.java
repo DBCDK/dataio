@@ -32,9 +32,9 @@ public class AddiRecordsToItemWrapper {
 
     /**
      *
-     * @param processedChunkItem
-     * @param openUpdateServiceConnector
-     * @throws NullPointerException
+     * @param processedChunkItem            processed Chunk Item to copy values from
+     * @param openUpdateServiceConnector    OpenUpdate webservice connector
+     * @throws NullPointerException         NullPointer thrown if arguments are null
      */
     public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, OpenUpdateServiceConnector openUpdateServiceConnector) throws NullPointerException {
 

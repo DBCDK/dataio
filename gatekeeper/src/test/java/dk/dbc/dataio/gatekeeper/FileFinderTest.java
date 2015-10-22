@@ -29,19 +29,23 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
 
 public class FileFinderTest {
+
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
     @Test(expected = NullPointerException.class)
     public void findFilesWithExtension_dirArgIsNull_throws() throws IOException {
-        FileFinder.findFilesWithExtension(null, ".trans");
+        FileFinder.findFilesWithExtension(null, new HashSet<>(Collections.singletonList(".trans")));
     }
 
     @Test(expected = NullPointerException.class)
@@ -51,7 +55,7 @@ public class FileFinderTest {
 
     @Test(expected = IOException.class)
     public void findFilesWithExtension_dirDoesNotExist_throws() throws IOException {
-        FileFinder.findFilesWithExtension(Paths.get("no-such-dir"), ".trans");
+        FileFinder.findFilesWithExtension(Paths.get("no-such-dir"), new HashSet<>(Collections.singletonList(".trans")));
     }
 
     @Test
@@ -59,7 +63,7 @@ public class FileFinderTest {
         final List<Path> files = Arrays.asList(
                 testFolder.newFile("file1").toPath(),
                 testFolder.newFile("file2").toPath());
-        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder.getRoot().toPath(), "");
+        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList("")));
         assertThat(matchingFiles, containsInAnyOrder(files.toArray()));
     }
 
@@ -68,14 +72,16 @@ public class FileFinderTest {
         final List<Path> files = Arrays.asList(
                 testFolder.newFile("file0.dat").toPath(),
                 testFolder.newFile("file1.trans").toPath(),
-                testFolder.newFile("file2.trans").toPath());
-        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder.getRoot().toPath(), ".trans");
-        assertThat(matchingFiles, containsInAnyOrder(files.subList(1, 3).toArray()));
+                testFolder.newFile("file2.trans").toPath(),
+                testFolder.newFile("file3.trs").toPath());
+        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder.getRoot().toPath(), new HashSet<>(Arrays.asList(".trans", ".trs")));
+        assertThat(matchingFiles.size(), is(3));
+        assertThat(matchingFiles, containsInAnyOrder(files.subList(1, 4).toArray()));
     }
 
     @Test
     public void findFilesWithExtension_returnsUnmodifiableList() throws IOException {
-        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder.getRoot().toPath(), "");
+        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList("")));
         try {
             matchingFiles.add(testFolder.newFile().toPath());
             fail("No exception thrown");

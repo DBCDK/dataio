@@ -93,7 +93,7 @@ public class JobDispatcherIT {
     @Test(timeout = 5000)
     public void stagnantTransfilesProcessed() throws Throwable {
         // Given...
-        writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\nslut");
+        writeFile(dir, "file.trs", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\nslut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -102,10 +102,10 @@ public class JobDispatcherIT {
             t.start();
 
             // Then...
-            waitWhileFileExists(dir.resolve("file.trans"));
+            waitWhileFileExists(dir.resolve("file.trs"));
             assertThat("No exception from thread", exception, is(nullValue()));
-            assertThat("dir/file.trans exists", Files.exists(dir.resolve("file.trans")), is(false));
-            assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
+            assertThat("dir/file.trs exists", Files.exists(dir.resolve("file.trs")), is(false));
+            assertThat("shadowDir/file.trs exists", Files.exists(shadowDir.resolve("file.trs")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -229,13 +229,11 @@ public class JobDispatcherIT {
     }
 
     private Thread getJobDispatcherThread(final JobDispatcher jobDispatcher) {
-        return new Thread(new Runnable(){
-            public void run(){
-                try {
-                    jobDispatcher.execute();
-                } catch (IOException | InterruptedException | OperationExecutionException | ModificationLockedException e) {
-                    exception = e;
-                }
+        return new Thread(() -> {
+            try {
+                jobDispatcher.execute();
+            } catch (IOException | InterruptedException | OperationExecutionException | ModificationLockedException e) {
+                exception = e;
             }
         });
     }

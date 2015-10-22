@@ -43,11 +43,17 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 
 public class JobDispatcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDispatcher.class);
-    private static final String TRANSFILE_EXTENSION = ".trans";
+    private final static Set<String> transfileExtensions = Stream.of(".trans", ".trs")
+            .collect(Collectors.toCollection(HashSet::new));
 
     private final Path dir;
     private final Path shadowDir;
@@ -148,17 +154,19 @@ public class JobDispatcher {
      */
     boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
                                                          OperationExecutionException, InterruptedException {
-        if (file.getFileName().toString().endsWith(TRANSFILE_EXTENSION)) {
-            final TransFile transFile = new TransFile(file);
-            if (!transFile.exists()) {
-                LOGGER.warn("Transfile {} no longer exists in the file system", file);
-                return false;
-            }
-            if (transFile.isComplete()) {
-                processTransfile(transFile);
-                return true;
-            } else {
-                LOGGER.warn("Transfile {} is incomplete", file);
+        for(String extension : transfileExtensions) {
+            if (file.getFileName().toString().endsWith(extension)) {
+                final TransFile transFile = new TransFile(file);
+                if (!transFile.exists()) {
+                    LOGGER.warn("Transfile {} no longer exists in the file system", file);
+                    return false;
+                }
+                if (transFile.isComplete()) {
+                    processTransfile(transFile);
+                    return true;
+                } else {
+                    LOGGER.warn("Transfile {} is incomplete", file);
+                }
             }
         }
         return false;
@@ -187,7 +195,7 @@ public class JobDispatcher {
      */
     List<TransFile> getCompleteTransfiles() throws IOException {
         final ArrayList<TransFile> transfiles = new ArrayList<>();
-        for (Path transfilePath : FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSION)) {
+        for (Path transfilePath : FileFinder.findFilesWithExtension(dir, transfileExtensions)) {
             final TransFile transfile = new TransFile(transfilePath);
             if (transfile.isComplete()) {
                 transfiles.add(transfile);

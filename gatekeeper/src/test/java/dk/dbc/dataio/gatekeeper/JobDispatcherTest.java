@@ -183,14 +183,14 @@ public class JobDispatcherTest {
     public void getCompleteTransfiles_returnsList() throws IOException {
         writeFile(dir, "file1.trans", "data1\nslut");
         writeFile(dir, "file2.trans", "data2\n");
-        writeFile(dir, "file3.trans", "data3\nslut");
+        writeFile(dir, "file3.trs", "data3\nfinish");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final List<TransFile> completeTransfiles = jobDispatcher.getCompleteTransfiles();
         assertThat("Number of transfiles found", completeTransfiles.size(), is(2));
         final Set<String> transfiles = new HashSet<>(2);
         transfiles.add(completeTransfiles.get(0).getPath().getFileName().toString());
         transfiles.add(completeTransfiles.get(1).getPath().getFileName().toString());
-        assertThat("transfiles found", transfiles, containsInAnyOrder("file1.trans", "file3.trans"));
+        assertThat("transfiles found", transfiles, containsInAnyOrder("file1.trans", "file3.trs"));
     }
 
     @Test

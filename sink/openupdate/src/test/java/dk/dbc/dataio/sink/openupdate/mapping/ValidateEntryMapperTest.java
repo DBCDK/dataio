@@ -74,7 +74,6 @@ public class ValidateEntryMapperTest {
         OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_validation).map();
         final String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
-        System.out.println(json);
 
         final JsonNode jsonTree = jsonbContext.getJsonTree(json);
         final List<JsonNode> status = jsonTree.findValues("status");

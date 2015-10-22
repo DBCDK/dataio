@@ -78,7 +78,6 @@ public class AddiRecordsToItemWrapper {
                 break;
             }
         }
-        System.out.println(this.getItemContentCrossAddiRecords());
         return new ChunkItem(processedChunkItem.getId(), asBytes(this.getItemContentCrossAddiRecords()), itemStatus);
     }
 

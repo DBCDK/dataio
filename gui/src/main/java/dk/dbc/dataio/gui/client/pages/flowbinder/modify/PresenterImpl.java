@@ -37,7 +37,7 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -300,7 +300,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private Map<String, String> getAvailableSubmitters(FlowBinderModel model) {
-        Map<String, String> availableSubmitterMap = new HashMap<>();
+        Map<String, String> availableSubmitterMap = new LinkedHashMap<>();
         for (SubmitterModel submitterModel: this.availableSubmitters) {
             if (!isSubmitterSelected(submitterModel.getId(), model.getSubmitterModels())) {
                 availableSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
@@ -319,7 +319,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private Map<String, String> getSelectedSubmitters(FlowBinderModel model) {
-        Map<String, String> selectedSubmitterMap = new HashMap<>();
+        Map<String, String> selectedSubmitterMap = new LinkedHashMap<>();
         for (SubmitterModel submitterModel: model.getSubmitterModels()) {
             selectedSubmitterMap.put(String.valueOf(submitterModel.getId()), formatSubmitterName(submitterModel));
         }
@@ -328,7 +328,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     protected void setAvailableSubmitters(List<SubmitterModel> models) {
         this.availableSubmitters = models;
-        Map<String, String> submitters = new HashMap<>(models.size());
+        Map<String, String> submitters = new LinkedHashMap<>(models.size());
         for (SubmitterModel model : models) {
             submitters.put(String.valueOf(model.getId()), formatSubmitterName(model));
         }

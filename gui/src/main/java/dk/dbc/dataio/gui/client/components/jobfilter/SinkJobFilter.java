@@ -112,7 +112,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     @Override
     public JobListCriteria getValue() {
-        if( sinkList.getSelectedKey() == "0") return new JobListCriteria();
+        if( sinkList.getSelectedKey().equals("0")) return new JobListCriteria();
 
         return new JobListCriteria().where( new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, sinkList.getSelectedKey()));
     }

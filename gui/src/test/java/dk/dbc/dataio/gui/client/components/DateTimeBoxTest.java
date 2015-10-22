@@ -35,6 +35,7 @@ import java.util.Date;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -209,9 +210,9 @@ public class DateTimeBoxTest {
 
         // Verify test
         verify(dateTimeBox.textBox, times(2)).getValue();
-        verify(dateTimeBox.textBox).setValue("2015-10-12 10:20:30");
+        verify(dateTimeBox.textBox).setValue("2015-10-12 10:20:30", true);
         verifyNoMoreInteractions(dateTimeBox.textBox);
-        verify(dateTimeBox.datePicker).setValue(Matchers.any(Date.class));
+        verify(dateTimeBox.datePicker).setValue(Matchers.any(Date.class), eq(true));
         verifyNoMoreInteractions(dateTimeBox.datePicker);
         verify(dateTimeBox.datePickerPanel).show();
         verify(dateTimeBox.datePickerPanel).hide();
@@ -267,7 +268,7 @@ public class DateTimeBoxTest {
         verify(dateTimeBox.datePickerPanel, times(1)).show();
         verify(dateTimeBox.datePickerPanel, times(2)).hide();
         verifyNoMoreInteractions(dateTimeBox.datePickerPanel);
-        verify(dateTimeBox.textBox).setValue("2008-09-01 02:00:00");
+        verify(dateTimeBox.textBox).setValue("2008-09-01 02:00:00", true);
         verifyNoMoreInteractions(dateTimeBox.textBox);
         verifyNoMoreInteractions(dateTimeBox.datePicker);
     }
@@ -285,7 +286,7 @@ public class DateTimeBoxTest {
 
     @Test
     public void normalizeStringDate_AllCombinations_ok() {
-        assertThat(DateTimeBox.normalizeStringDate(""),                     is("20000101000000"));
+        assertThat(DateTimeBox.normalizeStringDate(""),                     is(""));
         assertThat(DateTimeBox.normalizeStringDate("1"),                    is("20010101000000"));
         assertThat(DateTimeBox.normalizeStringDate("12"),                   is("20120101000000"));
         assertThat(DateTimeBox.normalizeStringDate("123"),                  is("21230101000000"));
@@ -310,7 +311,7 @@ public class DateTimeBoxTest {
 
     @Test
     public void formatStringDate_AllCombinations_ok() {
-        assertThat(DateTimeBox.formatStringDate(""),                        is("2000-01-01 00:00:00"));
+        assertThat(DateTimeBox.formatStringDate(""),                        is(""));
         assertThat(DateTimeBox.formatStringDate("2"),                       is("2002-01-01 00:00:00"));
         assertThat(DateTimeBox.formatStringDate("20"),                      is("2020-01-01 00:00:00"));
         assertThat(DateTimeBox.formatStringDate("201"),                     is("2201-01-01 00:00:00"));

@@ -1,0 +1,242 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.gui.client.components.jobfilter;
+
+import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
+/**
+ * Date Job Filter unit tests
+ * <p/>
+ * The test methods of this class uses the following naming convention:
+ * <p/>
+ * unitOfWork_stateUnderTest_expectedBehavior
+ */
+@RunWith(GwtMockitoTestRunner.class)
+public class DateJobFilterTest {
+    @Mock Texts mockedTexts;
+    @Mock Resources mockedResources;
+    @Mock ChangeHandler mockedChangeHandler;
+
+
+    //
+    // Tests starts here...
+    //
+    @Test
+    public void constructor_instantiate_instantiatedCorrectly() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+
+        // Verify test
+        assertThat(jobFilter.texts, is(mockedTexts));
+        assertThat(jobFilter.resources, is(mockedResources));
+        verify(jobFilter.fromDate).setValue(any(String.class));
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verify(jobFilter.toDate).setValue("");
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+
+    @Test
+    public void dateChanged_callDateChangedChangeHandlerIsNull_nop() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        jobFilter.callbackChangeHandler = null;
+
+        // Activate Subject Under Test
+        jobFilter.dateChanged(null);  // Event is not used, so is set to null
+
+        // Verify test
+        // Nothing to verify - apart from assuring no exceptions is thrown
+    }
+
+
+    @Test
+    public void dateChanged_callDateChangedChangeHandlerIsValid_ok() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        jobFilter.callbackChangeHandler = mockedChangeHandler;
+
+        // Activate Subject Under Test
+        jobFilter.dateChanged(null);  // Event is not used, so is set to null
+
+        // Verify test
+        verify(mockedChangeHandler).onChange(null);
+        verifyNoMoreInteractions(mockedChangeHandler);
+    }
+
+
+    @Test
+    public void getName_callGetName_fetchesStoredName() {
+        // Constants
+        final String MOCKED_NAME = "name from mocked Texts";
+
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        when(mockedTexts.jobDateFilter_name()).thenReturn(MOCKED_NAME);
+
+        // Activate Subject Under Test
+        String jobFilterName = jobFilter.getName();
+
+        // Verify test
+        assertThat(jobFilterName, is(MOCKED_NAME));
+    }
+
+
+    @Test
+    public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+
+        // Activate Subject Under Test
+        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
+
+        // Verify test
+        assertThat(jobFilter.callbackChangeHandler, is(mockedChangeHandler));
+        verify(mockedChangeHandler).onChange(null);
+        assertThat(handlerRegistration, not(nullValue()));
+
+        // Call returned HandlerRegistration object and test result
+        handlerRegistration.removeHandler();
+        assertThat(jobFilter.callbackChangeHandler, is(nullValue()));
+    }
+
+
+    @Test
+    public void getValue_fromDateEmptyAndToDateEmpty_emptyCriteria() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        when(jobFilter.fromDate.getValue()).thenReturn("");
+        when(jobFilter.toDate.getValue()).thenReturn("");
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verify(jobFilter.fromDate, times(1)).getValue();
+        verify(jobFilter.toDate, times(1)).getValue();
+        assertThat(criteria, equalTo(new JobListCriteria()));
+    }
+
+    @Test
+    public void getValue_fromDateNotEmptyAndToDateEmpty_fromCriteria() {
+        final String FROM_DATE = "2015-10-21 10:00:00";
+
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        when(jobFilter.fromDate.getValue()).thenReturn(FROM_DATE);
+        when(jobFilter.toDate.getValue()).thenReturn("");
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verify(jobFilter.fromDate, times(2)).getValue();
+        verify(jobFilter.toDate, times(1)).getValue();
+        JobListCriteria expectedCriteria = new JobListCriteria().where(
+                new ListFilter<>(
+                        JobListCriteria.Field.TIME_OF_CREATION,
+                        ListFilter.Op.GREATER_THAN,
+                        Format.parseLongDateAsDate(FROM_DATE)
+                )
+        );
+        assertThat(criteria, equalTo(expectedCriteria));
+    }
+
+    @Test
+    public void getValue_fromDateEmptyAndToDateNotEmpty_fromCriteria() {
+        final String TO_DATE = "2015-10-21 20:00:00";
+
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        when(jobFilter.fromDate.getValue()).thenReturn("");
+        when(jobFilter.toDate.getValue()).thenReturn(TO_DATE);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verify(jobFilter.fromDate, times(1)).getValue();
+        verify(jobFilter.toDate, times(2)).getValue();
+        JobListCriteria expectedCriteria = new JobListCriteria().where(
+                new ListFilter<>(
+                        JobListCriteria.Field.TIME_OF_CREATION,
+                        ListFilter.Op.LESS_THAN,
+                        Format.parseLongDateAsDate(TO_DATE)
+                )
+        );
+        assertThat(criteria, equalTo(expectedCriteria));
+    }
+
+    @Test
+    public void getValue_fromDateNotEmptyAndToDateNotEmpty_fromCriteria() {
+        final String FROM_DATE = "2015-10-21 10:00:00";
+        final String TO_DATE =   "2015-10-21 20:00:00";
+
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        when(jobFilter.fromDate.getValue()).thenReturn(FROM_DATE);
+        when(jobFilter.toDate.getValue()).thenReturn(TO_DATE);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verify(jobFilter.fromDate, times(2)).getValue();
+        verify(jobFilter.toDate, times(2)).getValue();
+        JobListCriteria expectedCriteria = new JobListCriteria().where(
+                new ListFilter<>(
+                        JobListCriteria.Field.TIME_OF_CREATION,
+                        ListFilter.Op.GREATER_THAN,
+                        Format.parseLongDateAsDate(FROM_DATE)
+                )
+        ).and(new JobListCriteria().where(
+                        new ListFilter<>(
+                                JobListCriteria.Field.TIME_OF_CREATION,
+                                ListFilter.Op.LESS_THAN,
+                                Format.parseLongDateAsDate(TO_DATE)
+                        )
+                )
+        );
+        assertThat(criteria, equalTo(expectedCriteria));
+    }
+
+}

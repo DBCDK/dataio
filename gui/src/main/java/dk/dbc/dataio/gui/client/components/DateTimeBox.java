@@ -51,13 +51,6 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     final static String DEFAULT_FORMATTED_EMPTY_YEAR = "2000";
     final static String DEFAULT_FORMATTED_EMPTY_DAY_MONTH = "01";
     final static String DEFAULT_FORMATTED_EMPTY_TIME = "00";
-    final static String DEFAULT_FORMATTED_EMPTY_DATE =
-            DEFAULT_FORMATTED_EMPTY_YEAR + DATE_SEPARATOR
-            + DEFAULT_FORMATTED_EMPTY_DAY_MONTH + DATE_SEPARATOR
-            + DEFAULT_FORMATTED_EMPTY_DAY_MONTH + DATE_TIME_SEPARATOR
-            + DEFAULT_FORMATTED_EMPTY_TIME + TIME_SEPARATOR
-            + DEFAULT_FORMATTED_EMPTY_TIME + TIME_SEPARATOR
-            + DEFAULT_FORMATTED_EMPTY_TIME;
 
 
     interface DateTimeBoxUiBinder extends UiBinder<HTMLPanel, DateTimeBox> {
@@ -67,8 +60,8 @@ public class DateTimeBox extends Composite implements HasValue<String> {
 
     public DateTimeBox() {
         initWidget(ourUiBinder.createAndBindUi(this));
-        datePickerPanel.show();  // Is needed, because PopupPanel works unlike others: This call removes the PopupPanel from the DOM
-        datePickerPanel.hide();  // ... and this call inserts it again at the very bottom of the DOM
+        datePickerPanel.show();  // Is needed, because PopupPanel works unlike others: This call inserts the PopupPanel at the very bottom of the DOM
+        datePickerPanel.hide();  // ... and this call removes the PopupPanel again (for some reason, both calls are necessary to assure correct position in DOM)
     }
 
     // UI Fields
@@ -119,8 +112,8 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     }
 
     private void acceptEnteredData() {
-        textBox.setValue(formatStringDate(textBox.getValue()));
-        datePicker.setValue(Format.parseLongDateAsDate(formatStringDate(textBox.getValue())));
+        textBox.setValue(formatStringDate(textBox.getValue()), true);
+        datePicker.setValue(Format.parseLongDateAsDate(formatStringDate(textBox.getValue())), true);
     }
 
     @UiHandler("textBox")
@@ -139,7 +132,7 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     @UiHandler("datePicker")
     void datePickerClicked(ValueChangeEvent<Date> event) {
         datePickerPanel.hide();
-        textBox.setValue(Format.formatLongDate(event.getValue()));
+        textBox.setValue(Format.formatLongDate(event.getValue()), true);
     }
 
 
@@ -200,6 +193,10 @@ public class DateTimeBox extends Composite implements HasValue<String> {
         String minute = "";
         String second = "";
         String result = "";
+
+        if (input.isEmpty()) {
+            return input;
+        }
 
         // Filter out illegal characters
         input = input.replaceAll("[^0-9" + SEPARATORS + "]", "");
@@ -299,6 +296,9 @@ public class DateTimeBox extends Composite implements HasValue<String> {
         String second = DEFAULT_FORMATTED_EMPTY_TIME;
         int size;
 
+        if (input.isEmpty()) {
+            return input;
+        }
         // Filter out illegal characters
         input = input.replaceAll("[^0-9]", "");
         size = input.length();

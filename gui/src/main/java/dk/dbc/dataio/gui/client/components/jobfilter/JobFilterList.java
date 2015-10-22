@@ -54,7 +54,8 @@ final public class JobFilterList {
         jobFilterList = Arrays.asList(
                 new JobFilterItem(ginjector.getSinkJobFilter(), false),
                 new JobFilterItem(ginjector.getSubmitterJobFilter(), false),
-                new JobFilterItem(ginjector.getSuppressSubmitterJobFilter(), true)
+                new JobFilterItem(ginjector.getSuppressSubmitterJobFilter(), true),
+                new JobFilterItem(ginjector.getDateJobFilter(), false)
                 // Add new Job Filters here...
         );
     }

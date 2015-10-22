@@ -62,4 +62,13 @@ public interface Texts extends Constants{
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String suppressSubmitterFilter_SuppressSubmitterJobs();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobDateFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobDateFilter_From();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String jobDateFilter_To();
 }

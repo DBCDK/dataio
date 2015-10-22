@@ -970,7 +970,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1002,7 +1002,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1034,7 +1034,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1066,7 +1066,7 @@ public class PresenterImplTest {
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
-        verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1160,6 +1160,7 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedView);
         verify(mockedJobNotificationTabContent, times(1)).clear();
         verify(mockedJobNotificationTabContent, times(2)).add(any(JobNotificationPanel.class));
+        verify(mockedJobNotificationTabContent, times(1)).getNotificationsCount();
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
     }
 

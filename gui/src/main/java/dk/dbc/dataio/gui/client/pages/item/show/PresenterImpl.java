@@ -203,10 +203,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         type = jobModel.getType();
         view.jobHeader.setText(constructJobHeaderText(jobModel));
-        selectJobTabVisibility(jobModel);
+        setDiagnosticModels(jobModel);
         selectJobTab(jobModel);
         setJobInfoTab(jobModel);
-        setDiagnosticModels(jobModel);
+        selectJobTabVisibility();
     }
 
     /**
@@ -227,6 +227,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             panel.setContent(notification.getContent());
             view.jobNotificationsTabContent.add(panel);
         }
+        selectJobTabVisibility();
     }
 
     private String formatType(JobNotification.Type type) {
@@ -300,26 +301,25 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Deciphers which tabs should be visible
-     * @param jobModel The model containing the job data
      */
-    private void selectJobTabVisibility(JobModel jobModel) {
+    private void selectJobTabVisibility() {
         setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, true);
 
         // Show diagnostic tab if one or more diagnostics exists
-        if(!jobModel.getDiagnosticModels().isEmpty()) {
+        if (view.jobDiagnosticTabContent.jobDiagnosticTable.getRowCount() > 0) {
             setJobTabVisibility(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, true);
         }
         // Show notification tab if one or more notifications exists
-        if(view.jobNotificationsTabContent.getNotificationsCount() > 0) {
+        if (view.jobNotificationsTabContent.getNotificationsCount() > 0) {
             setJobTabVisibility(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT, true);
         }
         // Show item information if one or more items exist
-        if(allItemCounter != 0){
+        if (allItemCounter != 0) {
             setJobTabVisibility(ViewWidget.ALL_ITEMS_TAB_INDEX, true);
-            if(failedItemCounter != 0) {
+            if (failedItemCounter != 0) {
                 setJobTabVisibility(ViewWidget.FAILED_ITEMS_TAB_INDEX, true);
             }
-            if(ignoredItemCounter != 0) {
+            if (ignoredItemCounter != 0) {
                 setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
             }
         }

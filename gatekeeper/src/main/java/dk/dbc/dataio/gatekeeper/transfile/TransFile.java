@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
  * Simple non-validating transfile parser
  */
 public class TransFile {
-    public static final Pattern END_OF_FILE = Pattern.compile("slut", Pattern.CASE_INSENSITIVE);
+    public static final Pattern END_OF_FILE = Pattern.compile("slut|finish", Pattern.CASE_INSENSITIVE);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
 

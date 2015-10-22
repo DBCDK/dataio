@@ -70,9 +70,17 @@ public class TransFileTest {
     }
 
     @Test
-    public void isComplete_transfileIsComplete_returnsTrue() throws IOException {
+    public void isComplete_transfileIsCompletedWithSlut_returnsTrue() throws IOException {
         final Path file = testFolder.newFile().toPath();
         Files.write(file, "slut".getBytes(StandardCharsets.UTF_8));
+        final TransFile transFile = new TransFile(file);
+        assertThat(transFile.isComplete(), is(true));
+    }
+
+    @Test
+    public void isComplete_transfileIsCompletedWithFinish_returnsTrue() throws IOException {
+        final Path file = testFolder.newFile().toPath();
+        Files.write(file, "finish".getBytes(StandardCharsets.UTF_8));
         final TransFile transFile = new TransFile(file);
         assertThat(transFile.isComplete(), is(true));
     }

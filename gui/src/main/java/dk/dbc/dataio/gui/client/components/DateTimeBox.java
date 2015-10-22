@@ -96,7 +96,7 @@ public class DateTimeBox extends Composite implements HasValue<String> {
                         // These characters are all legal, and shall therefore not be cancelled
                         break;
                     case KeyCodes.KEY_ENTER:
-                        acceptEnteredData();
+                        textBox.setFocus(false);
                         break;
                     default:
                         // All other characters are not to be used, and shall be cancelled

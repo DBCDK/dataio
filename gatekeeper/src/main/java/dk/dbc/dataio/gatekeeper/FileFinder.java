@@ -47,7 +47,7 @@ public class FileFinder {
     public static List<Path> findFilesWithExtension(Path dir, Set<String> extensions)
             throws NullPointerException, IOException {
         InvariantUtil.checkNotNullOrThrow(dir, "dir");
-        InvariantUtil.checkNotNullOrThrow(extensions, "extension");
+        InvariantUtil.checkNotNullOrThrow(extensions, "extensions");
         final FindFilesWithExtensionVisitor findFilesWithExtensionVisitor =
                 new FindFilesWithExtensionVisitor(extensions);
         Files.walkFileTree(dir, findFilesWithExtensionVisitor);

@@ -112,8 +112,11 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     }
 
     private void acceptEnteredData() {
-        textBox.setValue(formatStringDate(textBox.getValue()), true);
-        datePicker.setValue(Format.parseLongDateAsDate(formatStringDate(textBox.getValue())), true);
+        String formattedData = formatStringDate(textBox.getValue());
+        textBox.setValue(formattedData, true);
+        if (!formattedData.isEmpty()) {
+            datePicker.setValue(Format.parseLongDateAsDate(formattedData), true);
+        }
     }
 
     @UiHandler("textBox")
@@ -140,7 +143,7 @@ public class DateTimeBox extends Composite implements HasValue<String> {
 
     @Override
     public String getValue() {
-        return textBox.getValue();
+        return formatStringDate(textBox.getValue());
     }
 
     @Override
@@ -350,8 +353,8 @@ public class DateTimeBox extends Composite implements HasValue<String> {
             }
         }
 
-    return year + DATE_SEPARATOR + month + DATE_SEPARATOR + day + DATE_TIME_SEPARATOR
-            + hour + TIME_SEPARATOR + minute + TIME_SEPARATOR + second;
+        return year + DATE_SEPARATOR + month + DATE_SEPARATOR + day + DATE_TIME_SEPARATOR
+                + hour + TIME_SEPARATOR + minute + TIME_SEPARATOR + second;
     }
 
     /**

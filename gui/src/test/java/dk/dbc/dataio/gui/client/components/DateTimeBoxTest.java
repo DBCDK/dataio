@@ -209,7 +209,7 @@ public class DateTimeBoxTest {
         dateTimeBox.textBoxLostFocus(null); // Event is not used, so just use null
 
         // Verify test
-        verify(dateTimeBox.textBox, times(2)).getValue();
+        verify(dateTimeBox.textBox).getValue();
         verify(dateTimeBox.textBox).setValue("2015-10-12 10:20:30", true);
         verifyNoMoreInteractions(dateTimeBox.textBox);
         verify(dateTimeBox.datePicker).setValue(Matchers.any(Date.class), eq(true));

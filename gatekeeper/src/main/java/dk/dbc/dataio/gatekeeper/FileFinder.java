@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class FileFinder {
     /**
@@ -65,11 +66,11 @@ public class FileFinder {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-            for(String extension : extensions) {
-                if (file.toString().endsWith(extension)) {
-                    matchingFilesFound.add(file);
-                }
-            }
+            matchingFilesFound.addAll(extensions.stream()
+                    .filter(extension -> file.toString().endsWith(extension))
+                    .map(extension -> file)
+                    .collect(Collectors.toList()));
+
             return FileVisitResult.CONTINUE;
         }
 

@@ -180,17 +180,6 @@ public class FlowStoreErrorTest {
     }
 
     @Test
-    public void hashCode_normal_ok() {
-        FlowStoreError fse = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                100,
-                "d",
-                "t"
-        );
-        assertThat(fse.hashCode(), is(-1421804186));
-    }
-
-    @Test
     public void toString_normal_ok() {
         FlowStoreError fse = new FlowStoreError(
                 FlowStoreError.Code.NONEXISTING_SUBMITTER,

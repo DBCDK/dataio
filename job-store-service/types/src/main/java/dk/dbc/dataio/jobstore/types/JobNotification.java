@@ -38,7 +38,8 @@ public class JobNotification implements Serializable {
         // Do not change these enum short values
         // since they are used as database attribute values
         JOB_CREATED((short) 1),
-        JOB_COMPLETED((short) 2);
+        JOB_COMPLETED((short) 2),
+        INCOMPLETE_TRANSFILE((short) 3);
 
         private final short value;
         Type(short value) {

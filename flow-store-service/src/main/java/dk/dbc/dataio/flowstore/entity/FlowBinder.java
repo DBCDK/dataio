@@ -61,7 +61,8 @@ uniqueConstraints = {
 @NamedQueries({
     @NamedQuery(name = FlowBinder.QUERY_FIND_FLOWBINDER, query = FlowBinder.FIND_FLOWBINDER_QUERY_STRING),
     @NamedQuery(name = FlowBinder.QUERY_FIND_ALL, query = "SELECT flowbinder FROM FlowBinder flowbinder ORDER BY flowbinder.nameIndexValue ASC"),
-    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)
+    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER, query = FlowBinder.FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER),
+    @NamedQuery(name = FlowBinder.QUERY_FIND_ALL_FLOWBINDERS_FOR_SUBMITTER, query = FlowBinder.FIND_ALL_FLOWBINDERS_FOR_SUBMITTER_QUERY_STRING)
 })
 public class FlowBinder extends VersionedEntity {
 
@@ -74,12 +75,15 @@ public class FlowBinder extends VersionedEntity {
     public static final String QUERY_FIND_FLOWBINDER = "FlowBinder.findFlowBinder";
     public static final String QUERY_FIND_ALL = "FlowBinder.findAll";
     public static final String QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER = "FlowBinderSearchIndexEntry.findAllEntriesForFlowBinder";
+    public static final String QUERY_FIND_ALL_FLOWBINDERS_FOR_SUBMITTER = "FlowBinderSearchIndexEntry.findAllEntriesForFlowBinderWithSubmitter";
+
     public static final String DB_QUERY_PARAMETER_SUBMITTER = "submitter";
     public static final String DB_QUERY_PARAMETER_FORMAT = "format";
     public static final String DB_QUERY_PARAMETER_DESTINATION = "destination";
     public static final String DB_QUERY_PARAMETER_CHARSET = "charset";
     public static final String DB_QUERY_PARAMETER_PACKAGING = "packaging";
     public static final String DB_QUERY_PARAMETER_FLOWBINDER = "flowBinder";
+
     public static final String FIND_FLOWBINDER_QUERY_STRING =
             "SELECT indexes.flowBinder"
             + " FROM FlowBinderSearchIndexEntry indexes"
@@ -88,10 +92,16 @@ public class FlowBinder extends VersionedEntity {
             + " AND indexes.charset = :" + FlowBinder.DB_QUERY_PARAMETER_CHARSET
             + " AND indexes.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER
             + " AND indexes.destination = :" + FlowBinder.DB_QUERY_PARAMETER_DESTINATION;
+    
     public static final String FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER =
             "SELECT searchIndexEntry"
             + " FROM FlowBinderSearchIndexEntry searchIndexEntry "
             + " WHERE searchIndexEntry.flowBinder.id = :" + FlowBinder.DB_QUERY_PARAMETER_FLOWBINDER;
+
+    public static final String FIND_ALL_FLOWBINDERS_FOR_SUBMITTER_QUERY_STRING =
+            "SELECT searchIndexEntry"
+                    + " FROM FlowBinderSearchIndexEntry searchIndexEntry "
+                    + " WHERE searchIndexEntry.submitter = :" + FlowBinder.DB_QUERY_PARAMETER_SUBMITTER;
 
     static final String NAME_INDEX_COLUMN = "name_idx";
     static final String BINDER_JOIN_COLUMN = "flow_binder_id";

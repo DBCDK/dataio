@@ -35,6 +35,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
 import javax.ejb.SessionContext;
@@ -80,6 +81,13 @@ public class JobNotificationRepository extends RepositoryBase {
     Session mailSession;
 
     private final JSONBContext jsonbContext = new JSONBContext();
+
+    private String destinationFallback;
+
+    @PostConstruct
+    public void initialize() {
+        destinationFallback = mailSession.getProperty("mail.to.fallback");
+    }
 
     /**
      * Gets all notifications associated with job
@@ -146,12 +154,12 @@ public class JobNotificationRepository extends RepositoryBase {
 
         final String destination = getDestination(notification.getType(), notification.getJob().getSpecification());
         if (destination.equals(MISSING_FIELD_VALUE)) {
-            notification.setStatus(JobNotification.Status.FAILED);
-            notification.setStatusMessage("Notification has no destination");
-            return false;
+            notification.setDestination(destinationFallback);
+            notification.setStatusMessage("Destination fallback used");
+        } else {
+            notification.setDestination(destination);
         }
 
-        notification.setDestination(destination);
         try {
             notification.setContent(buildNotificationContent(notification));
         } catch (JSONBException e) {

@@ -296,7 +296,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         String formattedString = xmlString;
         // Might be xml alike and should be displayed as xml even though the xml string starts with a number...
         // check for the xmlns attribute.
-        if(xmlString.contains("xmlns")) {
+        if(xmlString.contains("xmlns") || xmlString.contains("?xml")) {
             /* Remove new lines */
             final String LINE_BREAK = "\n";
             xmlString = xmlString.replaceAll(LINE_BREAK, "");

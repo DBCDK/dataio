@@ -245,7 +245,7 @@ public class JobNotificationRepositoryTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Besked fra postmesteren'", content.contains("Besked fra postmesteren"), is(true));
+        assertThat("Message contains 'Besked fra DanBibs Posthus'", content.contains("Besked fra DanBibs Posthus"), is(true));
         assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
     }
 
@@ -265,7 +265,7 @@ public class JobNotificationRepositoryTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Fejlmeddelelse fra postmesteren'", content.contains("Fejlmeddelelse fra postmesteren"), is(true));
+        assertThat("Message contains 'Fejlmeddelelse fra DanBibs Posthus'", content.contains("Fejlmeddelelse fra DanBibs Posthus"), is(true));
         assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
     }
 
@@ -284,7 +284,7 @@ public class JobNotificationRepositoryTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Besked fra DanBibs Posthus'", content.contains("Besked fra DanBibs Posthus"), is(true));
+        assertThat("Message contains 'Besked fra postmesteren'", content.contains("Besked fra postmesteren"), is(true));
         assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
     }
 

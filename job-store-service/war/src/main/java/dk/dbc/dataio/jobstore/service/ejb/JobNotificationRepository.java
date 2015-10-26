@@ -57,6 +57,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
 import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
@@ -103,9 +104,9 @@ public class JobNotificationRepository extends RepositoryBase {
 
         // Can be simplified when we can utilize map from java8 stream API
         final List<JobNotification> notifications = new ArrayList<>(entities.size());
-        for (NotificationEntity entity : entities) {
-            notifications.add(entity.toJobNotification());
-        }
+        notifications.addAll(entities.stream()
+                .map(NotificationEntity::toJobNotification)
+                .collect(Collectors.toList()));
         return notifications;
     }
 
@@ -126,9 +127,7 @@ public class JobNotificationRepository extends RepositoryBase {
             numberOfNotificationsFound = waitingNotifications.size();
             if (numberOfNotificationsFound > 0) {
                 final JobNotificationRepository jobNotifyProxy = getProxyToSelf();
-                for (NotificationEntity waitingNotification : waitingNotifications) {
-                    jobNotifyProxy.processNotification(waitingNotification);
-                }
+                waitingNotifications.forEach(jobNotifyProxy::processNotification);
             }
         } while (numberOfNotificationsFound == MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
     }

@@ -54,7 +54,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -101,13 +100,9 @@ public class JobNotificationRepository extends RepositoryBase {
                 .setParameter("jobId", jobId);
         @SuppressWarnings("unchecked")
         final List<NotificationEntity> entities = (List<NotificationEntity>) notificationsByJobId.getResultList();
-
-        // Can be simplified when we can utilize map from java8 stream API
-        final List<JobNotification> notifications = new ArrayList<>(entities.size());
-        notifications.addAll(entities.stream()
+        return entities.stream()
                 .map(NotificationEntity::toJobNotification)
-                .collect(Collectors.toList()));
-        return notifications;
+                .collect(Collectors.toList());
     }
 
     /**

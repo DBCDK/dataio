@@ -144,6 +144,9 @@ public final class Format {
      */
     private static String formatDate(Date date, String format) {
         DateTimeFormat dateTimeFormat = DateTimeFormat.getFormat(format);
+        if (date == null) {
+            return "";
+        }
         return dateTimeFormat.format(date);
     }
 

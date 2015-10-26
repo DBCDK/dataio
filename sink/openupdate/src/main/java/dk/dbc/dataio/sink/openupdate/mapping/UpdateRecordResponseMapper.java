@@ -59,6 +59,7 @@ public class UpdateRecordResponseMapper<OpenUpdateWebServiceResponse extends Upd
             case FAILED_INVALID_OPTION :            status = OpenUpdateResponseDTO.Status.FAILED_INVALID_OPTION;                  break;
             case FAILED_VALIDATION_INTERNAL_ERROR : status = OpenUpdateResponseDTO.Status.FAILED_VALIDATION_INTERNAL_ERROR;       break;
             case FAILED_UPDATE_INTERNAL_ERROR :     status = OpenUpdateResponseDTO.Status.FAILED_UPDATE_INTERNAL_ERROR;           break;
+            default:                                status = OpenUpdateResponseDTO.Status.UNKNOWN_ERROR;
         }
 
         dto.setStatus(status);

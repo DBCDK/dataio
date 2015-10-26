@@ -1,6 +1,6 @@
-***************************
-Besked fra DanBibs Posthus
-***************************
+***********************
+Besked fra postmesteren
+***********************
 
 Bibliotek: ${specification.submitterId}
 Batchnummer: ${specification.ancestry.batchId}

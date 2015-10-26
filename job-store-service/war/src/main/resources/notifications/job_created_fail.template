@@ -1,6 +1,6 @@
-********************************
-Fejlmeddelelse fra postmesteren
-********************************
+**********************************
+Fejlmeddelelse fra DanBibs Posthus
+**********************************
 
 Bibliotek: ${specification.submitterId}
 Batchnummer: ${specification.ancestry.batchId}

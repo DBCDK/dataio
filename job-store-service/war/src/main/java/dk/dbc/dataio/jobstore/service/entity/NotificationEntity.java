@@ -73,6 +73,9 @@ public class NotificationEntity {
     @Lob
     private String content;
 
+    @Lob
+    private String context;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job")
     private JobEntity job;
@@ -131,6 +134,14 @@ public class NotificationEntity {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public String getContext() {
+        return context;
+    }
+
+    public void setContext(String context) {
+        this.context = context;
     }
 
     public JobEntity getJob() {

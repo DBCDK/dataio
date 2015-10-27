@@ -8,25 +8,21 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 
-/**
- * Created by ThomasBerg on 21/10/15.
- */
 public class TestData {
 
     public static UpdateRecordResult getWebserviceResultOK() throws JAXBException {
-        return unmarchelUpdateRecordResponse(WEBSERVICE_RESULT_OK).getUpdateRecordResult();
+        return unmarshalUpdateRecordResponse(WEBSERVICE_RESULT_OK).getUpdateRecordResult();
     }
 
     public static UpdateRecordResult webserviceResultWithValidationErrors() throws JAXBException {
 
-        return unmarchelUpdateRecordResponse(WEBSERVICE_RESULT_WITH_VALIDATION_ERROR).getUpdateRecordResult();
+        return unmarshalUpdateRecordResponse(WEBSERVICE_RESULT_WITH_VALIDATION_ERROR).getUpdateRecordResult();
     }
 
-    private static UpdateRecordResponse unmarchelUpdateRecordResponse(String xmlResponseToUnmarhal) throws JAXBException {
+    private static UpdateRecordResponse unmarshalUpdateRecordResponse(String xmlResponseToUnmarshal) throws JAXBException {
             final Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
-            StringReader reader = new StringReader(xmlResponseToUnmarhal);
-            final UpdateRecordResponse unmarshalledUpdateRecordResult = (UpdateRecordResponse) unmarshaller.unmarshal(reader);
-            return unmarshalledUpdateRecordResult;
+            StringReader reader = new StringReader(xmlResponseToUnmarshal);
+            return (UpdateRecordResponse) unmarshaller.unmarshal(reader);
     }
 
     private final static String WEBSERVICE_RESULT_OK = "<updateRecordResponse xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">\n" +

@@ -7,9 +7,7 @@ import org.xmlunit.matchers.CompareMatcher;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-/**
- * Created by ThomasBerg on 20/10/15.
- */
+
 public class AbstractOpenUpdateSinkTestBase {
     protected static CompareMatcher isEquivalentTo(Object control) {
         return CompareMatcher.isSimilarTo(control)

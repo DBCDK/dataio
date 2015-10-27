@@ -16,14 +16,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by ThomasBerg on 20/10/15.
- */
 public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
 
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
@@ -48,7 +45,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
     public void callOpenUpdateWebServiceForEachAddiRecord_OK() throws JAXBException {
 
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), (BibliographicRecord)anyObject())).thenReturn(TestData.getWebserviceResultOK());
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(TestData.getWebserviceResultOK());
 
         // Subject Under Test
         AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, mockedOpenUpdateServiceConnector);
@@ -63,7 +60,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
     public void callOpenUpdateWebServiceForEachAddiRecord_validationError() throws JAXBException {
 
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), (BibliographicRecord)anyObject())).thenReturn(TestData.webserviceResultWithValidationErrors());
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(TestData.webserviceResultWithValidationErrors());
 
         // Subject Under Test
         AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, mockedOpenUpdateServiceConnector);
@@ -75,12 +72,12 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertTrue(StringUtils.countMatches(chunkItemDataAsString, "<errorMessages>") == 3);
     }
 
-
     @Test
+    @SuppressWarnings("unchecked")
     public void callOpenUpdateWebServiceForEachAddiRecord_stackTrace() throws JAXBException {
 
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), (BibliographicRecord)anyObject())).thenThrow(WebServiceException.class);
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenThrow(WebServiceException.class);
 
         // Subject Under Test
         AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, mockedOpenUpdateServiceConnector);

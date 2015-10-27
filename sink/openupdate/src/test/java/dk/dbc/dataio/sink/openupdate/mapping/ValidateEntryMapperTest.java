@@ -56,7 +56,7 @@ public class ValidateEntryMapperTest {
     @Test
     public void testMap_ok() throws Exception {
 
-        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_ok).map();
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_ok).map();
         String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
 
@@ -71,7 +71,7 @@ public class ValidateEntryMapperTest {
     @Test
     public void testMap_validationError_asJson() throws Exception {
 
-        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_validation).map();
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_validation).map();
         final String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
 
@@ -100,7 +100,7 @@ public class ValidateEntryMapperTest {
     @Test
     public void testMap_validationError_asXml() throws JAXBException {
 
-        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<UpdateRecordResult>(this.dummyUpdateRecordResult_validation).map();
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_validation).map();
         final String xml = openUpdateResponseDTO.asXml();
         assertNotNull(xml);
         assertTrue(xml.contains("errorMessages"));

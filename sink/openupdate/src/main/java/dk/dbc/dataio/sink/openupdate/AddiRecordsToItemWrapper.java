@@ -17,9 +17,6 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.getStackTraceAsString;
 
-/**
- * Created by ThomasBerg on 20/10/15.
- */
 public class AddiRecordsToItemWrapper {
 
     private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
@@ -90,19 +87,19 @@ public class AddiRecordsToItemWrapper {
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     addiRecordPreprocessor.getTemplate(),
                     addiRecordPreprocessor.getMarcXChangeRecord());
-            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<UpdateRecordResult>(webserviceResult).map();
+            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<>(webserviceResult).map();
 
             if(mappedWebServiceResult.getStatus() == OpenUpdateResponseDTO.Status.OK) {
                 crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );
                 return AddiStatus.OK;
             } else {
-                crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_VALIDATION) + mappedWebServiceResult.asXml() );
+                crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION)).append(mappedWebServiceResult.asXml());
                 return AddiStatus.FAILED_VALIDATION;
             }
 
 
         } catch (Throwable t) {
-            crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE) + getStackTraceAsString(t) );
+            crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE)).append(getStackTraceAsString(t));
             return AddiStatus.FAILED_STACKTRACE;
         }
     }

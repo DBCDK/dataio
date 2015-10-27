@@ -23,6 +23,7 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.FlowBinderContentJsonBuilder;
@@ -51,11 +52,13 @@ import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -76,13 +79,13 @@ public class FlowBindersBeanTest {
     private JSONBContext jsonbContext = new JSONBContext();
 
     @Test(expected = NullPointerException.class)
-    public void getFlow_nullPackagingParameter_throws() throws JSONBException {
+    public void getFlowBinder_nullPackagingParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder(null, "nmalbum", "utf8", 654321L, "someDestination");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getFlow_emptyPackagingParameter_throws() throws JSONBException {
+    public void getFlowBinder_emptyPackagingParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("", "nmalbum", "utf8", 654321L, "someDestination");
     }
@@ -94,60 +97,107 @@ public class FlowBindersBeanTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getFlow_emptyFormatParameter_throws() throws JSONBException {
+    public void getFlowBinder_emptyFormatParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("xml", "", "utf8", 654321L, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
-    public void getFlow_nullCharsetParameter_throws() throws JSONBException {
+    public void getFlowBinder_nullCharsetParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("xml", "nmalbum", null, 654321L, "someDestination");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getFlow_emptyCharsetParameter_throws() throws JSONBException {
+    public void getFlowBinder_emptyCharsetParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("xml", "nmalbum", "", 654321L, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
-    public void getFlow_nullSubmitterParameter_throws() throws JSONBException {
+    public void getFlowBinder_nullSubmitterParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("xml", "nmalbum", "utf8", null, "someDestination");
     }
 
     @Test(expected = NullPointerException.class)
-    public void getFlow_nullDestinationParameter_throws() throws JSONBException {
+    public void getFlowBinder_nullDestinationParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void getFlow_emptyDestinationParameter_throws() throws JSONBException {
+    public void getFlowBinder_emptyDestinationParameter_throws() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "");
     }
 
     @Test
-    public void getFlow_validParametersButNoMatchingFlow_returnsResponseWithFlowAndHTTP404() throws JSONBException {
+    public void getFlowBinder_validParametersButNoMatchingFlowBinder_returnsResponseWithFlowStoreErrorSubmitterNotFound() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
-        EntityManager entityManager = mock(EntityManager.class);
-        fbb.entityManager = entityManager;
-        Query query = mock(Query.class);
-        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(query);
+        fbb.entityManager = mock(EntityManager.class);
 
-        when(query.getResultList()).thenReturn(Collections.emptyList());
+        getMockedResponseForFindFlowBinderQueryReturnsEmptyList(fbb);
+        getMockedResponseForFindAllSearchIndexesBySubmitter(fbb, Collections.emptyList());
 
-        Query query1 = mock(Query.class);
-        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER)).thenReturn(query1);
-        when(query1.getResultList()).thenReturn(Collections.emptyList());
         Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
         assertThat(response.getStatus(), is(404));
+        assertThat(response.hasEntity(), is(true));
+        try {
+            FlowStoreError flowStoreError = jsonbContext.unmarshall((String)response.getEntity(), FlowStoreError.class);
+            assertThat(flowStoreError.getCode(), is(FlowStoreError.Code.NONEXISTING_SUBMITTER));
+        } catch (JSONBException e) {
+            fail();
+        }
     }
 
     @Test
-    public void getFlow_validParametersAndMatchingFlow_returnsResponseWithFlowAndHTTP200() throws JSONBException {
+    public void getFlowBinder_validParametersButNoMatchingFlowBinder_returnsResponseWithFlowStoreErrorDestinationNotFoundHTTP404() throws JSONBException {
+        FlowBindersBean fbb = new FlowBindersBean();
+        fbb.entityManager = mock(EntityManager.class);
+
+        getMockedResponseForFindFlowBinderQueryReturnsEmptyList(fbb);
+
+        FlowBinderSearchIndexEntry indexEntry = new FlowBinderSearchIndexEntry();
+        indexEntry.setDestination("someDestination");
+        getMockedResponseForFindAllSearchIndexesBySubmitter(fbb, Collections.singletonList(indexEntry));
+
+        Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someOtherDestination");
+        assertThat(response.getStatus(), is(404));
+        assertThat(response.hasEntity(), is(true));
+        try {
+            FlowStoreError flowStoreError = jsonbContext.unmarshall((String)response.getEntity(), FlowStoreError.class);
+            assertThat(flowStoreError.getCode(), is(FlowStoreError.Code.EXISTING_SUBMITTER_NONEXISTING_DESTINATION));
+        } catch (JSONBException e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void getFlowBinder_validParametersButNoMatchingFlowBinder_returnsResponseWithFlowStoreErrorHTTP404() throws JSONBException {
+        FlowBindersBean fbb = new FlowBindersBean();
+        fbb.entityManager = mock(EntityManager.class);
+
+        getMockedResponseForFindFlowBinderQueryReturnsEmptyList(fbb);
+
+        FlowBinderSearchIndexEntry indexEntry = new FlowBinderSearchIndexEntry();
+        indexEntry.setDestination("someDestination");
+        getMockedResponseForFindAllSearchIndexesBySubmitter(fbb, Collections.singletonList(indexEntry));
+
+        Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
+
+        assertThat(response.getStatus(), is(404));
+        assertThat(response.hasEntity(), is(true));
+        try {
+            FlowStoreError flowStoreError = jsonbContext.unmarshall((String)response.getEntity(), FlowStoreError.class);
+            assertThat(flowStoreError.getCode(), is(FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC));
+        } catch (JSONBException e) {
+            fail();
+        }
+    }
+
+    @Test
+    public void getFlowBinder_validParametersAndMatchingFlowBinder_returnsResponseWithFlowBinderAndHTTP200() throws JSONBException {
         FlowBindersBean fbb = new FlowBindersBean();
         EntityManager entityManager = mock(EntityManager.class);
         fbb.entityManager = entityManager;
@@ -180,7 +230,7 @@ public class FlowBindersBeanTest {
     }
 
     @Test
-    public void getFlowBinder_flowBinderNotFound_returnsResponse404() throws JSONBException {
+    public void getFlowBinderById_flowBinderNotFound_returnsResponse404() throws JSONBException {
         final long FLOW_BINDER_ID = 12L;
         FlowBindersBean bean = new FlowBindersBean();
         EntityManager mockedEntityManager = mock(EntityManager.class);
@@ -378,6 +428,10 @@ public class FlowBindersBeanTest {
         assertThat(entity.get("content").get("sinkId").asLong(), is((flowBinder.getSinkId())));
     }
 
+    /*
+     * Private methods
+     */
+
     private static FlowBindersBean newFlowBindersBeanWithMockedEntityManager() {
         final FlowBindersBean flowBindersBean = new FlowBindersBean();
         flowBindersBean.entityManager = ENTITY_MANAGER;
@@ -412,6 +466,19 @@ public class FlowBindersBeanTest {
         Submitter submitter = new Submitter();
         submitter.setContent(new SubmitterContentJsonBuilder().build());
         return new HashSet<>(Collections.singletonList(submitter));
+    }
+
+    private void getMockedResponseForFindFlowBinderQueryReturnsEmptyList(FlowBindersBean fbb) {
+        Query queryFindFlowBinder = mock(Query.class);
+        when(fbb.entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(queryFindFlowBinder);
+        when(queryFindFlowBinder.getResultList()).thenReturn(Collections.emptyList());
+    }
+
+    private void getMockedResponseForFindAllSearchIndexesBySubmitter(FlowBindersBean fbb, List<FlowBinderSearchIndexEntry> indexEntries) {
+        Query queryFindAllSearchIndexesBySubmitter = mock(Query.class);
+        when(fbb.entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER)).thenReturn(queryFindAllSearchIndexesBySubmitter);
+        when(queryFindAllSearchIndexesBySubmitter.getResultList()).thenReturn(indexEntries);
+
     }
 
 }

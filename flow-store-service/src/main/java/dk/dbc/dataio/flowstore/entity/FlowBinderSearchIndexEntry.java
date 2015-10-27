@@ -89,7 +89,8 @@ public class FlowBinderSearchIndexEntry {
         this.charset = charset;
     }
 
-    void setDestination(String destination) {
+    // Public for test purpose only!
+    public void setDestination(String destination) {
         this.destination = destination;
     }
 

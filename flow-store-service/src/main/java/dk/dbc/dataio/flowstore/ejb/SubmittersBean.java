@@ -60,6 +60,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 public class SubmittersBean {
     private static final Logger log = LoggerFactory.getLogger(SubmittersBean.class);
     private static final String SUBMITTER_CONTENT_DISPLAY_TEXT = "submitterContent";
+    private static final String NULL_ENTITY = "";
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -117,10 +118,7 @@ public class SubmittersBean {
     public Response getSubmitter(@PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id) throws JSONBException {
         final Submitter submitter = entityManager.find(Submitter.class, id);
         if (submitter == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(ServiceUtil.asJsonError("Submitter with id: " + id + " not "))
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response
                 .ok()
@@ -149,10 +147,7 @@ public class SubmittersBean {
 
         List results = query.getResultList();
         if(results.isEmpty()) {
-            return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(ServiceUtil.asJsonError("Submitter with submitter number: " + number + " not found."))
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         Submitter submitter = query.getSingleResult();
         return Response
@@ -187,9 +182,7 @@ public class SubmittersBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
         final Submitter submitterEntity = entityManager.find(Submitter.class, id);
         if (submitterEntity == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND.getStatusCode())
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         entityManager.detach(submitterEntity);
         submitterEntity.setContent(submitterContent);
@@ -227,7 +220,7 @@ public class SubmittersBean {
         final Submitter submitterEntity = entityManager.find(Submitter.class, submitterId);
 
         if(submitterEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
         // First we need to update the version no to see if any Optimistic Locking occurs!

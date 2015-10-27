@@ -138,6 +138,10 @@ public class FlowBindersBeanTest {
         when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER)).thenReturn(query);
 
         when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        Query query1 = mock(Query.class);
+        when(entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_FLOWBINDERS_FOR_SUBMITTER)).thenReturn(query1);
+        when(query1.getResultList()).thenReturn(Collections.emptyList());
         Response response = fbb.getFlowBinder("xml", "nmalbum", "utf8", 654321L, "someDestination");
         assertThat(response.getStatus(), is(404));
     }

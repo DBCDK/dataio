@@ -23,7 +23,6 @@ package dk.dbc.dataio.flowstore.ejb;
 
 
 import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -65,9 +64,9 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Path("/")
 public class FlowsBean {
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
-
-    private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final String FLOW_CONTENT_DISPLAY_TEXT = "flowContent";
+    private static final String NULL_ENTITY = "";
+
     JSONBContext jsonbContext = new JSONBContext();
 
     @PersistenceContext
@@ -90,10 +89,7 @@ public class FlowsBean {
     public Response getFlow(@PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id) throws JSONBException {
         final Flow flow = entityManager.find(Flow.class, id);
         if (flow == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(jsonbContext.marshall(new ServiceError(NOT_FOUND_MESSAGE)))
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flow)).build();
     }
@@ -205,7 +201,7 @@ public class FlowsBean {
 
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
         }
         entityManager.detach(flowEntity);
         FlowContent flowContent = jsonbContext.unmarshall(flowEntity.getContent(), FlowContent.class);
@@ -250,9 +246,7 @@ public class FlowsBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND.getStatusCode())
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
         }
         entityManager.detach(flowEntity);
         flowEntity.setContent(flowContent);
@@ -288,7 +282,7 @@ public class FlowsBean {
         final Flow flowEntity = entityManager.find(Flow.class, flowId);
 
         if(flowEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
         // First we need to update the version no to see if any Optimistic Locking occurs!

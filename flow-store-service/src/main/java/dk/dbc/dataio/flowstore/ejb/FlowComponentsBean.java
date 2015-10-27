@@ -23,7 +23,6 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -57,8 +56,8 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Path("/")
 public class FlowComponentsBean {
     private static final String FLOW_COMPONENT_CONTENT_DISPLAY_TEXT = "flowComponentContent";
-    private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
+    private static final String NULL_ENTITY = "";
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -82,7 +81,7 @@ public class FlowComponentsBean {
     public Response getFlowComponent(@PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id) throws JSONBException {
         final FlowComponent flowComponent = entityManager.find(FlowComponent.class, id);
         if (flowComponent == null) {
-            return ServiceUtil.buildResponse(Response.Status.NOT_FOUND, ServiceUtil.asJsonError(NOT_FOUND_MESSAGE));
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flowComponent)).build();
     }
@@ -155,7 +154,7 @@ public class FlowComponentsBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowComponentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
         if (flowComponentEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         entityManager.detach(flowComponentEntity);
         flowComponentEntity.setContent(flowComponentContent);
@@ -191,7 +190,7 @@ public class FlowComponentsBean {
 
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
         if (flowComponentEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND.getStatusCode()).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         entityManager.detach(flowComponentEntity);
         flowComponentEntity.setNext(flowComponentContent);

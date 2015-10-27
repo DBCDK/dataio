@@ -22,7 +22,17 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.*;
+import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.FlowStoreError;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -91,7 +101,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = doPostWithJson(httpClient, sinkContent, baseUrl, FlowStoreServiceConstants.SINKS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            verifyResponseStatus(response, Response.Status.CREATED);
             return readResponseEntity(response, Sink.class);
         } finally {
             response.close();
@@ -115,7 +125,7 @@ public class FlowStoreServiceConnector {
                 .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Sink.class);
         } finally {
             response.close();
@@ -135,7 +145,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SINKS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<Sink>>() {
             });
         } finally {
@@ -165,7 +175,7 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
         final Response response = doPostWithJson(httpClient, headers, sinkContent, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Sink.class);
         } finally {
             response.close();
@@ -194,10 +204,9 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
 
         final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
-        final int actualStatus = response.getStatus();
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+            verifyResponseStatus(response, NO_CONTENT);
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: deleteSink took {} milliseconds", stopWatch.getElapsedTime());
@@ -233,11 +242,9 @@ public class FlowStoreServiceConnector {
 
         final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
 
-        final int actualStatus = response.getStatus();
-
         try {
 
-            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+            verifyResponseStatus(response, NO_CONTENT);
 
         } finally {
 
@@ -262,7 +269,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = doPostWithJson(httpClient, submitterContent, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            verifyResponseStatus(response, Response.Status.CREATED);
             return readResponseEntity(response, Submitter.class);
         } finally {
             response.close();
@@ -286,7 +293,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Submitter.class);
         } finally {
             response.close();
@@ -310,7 +317,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Submitter.class);
         } finally {
             response.close();
@@ -339,7 +346,7 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
         final Response response = doPostWithJson(httpClient, headers, submitterContent, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Submitter.class);
         } finally {
             response.close();
@@ -359,7 +366,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.SUBMITTERS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<Submitter>>() {
             });
         } finally {
@@ -386,7 +393,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = doPostWithJson(httpClient, flowComponentContent, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            verifyResponseStatus(response, Response.Status.CREATED);
             return readResponseEntity(response, FlowComponent.class);
         } finally {
             response.close();
@@ -406,7 +413,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_COMPONENTS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<FlowComponent>>() {
             });
         } finally {
@@ -431,7 +438,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, FlowComponent.class);
         } finally {
             response.close();
@@ -460,7 +467,7 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
         final Response response = doPostWithJson(httpClient, headers, flowComponentContent, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, FlowComponent.class);
         } finally {
             response.close();
@@ -488,7 +495,7 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
         final Response response = doPostWithJson(httpClient, headers, next, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, FlowComponent.class);
         } finally {
             response.close();
@@ -514,7 +521,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = doPostWithJson(httpClient, flowContent, baseUrl, FlowStoreServiceConstants.FLOWS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            verifyResponseStatus(response, Response.Status.CREATED);
             return readResponseEntity(response, Flow.class);
         } finally {
             response.close();
@@ -538,7 +545,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Flow.class);
         } finally {
             response.close();
@@ -558,7 +565,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOWS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() {
             });
         } finally {
@@ -592,7 +599,7 @@ public class FlowStoreServiceConnector {
         // An update is still desired, but the "real" data to post is not provided.
         final Response response = doPostWithJson(httpClient, queryParameters, headers, "", baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Flow.class);
         } finally {
             response.close();
@@ -626,7 +633,7 @@ public class FlowStoreServiceConnector {
 
         final Response response = doPostWithJson(httpClient, queryParameters, headers, flowContent, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, Flow.class);
         } finally {
             response.close();
@@ -655,10 +662,9 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
 
         final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
-        final int actualStatus = response.getStatus();
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+            verifyResponseStatus(response, NO_CONTENT);
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: deleteFlow took {} milliseconds", stopWatch.getElapsedTime());
@@ -683,7 +689,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = doPostWithJson(httpClient, flowBinderContent, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.CREATED);
+            verifyResponseStatus(response, Response.Status.CREATED);
             return readResponseEntity(response, FlowBinder.class);
         } finally {
             response.close();
@@ -703,7 +709,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOW_BINDERS);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<FlowBinder>>() {
             });
         } finally {
@@ -733,7 +739,7 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
         final Response response = doPostWithJson(httpClient, headers, flowBinderContent, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, FlowBinder.class);
         } finally {
             response.close();
@@ -762,10 +768,9 @@ public class FlowStoreServiceConnector {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
 
         final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
-        final int actualStatus = response.getStatus();
 
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(actualStatus), NO_CONTENT);
+            verifyResponseStatus(response, NO_CONTENT);
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: deleteFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
@@ -787,7 +792,7 @@ public class FlowStoreServiceConnector {
                 .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, flowBinderId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, FlowBinder.class);
         } finally {
             response.close();
@@ -820,7 +825,7 @@ public class FlowStoreServiceConnector {
 
         final Response response = HttpClient.doGet(httpClient, queryParameters, baseUrl, FlowStoreServiceConstants.FLOW_BINDER_RESOLVE);
         try {
-            verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+            verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, FlowBinder.class);
         } finally {
             response.close();
@@ -830,10 +835,20 @@ public class FlowStoreServiceConnector {
 
     // ******************************************** Private helper methods ********************************************
 
-    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
+    private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        final Response.Status actualStatus = Response.Status.fromStatusCode(response.getStatus());
         if (actualStatus != expectedStatus) {
-            throw new FlowStoreServiceConnectorUnexpectedStatusCodeException(
-                    String.format("flow-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+            final FlowStoreServiceConnectorUnexpectedStatusCodeException exception =
+                    new FlowStoreServiceConnectorUnexpectedStatusCodeException(String.format(
+                            "job-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+            if (actualStatus == Response.Status.NOT_FOUND && response.hasEntity()) {
+                try {
+                    exception.setFlowStoreError(readResponseEntity(response, FlowStoreError.class));
+                } catch (FlowStoreServiceConnectorException e) {
+                    log.warn("Unable to extract flow-store error from response", e);
+                }
+            }
+                throw exception;
         }
     }
 

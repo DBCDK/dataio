@@ -23,7 +23,6 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.flowstore.entity.Sink;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -52,8 +51,8 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
 @Stateless
 @Path("/")
 public class SinksBean {
-    private static final String NOT_FOUND_MESSAGE = "resource not found";
     private static final String SINK_CONTENT_DISPLAY_TEXT = "sinkContent";
+    private static final String NULL_ENTITY = "";
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -77,10 +76,7 @@ public class SinksBean {
     public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JSONBException {
         final Sink sink = entityManager.find(Sink.class, id);
         if (sink == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND)
-                    .entity(ServiceUtil.asJsonError(NOT_FOUND_MESSAGE))
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response
                 .ok()
@@ -144,9 +140,7 @@ public class SinksBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
         final Sink sinkEntity = entityManager.find(Sink.class, id);
         if (sinkEntity == null) {
-            return Response
-                    .status(Response.Status.NOT_FOUND.getStatusCode())
-                    .build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         entityManager.detach(sinkEntity);
         sinkEntity.setContent(sinkContent);
@@ -182,7 +176,7 @@ public class SinksBean {
         final Sink sinkEntity = entityManager.find(Sink.class, sinkId);
 
         if(sinkEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
         // First we need to update the version no to see if any Optimistic Locking occurs!

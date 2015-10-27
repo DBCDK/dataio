@@ -847,7 +847,7 @@ public class FlowBindersIT {
             assertSearchIndexDoesNotExist(flowBinder.getContent(), submitter.getContent().getNumber());
 
             // Assert that the rows in flow_binders_submitters have been removed
-            assertFlowBindersSubmitters(flowBinder.getId(), new ArrayList<Long>());
+            assertFlowBindersSubmitters(flowBinder.getId(), new ArrayList<>());
         }
     }
 

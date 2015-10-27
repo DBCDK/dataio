@@ -184,13 +184,10 @@ public class SubmittersBeanTest {
         final Long submitterNumber = 463725L;
         TypedQuery<Submitter> query = mock(TypedQuery.class);
         when(ENTITY_MANAGER.createNamedQuery(eq(Submitter.QUERY_FIND_BY_NUMBER), eq(Submitter.class))).thenReturn(query);
-        when(query.getResultList()).thenReturn(new ArrayList<Submitter>());
+        when(query.getResultList()).thenReturn(new ArrayList<>());
 
         Response response = submittersBean.getSubmitterBySubmitterNumber(submitterNumber);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        JsonNode entityNode = jsonbContext.getJsonTree((String) response.getEntity());
-        assertThat(entityNode.get("message").textValue().contains(submitterNumber.toString()), is(true));
         assertThat(response.getEntityTag(), is(nullValue()));
     }
 

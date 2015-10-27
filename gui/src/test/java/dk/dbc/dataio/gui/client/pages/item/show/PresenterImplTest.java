@@ -1142,6 +1142,8 @@ public class PresenterImplTest {
         verify(mockedView).setPresenter(any(Presenter.class));
         verify(mockedView).asWidget();
         verifyNoMoreInteractions(mockedView);
+        verify(mockedJobNotificationTabContent, times(1)).clear();
+        verify(mockedJobNotificationTabContent, times(1)).getNotificationsCount();
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
     }
 

@@ -532,7 +532,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<JobNotification> jobNotifications) {
-            if (jobNotifications != null && jobNotifications.size() > 0) {
+            if (jobNotifications != null) {
                 setJobNotifications(jobNotifications);
             }
         }

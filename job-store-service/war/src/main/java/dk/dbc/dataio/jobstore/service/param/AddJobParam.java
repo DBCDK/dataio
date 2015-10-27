@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -111,9 +112,15 @@ public class AddJobParam {
                     jobSpec.getCharset(),
                     jobSpec.getSubmitterId(),
                     jobSpec.getDestination());
-        } catch(FlowStoreServiceConnectorException | ProcessingException e) {
-            final String message = String.format("Could not retrieve FlowBinder for specification: %s", jobSpec);
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+        } catch (FlowStoreServiceConnectorException | ProcessingException e) {
+            if (e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException) {
+                FlowStoreServiceConnectorUnexpectedStatusCodeException exception = (FlowStoreServiceConnectorUnexpectedStatusCodeException) e;
+                final String message = String.format("Error in Transfile: %s", exception.getFlowStoreError().toString());
+                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+            } else {
+                final String message = String.format("Could not retrieve FlowBinder for specification: %s", jobSpec);
+                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+            }
         }
         return null;
     }

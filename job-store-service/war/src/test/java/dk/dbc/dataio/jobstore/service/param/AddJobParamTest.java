@@ -23,8 +23,10 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -33,7 +35,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -87,7 +88,8 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }
 
-    public void lookupSubmitter_submitterNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    @Test
+    public void lookupSubmitter_submitterNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
 
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(
                 eq(jobSpecification.getSubmitterId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
@@ -103,7 +105,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupSubmitter_submitterFound_submitterReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupSubmitter_submitterFound_submitterReferenceExists() throws FlowStoreServiceConnectorException {
         final Submitter submitter = new SubmitterBuilder().build();
 
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
@@ -120,7 +122,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupFlowBinder_flowBinderNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupFlowBinder_flowBinderNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
 
         when(mockedFlowStoreServiceConnector.getFlowBinder(
                 eq(jobSpecification.getPackaging()),
@@ -140,7 +142,32 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupFlowBinder_flowBinderFound_flowBinderReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupFlowBinder_flowStoreError_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
+        final String FLOW_STORE_ERROR_TO_STRING = "FlowStoreErrorToString";
+        final FlowStoreServiceConnectorUnexpectedStatusCodeException mockedFlowStoreServiceConnectorUnexpectedStatusCodeException = mock(FlowStoreServiceConnectorUnexpectedStatusCodeException.class);
+        final FlowStoreError mockedFlowStoreError = mock(FlowStoreError.class);
+
+        when(mockedFlowStoreServiceConnectorUnexpectedStatusCodeException.getFlowStoreError()).thenReturn(mockedFlowStoreError);
+        when(mockedFlowStoreError.toString()).thenReturn(FLOW_STORE_ERROR_TO_STRING);
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenThrow(mockedFlowStoreServiceConnectorUnexpectedStatusCodeException);
+
+        final AddJobParam addJobParam = constructAddJobParam(true);
+
+        final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(FLOW_STORE_ERROR_TO_STRING), is(true));
+        assertThat(addJobParam.getFlowBinder(), is(nullValue()));
+        assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
+    }
+
+    @Test
+    public void lookupFlowBinder_flowBinderFound_flowBinderReferenceExists() throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         when(mockedFlowStoreServiceConnector.getFlowBinder(
@@ -162,7 +189,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupFlow_flowNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupFlow_flowNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         when(mockedFlowStoreServiceConnector.getFlowBinder(
@@ -191,7 +218,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupFlow_flowFound_flowBinderAndFlowReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupFlow_flowFound_flowBinderAndFlowReferenceExists() throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
 
@@ -219,7 +246,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupSink_sinkNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupSink_sinkNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
 
         when(mockedFlowStoreServiceConnector.getFlowBinder(
@@ -246,7 +273,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupSink_sinkFound_flowBinderAndSinkReferenceExists() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void lookupSink_sinkFound_flowBinderAndSinkReferenceExists() throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Sink sink = new SinkBuilder().build();
 
@@ -274,7 +301,7 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FlowStoreServiceConnectorException {
         final Submitter submitter = new SubmitterBuilder().build();
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
@@ -330,7 +357,7 @@ public class AddJobParamTest extends ParamBaseTest {
         return flowStoreReferences;
     }
 
-    private AddJobParam getAddJobParamWithAllParametersSet(Submitter submitter, Flow flow, Sink sink, FlowBinder flowBinder) throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    private AddJobParam getAddJobParamWithAllParametersSet(Submitter submitter, Flow flow, Sink sink, FlowBinder flowBinder) throws FlowStoreServiceConnectorException {
 
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
 

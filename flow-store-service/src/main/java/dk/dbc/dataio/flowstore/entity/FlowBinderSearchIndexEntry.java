@@ -93,6 +93,10 @@ public class FlowBinderSearchIndexEntry {
         this.destination = destination;
     }
 
+    public String getDestination() {
+        return destination;
+    }
+
     void setFormat(String format) {
         this.format = format;
     }

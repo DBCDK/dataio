@@ -28,6 +28,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
+import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -980,6 +981,7 @@ public class FlowBindersIT {
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
         Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
         assertNotFoundException(
+                FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
                 "invalidPackaging",
                 flowBinder.getContent().getFormat(),
                 flowBinder.getContent().getCharset(),
@@ -999,6 +1001,7 @@ public class FlowBindersIT {
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
         Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
         assertNotFoundException(
+                FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
                 flowBinder.getContent().getPackaging(),
                 "invalidFormat",
                 flowBinder.getContent().getCharset(),
@@ -1018,6 +1021,7 @@ public class FlowBindersIT {
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
         Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
         assertNotFoundException(
+                FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
                 flowBinder.getContent().getPackaging(),
                 flowBinder.getContent().getFormat(),
                 "invalidCharset",
@@ -1036,6 +1040,7 @@ public class FlowBindersIT {
         // Given...
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
         assertNotFoundException(
+                FlowStoreError.Code.NONEXISTING_SUBMITTER,
                 flowBinder.getContent().getPackaging(),
                 flowBinder.getContent().getFormat(),
                 flowBinder.getContent().getCharset(),
@@ -1055,6 +1060,7 @@ public class FlowBindersIT {
         FlowBinder flowBinder = createFlowBinderWithReferencedObjects();
         Submitter submitter = flowStoreServiceConnector.getSubmitter(flowBinder.getContent().getSubmitterIds().get(0));
         assertNotFoundException(
+                FlowStoreError.Code.EXISTING_SUBMITTER_NONEXISTING_DESTINATION,
                 flowBinder.getContent().getPackaging(),
                 flowBinder.getContent().getFormat(),
                 flowBinder.getContent().getCharset(),
@@ -1157,7 +1163,7 @@ public class FlowBindersIT {
      * @param destination of the flow binder
      * @throws FlowStoreServiceConnectorException NOT FOUND
      */
-    private void assertNotFoundException(String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException{
+    private void assertNotFoundException(FlowStoreError.Code code, String packaging, String format, String charset, long submitterNumber, String destination) throws FlowStoreServiceConnectorException{
         try {
             // When...
             flowStoreServiceConnector.getFlowBinder(packaging, format, charset, submitterNumber, destination);
@@ -1166,6 +1172,8 @@ public class FlowBindersIT {
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(404));
+            assertThat(e.getFlowStoreError(), not(nullValue()));
+            assertThat(e.getFlowStoreError().getCode(), is(code));
         }
     }
 

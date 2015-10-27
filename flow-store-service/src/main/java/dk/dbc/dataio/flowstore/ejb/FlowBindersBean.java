@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowStoreError;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -111,7 +112,7 @@ public class FlowBindersBean {
         InvariantUtil.checkNotNullOrThrow(submitter_number, FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER);
         InvariantUtil.checkNotNullNotEmptyOrThrow(destination, FlowBinderFlowQuery.REST_PARAMETER_DESTINATION);
 
-        Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER);
+        final Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER);
 
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_PACKAGING, packaging);
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FORMAT, format);
@@ -120,13 +121,24 @@ public class FlowBindersBean {
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_DESTINATION, destination);
 
         List<FlowBinder> flowBinders = query.getResultList();
-        if (flowBinders.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
 
-        }
         if(flowBinders.size() > 1) {
-                String msg = getMoreThanOneFlowFoundMessage(query);
-                log.warn(msg);
+            String msg = getMoreThanOneFlowFoundMessage(query);
+            log.warn(msg);
+        }
+
+        if (flowBinders.isEmpty()) {
+
+            // Search for flowBinders with the submitter number given as input
+            final Query queryForSubmitter = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER);
+            queryForSubmitter.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number);
+            List<FlowBinderSearchIndexEntry> searchIndexesForSubmitter = queryForSubmitter.getResultList();
+
+            // Generate appropriate FlowStoreError depending on the flow binder search index entries returned
+            FlowStoreError flowStoreError = getFlowStoreError(searchIndexesForSubmitter, packaging, format, charset, submitter_number, destination);
+
+            // Return NOT_FOUND response with the FlowStoreError as entity
+            return Response.status(Response.Status.NOT_FOUND).entity(jsonbContext.marshall(flowStoreError)).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flowBinders.get(0))).build();
     }
@@ -387,6 +399,74 @@ public class FlowBindersBean {
         } catch (JSONBException e) {
             throw new PersistenceException("flow binder contains invalid JSON content", e.getCause());
         }
+    }
+
+    /**
+     * Looks through the FlowBinderSearchIndexEntry and deciphers which FlowStoreError should be returned
+     *
+     * @param searchIndexesForSubmitter the result of the query
+     * @param packaging packaging
+     * @param format format
+     * @param charset charset
+     * @param submitter_number submitter number
+     * @param destination destination
+     * @return flowStoreError containing the appropriate error message
+     */
+    private FlowStoreError getFlowStoreError(List<FlowBinderSearchIndexEntry> searchIndexesForSubmitter,
+                                             String packaging,
+                                             String format,
+                                             String charset,
+                                             Long submitter_number,
+                                             String destination) {
+
+        if(searchIndexesForSubmitter.isEmpty()) {
+            return getFlowStoreErrorForSubmitterNotFound(submitter_number);
+        } else {
+            for (FlowBinderSearchIndexEntry indexEntry : searchIndexesForSubmitter) {
+                if(indexEntry.getDestination().equals(destination)) {
+                    return getFlowStoreErrorForExistingSubmitterWithExistingDestination(packaging, format, charset);
+                }
+            }
+            return getFlowStoreErrorForDestinationNotFound(destination);
+        }
+    }
+
+    /**
+     * FlowStoreError in the case of: FlowBinder not found for submitter
+     * @param submitter_number the submitter number input parameter
+     * @return flowStoreError containing the appropriate error message
+     */
+    private FlowStoreError getFlowStoreErrorForSubmitterNotFound(Long submitter_number) {
+        return new FlowStoreError(
+                FlowStoreError.Code.NONEXISTING_SUBMITTER,
+                String.format("submitteren: %s kan ikke findes", submitter_number),
+                "");
+    }
+
+    /**
+     * FlowStoreError in the case of: FlowBinder found for submitter, but the flow binder does not contain the given destination
+     * @param destination the destination input parameter
+     * @return flowStoreError containing the appropriate error message
+     */
+    private FlowStoreError getFlowStoreErrorForDestinationNotFound(String destination) {
+        return new FlowStoreError(
+                FlowStoreError.Code.EXISTING_SUBMITTER_NONEXISTING_DESTINATION,
+                String.format("destinationen: %s kan ikke findes", destination),
+                "");
+    }
+
+    /**
+     * FlowStoreError in the case of: FlowBinder found for given submitter with destination, but one or more of the remaining values are incorrect
+     * @param packaging the packaging input parameter
+     * @param format the format input parameter
+     * @param charset the charset input parameter
+     * @return flowStoreError containing the appropriate error message
+     */
+    private FlowStoreError getFlowStoreErrorForExistingSubmitterWithExistingDestination(String packaging, String format, String charset) {
+        return new FlowStoreError(
+                FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
+                String.format("Én eller flere af de angivne værdier {packaging: %s, format: %s, charset: %s} kan ikke findes", packaging, format, charset),
+                "");
     }
 
     /**

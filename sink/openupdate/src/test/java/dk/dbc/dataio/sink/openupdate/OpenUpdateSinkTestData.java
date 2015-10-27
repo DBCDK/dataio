@@ -8,7 +8,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 
-public class TestData {
+public class OpenUpdateSinkTestData {
 
     public static UpdateRecordResult getWebserviceResultOK() throws JAXBException {
         return unmarshalUpdateRecordResponse(WEBSERVICE_RESULT_OK).getUpdateRecordResult();

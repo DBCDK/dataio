@@ -6,6 +6,8 @@ import org.xmlunit.matchers.CompareMatcher;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class AbstractOpenUpdateSinkTestBase {
@@ -48,16 +50,36 @@ public class AbstractOpenUpdateSinkTestBase {
     }
 
     protected byte[] getAddi(String metaXml, String contentXml) {
-        return getAddiAsString(metaXml, contentXml).getBytes();
+        return new AddiRecordWrapper(metaXml, contentXml).getAddiRecordAsString().getBytes();
+    }
+    protected byte[] getAddi(List<AddiRecordWrapper> addiRecords) {
+
+        return addiRecords.stream().map(AddiRecordWrapper::getAddiRecordAsString).collect(Collectors.joining(System.lineSeparator())).getBytes();
     }
 
-    protected String getAddiAsString(String metaXml, String contentXml) {
-        return metaXml.trim().getBytes().length
-        + System.lineSeparator()
-        + metaXml
-        + System.lineSeparator()
-        + contentXml.trim().getBytes().length
-        + System.lineSeparator()
-        + contentXml;
+    protected class AddiRecordWrapper {
+        private String metaXml;
+        private String contentXml;
+
+        public AddiRecordWrapper(String metaXml, String contentXml) {
+            this.metaXml = metaXml;
+            this.contentXml = contentXml;
+        }
+
+        public String getMetaXml() {return this.metaXml;}
+        public String getContentXml() {return this.contentXml;}
+
+        private byte[] getMetaXmlAsBytes() {return this.metaXml.trim().getBytes();}
+        private byte[] getContentXmlAsBytes() {return this.contentXml.trim().getBytes();}
+
+        public String getAddiRecordAsString() {
+            return this.getMetaXmlAsBytes().length
+                    + System.lineSeparator()
+                    + this.getMetaXml()
+                    + System.lineSeparator()
+                    + this.getContentXmlAsBytes().length
+                    + System.lineSeparator()
+                    + this.getContentXml();
+        }
     }
 }

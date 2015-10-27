@@ -8,9 +8,10 @@ import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -19,16 +20,33 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
 
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     private final ChunkItem NO_PROCESSED_ITEM = null;
+
     private final ChunkItem processedChunkItemValid = new ChunkItem(
             1l,
-            asBytes(getAddiAsString(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), TestData.MARCX_VALID_FROM_PROCESSING)),
+            getAddi(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING),
             SUCCESS);
+
+    private final ChunkItem processedChunkItemValidWithMultipleAddiRercords = new ChunkItem(
+            1l,
+            getAddi(buildListOfAddRecords()),
+            SUCCESS);
+
+    private List<AddiRecordWrapper> buildListOfAddRecords() {
+        List<AddiRecordWrapper> addiRecordWrappers = new ArrayList<>();
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
+        return addiRecordWrappers;
+    }
+
     private final OpenUpdateServiceConnector NO_OPENUPDATE_SERVICE_CONNECTOR = null;
 
     @Test(expected = NullPointerException.class)
@@ -45,7 +63,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
     public void callOpenUpdateWebServiceForEachAddiRecord_OK() throws JAXBException {
 
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(TestData.getWebserviceResultOK());
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(OpenUpdateSinkTestData.getWebserviceResultOK());
 
         // Subject Under Test
         AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, mockedOpenUpdateServiceConnector);
@@ -60,7 +78,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
     public void callOpenUpdateWebServiceForEachAddiRecord_validationError() throws JAXBException {
 
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(TestData.webserviceResultWithValidationErrors());
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(OpenUpdateSinkTestData.webserviceResultWithValidationErrors());
 
         // Subject Under Test
         AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, mockedOpenUpdateServiceConnector);
@@ -85,5 +103,21 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertNotNull(chunkItemForDelivery);
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
         assertTrue(asString(chunkItemForDelivery.getData()).contains("FAILED_STACKTRACE"));
+    }
+
+    @Test
+    public void callOpenUpdateWebServiceForEachAddiRecordWithMultipleAddiRecords_OK() throws JAXBException {
+
+        // Expectations
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), any(BibliographicRecord.class))).thenReturn(OpenUpdateSinkTestData.getWebserviceResultOK());
+
+        // Subject Under Test
+        AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValidWithMultipleAddiRercords, mockedOpenUpdateServiceConnector);
+        final ChunkItem chunkItemForDelivery = itemWrapper.callOpenUpdateWebServiceForEachAddiRecord();
+        assertNotNull(chunkItemForDelivery);
+        assertEquals("Expected status OK", chunkItemForDelivery.getStatus(), ChunkItem.Status.SUCCESS);
+        assertFalse(asString(chunkItemForDelivery.getData()).contains("errorMessages"));
+        assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
+        verify(mockedOpenUpdateServiceConnector, times(3)).updateRecord(anyString(), any(BibliographicRecord.class));
     }
 }

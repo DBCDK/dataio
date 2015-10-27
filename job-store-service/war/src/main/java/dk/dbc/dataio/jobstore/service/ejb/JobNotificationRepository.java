@@ -21,52 +21,32 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.service.util.JsonValueTemplateEngine;
+import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
-import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
 
 @Stateless
 public class JobNotificationRepository extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobNotificationRepository.class);
-    private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
-    private static final String JOB_CREATED_FAIL_TEMPLATE = "/notifications/job_created_fail.template";
-    private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
 
     private static final int MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT = 100;
     private static final String SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT =
@@ -79,15 +59,6 @@ public class JobNotificationRepository extends RepositoryBase {
 
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
-
-    private final JSONBContext jsonbContext = new JSONBContext();
-
-    private String destinationFallback;
-
-    @PostConstruct
-    public void initialize() {
-        destinationFallback = mailSession.getProperty("mail.to.fallback");
-    }
 
     /**
      * Gets all notifications associated with job
@@ -146,25 +117,9 @@ public class JobNotificationRepository extends RepositoryBase {
             return false;
         }
 
-        final String destination = getDestination(notification.getType(), notification.getJob().getSpecification());
-        if (destination.equals(MISSING_FIELD_VALUE)) {
-            notification.setDestination(destinationFallback);
-            notification.setStatusMessage("Destination fallback used");
-        } else {
-            notification.setDestination(destination);
-        }
-
+        final MailNotification mailNotification = new MailNotification(mailSession, notification);
         try {
-            notification.setContent(buildNotificationContent(notification));
-        } catch (JSONBException e) {
-            LOGGER.error("Notification processing failed", e);
-            notification.setStatus(JobNotification.Status.FAILED);
-            notification.setStatusMessage(StringUtil.getStackTraceString(e, ""));
-            return false;
-        }
-
-        try {
-            sendMailNotification(notification);
+            mailNotification.send();
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);
             notification.setStatus(JobNotification.Status.FAILED);
@@ -173,6 +128,7 @@ public class JobNotificationRepository extends RepositoryBase {
         }
 
         notification.setStatus(JobNotification.Status.COMPLETED);
+
         return true;
     }
 
@@ -199,85 +155,5 @@ public class JobNotificationRepository extends RepositoryBase {
 
     private JobNotificationRepository getProxyToSelf() {
         return sessionContext.getBusinessObject(JobNotificationRepository.class);
-    }
-
-    private String getDestination(JobNotification.Type type, JobSpecification jobSpecification) {
-        switch (type) {
-            case JOB_CREATED:   return getDestinationForJobCreatedNotification(jobSpecification);
-            case JOB_COMPLETED: return getDestinationForJobCompletedNotification(jobSpecification);
-            default:
-                LOGGER.error("Unhandled notification type {}", type);
-                return MISSING_FIELD_VALUE;
-        }
-    }
-
-    private String getDestinationForJobCreatedNotification(JobSpecification jobSpecification) {
-        final String destination = jobSpecification.getMailForNotificationAboutVerification();
-        if (destination.trim().isEmpty()) {
-            return MISSING_FIELD_VALUE;
-        }
-        return destination;
-    }
-
-     private String getDestinationForJobCompletedNotification(JobSpecification jobSpecification) {
-        final String destination = jobSpecification.getMailForNotificationAboutProcessing();
-        if (destination.trim().isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
-            // fall back to primary destination
-            return getDestinationForJobCreatedNotification(jobSpecification);
-        }
-        return destination;
-    }
-
-    private void sendMailNotification(NotificationEntity notification) throws JobStoreException {
-        try {
-            final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"));
-            final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
-            Transport.send(buildMimeMessage(notification.getContent(), fromAddress, toAddresses));
-        } catch (Exception e) {
-            throw new JobStoreException("Unable to send notification", e);
-        }
-    }
-
-    private MimeMessage buildMimeMessage(String notificationContent, InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException {
-        final MimeMessage message = new MimeMessage(mailSession);
-        message.setFrom(fromAddress);
-        message.setRecipients(Message.RecipientType.TO, toAddresses);
-        message.setSubject("DBC dataIO notification");
-        message.setSentDate(new Date());
-        message.setText(notificationContent, StandardCharsets.UTF_8.name());
-        return message;
-    }
-
-    private String buildNotificationContent(NotificationEntity notification) throws JSONBException {
-        final JsonValueTemplateEngine templateEngine = new JsonValueTemplateEngine(jsonbContext);
-        return templateEngine.apply(getNotificationTemplate(notification),
-                jsonbContext.marshall(toJobInfoSnapshot(notification.getJob())));
-    }
-
-    private String getNotificationTemplate(NotificationEntity notification) {
-        String resource;
-        if (notification.getType() == JobNotification.Type.JOB_COMPLETED) {
-            resource = JOB_COMPLETED_TEMPLATE;
-        } else {
-            if (notification.getJob().getState().fatalDiagnosticExists()) {
-                resource = JOB_CREATED_FAIL_TEMPLATE;
-            } else {
-                resource = JOB_CREATED_OK_TEMPLATE;
-            }
-        }
-        return getNotificationTemplateResource(resource);
-    }
-
-    private String getNotificationTemplateResource(String resource) {
-        final StringBuilder buffer = new StringBuilder();
-        try (
-                final InputStreamReader isr = new InputStreamReader(getClass().getResourceAsStream(resource), StandardCharsets.UTF_8);
-                final BufferedReader br = new BufferedReader(isr)) {
-            for (int c = br.read(); c != -1; c = br.read())
-                buffer.append((char) c);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-        return buffer.toString();
     }
 }

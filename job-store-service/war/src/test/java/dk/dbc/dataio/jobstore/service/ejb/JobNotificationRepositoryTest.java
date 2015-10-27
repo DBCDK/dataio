@@ -21,12 +21,10 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Before;
@@ -34,13 +32,9 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import javax.ejb.SessionContext;
-import javax.mail.Message;
-import javax.mail.MessagingException;
 import javax.mail.Session;
-import javax.mail.internet.AddressException;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -87,36 +81,6 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void processNotification_notificationWithEmptyDestination_usesDestinationFallback() throws AddressException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification(" ")
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-
-        final List<Message> inbox = Mailbox.get(mailToFallback);
-        assertThat("Number of notifications for destination", inbox.size(), is(1));
-    }
-
-    @Test
-    public void processNotification_notificationWithMissingDestination_usesDestinationFallback() throws AddressException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-
-        final List<Message> inbox = Mailbox.get(mailToFallback);
-        assertThat("Number of notifications for destination", inbox.size(), is(1));
-    }
-
-    @Test
     public void processNotification_sendingOfNotificationFails_failsNotificationAndReturnsFalse() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
@@ -141,47 +105,6 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void processNotification_typeJobCreated_setDestinationToMailForNotificationAboutVerification() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-        assertThat("notification destination", notification.getDestination(), is(jobSpecification.getMailForNotificationAboutVerification()));
-    }
-
-    @Test
-    public void processNotification_typeJobCompleted_setDestinationToMailForNotificationAboutProcessing() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutProcessing("processing@company.com")
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-        assertThat("notification destination", notification.getDestination(), is(jobSpecification.getMailForNotificationAboutProcessing()));
-    }
-
-    @Test
-    public void processNotification_typeJobCompletedWithoutMailForNotificationAboutProcessing_setsDestinationToMailForNotificationAboutVerification() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-        assertThat("notification destination", notification.getDestination(), is(jobSpecification.getMailForNotificationAboutVerification()));
-    }
-
-    @Test
     public void flushNotifications_transportLayerFails_allNotificationsAreProcessed() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final List<NotificationEntity> notifications = Arrays.asList(
@@ -203,64 +126,6 @@ public class JobNotificationRepositoryTest {
         for (NotificationEntity notification : notifications) {
             assertThat("notification status", notification.getStatus(), is(JobNotification.Status.FAILED));
         }
-    }
-
-    @Test
-    public void processNotification_appliesJobCreatedOkTemplate() throws MessagingException, IOException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(42)
-                .setMailForNotificationAboutVerification(destination)
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-
-        final List<Message> inbox = Mailbox.get(destination);
-        assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Besked fra DanBibs Posthus'", content.contains("Besked fra DanBibs Posthus"), is(true));
-        assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
-    }
-
-    @Test
-    public void processNotification_appliesJobCreatedFailTemplate() throws MessagingException, IOException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(42)
-                .setMailForNotificationAboutVerification(destination)
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
-        notification.getJob().getState().getDiagnostics().add(new Diagnostic(Diagnostic.Level.FATAL, "DIED"));
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-
-        final List<Message> inbox = Mailbox.get(destination);
-        assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Fejlmeddelelse fra DanBibs Posthus'", content.contains("Fejlmeddelelse fra DanBibs Posthus"), is(true));
-        assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
-    }
-
-    @Test
-    public void processNotification_appliesJobCompletedTemplate() throws MessagingException, IOException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(42)
-                .setMailForNotificationAboutProcessing(destination)
-                .build();
-        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
-
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
-        assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
-        assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
-
-        final List<Message> inbox = Mailbox.get(destination);
-        assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Besked fra postmesteren'", content.contains("Besked fra postmesteren"), is(true));
-        assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
     }
 
     @Test
@@ -324,12 +189,10 @@ public class JobNotificationRepositoryTest {
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 
-        jobNotificationRepository.initialize();
-
         return jobNotificationRepository;
     }
 
-    private NotificationEntity getNotificationEntity(JobNotification.Type type, JobSpecification jobSpecification) {
+    public static NotificationEntity getNotificationEntity(JobNotification.Type type, JobSpecification jobSpecification) {
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setSpecification(jobSpecification);
         jobEntity.setState(new State());

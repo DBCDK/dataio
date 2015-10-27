@@ -25,58 +25,49 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 
 public class FlowStoreErrorTest {
     private static final FlowStoreError.Code CODE = FlowStoreError.Code.NONEXISTING_SUBMITTER;
-    private static final int STATUS_CODE = 123;
     private static final String DESCRIPTION = "description";
     private static final String STACKTRACE = "stacktrace";
 
     @Test(expected = NullPointerException.class)
     public void constructor_codeArgIsNull_throws() {
-        new FlowStoreError(null, STATUS_CODE, DESCRIPTION, STACKTRACE);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_statusCodeArgIsZero_throws() {
-        new FlowStoreError(CODE, 0, DESCRIPTION, STACKTRACE);
+        new FlowStoreError(null, DESCRIPTION, STACKTRACE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_descriptionArgIsNull_throws() {
-        new FlowStoreError(CODE, STATUS_CODE, null, STACKTRACE);
+        new FlowStoreError(CODE, null, STACKTRACE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_descriptionArgIsEmpty_throws() {
-        new FlowStoreError(CODE, STATUS_CODE, "", STACKTRACE);
+        new FlowStoreError(CODE, "", STACKTRACE);
     }
 
     @Test
     public void constructor_stacktraceIsNull_returnsNewInstanceWithEmptyStacktrace() {
-        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, STATUS_CODE, DESCRIPTION, null);
+        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, DESCRIPTION, null);
         assertThat(FlowStoreError, is(notNullValue()));
         assertThat(FlowStoreError.getStacktrace().isEmpty(), is(true));
     }
 
     @Test
     public void constructor_stacktraceIsEmpty_returnsNewInstanceWithEmptyStacktrace() {
-        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, STATUS_CODE, DESCRIPTION, "");
+        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, DESCRIPTION, "");
         assertThat(FlowStoreError, is(notNullValue()));
         assertThat(FlowStoreError.getStacktrace().isEmpty(), is(true));
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, STATUS_CODE, DESCRIPTION, STACKTRACE);
+        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, DESCRIPTION, STACKTRACE);
         assertThat(FlowStoreError, is(notNullValue()));
         assertThat(FlowStoreError.getCode(), is(CODE));
-        assertThat(FlowStoreError.getStatusCode(), is(STATUS_CODE));
         assertThat(FlowStoreError.getDescription(), is(DESCRIPTION));
         assertThat(FlowStoreError.getStacktrace(), is(STACKTRACE));
     }
@@ -84,110 +75,13 @@ public class FlowStoreErrorTest {
     @Test
     public void jsonBinding_marshallingFollowedByUnmarshalling_returnsNewInstanceWithMatchingFields() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
-        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, STATUS_CODE, DESCRIPTION, STACKTRACE);
+        final FlowStoreError FlowStoreError = new FlowStoreError(CODE, DESCRIPTION, STACKTRACE);
         final String marshalled = jsonbContext.marshall(FlowStoreError);
         final FlowStoreError unmarshalled = jsonbContext.unmarshall(marshalled, FlowStoreError.class);
         assertThat(unmarshalled, is(notNullValue()));
         assertThat(unmarshalled.getCode(), is(FlowStoreError.getCode()));
-        assertThat(unmarshalled.getStatusCode(), is(FlowStoreError.getStatusCode()));
         assertThat(unmarshalled.getDescription(), is(FlowStoreError.getDescription()));
         assertThat(unmarshalled.getStacktrace(), is(FlowStoreError.getStacktrace()));
-    }
-
-    @Test
-    public void equals_equality_ok() {
-        FlowStoreError fse1 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        FlowStoreError fse2 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        assertThat(fse1, equalTo(fse2));
-    }
-
-    @Test
-    public void equals_codeNotEqual_notOk() {
-        FlowStoreError fse1 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        FlowStoreError fse2 = new FlowStoreError(
-                FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
-                234,
-                "desci",
-                "traci"
-        );
-        assertThat(fse1, not(equalTo(fse2)));
-    }
-
-    @Test
-    public void equals_statusCodeNotEqual_notOk() {
-        FlowStoreError fse1 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        FlowStoreError fse2 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                235,
-                "desci",
-                "traci"
-        );
-        assertThat(fse1, not(equalTo(fse2)));
-    }
-
-    @Test
-    public void equals_descriptionNotEqual_notOk() {
-        FlowStoreError fse1 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        FlowStoreError fse2 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desciX",
-                "traci"
-        );
-        assertThat(fse1, not(equalTo(fse2)));
-    }
-
-    @Test
-    public void equals_stackTraceNotEqual_notOk() {
-        FlowStoreError fse1 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        FlowStoreError fse2 = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traciX"
-        );
-        assertThat(fse1, not(equalTo(fse2)));
-    }
-
-    @Test
-    public void toString_normal_ok() {
-        FlowStoreError fse = new FlowStoreError(
-                FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                234,
-                "desci",
-                "traci"
-        );
-        assertThat(fse.toString(), is("FlowStoreError{code='NONEXISTING_SUBMITTER', statusCode=234, description='desci', stacktrace='traci'}"));
     }
 
 }

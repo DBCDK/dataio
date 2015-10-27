@@ -29,8 +29,6 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
  * Class representing a flow store error
  */
 public class FlowStoreError {
-    private final int HTTP_STATUS_CODE_LOWER_BOUND = 100;
-
     public enum Code {
         NONEXISTING_SUBMITTER,
         EXISTING_SUBMITTER_NONEXISTING_DESTINATION,
@@ -38,14 +36,12 @@ public class FlowStoreError {
     }
 
     private final Code code;
-    private final int statusCode;  // Http status code
     private final String description;
     private final String stacktrace;
 
     /**
      * Class constructor
      * @param code error code
-     * @param statusCode http status code
      * @param description error description
      * @param stacktrace error stacktrace or empty string if given as null or empty string
      * @throws NullPointerException if given null-valued code or description argument
@@ -54,11 +50,9 @@ public class FlowStoreError {
     @JsonCreator
     public FlowStoreError(
             @JsonProperty("code") Code code,
-            @JsonProperty("statusCode") int statusCode,
             @JsonProperty("description") String description,
             @JsonProperty("stacktrace") String stacktrace) throws NullPointerException, IllegalArgumentException {
         this.code = InvariantUtil.checkNotNullOrThrow(code, "code");
-        this.statusCode = InvariantUtil.checkIntLowerBoundOrThrow(statusCode, "statusCode", HTTP_STATUS_CODE_LOWER_BOUND);
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
         this.stacktrace = stacktrace == null ? "" : stacktrace;
     }
@@ -69,14 +63,6 @@ public class FlowStoreError {
      */
     public Code getCode() {
         return code;
-    }
-
-    /**
-     * Gets the http status code
-     * @return http status code
-     */
-    public int getStatusCode() {
-        return statusCode;
     }
 
     /**
@@ -97,36 +83,21 @@ public class FlowStoreError {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof FlowStoreError)) return false;
 
-        FlowStoreError jobError = (FlowStoreError) o;
+        FlowStoreError that = (FlowStoreError) o;
 
-        if (code != jobError.code) {
-            return false;
-        }
-        if (statusCode != jobError.statusCode) {
-            return false;
-        }
-        if (!description.equals(jobError.description)) {
-            return false;
-        }
-        if (stacktrace != null ? !stacktrace.equals(jobError.stacktrace) : jobError.stacktrace != null) {
-            return false;
-        }
+        if (code != that.code) return false;
+        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+        return !(stacktrace != null ? !stacktrace.equals(that.stacktrace) : that.stacktrace != null);
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = code.hashCode();
-        result = 31 * result + statusCode;
-        result = 31 * result + description.hashCode();
+        int result = code != null ? code.hashCode() : 0;
+        result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (stacktrace != null ? stacktrace.hashCode() : 0);
         return result;
     }
@@ -134,10 +105,10 @@ public class FlowStoreError {
     @Override
     public String toString() {
         return "FlowStoreError{" +
-                "code='" + code.toString() + '\'' +
-                ", statusCode=" + statusCode +
+                "code=" + code +
                 ", description='" + description + '\'' +
                 ", stacktrace='" + stacktrace + '\'' +
                 '}';
     }
+
 }

@@ -840,7 +840,7 @@ public class FlowStoreServiceConnector {
         if (actualStatus != expectedStatus) {
             final FlowStoreServiceConnectorUnexpectedStatusCodeException exception =
                     new FlowStoreServiceConnectorUnexpectedStatusCodeException(String.format(
-                            "job-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
+                            "flow-store service returned with unexpected status code: %s", actualStatus), actualStatus.getStatusCode());
             if (actualStatus == Response.Status.NOT_FOUND && response.hasEntity()) {
                 try {
                     exception.setFlowStoreError(readResponseEntity(response, FlowStoreError.class));

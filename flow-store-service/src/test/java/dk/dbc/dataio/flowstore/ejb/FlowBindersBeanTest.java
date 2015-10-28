@@ -477,8 +477,8 @@ public class FlowBindersBeanTest {
     private void getMockedResponseForFindAllSearchIndexesBySubmitter(FlowBindersBean fbb, List<FlowBinderSearchIndexEntry> indexEntries) {
         Query queryFindAllSearchIndexesBySubmitter = mock(Query.class);
         when(fbb.entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER)).thenReturn(queryFindAllSearchIndexesBySubmitter);
+        when(queryFindAllSearchIndexesBySubmitter.setParameter(eq(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER), anyLong())).thenReturn(queryFindAllSearchIndexesBySubmitter);
         when(queryFindAllSearchIndexesBySubmitter.getResultList()).thenReturn(indexEntries);
-
     }
 
 }

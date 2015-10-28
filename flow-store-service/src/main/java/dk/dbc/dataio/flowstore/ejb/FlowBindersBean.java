@@ -130,9 +130,10 @@ public class FlowBindersBean {
         if (flowBinders.isEmpty()) {
 
             // Search for flowBinders with the submitter number given as input
-            final Query queryForSubmitter = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER);
-            queryForSubmitter.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number);
-            List<FlowBinderSearchIndexEntry> searchIndexesForSubmitter = queryForSubmitter.getResultList();
+            final List<FlowBinderSearchIndexEntry> searchIndexesForSubmitter = entityManager
+                    .createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER)
+                    .setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number)
+                    .getResultList();
 
             // Generate appropriate FlowStoreError depending on the flow binder search index entries returned
             FlowStoreError flowStoreError = getFlowStoreError(searchIndexesForSubmitter, packaging, format, charset, submitter_number, destination);
@@ -422,12 +423,12 @@ public class FlowBindersBean {
         if(searchIndexesForSubmitter.isEmpty()) {
             return getFlowStoreErrorForSubmitterNotFound(submitter_number);
         } else {
-            for (FlowBinderSearchIndexEntry indexEntry : searchIndexesForSubmitter) {
-                if(indexEntry.getDestination().equals(destination)) {
-                    return getFlowStoreErrorForExistingSubmitterWithExistingDestination(packaging, format, charset);
-                }
-            }
-            return getFlowStoreErrorForDestinationNotFound(destination);
+            return searchIndexesForSubmitter.stream()
+                    .map(FlowBinderSearchIndexEntry::getDestination)
+                    .filter(destination::equals)
+                    .findAny()
+                    .isPresent() ? getFlowStoreErrorForExistingSubmitterWithExistingDestination(packaging, format, charset)
+                    : getFlowStoreErrorForDestinationNotFound(destination);
         }
     }
 

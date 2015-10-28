@@ -27,6 +27,7 @@ public class JobStoreServiceConstants {
     public static final String ITEM_ID_VARIABLE = "itemId";
 
     public static final String JOB_COLLECTION                   = "jobs";
+    public static final String JOB_TEST                         = "jobs/test";
     public static final String JOB_COLLECTION_SEARCHES          = "jobs/searches";
     public static final String JOB_COLLECTION_SEARCHES_COUNT    = "jobs/searches/count";
     public static final String ITEM_COLLECTION_SEARCHES         = "jobs/chunks/items/searches";
@@ -39,6 +40,10 @@ public class JobStoreServiceConstants {
     public static final String CHUNK_ITEM_PROCESSED_NEXT        = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/next";
     public static final String CHUNK_ITEM_DELIVERED             = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered";
     public static final String JOB_NOTIFICATIONS                = "jobs/{jobId}/notifications";
+
+    public static final String NOTIFICATIONS                    = "notifications";
+    public static final String NOTIFICATIONS_TEST               = "notifications/test";
+
 
     private JobStoreServiceConstants() { }
 }

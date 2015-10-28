@@ -94,7 +94,7 @@ public class JobsBean {
      * @return always OK
      */
     @GET
-    @Path("jobs/test")
+    @Path(JobStoreServiceConstants.JOB_TEST)
     @Produces(MediaType.APPLICATION_JSON)
     @Stopwatch
     public Response testThis() {

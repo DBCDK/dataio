@@ -157,7 +157,9 @@ public class JobDispatcherTest {
 
     @Test
     public void processTransfile() throws IOException, OperationExecutionException, InterruptedException, ModificationLockedException {
-        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final Path transfilePath = writeFile(dir,
+                "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
+                "slut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.processTransfile(transFile);
@@ -195,7 +197,9 @@ public class JobDispatcherTest {
 
     @Test
     public void writeWal_addModificationsToWal() throws IOException {
-        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final Path transfilePath = writeFile(dir,
+                "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
+                "slut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.writeWal(transFile);

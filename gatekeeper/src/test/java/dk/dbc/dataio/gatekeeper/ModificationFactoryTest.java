@@ -62,10 +62,24 @@ public class ModificationFactoryTest {
     }
 
     @Test
+    public void getModifications_transfileIsIncomplete_returnsModifications() throws IOException {
+        final String line = "b=danbib,t=lin,c=latin-1,o=marc2";
+        final Path transfilePath = testFolder.newFile().toPath();
+        writeFile(transfilePath, line + System.lineSeparator());
+        final TransFile transfile = new TransFile(transfilePath);
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
+        final List<Modification> modifications = modificationFactory.getModifications();
+        assertThat("Number of modifications", modifications.size(), is(1));
+        assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.DELETE_FILE));
+        assertThat("Modification arg", modifications.get(0).getArg(), is(transfilePath.getFileName().toString()));
+    }
+
+    @Test
     public void getModifications_singleParallelLineWithoutDatafile_returnsModifications() throws IOException {
         final String line = "b=danbib,t=lin,c=latin-1,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
-        writeFile(transfilePath, line);
+        writeFile(transfilePath, line + System.lineSeparator());
+        writeFile(transfilePath, "slut");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();
@@ -86,7 +100,8 @@ public class ModificationFactoryTest {
     public void getModifications_singleParallelLineWithDatafile_returnsModifications() throws IOException {
         final String line = "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
-        writeFile(transfilePath, line);
+        writeFile(transfilePath, line + System.lineSeparator());
+        writeFile(transfilePath, "slut");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();
@@ -112,6 +127,7 @@ public class ModificationFactoryTest {
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, line1 + System.lineSeparator());
         writeFile(transfilePath, line2 + System.lineSeparator());
+        writeFile(transfilePath, "slut");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();
@@ -140,6 +156,7 @@ public class ModificationFactoryTest {
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, line1 + System.lineSeparator());
         writeFile(transfilePath, line2 + System.lineSeparator());
+        writeFile(transfilePath, "slut");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();

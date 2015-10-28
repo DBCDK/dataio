@@ -70,8 +70,13 @@ public class ModificationFactory {
         final ArrayList<Modification> modifications = new ArrayList<>();
         if (transfile.getLines().isEmpty()) {
             // Handle special case where transfile is empty.
+
             // For now just move to posthus...
             modifications.add(getFileMoveModification(transfile.getPath().getFileName().toString()));
+        } else if (!transfile.isComplete()) {
+            // ToDo: getCreateIncompleteTransfileNotificationModification()
+            //modifications.add(getCreateIncompleteTransfileNotificationModification());
+            modifications.add(getFileDeleteModification(transfile.getPath().getFileName().toString()));
         } else {
             for (TransFile.Line line : transfile.getLines()) {
                 modifications.addAll(processLine(line));

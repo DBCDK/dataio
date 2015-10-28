@@ -143,12 +143,12 @@ public class AddJobParamTest extends ParamBaseTest {
 
     @Test
     public void lookupFlowBinder_flowStoreError_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
-        final String FLOW_STORE_ERROR_TO_STRING = "FlowStoreErrorToString";
+        final String FLOW_STORE_ERROR_DESCRIPTION = "FlowStoreErrorToString";
         final FlowStoreServiceConnectorUnexpectedStatusCodeException mockedFlowStoreServiceConnectorUnexpectedStatusCodeException = mock(FlowStoreServiceConnectorUnexpectedStatusCodeException.class);
         final FlowStoreError mockedFlowStoreError = mock(FlowStoreError.class);
 
         when(mockedFlowStoreServiceConnectorUnexpectedStatusCodeException.getFlowStoreError()).thenReturn(mockedFlowStoreError);
-        when(mockedFlowStoreError.toString()).thenReturn(FLOW_STORE_ERROR_TO_STRING);
+        when(mockedFlowStoreError.getDescription()).thenReturn(FLOW_STORE_ERROR_DESCRIPTION);
         when(mockedFlowStoreServiceConnector.getFlowBinder(
                 eq(jobSpecification.getPackaging()),
                 eq(jobSpecification.getFormat()),
@@ -161,7 +161,7 @@ public class AddJobParamTest extends ParamBaseTest {
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostics.get(0).getMessage().contains(FLOW_STORE_ERROR_TO_STRING), is(true));
+        assertThat(diagnostics.get(0).getMessage(), is("Error in Transfile: " + FLOW_STORE_ERROR_DESCRIPTION));
         assertThat(addJobParam.getFlowBinder(), is(nullValue()));
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }

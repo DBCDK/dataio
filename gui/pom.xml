@@ -106,12 +106,6 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-javascript</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>javax.json</groupId>
       <artifactId>javax.json-api</artifactId>
       <version>${javax.json-api.version}</version>

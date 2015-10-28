@@ -848,7 +848,7 @@ public class FlowStoreServiceConnector {
                     log.warn("Unable to extract flow-store error from response", e);
                 }
             }
-                throw exception;
+            throw exception;
         }
     }
 

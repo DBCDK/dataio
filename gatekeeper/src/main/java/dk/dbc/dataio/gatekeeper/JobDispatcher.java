@@ -46,7 +46,6 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -58,8 +57,7 @@ public class JobDispatcher {
     public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000; // 1 hour
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDispatcher.class);
-
-    private final static Set<String> transfileExtensions = Stream.of(".trans", ".trs")
+    private static final Set<String> TRANSFILE_EXTENSIONS = Stream.of(".trans", ".trs")
             .collect(Collectors.toCollection(HashSet::new));
 
     private final Path dir;
@@ -85,16 +83,15 @@ public class JobDispatcher {
         reset();
         // Process any existing entries in the write-ahead-log
         processWal();
-        // Process all stagnant completed transfiles
-        processStagnantTransfiles();
+        // Process all static completed transfiles
+        processStaticTransfiles();
         // Process all stalled incomplete transfiles
         processStalledTransfiles();
         // Wait for and process file system events
         monitorDirEvents();
     }
 
-    /* Setup directory monitoring to start accumulating file system events
-     */
+    /* Setup directory monitoring to start accumulating file system events */
     public void reset() throws IOException {
         close();
         LOGGER.info("Starting monitoring of {}", dir.toAbsolutePath());
@@ -111,10 +108,10 @@ public class JobDispatcher {
         }
     }
 
-    /* Process all stagnant transfiles that although complete may not
+    /* Process all static transfiles that although complete may not
        experience any future file system events causing them to be picked
        up by the monitoring process */
-    private void processStagnantTransfiles()
+    private void processStaticTransfiles()
             throws IOException, ModificationLockedException, OperationExecutionException, InterruptedException {
         for (TransFile transFile : getCompleteTransfiles()) {
             processTransfile(transFile);
@@ -130,8 +127,7 @@ public class JobDispatcher {
         }
     }
 
-    /* Process all modifications currently contained in the WAL
-     */
+    /* Process all modifications currently contained in the WAL */
     private void processWal() throws ModificationLockedException, OperationExecutionException, InterruptedException {
         Modification next = wal.next();
         while (next != null) {
@@ -141,8 +137,7 @@ public class JobDispatcher {
         }
     }
 
-    /* Wait for and process file system events
-     */
+    /* Wait for and process file system events */
     private void monitorDirEvents() throws InterruptedException, IOException,
                                            ModificationLockedException, OperationExecutionException {
         // Start the infinite polling loop
@@ -176,7 +171,7 @@ public class JobDispatcher {
      */
     boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
                                                          OperationExecutionException, InterruptedException {
-        for (String extension : transfileExtensions) {
+        for (String extension : TRANSFILE_EXTENSIONS) {
             if (file.getFileName().toString().endsWith(extension)) {
                 final TransFile transFile = new TransFile(file);
                 if (!transFile.exists()) {
@@ -216,16 +211,10 @@ public class JobDispatcher {
      * @throws IOException on failure to search working directory
      */
     List<TransFile> getCompleteTransfiles() throws UncheckedIOException, IOException {
-        final ArrayList<TransFile> transfiles = new ArrayList<>();
-        for (Path transfilePath : FileFinder.findFilesWithExtension(dir, transfileExtensions)) {
-            final TransFile transfile = new TransFile(transfilePath);
-            if (transfile.isComplete()) {
-                transfiles.add(transfile);
-            } else {
-                LOGGER.warn("Transfile {} is incomplete", transfilePath);
-            }
-        }
-        return transfiles;
+        return FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSIONS).stream()
+                .map(TransFile::new)
+                .filter(TransFile::isComplete)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -235,7 +224,7 @@ public class JobDispatcher {
      * @throws IOException on failure to search working directory
      */
     List<TransFile> getStalledIncompleteTransfiles() throws UncheckedIOException, IOException {
-        return FileFinder.findFilesWithExtension(dir, transfileExtensions).stream()
+        return FileFinder.findFilesWithExtension(dir, TRANSFILE_EXTENSIONS).stream()
                 .filter(this::isStalled)
                 .map(TransFile::new)
                 .filter(transfile -> !transfile.isComplete())

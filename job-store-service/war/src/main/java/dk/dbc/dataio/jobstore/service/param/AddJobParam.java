@@ -115,7 +115,7 @@ public class AddJobParam {
         } catch (FlowStoreServiceConnectorException | ProcessingException e) {
             if (e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException) {
                 FlowStoreServiceConnectorUnexpectedStatusCodeException exception = (FlowStoreServiceConnectorUnexpectedStatusCodeException) e;
-                final String message = String.format("Error in Transfile: %s", exception.getFlowStoreError().getDescription());
+                final String message = String.format("Error in job description: %s", exception.getFlowStoreError().getDescription());
                 diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
             } else {
                 final String message = String.format("Could not retrieve FlowBinder for specification: %s", jobSpec);

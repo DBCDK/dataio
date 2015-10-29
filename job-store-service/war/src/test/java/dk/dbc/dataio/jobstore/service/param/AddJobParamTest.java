@@ -161,7 +161,7 @@ public class AddJobParamTest extends ParamBaseTest {
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostics.get(0).getMessage(), is("Error in Transfile: " + FLOW_STORE_ERROR_DESCRIPTION));
+        assertThat(diagnostics.get(0).getMessage(), is("Error in job description: " + FLOW_STORE_ERROR_DESCRIPTION));
         assertThat(addJobParam.getFlowBinder(), is(nullValue()));
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }

@@ -242,6 +242,26 @@ public class FlowBindersBeanTest {
         assertThat(response.getStatus(), is(404));
     }
 
+    @Test
+    public void getFlowBinderById_flowBinderFound_returnsResponseWithFlowAndHTTP200() throws JSONBException {
+        final long FLOW_BINDER_ID = 12L;
+        FlowBindersBean bean = new FlowBindersBean();
+        EntityManager mockedEntityManager = mock(EntityManager.class);
+        bean.entityManager = mockedEntityManager;
+        FlowBinder flowBinder = testFlowBinder();
+        when(mockedEntityManager.find(FlowBinder.class, FLOW_BINDER_ID)).thenReturn(flowBinder);
+
+        Response response = bean.getFlowBinderById(FLOW_BINDER_ID);
+
+        assertThat(response.getStatus(), is(200));
+        assertThat(response.hasEntity(), is(true));
+        JsonNode entity = jsonbContext.getJsonTree((String) response.getEntity());
+        assertThat(entity.get("version").asLong(), is(FLOW_BINDER_VERSION));
+        assertThat(entity.get("content").get("flowId").asLong(), is(flowBinder.getFlowId()));
+        assertTrue(flowBinder.getSubmitterIds().contains(entity.get("content").get("submitterIds").elements().next().asLong()));
+        assertThat(entity.get("content").get("sinkId").asLong(), is((flowBinder.getSinkId())));
+    }
+
     @Test(expected = NullPointerException.class)
     public void updateFlowBinder_nullFlowBinderContent_throws() throws JSONBException, ReferencedEntityNotFoundException {
         newFlowBindersBeanWithMockedEntityManager().updateFlowBinder(null, 1L, 1L);
@@ -406,26 +426,6 @@ public class FlowBindersBeanTest {
 
         final Response response = flowBindersBean.deleteFlowBinder(1L, 1L);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
-    }
-
-    @Test
-    public void getFlowBinder_flowBinderFound_returnsResponseWithFlowAndHTTP200() throws JSONBException {
-        final long FLOW_BINDER_ID = 12L;
-        FlowBindersBean bean = new FlowBindersBean();
-        EntityManager mockedEntityManager = mock(EntityManager.class);
-        bean.entityManager = mockedEntityManager;
-        FlowBinder flowBinder = testFlowBinder();
-        when(mockedEntityManager.find(FlowBinder.class, FLOW_BINDER_ID)).thenReturn(flowBinder);
-
-        Response response = bean.getFlowBinderById(FLOW_BINDER_ID);
-
-        assertThat(response.getStatus(), is(200));
-        assertThat(response.hasEntity(), is(true));
-        JsonNode entity = jsonbContext.getJsonTree((String) response.getEntity());
-        assertThat(entity.get("version").asLong(), is(FLOW_BINDER_VERSION));
-        assertThat(entity.get("content").get("flowId").asLong(), is(flowBinder.getFlowId()));
-        assertTrue(flowBinder.getSubmitterIds().contains(entity.get("content").get("submitterIds").elements().next().asLong()));
-        assertThat(entity.get("content").get("sinkId").asLong(), is((flowBinder.getSinkId())));
     }
 
     /*

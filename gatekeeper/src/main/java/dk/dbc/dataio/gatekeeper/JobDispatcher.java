@@ -36,12 +36,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -51,7 +55,10 @@ import java.util.stream.Stream;
 
 
 public class JobDispatcher {
+    public static final long STALLED_TRANSFILE_THRESHOLD_IN_MS = 60 * 60 * 1000; // 1 hour
+
     private static final Logger LOGGER = LoggerFactory.getLogger(JobDispatcher.class);
+
     private final static Set<String> transfileExtensions = Stream.of(".trans", ".trs")
             .collect(Collectors.toCollection(HashSet::new));
 
@@ -78,8 +85,10 @@ public class JobDispatcher {
         reset();
         // Process any existing entries in the write-ahead-log
         processWal();
-        // Process all stagnant file that may not experience any future file system events
+        // Process all stagnant completed transfiles
         processStagnantTransfiles();
+        // Process all stalled incomplete transfiles
+        processStalledTransfiles();
         // Wait for and process file system events
         monitorDirEvents();
     }
@@ -102,11 +111,21 @@ public class JobDispatcher {
         }
     }
 
-    /* Process all stagnant file that may not experience any future file system events
-     */
+    /* Process all stagnant transfiles that although complete may not
+       experience any future file system events causing them to be picked
+       up by the monitoring process */
     private void processStagnantTransfiles()
             throws IOException, ModificationLockedException, OperationExecutionException, InterruptedException {
         for (TransFile transFile : getCompleteTransfiles()) {
+            processTransfile(transFile);
+        }
+    }
+
+    /* Process all stalled transfiles that are incomplete and have not
+       received any updates for a substantial period of time (at least an hour) */
+    private void processStalledTransfiles()
+            throws IOException, OperationExecutionException, InterruptedException, ModificationLockedException {
+        for (TransFile transFile : getStalledIncompleteTransfiles()) {
             processTransfile(transFile);
         }
     }
@@ -136,7 +155,10 @@ public class JobDispatcher {
                     throw new IllegalStateException("Directory monitoring overflowed");
                 } else {
                     final Path file = dir.resolve((Path) watchEvent.context());
-                    processIfCompleteTransfile(file);
+                    if (processIfCompleteTransfile(file)) {
+                        // Do occasional check for stalled transfiles
+                        processStalledTransfiles();
+                    }
                 }
             }
             key.reset();
@@ -154,7 +176,7 @@ public class JobDispatcher {
      */
     boolean processIfCompleteTransfile(Path file) throws IOException, ModificationLockedException,
                                                          OperationExecutionException, InterruptedException {
-        for(String extension : transfileExtensions) {
+        for (String extension : transfileExtensions) {
             if (file.getFileName().toString().endsWith(extension)) {
                 final TransFile transFile = new TransFile(file);
                 if (!transFile.exists()) {
@@ -190,10 +212,10 @@ public class JobDispatcher {
 
     /**
      * @return list of complete transfiles found in the monitored directory
-     * @throws IOException on failure to search working directory or
-     * if unable to read a found transfile
+     * @throws UncheckedIOException if unable to read a found transfile
+     * @throws IOException on failure to search working directory
      */
-    List<TransFile> getCompleteTransfiles() throws IOException {
+    List<TransFile> getCompleteTransfiles() throws UncheckedIOException, IOException {
         final ArrayList<TransFile> transfiles = new ArrayList<>();
         for (Path transfilePath : FileFinder.findFilesWithExtension(dir, transfileExtensions)) {
             final TransFile transfile = new TransFile(transfilePath);
@@ -204,6 +226,20 @@ public class JobDispatcher {
             }
         }
         return transfiles;
+    }
+
+    /**
+     * @return list of incomplete transfiles found in the monitored directory
+     * not modified in one hour or more
+     * @throws UncheckedIOException if unable to read a found transfile
+     * @throws IOException on failure to search working directory
+     */
+    List<TransFile> getStalledIncompleteTransfiles() throws UncheckedIOException, IOException {
+        return FileFinder.findFilesWithExtension(dir, transfileExtensions).stream()
+                .filter(this::isStalled)
+                .map(TransFile::new)
+                .filter(transfile -> !transfile.isComplete())
+                .collect(Collectors.toList());
     }
 
     /**
@@ -282,5 +318,17 @@ public class JobDispatcher {
                 throw new IllegalStateException(String.format("Unhandled opcode '%s'", modification.getOpcode()));
         }
         return op;
+    }
+
+    /* Returns true if file pointed to by given path has not been modified in
+       STALLED_TRANSFILE_THRESHOLD_IN_MS milliseconds or more, otherwise false */
+    private boolean isStalled(Path path) {
+        try {
+            final BasicFileAttributes attributes = Files.readAttributes(path, BasicFileAttributes.class);
+            final FileTime lastModifiedTime = attributes.lastModifiedTime();
+            return System.currentTimeMillis() - lastModifiedTime.toMillis() >= STALLED_TRANSFILE_THRESHOLD_IN_MS;
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }

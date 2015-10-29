@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,14 +56,14 @@ public class TransFile {
      * Return new transfile representation
      * @param transfile path of transfile to parse
      * @throws NullPointerException if given null-valued transfile path
-     * @throws IOException if unable to read transfile
+     * @throws UncheckedIOException if unable to read transfile
      */
-    public TransFile(Path transfile) throws NullPointerException, IOException {
+    public TransFile(Path transfile) throws NullPointerException, IllegalArgumentException {
         path = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
         parse(path);
     }
 
-    private void parse(Path transfile) throws IOException {
+    private void parse(Path transfile) throws UncheckedIOException {
         LOGGER.info("Parsing transfile {}", transfile.toAbsolutePath());
         if (Files.exists(transfile)) {
             try (final Scanner fileScanner = new Scanner(transfile, StandardCharsets.UTF_8.name())) {
@@ -77,6 +78,8 @@ public class TransFile {
                         lines.add(new Line(nextLine));
                     }
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
     }

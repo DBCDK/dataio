@@ -37,15 +37,19 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -106,6 +110,34 @@ public class JobDispatcherIT {
             assertThat("No exception from thread", exception, is(nullValue()));
             assertThat("dir/file.trs exists", Files.exists(dir.resolve("file.trs")), is(false));
             assertThat("shadowDir/file.trs exists", Files.exists(shadowDir.resolve("file.trs")), is(true));
+            assertEmptyWal();
+        } finally {
+            t.interrupt();
+        }
+    }
+
+    /*
+     * Given: a filesystem with a stalled transfile
+     * When : the job dispatcher is started
+     * Then : the transfile is processed
+     */
+    @Test(timeout = 5000)
+    public void stalledTransfilesProcessed() throws Throwable {
+        // Given...
+        final Path path = writeFile(dir, "file.trs", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        stallFile(path);
+
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        final Thread t = getJobDispatcherThread(jobDispatcher);
+
+        try {
+            // When...
+            t.start();
+
+            // Then...
+            waitWhileFileExists(dir.resolve("file.trs"));
+            assertThat("No exception from thread", exception, is(nullValue()));
+            assertThat("dir/file.trs exists", Files.exists(dir.resolve("file.trs")), is(false));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -228,6 +260,45 @@ public class JobDispatcherIT {
         }
     }
 
+    /*
+     * Given: a filesystem with two incomplete transfiles
+     * When : the job dispatcher is started
+     * And  : afterwards one of the transfiles becomes stalled
+     * When : the other transfile is updated to be complete
+     * Then : the stalled transfile is also processed
+     */
+    @Test(timeout = 5000)
+    public void checkForStalledTransfilesExecutedOnTransfileCompletedEvent() throws InterruptedException {
+        if (isOsX()) {  // Do NOT run on Mac OsX, because WatchService is poll based on OsX, and has a long poll time (10 sec)
+            return;
+        }
+
+        // Given...
+        final Path stalledTransfile = writeFile(dir, "stalled.trans", "b=danbib,f=111111.file,t=lin,c=latin-1,o=marc2");
+        final Path transfile = writeFile(dir, "file.trans", "b=danbib,f=222222.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        final Thread t = getJobDispatcherThread(jobDispatcher);
+
+        try {
+            // When...
+            t.start();
+            Thread.sleep(500);
+
+            // And...
+            assertThat("dir/stalled.trans exists", Files.exists(stalledTransfile), is(true));
+            stallFile(stalledTransfile);
+
+            // When...
+            appendToFile(transfile, "slut");
+
+            // Then...
+            waitWhileFileExists(stalledTransfile);
+            assertThat("No exception from thread", exception, is(nullValue()));
+        } finally {
+            t.interrupt();
+        }
+    }
+
     private Thread getJobDispatcherThread(final JobDispatcher jobDispatcher) {
         return new Thread(() -> {
             try {
@@ -315,5 +386,17 @@ public class JobDispatcherIT {
 
     private boolean isOsX() {
         return System.getProperty("os.name").toLowerCase().startsWith("mac");
+    }
+
+    private void stallFile(Path file) {
+        try {
+            final BasicFileAttributes fileAttributes = Files.readAttributes(file, BasicFileAttributes.class);
+            final FileTime lastModified = FileTime.from(
+                    fileAttributes.lastAccessTime().toMillis() - JobDispatcher.STALLED_TRANSFILE_THRESHOLD_IN_MS,
+                    TimeUnit.MILLISECONDS);
+            Files.setLastModifiedTime(file, lastModified);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

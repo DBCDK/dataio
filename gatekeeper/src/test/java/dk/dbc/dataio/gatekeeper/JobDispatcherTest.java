@@ -47,9 +47,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -193,6 +197,38 @@ public class JobDispatcherTest {
         transfiles.add(completeTransfiles.get(0).getPath().getFileName().toString());
         transfiles.add(completeTransfiles.get(1).getPath().getFileName().toString());
         assertThat("transfiles found", transfiles, containsInAnyOrder("file1.trans", "file3.trs"));
+    }
+
+    @Test
+    public void getStalledIncompleteTransfiles_noStalledTransfiles_returnsEmptyList() throws IOException {
+        writeFile(dir, "file1.trans", "data1");
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        final List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
+        assertThat(stalledTransfiles.isEmpty(), is(true));
+    }
+
+    @Test
+    public void getStalledIncompleteTransfiles_stalledTransfilesExist_returnsList() throws IOException {
+        final Path path1 = writeFile(dir, "file1.trans", "data1");
+        final Path path2 = writeFile(dir, "file2.trs", "data2");
+        final Path path3 = writeFile(dir, "file3.trans", "data3" + System.lineSeparator() + "slut");
+        writeFile(dir, "file4.trans", "data4");
+        final BasicFileAttributes fileAttributes = Files.readAttributes(path1, BasicFileAttributes.class);
+        final FileTime lastModified = FileTime.from(
+                fileAttributes.lastAccessTime().toMillis() - JobDispatcher.STALLED_TRANSFILE_THRESHOLD_IN_MS,
+                TimeUnit.MILLISECONDS);
+        Files.setLastModifiedTime(path1, lastModified); // file1.trans exceeds threshold and is incomplete
+        Files.setLastModifiedTime(path2, lastModified); // file2.trs   exceeds threshold and is incomplete
+        Files.setLastModifiedTime(path3, lastModified); // file3.trans exceeds threshold but is complete
+                                                        // file4.trans is incomplete but does not exceed threshold
+
+        final JobDispatcher jobDispatcher = getJobDispatcher();
+        final List<TransFile> stalledTransfiles = jobDispatcher.getStalledIncompleteTransfiles();
+        assertThat("Number of transfiles found", stalledTransfiles.size(), is(2));
+        assertThat("transfiles found", stalledTransfiles.stream()
+                .map(transfile -> transfile.getPath().getFileName().toString())
+                .collect(Collectors.toList()),
+                containsInAnyOrder("file1.trans", "file2.trs"));
     }
 
     @Test

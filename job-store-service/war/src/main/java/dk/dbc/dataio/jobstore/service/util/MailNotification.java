@@ -53,6 +53,9 @@ public class MailNotification {
     private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
     private static final String JOB_CREATED_FAIL_TEMPLATE = "/notifications/job_created_fail.template";
     private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
+    private static final String SUBJECT_FOR_JOB_CREATED = "DANBIB:postmester";
+    private static final String SUBJECT_FOR_JOB_COMPLETED = "DANBIB:baseindlaeg";
+
 
     private final Session mailSession;
     private final NotificationEntity notification;
@@ -163,7 +166,15 @@ public class MailNotification {
         final MimeMessage message = new MimeMessage(mailSession);
         message.setFrom(fromAddress);
         message.setRecipients(Message.RecipientType.TO, toAddresses);
-        message.setSubject("DBC dataIO notification");
+        switch (notification.getType()) {
+            case JOB_COMPLETED:
+                message.setSubject(SUBJECT_FOR_JOB_COMPLETED);
+                break;
+            case JOB_CREATED:
+            default:
+                message.setSubject(SUBJECT_FOR_JOB_CREATED);
+                break;
+        }
         message.setSentDate(new Date());
         message.setText(notification.getContent(), StandardCharsets.UTF_8.name());
         return message;

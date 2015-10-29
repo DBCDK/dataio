@@ -85,7 +85,7 @@ public class FlowBindersBean {
      * @param packaging set for the flow binder
      * @param format set for the flow binder
      * @param charset set for the flow binder
-     * @param submitter_number to identify the referenced submitter
+     * @param submitterNumber to identify the referenced submitter
      * @param destination set for the flow binder
      *
      * @return
@@ -103,13 +103,13 @@ public class FlowBindersBean {
     public Response getFlowBinder(@QueryParam(FlowBinderFlowQuery.REST_PARAMETER_PACKAGING) String packaging,
                                   @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_FORMAT) String format,
                                   @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_CHARSET) String charset,
-                                  @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitter_number,
+                                  @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER) Long submitterNumber,
                                   @QueryParam(FlowBinderFlowQuery.REST_PARAMETER_DESTINATION) String destination) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, FlowBinderFlowQuery.REST_PARAMETER_PACKAGING);
         InvariantUtil.checkNotNullNotEmptyOrThrow(format, FlowBinderFlowQuery.REST_PARAMETER_FORMAT);
         InvariantUtil.checkNotNullNotEmptyOrThrow(charset, FlowBinderFlowQuery.REST_PARAMETER_CHARSET);
-        InvariantUtil.checkNotNullOrThrow(submitter_number, FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER);
+        InvariantUtil.checkNotNullOrThrow(submitterNumber, FlowBinderFlowQuery.REST_PARAMETER_SUBMITTER);
         InvariantUtil.checkNotNullNotEmptyOrThrow(destination, FlowBinderFlowQuery.REST_PARAMETER_DESTINATION);
 
         final Query query = entityManager.createNamedQuery(FlowBinder.QUERY_FIND_FLOWBINDER);
@@ -117,7 +117,7 @@ public class FlowBindersBean {
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_PACKAGING, packaging);
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_FORMAT, format);
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_CHARSET, charset);
-        query.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number);
+        query.setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitterNumber);
         query.setParameter(FlowBinder.DB_QUERY_PARAMETER_DESTINATION, destination);
 
         List<FlowBinder> flowBinders = query.getResultList();
@@ -132,11 +132,11 @@ public class FlowBindersBean {
             // Search for flowBinders with the submitter number given as input
             final List<FlowBinderSearchIndexEntry> searchIndexesForSubmitter = entityManager
                     .createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_BY_SUBMITTER)
-                    .setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitter_number)
+                    .setParameter(FlowBinder.DB_QUERY_PARAMETER_SUBMITTER, submitterNumber)
                     .getResultList();
 
             // Generate appropriate FlowStoreError depending on the flow binder search index entries returned
-            FlowStoreError flowStoreError = getFlowStoreError(searchIndexesForSubmitter, packaging, format, charset, submitter_number, destination);
+            FlowStoreError flowStoreError = getFlowStoreError(searchIndexesForSubmitter, packaging, format, charset, submitterNumber, destination);
 
             // Return NOT_FOUND response with the FlowStoreError as entity
             return Response.status(Response.Status.NOT_FOUND).entity(jsonbContext.marshall(flowStoreError)).build();
@@ -409,7 +409,7 @@ public class FlowBindersBean {
      * @param packaging packaging
      * @param format format
      * @param charset charset
-     * @param submitter_number submitter number
+     * @param submitterNumber submitter number
      * @param destination destination
      * @return flowStoreError containing the appropriate error message
      */
@@ -417,30 +417,30 @@ public class FlowBindersBean {
                                              String packaging,
                                              String format,
                                              String charset,
-                                             Long submitter_number,
+                                             Long submitterNumber,
                                              String destination) {
 
         if(searchIndexesForSubmitter.isEmpty()) {
-            return getFlowStoreErrorForSubmitterNotFound(submitter_number);
+            return getFlowStoreErrorForSubmitterNotFound(submitterNumber);
         } else {
             return searchIndexesForSubmitter.stream()
                     .map(FlowBinderSearchIndexEntry::getDestination)
                     .filter(destination::equals)
                     .findAny()
-                    .isPresent() ? getFlowStoreErrorForExistingSubmitterWithExistingDestination(packaging, format, charset)
-                    : getFlowStoreErrorForDestinationNotFound(destination);
+                    .isPresent() ? getFlowStoreErrorForExistingSubmitterWithExistingDestination(packaging, format, charset, submitterNumber, destination)
+                    : getFlowStoreErrorForDestinationNotFound(destination, submitterNumber);
         }
     }
 
     /**
      * FlowStoreError in the case of: FlowBinder not found for submitter
-     * @param submitter_number the submitter number input parameter
+     * @param submitterNumber the submitter number input parameter
      * @return flowStoreError containing the appropriate error message
      */
-    private FlowStoreError getFlowStoreErrorForSubmitterNotFound(Long submitter_number) {
+    private FlowStoreError getFlowStoreErrorForSubmitterNotFound(Long submitterNumber) {
         return new FlowStoreError(
                 FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                String.format("submitteren: %s kan ikke findes", submitter_number),
+                String.format("Biblioteksnummer { %s } kan ikke findes", submitterNumber),
                 "");
     }
 
@@ -449,10 +449,10 @@ public class FlowBindersBean {
      * @param destination the destination input parameter
      * @return flowStoreError containing the appropriate error message
      */
-    private FlowStoreError getFlowStoreErrorForDestinationNotFound(String destination) {
+    private FlowStoreError getFlowStoreErrorForDestinationNotFound(String destination, Long submitterNumber) {
         return new FlowStoreError(
                 FlowStoreError.Code.EXISTING_SUBMITTER_NONEXISTING_DESTINATION,
-                String.format("destinationen: %s kan ikke findes", destination),
+                String.format("Baseparameteren { %s } kan ikke findes i kombination med biblioteksnummer { %s }", destination, submitterNumber),
                 "");
     }
 
@@ -463,10 +463,20 @@ public class FlowBindersBean {
      * @param charset the charset input parameter
      * @return flowStoreError containing the appropriate error message
      */
-    private FlowStoreError getFlowStoreErrorForExistingSubmitterWithExistingDestination(String packaging, String format, String charset) {
+    private FlowStoreError getFlowStoreErrorForExistingSubmitterWithExistingDestination(String packaging,
+                                                                                        String format,
+                                                                                        String charset,
+                                                                                        Long submitterNumber,
+                                                                                        String destination) {
         return new FlowStoreError(
                 FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
-                String.format("Én eller flere af de angivne værdier {packaging: %s, format: %s, charset: %s} kan ikke findes", packaging, format, charset),
+                String.format("Én eller flere af de angivne værdier, protokol (t): { %s }, format(0) { %s }, tegnsæt(c) { %s } ," +
+                              "kan ikke findes i kombination med biblioteksnummer { %s } og baseparameter { %s }",
+                        packaging,
+                        format,
+                        charset,
+                        submitterNumber,
+                        destination),
                 "");
     }
 

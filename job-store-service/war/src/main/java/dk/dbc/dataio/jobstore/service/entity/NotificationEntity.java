@@ -50,7 +50,7 @@ public class NotificationEntity {
             strategy = GenerationType.SEQUENCE,
             generator = "notification_id_seq")
     @Column(updatable = false)
-    private int id;
+    private Integer id;
 
     @Column(insertable = false, updatable = false)
     private Timestamp timeOfCreation;
@@ -80,11 +80,11 @@ public class NotificationEntity {
     @JoinColumn(name = "job")
     private JobEntity job;
 
-    private int jobId;
+    private Integer jobId;
 
     public NotificationEntity() {}
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -153,7 +153,7 @@ public class NotificationEntity {
         this.jobId = job.getId();
     }
 
-    public int getJobId() {
+    public Integer getJobId() {
         return jobId;
     }
 
@@ -171,9 +171,8 @@ public class NotificationEntity {
         );
     }
 
-    /* Package scoped constructor used for unit testing
-     */
-    NotificationEntity(int id, Date timeOfCreation, Date timeOfLastModification) {
+    /* Package scoped constructor used for unit testing */
+    NotificationEntity(Integer id, Date timeOfCreation, Date timeOfLastModification) {
         this.id = id;
         this.timeOfCreation = toTimestamp(timeOfCreation);
         this.timeOfLastModification = toTimestamp(timeOfLastModification);

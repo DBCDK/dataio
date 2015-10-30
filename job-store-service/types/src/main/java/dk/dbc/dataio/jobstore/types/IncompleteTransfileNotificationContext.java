@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobstore.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 /**
@@ -31,7 +33,11 @@ public class IncompleteTransfileNotificationContext {
     private String transfileName;
     private String transfileContent;
 
-    public IncompleteTransfileNotificationContext(String transfileName, String transfileContent) {
+    @JsonCreator
+    public IncompleteTransfileNotificationContext(
+            @JsonProperty("transfileName") String transfileName,
+            @JsonProperty("transfileContent") String transfileContent) {
+
         InvariantUtil.checkNotNullOrThrow(transfileName, "transfileName");
         InvariantUtil.checkNotNullOrThrow(transfileContent, "transfileContent");
 

@@ -21,18 +21,21 @@
 
 package dk.dbc.dataio.jobstore.types;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
-/**
- * Created by ThomasBerg on 27/10/15.
- */
 public class AddNotificationRequest {
 
     private String destinationEmail;
     private IncompleteTransfileNotificationContext incompleteTransfileNotificationContext;
     private JobNotification.Type notificationType;
 
-    public AddNotificationRequest(String destinationEmail, IncompleteTransfileNotificationContext incompleteTransfileNotificationContext, JobNotification.Type notificationType) {
+    @JsonCreator
+    public AddNotificationRequest(
+            @JsonProperty("destinationEmail") String destinationEmail,
+            @JsonProperty ("incompleteTransfileNotificationContext") IncompleteTransfileNotificationContext incompleteTransfileNotificationContext,
+            @JsonProperty ("notificationType") JobNotification.Type notificationType) {
 
         InvariantUtil.checkNotNullOrThrow(destinationEmail, "destinationEmail");
         InvariantUtil.checkNotNullOrThrow(incompleteTransfileNotificationContext, "incompleteTransfileNotificationContext");

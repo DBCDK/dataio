@@ -44,6 +44,8 @@ import javax.persistence.Query;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static dk.dbc.dataio.jobstore.types.JobNotification.Status.WAITING;
+
 @Stateless
 public class JobNotificationRepository extends RepositoryBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobNotificationRepository.class);
@@ -112,7 +114,7 @@ public class JobNotificationRepository extends RepositoryBase {
         entityManager.lock(notification, LockModeType.PESSIMISTIC_WRITE);
         entityManager.refresh(notification);
 
-        if (notification.getStatus() != JobNotification.Status.WAITING) {
+        if (notification.getStatus() != WAITING) {
             LOGGER.warn("Processing of notification {} aborted since it has status {}", notification.getId(), notification.getStatus());
             return false;
         }
@@ -140,16 +142,34 @@ public class JobNotificationRepository extends RepositoryBase {
      */
     public NotificationEntity addNotification(JobNotification.Type type, JobEntity job) {
         final NotificationEntity notificationEntity = new NotificationEntity();
+        notificationEntity.setStatus(WAITING);
         notificationEntity.setType(type);
-        notificationEntity.setStatus(JobNotification.Status.WAITING);
         notificationEntity.setJob(job);
+        entityManager.persist(notificationEntity);
+        return notificationEntity;
+    }
+
+    /**
+     *
+     * @param notificationType              type of notification
+     * @param mailDestination               destination of mail
+     * @param notificationContextAsJson     JSON representation of Notification Context
+     * @return                              created notification entity
+     */
+    public NotificationEntity addNotification(JobNotification.Type notificationType, String mailDestination, String notificationContextAsJson) {
+
+        final NotificationEntity notificationEntity = new NotificationEntity();
+        notificationEntity.setStatus(WAITING);
+        notificationEntity.setType(notificationType);
+        notificationEntity.setDestination(mailDestination);
+        notificationEntity.setContext(notificationContextAsJson);
         entityManager.persist(notificationEntity);
         return notificationEntity;
     }
 
     private Query getWaitingNotificationsQuery() {
         return entityManager.createQuery(SELECT_NOTIFICATIONS_BY_STATUS_STATEMENT)
-                .setParameter("status", JobNotification.Status.WAITING)
+                .setParameter("status", WAITING)
                 .setMaxResults(MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
     }
 

@@ -8,7 +8,6 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -39,10 +38,8 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
     @Test
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
-        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
-        final JobEntity jobEntity = new JobEntity();
         try {
-            new PartitioningParam(jobEntity, null, NOT_DO_SEQUENCE_ANALYSIS, XML_RECORD_SPLITTER);
+            new PartitioningParam(new JobEntity(), null, NOT_DO_SEQUENCE_ANALYSIS, XML_RECORD_SPLITTER);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }

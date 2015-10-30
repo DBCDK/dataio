@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.param;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -63,10 +64,12 @@ public class AddJobParam {
         this.jobInputStream = InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.diagnostics = new ArrayList<>();
-        this.submitter = lookupSubmitter();
-        this.flowBinder = lookupFlowBinder();
-        this.flow = lookupFlow();
-        this.sink = lookupSink();
+        if(isDatafileValid()) {
+            this.submitter = lookupSubmitter();
+            this.flowBinder = lookupFlowBinder();
+            this.flow = lookupFlow();
+            this.sink = lookupSink();
+        }
         this.flowStoreReferences = newFlowStoreReferences();
     }
 
@@ -90,6 +93,33 @@ public class AddJobParam {
     }
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
+    }
+
+    private boolean isDatafileValid() {
+        JobSpecification jobSpecification = jobInputStream.getJobSpecification();
+        JobSpecification.Ancestry ancestry = jobSpecification.getAncestry();
+        boolean isJobSpecificationValid = true;
+        String message = null;
+        if (ancestry != null) {
+            if (ancestry.getDatafile().equals(Constants.MISSING_FIELD_VALUE)) {
+                message = String.format("Datafil angivelse mangler i transfilen: { %s }", ancestry.getTransfile());
+                isJobSpecificationValid = false;
+            }
+            else if (jobSpecification.getDataFile().equals(Constants.MISSING_FIELD_VALUE)) {
+                message = String.format("Kan ikke finde datafilen. I transfilen: { %s } var den forventede datafil angivet som: { %s }"
+                        , ancestry.getTransfile(), ancestry.getDatafile());
+                isJobSpecificationValid = false;
+            }
+
+        } else if (jobSpecification.getDataFile().equals(Constants.MISSING_FIELD_VALUE)) {
+                message = "Kan ikke finde datafilen";
+                isJobSpecificationValid = false;
+        }
+
+        if(!isJobSpecificationValid) {
+            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message));
+        }
+        return isJobSpecificationValid;
     }
 
     private Submitter lookupSubmitter() {

@@ -221,6 +221,7 @@ public class JobSpecification implements Serializable {
     }
 
     public static class Ancestry implements Serializable {
+        private static final long serialVersionUID = 7924802481866401011L;
         private final String transfile;
         private final String datafile;
         private final String batchId;
@@ -231,8 +232,9 @@ public class JobSpecification implements Serializable {
                 @JsonProperty("transfile") String transfile,
                 @JsonProperty("datafile") String datafile,
                 @JsonProperty("batchId") String batchId) {
-            this.transfile = transfile;
-            this.datafile = datafile;
+
+            this.transfile = InvariantUtil.checkNotNullNotEmptyOrThrow(transfile, "transfile");
+            this.datafile = InvariantUtil.checkNotNullNotEmptyOrThrow(datafile, "datafile");
             this.batchId = batchId;
         }
 

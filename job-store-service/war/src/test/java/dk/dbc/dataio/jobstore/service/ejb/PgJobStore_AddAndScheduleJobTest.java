@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
@@ -66,8 +68,12 @@ public class PgJobStore_AddAndScheduleJobTest extends PgJobStoreBaseTest {
     @Test
     public void addAndScheduleJob_jobAdded_returnsJobInfoSnapshot() throws Exception {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
-        final JobInputStream jobInputStream = getJobInputStream(FILE_STORE_URN_STRING);
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setDataFile(FILE_STORE_URN.toString())
+                .setAncestry(new JobSpecificationBuilder.AncestryBuilder().build())
+                .build();
+        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(jobSpecification);
+        final JobInputStream jobInputStream = getJobInputStream(jobSpecification.getDataFile());
         final String xml = getXml();
         final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 

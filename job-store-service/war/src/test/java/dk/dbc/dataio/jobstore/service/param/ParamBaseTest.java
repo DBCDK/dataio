@@ -6,21 +6,16 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 
 import java.net.URISyntaxException;
 
-/**
- * Created by ThomasBerg on 14/09/15.
- */
 public abstract class ParamBaseTest {
 
     protected static final String ERROR_MESSAGE = "Error Message";
     protected static final String DATA_FILE_ID = "42";
 
-    private static final FileStoreUrn FILE_STORE_URN;
-    protected static final JobSpecification jobSpecification;
+    protected final JobSpecification jobSpecification;
 
-    static {
+    public ParamBaseTest() {
         try {
-            FILE_STORE_URN = FileStoreUrn.create(DATA_FILE_ID);
-            jobSpecification = new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build();
+            jobSpecification = new JobSpecificationBuilder().setDataFile(FileStoreUrn.create(DATA_FILE_ID).toString()).build();
         } catch (URISyntaxException e) {
             throw new IllegalStateException(e);
         }

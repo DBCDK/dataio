@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.param;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowStoreError;
@@ -50,6 +51,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class AddJobParamTest extends ParamBaseTest {
@@ -89,12 +91,43 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
+    public void isDatafileValid_ancestryHasDataFileWithMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
+        JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setAncestry(new JobSpecificationBuilder.AncestryBuilder().setDatafile(Constants.MISSING_FIELD_VALUE).build())
+                .build();
+
+        final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
+        assertIsDatafileValidForInvalidDatafile(addJobParam);
+    }
+
+    @Test
+    public void isDatafileValid_dataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
+        JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setAncestry(new JobSpecificationBuilder.AncestryBuilder().build())
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
+                .build();
+
+        final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
+        assertIsDatafileValidForInvalidDatafile(addJobParam);
+    }
+
+    @Test
+    public void isDatafileValid_ancestryIsNullAndDataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
+        JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
+                .build();
+
+        final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
+        assertIsDatafileValidForInvalidDatafile(addJobParam);
+    }
+
+    @Test
     public void lookupSubmitter_submitterNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
 
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(
                 eq(jobSpecification.getSubmitterId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
@@ -111,7 +144,7 @@ public class AddJobParamTest extends ParamBaseTest {
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(eq(jobSpecification.getSubmitterId()))).thenReturn(submitter);
 
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         assertThat(addJobParam.getDiagnostics().size(), is(0));
         assertThat(addJobParam.getSubmitter(), is(notNullValue()));
@@ -131,7 +164,7 @@ public class AddJobParamTest extends ParamBaseTest {
                 eq(jobSpecification.getSubmitterId()),
                 eq(jobSpecification.getDestination()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
@@ -156,7 +189,7 @@ public class AddJobParamTest extends ParamBaseTest {
                 eq(jobSpecification.getSubmitterId()),
                 eq(jobSpecification.getDestination()))).thenThrow(mockedFlowStoreServiceConnectorUnexpectedStatusCodeException);
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
@@ -177,7 +210,7 @@ public class AddJobParamTest extends ParamBaseTest {
                 eq(jobSpecification.getSubmitterId()),
                 eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         assertThat(addJobParam.getDiagnostics().size(), is(0));
         assertThat(addJobParam.getFlowBinder(), is(notNullValue()));
@@ -201,7 +234,7 @@ public class AddJobParamTest extends ParamBaseTest {
 
         when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
@@ -231,7 +264,7 @@ public class AddJobParamTest extends ParamBaseTest {
 
         when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenReturn(flow);
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
 
         assertThat(addJobParam.getDiagnostics().size(), is(0));
         assertThat(addJobParam.getFlowStoreReferences(), is(notNullValue()));
@@ -258,7 +291,7 @@ public class AddJobParamTest extends ParamBaseTest {
 
         when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
@@ -286,7 +319,7 @@ public class AddJobParamTest extends ParamBaseTest {
 
         when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenReturn(sink);
 
-        final AddJobParam addJobParam = constructAddJobParam(true);
+        final AddJobParam addJobParam = constructAddJobParam();
         assertThat(addJobParam.getDiagnostics().size(), is(0));
 
         assertThat(addJobParam.getFlowBinder(), is(notNullValue()));
@@ -320,19 +353,22 @@ public class AddJobParamTest extends ParamBaseTest {
     /*
      * private methods
      */
-    private AddJobParam constructAddJobParam(boolean isDataFileInputStreamMocked){
-        final AddJobParam addJobParam;
-        final JobInputStream jobInputStream;
+    private AddJobParam constructAddJobParam(){
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
+        return new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector);
+    }
 
-        if(isDataFileInputStreamMocked) {
-            jobInputStream = new JobInputStream(jobSpecification, true, 2);
-            addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector);
-        } else {
-            JobSpecification jobSpecificationWithInvalidDataFile = new JobSpecificationBuilder().setDataFile(DATA_FILE_ID).build();
-            jobInputStream = new JobInputStream(jobSpecificationWithInvalidDataFile, true, 2);
-            addJobParam = new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector);
-        }
-        return addJobParam;
+    private AddJobParam constructAddJobParam(JobSpecification jobSpecification){
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, 2);
+        return new AddJobParam(jobInputStream, mockedFlowStoreServiceConnector);
+    }
+
+    private void assertIsDatafileValidForInvalidDatafile(AddJobParam addJobParam) {
+        final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        verifyZeroInteractions(mockedFlowStoreServiceConnector);
+        assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }
 
     private FlowStoreReferences getFlowStoreReferencesWithAllReferencesSet(Submitter submitter, Flow flow, Sink sink, FlowBinder flowBinder) {
@@ -370,8 +406,7 @@ public class AddJobParamTest extends ParamBaseTest {
 
         when(mockedFlowStoreServiceConnector.getFlow(eq(flowBinder.getContent().getFlowId()))).thenReturn(flow);
         when(mockedFlowStoreServiceConnector.getSink(eq(flowBinder.getContent().getSinkId()))).thenReturn(sink);
-        //when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
 
-        return constructAddJobParam(true);
+        return constructAddJobParam();
     }
 }

@@ -69,7 +69,6 @@ import static org.mockito.Mockito.when;
 
 public abstract class PgJobStoreBaseTest {
 
-    protected static final String FILE_STORE_URN_STRING = "urn:dataio-fs:67";
     protected final EntityManager entityManager = mock(EntityManager.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     protected static final FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
@@ -99,7 +98,6 @@ public abstract class PgJobStoreBaseTest {
     protected final static Flow EXPECTED_FLOW = new FlowBuilder().build();
 
     protected final static boolean OCCUPIED = true;
-    protected final static boolean AVAILABLE = false;
 
     protected static final int DEFAULT_JOB_ID = 1;
 
@@ -120,7 +118,6 @@ public abstract class PgJobStoreBaseTest {
 
     @Before
     public void setupExpectations() {
-
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);
         when(cacheFlowQuery.getSingleResult()).thenReturn(EXPECTED_FLOW_CACHE_ENTITY);
@@ -134,21 +131,20 @@ public abstract class PgJobStoreBaseTest {
 
 
     protected PgJobStoreRepository newPgJobStoreReposity() {
-
         final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();
         pgJobStoreRepository.entityManager = entityManager;
 
         return pgJobStoreRepository;
     }
-    protected JobQueueRepository newJobQueueRepository() {
 
+    protected JobQueueRepository newJobQueueRepository() {
         final JobQueueRepository jobQueueRepository = new JobQueueRepository();
         jobQueueRepository.entityManager = entityManager;
 
         return jobQueueRepository;
     }
-    protected PgJobStore newPgJobStore() {
 
+    protected PgJobStore newPgJobStore() {
         final PgJobStore pgJobStore = new PgJobStore();
         pgJobStore.jobStoreRepository = mockedJobStoreRepository;
         pgJobStore.jobQueueRepository = mockedJobQueueReposity;
@@ -167,7 +163,6 @@ public abstract class PgJobStoreBaseTest {
     }
 
     protected PgJobStore newPgJobStore(PgJobStoreRepository jobStoreRepository) {
-
         final PgJobStore pgJobStore = newPgJobStore();
         pgJobStore.jobStoreRepository = jobStoreRepository;
 
@@ -175,13 +170,11 @@ public abstract class PgJobStoreBaseTest {
     }
 
     protected JobInputStream getJobInputStream(String datafile) {
-
         JobSpecification jobSpecification = new JobSpecificationBuilder().setCharset("utf8").setDataFile(datafile).build();
-
         return new JobInputStream(jobSpecification, true, 3);
     }
-    protected void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
 
+    protected void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
@@ -192,8 +185,8 @@ public abstract class PgJobStoreBaseTest {
         when(mockedFlowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId())).thenReturn(sink);
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
     }
-    protected TestableJobEntity newTestableJobEntity(JobSpecification jobSpecification) {
 
+    protected TestableJobEntity newTestableJobEntity(JobSpecification jobSpecification) {
         final TestableJobEntity jobEntity = new TestableJobEntity();
         jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
         jobEntity.setState(new State());
@@ -203,6 +196,7 @@ public abstract class PgJobStoreBaseTest {
 
         return jobEntity;
     }
+
     protected String getXml() {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                 + "<records>"
@@ -221,7 +215,6 @@ public abstract class PgJobStoreBaseTest {
     }
 
     protected JobEntity getJobEntity(int numberOfItems, List<State.Phase> phasesDone) {
-
         final TestableJobEntity jobEntity = new TestableJobEntity();
         jobEntity.setNumberOfItems(numberOfItems);
         final StateChange jobStateChange = new StateChange();
@@ -287,12 +280,16 @@ public abstract class PgJobStoreBaseTest {
         }
     }
 
-     class MockedAddJobParam extends AddJobParam {
+    class MockedAddJobParam extends AddJobParam {
 
         public MockedAddJobParam() {
+            this(new JobSpecificationBuilder().build());
+        }
+
+        public MockedAddJobParam(JobSpecification jobSpecification) {
             super(
-                new JobInputStream(new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build(), true, 0),
-                mockedFlowStoreServiceConnector);
+                    new JobInputStream(jobSpecification, true, 0),
+                    mockedFlowStoreServiceConnector);
 
             submitter = new SubmitterBuilder().build();
             flow = new FlowBuilder().build();

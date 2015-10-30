@@ -53,7 +53,7 @@ public class NotificationBean {
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    @EJB private JobNotificationRepository jobNotificationRepository;
+    @EJB JobNotificationRepository jobNotificationRepository;
 
     /**
      * This is a dummy service for TEST purposes.

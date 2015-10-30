@@ -90,7 +90,7 @@ public class JobNotification implements Serializable {
         }
     }
 
-    private final int id;
+    private final Integer id;
     private final Date timeOfCreation;
     private final Date timeOfLastModification;
     private final Type type;
@@ -98,10 +98,10 @@ public class JobNotification implements Serializable {
     private final String statusMessage;
     private final String destination;
     private final String content;
-    private final int jobId;
+    private final Integer jobId;
 
     @JsonCreator
-    public JobNotification(@JsonProperty("id") int id,
+    public JobNotification(@JsonProperty("id") Integer id,
                            @JsonProperty("timeOfCreation") Date timeOfCreation,
                            @JsonProperty("timeOfLastModification") Date timeOfLastModification,
                            @JsonProperty("type") Type type,
@@ -109,7 +109,7 @@ public class JobNotification implements Serializable {
                            @JsonProperty("statusMessage") String statusMessage,
                            @JsonProperty("destination") String destination,
                            @JsonProperty("content") String content,
-                           @JsonProperty("jobId") int jobId) {
+                           @JsonProperty("jobId") Integer jobId) {
 
         this.id = id;
         this.timeOfCreation = (timeOfCreation == null) ? null : new Date(timeOfCreation.getTime());
@@ -122,7 +122,7 @@ public class JobNotification implements Serializable {
         this.jobId = jobId;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -154,7 +154,7 @@ public class JobNotification implements Serializable {
         return content;
     }
 
-    public int getJobId() {
+    public Integer getJobId() {
         return jobId;
     }
 

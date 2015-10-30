@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -163,6 +164,30 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: addChunk took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Adds notification request to the underlying store
+     * @param request notification request
+     * @return job notification representation
+     * @throws NullPointerException if given null-valued notification request
+     * @throws JobStoreServiceConnectorException on general failure to add notification
+     */
+    public JobNotification addNotification(AddNotificationRequest request) throws NullPointerException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(request, "request");
+            final Response response = HttpClient.doPostWithJson(httpClient, request,
+                    baseUrl, JobStoreServiceConstants.JOB_NOTIFICATIONS);
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, JobNotification.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

@@ -27,8 +27,11 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
+import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -56,7 +59,49 @@ public class MailNotificationTest {
     }
 
     @Test
+    public void send_notificationWithNullDestination_usesDestinationFallback() throws JobStoreException, AddressException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.INCOMPLETE_TRANSFILE);
+        notification.setDestination(null);
+        notification.setContext("{}");
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(mailToFallback);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+    }
+
+    @Test
     public void send_notificationWithEmptyDestination_usesDestinationFallback() throws JobStoreException, AddressException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.INCOMPLETE_TRANSFILE);
+        notification.setDestination(" ");
+        notification.setContext("{}");
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(mailToFallback);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+    }
+
+    @Test
+    public void send_notificationWithMissingDestination_usesDestinationFallback() throws JobStoreException, AddressException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.INCOMPLETE_TRANSFILE);
+        notification.setDestination(Constants.MISSING_FIELD_VALUE);
+        notification.setContext("{}");
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(mailToFallback);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+    }
+
+    @Test
+    public void send_notificationForJobSpecificationWithEmptyDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                 .setMailForNotificationAboutVerification(" ")
                 .build();
@@ -71,7 +116,7 @@ public class MailNotificationTest {
     }
 
     @Test
-    public void send_notificationWithMissingDestination_usesDestinationFallback() throws JobStoreException, AddressException {
+    public void send_notificationForJobSpecificationWithMissingDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                 .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
                 .build();
@@ -138,6 +183,25 @@ public class MailNotificationTest {
             fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
         }
+    }
+
+    @Test
+    public void send_appliesIncompleteTransfileTemplate() throws JobStoreException, MessagingException, IOException, JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext("file.trans", "content");
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.INCOMPLETE_TRANSFILE);
+        notification.setDestination(destination);
+        notification.setContext(jsonbContext.marshall(context));
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+        final String content = (String) inbox.get(0).getContent();
+        assertThat("Message contains 'transfil mangler slut markering'", content.contains("transfil mangler slut markering"), is(true));
+        assertThat("Message contains 'Transfil: file.trans'", content.contains("Transfil: file.trans"), is(true));
     }
 
     @Test

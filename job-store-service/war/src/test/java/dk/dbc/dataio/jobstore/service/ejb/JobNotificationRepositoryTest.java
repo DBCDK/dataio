@@ -192,16 +192,20 @@ public class JobNotificationRepositoryTest {
         return jobNotificationRepository;
     }
 
+    public static NotificationEntity getNotificationEntity(JobNotification.Type type) {
+       final NotificationEntity notification = new NotificationEntity();
+        notification.setStatus(JobNotification.Status.WAITING);
+        notification.setType(type);
+        return notification;
+    }
+
     public static NotificationEntity getNotificationEntity(JobNotification.Type type, JobSpecification jobSpecification) {
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setSpecification(jobSpecification);
         jobEntity.setState(new State());
 
-        final NotificationEntity notification = new NotificationEntity();
-        notification.setStatus(JobNotification.Status.WAITING);
-        notification.setType(type);
+        final NotificationEntity notification = getNotificationEntity(type);
         notification.setJob(jobEntity);
-
         return notification;
     }
 }

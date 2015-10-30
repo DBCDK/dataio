@@ -1,0 +1,11 @@
+**********************************
+Fejlmeddelelse fra DanBibs Posthus
+**********************************
+
+Nedenstånde transfil mangler slut markering
+
+Transfil: ${transfileName}
+
+Transfil indhold:
+
+${transfileContent}

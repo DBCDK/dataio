@@ -23,12 +23,9 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -49,13 +46,12 @@ import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJob
  * Class wrapping a NotificationEntity instance as an email notification
  */
 public class MailNotification {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MailNotification.class);
     private static final String JOB_CREATED_OK_TEMPLATE = "/notifications/job_created_ok.template";
     private static final String JOB_CREATED_FAIL_TEMPLATE = "/notifications/job_created_fail.template";
     private static final String JOB_COMPLETED_TEMPLATE = "/notifications/job_completed.template";
+    private static final String INCOMPLETE_TRANSFILE_TEMPLATE = "/notifications/incomplete_transfile.template";
     private static final String SUBJECT_FOR_JOB_CREATED = "DANBIB:postmester";
     private static final String SUBJECT_FOR_JOB_COMPLETED = "DANBIB:baseindlaeg";
-
 
     private final Session mailSession;
     private final NotificationEntity notification;
@@ -72,10 +68,10 @@ public class MailNotification {
     public void send() throws JobStoreException {
         try {
             final String destination = notification.getDestination();
-            if (destination == null || destination.isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
+            if (isUndefined(destination)) {
                 setDestination();
             }
-            if (notification.getContent() == null || notification.getContent().isEmpty()) {
+            if (isUndefined(notification.getContent())) {
                 format();
             }
             final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"));
@@ -97,13 +93,10 @@ public class MailNotification {
     }
 
     private String inferDestinationFromType() {
-        final JobNotification.Type type = notification.getType();
         switch (notification.getType()) {
             case JOB_CREATED:   return getDestinationForJobCreatedNotification(notification.getJob().getSpecification());
             case JOB_COMPLETED: return getDestinationForJobCompletedNotification(notification.getJob().getSpecification());
-            default:
-                LOGGER.error("Unhandled notification type {}", type);
-                return MISSING_FIELD_VALUE;
+            default: return getDestination();
         }
     }
 
@@ -124,27 +117,53 @@ public class MailNotification {
         return destination;
     }
 
+    private String getDestination() {
+        final String destination = notification.getDestination();
+        if (isUndefined(destination)) {
+            return MISSING_FIELD_VALUE;
+        }
+        return destination;
+    }
+
+    private boolean isUndefined(String value) {
+        return value == null || value.trim().isEmpty() || value.equals(MISSING_FIELD_VALUE);
+    }
+
     private void format() throws JobStoreException {
         final JSONBContext jsonbContext = new JSONBContext();
         final JsonValueTemplateEngine templateEngine = new JsonValueTemplateEngine(jsonbContext);
         try {
-            notification.setContent(templateEngine.apply(getNotificationTemplate(),
-                    jsonbContext.marshall(toJobInfoSnapshot(notification.getJob()))));
+            switch (notification.getType()) {
+                case JOB_CREATED:
+                case JOB_COMPLETED:
+                    notification.setContent(templateEngine.apply(getNotificationTemplate(),
+                            jsonbContext.marshall(toJobInfoSnapshot(notification.getJob()))));
+                    break;
+                default:
+                    notification.setContent(templateEngine.apply(getNotificationTemplate(),
+                            notification.getContext()));
+            }
         } catch (JSONBException e) {
             throw new JobStoreException("Unable to marshall linked job", e);
         }
     }
 
     private String getNotificationTemplate() {
-        String resource;
-        if (notification.getType() == JobNotification.Type.JOB_COMPLETED) {
-            resource = JOB_COMPLETED_TEMPLATE;
-        } else {
-            if (notification.getJob().getState().fatalDiagnosticExists()) {
-                resource = JOB_CREATED_FAIL_TEMPLATE;
-            } else {
-                resource = JOB_CREATED_OK_TEMPLATE;
-            }
+        final String resource;
+        switch (notification.getType()) {
+            case INCOMPLETE_TRANSFILE:
+                resource = INCOMPLETE_TRANSFILE_TEMPLATE;
+                break;
+            case JOB_COMPLETED:
+                resource = JOB_COMPLETED_TEMPLATE;
+                break;
+            default:
+                if (notification.getJob().getState().fatalDiagnosticExists()) {
+                    resource = JOB_CREATED_FAIL_TEMPLATE;
+                } else {
+                    resource = JOB_CREATED_OK_TEMPLATE;
+                }
+                break;
         }
         return getNotificationTemplateResource(resource);
     }
@@ -170,7 +189,6 @@ public class MailNotification {
             case JOB_COMPLETED:
                 message.setSubject(SUBJECT_FOR_JOB_COMPLETED);
                 break;
-            case JOB_CREATED:
             default:
                 message.setSubject(SUBJECT_FOR_JOB_CREATED);
                 break;

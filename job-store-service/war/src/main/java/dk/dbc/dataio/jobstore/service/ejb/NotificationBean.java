@@ -74,7 +74,7 @@ public class NotificationBean {
      * @return   a HTTP 200 OK response if notification data is valid,
      *           a HTTP 400 BAD_REQUEST response on invalid json content,
      *
-     * @throws JSONBException
+     * @throws JSONBException   on marshalling failure
      */
     @POST
     @Path(JobStoreServiceConstants.NOTIFICATIONS)

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.gatekeeper.operation.CreateIncompleteTransfileNotificationOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateJobOperation;
 import dk.dbc.dataio.gatekeeper.operation.CreateTransfileOperation;
 import dk.dbc.dataio.gatekeeper.operation.FileDeleteOperation;
@@ -302,6 +303,10 @@ public class JobDispatcher {
                 op = new CreateJobOperation(connectorFactory.getJobStoreServiceConnector(),
                         connectorFactory.getFileStoreServiceConnector(), dir.toAbsolutePath(),
                         modification.getTransfileName(), modification.getArg());
+                break;
+            case CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION:
+                op = new CreateIncompleteTransfileNotificationOperation(connectorFactory.getJobStoreServiceConnector(),
+                        dir.toAbsolutePath(),modification.getTransfileName(), modification.getArg());
                 break;
             default:
                 throw new IllegalStateException(String.format("Unhandled opcode '%s'", modification.getOpcode()));

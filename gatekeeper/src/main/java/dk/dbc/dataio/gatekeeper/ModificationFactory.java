@@ -29,6 +29,7 @@ import dk.dbc.dataio.gatekeeper.wal.Modification;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class derives the necessary WAL modifications from a given transfile
@@ -74,8 +75,7 @@ public class ModificationFactory {
             // For now just move to posthus...
             modifications.add(getFileMoveModification(transfile.getPath().getFileName().toString()));
         } else if (!transfile.isComplete()) {
-            // ToDo: getCreateIncompleteTransfileNotificationModification()
-            //modifications.add(getCreateIncompleteTransfileNotificationModification());
+            modifications.add(getCreateIncompleteTransfileNotificationModification());
             modifications.add(getFileDeleteModification(transfile.getPath().getFileName().toString()));
         } else {
             for (TransFile.Line line : transfile.getLines()) {
@@ -202,5 +202,15 @@ public class ModificationFactory {
         createTransfile.setTransfileName(transfile.getPath().getFileName().toString());
         createTransfile.setArg(arg);
         return createTransfile;
+    }
+
+    Modification getCreateIncompleteTransfileNotificationModification() {
+        final Modification createNotification = new Modification();
+        createNotification.setOpcode(Opcode.CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION);
+        createNotification.setTransfileName(transfile.getPath().getFileName().toString());
+        createNotification.setArg(transfile.getLines().stream()
+                .map(TransFile.Line::getLine)
+                .collect(Collectors.joining("\n")));
+        return createNotification;
     }
 }

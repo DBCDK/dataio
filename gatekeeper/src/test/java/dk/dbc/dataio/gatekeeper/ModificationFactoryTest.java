@@ -63,15 +63,17 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_transfileIsIncomplete_returnsModifications() throws IOException {
-        final String line = "b=danbib,t=lin,c=latin-1,o=marc2";
+        final String content = "b=danbib,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "b=danbib";
         final Path transfilePath = testFolder.newFile().toPath();
-        writeFile(transfilePath, line + System.lineSeparator());
+        writeFile(transfilePath, content + System.lineSeparator());
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.getModifications();
-        assertThat("Number of modifications", modifications.size(), is(1));
-        assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.DELETE_FILE));
-        assertThat("Modification arg", modifications.get(0).getArg(), is(transfilePath.getFileName().toString()));
+        assertThat("Number of modifications", modifications.size(), is(2));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(content));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfilePath.getFileName().toString()));
     }
 
     @Test

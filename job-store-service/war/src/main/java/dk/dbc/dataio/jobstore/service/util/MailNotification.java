@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
 import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
@@ -83,7 +84,7 @@ public class MailNotification {
     }
 
     private void setDestination() {
-        final String destination = inferDestinationFromType();
+        final String destination = inferDestinationFromType().orElse(MISSING_FIELD_VALUE);
         if (destination.equals(MISSING_FIELD_VALUE)) {
             notification.setDestination(mailSession.getProperty("mail.to.fallback"));
             notification.setStatusMessage("Destination fallback used");
@@ -92,37 +93,29 @@ public class MailNotification {
         }
     }
 
-    private String inferDestinationFromType() {
+    private Optional<String> inferDestinationFromType() {
         switch (notification.getType()) {
             case JOB_CREATED:   return getDestinationForJobCreatedNotification(notification.getJob().getSpecification());
             case JOB_COMPLETED: return getDestinationForJobCompletedNotification(notification.getJob().getSpecification());
-            default: return getDestination();
+            default: return Optional.empty();
         }
     }
 
-    private String getDestinationForJobCreatedNotification(JobSpecification jobSpecification) {
+    private Optional<String> getDestinationForJobCreatedNotification(JobSpecification jobSpecification) {
         final String destination = jobSpecification.getMailForNotificationAboutVerification();
         if (destination.trim().isEmpty()) {
-            return MISSING_FIELD_VALUE;
+            return Optional.empty();
         }
-        return destination;
+        return Optional.of(destination);
     }
 
-     private String getDestinationForJobCompletedNotification(JobSpecification jobSpecification) {
+     private Optional<String> getDestinationForJobCompletedNotification(JobSpecification jobSpecification) {
         final String destination = jobSpecification.getMailForNotificationAboutProcessing();
         if (destination.trim().isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
             // fall back to primary destination
             return getDestinationForJobCreatedNotification(jobSpecification);
         }
-        return destination;
-    }
-
-    private String getDestination() {
-        final String destination = notification.getDestination();
-        if (isUndefined(destination)) {
-            return MISSING_FIELD_VALUE;
-        }
-        return destination;
+        return Optional.of(destination);
     }
 
     private boolean isUndefined(String value) {

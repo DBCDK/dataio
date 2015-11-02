@@ -30,11 +30,10 @@ import dk.dbc.dataio.sink.openupdate.mapping.UpdateRecordResponseMapper;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
-import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.getStackTraceAsString;
 
@@ -80,47 +79,40 @@ public class AddiRecordsToItemWrapper {
                     FAILURE );
         }
 
+        final Optional<AddiStatus> failed = addiRecordsForItem.stream()
+                // retrieve the AddiStatus from each call to OpenOpdate
+                .map(addiRecord -> callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(addiRecord, addiRecordsForItem.indexOf(addiRecord)))
+                // only collect the failed status'
+                .filter(addiStatus -> addiStatus == AddiStatus.FAILED_STACKTRACE || addiStatus == AddiStatus.FAILED_VALIDATION)
+                // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
+                .findFirst();
 
-        List<AddiStatus> listOfAddiStatus = new ArrayList<>();
-        for(AddiRecord addiRecord : addiRecordsForItem) {
-
-            listOfAddiStatus.add(callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(addiRecord));
-            addiRecordIndex++;
-        }
-
-        // If just one of the the calls to OpenUpdate web service failed then Item status is FAILED
-        ChunkItem.Status itemStatus = SUCCESS;
-        for(AddiStatus addiStatus : listOfAddiStatus) {
-            if(addiStatus != AddiStatus.OK) {
-                itemStatus = FAILURE;
-                break;
-            }
-        }
-        return new ChunkItem(processedChunkItem.getId(), asBytes(this.getItemContentCrossAddiRecords()), itemStatus);
+        return new ChunkItem(
+                processedChunkItem.getId(),
+                asBytes(this.getItemContentCrossAddiRecords()),
+                failed.isPresent() ? ChunkItem.Status.FAILURE : ChunkItem.Status.SUCCESS);
     }
 
-
     // Package scoped for test reasons - originally private visibility.
-    AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord) {
+    AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex) {
+        this.addiRecordIndex = addiRecordIndex + 1;
         try {
             AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     addiRecordPreprocessor.getTemplate(),
                     addiRecordPreprocessor.getMarcXChangeRecord());
-            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<>(webserviceResult).map();
+            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<UpdateRecordResult>(webserviceResult).map();
 
             if(mappedWebServiceResult.getStatus() == OpenUpdateResponseDTO.Status.OK) {
                 crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );
                 return AddiStatus.OK;
             } else {
-                crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION)).append(mappedWebServiceResult.asXml());
+                crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_VALIDATION) + mappedWebServiceResult.asXml() );
                 return AddiStatus.FAILED_VALIDATION;
             }
-
-
         } catch (Throwable t) {
-            crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE)).append(getStackTraceAsString(t));
+            crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE) + getStackTraceAsString(t) );
             return AddiStatus.FAILED_STACKTRACE;
         }
     }

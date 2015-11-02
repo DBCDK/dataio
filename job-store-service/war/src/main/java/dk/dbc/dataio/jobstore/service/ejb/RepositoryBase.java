@@ -7,12 +7,15 @@ import dk.dbc.dataio.jobstore.service.util.JobstoreDB;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 
-/**
- * Created by ThomasBerg on 08/09/15.
- */
 public abstract class RepositoryBase {
 
     @Inject @JobstoreDB protected EntityManager entityManager;
+
+    protected void syncedPersist(Object entity) {
+        entityManager.persist(entity);
+        entityManager.flush();
+        entityManager.refresh(entity);
+    }
 
     protected void persist(JobQueueEntity jobQueueEntity) {
 

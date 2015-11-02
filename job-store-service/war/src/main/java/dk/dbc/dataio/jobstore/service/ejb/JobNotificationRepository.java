@@ -145,7 +145,7 @@ public class JobNotificationRepository extends RepositoryBase {
         notificationEntity.setStatus(WAITING);
         notificationEntity.setType(type);
         notificationEntity.setJob(job);
-        entityManager.persist(notificationEntity);
+        syncedPersist(notificationEntity);
         return notificationEntity;
     }
 
@@ -163,7 +163,7 @@ public class JobNotificationRepository extends RepositoryBase {
         notificationEntity.setType(notificationType);
         notificationEntity.setDestination(mailDestination);
         notificationEntity.setContext(notificationContextAsJson);
-        entityManager.persist(notificationEntity);
+        syncedPersist(notificationEntity);
         return notificationEntity;
     }
 

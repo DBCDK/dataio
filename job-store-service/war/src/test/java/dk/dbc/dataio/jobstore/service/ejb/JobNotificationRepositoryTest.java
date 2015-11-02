@@ -25,8 +25,12 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.test.types.IncompleteTransfileNotificationContextBuilder;
+import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -40,6 +44,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -55,13 +60,18 @@ import static org.mockito.Mockito.when;
 public class JobNotificationRepositoryTest {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final EntityManager entityManager = mock(EntityManager.class);
+    private JSONBContext jsonbContext;
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
     private final String mailFrom = "dataio@dbc.dk";
+    private final IncompleteTransfileNotificationContext incompleteTransfileNotificationContext = new IncompleteTransfileNotificationContextBuilder("fileName", "Content of transfile").build();
+    private String incompleteTransfileNotificationContextAsJson= "";
 
     @Before
-    public void clearMailBoxes() {
+    public void clearMailBoxes() throws JSONBException {
         Mailbox.clearAll();
+        this.jsonbContext = new JSONBContext();
+        incompleteTransfileNotificationContextAsJson = jsonbContext.marshall(IncompleteTransfileNotificationContext.class);
     }
 
     @Before
@@ -167,7 +177,7 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void addNotification_persistsAndReturnsEntityInWaitingState() {
+    public void addNotificationWithJob_persistsAndReturnsEntityInWaitingState() {
         final JobEntity jobEntity = new JobEntity();
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity);
@@ -176,6 +186,21 @@ public class JobNotificationRepositoryTest {
         assertThat("getJob()", notificationEntity.getJob(), is(jobEntity));
 
         verify(entityManager).persist(notificationEntity);
+    }
+
+    @Test
+    public void addNotificationIncompleteTransfile_persistsAndReturnsEntityInWaitingState() {
+        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(JobNotification.Type.INCOMPLETE_TRANSFILE, destination, this.incompleteTransfileNotificationContextAsJson);
+
+        assertThat("getStatus()", notificationEntity.getStatus(), is(JobNotification.Status.WAITING));
+        assertThat("getType()", notificationEntity.getType(), is(JobNotification.Type.INCOMPLETE_TRANSFILE));
+        //JobEntity does not and should not exist for type INCOMPLETE_TRANSFILE
+        assertThat("getJob()", notificationEntity.getJob(), is(nullValue()));
+        assertThat("getDestination()", notificationEntity.getDestination(), equalTo(destination));
+
+        verify(entityManager).persist(notificationEntity);
+        System.out.println(notificationEntity.getDestination());
     }
 
     private JobNotificationRepository getPgJobNotificationRepository() {

@@ -200,7 +200,6 @@ public class JobNotificationRepositoryTest {
         assertThat("getDestination()", notificationEntity.getDestination(), equalTo(destination));
 
         verify(entityManager).persist(notificationEntity);
-        System.out.println(notificationEntity.getDestination());
     }
 
     private JobNotificationRepository getPgJobNotificationRepository() {

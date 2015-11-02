@@ -1,0 +1,21 @@
+{
+    "jobSpecification" : {
+        "destination" : "broend3",
+        "packaging" : "dm2iso",
+        "ancestry" : {
+            "transfile" : "file.trans",
+            "datafile"  : "__MISSING__",
+            "batchId"   : "test"
+        },
+        "dataFile" : "__MISSING__",
+        "type" : "TEST",
+        "mailForNotificationAboutProcessing" : "bdm@dbc.dk",
+        "mailForNotificationAboutVerification" : "bdm@dbc.dk",
+        "format" : "basis",
+        "resultmailInitials" : "BDM",
+        "charset" : "latin-1",
+        "submitterId" : 870970
+    },
+    "isEndOfJob" : true,
+    "partNumber" : 0
+}

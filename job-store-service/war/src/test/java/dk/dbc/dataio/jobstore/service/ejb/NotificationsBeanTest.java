@@ -16,9 +16,9 @@ import static org.mockito.Mockito.mock;
 /**
  * Created by ThomasBerg on 30/10/15.
  */
-public class NotificationBeanTest {
+public class NotificationsBeanTest {
 
-    private NotificationBean notificationBean;
+    private NotificationsBean notificationsBean;
     private JSONBContext jsonbContext;
 
     private final String notificationRequestAsStringValid =
@@ -50,14 +50,14 @@ public class NotificationBeanTest {
     }
 
     private void initializeNotificationBean() {
-        notificationBean = new NotificationBean();
-        notificationBean.jobNotificationRepository = mock(JobNotificationRepository.class);
+        notificationsBean = new NotificationsBean();
+        notificationsBean.jobNotificationRepository = mock(JobNotificationRepository.class);
     }
 
     @Test
     public void addNotification_returnsResponseWithStatusOk() throws Exception {
 
-        final Response notificationResponse = notificationBean.addNotification(notificationRequestAsStringValid);
+        final Response notificationResponse = notificationsBean.addNotification(notificationRequestAsStringValid);
         assertThat(notificationResponse, is(notNullValue()));
         assertThat(notificationResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(notificationResponse.hasEntity(), is(false));
@@ -66,7 +66,7 @@ public class NotificationBeanTest {
     @Test
     public void addNotificationInvalidNotificationRequestJson_returnsResponseWithStatusBadRequest() throws Exception {
 
-        final Response notificationResponse = notificationBean.addNotification(notificationRequestAsStringInValid);
+        final Response notificationResponse = notificationsBean.addNotification(notificationRequestAsStringInValid);
         assertThat(notificationResponse, is(notNullValue()));
         assertThat(notificationResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(notificationResponse.hasEntity(), is(true));

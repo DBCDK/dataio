@@ -47,9 +47,9 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
  * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#JOB_COLLECTION} entry point
  */
 @Path("/")
-public class NotificationBean {
+public class NotificationsBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationsBean.class);
 
     JSONBContext jsonbContext = new JSONBContext();
 

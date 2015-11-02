@@ -145,26 +145,22 @@ public class JobSpecificationTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_ancestryHasNullValuedDataFile_throws() {
-        JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry(TRANS_FILE, null, "");
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE, ancestry);
+        new JobSpecification.Ancestry(TRANS_FILE, null, "");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_ancestryHasEmptyValuedDataFile_throws() {
-        JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry(TRANS_FILE, "", "");
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE, ancestry);
+        new JobSpecification.Ancestry(TRANS_FILE, "", "");
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_ancestryHasNullValuedTransFile_throws() {
-        JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry(null, DATA_FILE, "");
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE, ancestry);
+        new JobSpecification.Ancestry(null, DATA_FILE, "");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_ancestryHasEmptyValuedTransFile_throws() {
-        JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry("", DATA_FILE, "");
-        new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE, ancestry);
+        new JobSpecification.Ancestry("", DATA_FILE, "");
     }
 
     public static JobSpecification newJobSpecificationInstance() {

@@ -47,6 +47,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.eq;
@@ -122,7 +123,16 @@ public class AddJobParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void lookupSubmitter_submitterNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
+    public void lookupSubmitter_flowBinderExistsAndSubmitterNotFound_diagnosticLevelFatalAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
+
+        final FlowBinder flowBinder = new FlowBinderBuilder().build();
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenReturn(flowBinder);
 
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(
                 eq(jobSpecification.getSubmitterId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
@@ -134,6 +144,31 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(jobSpecification.getSubmitterId()).toString()), is(true));
         assertThat(addJobParam.getSubmitter(), is(nullValue()));
+        assertThat(addJobParam.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), not(nullValue()));
+        assertThat(addJobParam.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER), is(nullValue()));
+    }
+
+    @Test
+    public void lookupSubmitter_flowBinderDoesNotExistAndSubmitterNotFound_diagnosticLevelFatalNotAddedAndReferenceIsNull() throws FlowStoreServiceConnectorException {
+
+        when(mockedFlowStoreServiceConnector.getFlowBinder(
+                eq(jobSpecification.getPackaging()),
+                eq(jobSpecification.getFormat()),
+                eq(jobSpecification.getCharset()),
+                eq(jobSpecification.getSubmitterId()),
+                eq(jobSpecification.getDestination()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
+
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(
+                eq(jobSpecification.getSubmitterId()))).thenThrow(new FlowStoreServiceConnectorException(ERROR_MESSAGE));
+
+        final AddJobParam addJobParam = constructAddJobParam();
+
+        final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
+        assertThat(diagnostics.size(), is(1));
+        assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
+        assertThat(diagnostics.get(0).getMessage().contains(jobSpecification.toString()), is(true));
+        assertThat(addJobParam.getSubmitter(), is(nullValue()));
+
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }
 
@@ -194,7 +229,7 @@ public class AddJobParamTest extends ParamBaseTest {
         final List<Diagnostic> diagnostics = addJobParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat(diagnostics.get(0).getMessage(), is("Error in job description: " + FLOW_STORE_ERROR_DESCRIPTION));
+        assertThat(diagnostics.get(0).getMessage(), is(FLOW_STORE_ERROR_DESCRIPTION));
         assertThat(addJobParam.getFlowBinder(), is(nullValue()));
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }

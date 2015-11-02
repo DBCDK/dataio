@@ -65,8 +65,8 @@ public class AddJobParam {
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.diagnostics = new ArrayList<>();
         if(isDatafileValid()) {
-            this.submitter = lookupSubmitter();
             this.flowBinder = lookupFlowBinder();
+            this.submitter = lookupSubmitter();
             this.flow = lookupFlow();
             this.sink = lookupSink();
         }
@@ -102,11 +102,11 @@ public class AddJobParam {
         String message = null;
         if (ancestry != null) {
             if (ancestry.getDatafile().equals(Constants.MISSING_FIELD_VALUE)) {
-                message = String.format("Datafil angivelse mangler i transfilen: { %s }", ancestry.getTransfile());
+                message = String.format("Datafil angivelse mangler i transfilen: %s", ancestry.getTransfile());
                 isJobSpecificationValid = false;
             }
             else if (jobSpecification.getDataFile().equals(Constants.MISSING_FIELD_VALUE)) {
-                message = String.format("Kan ikke finde datafilen. I transfilen: { %s } var den forventede datafil angivet som: { %s }"
+                message = String.format("Kan ikke finde datafilen. I transfilen: %s var den forventede datafil angivet som: %s"
                         , ancestry.getTransfile(), ancestry.getDatafile());
                 isJobSpecificationValid = false;
             }
@@ -122,17 +122,6 @@ public class AddJobParam {
         return isJobSpecificationValid;
     }
 
-    private Submitter lookupSubmitter() {
-        final long submitterNumber = jobInputStream.getJobSpecification().getSubmitterId();
-        try {
-            return flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitterNumber);
-        } catch(FlowStoreServiceConnectorException | ProcessingException e) {
-            final String message = String.format("Could not retrieve Submitter with submitter number: %d", submitterNumber);
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
-        }
-        return null;
-    }
-
     private FlowBinder lookupFlowBinder() {
         final JobSpecification jobSpec = jobInputStream.getJobSpecification();
         try {
@@ -143,12 +132,25 @@ public class AddJobParam {
                     jobSpec.getSubmitterId(),
                     jobSpec.getDestination());
         } catch (FlowStoreServiceConnectorException | ProcessingException e) {
+            String message = String.format("Could not retrieve FlowBinder for specification: %s", jobSpec); // Default msg
             if (e instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException) {
                 FlowStoreServiceConnectorUnexpectedStatusCodeException exception = (FlowStoreServiceConnectorUnexpectedStatusCodeException) e;
-                final String message = String.format("Error in job description: %s", exception.getFlowStoreError().getDescription());
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
-            } else {
-                final String message = String.format("Could not retrieve FlowBinder for specification: %s", jobSpec);
+                if (exception.getFlowStoreError() != null) {
+                    message = exception.getFlowStoreError().getDescription();
+                }
+            }
+            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+        }
+        return null;
+    }
+
+    private Submitter lookupSubmitter() {
+        final long submitterNumber = jobInputStream.getJobSpecification().getSubmitterId();
+        try {
+            return flowStoreServiceConnector.getSubmitterBySubmitterNumber(submitterNumber);
+        } catch(FlowStoreServiceConnectorException | ProcessingException e) {
+            if(flowBinder != null) { // No diagnostic created when retrieving flow binder
+                final String message = String.format("Could not retrieve Submitter with submitter number: %d", submitterNumber);
                 diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
             }
         }

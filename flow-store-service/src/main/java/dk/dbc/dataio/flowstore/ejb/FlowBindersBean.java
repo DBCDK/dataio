@@ -440,7 +440,7 @@ public class FlowBindersBean {
     private FlowStoreError getFlowStoreErrorForSubmitterNotFound(Long submitterNumber) {
         return new FlowStoreError(
                 FlowStoreError.Code.NONEXISTING_SUBMITTER,
-                String.format("Biblioteksnummer { %s } kan ikke findes", submitterNumber),
+                String.format("Biblioteksnummer %s kan ikke findes", submitterNumber),
                 "");
     }
 
@@ -452,7 +452,7 @@ public class FlowBindersBean {
     private FlowStoreError getFlowStoreErrorForDestinationNotFound(String destination, Long submitterNumber) {
         return new FlowStoreError(
                 FlowStoreError.Code.EXISTING_SUBMITTER_NONEXISTING_DESTINATION,
-                String.format("Baseparameteren { %s } kan ikke findes i kombination med biblioteksnummer { %s }", destination, submitterNumber),
+                String.format("Baseparameteren %s kan ikke findes i kombination med biblioteksnummer %s", destination, submitterNumber),
                 "");
     }
 
@@ -470,8 +470,8 @@ public class FlowBindersBean {
                                                                                         String destination) {
         return new FlowStoreError(
                 FlowStoreError.Code.EXISTING_SUBMITTER_EXISTING_DESTINATION_NONEXISTING_TOC,
-                String.format("Én eller flere af de angivne værdier { protokol(t): %s, format(o): %s, tegnsæt(c): %s }," +
-                              "kan ikke findes i kombination med biblioteksnummer { %s } og baseparameter { %s }",
+                String.format("Én eller flere af de angivne værdier protokol(t): %s, format(o): %s, tegnsæt(c): %s," +
+                              "kan ikke findes i kombination med biblioteksnummer %s og baseparameter %s",
                         packaging,
                         format,
                         charset,

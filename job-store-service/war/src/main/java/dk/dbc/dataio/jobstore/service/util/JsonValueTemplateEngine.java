@@ -30,9 +30,9 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -100,7 +100,7 @@ public class JsonValueTemplateEngine {
         }
         final LinkedList<String> accumulator = new LinkedList<>();
         getReplacementValue(path, jsonTree, accumulator);
-        return join(accumulator, "\n");
+        return accumulator.stream().collect(Collectors.joining("\n"));
     }
 
     private void getReplacementValue(LinkedList<String> path, JsonNode jsonTree, LinkedList<String> accumulator) {
@@ -152,16 +152,5 @@ public class JsonValueTemplateEngine {
             dateString = EMPTY_VALUE;
         }
         return dateString;
-    }
-
-    // sure wish we had java 8 by now
-    private String join(List<String> strings, String separator) {
-        final StringBuilder buffer = new StringBuilder();
-        String actualSeparator = "";
-        for (String s: strings) {
-            buffer.append(actualSeparator).append(s);
-            actualSeparator = separator;
-        }
-        return buffer.toString();
     }
 }

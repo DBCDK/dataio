@@ -179,7 +179,7 @@ public class JobStoreServiceConnector {
         try {
             InvariantUtil.checkNotNullOrThrow(request, "request");
             final Response response = HttpClient.doPostWithJson(httpClient, request,
-                    baseUrl, JobStoreServiceConstants.JOB_NOTIFICATIONS);
+                    baseUrl, JobStoreServiceConstants.NOTIFICATIONS);
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, JobNotification.class);

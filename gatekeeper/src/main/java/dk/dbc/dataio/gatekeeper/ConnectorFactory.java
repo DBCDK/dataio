@@ -28,6 +28,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
 
@@ -42,6 +43,7 @@ public class ConnectorFactory {
         InvariantUtil.checkNotNullNotEmptyOrThrow(jobStoreServiceEndpoint, "jobStoreServiceEndpoint");
 
         final ClientConfig config = new ClientConfig();
+        config.register(new JacksonFeature());
         config.connectorProvider(new ApacheConnectorProvider());
         config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
         client = HttpClient.newClient(config);

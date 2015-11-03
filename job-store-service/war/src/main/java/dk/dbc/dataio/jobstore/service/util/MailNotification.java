@@ -53,6 +53,7 @@ public class MailNotification {
     private static final String INCOMPLETE_TRANSFILE_TEMPLATE = "/notifications/incomplete_transfile.template";
     private static final String SUBJECT_FOR_JOB_CREATED = "DANBIB:postmester";
     private static final String SUBJECT_FOR_JOB_COMPLETED = "DANBIB:baseindlaeg";
+    private static final String FROM_ADDRESS_PERSONAL_NAME = "DANBIB Fællesbruger";
 
     private final Session mailSession;
     private final NotificationEntity notification;
@@ -75,7 +76,7 @@ public class MailNotification {
             if (isUndefined(notification.getContent())) {
                 format();
             }
-            final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"));
+            final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"), FROM_ADDRESS_PERSONAL_NAME);
             final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
             Transport.send(buildMimeMessage(fromAddress, toAddresses));
         } catch (Exception e) {

@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.LinkedList;
@@ -37,21 +38,28 @@ import java.util.stream.Collectors;
 /**
  * <p>
  * Simple template engine taking a string template containing properties on
- * the form ${json_path} or using the date macro form __DATE__{json_path}
+ * the form ${json_path}, on the date macro form __DATE__{json_path}
+ * or using the sum macro form __SUM__{json_path_csv}
  * where json_path is a used to select property values from a given json document,
- * where each path element is separated by a dot '.'.
+ * where each path element is separated by a dot '.' and json_path_csv is a
+ * comma separated list of json_path's.
  * </p>
  * <p>
  * The json path given to the __DATE__ macro assumes that the selected property
  * value is a numeric value representing the number of milliseconds since
  * January 1, 1970, 00:00:00 GMT.
  * </p>
+ * <p>
+ * For each of the comma separated json paths given to the __SUM__ macro it is
+ * assumed that the selected property is a numeric integer value to be summed
+ * up.
+ * </p>
  */
 public class JsonValueTemplateEngine {
     private static final String EMPTY_VALUE = "";
 
     private final JSONBContext jsonbContext;
-    private final Pattern pattern = Pattern.compile("(\\$|__DATE__)\\{(.+?)\\}");
+    private final Pattern pattern = Pattern.compile("(\\$|__DATE__|__SUM__)\\{(.+?)\\}");
 
     public JsonValueTemplateEngine() {
         jsonbContext = new JSONBContext();
@@ -63,7 +71,7 @@ public class JsonValueTemplateEngine {
 
     /**
      * Applies property substitution to given template
-     * @param template template with ${json_path} or __DATE__{json_path} properties
+     * @param template template with ${json_path}, __DATE__{json_path} and __SUM__{json_path_csv} properties
      * @param json json value used to lookup property values
      * @return result of substituting property values in the template
      * @throws NullPointerException if given null-valued argument
@@ -81,10 +89,27 @@ public class JsonValueTemplateEngine {
         // StringBuilder cannot be used here because Matcher expects StringBuffer
         final StringBuffer buffer = new StringBuffer();
         while (matcher.find()) {
-            final String[] path = matcher.group(2).split("\\.");
-            String replacement = getReplacementValue(path, jsonTree);
-            if ("__DATE__".equals(matcher.group(1))) {
-                replacement = asDateString(replacement);
+            final String[] paths = matcher.group(2).split(",");
+            final ArrayList<String> replacements = new ArrayList<>(paths.length);
+
+            Arrays.stream(paths)
+                .map(path -> getReplacementValue(path.trim().split("\\."), jsonTree))
+                .filter(replacementList -> !replacementList.isEmpty())
+                .forEach(replacements::addAll);
+
+            final String replacement;
+            switch (matcher.group(1)) {
+                case "__DATE__": replacement = asDateString(replacements);
+                    break;
+                case "__SUM__": replacement = asSum(replacements);
+                    break;
+                default:
+                    if (replacements.isEmpty()) {
+                        replacement = EMPTY_VALUE;
+                    } else {
+                        replacement = replacements.stream()
+                                .collect(Collectors.joining("\n"));
+                    }
             }
             matcher.appendReplacement(buffer, Matcher.quoteReplacement(replacement));
         }
@@ -93,17 +118,16 @@ public class JsonValueTemplateEngine {
         return buffer.toString();
     }
 
-    private String getReplacementValue(String[] pathElements, JsonNode jsonTree) {
+    private ArrayList<String> getReplacementValue(String[] pathElements, JsonNode jsonTree) {
         final LinkedList<String> path = new LinkedList<>(Arrays.asList(pathElements));
-        if (path.isEmpty()) {
-            return EMPTY_VALUE;
+        final ArrayList<String> accumulator = new ArrayList<>();
+        if (!path.isEmpty()) {
+            getReplacementValue(path, jsonTree, accumulator);
         }
-        final LinkedList<String> accumulator = new LinkedList<>();
-        getReplacementValue(path, jsonTree, accumulator);
-        return accumulator.stream().collect(Collectors.joining("\n"));
+        return accumulator;
     }
 
-    private void getReplacementValue(LinkedList<String> path, JsonNode jsonTree, LinkedList<String> accumulator) {
+    private void getReplacementValue(LinkedList<String> path, JsonNode jsonTree, ArrayList<String> accumulator) {
         final JsonNode node;
         if (jsonTree.isArray() || path.isEmpty()) {
             node = jsonTree;
@@ -143,14 +167,23 @@ public class JsonValueTemplateEngine {
         }
     }
 
-    private String asDateString(String longValue) {
-        String dateString;
+    private String asDateString(ArrayList<String> replacements) {
         try {
-            final Long time = Long.valueOf(longValue);
-            dateString = new Date(time).toString();
-        } catch (Exception e) {
-            dateString = EMPTY_VALUE;
+            return replacements.isEmpty() ? EMPTY_VALUE
+                    : new Date(Long.valueOf(replacements.get(0))).toString();
+        } catch (NumberFormatException e) {
+            return EMPTY_VALUE;
         }
-        return dateString;
+    }
+
+    private String asSum(ArrayList<String> replacements) {
+        try {
+            return replacements.isEmpty() ? EMPTY_VALUE
+                    : String.valueOf(replacements.stream()
+                        .mapToLong(Long::valueOf)
+                        .sum());
+        } catch (NumberFormatException e) {
+            return EMPTY_VALUE;
+        }
     }
 }

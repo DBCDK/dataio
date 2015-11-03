@@ -30,7 +30,7 @@ import static org.junit.Assert.fail;
 
 public class JsonValueTemplateEngineTest {
     final JsonValueTemplateEngine templateEngine = new JsonValueTemplateEngine();
-    final String template = "key=${%s}";
+    final String template = "key=${ %s }";
     final String expectedEmptyScalarOutput = "key=";
     final String expectedScalarOutput = "key=text";
     final String expectedArrayOutput = "key=text1\ntext2";
@@ -182,6 +182,30 @@ public class JsonValueTemplateEngineTest {
         final String json = "{\"field\": \"NaN\"}";
         final String output = templateEngine.apply(template, json);
         assertThat(output, is("dateMacro="));
+    }
+
+    @Test
+    public void apply_templateContainsSumMacro() {
+        final String template = "sumMacro=__SUM__{field1, field2}";
+        final String json = "{\"field1\": " + 42 + ", \"field2\": " + 8 + "}";
+        final String output = templateEngine.apply(template, json);
+        assertThat(output, is("sumMacro=50"));
+    }
+
+    @Test
+    public void apply_templateContainsSumMacroSelectingNonExistingField() {
+        final String template = "sumMacro=__SUM__{field}";
+        final String json = "{}";
+        final String output = templateEngine.apply(template, json);
+        assertThat(output, is("sumMacro="));
+    }
+
+    @Test
+    public void apply_templateContainsSumMacroSelectingNonNumberField() {
+        final String template = "sumMacro=__SUM__{field}";
+        final String json = "{\"field\": \"NaN\"}";
+        final String output = templateEngine.apply(template, json);
+        assertThat(output, is("sumMacro="));
     }
 
     @Test

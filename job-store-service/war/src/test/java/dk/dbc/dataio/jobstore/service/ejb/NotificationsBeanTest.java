@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
+import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,40 +16,13 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
-/**
- * Created by ThomasBerg on 30/10/15.
- */
 public class NotificationsBeanTest {
-
+    private final JSONBContext jsonbContext = new JSONBContext();
     private NotificationsBean notificationsBean;
-    private JSONBContext jsonbContext;
-
-    private final String notificationRequestAsStringValid =
-        "{\n" +
-            "\t\"incompleteTransfileNotificationContext\": \n" +
-            "\t{\n" +
-                "\t\t\"transfileName\": \"Transfil navn\",\n" +
-                "\t\t\"transfileContent\": \"Transfil indhold\"\n" +
-            "\t},\n" +
-            "\t\"destinationEmail\": \"tdabberg@gmail.com\", \n" +
-            "\t\"notificationType\": \"INCOMPLETE_TRANSFILE\"\n" +
-        "}";
-
-    private final String notificationRequestAsStringInValid =
-        "{\n" +
-            "\t\"incompleteTransfileNotificationContext_ATTRIBUTE_INCOMPATIBLE_NAME\": \n" +
-            "\t{\n" +
-                "\t\t\"transfileName\": \"Transfil navn\",\n" +
-                "\t\t\"transfileContent\": \"Transfil indhold\"\n" +
-            "\t},\n" +
-            "\t\"destinationEmail\": \"tdabberg@gmail.com\", \n" +
-            "\t\"notificationType\": \"INCOMPLETE_TRANSFILE\"\n" +
-        "}";
 
     @Before
     public void setup() throws URISyntaxException {
         initializeNotificationBean();
-        jsonbContext = new JSONBContext();
     }
 
     private void initializeNotificationBean() {
@@ -55,18 +31,19 @@ public class NotificationsBeanTest {
     }
 
     @Test
-    public void addNotification_returnsResponseWithStatusOk() throws Exception {
-
-        final Response notificationResponse = notificationsBean.addNotification(notificationRequestAsStringValid);
+    public void addNotification_validNotificationsRequest_returnsResponseWithStatusOk() throws Exception {
+        final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext("name", "content");
+        final AddNotificationRequest request = new AddNotificationRequest("mail@company.com", context, JobNotification.Type.INCOMPLETE_TRANSFILE);
+        final Response notificationResponse = notificationsBean.addNotification(jsonbContext.marshall(request));
         assertThat(notificationResponse, is(notNullValue()));
         assertThat(notificationResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(notificationResponse.hasEntity(), is(false));
     }
 
     @Test
-    public void addNotificationInvalidNotificationRequestJson_returnsResponseWithStatusBadRequest() throws Exception {
-
-        final Response notificationResponse = notificationsBean.addNotification(notificationRequestAsStringInValid);
+    public void addNotification_invalidNotificationRequest_returnsResponseWithStatusBadRequest() throws Exception {
+        final String invalid = "{}";
+        final Response notificationResponse = notificationsBean.addNotification(invalid);
         assertThat(notificationResponse, is(notNullValue()));
         assertThat(notificationResponse.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat(notificationResponse.hasEntity(), is(true));

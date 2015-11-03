@@ -26,10 +26,9 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
@@ -48,12 +47,10 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
  */
 @Path("/")
 public class NotificationsBean {
+    private final JSONBContext jsonbContext = new JSONBContext();
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotificationsBean.class);
-
-    JSONBContext jsonbContext = new JSONBContext();
-
-    @EJB JobNotificationRepository jobNotificationRepository;
+    @EJB
+    JobNotificationRepository jobNotificationRepository;
 
     /**
      * This is a dummy service for TEST purposes.
@@ -68,29 +65,30 @@ public class NotificationsBean {
     }
 
     /**
-     *  Adds a Notification for later processing.
-     *
-     * @param   notificationRequestAsJsonString JSON representation of the @AddNotificationRequest
-     * @return   a HTTP 200 OK response if notification data is valid,
-     *           a HTTP 400 BAD_REQUEST response on invalid json content,
-     *
-     * @throws JSONBException   on marshalling failure
+     * Adds a Notification for later processing
+     * @param jsonRequest JSON representation of an {@link AddNotificationRequest} instance
+     * @return a HTTP 200 OK response with {@link JobNotification} entity if notification data is valid,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content
+     * @throws JSONBException on marshalling failure
      */
     @POST
     @Path(JobStoreServiceConstants.NOTIFICATIONS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Stopwatch
-    public Response addNotification(String notificationRequestAsJsonString) throws JSONBException {
-
+    public Response addNotification(String jsonRequest) throws JSONBException {
+        final AddNotificationRequest addNotificationRequest;
         try{
-            AddNotificationRequest addNotificationRequest = jsonbContext.unmarshall(notificationRequestAsJsonString, AddNotificationRequest.class);
-            String notificationContext = jsonbContext.marshall(addNotificationRequest.getIncompleteTransfileNotificationContext());
-            jobNotificationRepository.addNotification(addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), notificationContext);
-            return Response.ok().build();
+            addNotificationRequest = jsonbContext.unmarshall(jsonRequest, AddNotificationRequest.class);
         } catch (JSONBException e) {
             return Response.status(BAD_REQUEST)
                     .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
+        final String notificationContext = jsonbContext.marshall(
+                addNotificationRequest.getIncompleteTransfileNotificationContext());
+        final JobNotification jobNotification = jobNotificationRepository.addNotification(
+                addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), notificationContext)
+                .toJobNotification();
+        return Response.ok().entity(jsonbContext.marshall(jobNotification)).build();
     }
 }

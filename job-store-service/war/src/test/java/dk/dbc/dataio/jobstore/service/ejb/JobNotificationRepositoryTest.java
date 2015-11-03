@@ -134,7 +134,7 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void getNotificationsForJob_repositoryQueryReturnsEmptyResultList_returnsEmptyList() {
+    public void getNotifications_repositoryQueryReturnsEmptyResultList_returnsEmptyList() {
         final Query query = mock(Query.class);
         when(entityManager.createQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyString(), any())).thenReturn(query);
@@ -147,7 +147,7 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void getNotificationsForJob_repositoryQueryReturnsNonEmptyResultList_returns() {
+    public void getNotifications_repositoryQueryReturnsNonEmptyResultList_returns() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         final List<NotificationEntity> entities = Arrays.asList(
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
@@ -172,7 +172,7 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void addNotificationWithJob_persistsAndReturnsEntityInWaitingState() {
+    public void addNotification_withJob_persistsAndReturnsEntityInWaitingState() {
         final JobEntity jobEntity = new JobEntity();
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
@@ -185,7 +185,7 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void addNotificationIncompleteTransfile_persistsAndReturnsEntityInWaitingState() throws JSONBException {
+    public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JSONBException {
         final IncompleteTransfileNotificationContext context =
                 new IncompleteTransfileNotificationContext("transfileName", "transfileContent");
         final String contextAsJson = jsonbContext.marshall(context);

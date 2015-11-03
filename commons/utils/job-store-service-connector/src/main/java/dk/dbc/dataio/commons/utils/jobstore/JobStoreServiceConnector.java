@@ -178,8 +178,13 @@ public class JobStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(request, "request");
-            final Response response = HttpClient.doPostWithJson(httpClient, request,
-                    baseUrl, JobStoreServiceConstants.NOTIFICATIONS);
+            final Response response;
+            try {
+                response = HttpClient.doPostWithJson(httpClient, request,
+                        baseUrl, JobStoreServiceConstants.NOTIFICATIONS);
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, JobNotification.class);

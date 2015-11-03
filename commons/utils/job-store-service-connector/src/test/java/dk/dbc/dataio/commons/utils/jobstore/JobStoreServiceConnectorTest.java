@@ -37,6 +37,8 @@ import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
+import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -653,6 +655,51 @@ public class JobStoreServiceConnectorTest {
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
 
+    // ******************************************* addNotification() tests *******************************************
+
+    @Test(expected = NullPointerException.class)
+    public void addNotification_requestArgIsNull_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        jobStoreServiceConnector.addNotification(null);
+    }
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void addNotification_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        callAddNotificationAndReturnMockedHttpResponse(Response.Status.OK, null);
+    }
+
+    @Test
+    public void addNotification_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        try {
+            callAddNotificationAndReturnMockedHttpResponse(Response.Status.BAD_REQUEST, jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void addNotification_onProcessingException_throws() {
+        final AddNotificationRequest request = getAddNotificationRequest();
+        when(HttpClient.doPostWithJson(CLIENT, request, JOB_STORE_URL, JobStoreServiceConstants.NOTIFICATIONS))
+                .thenThrow(new ProcessingException("Connection reset"));
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.addNotification(request);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void addNotification_notificationIsAdded_returnsJobNotification() throws JobStoreServiceConnectorException {
+        final JobNotification expectedJobNotification = new JobNotification();
+        final JobNotification jobNotification = callAddNotificationAndReturnMockedHttpResponse(Response.Status.OK, expectedJobNotification);
+        assertThat(jobNotification, is(expectedJobNotification));
+    }
+
     /*
      * Private methods
      */
@@ -736,6 +783,14 @@ public class JobStoreServiceConnectorTest {
         return instance.getProcessedNextResult(jobId, chunkId, itemId);
     }
 
+    private JobNotification callAddNotificationAndReturnMockedHttpResponse(Response.Status statusCode, Object returnValue) throws JobStoreServiceConnectorException {
+        final AddNotificationRequest request = getAddNotificationRequest();
+        when(HttpClient.doPostWithJson(CLIENT, request, JOB_STORE_URL, JobStoreServiceConstants.NOTIFICATIONS))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.addNotification(request);
+    }
+
     private String[] buildAddChunkPath(long jobId, long chunkId, String pathString) {
         return new PathBuilder(pathString)
                 .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, jobId)
@@ -759,6 +814,11 @@ public class JobStoreServiceConnectorTest {
     private static JobInputStream getNewJobInputStream() {
         final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
         return new JobInputStream(jobSpecification, false, PART_NUMBER);
+    }
+
+    private static AddNotificationRequest getAddNotificationRequest() {
+        final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext("name", "content");
+        return new AddNotificationRequest("mail@company.com", context, JobNotification.Type.INCOMPLETE_TRANSFILE);
     }
 
     private static JobStoreServiceConnector newJobStoreServiceConnector() {

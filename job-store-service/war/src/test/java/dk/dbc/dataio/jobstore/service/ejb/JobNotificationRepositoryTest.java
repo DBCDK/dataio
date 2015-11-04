@@ -25,8 +25,9 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -185,14 +186,10 @@ public class JobNotificationRepositoryTest {
     }
 
     @Test
-    public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JSONBException {
-        final IncompleteTransfileNotificationContext context =
-                new IncompleteTransfileNotificationContext("transfileName", "transfileContent");
-        final String contextAsJson = jsonbContext.marshall(context);
-
+    public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JSONBException, JobStoreException {
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
-                JobNotification.Type.INCOMPLETE_TRANSFILE, destination, contextAsJson);
+                JobNotification.Type.INCOMPLETE_TRANSFILE, destination, new NotificationContext() {});
 
         assertThat("getStatus()", notificationEntity.getStatus(), is(JobNotification.Status.WAITING));
         assertThat("getType()", notificationEntity.getType(), is(JobNotification.Type.INCOMPLETE_TRANSFILE));
@@ -233,4 +230,6 @@ public class JobNotificationRepositoryTest {
         notification.setJob(jobEntity);
         return notification;
     }
+
+    public static class NotificationContextImpl implements NotificationContext { }
 }

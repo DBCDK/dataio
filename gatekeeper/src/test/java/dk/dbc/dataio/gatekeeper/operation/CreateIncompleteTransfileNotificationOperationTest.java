@@ -52,6 +52,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("Duplicates")
 public class CreateIncompleteTransfileNotificationOperationTest {
     private final MockedJobStoreServiceConnector jobStoreServiceConnector = new MockedJobStoreServiceConnector();
     private final Path workingDir = Paths.get("wd");
@@ -124,7 +125,7 @@ public class CreateIncompleteTransfileNotificationOperationTest {
         final AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
         assertThat("Notification destination", request.getDestinationEmail(), is(Constants.MISSING_FIELD_VALUE));
         assertThat("Notification type", request.getNotificationType(), is(JobNotification.Type.INCOMPLETE_TRANSFILE));
-        final IncompleteTransfileNotificationContext context = request.getIncompleteTransfileNotificationContext();
+        final IncompleteTransfileNotificationContext context = (IncompleteTransfileNotificationContext) request.getContext();
         assertThat("Notification context", context, is(notNullValue()));
         assertThat("Context transfile name", context.getTransfileName(), is(transfileName));
         assertThat("Context transfile content", context.getTransfileContent(), is(transfileData));

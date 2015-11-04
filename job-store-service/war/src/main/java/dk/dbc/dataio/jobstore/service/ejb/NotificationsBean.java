@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -74,8 +75,9 @@ public class NotificationsBean {
     @POST
     @Path(JobStoreServiceConstants.NOTIFICATIONS)
     @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
-    public Response addNotification(String jsonRequest) throws JSONBException {
+    public Response addNotification(String jsonRequest) throws JSONBException, JobStoreException {
         final AddNotificationRequest addNotificationRequest;
         try{
             addNotificationRequest = jsonbContext.unmarshall(jsonRequest, AddNotificationRequest.class);
@@ -84,10 +86,8 @@ public class NotificationsBean {
                     .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
-        final String notificationContext = jsonbContext.marshall(
-                addNotificationRequest.getIncompleteTransfileNotificationContext());
         final JobNotification jobNotification = jobNotificationRepository.addNotification(
-                addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), notificationContext)
+                addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), addNotificationRequest.getContext())
                 .toJobNotification();
         return Response.ok().entity(jsonbContext.marshall(jobNotification)).build();
     }

@@ -2,7 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
-import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -15,6 +14,7 @@ import java.net.URISyntaxException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -37,11 +37,12 @@ public class NotificationsBeanTest {
 
     @Test
     public void addNotification_validNotificationsRequest_returnsResponseWithStatusOk() throws Exception {
-        when(jobNotificationRepository.addNotification(eq(JobNotification.Type.INCOMPLETE_TRANSFILE), anyString(), anyString()))
+        when(jobNotificationRepository.addNotification(eq(JobNotification.Type.INCOMPLETE_TRANSFILE), anyString(),
+                any(JobNotificationRepositoryTest.NotificationContextImpl.class)))
                 .thenReturn(new NotificationEntity());
 
-        final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext("name", "content");
-        final AddNotificationRequest request = new AddNotificationRequest("mail@company.com", context, JobNotification.Type.INCOMPLETE_TRANSFILE);
+        final AddNotificationRequest request = new AddNotificationRequest("mail@company.com",
+                new JobNotificationRepositoryTest.NotificationContextImpl(), JobNotification.Type.INCOMPLETE_TRANSFILE);
         final Response notificationResponse = notificationsBean.addNotification(jsonbContext.marshall(request));
         assertThat("Response", notificationResponse, is(notNullValue()));
         assertThat("Response status", notificationResponse.getStatus(), is(Response.Status.OK.getStatusCode()));

@@ -26,31 +26,30 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 public class AddNotificationRequest {
-
     private String destinationEmail;
-    private IncompleteTransfileNotificationContext incompleteTransfileNotificationContext;
+    private NotificationContext context;
     private JobNotification.Type notificationType;
 
     @JsonCreator
     public AddNotificationRequest(
             @JsonProperty("destinationEmail") String destinationEmail,
-            @JsonProperty ("incompleteTransfileNotificationContext") IncompleteTransfileNotificationContext incompleteTransfileNotificationContext,
+            @JsonProperty ("context") NotificationContext context,
             @JsonProperty ("notificationType") JobNotification.Type notificationType) {
 
         InvariantUtil.checkNotNullOrThrow(destinationEmail, "destinationEmail");
-        InvariantUtil.checkNotNullOrThrow(incompleteTransfileNotificationContext, "incompleteTransfileNotificationContext");
+        InvariantUtil.checkNotNullOrThrow(context, "context");
         InvariantUtil.checkNotNullOrThrow(notificationType, "notificationType");
 
         this.destinationEmail = destinationEmail;
-        this.incompleteTransfileNotificationContext = incompleteTransfileNotificationContext;
+        this.context = context;
         this.notificationType = notificationType;
     }
 
     public String getDestinationEmail() {
         return destinationEmail;
     }
-    public IncompleteTransfileNotificationContext getIncompleteTransfileNotificationContext() {
-        return incompleteTransfileNotificationContext;
+    public NotificationContext getContext() {
+        return context;
     }
     public JobNotification.Type getNotificationType() {
         return notificationType;

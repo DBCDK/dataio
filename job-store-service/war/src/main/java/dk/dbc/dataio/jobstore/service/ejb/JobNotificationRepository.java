@@ -29,6 +29,9 @@ import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.NotificationContext;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +58,8 @@ public class JobNotificationRepository extends RepositoryBase {
             "SELECT n from NotificationEntity n WHERE n.status=:status ORDER BY n.id ASC";
     private static final String SELECT_NOTIFICATIONS_BY_JOB_STATEMENT =
             "SELECT n from NotificationEntity n WHERE n.jobId=:jobId ORDER BY n.id ASC";
+
+    private JSONBContext jsonbContext = new JSONBContext();
 
     @Resource
     SessionContext sessionContext;
@@ -150,19 +155,22 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     /**
-     *
-     * @param notificationType              type of notification
-     * @param mailDestination               destination of mail
-     * @param notificationContextAsJson     JSON representation of Notification Context
-     * @return                              created notification entity
+     *  Adds waiting notification entity of given type with given context
+     * @param notificationType type of notification
+     * @param mailDestination destination of mail
+     * @param context notification Context
+     * @return created notification entity
      */
-    public NotificationEntity addNotification(JobNotification.Type notificationType, String mailDestination, String notificationContextAsJson) {
-
+    public NotificationEntity addNotification(JobNotification.Type notificationType, String mailDestination, NotificationContext context) throws JobStoreException {
         final NotificationEntity notificationEntity = new NotificationEntity();
         notificationEntity.setStatus(WAITING);
         notificationEntity.setType(notificationType);
         notificationEntity.setDestination(mailDestination);
-        notificationEntity.setContext(notificationContextAsJson);
+        try {
+            notificationEntity.setContext(jsonbContext.marshall(context));
+        } catch (JSONBException e) {
+            throw new JobStoreException("Unable to marshall notification context", e);
+        }
         syncedPersist(notificationEntity);
         return notificationEntity;
     }

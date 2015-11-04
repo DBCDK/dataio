@@ -25,11 +25,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
-/**
- * Created by ThomasBerg on 26/10/15.
- */
-public class IncompleteTransfileNotificationContext {
-
+public class IncompleteTransfileNotificationContext implements NotificationContext {
     private String transfileName;
     private String transfileContent;
 

@@ -7,6 +7,7 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateInstance;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This mapper is responsible for mapping between a UpdateRecordResult received from the OpenUpdate
@@ -30,13 +31,13 @@ public class UpdateRecordResponseMapper<OpenUpdateWebServiceResponse extends Upd
      * map is responsible for mapping the web service response to the DTO
      * @return OpenUpdateRosponseDTO which can generate JSON
      */
-    public OpenUpdateResponseDTO map() {
+    public OpenUpdateResponseDTO map(UUID trackingId) {
 
         OpenUpdateResponseDTO dto = null;
 
         if(openUpdateWebServiceResponse != null) {
 
-            dto = new OpenUpdateResponseDTO();
+            dto = new OpenUpdateResponseDTO(trackingId);
             this.mapStatus(openUpdateWebServiceResponse.getUpdateStatus(), dto);
 
             if(dto.getStatus() != OpenUpdateResponseDTO.Status.OK) {

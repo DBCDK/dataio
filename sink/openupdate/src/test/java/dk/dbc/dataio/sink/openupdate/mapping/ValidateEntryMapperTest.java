@@ -13,6 +13,7 @@ import org.junit.Test;
 import javax.xml.bind.JAXBException;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -55,23 +56,25 @@ public class ValidateEntryMapperTest {
 
     @Test
     public void testMap_ok() throws Exception {
-
-        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_ok).map();
+        final UUID expectedTrackingId = UUID.randomUUID();
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_ok).map(expectedTrackingId);
         String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
 
         final JsonNode jsonTree = jsonbContext.getJsonTree(json);
         final List<JsonNode> status = jsonTree.findValues("status");
+        final List<JsonNode> trackingId = jsonTree.findValues("trackingId");
 
         assertNotNull(status);
         assertTrue(status.size() == 1);
         assertEquals("OK", status.get(0).asText());
+        assertEquals(expectedTrackingId.toString(), trackingId.get(0).asText());
     }
 
     @Test
     public void testMap_validationError_asJson() throws Exception {
 
-        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_validation).map();
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_validation).map(UUID.randomUUID());
         final String json = openUpdateResponseDTO.asJson();
         assertNotNull(json);
 
@@ -99,8 +102,8 @@ public class ValidateEntryMapperTest {
 
     @Test
     public void testMap_validationError_asXml() throws JAXBException {
-
-        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_validation).map();
+        final UUID expectedTrackingId = UUID.randomUUID();
+        OpenUpdateResponseDTO openUpdateResponseDTO = new UpdateRecordResponseMapper<>(this.dummyUpdateRecordResult_validation).map(expectedTrackingId);
         final String xml = openUpdateResponseDTO.asXml();
         assertNotNull(xml);
         assertTrue(xml.contains("errorMessages"));
@@ -109,5 +112,6 @@ public class ValidateEntryMapperTest {
         assertTrue(xml.contains("type"));
         assertTrue(xml.contains("ordinalPositionOfField"));
         assertTrue(xml.contains("ordinalPositionOfSubField"));
+        assertTrue(xml.contains("trackingId"));
     }
 }

@@ -44,6 +44,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -52,6 +53,8 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
 
 public class OpenUpdateServiceConnectorIT {
+    private static final String INVALID_SCHEMA =  "fisk";
+    private static final String expectedTrackingId = "efd0db60-87db-40c8-8b0f-2c164ce49dfc";
     private static final String UPDATE_TEMPLATE_ATTRIBUTE_VALUE = "dbc";
     private static final String FAILED_UPDATE_MARC = "/870970.failedUpdateInternalError.xml";
     private static final String VALIDATION_ERROR_MARC = "/820040.validationError.xml";
@@ -59,6 +62,18 @@ public class OpenUpdateServiceConnectorIT {
     private static final String SYSTEM_PROPERTY = System.getProperty("wiremock.port", "8998");
 
     private final String wireMockEndpoint = "http://localhost:" + SYSTEM_PROPERTY + "/CatalogingUpdateServices/UpdateService";
+    /*
+    Remember to download wiremock jar file from this location:
+    http://repo1.maven.org/maven2/com/github/tomakehurst/wiremock/1.57/wiremock-1.57-standalone.jar
+
+    To record test run this in a command line:
+    java -jar wiremock-1.57-standalone.jar --port 9999 --proxy-all="http://fbstest-i01:2080/" --record-mappings —verbose
+    OBS use beneath wireMockEndpoint when recording instead of above!
+    port 9999 for recording
+    port 8998 for testing
+    */
+//    private String wireMockEndpoint = "http://localhost:" + System.getProperty("wiremock.port", "9999") +"/CatalogingUpdateServices/UpdateService";
+
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(SYSTEM_PROPERTY));
@@ -107,7 +122,7 @@ public class OpenUpdateServiceConnectorIT {
     public void updateRecord_templateArgIsNull_throws() {
         final OpenUpdateServiceConnector connector = getConnector();
         try {
-            connector.updateRecord(null, new BibliographicRecord());
+                callUpdateRecordOnConnector(connector, null, new BibliographicRecord());
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
@@ -116,7 +131,7 @@ public class OpenUpdateServiceConnectorIT {
     public void updateRecord_templateArgIsEmpty_throws() {
         final OpenUpdateServiceConnector connector = getConnector();
         try {
-            connector.updateRecord("", new BibliographicRecord());
+            callUpdateRecordOnConnector(connector, "", new BibliographicRecord());
             fail("No Exception thrown");
         } catch (IllegalArgumentException e) { }
     }
@@ -125,20 +140,19 @@ public class OpenUpdateServiceConnectorIT {
     public void updateRecord_bibliographicalRecordIsNull_throws() {
         final OpenUpdateServiceConnector connector = getConnector();
         try {
-            connector.updateRecord(UPDATE_TEMPLATE_ATTRIBUTE_VALUE, null);
+            callUpdateRecordOnConnector(connector, UPDATE_TEMPLATE_ATTRIBUTE_VALUE, null);
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
 
     @Test
     public void updateRecord_callsServiceWithInvalidSchema_validationFailedWithInvalidSchema() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta("fisk"), readTestRecord(FAILED_UPDATE_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(INVALID_SCHEMA), readTestRecord(FAILED_UPDATE_MARC)));
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor(addiRecord);
+        final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = getConnector().updateRecord(
-                preprocessor.getTemplate(),
-                preprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -150,11 +164,10 @@ public class OpenUpdateServiceConnectorIT {
     public void updateRecord_callsServiceWithInvalidMarc_validationFailedWithValidationError() throws IOException, URISyntaxException {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(UPDATE_TEMPLATE_ATTRIBUTE_VALUE), readTestRecord(VALIDATION_ERROR_MARC)));
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor(addiRecord);
+        final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = getConnector().updateRecord(
-                preprocessor.getTemplate(),
-                preprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult not null", updateRecordResult, not(nullValue()));
@@ -175,11 +188,10 @@ public class OpenUpdateServiceConnectorIT {
     public void updateRecord_callsServiceWithInsufficientRights_validationFailedWithFailedUpdateInternalError() throws IOException, URISyntaxException {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(UPDATE_TEMPLATE_ATTRIBUTE_VALUE), readTestRecord(FAILED_UPDATE_MARC)));
         AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = getConnector().updateRecord(
-                addiRecordPreprocessor.getTemplate(),
-                addiRecordPreprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -197,13 +209,13 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithAllArgsAreValid_validationOk() throws IOException, URISyntaxException {
+
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(UPDATE_TEMPLATE_ATTRIBUTE_VALUE), readTestRecord(VALIDATION_OK_MARC)));
         AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = getConnector().updateRecord(
-                addiRecordPreprocessor.getTemplate(),
-                addiRecordPreprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -211,15 +223,16 @@ public class OpenUpdateServiceConnectorIT {
         assertThat("validateInstance is null", updateRecordResult.getValidateInstance(), is(nullValue()));
     }
 
-
     /*
      * Private methods
      */
+    private UpdateRecordResult callUpdateRecordOnConnector(OpenUpdateServiceConnector connector, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
+        return connector.updateRecord(template, bibliographicRecord, UUID.fromString(expectedTrackingId));
+    }
 
     private OpenUpdateServiceConnector getConnector() {
         return new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint);
     }
-
 
     private AddiRecord toAddiRecord(byte[] data) {
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(data));
@@ -254,5 +267,4 @@ public class OpenUpdateServiceConnectorIT {
         resPath = Paths.get(url.toURI());
         return Files.readAllBytes(resPath);
     }
-
 }

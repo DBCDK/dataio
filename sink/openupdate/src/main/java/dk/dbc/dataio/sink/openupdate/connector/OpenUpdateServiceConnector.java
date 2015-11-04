@@ -30,6 +30,7 @@ import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 
 import javax.xml.ws.BindingProvider;
+import java.util.UUID;
 
 /**
  * Open Update web service connector
@@ -78,16 +79,18 @@ public class OpenUpdateServiceConnector {
      * Calls updateRecord operation of the Open Update Web service
      * @param template the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
+     * @param trackingId unique ID for each OpenUpdate request
      * @return UpdateRecordRequest instance
      * @throws NullPointerException if passed any null valued {@code template} or {@code bibliographicRecord} argument
      * @throws IllegalArgumentException if passed empty valued {@code template}
      */
-    public UpdateRecordResult updateRecord(String template, BibliographicRecord bibliographicRecord)
+    public UpdateRecordResult updateRecord(String template, BibliographicRecord bibliographicRecord, final UUID trackingId)
             throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(template, "template");
         InvariantUtil.checkNotNullOrThrow(bibliographicRecord, "bibliographicRecord");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(trackingId.toString(), "trackingid");
 
-        final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(template, bibliographicRecord);
+        final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(template, bibliographicRecord, trackingId);
         return getProxy().updateRecord(updateRecordRequest);
     }
 
@@ -100,9 +103,10 @@ public class OpenUpdateServiceConnector {
      * Builds an UpdateRecordRequest
      * @param schemaName the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
+     * @param trackingId unique ID for each OpenUpdate request
      * @return a new updateRecordRequest containing schemeName and bibliographicRecord
      */
-    private UpdateRecordRequest buildUpdateRecordRequest(String schemaName, BibliographicRecord bibliographicRecord) {
+    private UpdateRecordRequest buildUpdateRecordRequest(String schemaName, BibliographicRecord bibliographicRecord, UUID trackingId) {
         UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
         Authentication authentication = new Authentication();
         authentication.setGroupIdAut(GROUP_ID);
@@ -111,6 +115,7 @@ public class OpenUpdateServiceConnector {
         updateRecordRequest.setAuthentication(authentication);
         updateRecordRequest.setSchemaName(schemaName);
         updateRecordRequest.setBibliographicRecord(bibliographicRecord);
+        updateRecordRequest.setTrackingId(trackingId.toString());
         return updateRecordRequest;
     }
 

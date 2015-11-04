@@ -32,6 +32,7 @@ import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
@@ -46,6 +47,7 @@ public class AddiRecordsToItemWrapper {
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
+    private UUID trackingId;
 
     /**
      *
@@ -96,30 +98,34 @@ public class AddiRecordsToItemWrapper {
     // Package scoped for test reasons - originally private visibility.
     AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex) {
         this.addiRecordIndex = addiRecordIndex + 1;
+        trackingId = UUID.randomUUID();
         try {
             AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     addiRecordPreprocessor.getTemplate(),
-                    addiRecordPreprocessor.getMarcXChangeRecord());
-            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<UpdateRecordResult>(webserviceResult).map();
+                    addiRecordPreprocessor.getMarcXChangeRecord(),
+                    trackingId);
+            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<UpdateRecordResult>(webserviceResult).map(trackingId);
 
             if(mappedWebServiceResult.getStatus() == OpenUpdateResponseDTO.Status.OK) {
                 crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );
                 return AddiStatus.OK;
             } else {
-                crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_VALIDATION) + mappedWebServiceResult.asXml() );
+                crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
+                crossAddiRecordsMessage.append(mappedWebServiceResult.asXml());
                 return AddiStatus.FAILED_VALIDATION;
             }
         } catch (Throwable t) {
-            crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE) + getStackTraceAsString(t) );
+            crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
+            crossAddiRecordsMessage.append(getStackTraceAsString(t));
             return AddiStatus.FAILED_STACKTRACE;
         }
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {
-        final String itemResultTemplate = "Addi record: %s out of %s -> %s \\n";
-        return String.format(itemResultTemplate, addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
+        final String itemResultTemplate = "Addi record with OpenUpdate trackingID %s : %s out of %s -> %s \\n";
+        return String.format(itemResultTemplate, trackingId, addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
     }
 
     private String getItemContentCrossAddiRecords() {

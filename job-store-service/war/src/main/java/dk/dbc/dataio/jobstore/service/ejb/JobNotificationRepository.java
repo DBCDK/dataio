@@ -160,6 +160,7 @@ public class JobNotificationRepository extends RepositoryBase {
      * @param mailDestination destination of mail
      * @param context notification Context
      * @return created notification entity
+     * @throws JobStoreException on internal failure to marshall notification context
      */
     public NotificationEntity addNotification(JobNotification.Type notificationType, String mailDestination, NotificationContext context) throws JobStoreException {
         final NotificationEntity notificationEntity = new NotificationEntity();

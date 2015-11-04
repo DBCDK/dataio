@@ -70,25 +70,33 @@ public class NotificationsBean {
      * @param jsonRequest JSON representation of an {@link AddNotificationRequest} instance
      * @return a HTTP 200 OK response with {@link JobNotification} entity if notification data is valid,
      *         a HTTP 400 BAD_REQUEST response on invalid json content
-     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on internal failure to marshall notification context
      */
     @POST
     @Path(JobStoreServiceConstants.NOTIFICATIONS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
-    public Response addNotification(String jsonRequest) throws JSONBException, JobStoreException {
+    public Response addNotification(String jsonRequest) throws JobStoreException {
         final AddNotificationRequest addNotificationRequest;
         try{
             addNotificationRequest = jsonbContext.unmarshall(jsonRequest, AddNotificationRequest.class);
         } catch (JSONBException e) {
             return Response.status(BAD_REQUEST)
-                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .entity(marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
         }
         final JobNotification jobNotification = jobNotificationRepository.addNotification(
                 addNotificationRequest.getNotificationType(), addNotificationRequest.getDestinationEmail(), addNotificationRequest.getContext())
                 .toJobNotification();
-        return Response.ok().entity(jsonbContext.marshall(jobNotification)).build();
+        return Response.ok().entity(marshall(jobNotification)).build();
+    }
+
+    private String marshall(Object object) throws JobStoreException {
+        try {
+            return jsonbContext.marshall(object);
+        } catch (JSONBException e) {
+            throw new JobStoreException("Unable to marshall object", e);
+        }
     }
 }

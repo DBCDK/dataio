@@ -88,7 +88,7 @@ public class SinksBean extends AbstractResourceBean {
      * Creates a new sink
      *
      * @param uriInfo URI information
-     * @param sinkContentString The content of the Sink
+     * @param sinkContent The content of the Sink
      *
      * @return a HTTP 201 response with sink content as JSON,
      *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
@@ -100,13 +100,13 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINKS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createSink(@Context UriInfo uriInfo, String sinkContentString) throws JSONBException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContentString, SINK_CONTENT_DISPLAY_TEXT);
+    public Response createSink(@Context UriInfo uriInfo, String sinkContent) throws JSONBException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
 
         // unmarshall to SinkContent to make sure the input is valid
-        jsonbContext.unmarshall(sinkContentString, SinkContent.class);
+        jsonbContext.unmarshall(sinkContent, SinkContent.class);
 
-        final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContentString);
+        final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContent);
         entityManager.flush();
         final String sinkJson = jsonbContext.marshall(sink);
         return Response

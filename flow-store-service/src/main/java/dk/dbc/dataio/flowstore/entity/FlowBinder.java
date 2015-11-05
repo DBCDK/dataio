@@ -127,7 +127,7 @@ public class FlowBinder extends VersionedEntity {
     // sink is accessed through java EE, so we will suppress pmd-warnings
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = SINK_JOIN_COLUMN)
-    private Sink sink; // NOPMD
+    private SinkEntity sinkEntity; // NOPMD
 
     @Transient
     private Long flowId;
@@ -161,8 +161,8 @@ public class FlowBinder extends VersionedEntity {
         this.submitters = new HashSet<>(submitters);
     }
 
-    public void setSink(Sink sink) {
-        this.sink = sink;
+    public void setSinkEntity(SinkEntity sinkEntity) {
+        this.sinkEntity = sinkEntity;
     }
 
     String getNameIndexValue() {

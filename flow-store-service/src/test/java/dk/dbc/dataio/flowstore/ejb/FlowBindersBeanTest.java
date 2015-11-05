@@ -36,7 +36,7 @@ import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
-import dk.dbc.dataio.flowstore.entity.Sink;
+import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.flowstore.util.ServiceUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -309,7 +309,7 @@ public class FlowBindersBeanTest {
 
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
         when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
-        when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(null);
+        when(ENTITY_MANAGER.find(eq(SinkEntity.class), anyLong())).thenReturn(null);
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.singletonList(new FlowBinderSearchIndexEntry()));
@@ -345,7 +345,7 @@ public class FlowBindersBeanTest {
 
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
         when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
-        when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(new Sink());
+        when(ENTITY_MANAGER.find(eq(SinkEntity.class), anyLong())).thenReturn(new SinkEntity());
         when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(null);
 
         when(ENTITY_MANAGER.createNamedQuery(FlowBinder.QUERY_FIND_ALL_SEARCH_INDEXES_FOR_FLOWBINDER)).thenReturn(query);
@@ -370,7 +370,7 @@ public class FlowBindersBeanTest {
 
         when(ENTITY_MANAGER.find(eq(FlowBinder.class), any(Long.class))).thenReturn(new FlowBinder());
         when(ENTITY_MANAGER.find(eq(Flow.class), anyLong())).thenReturn(new Flow());
-        when(ENTITY_MANAGER.find(eq(Sink.class), anyLong())).thenReturn(new Sink());
+        when(ENTITY_MANAGER.find(eq(SinkEntity.class), anyLong())).thenReturn(new SinkEntity());
         when(ENTITY_MANAGER.find(eq(Submitter.class), anyLong())).thenReturn(submitter);
 
         when(flowBindersBean.jsonbContext.unmarshall(eq(flowBinderContentJson), eq(FlowBinderContent.class))).thenReturn(new FlowBinderContentBuilder().build());
@@ -443,7 +443,7 @@ public class FlowBindersBeanTest {
         FlowBinder flowBinder = new FlowBinder();
         flowBinder.setVersion(FLOW_BINDER_VERSION);
         flowBinder.setFlow(testFlow());
-        flowBinder.setSink(testSink());
+        flowBinder.setSinkEntity(testSink());
         flowBinder.setContent(new FlowBinderContentJsonBuilder().build());
         flowBinder.setSubmitters(testSubmitters());
         return flowBinder;
@@ -456,10 +456,10 @@ public class FlowBindersBeanTest {
         return flow;
     }
 
-    private Sink testSink() throws JSONBException {
-        final Sink sink = new Sink();
-        sink.setContent(new SinkContentJsonBuilder().build());
-        return sink;
+    private SinkEntity testSink() throws JSONBException {
+        final SinkEntity sinkEntity = new SinkEntity();
+        sinkEntity.setContent(new SinkContentJsonBuilder().build());
+        return sinkEntity;
     }
 
     private Set<Submitter> testSubmitters() throws JSONBException {

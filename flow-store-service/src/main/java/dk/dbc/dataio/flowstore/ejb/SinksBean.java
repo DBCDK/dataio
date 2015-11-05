@@ -24,7 +24,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.flowstore.entity.Sink;
+import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -72,14 +72,14 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINK)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JSONBException {
-        final Sink sink = entityManager.find(Sink.class, id);
-        if (sink == null) {
+        final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, id);
+        if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response
                 .ok()
-                .entity(jsonbContext.marshall(sink))
-                .tag(sink.getVersion().toString())
+                .entity(jsonbContext.marshall(sinkEntity))
+                .tag(sinkEntity.getVersion().toString())
                 .build();
     }
 
@@ -106,13 +106,13 @@ public class SinksBean extends AbstractResourceBean {
         // unmarshall to SinkContent to make sure the input is valid
         jsonbContext.unmarshall(sinkContent, SinkContent.class);
 
-        final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContent);
+        final SinkEntity sinkEntity = saveAsVersionedEntity(entityManager, SinkEntity.class, sinkContent);
         entityManager.flush();
-        final String sinkJson = jsonbContext.marshall(sink);
+        final String sinkJson = jsonbContext.marshall(sinkEntity);
         return Response
-                .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sink))
+                .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sinkEntity))
                 .entity(sinkJson)
-                .tag(sink.getVersion().toString())
+                .tag(sinkEntity.getVersion().toString())
                 .build();
     }
 
@@ -143,7 +143,7 @@ public class SinksBean extends AbstractResourceBean {
         // unmarshall to SinkContent to make sure the input is valid
         jsonbContext.unmarshall(sinkContent, SinkContent.class);
 
-        final Sink sinkEntity = entityManager.find(Sink.class, id);
+        final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, id);
         if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
@@ -152,12 +152,12 @@ public class SinksBean extends AbstractResourceBean {
         sinkEntity.setVersion(version);
         entityManager.merge(sinkEntity);
         entityManager.flush();
-        final Sink updatedSink = entityManager.find(Sink.class, id);
-        final String sinkJson = jsonbContext.marshall(updatedSink);
+        final SinkEntity updatedSinkEntity = entityManager.find(SinkEntity.class, id);
+        final String sinkJson = jsonbContext.marshall(updatedSinkEntity);
         return Response
                 .ok()
                 .entity(sinkJson)
-                .tag(updatedSink.getVersion().toString())
+                .tag(updatedSinkEntity.getVersion().toString())
                 .build();
     }
 
@@ -178,16 +178,16 @@ public class SinksBean extends AbstractResourceBean {
             @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long sinkId,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
 
-        final Sink sinkEntity = entityManager.find(Sink.class, sinkId);
+        final SinkEntity entityEntity = entityManager.find(SinkEntity.class, sinkId);
 
-        if(sinkEntity == null) {
+        if(entityEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
 
         // First we need to update the version no to see if any Optimistic Locking occurs!
-        entityManager.detach(sinkEntity);
-        sinkEntity.setVersion(version);
-        Sink versionUpdatedAndNoOptimisticLocking = entityManager.merge(sinkEntity);
+        entityManager.detach(entityEntity);
+        entityEntity.setVersion(version);
+        SinkEntity versionUpdatedAndNoOptimisticLocking = entityManager.merge(entityEntity);
 
         // If no Optimistic Locking - delete it!
         entityManager.remove(versionUpdatedAndNoOptimisticLocking);
@@ -208,8 +208,8 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINKS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllSinks() throws JSONBException {
-        final Query query = entityManager.createNamedQuery(Sink.QUERY_FIND_ALL);
-        final List<Sink> results = query.getResultList();
+        final Query query = entityManager.createNamedQuery(SinkEntity.QUERY_FIND_ALL);
+        final List<SinkEntity> results = query.getResultList();
         return Response
                 .ok()
                 .entity(jsonbContext.marshall(results))

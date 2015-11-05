@@ -30,13 +30,13 @@ import javax.persistence.Table;
 
 @Entity
 @SqlResultSetMapping(name="Sink.implicit", entities = {
-        @EntityResult(entityClass = Sink.class)}
+        @EntityResult(entityClass = SinkEntity.class)}
 )
 @NamedNativeQueries({
-        @NamedNativeQuery(name = Sink.QUERY_FIND_ALL,
+        @NamedNativeQuery(name = SinkEntity.QUERY_FIND_ALL,
                 query = "select * from sinks sinks order by upper(content ->> 'name') asc", resultSetMapping = "Sink.implicit")
 })
 @Table(name = "sinks")
-public class Sink extends Versioned {
+public class SinkEntity extends Versioned {
     public static final String QUERY_FIND_ALL = "Sink.findAll";
 }

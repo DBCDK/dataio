@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowBinder;
 import dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry;
-import dk.dbc.dataio.flowstore.entity.Sink;
+import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.flowstore.entity.Submitter;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -191,7 +191,7 @@ public class FlowBindersBean {
         FlowBinder flowBinder = new FlowBinder();
         flowBinder.setContent(flowBinderContent);
         flowBinder.setFlow(resolveFlow(flowBinder.getFlowId()));
-        flowBinder.setSink(resolveSink(flowBinder.getSinkId()));
+        flowBinder.setSinkEntity(resolveSink(flowBinder.getSinkId()));
         flowBinder.setSubmitters(resolveSubmitters(flowBinder.getSubmitterIds()));
 
         entityManager.persist(flowBinder);
@@ -492,7 +492,7 @@ public class FlowBindersBean {
             flowBinderEntity.setContent(flowBinderContentString);
             flowBinderEntity.setVersion(version);
             flowBinderEntity.setFlow(resolveFlow(flowBinderEntity.getFlowId()));
-            flowBinderEntity.setSink(resolveSink(flowBinderEntity.getSinkId()));
+            flowBinderEntity.setSinkEntity(resolveSink(flowBinderEntity.getSinkId()));
             flowBinderEntity.setSubmitters(resolveSubmitters(flowBinderEntity.getSubmitterIds()));
             entityManager.merge(flowBinderEntity);
             entityManager.flush();
@@ -548,13 +548,13 @@ public class FlowBindersBean {
      * @throws ReferencedEntityNotFoundException if unable to find the
      * referenced sink entity in the data store
      */
-    private Sink resolveSink(Long sinkId) throws ReferencedEntityNotFoundException {
+    private SinkEntity resolveSink(Long sinkId) throws ReferencedEntityNotFoundException {
         log.trace("Looking up Sink entity for ID {}", sinkId);
-        final Sink sink = entityManager.find(Sink.class, sinkId);
-        if (sink == null) {
+        final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, sinkId);
+        if (sinkEntity == null) {
             throw new ReferencedEntityNotFoundException(String.format("Sink(%d)", sinkId));
         }
-        return sink;
+        return sinkEntity;
     }
 
     private String getMoreThanOneFlowFoundMessage(Query query) {

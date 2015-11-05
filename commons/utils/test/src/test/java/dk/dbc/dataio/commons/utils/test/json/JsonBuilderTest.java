@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -111,6 +112,11 @@ public class JsonBuilderTest {
     @Test
     public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class);
+    }
+
+    @Test
+    public void OpenUpdateSinkConfigJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new OpenUpdateSinkConfigJsonBuilder().build(), OpenUpdateSinkConfig.class);
     }
 
     @Test

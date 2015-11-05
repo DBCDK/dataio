@@ -39,6 +39,8 @@ import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JavaScriptTest;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.JobSpecificationTest;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfigTest;
 import dk.dbc.dataio.commons.types.PingResponse;
 import dk.dbc.dataio.commons.types.PingResponseTest;
 import dk.dbc.dataio.commons.types.Sink;
@@ -121,6 +123,12 @@ public class JsonMarshallingTest {
         jsonbContext.unmarshall(json, Sink.class);
     }
 
+    @Test
+    public void verify_jsonMarshallingForOpenUpdateSinkConfig() throws Exception {
+        final String json = jsonbContext.marshall(OpenUpdateSinkConfigTest.newOpenUpdateSinkConfigInstance());
+        jsonbContext.unmarshall(json, OpenUpdateSinkConfig.class);
+    }
+    
     @Test
     public void verify_jsonMarshallingForSinkContent() throws Exception {
         final String json = jsonbContext.marshall(SinkContentTest.newSinkContentInstance());

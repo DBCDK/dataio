@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.flowstore.entity.Sink;
@@ -30,7 +31,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
+import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -45,12 +46,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
-
 @Stateless
 @Path("/")
-public class SinksBean {
+public class SinksBean extends AbstractResourceBean {
     private static final String SINK_CONTENT_DISPLAY_TEXT = "sinkContent";
     private static final String NULL_ENTITY = "";
 
@@ -90,7 +88,7 @@ public class SinksBean {
      * Creates a new sink
      *
      * @param uriInfo URI information
-     * @param sinkContent The content of the Sink
+     * @param sinkContentString The content of the Sink
      *
      * @return a HTTP 201 response with sink content as JSON,
      *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
@@ -102,10 +100,13 @@ public class SinksBean {
     @Path(FlowStoreServiceConstants.SINKS)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response createSink(@Context UriInfo uriInfo, String sinkContent) throws JSONBException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
+    public Response createSink(@Context UriInfo uriInfo, String sinkContentString) throws JSONBException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContentString, SINK_CONTENT_DISPLAY_TEXT);
 
-        final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContent);
+        // unmarshall to SinkContent to make sure the input is valid
+        jsonbContext.unmarshall(sinkContentString, SinkContent.class);
+
+        final Sink sink = saveAsVersionedEntity(entityManager, Sink.class, sinkContentString);
         entityManager.flush();
         final String sinkJson = jsonbContext.marshall(sink);
         return Response
@@ -138,6 +139,10 @@ public class SinksBean {
         @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
+
+        // unmarshall to SinkContent to make sure the input is valid
+        jsonbContext.unmarshall(sinkContent, SinkContent.class);
+
         final Sink sinkEntity = entityManager.find(Sink.class, id);
         if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
@@ -203,7 +208,7 @@ public class SinksBean {
     @Path(FlowStoreServiceConstants.SINKS)
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllSinks() throws JSONBException {
-        final TypedQuery<Sink> query = entityManager.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class);
+        final Query query = entityManager.createNamedQuery(Sink.QUERY_FIND_ALL);
         final List<Sink> results = query.getResultList();
         return Response
                 .ok()

@@ -36,7 +36,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
+import javax.persistence.Query;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
@@ -51,10 +51,10 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -106,9 +106,9 @@ public class SinksBeanTest {
     @SuppressWarnings("unchecked")
     public void findAllSinks_noSinksFound_returnsResponseWithHttpStatusOkAndSinkEntity() throws JSONBException {
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
-        final TypedQuery query = mock(TypedQuery.class);
+        final Query query = mock(Query.class);
 
-        when(ENTITY_MANAGER.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(Sink.QUERY_FIND_ALL)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final Response response = sinksBean.findAllSinks();
@@ -122,7 +122,7 @@ public class SinksBeanTest {
     @SuppressWarnings("unchecked")
     public void findAllSinks_sinksFound_returnsResponseWithHttpStatusOkAndSinkEntities() throws JSONBException {
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
-        final TypedQuery query = mock(TypedQuery.class);
+        final Query query = mock(Query.class);
         final String nameSinkA = "A";
         final Sink sinkA = new Sink();
         sinkA.setContent(new SinkContentJsonBuilder()
@@ -134,7 +134,7 @@ public class SinksBeanTest {
                 .setName(nameSinkB)
                 .build());
 
-        when(ENTITY_MANAGER.createNamedQuery(Sink.QUERY_FIND_ALL, Sink.class)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(Sink.QUERY_FIND_ALL)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(sinkA, sinkB));
 
         final Response response = sinksBean.findAllSinks();
@@ -244,11 +244,13 @@ public class SinksBeanTest {
     public void createSink_sinkCreated_returnsResponseWithHttpStatusOk_returnsSink() throws JSONBException, ReferencedEntityNotFoundException {
         final String sinkContent = new SinkContentJsonBuilder().build();
         final SinksBean sinksBean = newSinksBeanWithMockedEntityManager();
-        final Sink sink = new Sink();
-        sink.setVersion(VERSION);
 
-        mockStatic(ServiceUtil.class);
-        when(ServiceUtil.saveAsVersionedEntity(ENTITY_MANAGER, Sink.class, sinkContent)).thenReturn(sink);
+        doAnswer(invocationOnMock -> {
+            Object[] args = invocationOnMock.getArguments();
+            Sink sinkEntity = (Sink) args[0];
+            sinkEntity.setVersion(VERSION);
+            return null;
+        }).when(ENTITY_MANAGER).persist(any(Sink.class));
 
         final Response response = sinksBean.createSink(mockedUriInfo, sinkContent);
 

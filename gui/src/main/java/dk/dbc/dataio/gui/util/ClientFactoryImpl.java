@@ -25,10 +25,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import dk.dbc.dataio.gui.client.pages.item.show.Place;
-import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
-import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
+import dk.dbc.dataio.gui.client.places.DataioPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
@@ -57,6 +55,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts flowBinderModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.sink.modify.Texts sinkModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.sink.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.submitter.modify.Texts submitterModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.modify.Texts.class);
+    private final static dk.dbc.dataio.gui.client.pages.job.modify.Texts jobModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.item.show.Texts itemsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.item.show.Texts.class);
 
     // Image Resources
@@ -89,6 +88,7 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.sink.modify.EditView sinkEditView = new dk.dbc.dataio.gui.client.pages.sink.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView(this);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.EditView submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.EditView(this);
+    private final dk.dbc.dataio.gui.client.pages.job.modify.EditView jobEditView = new dk.dbc.dataio.gui.client.pages.job.modify.EditView(this);
 
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.show.View flowComponentsShowView = new dk.dbc.dataio.gui.client.pages.flowcomponent.show.View(this);
     private final dk.dbc.dataio.gui.client.pages.flow.show.View flowsShowView = new dk.dbc.dataio.gui.client.pages.flow.show.View(this);
@@ -121,63 +121,8 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     // getPresenter
-    @Override
-    public com.google.gwt.activity.shared.Activity getPresenter(com.google.gwt.place.shared.Place place) {
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterCreateImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.flow.modify.PresenterEditImpl(place, this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.PresenterCreateImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.PresenterEditImpl(place, this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.submitter.modify.PresenterCreateImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.submitter.modify.PresenterEditImpl(place, this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.flowbinder.modify.PresenterCreateImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.flowbinder.modify.PresenterEditImpl(place, this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace) {
-            return new dk.dbc.dataio.gui.client.pages.sink.modify.PresenterCreateImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace) {
-            return new dk.dbc.dataio.gui.client.pages.sink.modify.PresenterEditImpl(place, this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place) {
-            return new dk.dbc.dataio.gui.client.pages.flowcomponent.show.PresenterImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flow.show.Place) {
-            return new dk.dbc.dataio.gui.client.pages.flow.show.PresenterImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.submitter.show.Place) {
-            return new dk.dbc.dataio.gui.client.pages.submitter.show.PresenterImpl(this);
-        }
-        if (place instanceof ShowJobsPlace) {
-            return new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(this);
-        }
-        if (place instanceof ShowTestJobsPlace) {
-            return new dk.dbc.dataio.gui.client.pages.job.show.PresenterTestJobsImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.sink.show.Place) {
-            return new dk.dbc.dataio.gui.client.pages.sink.show.PresenterImpl(this);
-        }
-        if (place instanceof dk.dbc.dataio.gui.client.pages.flowbinder.show.Place) {
-            return new dk.dbc.dataio.gui.client.pages.flowbinder.show.PresenterImpl(this);
-        }
-        if (place instanceof Place) {
-            return new dk.dbc.dataio.gui.client.pages.item.show.PresenterImpl(place, this);
-        }
-        return null;
+    public com.google.gwt.activity.shared.Activity getPresenter(DataioPlace place) {
+        return place.createPresenter(this);
     }
 
     // Proxies
@@ -236,6 +181,11 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.submitter.modify.EditView getSubmitterEditView() {
         return submitterEditView;
+    }
+
+    @Override
+    public dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView() {
+        return jobEditView;
     }
 
     @Override
@@ -310,6 +260,10 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.submitter.modify.Texts getSubmitterModifyTexts() {
         return submitterModifyTexts;
+    }
+    @Override
+    public dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts() {
+        return jobModifyTexts;
     }
 
     @Override

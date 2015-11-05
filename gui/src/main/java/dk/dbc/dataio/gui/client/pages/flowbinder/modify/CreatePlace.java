@@ -25,16 +25,23 @@
  */
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
-import com.google.gwt.place.shared.Place;
+import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
+import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * CreatePlace
  */
-public class CreatePlace extends Place {
+public class CreatePlace extends DataioPlace {
 
     public CreatePlace() {
+    }
+
+    @Override
+    public Activity createPresenter(ClientFactory clientFactory) {
+        return new PresenterCreateImpl(clientFactory);
     }
 
     @Prefix("CreateFlowBinder")

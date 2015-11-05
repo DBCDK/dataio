@@ -19,37 +19,16 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
+package dk.dbc.dataio.gui.client.places;
 
 import com.google.gwt.activity.shared.Activity;
-import com.google.gwt.place.shared.PlaceTokenizer;
-import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
- * CreatePlace
+ * Created by ThomasBerg on 05/11/15.
  */
-public class CreatePlace extends DataioPlace {
+public abstract class DataioPlace extends Place {
 
-    public CreatePlace() {}
-
-    @Override
-    public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(clientFactory);
-    }
-
-    @Prefix("CreateFlowComponent")
-    public static class Tokenizer implements PlaceTokenizer<CreatePlace> {
-        @Override
-        public String getToken(CreatePlace place) {
-            return "";
-        }
-
-        @Override
-        public CreatePlace getPlace(String token) {
-            return new CreatePlace();
-        }
-    }
-
+    public abstract Activity createPresenter(ClientFactory clientFactory);
 }

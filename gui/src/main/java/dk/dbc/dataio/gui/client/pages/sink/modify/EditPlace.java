@@ -21,12 +21,14 @@
 
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
-import com.google.gwt.place.shared.Place;
+import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
-public class EditPlace extends Place {
+public class EditPlace extends DataioPlace {
     private Long sinkId;
 
     public EditPlace(String url) {
@@ -39,6 +41,11 @@ public class EditPlace extends Place {
 
     public Long getSinkId() {
         return sinkId;
+    }
+
+    @Override
+    public Activity createPresenter(ClientFactory clientFactory) {
+        return new PresenterEditImpl(this, clientFactory);
     }
 
     @Prefix("EditSink")

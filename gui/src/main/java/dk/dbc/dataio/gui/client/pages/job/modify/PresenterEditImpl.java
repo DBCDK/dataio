@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.submitter.modify;
+package dk.dbc.dataio.gui.client.pages.job.modify;
 
 import com.google.gwt.user.client.History;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -40,11 +40,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory) {
         super(clientFactory);
-        view = clientFactory.getSubmitterEditView();
-        id = place.getSubmitterId();
-        view.deleteButton.setVisible(true);
+        view = clientFactory.getJobEditView();
+        id = place.getJobId();
+//        view.deleteButton.setVisible(true);
     }
-
 
     /**
      * Initializing the model
@@ -62,7 +61,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
+//        flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
     void deleteModel() {
@@ -78,13 +77,13 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      * A signal to the presenter, saying that the save button has been pressed
      */
     public void deleteButtonPressed() {
-        if (model != null) {
-            if (!model.isNumberValid()) {
-                view.setErrorText(texts.error_NumberInputFieldValidationError());
-            } else {
-                deleteModel();
-            }
-        }
+//        if (model != null) {
+//            if (!model.isNumberValid()) {
+//                view.setErrorText(texts.error_NumberInputFieldValidationError());
+//            } else {
+//                deleteModel();
+//            }
+//        }
     }
 
     /**
@@ -99,7 +98,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(SubmitterModel model) {
-            setSubmitterModel(model);
+//            setSubmitterModel(model);
             updateAllFieldsAccordingToCurrentState();
         }
     }
@@ -115,7 +114,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(Void aVoid) {
-            view.status.setText(texts.status_SubmitterSuccessfullyDeleted());
+//            view.status.setText(texts.status_SubmitterSuccessfullyDeleted());
             setSubmitterModel(null);
             History.back();
         }

@@ -19,15 +19,15 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.job.show;
+package dk.dbc.dataio.gui.client.pages.job.modify;
 
-import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
-    void itemSelected(JobModel jobModel);
-    void updateSelectedJobs();
-    void refresh();
-    void showJob();
-    void editJob(JobModel rowModel);
+    void numberChanged(String number);
+    void nameChanged(String name);
+    void descriptionChanged(String description);
+    void keyPressed();
+    void saveButtonPressed();
+    void deleteButtonPressed();
 }

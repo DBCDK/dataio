@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.Place;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -57,7 +56,7 @@ public class PresenterEditImplTest {
     private PresenterEditImpl presenterEditImpl;
     private final static long DEFAULT_SUBMITTER_ID = 426L;
 
-    class PresenterEditImplConcrete extends PresenterEditImpl {
+    class PresenterEditImplConcrete <Place extends EditPlace> extends PresenterEditImpl {
         public PresenterEditImplConcrete(Place place, ClientFactory clientFactory) {
             super(place, clientFactory);
         }

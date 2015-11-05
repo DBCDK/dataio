@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
+import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
+import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
-public class Place extends com.google.gwt.place.shared.Place {
+public class Place extends DataioPlace {
     private String flowComponentsShowName;
 
     public Place() {
@@ -37,6 +40,11 @@ public class Place extends com.google.gwt.place.shared.Place {
 
     public String getFlowComponentsShowName() {
         return flowComponentsShowName;
+    }
+
+    @Override
+    public Activity createPresenter(ClientFactory clientFactory) {
+        return new PresenterImpl(clientFactory);
     }
 
     @Prefix("ShowFlowComponents")

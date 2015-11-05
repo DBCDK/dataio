@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
+import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
+import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.util.ClientFactory;
 
-public class ShowJobsPlace extends com.google.gwt.place.shared.Place {
+public class ShowJobsPlace extends DataioPlace {
     private String jobsShowName;
 
     public ShowJobsPlace() {
@@ -37,6 +40,11 @@ public class ShowJobsPlace extends com.google.gwt.place.shared.Place {
 
     public String getJobsShowName() {
         return jobsShowName;
+    }
+
+    @Override
+    public Activity createPresenter(ClientFactory clientFactory) {
+        return new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(clientFactory);
     }
 
     @Prefix("ShowJobs")

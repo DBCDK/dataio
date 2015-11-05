@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
@@ -126,6 +128,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
         jobsTable.addColumn(constructProgressBarColumn(), texts.columnHeader_ProgressBar());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
+        jobsTable.addColumn(constructRerunColumn(), texts.columnHeader_RerunJob());
         jobsTable.setSelectionModel(selectionModel);
         jobsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
 
@@ -133,8 +136,6 @@ public class View extends ViewWidget {
         pagerBottom.setDisplay(jobsTable);
 
         jobsTable.setVisibleRange(0,20);
-
-
     }
 
     /**
@@ -293,6 +294,28 @@ public class View extends ViewWidget {
         return new StatusColumn(resources, statusCell);
     }
 
+    Column constructRerunColumn() {
+
+        ButtonCell rerunButtonCell = new ButtonCell();
+        Column<JobModel,String> rerunButtonColumn = new Column<JobModel,String>(rerunButtonCell) {
+            public String getValue(JobModel object) {
+                return texts.button_RerunJob();
+            }
+        };
+
+        rerunButtonColumn.setFieldUpdater(new FieldUpdater<JobModel, String>() {
+            @Override
+            public void update(int index, JobModel selectedRowModel, String value) {
+
+                if(selectedRowModel != null) {
+                    presenter.editJob(selectedRowModel);
+                }
+            }
+        });
+
+        return rerunButtonColumn;
+    }
+
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
@@ -310,5 +333,4 @@ public class View extends ViewWidget {
         };
         return handler;
     }
-
 }

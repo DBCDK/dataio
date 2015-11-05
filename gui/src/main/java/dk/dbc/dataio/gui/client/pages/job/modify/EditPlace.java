@@ -19,37 +19,52 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package dk.dbc.dataio.gui.client.pages.job.modify;
 
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
+import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.places.DataioPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-/**
- * CreatePlace
- */
-public class CreatePlace extends DataioPlace {
 
-    public CreatePlace() {}
+/**
+ * EditPlace
+ */
+public class EditPlace extends DataioPlace {
+    private Long jobId;
+
+    public EditPlace(String url) {
+        this.jobId = Long.valueOf(url);
+    }
+
+    public EditPlace(JobModel model) {
+        this.jobId = model.getId();
+    }
+
+    public Long getJobId() {
+        return jobId;
+    }
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(clientFactory);
+        return new PresenterEditImpl(this, clientFactory);
     }
 
-    @Prefix("CreateFlowComponent")
-    public static class Tokenizer implements PlaceTokenizer<CreatePlace> {
+    @Prefix("EditJob")
+    public static class Tokenizer implements PlaceTokenizer<EditPlace> {
         @Override
-        public String getToken(CreatePlace place) {
-            return "";
+        public String getToken(EditPlace place) {
+            return String.valueOf(place.getJobId());
         }
-
         @Override
-        public CreatePlace getPlace(String token) {
-            return new CreatePlace();
+        public EditPlace getPlace(String token) {
+            return new EditPlace(token);
         }
     }
-
 }

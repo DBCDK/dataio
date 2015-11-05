@@ -22,10 +22,10 @@
 package dk.dbc.dataio.gui.util;
 
 import com.google.gwt.activity.shared.Activity;
-import com.google.gwt.place.shared.Place;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
+import dk.dbc.dataio.gui.client.places.DataioPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
@@ -45,7 +45,7 @@ public interface ClientFactory {
 
     // Place Controller
     PlaceController getPlaceController();
-    Activity getPresenter(Place place);
+    Activity getPresenter(DataioPlace place);
 
     // Proxies
     FlowStoreProxyAsync getFlowStoreProxyAsync();
@@ -61,6 +61,7 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView getFlowComponentEditView();
     dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView getSubmitterCreateView();
     dk.dbc.dataio.gui.client.pages.submitter.modify.EditView getSubmitterEditView();
+    dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView getFlowBinderCreateView();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView();
     dk.dbc.dataio.gui.client.pages.sink.modify.CreateView getSinkCreateView();
@@ -79,6 +80,7 @@ public interface ClientFactory {
 
     // Texts
     dk.dbc.dataio.gui.client.pages.submitter.modify.Texts getSubmitterModifyTexts();
+    dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts();
     dk.dbc.dataio.gui.client.pages.flow.modify.Texts getFlowModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts getFlowComponentModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts getFlowBinderModifyTexts();

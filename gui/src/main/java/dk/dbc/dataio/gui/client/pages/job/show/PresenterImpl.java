@@ -106,6 +106,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             countExistingJobsWithJobId();
         }
     }
+    public void editJob(JobModel jobRow) {
+        this.jobId = jobRow.getJobId();
+        placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobId));
+    }
 
     /*
      * Private methods

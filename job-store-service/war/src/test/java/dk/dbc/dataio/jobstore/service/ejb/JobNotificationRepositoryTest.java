@@ -225,7 +225,10 @@ public class JobNotificationRepositoryTest {
         final JobEntity jobEntity = new JobEntity();
         jobEntity.setSpecification(jobSpecification);
         jobEntity.setState(new State());
+        return getNotificationEntity(type, jobEntity);
+    }
 
+    public static NotificationEntity getNotificationEntity(JobNotification.Type type, JobEntity jobEntity) {
         final NotificationEntity notification = getNotificationEntity(type);
         notification.setJob(jobEntity);
         return notification;

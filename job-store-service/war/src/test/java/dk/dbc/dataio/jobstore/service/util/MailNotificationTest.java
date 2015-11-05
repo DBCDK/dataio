@@ -25,11 +25,13 @@ import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -41,6 +43,10 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
@@ -49,6 +55,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class MailNotificationTest {
+    private static final String JOB_CREATED_OK_BODY = "/notifications/job_created_ok.body";
+    private static final String JOB_CREATED_FAIL_BODY = "/notifications/job_created_fail.body";
+    private static final String JOB_COMPLETED_BODY = "/notifications/job_completed.body";
+    private static final String INCOMPLETE_TRANSFILE_BODY = "/notifications/incomplete_transfile.body";
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
     private final String mailFrom = "dataio@dbc.dk";
@@ -200,18 +210,13 @@ public class MailNotificationTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'transfil mangler slut markering'", content.contains("transfil mangler slut markering"), is(true));
-        assertThat("Message contains 'Transfil: file.trans'", content.contains("Transfil: file.trans"), is(true));
+        assertThat("Notification content", content, is(getResourceContent(INCOMPLETE_TRANSFILE_BODY)));
     }
 
     @Test
     public void send_appliesJobCreatedOkTemplate() throws JobStoreException, MessagingException, IOException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(42)
-                .setMailForNotificationAboutVerification(destination)
-                .build();
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_CREATED, jobSpecification);
+                JobNotification.Type.JOB_CREATED, getJobEntity());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -219,19 +224,14 @@ public class MailNotificationTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Besked fra DanBibs Posthus'", content.contains("Besked fra DanBibs Posthus"), is(true));
-        assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
+        assertThat("Notification content", content, is(getResourceContent(JOB_CREATED_OK_BODY)));
     }
 
     @Test
     public void send_appliesJobCreatedFailTemplate() throws JobStoreException, MessagingException, IOException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(42)
-                .setMailForNotificationAboutVerification(destination)
-                .build();
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_CREATED, jobSpecification);
-        notification.getJob().getState().getDiagnostics().add(new Diagnostic(Diagnostic.Level.FATAL, "DIED"));
+                JobNotification.Type.JOB_CREATED, getJobEntity());
+        notification.getJob().getState().getDiagnostics().add(new Diagnostic(Diagnostic.Level.FATAL, "Job dannelse fejlet"));
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -239,18 +239,13 @@ public class MailNotificationTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Fejlmeddelelse fra DanBibs Posthus'", content.contains("Fejlmeddelelse fra DanBibs Posthus"), is(true));
-        assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
+        assertThat("Notification content", content, is(getResourceContent(JOB_CREATED_FAIL_BODY)));
     }
 
     @Test
     public void send_appliesJobCompletedTemplate() throws JobStoreException, MessagingException, IOException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setSubmitterId(42)
-                .setMailForNotificationAboutProcessing(destination)
-                .build();
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, jobSpecification);
+                JobNotification.Type.JOB_COMPLETED, getJobEntity());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -258,8 +253,7 @@ public class MailNotificationTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Message contains 'Besked fra postmesteren'", content.contains("Besked fra postmesteren"), is(true));
-        assertThat("Message contains 'Bibliotek: 42'", content.contains("Bibliotek: 42"), is(true));
+        assertThat("Notification content", content, is(getResourceContent(JOB_COMPLETED_BODY)));
     }
 
     private MailNotification getMailNotification(NotificationEntity notification) {
@@ -267,5 +261,29 @@ public class MailNotificationTest {
         mailSessionProperties.setProperty("mail.from", mailFrom);
         mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
         return new MailNotification(Session.getDefaultInstance(mailSessionProperties), notification);
+    }
+
+    private JobEntity getJobEntity() {
+        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry("file.trans", "file.dat", "batch001");
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setSubmitterId(424242)
+                .setAncestry(ancestry)
+                .setMailForNotificationAboutVerification(destination)
+                .setResultmailInitials("TEST")
+                .build();
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setSpecification(jobSpecification);
+        jobEntity.setState(new State());
+        jobEntity.setNumberOfItems(100);
+        return jobEntity;
+    }
+
+    private String getResourceContent(String resourceName) {
+        try {
+            return new String(Files.readAllBytes(Paths.get(getClass().getResource(resourceName).toURI())),
+                    StandardCharsets.UTF_8);
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

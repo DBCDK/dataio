@@ -2,10 +2,10 @@
 Fejlmeddelelse fra DanBibs Posthus
 **********************************
 
-Trans fil               :     ${transfileName}
+Trans fil               :     file.trans
 Besked                  :     Trans fil mangler slut markering
 Trans fil indhold       :
 
-${transfileContent}
+content
 
 

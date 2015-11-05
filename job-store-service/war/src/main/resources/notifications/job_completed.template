@@ -2,13 +2,14 @@
 Besked fra postmesteren
 ***********************
 
-Bibliotek: ${specification.submitterId}
-Batchnummer: ${specification.ancestry.batchId}
-Transfil: ${specification.ancestry.transfile}
-Filnavn: ${specification.ancestry.datafile}
-Initialer: ${specification.resultmailInitials}
-Antal Poster: ${numberOfItems}
-Dato: __DATE__{timeOfCompletion}
-Job: ${jobId}
-Status: OK
+Bibliotek               :     ${specification.submitterId}
+Trans fil               :     ${specification.ancestry.transfile}
+Batchnummer             :     ${specification.ancestry.batchId}
+Filnavn                 :     ${specification.ancestry.datafile}
+Initialer               :     ${specification.resultmailInitials}
+Job                     :     ${jobId}
+Antal poster            :     ${numberOfItems}
+Status                  :     OK
+Besked                  :
+Dato                    :     __DATE__{timeOfCompletion}
 

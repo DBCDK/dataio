@@ -2,10 +2,14 @@
 Besked fra DanBibs Posthus
 **************************
 
-Bibliotek: ${specification.submitterId}
-Batchnummer: ${specification.ancestry.batchId}
-Transfil: ${specification.ancestry.transfile}
-Filnavn: ${specification.ancestry.datafile}
-Initialer: ${specification.resultmailInitials}
-Job: ${jobId}
-__DATE__{timeOfCreation}
+Bibliotek               :     ${specification.submitterId}
+Trans fil               :     ${specification.ancestry.transfile}
+Batchnummer             :     ${specification.ancestry.batchId}
+Filnavn                 :     ${specification.ancestry.datafile}
+Initialer               :     ${specification.resultmailInitials}
+Job                     :     ${jobId}
+Antal poster            :     ${numberOfItems}
+Status                  :     OK
+Besked                  :
+Dato                    :     __DATE__{timeOfCreation}
+

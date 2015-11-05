@@ -2,13 +2,14 @@
 Fejlmeddelelse fra DanBibs Posthus
 **********************************
 
-Bibliotek: ${specification.submitterId}
-Batchnummer: ${specification.ancestry.batchId}
-Transfil: ${specification.ancestry.transfile}
-Filnavn: ${specification.ancestry.datafile}
-Initialer: ${specification.resultmailInitials}
-Job: ${jobId}
+Bibliotek               :     ${specification.submitterId}
+Trans fil               :     ${specification.ancestry.transfile}
+Batchnummer             :     ${specification.ancestry.batchId}
+Filnavn                 :     ${specification.ancestry.datafile}
+Initialer               :     ${specification.resultmailInitials}
+Job                     :     ${jobId}
+Antal poster            :     ${numberOfItems}
+Status                  :     not OK
+Besked                  :     ${state.diagnostics.message}
+Dato                    :     __DATE__{timeOfCreation}
 
-${state.diagnostics.message}
-
-__DATE__{timeOfCreation}

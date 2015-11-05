@@ -9,6 +9,8 @@ Filnavn                 :     ${specification.ancestry.datafile}
 Initialer               :     ${specification.resultmailInitials}
 Job                     :     ${jobId}
 Antal poster            :     ${numberOfItems}
+  heraf ok              :     ${state.states.DELIVERING.succeeded}
+  heraf not ok          :     __SUM__{state.states.PARTITIONING.failed, state.states.PROCESSING.failed, state.states.DELIVERING.failed}
 Status                  :     OK
 Besked                  :
 Dato                    :     __DATE__{timeOfCompletion}

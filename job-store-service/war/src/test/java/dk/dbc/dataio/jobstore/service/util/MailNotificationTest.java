@@ -32,6 +32,7 @@ import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -246,6 +247,19 @@ public class MailNotificationTest {
     public void send_appliesJobCompletedTemplate() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
+        final State state = notification.getJob().getState();
+        final StateChange stateChange = new StateChange();
+        stateChange.setPhase(State.Phase.PARTITIONING);
+        stateChange.setFailed(1);
+        state.updateState(stateChange);
+        stateChange.setPhase(State.Phase.PROCESSING);
+        stateChange.setFailed(2);
+        state.updateState(stateChange);
+        stateChange.setPhase(State.Phase.DELIVERING);
+        stateChange.setFailed(3);
+        stateChange.setIgnored(1);
+        stateChange.setSucceeded(96);
+        state.updateState(stateChange);
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();

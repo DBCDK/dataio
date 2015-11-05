@@ -9,6 +9,8 @@ Filnavn                 :     file.dat
 Initialer               :     TEST
 Job                     :     0
 Antal poster            :     100
+  heraf ok              :     96
+  heraf not ok          :     6
 Status                  :     OK
 Besked                  :
 Dato                    :     

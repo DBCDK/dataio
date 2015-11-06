@@ -38,6 +38,8 @@ public class SinkContentTest {
     private static final String NAME = "name";
     private static final String RESOURCE = "resource";
     private static final String DESCRIPTION = "description";
+    private static final SinkContent.SinkType SINK_TYPE = SinkContent.SinkType.OPENUPDATE;
+    private static final SinkConfig SINK_CONFIG = OpenUpdateSinkConfigTest.newOpenUpdateSinkConfigInstance();
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
@@ -70,12 +72,30 @@ public class SinkContentTest {
     }
 
     @Test
+    public void constructor_sinkTypeArgIsNull_returnsNewInstance() {
+        new SinkContent(NAME, RESOURCE, DESCRIPTION, null);
+    }
+
+    @Test
+    public void constructor_sinkConfigArgIsNull_returnsNewInstance() {
+        new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, null);
+    }
+
+    @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final SinkContent instance = new SinkContent(NAME, RESOURCE, DESCRIPTION);
+        final SinkContent instance = new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG);
         assertThat(instance, is(notNullValue()));
     }
 
     public static SinkContent newSinkContentInstance() {
         return new SinkContent(NAME, RESOURCE, DESCRIPTION);
+    }
+
+    public static SinkContent newSinkContentWithTypeInstance() {
+        return new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE);
+    }
+
+    public static SinkContent newSinkContentWithTypeAndConfigInstance() {
+        return new SinkContent(NAME, RESOURCE, DESCRIPTION, SINK_TYPE, SINK_CONFIG);
     }
 }

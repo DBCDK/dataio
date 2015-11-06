@@ -33,9 +33,16 @@ import java.io.Serializable;
 public class SinkContent implements Serializable {
     private static final long serialVersionUID = -3413557101203220951L;
 
+    public enum SinkType { DUMMY, ES, FBS, OPENUPDATE }
+
+    private static final SinkType NULL_TYPE = null;
+    private static final SinkConfig NULL_CONFIG = null;
+
     private final String name;
     private final String resource;
     private final String description;
+    private final SinkType sinkType;
+    private final SinkConfig sinkConfig;
 
     /**
      * Class constructor
@@ -43,6 +50,8 @@ public class SinkContent implements Serializable {
      * @param name sink name
      * @param resource sink resource
      * @param description sink description
+     * @param sinkType sink type
+     * @param sinkConfig sink config
      *
      * @throws NullPointerException if given null-valued name or resource argument
      * @throws IllegalArgumentException if given empty-valued name or resource argument
@@ -50,11 +59,23 @@ public class SinkContent implements Serializable {
     @JsonCreator
     public SinkContent(@JsonProperty("name") String name,
                        @JsonProperty("resource") String resource,
-                       @JsonProperty("description") String description) {
+                       @JsonProperty("description") String description,
+                       @JsonProperty("sinkType") SinkType sinkType,
+                       @JsonProperty("sinkConfig") SinkConfig sinkConfig) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.resource = InvariantUtil.checkNotNullNotEmptyOrThrow(resource, "resource");
         this.description = description;
+        this.sinkType = sinkType;
+        this.sinkConfig = sinkConfig;
+    }
+
+    public SinkContent(String name, String resource, String description, SinkType sinkType) {
+        this(name, resource, description, sinkType, NULL_CONFIG);
+    }
+
+    public SinkContent(String name, String resource, String description) {
+        this(name, resource, description, NULL_TYPE, NULL_CONFIG);
     }
 
     public String getName() {
@@ -69,6 +90,13 @@ public class SinkContent implements Serializable {
         return description;
     }
 
+    public SinkType getSinkType() {
+        return sinkType;
+    }
+
+    public SinkConfig getSinkConfig() {
+        return sinkConfig;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -79,7 +107,9 @@ public class SinkContent implements Serializable {
 
         return name.equals(that.name)
                 && resource.equals(that.resource)
-                && !(description != null ? !description.equals(that.description) : that.description != null);
+                && !(description != null ? !description.equals(that.description) : that.description != null)
+                && sinkType == that.sinkType
+                && !(sinkConfig != null ? !sinkConfig.equals(that.sinkConfig) : that.sinkConfig != null);
     }
 
     @Override
@@ -87,6 +117,8 @@ public class SinkContent implements Serializable {
         int result = name.hashCode();
         result = 31 * result + resource.hashCode();
         result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (sinkType != null ? sinkType.hashCode() : 0);
+        result = 31 * result + (sinkConfig != null ? sinkConfig.hashCode() : 0);
         return result;
     }
 }

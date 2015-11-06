@@ -96,7 +96,7 @@ public class JPATestUtils {
      * Removed all Tables, functions, indexes types from the tatebase.
      * @param entityManager The entity Manager to clean the database for.
      * @throws IOException when Unable to load drop_all_pg.sql script
-     * @throws URISyntaxException
+     * @throws URISyntaxException Shut not happen.
      *
      */
     public static void clearDatabase( EntityManager entityManager ) throws IOException, URISyntaxException {

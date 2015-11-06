@@ -42,6 +42,7 @@ public class AddiRecordsToItemWrapper {
 
     private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
     private StringBuilder crossAddiRecordsMessage = new StringBuilder();
+    private AddiRecordPreprocessor addiRecordPreprocessor;
     private OpenUpdateServiceConnector openUpdateServiceConnector;
     private ChunkItem processedChunkItem;
 
@@ -50,18 +51,17 @@ public class AddiRecordsToItemWrapper {
     private UUID trackingId;
 
     /**
-     *
-     * @param processedChunkItem            processed Chunk Item to copy values from
-     * @param openUpdateServiceConnector    OpenUpdate webservice connector
-     * @throws NullPointerException         NullPointer thrown if arguments are null
+     * @param processedChunkItem processed Chunk Item to copy values from
+     * @param addiRecordPreprocessor ADDI record pre-processor
+     * @param openUpdateServiceConnector OpenUpdate webservice connector
+     * @throws NullPointerException NullPointer thrown if arguments are null
      */
-    public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, OpenUpdateServiceConnector openUpdateServiceConnector) throws NullPointerException {
+    public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
+                                    OpenUpdateServiceConnector openUpdateServiceConnector) throws NullPointerException {
 
-        InvariantUtil.checkNotNullOrThrow(processedChunkItem, "processedChunkItem");
-        InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
-
-        this.processedChunkItem = processedChunkItem;
-        this.openUpdateServiceConnector = openUpdateServiceConnector;
+        this.processedChunkItem = InvariantUtil.checkNotNullOrThrow(processedChunkItem, "processedChunkItem");
+        this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
+        this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
     }
 
     /**
@@ -82,7 +82,7 @@ public class AddiRecordsToItemWrapper {
         }
 
         final Optional<AddiStatus> failed = addiRecordsForItem.stream()
-                // retrieve the AddiStatus from each call to OpenOpdate
+                // retrieve the AddiStatus from each call to OpenUpdate
                 .map(addiRecord -> callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(addiRecord, addiRecordsForItem.indexOf(addiRecord)))
                 // only collect the failed status'
                 .filter(addiStatus -> addiStatus == AddiStatus.FAILED_STACKTRACE || addiStatus == AddiStatus.FAILED_VALIDATION)
@@ -100,12 +100,12 @@ public class AddiRecordsToItemWrapper {
         this.addiRecordIndex = addiRecordIndex + 1;
         trackingId = UUID.randomUUID();
         try {
-            AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+            final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord);
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
-                    addiRecordPreprocessor.getSubmitter(),
-                    addiRecordPreprocessor.getTemplate(),
-                    addiRecordPreprocessor.getMarcXChangeRecord(),
+                    preprocessorResult.getSubmitter(),
+                    preprocessorResult.getTemplate(),
+                    preprocessorResult.getBibliographicRecord(),
                     trackingId);
             final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<>(webserviceResult).map(trackingId);
 

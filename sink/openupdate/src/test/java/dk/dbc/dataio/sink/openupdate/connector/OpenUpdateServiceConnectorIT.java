@@ -167,11 +167,12 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void updateRecord_callsServiceWithInvalidSchema_validationFailedWithInvalidSchema() throws IOException, URISyntaxException {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(INVALID_SCHEMA), readTestRecord(FAILED_UPDATE_MARC)));
-        final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector,
+                preprocessingResult.getSubmitter(), preprocessingResult.getTemplate(), preprocessingResult.getBibliographicRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -182,11 +183,12 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void updateRecord_callsServiceWithInvalidMarc_validationFailedWithValidationError() throws IOException, URISyntaxException {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(VALIDATION_ERROR_MARC)));
-        final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector,
+                preprocessingResult.getSubmitter(), preprocessingResult.getTemplate(), preprocessingResult.getBibliographicRecord());
 
         // Verification
         assertThat("UpdateRecordResult not null", updateRecordResult, not(nullValue()));
@@ -206,11 +208,12 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void updateRecord_callsServiceWithInsufficientRights_validationFailedWithFailedUpdateInternalError() throws IOException, URISyntaxException {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(FAILED_UPDATE_MARC)));
-        AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector,
+                preprocessingResult.getSubmitter(), preprocessingResult.getTemplate(), preprocessingResult.getBibliographicRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -228,13 +231,13 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithAllArgsAreValid_validationOk() throws IOException, URISyntaxException {
-
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(VALIDATION_OK_MARC)));
-        AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector,
+                preprocessingResult.getSubmitter(), preprocessingResult.getTemplate(), preprocessingResult.getBibliographicRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -264,7 +267,7 @@ public class OpenUpdateServiceConnectorIT {
 
     public String getMeta(String nodeValue) {
         return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"010100\"/>" +
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"" +
                 " updateTemplate=\"" + nodeValue + "\" charset=\"danmarc2\"/>" +
                 "</es:referencedata>";

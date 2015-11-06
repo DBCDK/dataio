@@ -40,33 +40,26 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
     static final String RECORD_SCHEMA                   = "info:lc/xmlns/marcxchange-v1";
     static final String RECORD_PACKAGING                = "xml";
 
-    private final Document contentDataDocument;
-    private final String template;
-    private final String submitter;
-
-    public AddiRecordPreprocessor(AddiRecord addiRecord) throws NullPointerException{
+    public Result preprocess(AddiRecord addiRecord) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(addiRecord, "addiRecord");
         try {
             final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            submitter = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, "submitter");
-            template = extractAttributeValue(metaDataDocument, DATAIO_PROCESSING_NAMESPACE_URI, UPDATE_TEMPLATE_ELEMENT, "updateTemplate");
-            contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
+            final String submitter = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, "submitter");
+            final String template = extractAttributeValue(metaDataDocument, DATAIO_PROCESSING_NAMESPACE_URI, UPDATE_TEMPLATE_ELEMENT, "updateTemplate");
+            final BibliographicRecord bibliographicRecord = getMarcXChangeRecord(byteArrayToDocument(addiRecord.getContentData()));
+            return new Result(submitter, template, bibliographicRecord);
         } catch (IOException | SAXException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
-    /**
-     * Creates a bibliographical record
-     * @return bibliographical record
-     */
-    public BibliographicRecord getMarcXChangeRecord() {
+    private BibliographicRecord getMarcXChangeRecord(Document document) {
         BibliographicRecord bibliographicRecord = new BibliographicRecord();
         bibliographicRecord.setRecordSchema(RECORD_SCHEMA);
         bibliographicRecord.setRecordPacking(RECORD_PACKAGING);
 
         RecordData recordData = new RecordData();
-        recordData.getContent().add(contentDataDocument.getDocumentElement());
+        recordData.getContent().add(document.getDocumentElement());
         bibliographicRecord.setRecordData(recordData);
 
         ExtraRecordData extraRecordData = new ExtraRecordData();
@@ -75,11 +68,27 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
         return bibliographicRecord;
     }
 
-   public String getTemplate() {
-        return template;
-    }
+    public static class Result {
+        private final String submitter;
+        private final String template;
+        private final BibliographicRecord bibliographicRecord;
 
-    public String getSubmitter() {
-        return submitter;
+        public Result(String submitter, String template, BibliographicRecord bibliographicRecord) {
+            this.submitter = submitter;
+            this.template = template;
+            this.bibliographicRecord = bibliographicRecord;
+        }
+
+        public String getTemplate() {
+            return template;
+        }
+
+        public String getSubmitter() {
+            return submitter;
+        }
+
+        public BibliographicRecord getBibliographicRecord() {
+            return bibliographicRecord;
+        }
     }
 }

@@ -44,8 +44,9 @@ import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
+
+    private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB OpenUpdateServiceConnectorBean openUpdateServiceConnectorBean;
@@ -67,14 +68,17 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             for(ChunkItem processedChunkItem : processedChunk) {
 
                 switch (processedChunkItem.getStatus()) {
+                    case SUCCESS: chunkForDelivery.insertItem( new AddiRecordsToItemWrapper(processedChunkItem,
+                            addiRecordPreprocessor, openUpdateServiceConnectorBean.getConnector()).callOpenUpdateWebServiceForEachAddiRecord() );
+                        break;
 
-                    case SUCCESS:   chunkForDelivery.insertItem( new AddiRecordsToItemWrapper(processedChunkItem, openUpdateServiceConnectorBean.getConnector()).callOpenUpdateWebServiceForEachAddiRecord() );     break;
+                    case FAILURE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));
+                        break;
 
-                    case FAILURE:   chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));  break;
+                    case IGNORE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor"));
+                        break;
 
-                    case IGNORE:    chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor")); break;
-
-                    default:        throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
+                    default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
                 }
             }
 

@@ -37,26 +37,27 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
+    private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
 
     @Test(expected = NullPointerException.class)
-    public void constructor_addiArgIsNull_throws() {
-        new AddiRecordPreprocessor(null);
+    public void preprocess_addiArgIsNull_throws() {
+        addiRecordPreprocessor.preprocess(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_addiArgIsInvalid_throws() {
+    public void preprocess_addiArgIsInvalid_throws() {
         final AddiRecord addiRecord = toAddiRecord(getAddi("", getContentXml()));
-        new AddiRecordPreprocessor(addiRecord);
+        addiRecordPreprocessor.preprocess(addiRecord);
     }
 
     @Test
-    public void constructor_esInfoElementNotFound_throws() {
+    public void preprocess_esInfoElementNotFound_throws() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>");
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
         try {
-            new AddiRecordPreprocessor(addiRecord);
+            addiRecordPreprocessor.preprocess(addiRecord);
             fail();
         } catch (IllegalArgumentException e) {
             assertThat("Message contains: " + AddiRecordPreprocessor.ES_INFO_ELEMENT, e.getMessage().contains(AddiRecordPreprocessor.ES_INFO_ELEMENT), is(true));
@@ -65,12 +66,12 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void constructor_updateElementNotFound_throws() {
+    public void preprocess_updateElementNotFound_throws() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info submitter=\"870970\"/>");
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
         try {
-            new AddiRecordPreprocessor(addiRecord);
+            addiRecordPreprocessor.preprocess(addiRecord);
             fail();
         } catch (IllegalArgumentException e) {
             assertThat("Message contains: " + AddiRecordPreprocessor.UPDATE_TEMPLATE_ELEMENT, e.getMessage().contains(AddiRecordPreprocessor.UPDATE_TEMPLATE_ELEMENT), is(true));
@@ -79,31 +80,29 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void constructor_esInfoSubmitterAttributeFound_setsSubmitterToAttributeValue() {
+    public void preprocess_esInfoSubmitterAttributeFound_setsSubmitterToAttributeValue() {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
 
         // Subject under test
-        final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
 
         // Verify
-        final String template = addiRecordPreprocessor.getTemplate();
-        assertThat("update value", template, is(UPDATE_TEMPLATE_ATTRIBUTE_VALUE));
+        assertThat("update value", result.getTemplate(), is(UPDATE_TEMPLATE_ATTRIBUTE_VALUE));
     }
 
     @Test
-    public void constructor_updateTemplateAttributeFound_setsTemplateToAttributeValue() {
+    public void preprocess_updateTemplateAttributeFound_setsTemplateToAttributeValue() {
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
 
         // Subject under test
-        final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
 
         // Verify
-        final String submitter = addiRecordPreprocessor.getSubmitter();
-        assertThat("submitter value", submitter, is(ES_INFO_SUBMITTER_ATTRIBUTE_VALUE));
+        assertThat("submitter value", result.getSubmitter(), is(ES_INFO_SUBMITTER_ATTRIBUTE_VALUE));
     }
 
     @Test
-    public void constructor_esInfoSubmitterAttributeNotFound_setsSubmitterToEmptyString() {
+    public void preprocess_esInfoSubmitterAttributeNotFound_setsSubmitterToEmptyString() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info/>" +
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
@@ -111,15 +110,14 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
 
         // Subject under test
-        final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
 
         // Verify
-        final String submitter = addiRecordPreprocessor.getSubmitter();
-        assertThat("submitter is empty", submitter, is(""));
+        assertThat("submitter is empty", result.getSubmitter(), is(""));
     }
 
     @Test
-    public void constructor_updateTemplateAttributeNotFound_setsTemplateToEmptyString() {
+    public void preprocess_updateTemplateAttributeNotFound_setsTemplateToEmptyString() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info submitter=\"870970\"/>" +
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
@@ -127,20 +125,20 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
 
         // Subject under test
-        final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
 
         // Verify
-        final String template = addiRecordPreprocessor.getTemplate();
-        assertThat("template is empty", template, is(""));
+        assertThat("template is empty", result.getTemplate(), is(""));
     }
 
-    @Test public void getMarcXChangeRecord_bibliographicalRecordIsBuild_returnsBibliographicalRecord() throws TransformerException {
+    @Test
+    public void preprocess_contentIsValid_setsBibliographicalRecord() throws TransformerException {
         final String contentXml = getContentXml();
         final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), contentXml));
-        final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
 
         // Subject under test
-        final BibliographicRecord bibliographicalRecord = addiRecordPreprocessor.getMarcXChangeRecord();
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+        final BibliographicRecord bibliographicalRecord = result.getBibliographicRecord();
 
         // Verify
         assertThat("Bibliographical record not null", bibliographicalRecord, not(nullValue()));

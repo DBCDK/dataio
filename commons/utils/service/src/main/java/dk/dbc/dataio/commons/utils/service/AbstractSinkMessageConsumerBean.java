@@ -29,7 +29,6 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
 public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageConsumerBean {
-    private static final String PAYLOAD_TYPE = "ChunkResult";
     private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
@@ -44,7 +43,7 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
             throws NullPointerException, InvalidMessageException {
         if (!JmsConstants.CHUNK_PAYLOAD_TYPE.equals(consumedMessage.getPayloadType())) {
             throw new InvalidMessageException(String.format("Message<%s> payload type %s != %s",
-                    consumedMessage.getMessageId(), consumedMessage.getPayloadType(), PAYLOAD_TYPE));
+                    consumedMessage.getMessageId(), consumedMessage.getPayloadType(), JmsConstants.CHUNK_PAYLOAD_TYPE));
         }
         ExternalChunk processedChunk;
         try {

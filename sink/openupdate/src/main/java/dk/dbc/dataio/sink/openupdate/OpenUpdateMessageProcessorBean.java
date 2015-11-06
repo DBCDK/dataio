@@ -86,15 +86,21 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         }
     }
 
-    private void addChunkInJobStore(ExternalChunk chunkForDelivery) {
+    private void addChunkInJobStore(ExternalChunk chunkForDelivery) throws SinkException {
         try {
             jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(chunkForDelivery, chunkForDelivery.getJobId(), chunkForDelivery.getChunkId());
         } catch (JobStoreServiceConnectorException e) {
-            if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
-                final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
-                if (jobError != null) {
-                    LOGGER.error("job-store returned error: {}", jobError.getDescription());
-                }
+            logJobStoreError(e);
+            // Throw SinkException to force transaction rollback
+            throw new SinkException("Error in communication with job-store", e);
+        }
+    }
+
+    private void logJobStoreError(JobStoreServiceConnectorException e) {
+        if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+            final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+            if (jobError != null) {
+                LOGGER.error("job-store returned error: {}", jobError.getDescription());
             }
         }
     }

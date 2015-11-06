@@ -103,10 +103,11 @@ public class AddiRecordsToItemWrapper {
             AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
+                    addiRecordPreprocessor.getSubmitter(),
                     addiRecordPreprocessor.getTemplate(),
                     addiRecordPreprocessor.getMarcXChangeRecord(),
                     trackingId);
-            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<UpdateRecordResult>(webserviceResult).map(trackingId);
+            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<>(webserviceResult).map(trackingId);
 
             if(mappedWebServiceResult.getStatus() == OpenUpdateResponseDTO.Status.OK) {
                 crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );

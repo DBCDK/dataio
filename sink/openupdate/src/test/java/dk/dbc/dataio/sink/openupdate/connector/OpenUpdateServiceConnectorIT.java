@@ -53,9 +53,10 @@ import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
 
 public class OpenUpdateServiceConnectorIT {
+    private static final String GROUP_ID = "010100";
     private static final String INVALID_SCHEMA =  "fisk";
     private static final String expectedTrackingId = "efd0db60-87db-40c8-8b0f-2c164ce49dfc";
-    private static final String UPDATE_TEMPLATE_ATTRIBUTE_VALUE = "dbc";
+    private static final String SCHEMA_NAME = "dbc";
     private static final String FAILED_UPDATE_MARC = "/870970.failedUpdateInternalError.xml";
     private static final String VALIDATION_ERROR_MARC = "/820040.validationError.xml";
     private static final String VALIDATION_OK_MARC = "/870970.ok.xml";
@@ -119,19 +120,37 @@ public class OpenUpdateServiceConnectorIT {
     }
 
     @Test
-    public void updateRecord_templateArgIsNull_throws() {
+    public void updateRecord_groupIdArgIsNull_throws() {
         final OpenUpdateServiceConnector connector = getConnector();
         try {
-                callUpdateRecordOnConnector(connector, null, new BibliographicRecord());
+                callUpdateRecordOnConnector(connector, null, SCHEMA_NAME, new BibliographicRecord());
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
 
     @Test
-    public void updateRecord_templateArgIsEmpty_throws() {
+    public void updateRecord_groupIdArgIsEmpty_throws() {
         final OpenUpdateServiceConnector connector = getConnector();
         try {
-            callUpdateRecordOnConnector(connector, "", new BibliographicRecord());
+            callUpdateRecordOnConnector(connector, "", SCHEMA_NAME, new BibliographicRecord());
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) { }
+    }
+
+    @Test
+    public void updateRecord_schemaNameArgIsNull_throws() {
+        final OpenUpdateServiceConnector connector = getConnector();
+        try {
+                callUpdateRecordOnConnector(connector, GROUP_ID, null, new BibliographicRecord());
+            fail("No Exception thrown");
+        } catch (NullPointerException e) { }
+    }
+
+    @Test
+    public void updateRecord_schemaNameArgIsEmpty_throws() {
+        final OpenUpdateServiceConnector connector = getConnector();
+        try {
+            callUpdateRecordOnConnector(connector, GROUP_ID, "", new BibliographicRecord());
             fail("No Exception thrown");
         } catch (IllegalArgumentException e) { }
     }
@@ -140,7 +159,7 @@ public class OpenUpdateServiceConnectorIT {
     public void updateRecord_bibliographicalRecordIsNull_throws() {
         final OpenUpdateServiceConnector connector = getConnector();
         try {
-            callUpdateRecordOnConnector(connector, UPDATE_TEMPLATE_ATTRIBUTE_VALUE, null);
+            callUpdateRecordOnConnector(connector, GROUP_ID, SCHEMA_NAME, null);
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
@@ -152,7 +171,7 @@ public class OpenUpdateServiceConnectorIT {
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -162,12 +181,12 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithInvalidMarc_validationFailedWithValidationError() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(UPDATE_TEMPLATE_ATTRIBUTE_VALUE), readTestRecord(VALIDATION_ERROR_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(VALIDATION_ERROR_MARC)));
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, preprocessor.getTemplate(), preprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult not null", updateRecordResult, not(nullValue()));
@@ -186,12 +205,12 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithInsufficientRights_validationFailedWithFailedUpdateInternalError() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(UPDATE_TEMPLATE_ATTRIBUTE_VALUE), readTestRecord(FAILED_UPDATE_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(FAILED_UPDATE_MARC)));
         AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -210,12 +229,12 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void updateRecord_callsServiceWithAllArgsAreValid_validationOk() throws IOException, URISyntaxException {
 
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(UPDATE_TEMPLATE_ATTRIBUTE_VALUE), readTestRecord(VALIDATION_OK_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(VALIDATION_OK_MARC)));
         AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
         // Subject under test
-        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
+        final UpdateRecordResult updateRecordResult = callUpdateRecordOnConnector(connector, GROUP_ID, addiRecordPreprocessor.getTemplate(), addiRecordPreprocessor.getMarcXChangeRecord());
 
         // Verification
         assertThat("UpdateRecordResult", updateRecordResult, not(nullValue()));
@@ -226,8 +245,8 @@ public class OpenUpdateServiceConnectorIT {
     /*
      * Private methods
      */
-    private UpdateRecordResult callUpdateRecordOnConnector(OpenUpdateServiceConnector connector, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
-        return connector.updateRecord(template, bibliographicRecord, UUID.fromString(expectedTrackingId));
+    private UpdateRecordResult callUpdateRecordOnConnector(OpenUpdateServiceConnector connector, String groupId, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
+        return connector.updateRecord(groupId, template, bibliographicRecord, UUID.fromString(expectedTrackingId));
     }
 
     private OpenUpdateServiceConnector getConnector() {

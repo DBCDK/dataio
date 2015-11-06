@@ -43,7 +43,6 @@ public class OpenUpdateServiceConnector {
     private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 3 * 60 * 1000;    // 3 minutes
 
     //FixMe authentication values should not be visible in the code
-    private static final String GROUP_ID = "010100";
     private static final String USER_ID  = "netpunkt";
     private static final String PASSWORD = "20Koster";
 
@@ -77,20 +76,22 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Calls updateRecord operation of the Open Update Web service
-     * @param template the template towards which the validation should be performed
+     * @param groupId group id used for authorization
+     * @param schemaName the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
      * @param trackingId unique ID for each OpenUpdate request
      * @return UpdateRecordRequest instance
      * @throws NullPointerException if passed any null valued {@code template} or {@code bibliographicRecord} argument
      * @throws IllegalArgumentException if passed empty valued {@code template}
      */
-    public UpdateRecordResult updateRecord(String template, BibliographicRecord bibliographicRecord, final UUID trackingId)
+    public UpdateRecordResult updateRecord(String groupId, String schemaName, BibliographicRecord bibliographicRecord, final UUID trackingId)
             throws NullPointerException, IllegalArgumentException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(template, "template");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(groupId, "groupId");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(schemaName, "schemaName");
         InvariantUtil.checkNotNullOrThrow(bibliographicRecord, "bibliographicRecord");
         InvariantUtil.checkNotNullNotEmptyOrThrow(trackingId.toString(), "trackingid");
 
-        final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(template, bibliographicRecord, trackingId);
+        final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(groupId, schemaName, bibliographicRecord, trackingId);
         return getProxy().updateRecord(updateRecordRequest);
     }
 
@@ -101,15 +102,16 @@ public class OpenUpdateServiceConnector {
 
     /**
      * Builds an UpdateRecordRequest
+     * @param groupId group id used for authorization
      * @param schemaName the template towards which the validation should be performed
      * @param bibliographicRecord containing the MarcXChange to validate
      * @param trackingId unique ID for each OpenUpdate request
      * @return a new updateRecordRequest containing schemeName and bibliographicRecord
      */
-    private UpdateRecordRequest buildUpdateRecordRequest(String schemaName, BibliographicRecord bibliographicRecord, UUID trackingId) {
+    private UpdateRecordRequest buildUpdateRecordRequest(String groupId, String schemaName, BibliographicRecord bibliographicRecord, UUID trackingId) {
         UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
         Authentication authentication = new Authentication();
-        authentication.setGroupIdAut(GROUP_ID);
+        authentication.setGroupIdAut(groupId);
         authentication.setUserIdAut(USER_ID);
         authentication.setPasswordAut(PASSWORD);
         updateRecordRequest.setAuthentication(authentication);

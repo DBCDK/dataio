@@ -136,6 +136,18 @@ public class JsonMarshallingTest {
     }
 
     @Test
+    public void verify_jsonMarshallingForSinkContentWithType() throws Exception {
+        final String json = jsonbContext.marshall(SinkContentTest.newSinkContentWithTypeInstance());
+        jsonbContext.unmarshall(json, SinkContent.class);
+    }
+
+    @Test
+    public void verify_jsonMarshallingForSinkContentWithTypeAndConfig() throws Exception {
+        final String json = jsonbContext.marshall(SinkContentTest.newSinkContentWithTypeAndConfigInstance());
+        jsonbContext.unmarshall(json, SinkContent.class);
+    }
+
+    @Test
     public void verify_jsonMarshallingForPingResponse() throws Exception {
         final String json = jsonbContext.marshall(PingResponseTest.newPingResponse());
         jsonbContext.unmarshall(json, PingResponse.class);

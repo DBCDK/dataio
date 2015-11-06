@@ -95,6 +95,20 @@ public class JsonBuilderTest {
     }
 
     @Test
+    public void SinkContentJsonBuilderWithTypeProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SinkContentJsonBuilder()
+                .setSinkType(SinkContent.SinkType.OPENUPDATE).build(), SinkContent.class);
+    }
+
+    @Test
+    public void SinkContentJsonBuilderWithTypeAndConfigProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new SinkContentJsonBuilder()
+                .setSinkType(SinkContent.SinkType.OPENUPDATE)
+                .setSinkConfig(new OpenUpdateSinkConfigJsonBuilder().build())
+                .build(), SinkContent.class);
+    }
+
+    @Test
     public void SinkJsonBuilderProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new SinkJsonBuilder().build(), Sink.class);
     }

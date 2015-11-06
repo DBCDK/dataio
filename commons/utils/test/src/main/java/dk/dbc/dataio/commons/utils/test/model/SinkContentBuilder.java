@@ -21,12 +21,15 @@
 
 package dk.dbc.dataio.commons.utils.test.model;
 
+import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 
 public class SinkContentBuilder {
     private String name = "name";
     private String resource = "resource";
     private String description = "description";
+    private SinkContent.SinkType sinkType = null;
+    private SinkConfig sinkConfig = null;
 
     public SinkContentBuilder setName(String name) {
         this.name = name;
@@ -43,7 +46,17 @@ public class SinkContentBuilder {
         return this;
     }
 
+    public SinkContentBuilder setSinkType(SinkContent.SinkType sinkType) {
+        this.sinkType = sinkType;
+        return this;
+    }
+
+    public SinkContentBuilder setSinkConfig(SinkConfig sinkConfig) {
+        this.sinkConfig = sinkConfig;
+        return this;
+    }
+
     public SinkContent build() {
-        return new SinkContent(name, resource, description);
+        return new SinkContent(name, resource, description, sinkType, sinkConfig);
     }
 }

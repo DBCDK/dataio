@@ -36,7 +36,7 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
      * @param consumedMessage consumed message
      * @return consumed message payload as ChunkResult
      * @throws NullPointerException if given null-valued consumedMessage
-     * @throws InvalidMessageException if message payload type differs from {@value #PAYLOAD_TYPE},
+     * @throws InvalidMessageException if message payload type differs from ExternalChunk,
      * if message payload can not be unmarshalled, or if resulting chunk contains no items.
      */
     protected ExternalChunk unmarshallPayload(ConsumedMessage consumedMessage)

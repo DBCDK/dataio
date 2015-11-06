@@ -95,6 +95,8 @@ public class JPATestUtils {
      *
      * Removed all Tables, functions, indexes types from the tatebase.
      * @param entityManager The entity Manager to clean the database for.
+     * @throws IOException when Unable to load drop_all_pg.sql script
+     * @throws URISyntaxException
      *
      */
     public static void clearDatabase( EntityManager entityManager ) throws IOException, URISyntaxException {
@@ -103,7 +105,15 @@ public class JPATestUtils {
 
     /**
      * @param manager EntityManager to use.
+     * @param testClass use this for executing test from test/resources
      * @param resouceName Resource sql
+     * @throws IOException when Unable to load drop_all_pg.sql script
+     * @throws URISyntaxException with errors in resourceName
+     *
+     * Example:
+     *
+     *  JPATestUtils.runSqlFromResource(em, this, "load_test_data.sql");
+     *
      */
     public static void runSqlFromResource(EntityManager manager, Object testClass, String resouceName) throws IOException, URISyntaxException {
         String sql= readResouce(testClass, resouceName);

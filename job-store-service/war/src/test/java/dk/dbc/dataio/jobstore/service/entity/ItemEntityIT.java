@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
@@ -14,6 +15,7 @@ import static org.junit.Assert.assertThat;
  * Created by ja7 on 02-11-15.
  * Test load af
  */
+@Ignore
 public class ItemEntityIT {
 
     private EntityManager em;

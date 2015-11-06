@@ -12,7 +12,7 @@ public abstract class AbstractResourceBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractResourceBean.class);
 
-    protected <T extends Versioned> T saveAsVersionedEntity(EntityManager entityManager, Class<T> entityClass, String content) {
+    protected <T extends Versioned> T saveAsVersionedEntity(EntityManager entitymanager, Class<T> entityClass, String content) {
         T entity = null;
         try {
             entity = entityClass.newInstance();
@@ -21,7 +21,8 @@ public abstract class AbstractResourceBean {
         }
         if (entity != null) {
             entity.setContent(content);
-            entityManager.persist(entity);
+            entitymanager.persist(entity);
+            entitymanager.flush();
         }
         return entity;
     }

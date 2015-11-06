@@ -107,7 +107,6 @@ public class SinksBean extends AbstractResourceBean {
         jsonbContext.unmarshall(sinkContent, SinkContent.class);
 
         final SinkEntity sinkEntity = saveAsVersionedEntity(entityManager, SinkEntity.class, sinkContent);
-        entityManager.flush();
         final String sinkJson = jsonbContext.marshall(sinkEntity);
         return Response
                 .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), sinkEntity))

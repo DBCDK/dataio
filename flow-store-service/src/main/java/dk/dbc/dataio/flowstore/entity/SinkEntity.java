@@ -34,7 +34,7 @@ import javax.persistence.Table;
 )
 @NamedNativeQueries({
         @NamedNativeQuery(name = SinkEntity.QUERY_FIND_ALL,
-                query = "select * from sinks sinks order by upper(content ->> 'name') asc", resultSetMapping = "Sink.implicit")
+                query = "select * from sinks order by upper(content ->> 'name') asc", resultSetMapping = "Sink.implicit")
 })
 @Table(name = "sinks")
 public class SinkEntity extends Versioned {

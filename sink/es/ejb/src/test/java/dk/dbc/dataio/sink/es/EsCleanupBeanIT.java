@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
@@ -36,11 +37,12 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+
 public class EsCleanupBeanIT extends SinkIT {
     @Test
     public void cleanup_noTaskPackagesAreMarkedAsFinished_leavesEsAndInFlightUnchanged() throws JSONBException, JMSException, IOException, URISyntaxException {
 
-        JPATestUtils.runSqlFromResource(esInFlightEntityManager, "EsCleanUpBeanIT_noTaskPackagesAreMarkedAsFinished_testdata.sql");
+        JPATestUtils.runSqlFromResource(esInFlightEntityManager, this, "EsCleanUpBeanIT_noTaskPackagesAreMarkedAsFinished_testdata.sql");
 
         assertThat("Number of task packages in ES", findTaskPackages().size(), is(2));
 
@@ -64,7 +66,7 @@ public class EsCleanupBeanIT extends SinkIT {
     @Test
     public void cleanup_taskPackagesAreMarkedAsFinished_removedFromEsAndInFlight() throws JSONBException, JMSException, SQLException, IOException, URISyntaxException {
 
-        JPATestUtils.runSqlFromResource(esInFlightEntityManager, "EsCleanUpBeanIT_taskPackagesAreMarkedAsFinished_testdata.sql");
+        JPATestUtils.runSqlFromResource(esInFlightEntityManager, this, "EsCleanUpBeanIT_taskPackagesAreMarkedAsFinished_testdata.sql");
         jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
 
         final List<EsInFlight> esInFlight = listEsInFlight();

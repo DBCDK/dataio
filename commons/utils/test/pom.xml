@@ -50,5 +50,15 @@
       <version>${javaee.api.version}</version>
       <scope>provided</scope>
     </dependency>
+      <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <version>${postgresql.driver.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.eclipse.persistence</groupId>
+          <artifactId>eclipselink</artifactId>
+          <version>2.5.2</version>
+      </dependency>
   </dependencies>
 </project>

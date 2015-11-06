@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
@@ -62,7 +63,6 @@ public class ESTaskPackageUtilIT {
         em.createNativeQuery("delete from taskpackage").executeUpdate();
         em.createNativeQuery("delete from esinflight").executeUpdate();
         em.getTransaction().commit();
-
     }
     @Test
     public void insertTaskPackage_singleSimpleRecordInWorkload_happyPath() throws Exception {
@@ -116,7 +116,7 @@ public class ESTaskPackageUtilIT {
     public void deleteTaskpackages_MAX_WHERE_IN_SIZE_exeeded_allTaskPackagesDeleted()
             throws SQLException, ClassNotFoundException, IOException, URISyntaxException {
 
-        JPATestUtils.runSqlFromResource(em, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
+        JPATestUtils.runSqlFromResource(em, this, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
 
 
 
@@ -141,7 +141,7 @@ public class ESTaskPackageUtilIT {
       public void findCompletionStatusForTaskpackages_MAX_WHERE_IN_SIZE_exeeded_allTaskPackagesFound()
               throws SQLException, ClassNotFoundException, IOException, URISyntaxException {
 
-          JPATestUtils.runSqlFromResource(em, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
+          JPATestUtils.runSqlFromResource(em, this, "EsTaskPackageUtilIT_findCompletionStatus_testdata.sql");
 
           ESTaskPackageUtil.MAX_WHERE_IN_SIZE = 6;
 

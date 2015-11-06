@@ -1,4 +1,4 @@
-package dk.dbc.dataio.sink.es;
+package dk.dbc.dataio.commons.utils.test.jpa;
 
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -30,7 +30,7 @@ public class JPATestUtils {
 
     public static final String POSTGRESQL_DBNAME = "postgresql.dbname";
     public static final String POSTGRESQL_HOST = "postgresql.host";
-    public static final String POSTGRESQL_PORT = "espostgresql.port";
+    public static final String POSTGRESQL_PORT = "postgresql.port";
 
     // Static Utility class
     private JPATestUtils() {
@@ -72,7 +72,6 @@ public class JPATestUtils {
     }
 
     public static Connection getEsConnection(  ) throws ClassNotFoundException, SQLException {
-        //Class.forName("oracle.jdbc.driver.OracleDriver");
         Class.forName("org.postgresql.Driver");
         GetTestConnectInfo getTestConnectInfo = new GetTestConnectInfo().invoke();
         return DriverManager.getConnection(getTestConnectInfo.getJdbc(), getTestConnectInfo.getLogin(), getTestConnectInfo.getPassword());
@@ -93,19 +92,29 @@ public class JPATestUtils {
     }
 
     /**
+     *
+     * Removed all Tables, functions, indexes types from the tatebase.
+     * @param entityManager The entity Manager to clean the database for.
+     *
+     */
+    public static void clearDatabase( EntityManager entityManager ) throws IOException, URISyntaxException {
+        JPATestUtils.runSqlFromResource(entityManager,JPATestUtils.class,"drop_all_pg.sql");
+    }
+
+    /**
      * @param manager EntityManager to use.
      * @param resouceName Resource sql
      */
-    public static void runSqlFromResource(EntityManager manager, String resouceName) throws IOException, URISyntaxException {
-        String sql= readResouce(resouceName);
+    public static void runSqlFromResource(EntityManager manager, Object testClass, String resouceName) throws IOException, URISyntaxException {
+        String sql= readResouce(testClass, resouceName);
         manager.getTransaction().begin();
         Query q = manager.createNativeQuery(sql);
         q.executeUpdate();
         manager.getTransaction().commit();
     }
 
-    static String readResouce(String resourceName) throws IOException, URISyntaxException {
-        final java.net.URL url = JPATestUtils.class.getResource("/" + resourceName);
+    static String readResouce(Object testClass, String resourceName) throws IOException, URISyntaxException {
+        final java.net.URL url = testClass.getClass().getResource("/" + resourceName);
         final java.nio.file.Path resPath;
         resPath = java.nio.file.Paths.get(url.toURI());
         return new String(java.nio.file.Files.readAllBytes(resPath), StandardCharsets.UTF_8);

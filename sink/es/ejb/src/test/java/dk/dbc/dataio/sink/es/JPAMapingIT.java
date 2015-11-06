@@ -1,5 +1,6 @@
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
@@ -24,7 +25,7 @@ public class JPAMapingIT {
     @Test
     public void LoadTaskPackage() throws Exception {
         EntityManager em=JPATestUtils.createEntityManagerForIntegrationTest("esIT");
-        JPATestUtils.runSqlFromResource(em,"JPAMappingIT_load_testdata.sql");
+        JPATestUtils.runSqlFromResource(em,this, "JPAMappingIT_load_testdata.sql");
 
         TaskSpecificUpdateEntity tp=em.find(TaskSpecificUpdateEntity.class, 1);
         tp.loadDiagsIfExists(em);

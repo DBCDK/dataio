@@ -7,7 +7,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.sql.DataSource;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -124,10 +126,19 @@ public class JPATestUtils {
     }
 
     static String readResouce(Object testClass, String resourceName) throws IOException, URISyntaxException {
-        final java.net.URL url = testClass.getClass().getResource("/" + resourceName);
-        final java.nio.file.Path resPath;
-        resPath = java.nio.file.Paths.get(url.toURI());
-        return new String(java.nio.file.Files.readAllBytes(resPath), StandardCharsets.UTF_8);
+        final StringBuilder buffer = new StringBuilder();
+        final int buffSize=1024;
+        final char[] buff=new char[buffSize];
+        try (
+                final InputStreamReader isr = new InputStreamReader(
+                        testClass.getClass().getResourceAsStream("/" + resourceName), StandardCharsets.UTF_8);
+                final BufferedReader br = new BufferedReader(isr)) {
+            for (int length = br.read(buff,0,buffSize); length != -1; length = br.read(buff,0,buffSize) )
+                buffer.append(buff,0,length);
+        } catch (IOException e) {
+            throw new IllegalStateException(e);
+        }
+        return buffer.toString();
     }
 
 

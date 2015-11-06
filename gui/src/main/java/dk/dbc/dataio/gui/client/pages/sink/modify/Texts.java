@@ -26,6 +26,9 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 public interface Texts extends com.google.gwt.i18n.client.Constants {
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_SinkType();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SinkName();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -34,6 +37,15 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Description();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_SinkUrl();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_UserId();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Password();
+
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -41,6 +53,23 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Delete();
+
+
+    // Sink Type Selection
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_ESSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_UpdateSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_DummySink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_FBSWebserviceSink();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String selection_DiffSink();
 
 
     // Error messages
@@ -58,6 +87,7 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NameFormatValidationError();
+
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

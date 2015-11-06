@@ -286,16 +286,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.charset.setEnabled(true);
         view.destination.setText(model.getDestination());
         view.destination.setEnabled(true);
-        view.recordSplitter.setSelectedItem(model.getRecordSplitter());
+        view.recordSplitter.setSelectedText(model.getRecordSplitter());
         view.recordSplitter.setEnabled(true);
         view.sequenceAnalysis.setValue(model.getSequenceAnalysis());
         view.sequenceAnalysis.setEnabled(true);
         view.submitters.setAvailableItems(getAvailableSubmitters(model));
         view.submitters.setSelectedItems(getSelectedSubmitters(model));
         view.submitters.setEnabled(true);
-        view.flow.setSelectedItem(model.getFlowModel().getFlowName());
+        view.flow.setSelectedText(model.getFlowModel().getFlowName());
         view.flow.setEnabled(true);
-        view.sink.setSelectedItem(model.getSinkModel().getSinkName());
+        view.sink.setSelectedText(model.getSinkModel().getSinkName());
         view.sink.setEnabled(true);
     }
 

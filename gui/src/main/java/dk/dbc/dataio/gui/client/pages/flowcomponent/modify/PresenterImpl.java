@@ -301,10 +301,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         availableNextRevisions = new ArrayList<String>(availableRevisions);
         view.next.setAvailableItems(availableNextRevisions);
         if(!model.getSvnNext().isEmpty()) {
-            view.next.setSelectedItem(model.getSvnNext());
+            view.next.setSelectedText(model.getSvnNext());
         }
         view.next.fireChangeEvent();
-        view.revision.setSelectedItem(model.getSvnRevision());
+        view.revision.setSelectedText(model.getSvnRevision());
         view.revision.fireChangeEvent();
     }
 
@@ -315,7 +315,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected void setAvailableScripts(List<String> scriptNames) {
         availableScripts = scriptNames;
         view.script.setAvailableItems(scriptNames);
-        view.script.setSelectedItem(model.getInvocationJavascript());
+        view.script.setSelectedText(model.getInvocationJavascript());
         view.script.fireChangeEvent();
     }
 
@@ -326,7 +326,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected void setAvailableInvocationMethods(List<String> invocationMethods) {
         availableInvocationMethods = invocationMethods;
         view.method.setAvailableItems(invocationMethods);
-        view.method.setSelectedItem(model.getInvocationMethod());
+        view.method.setSelectedText(model.getInvocationMethod());
         view.method.fireChangeEvent();
         view.revision.setEnabled(true);
         view.next.setEnabled(true);

@@ -26,9 +26,21 @@
 
     <g:HTMLPanel>
 
+        <li><dio:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
+            <dio:item value="ES_SINK_TYPE"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></dio:item>
+            <dio:item value="UPDATE_SINK_TYPE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></dio:item>
+            <dio:item value="DUMMY_SINK_TYPE"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></dio:item>
+            <dio:item value="FBS_WEBSERVICE_SINK_TYPE"><g:Label><ui:text from="{txt.selection_FBSWebserviceSink}"/></g:Label></dio:item>
+            <dio:item value="DIFF_SINK_TYPE"><g:Label><ui:text from="{txt.selection_DiffSink}"/></g:Label></dio:item>
+        </dio:PromptedList></li>
         <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextArea ui:field="description" guiId="sinkdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+        <g:HTMLPanel ui:field="updateSinkSection" visible="false">
+            <li><dio:PromptedTextBox ui:field="url" guiId="sinkurl" prompt="{txt.label_SinkUrl}" maxLength="160" toolTip=""/></li>
+            <li><dio:PromptedTextBox ui:field="userid" guiId="sinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>
+            <li><dio:PromptedPasswordTextBox ui:field="password" guiId="sinkpassword" prompt="{txt.label_Password}" maxLength="160" toolTip=""/></li>
+        </g:HTMLPanel>
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <!-- Visibility of the delete button is controlled from PresenterEditImpl -->

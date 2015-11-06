@@ -132,12 +132,21 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     public void initializeViewFields() {
+        view.sinkTypeSelection.setSelectedValue("ES_SINK_TYPE");  // Default selection is ES Sink
+        view.sinkTypeSelection.setEnabled(false);
         view.name.clearText();
         view.name.setEnabled(false);
         view.resource.clearText();
         view.resource.setEnabled(false);
         view.description.clearText();
         view.description.setEnabled(false);
+        view.updateSinkSection.setVisible(false);
+        view.url.clearText();
+        view.url.setEnabled(false);
+        view.userid.clearText();
+        view.userid.setEnabled(false);
+        view.password.clearText();
+        view.password.setEnabled(false);
     }
 
     private void doPingAndSaveSink() {
@@ -148,6 +157,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
+        view.sinkTypeSelection.setSelectedValue("ES_SINK_TYPE");
+        view.sinkTypeSelection.setEnabled(true);
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
@@ -155,6 +166,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.resource.setEnabled(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
+        view.updateSinkSection.setVisible(false);
+        view.url.clearText();  // To be replaced by actual values
+        view.url.setEnabled(true);
+        view.userid.clearText();  // To be replaced by actual values
+        view.userid.setEnabled(true);
+        view.password.clearText();  // To be replaced by actual values
+        view.password.setEnabled(true);
         view.status.setText("");
     }
 

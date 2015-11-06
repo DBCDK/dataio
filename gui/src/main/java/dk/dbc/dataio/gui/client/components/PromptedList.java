@@ -27,9 +27,11 @@ import com.google.gwt.event.logical.shared.HasValueChangeHandlers;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.uibinder.client.UiChild;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HasValue;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.ListBox;
 
 import java.util.List;
@@ -41,6 +43,13 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     @UiField final ListBox listBox;
 
 
+    /**
+     * UI Constructor - carries the parameters to be used by UI Binder
+     * @param guiId The GUI Id to be used for this particular DOM element
+     * @param prompt The Prompt text to be used for the List Box
+     * @param multiSelect A boolean, telling if this is a multiselection list box
+     * @param visibleItems Counts the number of visible items
+     */
     public @UiConstructor
     PromptedList(String guiId, String prompt, boolean multiSelect, int visibleItems) {
         super(guiId, prompt);
@@ -55,19 +64,58 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
         add(listBox);
     }
 
+    /**
+     * UI Child - allows child elements under the "item" element. <br/>
+     * Furthermore, an attribute named "value" is allowed in the "item" element <br/>
+     * In UI Binder, use the following format for the PromptedList: <br/>
+     * <pre>
+     * {@code
+     *   <dio:PromptedList visibleItems="1" guiId="sinktypeselection" prompt="Sink type" multiSelect="false" enabled="true">
+     *      <dio:item value="ES_SINK_TYPE"><g:Label>ES sink</g:Label></dio:item>
+     *      <dio:item value="UPDATE_SINK_TYPE"><g:Label>Update sink</g:Label></dio:item>
+     *      <dio:item value="DUMMY_SINK_TYPE"><g:Label>Dummy sink</g:Label></dio:item>
+     *   </dio:PromptedList>
+     * }
+     * </pre>
+     * @param text The containing text in the "item" element
+     * @param value The value of the "value" attribute
+     */
+    @UiChild(tagname="item")
+    public void addItem(Label text, String value) {
+        listBox.addItem(text.getText(), value);
+    }
+
+    /**
+     * Clears the text of the listbox
+     */
     @Override
     public void clear() {
         listBox.clear();
     }
 
+    /**
+     * Adds an item to the list of available items in the listbox<br/>
+     * Only the textual value of the item is given here (the text displayed in the list)
+     * @param text The textual value of the item
+     */
     public void addAvailableItem(String text) {
         listBox.addItem(text);
     }
 
+    /**
+     * Adds an item to the list of available items in the listbox<br/>
+     * Both the textual value and the key value of the item is given
+     * @param text The textual value of the item
+     * @param key The key value of the item
+     */
     public void addAvailableItem(String text, String key) {
         listBox.addItem(text, key);
     }
 
+    /**
+     * Adds a list of available items to the listbox
+     * @param items The list of items to be added to the listbox
+     */
     public void setAvailableItems(List<String> items) {
         listBox.clear();
         for(String item : items) {
@@ -75,6 +123,10 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
         }
     }
 
+    /**
+     * Fetches the selected item from the list box.
+     * @return The displayed text of the selected item
+     */
     public String getSelectedText() {
         int selectedRevisionIndex = listBox.getSelectedIndex();
         if (selectedRevisionIndex < 0) {
@@ -84,6 +136,10 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
         return listBox.getItemText(selectedRevisionIndex);
     }
 
+    /**
+     * Fetches the key of the selected item from the list box
+     * @return The key of the selected item
+     */
     public String getSelectedKey() {
         int selectedRevisionIndex = listBox.getSelectedIndex();
         if (selectedRevisionIndex < 0) {
@@ -93,18 +149,30 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
         return listBox.getValue(selectedRevisionIndex);
     }
 
+    /**
+     * Sets the selected item in the listbox. Use the integer index to point out the selected item.
+     * @param selected The index value of the selected item as an integer
+     */
     public void setSelected(int selected) {
         listBox.setItemSelected(selected, true);
     }
 
+    /**
+     * Set the listbox to be enabled or disabled
+     * @param enabled Sets the listbox enabled if true, disabled if false
+     */
     public void setEnabled(boolean enabled) {
         listBox.setEnabled(enabled);
     }
 
-    public void setSelectedItem(String value) {
-        if(value != null) {
+    /**
+     * Sets the selection of the listbox. Use the displayed text to point out the item to be selected.
+     * @param text The displayed text of the item to select
+     */
+    public void setSelectedText(String text) {
+        if (text != null) {
             for (int i = 0; i < listBox.getItemCount(); i++) {
-                if (value.equals(listBox.getItemText(i))) {
+                if (text.equals(listBox.getItemText(i))) {
                     listBox.setSelectedIndex(i);
                     break;
                 }
@@ -112,33 +180,75 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
         }
     }
 
+    /**
+     * Sets the selection of the listbox. Use the key value of the item to be used to point out the item to be selected.
+     * @param value The key value of the item to select
+     */
+    public void setSelectedValue(String value) {
+        if (value != null) {
+            for (int i=0; i < listBox.getItemCount(); i++) {
+                if (value.equals(listBox.getValue(i))) {
+                    listBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Fires a ChangeEvent
+     */
     public void fireChangeEvent() {
         class ListBoxChangedEvent extends ChangeEvent {}
         listBox.fireEvent(new ListBoxChangedEvent());
     }
 
+    /**
+     * Adds a ChangeHandler to the PromptedList
+     * @param handler
+     * @return
+     */
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return listBox.addChangeHandler(handler);
     }
 
+    /**
+     * Gets the displayed text of the selected item
+     * @return The displayed text of the selected item
+     */
     @Override
     public String getValue() {
         return getSelectedText();
     }
 
+    /**
+     * Sets the selection of the listbox. Use the displayed text to point out the selection.
+     * @param value The displayed text of the item to be selected
+     */
     @Override
     public void setValue(String value) {
-        setSelectedItem(value);
+        setSelectedText(value);
     }
 
+    /**
+     * Sets the selection of the listbox. Use the displayed text to point out the selection.<br/>
+     * If the supplied boolean is true, do also fire a ChangeEvent
+     * @param value The displayed text of the item to be selected
+     * @param fireEvents If true, do fire a ChangeEvent
+     */
     @Override
     public void setValue(String value, boolean fireEvents) {
-        setSelectedItem(value);
+        setSelectedText(value);
         if (fireEvents) {
             ValueChangeEvent.fire(this, value);
         }
     }
 
+    /**
+     * Adds a ValueChangeHandler to the PromptedList component
+     * @param handler The ValueChangeHandler to add
+     * @return A HandlerRegistration object to be used to remove the change handler
+     */
     @Override
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
         if (!valueChangeHandlerInitialized) {

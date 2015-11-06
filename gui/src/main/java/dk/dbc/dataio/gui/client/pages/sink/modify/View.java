@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -31,11 +32,20 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PromptedList;
+import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
+    enum SinkType {
+        ES_SINK_TYPE,
+        UPDATE_SINK_TYPE,
+        DUMMY_SINK_TYPE,
+        FBS_WEBSERVICE_SINK_TYPE,
+        DIFF_SINK_TYPE
+    }
 
     interface SinkBinder extends UiBinder<HTMLPanel, View> {}
     private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
@@ -45,11 +55,28 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
+    @UiField PromptedList sinkTypeSelection;
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox resource;
     @UiField PromptedTextArea description;
+    @UiField HTMLPanel updateSinkSection;
+    @UiField PromptedTextBox url;
+    @UiField PromptedTextBox userid;
+    @UiField PromptedPasswordTextBox password;
     @UiField Button deleteButton;
     @UiField Label status;
+
+    @UiHandler("sinkTypeSelection")
+    void sinkTypeSelectionChanged(ChangeEvent event) {
+        switch (SinkType.valueOf(sinkTypeSelection.getSelectedKey())) {
+            case UPDATE_SINK_TYPE:
+                updateSinkSection.setVisible(true);
+                break;
+            default:
+                updateSinkSection.setVisible(false);
+                break;
+        }
+    }
 
     @UiHandler("name")
     @SuppressWarnings("unused")

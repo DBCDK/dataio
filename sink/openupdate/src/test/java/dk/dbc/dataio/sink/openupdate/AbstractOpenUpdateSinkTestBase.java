@@ -31,6 +31,15 @@ import java.util.stream.Collectors;
 
 
 public class AbstractOpenUpdateSinkTestBase {
+    public static final String ES_INFO_SUBMITTER_ATTRIBUTE_VALUE = "870970";
+    public static final String UPDATE_TEMPLATE_ATTRIBUTE_VALUE = "bog";
+
+    private static final String META_XML =
+        "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+            "<es:info format=\"basis\" language=\"dan\" submitter=\"" + ES_INFO_SUBMITTER_ATTRIBUTE_VALUE + "\"/>" +
+            "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" updateTemplate=\"" + UPDATE_TEMPLATE_ATTRIBUTE_VALUE + "\"/>" +
+        "</es:referencedata>";
+
     protected static CompareMatcher isEquivalentTo(Object control) {
         return CompareMatcher.isSimilarTo(control)
                 .throwComparisonFailure()
@@ -38,17 +47,13 @@ public class AbstractOpenUpdateSinkTestBase {
                 .ignoreComments();
     }
 
-    protected String getMetaXml(String attribute) {
-        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"" + " " + attribute + "=\"bog\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>";
+    protected String getMetaXml() {
+        return  META_XML;
     }
 
-    protected String getMetaXmlWithoutUpdateElement() {
-        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                " charset=\"danmarc2\"/>" +
+    protected String getInvalidMetaXml(String referenceDataChildren) {
+        return  "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                    referenceDataChildren +
                 "</es:referencedata>";
     }
 

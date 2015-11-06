@@ -38,22 +38,21 @@ import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.fail;
 
 public class DocumentTransformerTest {
-
-    private static final String NAMESPACE_URI = "dk.dbc.dataio.processing";
-    private static final String ELEMENT_1 = "sink-update-template";
-    private static final String ELEMENT_2 = "sink-processing";
+    private static final String NAMESPACE_URI = "ns";
+    private static final String ELEMENT = "element";
+    private static final String ATTRIBUTE = "attribute";
+    private static final String ATTRIBUTE_VALUE = "attributeValue";
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
 
     @Test
     public void setDocumentTransformer_newInstance_returnsNewDocumentTransformer() {
-        DocumentTransformer documentTransformer = new DocumentTransformer();
-        assertThat(documentTransformer, not(nullValue()));
+        assertThat(new DocumentTransformer(), not(nullValue()));
     }
 
     @Test
     public void documentTransformer_callGetDocumentWithValidXml_returnsDocument() throws IOException, SAXException {
         // Subject under test
-        Document document = documentTransformer.byteArrayToDocument(getByteArray(getContentXml()));
+        final Document document = documentTransformer.byteArrayToDocument(getByteArray(getXmlSingleElement()));
 
         // Verification
         assertThat("Document not null", document, not(nullValue()));
@@ -63,7 +62,7 @@ public class DocumentTransformerTest {
     public void documentTransformer_callGetDocumentWithInvalidXml_throws() throws IOException {
         try {
             // Subject under test
-            documentTransformer.byteArrayToDocument(getByteArray(getInvalidContentXml()));
+            documentTransformer.byteArrayToDocument(getByteArray("invalid xml"));
             fail();
         } catch (Exception e) {
             // Verification
@@ -73,33 +72,55 @@ public class DocumentTransformerTest {
 
     @Test
     public void documentTransformer_fromDocumentToByteArray_returnsByteArray() throws TransformerException {
-        final String contentDataAsString = getContentXml();
-        final byte[] inputByteArray = getByteArray(contentDataAsString);
-        Document document = getDocument(inputByteArray);
+        final String xmlString = getXmlSingleElement();
+        final Document document = getDocument(getByteArray(xmlString));
 
         // Subject under test
         byte[] returnedByteArray = documentTransformer.documentToByteArray(document);
 
         // Verification
         assertThat("Length of byte array", returnedByteArray.length > 0, is(true));
-        assertThat("Content contains" + contentDataAsString, new String(returnedByteArray, StandardCharsets.UTF_8).contains(contentDataAsString), is(true));
+        assertThat("Document contains " + xmlString, new String(returnedByteArray, StandardCharsets.UTF_8).contains(xmlString), is(true));
     }
 
     @Test
     public void documentTransformer_removeFromDom_removesChildNodesFromDom() {
-        final Document metaDataDocument = getDocument(getByteArray(getMetaXml()));
-        final NodeList nodeListContainingElementsWithTagName = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_1);
-        final NodeList nodeListContainingElementsWithTagExtra = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT_2);
-
-        assertThat("Nodelist containing elements with ", nodeListContainingElementsWithTagName.getLength(), is(2));
-        assertThat(nodeListContainingElementsWithTagExtra.getLength(), is(1));
+        final Document document = getDocument(getByteArray(getXmlMultipleElements()));
+        final NodeList nodeListBeforeRemove = document.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
+        assertThat("Number of elements before remove", nodeListBeforeRemove.getLength(), is(2));
 
         // Subject under test
-        documentTransformer.removeFromDom(nodeListContainingElementsWithTagName);
+        documentTransformer.removeFromDom(nodeListBeforeRemove);
 
         // Verification
-        assertThat(nodeListContainingElementsWithTagName.getLength(), is(0));
-        assertThat(nodeListContainingElementsWithTagExtra.getLength(), is(1));
+        final NodeList nodeListAfterRemove = document.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
+        assertThat("Number of elements after remove", nodeListAfterRemove.getLength(), is(0));
+    }
+
+    @Test
+    public void extractAttributeValue_attributeFound_returnsValue() {
+        final Document document = getDocument(getByteArray(getXmlSingleElement()));
+        assertThat(documentTransformer.extractAttributeValue(document, NAMESPACE_URI, ELEMENT, ATTRIBUTE), is(ATTRIBUTE_VALUE));
+    }
+
+    @Test
+    public void extractAttributeValue_elementNotFound_throws() {
+        final Document document = getDocument(getByteArray(getXmlSingleElement()));
+        try {
+            documentTransformer.extractAttributeValue(document, NAMESPACE_URI, "no-such-element", ATTRIBUTE);
+            fail("No IllegalArgumentException thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void extractAttributeValue_multipleElementsFound_throws() {
+        final Document document = getDocument(getByteArray(getXmlMultipleElements()));
+        try {
+            documentTransformer.extractAttributeValue(document, NAMESPACE_URI, ELEMENT, ATTRIBUTE);
+            fail("No IllegalArgumentException thrown");
+        } catch (IllegalArgumentException e) {
+        }
     }
 
     private Document getDocument(byte[] bytes) {
@@ -114,27 +135,16 @@ public class DocumentTransformerTest {
         return input.getBytes(StandardCharsets.UTF_8);
     }
 
-    private String getMetaXml() {
-        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"870970\"/>" +
-                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
-                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
-                "<dataio:sink-processing xmlns:dataio=\"dk.dbc.dataio.processing\" testNodeName=\"testValue\" charset=\"danmarc2\"/>" +
-                "</es:referencedata>";
+    private String getXmlSingleElement() {
+        return  "<ns:root xmlns:ns=\"ns\">" +
+                    "<ns:element attribute=\"attributeValue\"/>" +
+                "</ns:root>";
     }
 
-    private String getContentXml() {
-        return "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\">" +
-                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
-                "<marcx:subfield code=\"a\">field1</marcx:subfield>" +
-                "</marcx:datafield></marcx:record></marcx:collection>";
-    }
-
-    private String getInvalidContentXml() {
-        return  "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
-                "<marcx:record format=\"danMARC2\">" +
-                "<marcx:subfield code=\"a\">title1</marcx:subfield>" +
-                "</marcx:datafield></marcx:record></marcx:collection>";
+    private String getXmlMultipleElements() {
+        return  "<ns:root xmlns:ns=\"ns\">" +
+                    "<ns:element attribute=\"attributeValue\"/>" +
+                    "<ns:element attribute=\"attributeValue\"/>" +
+                "</ns:root>";
     }
 }

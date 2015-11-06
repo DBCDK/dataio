@@ -28,37 +28,29 @@ import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.ExtraRecordData;
 import dk.dbc.oss.ns.catalogingupdate.RecordData;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
 
 public class AddiRecordPreprocessor extends DocumentTransformer {
-    static final String NAMESPACE_URI             = "dk.dbc.dataio.processing";
-    static final String ELEMENT                   = "sink-update-template";
-    static final String RECORD_SCHEMA             = "info:lc/xmlns/marcxchange-v1";
-    static final String RECORD_PACKAGING          = "xml";
-    static final String UPDATE_TEMPLATE_ATTRIBUTE = "updateTemplate";
+    static final String DATAIO_PROCESSING_NAMESPACE_URI = "dk.dbc.dataio.processing";
+    static final String UPDATE_TEMPLATE_ELEMENT         = "sink-update-template";
+    static final String ES_NAMESPACE_URI                = "http://oss.dbc.dk/ns/es";
+    static final String ES_INFO_ELEMENT                 = "info";
+    static final String RECORD_SCHEMA                   = "info:lc/xmlns/marcxchange-v1";
+    static final String RECORD_PACKAGING                = "xml";
 
     private final Document contentDataDocument;
     private final String template;
+    private final String submitter;
 
     public AddiRecordPreprocessor(AddiRecord addiRecord) throws NullPointerException{
         InvariantUtil.checkNotNullOrThrow(addiRecord, "addiRecord");
         try {
-            contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
             final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            final NodeList nodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
-
-            if(nodeList.getLength() > 0) { // element found
-                template = ((Element) nodeList.item(0)).getAttribute(UPDATE_TEMPLATE_ATTRIBUTE);
-            } else {
-                throw new IllegalArgumentException(String.format(
-                        "No element found matching local name: %s and namespace URI: %s",
-                        ELEMENT,
-                        NAMESPACE_URI));
-            }
+            submitter = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, "submitter");
+            template = extractAttributeValue(metaDataDocument, DATAIO_PROCESSING_NAMESPACE_URI, UPDATE_TEMPLATE_ELEMENT, "updateTemplate");
+            contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
         } catch (IOException | SAXException e) {
             throw new IllegalArgumentException(e);
         }
@@ -83,12 +75,11 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
         return bibliographicRecord;
     }
 
-    /**
-     * Retrieves the template
-     * @return template
-     */
-    public String getTemplate() {
+   public String getTemplate() {
         return template;
     }
 
+    public String getSubmitter() {
+        return submitter;
+    }
 }

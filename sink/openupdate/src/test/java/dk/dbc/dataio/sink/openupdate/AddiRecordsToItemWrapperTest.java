@@ -52,20 +52,16 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
     private final ChunkItem NO_PROCESSED_ITEM = null;
 
     private final ChunkItem processedChunkItemValid = new ChunkItem(
-            1l,
-            getAddi(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING),
-            SUCCESS);
+            1, getAddi(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING), SUCCESS);
 
     private final ChunkItem processedChunkItemValidWithMultipleAddiRercords = new ChunkItem(
-            1l,
-            getAddi(buildListOfAddRecords()),
-            SUCCESS);
+            1, getAddi(buildListOfAddRecords()), SUCCESS);
 
     private List<AddiRecordWrapper> buildListOfAddRecords() {
         List<AddiRecordWrapper> addiRecordWrappers = new ArrayList<>();
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(AddiRecordPreprocessor.UPDATE_TEMPLATE_ATTRIBUTE), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
         return addiRecordWrappers;
     }
 

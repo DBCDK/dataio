@@ -22,6 +22,7 @@
 package dk.dbc.dataio.sink.util;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -98,5 +99,29 @@ public class DocumentTransformer {
         transformer.reset();
         transformer.transform(source, result);
         return byteArrayOutputStream.toByteArray();
+    }
+
+    /**
+     * Extracts attribute value from given document
+     * @param document document from which to extract
+     * @param namespaceUri namespace URI of element containing attribute
+     * @param elementName name of element containing attribute
+     * @param attributeName name of attribute
+     * @return value of attribute or empty string if no attribute could be found on specified element
+     * @throws NullPointerException if given any null valued argument
+     * @throws IllegalArgumentException if named element could not be found or if multiple elements were found
+     */
+    public String extractAttributeValue(Document document, String namespaceUri, String elementName, String attributeName)
+            throws NullPointerException, IllegalArgumentException {
+        final NodeList nodeList = document.getElementsByTagNameNS(namespaceUri, elementName);
+        if (nodeList.getLength() > 0) { // element found
+            if (nodeList.getLength() == 1) {
+                return ((Element) nodeList.item(0)).getAttribute(attributeName);
+            }
+            throw new IllegalArgumentException(String.format(
+                    "Multiple %s elements found with namespace URI %s", elementName, namespaceUri));
+        }
+        throw new IllegalArgumentException(String.format(
+                "No element found matching local name %s and namespace URI %s", elementName, namespaceUri));
     }
 }

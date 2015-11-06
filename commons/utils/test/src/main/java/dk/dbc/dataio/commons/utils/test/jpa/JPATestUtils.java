@@ -100,7 +100,7 @@ public class JPATestUtils {
      *
      */
     public static void clearDatabase( EntityManager entityManager ) throws IOException, URISyntaxException {
-        JPATestUtils.runSqlFromResource(entityManager,JPATestUtils.class,"drop_all_pg.sql");
+        JPATestUtils.runSqlFromResource(entityManager,new JPATestUtils(),"drop_all_pg.sql");
     }
 
     /**

@@ -40,8 +40,6 @@ import javax.ejb.MessageDriven;
 
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 
-
-
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
@@ -58,32 +56,23 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         LOGGER.info("External Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
 
         final ExternalChunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
+        for (ChunkItem processedChunkItem : processedChunk) {
+            switch (processedChunkItem.getStatus()) {
+                case SUCCESS: chunkForDelivery.insertItem(new AddiRecordsToItemWrapper(processedChunkItem,
+                        addiRecordPreprocessor, openUpdateServiceConnectorBean.getConnector()).callOpenUpdateWebServiceForEachAddiRecord());
+                    break;
 
-        if(processedChunk.isEmpty()) {
+                case FAILURE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));
+                    break;
 
-            LOGGER.info("OpenUpdate Sink received chunk {} of job {} with no Addi records - sending result", chunkForDelivery.getChunkId(), chunkForDelivery.getJobId());
-            addChunkInJobStore(chunkForDelivery);
-        } else {
+                case IGNORE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor"));
+                    break;
 
-            for(ChunkItem processedChunkItem : processedChunk) {
-
-                switch (processedChunkItem.getStatus()) {
-                    case SUCCESS: chunkForDelivery.insertItem( new AddiRecordsToItemWrapper(processedChunkItem,
-                            addiRecordPreprocessor, openUpdateServiceConnectorBean.getConnector()).callOpenUpdateWebServiceForEachAddiRecord() );
-                        break;
-
-                    case FAILURE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));
-                        break;
-
-                    case IGNORE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor"));
-                        break;
-
-                    default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
-                }
+                default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
             }
-
-            addChunkInJobStore(chunkForDelivery);
         }
+
+        addChunkInJobStore(chunkForDelivery);
     }
 
     private void addChunkInJobStore(ExternalChunk chunkForDelivery) throws SinkException {

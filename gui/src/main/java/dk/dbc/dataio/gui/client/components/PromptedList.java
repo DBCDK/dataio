@@ -65,9 +65,9 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     }
 
     /**
-     * UI Child - allows child elements under the "item" element. <br/>
-     * Furthermore, an attribute named "value" is allowed in the "item" element <br/>
-     * In UI Binder, use the following format for the PromptedList: <br/>
+     * UI Child - allows child elements under the "item" element. <br>
+     * Furthermore, an attribute named "value" is allowed in the "item" element <br>
+     * In UI Binder, use the following format for the PromptedList: <br>
      * <pre>
      * {@code
      *   <dio:PromptedList visibleItems="1" guiId="sinktypeselection" prompt="Sink type" multiSelect="false" enabled="true">
@@ -94,7 +94,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     }
 
     /**
-     * Adds an item to the list of available items in the listbox<br/>
+     * Adds an item to the list of available items in the listbox<br>
      * Only the textual value of the item is given here (the text displayed in the list)
      * @param text The textual value of the item
      */
@@ -103,7 +103,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     }
 
     /**
-     * Adds an item to the list of available items in the listbox<br/>
+     * Adds an item to the list of available items in the listbox<br>
      * Both the textual value and the key value of the item is given
      * @param text The textual value of the item
      * @param key The key value of the item
@@ -205,8 +205,8 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
 
     /**
      * Adds a ChangeHandler to the PromptedList
-     * @param handler
-     * @return
+     * @param handler The change handler to add
+     * @return a HandlerRegistration object
      */
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return listBox.addChangeHandler(handler);
@@ -231,7 +231,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     }
 
     /**
-     * Sets the selection of the listbox. Use the displayed text to point out the selection.<br/>
+     * Sets the selection of the listbox. Use the displayed text to point out the selection.<br>
      * If the supplied boolean is true, do also fire a ChangeEvent
      * @param value The displayed text of the item to be selected
      * @param fireEvents If true, do fire a ChangeEvent

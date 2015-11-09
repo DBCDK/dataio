@@ -32,7 +32,7 @@ public class UpdateRecordResponseMapper<OpenUpdateWebServiceResponse extends Upd
      * @param trackingId trackingId to trace a record to an error response in OpenUpdate webservice
      * @return OpenUpdateRosponseDTO which can generate JSON
      */
-    public OpenUpdateResponseDTO map(UUID trackingId) {
+    public OpenUpdateResponseDTO mapToDto(UUID trackingId) {
 
         OpenUpdateResponseDTO dto = null;
 

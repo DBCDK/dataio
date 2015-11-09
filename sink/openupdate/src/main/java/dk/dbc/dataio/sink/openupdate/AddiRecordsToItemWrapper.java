@@ -107,7 +107,7 @@ public class AddiRecordsToItemWrapper {
                     preprocessorResult.getTemplate(),
                     preprocessorResult.getBibliographicRecord(),
                     trackingId);
-            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper<>(webserviceResult).map(trackingId);
+            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper(webserviceResult).mapToDto(trackingId);
 
             if(mappedWebServiceResult.getStatus() == OpenUpdateResponseDTO.Status.OK) {
                 crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );

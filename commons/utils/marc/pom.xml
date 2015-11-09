@@ -25,34 +25,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons</artifactId>
+    <artifactId>dataio-commons-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils</artifactId>
-  <name>dataio-commons-utils</name>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>binary-file-store</module>
-    <module>file-store-service-connector</module>
-    <module>httpclient</module>
-    <module>invariant</module>
-    <module>javascript</module>
-    <module>lang</module>
-    <module>log-store-service-connector</module>
-    <module>marc</module>
-    <module>flow-store-service-connector</module>
-    <module>job-store-service-connector</module>
-    <module>io</module>
-    <module>json-binding</module>
-    <module>logback</module>
-    <module>svn</module>
-    <module>service</module>
-    <module>stopwatch</module>
-    <module>test</module>
-    <module>transfile</module>
-  </modules>
+  <artifactId>dataio-commons-utils-marc</artifactId>
+  <name>dataio-commons-utils-marc</name>
 
 </project>

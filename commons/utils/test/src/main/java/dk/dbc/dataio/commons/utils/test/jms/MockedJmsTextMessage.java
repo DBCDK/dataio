@@ -35,13 +35,13 @@ public class MockedJmsTextMessage implements TextMessage {
 
     private String messageId = DEFAULT_MESSAGE_ID;
     private String payload;
-    private Map<String, String> properties = new HashMap<>();
+    private Map<String, Object> properties = new HashMap<>();
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, Object> properties) {
         this.properties = properties;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, Object> getProperties() {
         return properties;
     }
 
@@ -72,7 +72,17 @@ public class MockedJmsTextMessage implements TextMessage {
 
     @Override
     public String getStringProperty(String name) throws JMSException {
-        return properties.get(name);
+        return (String) properties.get(name);
+    }
+
+    @Override
+    public void setLongProperty(String name, long value) throws JMSException {
+        properties.put(name, value);
+    }
+
+    @Override
+    public long getLongProperty(String name) throws JMSException {
+        return (Long) properties.get(name);
     }
 
     @JsonIgnore
@@ -106,7 +116,6 @@ public class MockedJmsTextMessage implements TextMessage {
     @Override public byte getByteProperty(String s) throws JMSException { return 0; }
     @Override public short getShortProperty(String s) throws JMSException { return 0; }
     @Override public int getIntProperty(String s) throws JMSException { return 0; }
-    @Override public long getLongProperty(String s) throws JMSException { return 0; }
     @Override public float getFloatProperty(String s) throws JMSException { return 0; }
     @Override public double getDoubleProperty(String s) throws JMSException { return 0; }
     @Override public Object getObjectProperty(String s) throws JMSException { return null; }
@@ -114,7 +123,6 @@ public class MockedJmsTextMessage implements TextMessage {
     @Override public void setByteProperty(String s, byte b) throws JMSException { }
     @Override public void setShortProperty(String s, short i) throws JMSException { }
     @Override public void setIntProperty(String s, int i) throws JMSException { }
-    @Override public void setLongProperty(String s, long l) throws JMSException { }
     @Override public void setFloatProperty(String s, float v) throws JMSException { }
     @Override public void setDoubleProperty(String s, double v) throws JMSException { }
     @Override public void setObjectProperty(String s, Object o) throws JMSException { }

@@ -95,6 +95,10 @@ public class SinkMessageProducerBean {
      * and '{@value JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively,
      * and header property '{@value JmsConstants#RESOURCE_PROPERTY_NAME}'
      * to the resource value contained in given Sink instance.
+     * and header property '{@value JmsConstants#SINK_ID}'
+     * to the id value contained in given Sink instance.
+     * and header property '{@value JmsConstants#SINK_VERSION}'
+     * to the version value contained in given Sink instance.
      *
      * @param context active JMS context
      * @param processedChunk processor result instance to be added as JSON string payload
@@ -110,6 +114,8 @@ public class SinkMessageProducerBean {
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
+        message.setLongProperty(JmsConstants.SINK_ID, destination.getId());
+        message.setLongProperty(JmsConstants.SINK_VERSION, destination.getVersion());
         return message;
     }
 }

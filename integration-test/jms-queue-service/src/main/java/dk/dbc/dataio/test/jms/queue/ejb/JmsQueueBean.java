@@ -162,8 +162,8 @@ public class JmsQueueBean {
 
     private TextMessage toTextMessage(MockedJmsTextMessage message, JMSContext context) throws JMSException {
         final TextMessage textMessage = context.createTextMessage(message.getText());
-        for (Map.Entry<String, String> entry : message.getProperties().entrySet()) {
-            textMessage.setStringProperty(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Object> entry : message.getProperties().entrySet()) {
+            textMessage.setStringProperty(entry.getKey(), entry.getValue().toString());
         }
         return textMessage;
     }

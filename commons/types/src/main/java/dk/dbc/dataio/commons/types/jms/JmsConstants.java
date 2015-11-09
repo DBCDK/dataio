@@ -28,6 +28,8 @@ public class JmsConstants {
     public static final String SOURCE_PROPERTY_NAME = "source";
     public static final String PAYLOAD_PROPERTY_NAME = "payload";
     public static final String RESOURCE_PROPERTY_NAME = "resource";
+    public static final String SINK_ID = "id";
+    public static final String SINK_VERSION = "version";
 
     public static final String CHUNK_PAYLOAD_TYPE = "ExternalChunk";
 

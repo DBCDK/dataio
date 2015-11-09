@@ -51,7 +51,7 @@ public class UpdateRecordResponseMapper<OpenUpdateWebServiceResponse extends Upd
 
     private void mapStatus(UpdateStatusEnum updateStatus, OpenUpdateResponseDTO dto) {
 
-        OpenUpdateResponseDTO.Status status = null;
+        OpenUpdateResponseDTO.Status status;
         switch (updateStatus) {
 
             case OK :                               status = OpenUpdateResponseDTO.Status.OK;                                     break;

@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -95,5 +96,15 @@ public class ChunkItem implements Serializable {
         result = 31 * result + Arrays.hashCode(data);
         result = 31 * result + status.hashCode();
         return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("ChunkItem{");
+        sb.append("id=").append(id);
+        sb.append(", data=").append(new String(data, StandardCharsets.UTF_8));
+        sb.append(", status=").append(status);
+        sb.append('}');
+        return sb.toString();
     }
 }

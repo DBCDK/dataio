@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import org.junit.Test;
@@ -35,6 +37,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("Duplicates")
 public class DefaultXmlDataPartitionerTest {
     @Test
     public void emptyRootElement_returnsNoXMLStrings() {
@@ -59,12 +62,13 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void singleXMLChild_givesOneStringWithXML() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
+        final ChunkItem expectedResult=new ChunkItemBuilder().setData(xml).build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expectedResult));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -74,16 +78,16 @@ public class DefaultXmlDataPartitionerTest {
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grandChild></child>"
                 + "</topLevel>";
-        final String expectedResult1 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
+        final ChunkItem expectedResult1 = new ChunkItemBuilder().setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
-                + "</topLevel>";
-        final String expectedResult2 = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
+                + "</topLevel>").build();
+        final ChunkItem expectedResult2 = new ChunkItemBuilder().setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grandChild></child>"
-                + "</topLevel>";
+                + "</topLevel>").build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedResult1));
         assertThat(iterator.hasNext(), is(true));
@@ -95,11 +99,13 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void missingXMLHeaderInInput_xmlHeaderIsInsertedInResult() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
-        final String expectedResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
+        final ChunkItem expectedResult = new ChunkItemBuilder()
+                .setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>")
+                .build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedResult));
@@ -126,7 +132,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
 
         try {
@@ -142,7 +148,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
 
         try {
@@ -157,13 +163,13 @@ public class DefaultXmlDataPartitionerTest {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grand";
-        final String expectedResult = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
+        final ChunkItem expectedResult = new ChunkItemBuilder().setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
-                + "</topLevel>";
+                + "</topLevel>").build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedResult));
         assertThat(iterator.hasNext(), is(true));
@@ -182,10 +188,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expceted=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expceted));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -199,7 +206,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
@@ -217,9 +224,10 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final ChunkItem expected=new ChunkItemBuilder().setData(xml) .build();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -233,7 +241,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
@@ -251,7 +259,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
@@ -266,14 +274,16 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>This is a Larger Than sign: > which is legal</child1>"
                 + "</test>";
-        final String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<test>"
-                + "<child1>This is a Larger Than sign: &gt; which is legal</child1>"
-                + "</test>";
+        final ChunkItem expectedXml = new ChunkItemBuilder()
+                .setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<test>"
+                        + "<child1>This is a Larger Than sign: &gt; which is legal</child1>"
+                        + "</test>")
+                .build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
@@ -288,10 +298,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -304,10 +315,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -320,10 +332,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</:test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -336,10 +349,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</_test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expceted=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expceted));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -352,10 +366,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</_-.9>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -386,17 +401,19 @@ public class DefaultXmlDataPartitionerTest {
                 + "<!-- comment in sub level -->"
                 + "</test>"
                 + "<!-- trailing comment -->";
-        final String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<!-- declarations for <head> & <body> -->"
-                + "<test>"
-                + "<!-- comment in top level -->"
-                + "<child1>child text</child1>"
-                + "<!-- comment in sub level -->"
-                + "</test>";  // The trailing comment is removed
+        final ChunkItem expectedXml = new ChunkItemBuilder()
+                .setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<!-- declarations for <head> & <body> -->"
+                        + "<test>"
+                        + "<!-- comment in top level -->"
+                        + "<child1>child text</child1>"
+                        + "<!-- comment in sub level -->"
+                        + "</test>")  // The trailing comment is removed
+                .build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
@@ -413,7 +430,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
@@ -432,7 +449,7 @@ public class DefaultXmlDataPartitionerTest {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
@@ -449,10 +466,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -463,14 +481,16 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size='2'>What is the size here?</child1>"
                 + "</test>";
-        final String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<test>"
-                + "<child1 size=\"2\">What is the size here?</child1>"
-                + "</test>";
+        final ChunkItem expectedXml = new ChunkItemBuilder()
+                .setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<test>"
+                        + "<child1 size=\"2\">What is the size here?</child1>"
+                        + "</test>")
+                .build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
@@ -579,14 +599,16 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"Larger than: > \">What is this?</child1>"
                 + "</test>";
-        final String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<test>"
-                + "<child1 size=\"Larger than: &gt; \">What is this?</child1>"
-                + "</test>";
+        final ChunkItem expectedXml = new ChunkItemBuilder()
+                .setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+                        + "<test>"
+                        + "<child1 size=\"Larger than: &gt; \">What is this?</child1>"
+                        + "</test>")
+                .build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));
@@ -617,10 +639,11 @@ public class DefaultXmlDataPartitionerTest {
                 + "</test>";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
+        final  ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        assertThat(iterator.next(), is(xml));
+        assertThat(iterator.next(), is(expected));
         assertThat(iterator.hasNext(), is(false));
         assertThat(dataPartitioner.getBytesRead(), is(Long.valueOf(xml.getBytes(StandardCharsets.UTF_8).length)));
     }
@@ -631,14 +654,14 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size='Quotation Mark: \" '>What is this?</child1>"
                 + "</test>";
-        final String expectedXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+        final ChunkItem expectedXml = new ChunkItemBuilder().setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                 + "<test>"
                 + "<child1 size=\"Quotation Mark: &quot; \">What is this?</child1>"
-                + "</test>";
+                + "</test>").build();
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         assertThat(iterator.next(), is(expectedXml));
         assertThat(iterator.hasNext(), is(false));

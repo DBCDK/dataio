@@ -22,11 +22,12 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
-import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -143,7 +144,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         private List<XMLEvent> preRecordEvents;
 
         private Charset canonicalEncoding;
-        private Iterator<String> iterator;
+        private Iterator<ChunkItem> iterator;
 
         public DefaultXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
             this.inputStream = new ByteCountingInputStream(inputStream);
@@ -172,7 +173,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         }
 
         @Override
-        public Iterator<String> iterator() throws UnrecoverableDataException {
+        public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
             if (iterator == null) {
                 try {
                     xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
@@ -183,7 +184,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                     throw new InvalidDataException(e);
                 }
 
-                iterator = new Iterator<String>() {
+                iterator = new Iterator<ChunkItem>() {
                     /**
                      * @inheritDoc
                      */
@@ -200,7 +201,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                      * @inheritDoc
                      */
                     @Override
-                    public String next() throws UnrecoverableDataException {
+                    public ChunkItem next() throws UnrecoverableDataException {
                         try {
                             // A note about optimization:
                             // It seems possible to move ByteArrayOutputStream,
@@ -227,7 +228,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                             xmlWriter.add(xmlEventFactory.createEndDocument());
                             xmlWriter.close();
 
-                            return baos.toString(encoding);
+                            return new ChunkItem(0,baos.toByteArray(), ChunkItem.Status.SUCCESS);
                         } catch (XMLStreamException | UnsupportedEncodingException e) {
                             LOGGER.error("Exception caught", e);
                             throw new InvalidDataException(e);

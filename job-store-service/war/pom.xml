@@ -226,7 +226,6 @@
               <pgPort>${jobstore.postgresql.port}</pgPort>
               <pgDbName>testdb</pgDbName>
               <pgDbScripts>
-                  <param>${basedir}/src/main/resources/db/migration/V1__initial_schema.sql</param>
               </pgDbScripts>
             </configuration>
           </execution>

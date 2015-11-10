@@ -23,6 +23,8 @@ package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 
+import java.nio.charset.StandardCharsets;
+
 public class ChunkItemBuilder {
     private long id = 0L;
     private byte[] data = "data".getBytes();
@@ -35,6 +37,11 @@ public class ChunkItemBuilder {
 
     public ChunkItemBuilder setData(byte[] data) {
         this.data = data;
+        return this;
+    }
+
+    public ChunkItemBuilder setData(String data) {
+        setData(data.getBytes(StandardCharsets.UTF_8));
         return this;
     }
 

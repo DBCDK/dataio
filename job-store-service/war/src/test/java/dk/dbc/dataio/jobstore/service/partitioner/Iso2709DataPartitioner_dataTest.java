@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import org.junit.Test;
@@ -41,8 +42,8 @@ import java.util.Iterator;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.xmlunit.builder.Input.fromByteArray;
 import static org.xmlunit.builder.Input.fromStream;
-import static org.xmlunit.builder.Input.fromString;
 
 public class Iso2709DataPartitioner_dataTest {
 
@@ -120,10 +121,10 @@ public class Iso2709DataPartitioner_dataTest {
         final byte[] isoRecord = readTestRecord(INPUT_RECORD_1_ISO);
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
                 .createDataPartitioner(getTestInputStream(INPUT_RECORD_1_ISO), SPECIFIED_ENCODING);
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
 
         assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromString(iterator.next()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
 
         assertThat("No more records => hasNext() expected to be false", iterator.hasNext(), is(false));
 
@@ -135,16 +136,16 @@ public class Iso2709DataPartitioner_dataTest {
         final byte[] isoRecords = readTestRecord(INPUT_RECORDS_3_ISO);
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
                 .createDataPartitioner(new ByteArrayInputStream(isoRecords), SPECIFIED_ENCODING);
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
 
         assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromString(iterator.next()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
 
         assertThat("Second record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromString(iterator.next()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
 
         assertThat("Third record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromString(iterator.next()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
 
         assertThat("No more records => hasNext() expected to be false", iterator.hasNext(), is(false));
 
@@ -156,7 +157,7 @@ public class Iso2709DataPartitioner_dataTest {
     public void iso2709DataPartitioner_emptyInputStream_accepted() {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
                 .createDataPartitioner(new ByteArrayInputStream(new byte[0]), SPECIFIED_ENCODING);
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat("No records => hasNext() expected to be false", iterator.hasNext(), is(false));
     }
 
@@ -165,13 +166,13 @@ public class Iso2709DataPartitioner_dataTest {
     public void iso2709DataPartitioner_invalidIso2709_throws() throws ParserConfigurationException, IOException, URISyntaxException {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
                 .createDataPartitioner(getTestInputStream(INPUT_BROKEN_ISO), SPECIFIED_ENCODING);
-        final Iterator<String> iterator = dataPartitioner.iterator();
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
 
         assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
         // 2 good record
-        assertThat("next matches expected output String", fromString(iterator.next()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
         assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromString(iterator.next()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
 
         try {
             iterator.hasNext();

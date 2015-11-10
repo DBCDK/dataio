@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
@@ -74,7 +75,7 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
         private Charset encoding;
         private String specifiedEncoding;
 
-        private Iterator<String> iterator;
+        private Iterator<ChunkItem> iterator;
         private DanMarc2Charset danMarc2Charset;
         private BufferedInputStream bufferedInputStream;
         private DocumentBuilderFactory documentBuilderFactory;
@@ -97,7 +98,7 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
         }
 
         @Override
-        public Iterator<String> iterator() throws UnrecoverableDataException {
+        public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
             if (iterator == null) {
                 validateSpecifiedEncoding();
                 danMarc2Charset = new DanMarc2Charset();
@@ -105,7 +106,7 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
                 documentBuilderFactory = DocumentBuilderFactory.newInstance();
 
             }
-            iterator = new Iterator<String>() {
+            iterator = new Iterator<ChunkItem>() {
                 private Document document = null;
 
                 @Override
@@ -120,10 +121,10 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
                 }
 
                 @Override
-                public String next() {
+                public ChunkItem next() {
                     if(document != null) {
                         try {
-                            return domToString(document);
+                            return new ChunkItem(0,domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
                         } catch (TransformerException e) {
                             LOGGER.error("Unrecoverable error occurred during transformation", e);
                             throw new InvalidDataException(e);

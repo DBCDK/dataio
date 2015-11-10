@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 
 import java.io.InputStream;
@@ -38,7 +39,7 @@ public interface DataPartitionerFactory {
      */
     DataPartitioner createDataPartitioner(InputStream inputStream, String encoding);
 
-    interface DataPartitioner extends Iterable<String> {
+    interface DataPartitioner extends Iterable<ChunkItem> {
         Charset getEncoding() throws InvalidEncodingException;
         long getBytesRead();
     }

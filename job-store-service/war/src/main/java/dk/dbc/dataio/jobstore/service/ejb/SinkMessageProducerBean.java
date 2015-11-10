@@ -95,9 +95,9 @@ public class SinkMessageProducerBean {
      * and '{@value JmsConstants#CHUNK_PAYLOAD_TYPE}' respectively,
      * and header property '{@value JmsConstants#RESOURCE_PROPERTY_NAME}'
      * to the resource value contained in given Sink instance.
-     * and header property '{@value JmsConstants#SINK_ID}'
+     * and header property '{@value JmsConstants#SINK_ID_PROPERTY_NAME}'
      * to the id value contained in given Sink instance.
-     * and header property '{@value JmsConstants#SINK_VERSION}'
+     * and header property '{@value JmsConstants#SINK_VERSION_PROPERTY_NAME}'
      * to the version value contained in given Sink instance.
      *
      * @param context active JMS context
@@ -114,8 +114,8 @@ public class SinkMessageProducerBean {
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
         message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
-        message.setLongProperty(JmsConstants.SINK_ID, destination.getId());
-        message.setLongProperty(JmsConstants.SINK_VERSION, destination.getVersion());
+        message.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, destination.getId());
+        message.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, destination.getVersion());
         return message;
     }
 }

@@ -100,8 +100,8 @@ public class SinkMessageProducerBeanTest {
         assertThat("Message source property", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
         assertThat("Message resource property", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
-        assertThat("Message id property", message.getLongProperty(JmsConstants.SINK_ID), is(sink.getId()));
-        assertThat("Message version property", message.getLongProperty(JmsConstants.SINK_VERSION), is(sink.getVersion()));
+        assertThat("Message id property", message.getLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME), is(sink.getId()));
+        assertThat("Message version property", message.getLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME), is(sink.getVersion()));
     }
 
     private SinkMessageProducerBean getInitializedBean() {

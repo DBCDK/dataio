@@ -45,7 +45,7 @@ public class EditPlace extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterEditImpl(this, clientFactory);
+        return new PresenterEditImpl(this, clientFactory, clientFactory.getMenuTexts().menu_SinkEdit());
     }
 
     @Prefix("EditSink")

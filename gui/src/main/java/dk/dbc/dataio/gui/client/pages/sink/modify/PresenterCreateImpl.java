@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
@@ -33,10 +35,23 @@ public class PresenterCreateImpl extends PresenterImpl {
      * Constructor
      * @param clientFactory, clientFactory
      */
-    public PresenterCreateImpl(ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getSinkCreateView();
+    public PresenterCreateImpl(ClientFactory clientFactory, String header) {
+        super(clientFactory, header);
     }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     * @param containerWidget the widget to use
+     * @param eventBus the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        view.deleteButton.setVisible(false);
+    }
+
     /**
      * getModel - initializes the model
      * When starting the form, the fields should be empty, therefore an empty Model is instantiated
@@ -60,5 +75,4 @@ public class PresenterCreateImpl extends PresenterImpl {
      * This has no implementation because "Create" does not have a delete button!
      */
     public void deleteButtonPressed() {}
-
 }

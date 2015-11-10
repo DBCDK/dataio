@@ -54,25 +54,23 @@ public class PresenterCreateImplTest {
     @Mock private Texts mockedTexts;
     @Mock private AcceptsOneWidget mockedContainerWidget;
     @Mock private EventBus mockedEventBus;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock private ViewGinjector mockedViewGinjector;
+    private final String header = "Header Text";
 
-    private CreateView createView;
+    private View createView;
     private PresenterCreateImpl presenterCreateImpl;
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
-    public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSinkCreateView()).thenReturn(createView);
-        when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
-    }
-
-    @Before
     public void setupView() {
+        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
+        when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
         when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
-        when(mockedMenuTexts.menu_SinkCreation()).thenReturn("Header Text");
-        createView = new CreateView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedMenuTexts.menu_SinkCreation()).thenReturn(header);
+        createView = new View(); // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedViewGinjector.getView()).thenReturn(createView);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -80,15 +78,19 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, header);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
-        verify(mockedClientFactory).getSinkCreateView();
     }
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+
+        // Setup expectations
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, header);
+        presenterCreateImpl.injector = mockedViewGinjector;
+
+        // Subject Under Test
         assertThat(presenterCreateImpl.model, is(notNullValue()));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
@@ -99,7 +101,12 @@ public class PresenterCreateImplTest {
 
     @Test
     public void saveModel_sinkContentOk_createSinkCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+
+        // Setup expectations
+        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, header);
+        presenterCreateImpl.injector = mockedViewGinjector;
+
+        // Subject Under Test
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new SinkModelBuilder().build();
         presenterCreateImpl.saveModel();

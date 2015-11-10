@@ -39,6 +39,7 @@ import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
+
     enum SinkType {
         ES_SINK_TYPE,
         UPDATE_SINK_TYPE,
@@ -50,8 +51,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface SinkBinder extends UiBinder<HTMLPanel, View> {}
     private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
 
-    public View(String header) {
-        super(header);
+    public View() {
+        super("");
         add(uiBinder.createAndBindUi(this));
     }
 

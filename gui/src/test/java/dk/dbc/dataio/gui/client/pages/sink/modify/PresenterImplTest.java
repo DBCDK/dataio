@@ -65,7 +65,9 @@ public class PresenterImplTest {
     @Mock private EventBus mockedEventBus;
     @Mock private Exception mockedException;
     @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock private ViewGinjector mockedViewGinjector;
 
+    private final String header = "Header Text";
     private View view;
 
     private PresenterImplConcrete presenterImpl;
@@ -75,8 +77,8 @@ public class PresenterImplTest {
     private final SinkModel sinkModel = new SinkModelBuilder().build();
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
+        public PresenterImplConcrete(ClientFactory clientFactory, String header) {
+            super(clientFactory, header);
             view = PresenterImplTest.this.view;
             model = sinkModel;
         }
@@ -123,13 +125,14 @@ public class PresenterImplTest {
         when(mockedClientFactory.getSinkServiceProxyAsync()).thenReturn(mockedSinkServiceProxy);
         when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
         when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedViewGinjector.getView()).thenReturn(view);
         mock(ContentPanel.class);
 
     }
 
     @Before
     public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        view = new View();
     }
 
 
@@ -137,7 +140,7 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
         assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
         assertThat(presenterImpl.getSinkServiceProxy(), is(mockedSinkServiceProxy));
         assertThat(presenterImpl.getSinkModifyConstants(), is(mockedTexts));
@@ -145,7 +148,8 @@ public class PresenterImplTest {
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
+        presenterImpl.injector = mockedViewGinjector;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
         assertThat(initializeModelHasBeenCalled, is(true));
@@ -177,7 +181,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
         presenterImpl.model.setSinkName("");
 
         presenterImpl.saveButtonPressed();
@@ -187,7 +191,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
         presenterImpl.model.setResourceName("");
 
         presenterImpl.saveButtonPressed();
@@ -262,8 +266,8 @@ public class PresenterImplTest {
      * Private methods
      */
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
+        presenterImpl.injector = mockedViewGinjector;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
-
 }

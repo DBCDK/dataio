@@ -84,8 +84,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView flowComponentEditView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView flowBinderCreateView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView(this);
     private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView flowBinderEditView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView(this);
-    private final dk.dbc.dataio.gui.client.pages.sink.modify.CreateView sinkCreateView = new dk.dbc.dataio.gui.client.pages.sink.modify.CreateView(this);
-    private final dk.dbc.dataio.gui.client.pages.sink.modify.EditView sinkEditView = new dk.dbc.dataio.gui.client.pages.sink.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView submitterCreateView = new dk.dbc.dataio.gui.client.pages.submitter.modify.CreateView(this);
     private final dk.dbc.dataio.gui.client.pages.submitter.modify.EditView submitterEditView = new dk.dbc.dataio.gui.client.pages.submitter.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.job.modify.EditView jobEditView = new dk.dbc.dataio.gui.client.pages.job.modify.EditView(this);
@@ -196,16 +194,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView() {
         return flowBinderEditView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.sink.modify.CreateView getSinkCreateView() {
-        return sinkCreateView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.sink.modify.EditView getSinkEditView() {
-        return sinkEditView;
     }
 
     @Override

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -38,20 +39,25 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Abstract Presenter Implementation Class for Sink Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+
+    ViewGinjector injector = GWT.create(ViewGinjector.class);
+
     protected Texts texts;
     protected final ProxyErrorTexts proxyErrorTexts;
     protected FlowStoreProxyAsync flowStoreProxy;
     protected SinkServiceProxyAsync sinkServiceProxy;
     protected View view;
+    protected String header;
 
     // Application Models
     protected SinkModel model = new SinkModel();
 
-    public PresenterImpl(ClientFactory clientFactory) {
+    public PresenterImpl(ClientFactory clientFactory, String header) {
         texts = clientFactory.getSinkModifyTexts();
         proxyErrorTexts = clientFactory.getProxyErrorTexts();
         flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
         sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
+        this.header = header;
     }
 
     /**
@@ -63,6 +69,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        view = injector.getView();
+        view.setHeader(this.header);
         initializeViewFields();
         view.setPresenter(this);
         containerWidget.setWidget(view.asWidget());

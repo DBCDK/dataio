@@ -21,8 +21,9 @@
 
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
-import com.google.gwt.place.shared.Place;
+import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -31,7 +32,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 /**
  * Concrete Presenter Implementation Class for Sink Edit
  */
-public class PresenterEditImpl extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private long id;
 
     /**
@@ -39,13 +40,24 @@ public class PresenterEditImpl extends PresenterImpl {
      * @param place the edit place
      * @param clientFactory the client factory
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getSinkEditView();
-        EditPlace editPlace = (EditPlace) place;
-        id = editPlace.getSinkId();
+    public PresenterEditImpl(Place place, ClientFactory clientFactory, String header) {
+        super(clientFactory, header);
+        id = place.getSinkId();
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     * @param containerWidget the widget to use
+     * @param eventBus the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
         view.deleteButton.setVisible(true);
     }
+
     /**
      * Initializing the model
      * The method fetches the stored Sink, as given in the Place (referenced by this.id)

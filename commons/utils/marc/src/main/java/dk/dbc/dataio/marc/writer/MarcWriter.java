@@ -19,37 +19,18 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.marc.binding;
+package dk.dbc.dataio.marc.writer;
 
-public class Leader {
-    private String data;
+import dk.dbc.dataio.marc.binding.MarcRecord;
 
-    public String getData() {
-        return data;
-    }
+import java.nio.charset.Charset;
 
-    public Leader setData(String data) {
-        this.data = data;
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Leader leader = (Leader) o;
-
-        return !(data != null ? !data.equals(leader.data) : leader.data != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return data != null ? data.hashCode() : 0;
-    }
+public interface MarcWriter {
+    /**
+     * Writes given MARC record
+     * @param marcRecord record to be written
+     * @param encoding output encoding
+     * @return bytes written
+     */
+    byte[] write(MarcRecord marcRecord, Charset encoding);
 }

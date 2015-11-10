@@ -1,6 +1,6 @@
 {
     "charset": "utf8", 
-    "destination": "broend3", 
+    "destination": "testbroend", 
     "format": "basis", 
     "mailForNotificationAboutProcessing": "", 
     "mailForNotificationAboutVerification": "", 

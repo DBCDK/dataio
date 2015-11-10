@@ -158,7 +158,7 @@ public class ModificationFactory {
         final String t = line.getField("t");
         final String o = line.getField("o");
 
-        if ("danbib".equals(b) && "lin".equals(t) && "marc2".equals(o)) {
+        if ("danbib".equals(b) && ("lin".equals(t) || "iso".equals(t)) && "marc2".equals(o)) {
             return Type.PARALLEL;
         }
         return Type.POSTHUS_EXCLUSIVE;

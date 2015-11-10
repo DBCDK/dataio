@@ -37,8 +37,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place the edit place
+     * @param place         the edit place
      * @param clientFactory the client factory
+     * @param header        header
      */
     public PresenterEditImpl(Place place, ClientFactory clientFactory, String header) {
         super(clientFactory, header);

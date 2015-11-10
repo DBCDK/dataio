@@ -33,7 +33,8 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory, clientFactory
+     * @param clientFactory     clientFactory
+     * @param header            header
      */
     public PresenterCreateImpl(ClientFactory clientFactory, String header) {
         super(clientFactory, header);

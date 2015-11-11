@@ -149,9 +149,4 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     private View getView() {
         return viewInjector.getView();
     }
-
-    private Texts getTexts() {
-        return viewInjector.getTexts();
-    }
-
 }

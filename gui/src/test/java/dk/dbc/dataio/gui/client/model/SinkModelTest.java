@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import org.junit.Test;
 
 import java.util.List;
@@ -37,40 +38,151 @@ public class SinkModelTest {
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(0L));
         assertThat(model.getVersion(), is(0L));
+        assertThat(model.getSinkType(), is(SinkContent.SinkType.ES));
         assertThat(model.getSinkName(), is(""));
         assertThat(model.getResourceName(), is(""));
+        assertThat(model.getDescription(), is(""));
+        assertThat(model.getOpenUpdateUserId(), is(""));
+        assertThat(model.getOpenUpdatePassword(), is(""));
+        assertThat(model.getOpenUpdateEndpoint(), is(""));
     }
 
     @Test
-    public void isInputFieldsEmpty_emptySinkNameInput_returnsTrue() {
-        SinkModel model = getTestModel();
+    public void createModel_oldStyleArgs_returnsNewInstanceWithDefaultValues() {
+        SinkModel model = new SinkModel(1L, 2L, "nam", "resou", "descri");
+        assertThat(model, is(notNullValue()));
+        assertThat(model.getId(), is(1L));
+        assertThat(model.getVersion(), is(2L));
+        assertThat(model.getSinkType(), is(SinkContent.SinkType.ES));
+        assertThat(model.getSinkName(), is("nam"));
+        assertThat(model.getResourceName(), is("resou"));
+        assertThat(model.getDescription(), is("descri"));
+        assertThat(model.getOpenUpdateUserId(), is(""));
+        assertThat(model.getOpenUpdatePassword(), is(""));
+        assertThat(model.getOpenUpdateEndpoint(), is(""));
+    }
+
+    @Test
+    public void createModel_nonOpenUpdateStyleArgs_returnsNewInstanceWithDefaultValues() {
+        SinkModel model = new SinkModel(3L, 4L, SinkContent.SinkType.FBS, "nam2", "resou2", "descri2");
+        assertThat(model, is(notNullValue()));
+        assertThat(model.getId(), is(3L));
+        assertThat(model.getVersion(), is(4L));
+        assertThat(model.getSinkType(), is(SinkContent.SinkType.FBS));
+        assertThat(model.getSinkName(), is("nam2"));
+        assertThat(model.getResourceName(), is("resou2"));
+        assertThat(model.getDescription(), is("descri2"));
+        assertThat(model.getOpenUpdateUserId(), is(""));
+        assertThat(model.getOpenUpdatePassword(), is(""));
+        assertThat(model.getOpenUpdateEndpoint(), is(""));
+    }
+
+    @Test
+    public void createModel_allArgs_returnsNewInstanceWithDefaultValues() {
+        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", "user", "pass", "url");
+        assertThat(model, is(notNullValue()));
+        assertThat(model.getId(), is(5L));
+        assertThat(model.getVersion(), is(6L));
+        assertThat(model.getSinkType(), is(SinkContent.SinkType.OPENUPDATE));
+        assertThat(model.getSinkName(), is("nam3"));
+        assertThat(model.getResourceName(), is("resou3"));
+        assertThat(model.getDescription(), is("descri3"));
+        assertThat(model.getOpenUpdateUserId(), is("user"));
+        assertThat(model.getOpenUpdatePassword(), is("pass"));
+        assertThat(model.getOpenUpdateEndpoint(), is("url"));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_oldStyleEmptySinkNameInput_returnsTrue() {
+        SinkModel model = getOldStyleTestModel();
         model.setSinkName("");
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
-    public void isInputFieldsEmpty_emptyResourceNameInput_returnsTrue() {
-        SinkModel model = getTestModel();
+    public void isInputFieldsEmpty_oldStyleEmptyResourceNameInput_returnsTrue() {
+        SinkModel model = getOldStyleTestModel();
         model.setResourceName("");
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
-    public void isInputFieldsEmpty_allInputFieldsSet_returnsFalse() {
-        SinkModel model = getTestModel();
+    public void isInputFieldsEmpty_oldStyleEmptyDescriptionInput_returnsFalse() {
+        SinkModel model = getOldStyleTestModel();
+        model.setDescription("");
+        assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_oldStyleAllInputFieldsSet_returnsFalse() {
+        SinkModel model = getOldStyleTestModel();
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleESEmptyUserId_returnsFalse() {
+        SinkModel model = getNewStyleESTestModel();
+        model.setOpenUpdateUserId("");  // Does not cause input fields to be empty due to ES type
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleESEmptyPassword_returnsFalse() {
+        SinkModel model = getNewStyleESTestModel();
+        model.setOpenUpdatePassword("");  // Does not cause input fields to be empty due to ES type
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleESEmptyEndpoint_returnsFalse() {
+        SinkModel model = getNewStyleESTestModel();
+        model.setOpenUpdateEndpoint("");  // Does not cause input fields to be empty due to ES type
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleESAllInputFieldsSet_returnsFalse() {
+        SinkModel model = getNewStyleESTestModel();
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleOpenUpdateEmptyUserId_returnsTrue() {
+        SinkModel model = getNewStyleOpenUpdateTestModel();
+        model.setOpenUpdateUserId("");
+        assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleOpenUpdateEmptyPassword_returnsTrue() {
+        SinkModel model = getNewStyleOpenUpdateTestModel();
+        model.setOpenUpdatePassword("");
+        assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleOpenUpdateEmptyEndpoint_returnsTrue() {
+        SinkModel model = getNewStyleOpenUpdateTestModel();
+        model.setOpenUpdateEndpoint("");
+        assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_newStyleOpenUpdateAllInputFieldsSet_returnsFalse() {
+        SinkModel model = getNewStyleOpenUpdateTestModel();
         assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
     @Test
     public void getDataioPatternMatches_validSinkNameInput_returnsEmptyList() {
-        SinkModel model = getTestModel();
+        SinkModel model = getOldStyleTestModel();
         model.setSinkName("Valid sink name + 1_2_3");
         assertThat(model.getDataioPatternMatches().size(), is(0));
     }
 
     @Test
     public void getDataioPatternMatches_invalidSinkNameInput_returnsList() {
-        final SinkModel model = getTestModel();
+        final SinkModel model = getOldStyleTestModel();
         final String expectedInvalidValues = "*<>*(#€)";
         model.setSinkName("Invalid sink name" + expectedInvalidValues);
 
@@ -81,7 +193,16 @@ public class SinkModelTest {
         }
     }
 
-    private SinkModel getTestModel() {
-        return new SinkModel(1, 1, "Name", "Resource", "Description");
+    private SinkModel getOldStyleTestModel() {
+        return new SinkModel(1, 2, "Name", "Resource", "Description");
     }
+
+    private SinkModel getNewStyleESTestModel() {
+        return new SinkModel(3, 4, SinkContent.SinkType.ES, "Name1", "Resource1", "Description1");
+    }
+
+    private SinkModel getNewStyleOpenUpdateTestModel() {
+        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", "User2", "Pass2", "Endpoint2");
+    }
+
 }

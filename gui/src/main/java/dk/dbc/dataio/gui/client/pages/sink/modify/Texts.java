@@ -68,9 +68,6 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String selection_FBSWebserviceSink();
 
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String selection_DiffSink();
-
 
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

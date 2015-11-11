@@ -21,31 +21,97 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.List;
 
 public class SinkModel extends GenericBackendModel {
 
+    private SinkContent.SinkType sinkType;
     private String sinkName;
     private String resource;
     private String description;
 
-    public SinkModel(long id, long version, String name, String resource, String description) {
-        super(id, version);
-        this.sinkName = name;
-        this.resource = resource;
-        this.description = description == null? "" : description;
-    }
+    // Open Update Configuration data:
+    private String openUpdateUserId;
+    private String openUpdatePassword;
+    private String openUpdateEndpoint;
 
+
+    /**
+     * Empty constructor
+     */
     public SinkModel() {
-        super(0L, 0L);
-        this.sinkName = "";
-        this.resource = "";
-        this.description = "";
+        this(0L, 0L, "", "", "");
     }
 
     /**
+     * Old style Sink (with no SinkType - for backwards compatibility reasons)
+     * @param id Sink Id
+     * @param version Sink Version
+     * @param name Sink Name
+     * @param resource Sink Resource
+     * @param description Sink Description
+     */
+    public SinkModel(long id, long version, String name, String resource, String description) {
+        this(id, version, SinkContent.SinkType.ES, name, resource, description, "", "", "");
+    }
+
+    /**
+     * Non Open Update Sink
+     * @param id Sink Id
+     * @param version Sink Version
+     * @param sinkType Sink Type
+     * @param name Sink Name
+     * @param resource Sink Resource
+     * @param description Sink Description
+     */
+    public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description) {
+        this(id, version, sinkType, name, resource, description, "", "", "");
+    }
+
+    /**
+     * Open Update Config Sink
+     * @param id Sink Id
+     * @param version Sink Version
+     * @param sinkType Sink Type
+     * @param name Sink Name
+     * @param resource Sink Resource
+     * @param description Sink Description
+     * @param openUpdateUserId Open Update Sink Config User Id
+     * @param openUpdatePassword Open Update Sink Config Password
+     * @param openUpdateEndpoint Open Update Sink Config Endpoint URL
+     */
+    public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description, String openUpdateUserId, String openUpdatePassword, String openUpdateEndpoint) {
+        super(id, version);
+        this.sinkType = sinkType;
+        this.sinkName = name;
+        this.resource = resource;
+        this.description = description == null? "" : description;
+        this.openUpdateUserId = openUpdateUserId;
+        this.openUpdatePassword = openUpdatePassword;
+        this.openUpdateEndpoint = openUpdateEndpoint;
+    }
+
+    /**
+     * Gets the Sink Type
+     * @return Sink Type
+     */
+    public SinkContent.SinkType getSinkType() {
+        return sinkType;
+    }
+
+    /**
+     * Sets the Sink Type
+     * @param sinkType The Sink Type
+     */
+    public void setSinkType(SinkContent.SinkType sinkType) {
+        this.sinkType = sinkType;
+    }
+
+    /**
+     * Gets the Resource name
      * @return resourceName
      */
     public String getResourceName() {
@@ -61,7 +127,8 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
-     * @return sinkName;
+     * Gets the Sink name
+     * @return sinkName
      */
     public String getSinkName() {
         return sinkName;
@@ -76,6 +143,7 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
+     * Gets the Description
      * @return description
      */
     public String getDescription() {
@@ -91,11 +159,64 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
+     * Gets the Open Update Configuration data: User Id
+     * @return Open Update Configuration data: User Id
+     */
+    public String getOpenUpdateUserId() {
+        return openUpdateUserId;
+    }
+
+    /**
+     * Sets the Open Update Configuration data: User Id
+     * @param openUpdateUserId Open Update Configuration data: User Id
+     */
+    public void setOpenUpdateUserId(String openUpdateUserId) {
+        this.openUpdateUserId = openUpdateUserId;
+    }
+
+    /**
+     * Gets the Open Update Configuration data: Password
+     * @return Open Update Configuration data: Password
+     */
+    public String getOpenUpdatePassword() {
+        return openUpdatePassword;
+    }
+
+    /**
+     * Sets the Open Update Configuration data: Password
+     * @param openUpdatePassword Open Update Configuration data: Password
+     */
+    public void setOpenUpdatePassword(String openUpdatePassword) {
+        this.openUpdatePassword = openUpdatePassword;
+    }
+
+    /**
+     * Gets the Open Update Configuration data: Endpoint
+     * @return Open Update Configuration data: Endpoint
+     */
+    public String getOpenUpdateEndpoint() {
+        return openUpdateEndpoint;
+    }
+
+    /**
+     * Sets the Open Update Configuration data: Endpoint
+     * @param openUpdateEndpoint Open Update Configuration data: Endpoint
+     */
+    public void setOpenUpdateEndpoint(String openUpdateEndpoint) {
+        this.openUpdateEndpoint = openUpdateEndpoint;
+    }
+
+    /**
      * Checks for empty String values
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty();
+        if (sinkType == SinkContent.SinkType.OPENUPDATE) {
+            return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()
+                    || openUpdateUserId.isEmpty() || openUpdatePassword.isEmpty() || openUpdateEndpoint.isEmpty();
+        } else {
+            return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty();
+        }
     }
 
     /**
@@ -114,17 +235,28 @@ public class SinkModel extends GenericBackendModel {
 
         SinkModel sinkModel = (SinkModel) o;
 
+        if (sinkType != sinkModel.sinkType) return false;
         if (sinkName != null ? !sinkName.equals(sinkModel.sinkName) : sinkModel.sinkName != null) return false;
         if (resource != null ? !resource.equals(sinkModel.resource) : sinkModel.resource != null) return false;
-        return !(description != null ? !description.equals(sinkModel.description) : sinkModel.description != null);
+        if (description != null ? !description.equals(sinkModel.description) : sinkModel.description != null)
+            return false;
+        if (openUpdateUserId != null ? !openUpdateUserId.equals(sinkModel.openUpdateUserId) : sinkModel.openUpdateUserId != null)
+            return false;
+        if (openUpdatePassword != null ? !openUpdatePassword.equals(sinkModel.openUpdatePassword) : sinkModel.openUpdatePassword != null)
+            return false;
+        return !(openUpdateEndpoint != null ? !openUpdateEndpoint.equals(sinkModel.openUpdateEndpoint) : sinkModel.openUpdateEndpoint != null);
 
     }
 
     @Override
     public int hashCode() {
-        int result = sinkName != null ? sinkName.hashCode() : 0;
+        int result = sinkType != null ? sinkType.hashCode() : 0;
+        result = 31 * result + (sinkName != null ? sinkName.hashCode() : 0);
         result = 31 * result + (resource != null ? resource.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
+        result = 31 * result + (openUpdateUserId != null ? openUpdateUserId.hashCode() : 0);
+        result = 31 * result + (openUpdatePassword != null ? openUpdatePassword.hashCode() : 0);
+        result = 31 * result + (openUpdateEndpoint != null ? openUpdateEndpoint.hashCode() : 0);
         return result;
     }
 }

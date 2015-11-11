@@ -27,11 +27,10 @@
     <g:HTMLPanel>
 
         <li><dio:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
-            <dio:item value="ES_SINK_TYPE"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></dio:item>
-            <dio:item value="UPDATE_SINK_TYPE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></dio:item>
-            <dio:item value="DUMMY_SINK_TYPE"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></dio:item>
-            <dio:item value="FBS_WEBSERVICE_SINK_TYPE"><g:Label><ui:text from="{txt.selection_FBSWebserviceSink}"/></g:Label></dio:item>
-            <dio:item value="DIFF_SINK_TYPE"><g:Label><ui:text from="{txt.selection_DiffSink}"/></g:Label></dio:item>
+            <dio:item value="ES"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></dio:item>
+            <dio:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></dio:item>
+            <dio:item value="DUMMY"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></dio:item>
+            <dio:item value="FBS"><g:Label><ui:text from="{txt.selection_FBSWebserviceSink}"/></g:Label></dio:item>
         </dio:PromptedList></li>
         <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}" maxLength="160" toolTip=""/></li>

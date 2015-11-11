@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.server.modelmappers;
 
 
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -40,13 +41,28 @@ public class SinkModelMapper {
      * @param sink, the sink
      * @return model
      */
-    public static SinkModel toModel(Sink sink){
-        return new SinkModel(
-                sink.getId(),
-                sink.getVersion(),
-                sink.getContent().getName(),
-                sink.getContent().getResource(),
-                sink.getContent().getDescription());
+    public static SinkModel toModel(Sink sink) {
+        if (sink.getContent().getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+            OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
+            return new SinkModel(
+                    sink.getId(),
+                    sink.getVersion(),
+                    sink.getContent().getSinkType(),
+                    sink.getContent().getName(),
+                    sink.getContent().getResource(),
+                    sink.getContent().getDescription(),
+                    sinkConfig.getUserId(),
+                    sinkConfig.getPassword(),
+                    sinkConfig.getEndpoint());
+        } else {
+            return new SinkModel(
+                    sink.getId(),
+                    sink.getVersion(),
+                    sink.getContent().getSinkType(),
+                    sink.getContent().getName(),
+                    sink.getContent().getResource(),
+                    sink.getContent().getDescription());
+        }
     }
 
     /**
@@ -57,8 +73,12 @@ public class SinkModelMapper {
      */
     public static SinkContent toSinkContent(SinkModel model) throws IllegalArgumentException {
 
-        if(model.isInputFieldsEmpty()) {
-            throw new IllegalArgumentException("model.name, model.resource, mode.description cannot be empty");
+        if (model.isInputFieldsEmpty()) {
+            if (model.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+                throw new IllegalArgumentException("model.name, model.resource, model.description, config.userId, config.password, config.endpoint cannot be empty");
+            } else {
+                throw new IllegalArgumentException("model.name, model.resource, model.description cannot be empty");
+            }
         }
 
         List<String> matches = model.getDataioPatternMatches();
@@ -66,10 +86,23 @@ public class SinkModelMapper {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
-        return new SinkContent(
-                model.getSinkName(),
-                model.getResourceName(),
-                model.getDescription());
+        if (model.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+            return new SinkContent(
+                    model.getSinkName(),
+                    model.getResourceName(),
+                    model.getDescription(),
+                    model.getSinkType(),
+                    new OpenUpdateSinkConfig(
+                            model.getOpenUpdateUserId(),
+                            model.getOpenUpdatePassword(),
+                            model.getOpenUpdateEndpoint()));
+        } else {
+            return new SinkContent(
+                    model.getSinkName(),
+                    model.getResourceName(),
+                    model.getDescription(),
+                    model.getSinkType());
+        }
     }
 
     /**

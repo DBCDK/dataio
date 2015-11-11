@@ -32,6 +32,7 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
@@ -39,15 +40,6 @@ import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-
-    enum SinkType {
-        ES_SINK_TYPE,
-        UPDATE_SINK_TYPE,
-        DUMMY_SINK_TYPE,
-        FBS_WEBSERVICE_SINK_TYPE,
-        DIFF_SINK_TYPE
-    }
-
     interface SinkBinder extends UiBinder<HTMLPanel, View> {}
     private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
 
@@ -69,8 +61,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ChangeEvent event) {
-        switch (SinkType.valueOf(sinkTypeSelection.getSelectedKey())) {
-            case UPDATE_SINK_TYPE:
+        String a = sinkTypeSelection.getSelectedKey();
+        SinkContent.SinkType b = SinkContent.SinkType.valueOf(a);
+        switch (SinkContent.SinkType.valueOf(sinkTypeSelection.getSelectedKey())) {
+            case OPENUPDATE:
                 updateSinkSection.setVisible(true);
                 break;
             default:

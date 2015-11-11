@@ -61,8 +61,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ChangeEvent event) {
-        String a = sinkTypeSelection.getSelectedKey();
-        SinkContent.SinkType b = SinkContent.SinkType.valueOf(a);
         switch (SinkContent.SinkType.valueOf(sinkTypeSelection.getSelectedKey())) {
             case OPENUPDATE:
                 updateSinkSection.setVisible(true);

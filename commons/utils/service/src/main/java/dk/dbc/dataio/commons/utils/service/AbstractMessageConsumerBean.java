@@ -70,13 +70,6 @@ public abstract class AbstractMessageConsumerBean {
             throw new InvalidMessageException("Message can not be null");
         }
         try {
-            final Map<String, Object> headers = new HashMap <> ();
-            Enumeration messagePropertyNames = message.getPropertyNames();
-            while (messagePropertyNames.hasMoreElements()) {
-                String propertyName = (String) messagePropertyNames.nextElement ();
-                headers.put(propertyName, message.getObjectProperty(propertyName));
-            }
-
             final String messageId = message.getJMSMessageID();
             LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty(DELIVERY_COUNT_PROPERTY));
             if (!(message instanceof TextMessage)) {
@@ -93,7 +86,7 @@ public abstract class AbstractMessageConsumerBean {
             if (payloadType == null || payloadType.trim().isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
             }
-            return new ConsumedMessage(messageId, headers, messagePayload);
+            return new ConsumedMessage(messageId, getHeaders(message), messagePayload);
         } catch (JMSException e) {
             throw new InvalidMessageException("Unexpected exception during message validation");
         }
@@ -154,5 +147,25 @@ public abstract class AbstractMessageConsumerBean {
             LOGGER.warn(errMsg);
             throw new InvalidMessageException(errMsg);
         }
+    }
+
+    /*
+     * Private methods
+     */
+
+    /**
+     * Extracts all headers from the message given as input
+     * @param message input message
+     * @return map containing extracted headers
+     * @throws JMSException on failure to extract property names or properties
+     */
+    private Map<String, Object> getHeaders(Message message) throws JMSException {
+        final Map<String, Object> headers = new HashMap <> ();
+        Enumeration messagePropertyNames = message.getPropertyNames();
+        while (messagePropertyNames.hasMoreElements()) {
+            String propertyName = (String) messagePropertyNames.nextElement ();
+            headers.put(propertyName, message.getObjectProperty(propertyName));
+        }
+        return headers;
     }
 }

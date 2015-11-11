@@ -33,6 +33,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,13 +53,17 @@ public class OpenUpdateMessageProcessorBeanTest {
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final OpenUpdateMessageProcessorBean openUpdateMessageProcessorBean = new OpenUpdateMessageProcessorBean();
+    private final OpenUpdateConfigBean openUpdateConfigBean = mock(OpenUpdateConfigBean.class);
+    private final OpenUpdateServiceConnector openUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     {
         openUpdateMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        openUpdateMessageProcessorBean.openUpdateConfigBean = openUpdateConfigBean;
     }
 
     @Before
-    public void setupMocks() {
+    public void setupMocks() throws SinkException {
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+        when(openUpdateConfigBean.getConnector(any(ConsumedMessage.class))).thenReturn(openUpdateServiceConnector);
     }
 
     @Test

@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedSt
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
-    @EJB OpenUpdateServiceConnectorBean openUpdateServiceConnectorBean;
+    @EJB OpenUpdateConfigBean openUpdateConfigBean;
 
     @Stopwatch
     @Override
@@ -57,9 +58,12 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
         final ExternalChunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
         for (ChunkItem processedChunkItem : processedChunk) {
+            final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
+            final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
+                    processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector);
+
             switch (processedChunkItem.getStatus()) {
-                case SUCCESS: chunkForDelivery.insertItem(new AddiRecordsToItemWrapper(processedChunkItem,
-                        addiRecordPreprocessor, openUpdateServiceConnectorBean.getConnector()).callOpenUpdateWebServiceForEachAddiRecord());
+                case SUCCESS: chunkForDelivery.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
                     break;
 
                 case FAILURE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));

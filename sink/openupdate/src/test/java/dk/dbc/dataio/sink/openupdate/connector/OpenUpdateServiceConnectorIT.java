@@ -55,12 +55,14 @@ import static org.junit.Assert.fail;
 public class OpenUpdateServiceConnectorIT {
     private static final String GROUP_ID = "010100";
     private static final String INVALID_SCHEMA =  "fisk";
-    private static final String expectedTrackingId = "efd0db60-87db-40c8-8b0f-2c164ce49dfc";
+    private static final String EXPECTED_TRACKING_ID = "efd0db60-87db-40c8-8b0f-2c164ce49dfc";
     private static final String SCHEMA_NAME = "dbc";
     private static final String FAILED_UPDATE_MARC = "/870970.failedUpdateInternalError.xml";
     private static final String VALIDATION_ERROR_MARC = "/820040.validationError.xml";
     private static final String VALIDATION_OK_MARC = "/870970.ok.xml";
     private static final String SYSTEM_PROPERTY = System.getProperty("wiremock.port", "8998");
+    private static final String USER_ID = "userTestId";
+    private static final String PASSWORD = "testPassword";
 
     private final String wireMockEndpoint = "http://localhost:" + SYSTEM_PROPERTY + "/CatalogingUpdateServices/UpdateService";
     /*
@@ -82,7 +84,7 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void constructor1arg_endpointArgIsNull_throws() {
         try {
-            new OpenUpdateServiceConnector(null);
+            new OpenUpdateServiceConnector(null, USER_ID, PASSWORD);
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
@@ -90,7 +92,39 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void constructor1arg_endpointArgIsEmpty_throws() {
         try {
-            new OpenUpdateServiceConnector("");
+            new OpenUpdateServiceConnector("", USER_ID, PASSWORD);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) { }
+    }
+
+    @Test
+    public void constructor1arg_userIdArgIsNull_throws() {
+        try {
+            new OpenUpdateServiceConnector(wireMockEndpoint, null, PASSWORD);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) { }
+    }
+
+    @Test
+    public void constructor1arg_userIdArgIsEmpty_throws() {
+        try {
+            new OpenUpdateServiceConnector(wireMockEndpoint, "", PASSWORD);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) { }
+    }
+
+    @Test
+    public void constructor1arg_passwordArgIsNull_throws() {
+        try {
+            new OpenUpdateServiceConnector(wireMockEndpoint, GROUP_ID, null);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) { }
+    }
+
+    @Test
+    public void constructor1arg_passwordIdArgIsEmpty_throws() {
+        try {
+            new OpenUpdateServiceConnector(wireMockEndpoint, GROUP_ID, "");
             fail("No Exception thrown");
         } catch (IllegalArgumentException e) { }
     }
@@ -98,7 +132,7 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void constructor2arg_servicesArgIsNull_throws() {
         try {
-            new OpenUpdateServiceConnector(null, wireMockEndpoint);
+            new OpenUpdateServiceConnector(null, wireMockEndpoint, USER_ID, PASSWORD);
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
@@ -106,7 +140,7 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void constructor2arg_endpointArgIsNull_throws() {
         try {
-            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), null);
+            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), null, USER_ID, PASSWORD);
             fail("No Exception thrown");
         } catch (NullPointerException e) { }
     }
@@ -114,7 +148,39 @@ public class OpenUpdateServiceConnectorIT {
     @Test
     public void constructor2arg_endpointArgIsEmpty_throws() {
         try {
-            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), "");
+            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), "", USER_ID, PASSWORD);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) { }
+    }
+
+    @Test
+    public void constructor2arg_userIdArgIsNull_throws() {
+        try {
+            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint, null, PASSWORD);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) { }
+    }
+
+    @Test
+    public void constructor2arg_userIdArgIsEmpty_throws() {
+        try {
+            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint, "", PASSWORD);
+            fail("No Exception thrown");
+        } catch (IllegalArgumentException e) { }
+    }
+
+    @Test
+    public void constructor2arg_passwordArgIsNull_throws() {
+        try {
+            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint, USER_ID, null);
+            fail("No Exception thrown");
+        } catch (NullPointerException e) { }
+    }
+
+    @Test
+    public void constructor2arg_passwordArgIsEmpty_throws() {
+        try {
+            new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint, USER_ID, "");
             fail("No Exception thrown");
         } catch (IllegalArgumentException e) { }
     }
@@ -249,11 +315,11 @@ public class OpenUpdateServiceConnectorIT {
      * Private methods
      */
     private UpdateRecordResult callUpdateRecordOnConnector(OpenUpdateServiceConnector connector, String groupId, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
-        return connector.updateRecord(groupId, template, bibliographicRecord, UUID.fromString(expectedTrackingId));
+        return connector.updateRecord(groupId, template, bibliographicRecord, UUID.fromString(EXPECTED_TRACKING_ID));
     }
 
     private OpenUpdateServiceConnector getConnector() {
-        return new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint);
+        return new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint, USER_ID, PASSWORD);
     }
 
     private AddiRecord toAddiRecord(byte[] data) {

@@ -42,36 +42,41 @@ public class OpenUpdateServiceConnector {
     private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 60 * 1000;    // 1 minute
     private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 3 * 60 * 1000;    // 3 minutes
 
-    //FixMe authentication values should not be visible in the code
-    private static final String USER_ID  = "netpunkt";
-    private static final String PASSWORD = "20Koster";
-
     private final String endpoint;
+    private final String userName;
+    private final String password;
+
     /* JAX-WS class generated from WSDL */
     private final CatalogingUpdateServices services;
 
     /**
      * Class constructor
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
-     * @throws NullPointerException if passed any null valued {@code endpoint}
-     * @throws IllegalArgumentException if passed empty valued {@code endpoint}
+     * @param userName for authenticating any user requiring access to the webservice
+     * @param password for authenticating any user requiring access to the webservice
+     * @throws NullPointerException if passed any null valued {@code endpoint}, {@code userName}, {@code password}
+     * @throws IllegalArgumentException if passed empty valued {@code endpoint}, {@code userName}, {@code password}
      */
-    public OpenUpdateServiceConnector(String endpoint)
+    public OpenUpdateServiceConnector(String endpoint, String userName, String password)
             throws NullPointerException, IllegalArgumentException {
-        this(new CatalogingUpdateServices(), endpoint);
+        this(new CatalogingUpdateServices(), endpoint, userName, password);
     }
 
     /**
      * Class constructor
      * @param services web service client view of the CatalogingUpdate Web service
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
+     * @param userName for authenticating any user requiring access to the webservice
+     * @param password for authenticating any user requiring access to the webservice
      * @throws NullPointerException if passed any null valued argument
-     * @throws IllegalArgumentException if passed empty valued {@code endpoint}
+     * @throws IllegalArgumentException if passed empty valued {@code endpoint}, {@code userName}, {@code password}
      */
-    OpenUpdateServiceConnector(CatalogingUpdateServices services, String endpoint)
+    OpenUpdateServiceConnector(CatalogingUpdateServices services, String endpoint, String userName, String password)
             throws NullPointerException, IllegalArgumentException {
         this.services = InvariantUtil.checkNotNullOrThrow(services, "services");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
+        this.userName = InvariantUtil.checkNotNullNotEmptyOrThrow(userName, "userName");
+        this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
     }
 
     /**
@@ -99,7 +104,6 @@ public class OpenUpdateServiceConnector {
      * Private methods
      */
 
-
     /**
      * Builds an UpdateRecordRequest
      * @param groupId group id used for authorization
@@ -112,8 +116,8 @@ public class OpenUpdateServiceConnector {
         UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
         Authentication authentication = new Authentication();
         authentication.setGroupIdAut(groupId);
-        authentication.setUserIdAut(USER_ID);
-        authentication.setPasswordAut(PASSWORD);
+        authentication.setUserIdAut(userName);
+        authentication.setPasswordAut(password);
         updateRecordRequest.setAuthentication(authentication);
         updateRecordRequest.setSchemaName(schemaName);
         updateRecordRequest.setBibliographicRecord(bibliographicRecord);

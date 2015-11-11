@@ -42,7 +42,6 @@ public class ClientFactoryImpl implements ClientFactory {
     // Menu texts constants declarations
     private final static dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts proxyErrorTexts = GWT.create(dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.navigation.Texts menuTexts = GWT.create(dk.dbc.dataio.gui.client.pages.navigation.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.submitter.show.Texts submittersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.submitter.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flow.show.Texts flowsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flow.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts flowBindersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.job.show.Texts jobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.show.Texts.class);

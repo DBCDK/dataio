@@ -48,6 +48,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Default constructor
+     * @param header Header text
      */
     public ViewWidget(String header) {
         super(header);

@@ -26,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
@@ -36,6 +37,7 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
  * Abstract Presenter Implementation Class for Sink Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+    private final String DEFAULT_SINK_TYPE = "ES";
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -66,6 +68,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the selection of Sink Type has changed
+     * @param sinkType Sink Type selection
+     */
+    public void sinkTypeChanged(String sinkType) {
+        model.setSinkType(SinkContent.SinkType.valueOf(sinkType));
+    }
+
+    /**
      * A signal to the presenter, saying that the name field has been changed
      * @param name, the new name value
      */
@@ -89,6 +99,33 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void resourceChanged(String resource) {
         model.setResourceName(resource);
+    }
+
+    /**
+     * A signal to the presenter, saying that the User Id field has been changed
+     * @param userId, the new User Id value
+     */
+    @Override
+    public void userIdChanged(String userId) {
+        model.setOpenUpdateUserId(userId);
+    }
+
+    /**
+     * A signal to the presenter, saying that the password field has been changed
+     * @param password, the new password value
+     */
+    @Override
+    public void passwordChanged(String password) {
+        model.setOpenUpdatePassword(password);
+    }
+
+    /**
+     * A signal to the presenter, saying that the endpoint field has been changed
+     * @param endpoint, the new endpoint value
+     */
+    @Override
+    public void endpointChanged(String endpoint) {
+        model.setOpenUpdateEndpoint(endpoint);
     }
 
     /**
@@ -129,7 +166,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     public void initializeViewFields() {
         View view = getView();
-        view.sinkTypeSelection.setSelectedValue("ES_SINK_TYPE");  // Default selection is ES Sink
+        view.sinkTypeSelection.setSelectedValue(DEFAULT_SINK_TYPE);  // Default selection is ES Sink
         view.sinkTypeSelection.setEnabled(false);
         view.name.clearText();
         view.name.setEnabled(false);
@@ -137,13 +174,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.resource.setEnabled(false);
         view.description.clearText();
         view.description.setEnabled(false);
-        view.updateSinkSection.setVisible(false);
         view.url.clearText();
         view.url.setEnabled(false);
         view.userid.clearText();
         view.userid.setEnabled(false);
         view.password.clearText();
         view.password.setEnabled(false);
+        view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 
     private void doPingAndSaveSink() {
@@ -155,7 +192,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     void updateAllFieldsAccordingToCurrentState() {
         View view = getView();
-        view.sinkTypeSelection.setSelectedValue("ES_SINK_TYPE");
+        view.sinkTypeSelection.setSelectedValue(model.getSinkType() != null ? model.getSinkType().name() : DEFAULT_SINK_TYPE);
         view.sinkTypeSelection.setEnabled(true);
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
@@ -164,14 +201,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.resource.setEnabled(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
-        view.updateSinkSection.setVisible(false);
-        view.url.clearText();  // To be replaced by actual values
+        view.url.setText(model.getOpenUpdateEndpoint());
         view.url.setEnabled(true);
-        view.userid.clearText();  // To be replaced by actual values
+        view.userid.setText(model.getOpenUpdateUserId());
         view.userid.setEnabled(true);
-        view.password.clearText();  // To be replaced by actual values
+        view.password.setText(model.getOpenUpdatePassword());
         view.password.setEnabled(true);
         view.status.setText("");
+        view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 
     /*

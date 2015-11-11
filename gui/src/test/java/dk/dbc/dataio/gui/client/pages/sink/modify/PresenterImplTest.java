@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
@@ -161,7 +162,21 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void nameChanged_callName_nameIsChangedAccordingly() {
+    public void sinkTypeChanged_callSinkTypeChanged_sinkTypeIsChangedAccordingly() {
+
+        // Setup
+        final SinkContent.SinkType CHANGED_SINK_TYPE = SinkContent.SinkType.DUMMY;
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.sinkTypeChanged("DUMMY");
+
+        // Verifications
+        assertThat(presenterImpl.model.getSinkType(), is(CHANGED_SINK_TYPE));
+    }
+
+    @Test
+    public void nameChanged_callNameChanged_nameIsChangedAccordingly() {
 
         // Setup
         final String CHANGED_NAME = "UpdatedName";
@@ -200,6 +215,48 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verifications
         assertThat(presenterImpl.model.getDescription(), is(CHANGED_DESCRIPTION));
+    }
+
+    @Test
+    public void userIdChanged_callUserIdChanged_userIdIsChangedAccordingly() {
+
+        // Setup
+        final String USER_ID = "UserId";
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.userIdChanged(USER_ID);
+
+        // Verifications
+        assertThat(presenterImpl.model.getOpenUpdateUserId(), is(USER_ID));
+    }
+
+    @Test
+    public void passwordChanged_callPasswordChanged_passwordIsChangedAccordingly() {
+
+        // Setup
+        final String PASSWORD = "Password";
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.passwordChanged(PASSWORD);
+
+        // Verifications
+        assertThat(presenterImpl.model.getOpenUpdatePassword(), is(PASSWORD));
+    }
+
+    @Test
+    public void endpointChanged_callEndpointChanged_endpointIsChangedAccordingly() {
+
+        // Setup
+        final String ENDPOINT = "Endpoint";
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.endpointChanged(ENDPOINT);
+
+        // Verifications
+        assertThat(presenterImpl.model.getOpenUpdateEndpoint(), is(ENDPOINT));
     }
 
     @Test

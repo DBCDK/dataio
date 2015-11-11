@@ -42,12 +42,18 @@ public class SinkModelMapper {
      * @return model
      */
     public static SinkModel toModel(Sink sink) {
-        if (sink.getContent().getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+        SinkContent.SinkType sinkType;
+        if (sink.getContent() == null || sink.getContent().getSinkType() == null) {
+            sinkType = SinkContent.SinkType.ES;  // Old style Sinks - before Sink Config's
+        } else {
+            sinkType = sink.getContent().getSinkType();
+        }
+        if (sinkType == SinkContent.SinkType.OPENUPDATE) {
             OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
             return new SinkModel(
                     sink.getId(),
                     sink.getVersion(),
-                    sink.getContent().getSinkType(),
+                    sinkType,
                     sink.getContent().getName(),
                     sink.getContent().getResource(),
                     sink.getContent().getDescription(),
@@ -58,7 +64,7 @@ public class SinkModelMapper {
             return new SinkModel(
                     sink.getId(),
                     sink.getVersion(),
-                    sink.getContent().getSinkType(),
+                    sinkType,
                     sink.getContent().getName(),
                     sink.getContent().getResource(),
                     sink.getContent().getDescription());
@@ -112,7 +118,7 @@ public class SinkModelMapper {
      * @return sinkModels the list of sinkModels
      */
     public static List<SinkModel> toListOfSinkModels(List<Sink> sinks) {
-        List<SinkModel> sinkModels = new ArrayList<SinkModel>();
+        List<SinkModel> sinkModels = new ArrayList<>();
         for (Sink sink : sinks) {
             sinkModels.add(toModel(sink));
         }

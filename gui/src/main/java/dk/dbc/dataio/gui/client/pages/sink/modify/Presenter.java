@@ -24,9 +24,13 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
+    void sinkTypeChanged(String sinkType);
     void nameChanged(String name);
     void resourceChanged(String resource);
     void descriptionChanged(String description);
+    void userIdChanged(String userId);
+    void passwordChanged(String password);
+    void endpointChanged(String endpoint);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();

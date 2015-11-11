@@ -71,6 +71,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         }
     }
 
+    @UiHandler("sinkTypeSelection")
+    @SuppressWarnings("unused")
+    void setSinkTypeSelectionChanged(ValueChangeEvent<String> event) {
+        presenter.sinkTypeChanged(sinkTypeSelection.getSelectedKey());
+        presenter.keyPressed();
+    }
+
     @UiHandler("name")
     @SuppressWarnings("unused")
     void nameChanged(ValueChangeEvent<String> event) {
@@ -89,6 +96,27 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     void descriptionChanged(ValueChangeEvent<String> event) {
         presenter.descriptionChanged(description.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("url")
+    @SuppressWarnings("unused")
+    void urlChanged(ValueChangeEvent<String> event) {
+        presenter.endpointChanged(url.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("userid")
+    @SuppressWarnings("unused")
+    void useridChanged(ValueChangeEvent<String> event) {
+        presenter.userIdChanged(userid.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("password")
+    @SuppressWarnings("unused")
+    void passwordChanged(ValueChangeEvent<String> event) {
+        presenter.passwordChanged(password.getText());
         presenter.keyPressed();
     }
 

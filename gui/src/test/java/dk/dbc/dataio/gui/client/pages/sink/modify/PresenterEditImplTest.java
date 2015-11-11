@@ -21,14 +21,11 @@
 
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SinkModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,17 +42,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterEditImplTest {
-    @Mock private ClientFactory mockedClientFactory;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Texts mockedTexts;
-    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedEditPlace;
-    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock private ViewGinjector mockedViewGinjector;
-    private final String header = "Header Text";
 
     private View editView;
 
@@ -64,7 +54,7 @@ public class PresenterEditImplTest {
 
     class PresenterEditImplConcrete<Place extends EditPlace> extends PresenterEditImpl {
         public PresenterEditImplConcrete(Place place, ClientFactory clientFactory, String header) {
-            super(place, clientFactory, header);
+            super(place, header);
         }
 
         public GetSinkModelFilteredAsyncCallback getSinkModelFilteredAsyncCallback = new GetSinkModelFilteredAsyncCallback();
@@ -73,11 +63,10 @@ public class PresenterEditImplTest {
 
     @Before
     public void setupView() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedEditPlace.getSinkId()).thenReturn(DEFAULT_SINK_ID);
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_SinkEdit()).thenReturn("Header Text");
         editView = new View(); // GwtMockito automagically populates mocked versions of all UiFields in the view
         when(mockedViewGinjector.getView()).thenReturn(editView);
@@ -89,11 +78,10 @@ public class PresenterEditImplTest {
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
 
-        // Expectations
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, header);
-        presenterEditImpl.injector = mockedViewGinjector;
-
         // Subject Under Test
+        setupPresenterEditImpl();
+
+        // Verifications
         verify(mockedEditPlace).getSinkId();
         // The instantiation of presenterEditImpl instantiates the "Edit version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Edit specific stuff, which basically is to assert, that the view attribute has been initialized correctly
@@ -103,22 +91,21 @@ public class PresenterEditImplTest {
     public void initializeModel_callPresenterStart_getSinkIsInvoked() {
 
         // Expectations
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, header);
-        presenterEditImpl.injector = mockedViewGinjector;
+        setupPresenterEditImpl();
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
+
         // initializeModel has the responsibility to setup the model in the presenter correctly
         // In this case, we expect the model to be initialized with the submitter values.
-        verify(mockedFlowStoreProxy).getSink(any(Long.class), any(PresenterEditImpl.SaveSinkModelFilteredAsyncCallback.class));
+        verify(mockedFlowStore).getSink(any(Long.class), any(PresenterEditImpl.SaveSinkModelFilteredAsyncCallback.class));
     }
 
     @Test
     public void saveModel_sinkContentOk_updateSinkCalled() {
 
         // Expectations
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory, header);
-        presenterEditImpl.injector = mockedViewGinjector;
+        setupPresenterEditImpl();
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
@@ -129,7 +116,8 @@ public class PresenterEditImplTest {
 
         presenterEditImpl.saveModel();
 
-        verify(mockedFlowStoreProxy).updateSink(eq(presenterEditImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
+        // Verifications
+        verify(mockedFlowStore).updateSink(eq(presenterEditImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
     }
 
     @Test
@@ -137,7 +125,7 @@ public class PresenterEditImplTest {
 
         // Expectations
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, header);
-        presenterEditImpl.injector = mockedViewGinjector;
+        presenterEditImpl.viewInjector = mockedViewGinjector;
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
@@ -162,7 +150,8 @@ public class PresenterEditImplTest {
 
         // Expectations
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, header);
-        presenterEditImpl.injector = mockedViewGinjector;
+        presenterEditImpl.viewInjector = mockedViewGinjector;
+        presenterEditImpl.commonInjector = mockedCommonGinjector;
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
@@ -180,7 +169,8 @@ public class PresenterEditImplTest {
 
         // Expectations
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, header);
-        presenterEditImpl.injector = mockedViewGinjector;
+        presenterEditImpl.viewInjector = mockedViewGinjector;
+        presenterEditImpl.commonInjector = mockedCommonGinjector;
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
@@ -188,10 +178,16 @@ public class PresenterEditImplTest {
         presenterEditImpl.deleteModel();
 
         // Verify that the proxy call is invoked... Cannot emulate the callback as the return type is Void
-        verify(mockedFlowStoreProxy).deleteSink(
+        verify(mockedFlowStore).deleteSink(
                 eq(presenterEditImpl.model.getId()),
                 eq(presenterEditImpl.model.getVersion()),
                 any(PresenterEditImpl.DeleteSinkModelFilteredAsyncCallback.class));
+    }
+
+    private void setupPresenterEditImpl() {
+        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, header);
+        presenterEditImpl.viewInjector = mockedViewGinjector;
+        presenterEditImpl.commonInjector = mockedCommonGinjector;
     }
 
 }

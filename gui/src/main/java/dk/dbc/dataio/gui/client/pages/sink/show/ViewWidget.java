@@ -30,27 +30,24 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
+
+    ViewGinjector injector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
-    protected Texts texts;
-
     // UI Fields
     @UiField CellTable sinksTable;
 
-
     /**
      * Default constructor
-     * @param clientFactory, the client factory
+     * @param header header
      */
-    public ViewWidget(ClientFactory clientFactory) {
-        super(clientFactory.getMenuTexts().menu_Sinks());
-        texts = clientFactory.getSinksShowTexts();
+    public ViewWidget(String header) {
+        super(header);
         add(uiBinder.createAndBindUi(this));
     }
 
@@ -61,6 +58,10 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiHandler("createButton")
     void backButtonPressed(ClickEvent event) {
         presenter.createSink();
+    }
+
+    protected Texts getTexts() {
+        return injector.getTexts();
     }
 
 }

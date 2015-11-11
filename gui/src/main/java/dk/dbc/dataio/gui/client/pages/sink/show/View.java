@@ -31,7 +31,6 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.List;
 
@@ -44,11 +43,9 @@ public class View extends ViewWidget {
 
     /**
      * Default constructor
-     *
-     * @param clientFactory, the client factory
      */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
+    public View() {
+        super("");
         setupColumns();
     }
 
@@ -78,10 +75,10 @@ public class View extends ViewWidget {
         dataProvider = new ListDataProvider<SinkModel>();
         dataProvider.addDataDisplay(sinksTable);
 
-        sinksTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
-        sinksTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
-        sinksTable.addColumn(constructResourceNameColumn(), texts.columnHeader_ResourceName());
-        sinksTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
+        sinksTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
+        sinksTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
+        sinksTable.addColumn(constructResourceNameColumn(), getTexts().columnHeader_ResourceName());
+        sinksTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         sinksTable.setSelectionModel(selectionModel);
         sinksTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
@@ -143,7 +140,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(SinkModel model) {
                 // The value to display in the button.
-                return texts.button_Edit();
+                return getTexts().button_Edit();
             }
         };
 

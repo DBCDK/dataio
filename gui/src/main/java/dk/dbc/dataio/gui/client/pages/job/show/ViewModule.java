@@ -1,8 +1,7 @@
-package dk.dbc.dataio.gui.client.pages.sink.modify;
+package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.inject.client.AbstractGinModule;
 import com.google.inject.Singleton;
-import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 
 /**
  * Created by ThomasBerg on 09/11/15.
@@ -12,7 +11,5 @@ public class ViewModule extends AbstractGinModule {
     @Override
     protected void configure() {
         bind(View.class).in(Singleton.class);
-        bind(Texts.class).in(Singleton.class);
-        bind(SinkServiceProxyAsync.class).in(Singleton.class);
     }
 }

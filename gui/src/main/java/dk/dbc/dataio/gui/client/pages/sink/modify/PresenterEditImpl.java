@@ -27,7 +27,6 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Sink Edit
@@ -38,11 +37,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     /**
      * Constructor
      * @param place         the edit place
-     * @param clientFactory the client factory
      * @param header        header
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory, String header) {
-        super(clientFactory, header);
+    public PresenterEditImpl(Place place, String header) {
+        super(header);
         id = place.getSinkId();
     }
 
@@ -56,7 +54,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
-        view.deleteButton.setVisible(true);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -74,19 +72,19 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateSink(model, new SaveSinkModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateSink(model, new SaveSinkModelFilteredAsyncCallback());
     }
 
     /**
      * Deletes the embedded model as a Sink in the database
      */
     void deleteModel() {
-        flowStoreProxy.deleteSink(model.getId(), model.getVersion(), new DeleteSinkModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().deleteSink(model.getId(), model.getVersion(), new DeleteSinkModelFilteredAsyncCallback());
     }
 
     // Private methods
     private void getSink(final long sinkId) {
-        flowStoreProxy.getSink(sinkId, new GetSinkModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getSink(sinkId, new GetSinkModelFilteredAsyncCallback());
     }
 
     /**
@@ -105,7 +103,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "Sink.id: " + id;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override
@@ -121,12 +119,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     class DeleteSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(Void aVoid) {
-            view.status.setText(texts.status_SinkSuccessfullyDeleted());
+            getView().status.setText(getTexts().status_SinkSuccessfullyDeleted());
             setSinkModel(null);
             History.back();
         }

@@ -28,35 +28,24 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 /**
  * Abstract Presenter Implementation Class for Sink Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
 
-    ViewGinjector injector = GWT.create(ViewGinjector.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
-    protected Texts texts;
-    protected final ProxyErrorTexts proxyErrorTexts;
-    protected FlowStoreProxyAsync flowStoreProxy;
-    protected SinkServiceProxyAsync sinkServiceProxy;
-    protected View view;
     protected String header;
 
     // Application Models
     protected SinkModel model = new SinkModel();
 
-    public PresenterImpl(ClientFactory clientFactory, String header) {
-        texts = clientFactory.getSinkModifyTexts();
-        proxyErrorTexts = clientFactory.getProxyErrorTexts();
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        sinkServiceProxy = clientFactory.getSinkServiceProxyAsync();
+    public PresenterImpl(String header) {
         this.header = header;
     }
 
@@ -69,11 +58,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = injector.getView();
-        view.setHeader(this.header);
+        getView().setHeader(this.header);
         initializeViewFields();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setPresenter(this);
+        containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
 
@@ -107,7 +95,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
-        view.status.setText("");
+        getView().status.setText("");
     }
 
     /**
@@ -115,9 +103,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void saveButtonPressed() {
         if (model.isInputFieldsEmpty()) {
-            view.setErrorText(texts.error_InputFieldValidationError());
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
         } else if (!model.getDataioPatternMatches().isEmpty()) {
-            view.setErrorText(texts.error_NameFormatValidationError());
+            getView().setErrorText(getTexts().error_NameFormatValidationError());
         } else {
             doPingAndSaveSink();
         }
@@ -140,6 +128,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     public void initializeViewFields() {
+        View view = getView();
         view.sinkTypeSelection.setSelectedValue("ES_SINK_TYPE");  // Default selection is ES Sink
         view.sinkTypeSelection.setEnabled(false);
         view.name.clearText();
@@ -158,13 +147,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void doPingAndSaveSink() {
-        sinkServiceProxy.ping(model, new PingSinkServiceFilteredAsyncCallback());
+        viewInjector.getSinkServiceProxyAsync().ping(model, new PingSinkServiceFilteredAsyncCallback());
     }
 
     /**
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
+        View view = getView();
         view.sinkTypeSelection.setSelectedValue("ES_SINK_TYPE");
         view.sinkTypeSelection.setEnabled(true);
         view.name.setText(model.getSinkName());
@@ -194,12 +184,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveSinkModelFilteredAsyncCallback extends FilteredAsyncCallback<SinkModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(SinkModel model) {
-            view.status.setText(texts.status_SinkSuccessfullySaved());
+            getView().status.setText(getTexts().status_SinkSuccessfullySaved());
             setSinkModel(model);
             History.back();
         }
@@ -208,7 +198,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class PingSinkServiceFilteredAsyncCallback extends FilteredAsyncCallback<PingResponseModel> {
         @Override
         public void onFilteredFailure(Throwable caught) {
-            view.setErrorText(texts.error_PingCommunicationError());
+            getView().setErrorText(getTexts().error_PingCommunicationError());
         }
 
         @Override
@@ -216,9 +206,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (result.getStatus() == PingResponseModel.Status.OK) {
                 saveModel();
             } else {
-                view.setErrorText(texts.error_ResourceNameNotValid());
+                getView().setErrorText(getTexts().error_ResourceNameNotValid());
             }
         }
+    }
+
+    protected View getView() {
+        return viewInjector.getView();
+    }
+    protected Texts getTexts() {
+        return viewInjector.getTexts();
     }
 
      /*

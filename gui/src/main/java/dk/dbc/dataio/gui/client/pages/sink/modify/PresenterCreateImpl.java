@@ -24,7 +24,6 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.SinkModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Sink Create
@@ -33,11 +32,10 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory     clientFactory
      * @param header            header
      */
-    public PresenterCreateImpl(ClientFactory clientFactory, String header) {
-        super(clientFactory, header);
+    public PresenterCreateImpl(String header) {
+        super(header);
     }
 
     /**
@@ -50,7 +48,7 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
-        view.deleteButton.setVisible(false);
+        getView().deleteButton.setVisible(false);
     }
 
     /**
@@ -69,7 +67,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.createSink(model, new SaveSinkModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().createSink(model, new SaveSinkModelFilteredAsyncCallback());
     }
 
     /**

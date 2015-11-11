@@ -30,7 +30,6 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
@@ -50,7 +49,6 @@ public interface ClientFactory {
     // Proxies
     FlowStoreProxyAsync getFlowStoreProxyAsync();
     JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
-    SinkServiceProxyAsync getSinkServiceProxyAsync();
     JobStoreProxyAsync getJobStoreProxyAsync();
     LogStoreProxyAsync getLogStoreProxyAsync();
 
@@ -69,7 +67,6 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.submitter.show.View getSubmittersShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getTestJobsShowView();
-    dk.dbc.dataio.gui.client.pages.sink.show.View getSinksShowView();
     dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersShowView();
     dk.dbc.dataio.gui.client.pages.item.show.View getItemsShowView();
 
@@ -82,13 +79,11 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.flow.modify.Texts getFlowModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts getFlowComponentModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts getFlowBinderModifyTexts();
-    dk.dbc.dataio.gui.client.pages.sink.modify.Texts getSinkModifyTexts();
     dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts();
     dk.dbc.dataio.gui.client.pages.submitter.show.Texts getSubmittersShowTexts();
     dk.dbc.dataio.gui.client.pages.flow.show.Texts getFlowsShowTexts();
     dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts getFlowComponentsShowTexts();
     dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts getFlowBindersShowTexts();
-    dk.dbc.dataio.gui.client.pages.sink.show.Texts getSinksShowTexts();
     dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts();
     dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts getProxyErrorTexts();
 

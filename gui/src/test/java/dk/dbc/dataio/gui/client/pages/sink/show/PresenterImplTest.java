@@ -23,23 +23,18 @@
 package dk.dbc.dataio.gui.client.pages.sink.show;
 
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,27 +58,22 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock FlowStoreProxyAsync mockedFlowStore;
-    @Mock PlaceController mockedPlaceController;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
+public class PresenterImplTest extends PresenterImplTestBase {
+
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
     @Mock ProxyException mockedProxyException;
-    @Mock ProxyErrorTexts mockedProxyErrorTexts;
     @Mock SingleSelectionModel<SinkModel> mockedSelectionModel;
     @Mock ListDataProvider<SinkModel> mockedDataProvider;
+    @Mock private ViewGinjector mockedViewGinjector;
 
     // Setup mocked data
     @Before
     public void setupMockedData() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
-        when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
-        when(mockedClientFactory.getSinksShowView()).thenReturn(mockedView);
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedViewGinjector.getView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         mockedView.selectionModel = mockedSelectionModel;
         mockedView.dataProvider = mockedDataProvider;
     }
@@ -95,8 +85,8 @@ public class PresenterImplTest {
 
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
+        public PresenterImplConcrete() {
+            super(mockedPlaceController, header);
         }
         public FetchSinksCallback fetchSinksCallback = new FetchSinksCallback();
     }
@@ -107,51 +97,53 @@ public class PresenterImplTest {
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
 
-
-    @Test
-    public void constructor_instantiate_objectCorrectInitialized() {
-
-        // Test Subject Under Test
-        presenterImpl = new PresenterImpl(mockedClientFactory);
-
-        // Verify Test
-        verify(mockedClientFactory).getFlowStoreProxyAsync();
-        verify(mockedClientFactory).getPlaceController();
-    }
-
     @Test
     @SuppressWarnings("unchecked")
     public void start_callStart_ok() {
-        presenterImpl = new PresenterImpl(mockedClientFactory);
 
-        // Test Subject Under Test
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedClientFactory).getSinksShowView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFlowStore).findAllSinks(any(AsyncCallback.class));
     }
 
+    private void setupPresenterImpl() {
+        presenterImpl = new PresenterImpl(mockedPlaceController, header);
+        presenterImpl.viewInjector = mockedViewGinjector;
+        presenterImpl.commonInjector = mockedCommonGinjector;
+        presenterImpl.placeController = mockedPlaceController;
+    }
+
     @Test
     public void editSink_call_gotoEditPlace() {
-        presenterImpl = new PresenterImpl(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.editSink(testModel1);
 
         // Verify Test
         verify(mockedPlaceController).goTo(any(EditPlace.class));
+
     }
 
     @Test
     public void createSink_call_gotoCreatePlace() {
-        presenterImpl = new PresenterImpl(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
+
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.createSink();
 
         // Verify Test
@@ -160,15 +152,21 @@ public class PresenterImplTest {
 
     @Test
     public void fetchSinks_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete();
+        presenterImpl.viewInjector = mockedViewGinjector;
+        presenterImpl.commonInjector = mockedCommonGinjector;
+
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.SERVICE_NOT_FOUND);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.fetchSinksCallback.onFilteredFailure(mockedProxyException);
 
         // Verify Test
-        verify(mockedClientFactory).getProxyErrorTexts();
+        verify(mockedCommonGinjector).getFlowStoreProxyAsync();
+        verify(mockedCommonGinjector).getProxyErrorTexts();
         verify(mockedProxyException).getErrorCode();
         verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
         verify(mockedView).setErrorText(anyString());
@@ -176,10 +174,13 @@ public class PresenterImplTest {
 
     @Test
     public void fetchSinks_callbackWithSuccess_sinksAreFetchedInitialCallback() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete();
+        presenterImpl.viewInjector = mockedViewGinjector;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.fetchSinksCallback.onSuccess(testModels);
 
         // Verify Test
@@ -188,12 +189,15 @@ public class PresenterImplTest {
     }
     @Test
     public void fetchSinks_callbackWithSuccess_sinksAreFetchedNoChanges() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete();
+        presenterImpl.viewInjector = mockedViewGinjector;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedDataProvider.getList()).thenReturn(testModels);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.fetchSinksCallback.onSuccess(testModels);
 
         // Verify Test
@@ -203,7 +207,10 @@ public class PresenterImplTest {
 
     @Test
     public void fetchSinks_callbackWithSuccess_sinksAreFetchedOneHasChangedSelectionIsSet() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        PresenterImplConcrete presenterImpl = new PresenterImplConcrete();
+        presenterImpl.viewInjector = mockedViewGinjector;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedDataProvider.getList()).thenReturn(testModels);
@@ -212,7 +219,7 @@ public class PresenterImplTest {
         SinkModel editedSink = new SinkModelBuilder().setName("editedName").build();
         List<SinkModel> sinkModels = Arrays.asList(editedSink, testModel2);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.fetchSinksCallback.onSuccess(sinkModels);
 
         // Verify Test

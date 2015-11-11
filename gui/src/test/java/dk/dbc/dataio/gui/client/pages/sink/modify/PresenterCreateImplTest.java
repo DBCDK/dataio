@@ -21,12 +21,9 @@
 
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,15 +45,10 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterCreateImplTest {
-    @Mock private ClientFactory mockedClientFactory;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterCreateImplTest extends PresenterImplTestBase {
+
     @Mock private Texts mockedTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
-    @Mock private dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock private ViewGinjector mockedViewGinjector;
-    private final String header = "Header Text";
 
     private View createView;
     private PresenterCreateImpl presenterCreateImpl;
@@ -65,9 +57,8 @@ public class PresenterCreateImplTest {
 
     @Before
     public void setupView() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSinkModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_SinkCreation()).thenReturn(header);
         createView = new View(); // GwtMockito automagically populates mocked versions of all UiFields in the view
         when(mockedViewGinjector.getView()).thenReturn(createView);
@@ -78,7 +69,9 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, header);
+
+        // Subject Under Test
+        presenterCreateImpl = new PresenterCreateImpl(header);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
     }
@@ -87,13 +80,13 @@ public class PresenterCreateImplTest {
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
 
         // Setup expectations
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, header);
-        presenterCreateImpl.injector = mockedViewGinjector;
+        setupPresenterCreateImpl();
 
         // Subject Under Test
         assertThat(presenterCreateImpl.model, is(notNullValue()));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
+        // Verifications
         assertThat(presenterCreateImpl.model.getSinkName(), is(""));
         assertThat(presenterCreateImpl.model.getResourceName(), is(""));
         assertThat(presenterCreateImpl.model.getDescription(), is(""));
@@ -103,14 +96,20 @@ public class PresenterCreateImplTest {
     public void saveModel_sinkContentOk_createSinkCalled() {
 
         // Setup expectations
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory, header);
-        presenterCreateImpl.injector = mockedViewGinjector;
+        setupPresenterCreateImpl();
 
         // Subject Under Test
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new SinkModelBuilder().build();
         presenterCreateImpl.saveModel();
-        verify(mockedFlowStoreProxy).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
+
+        // Verifications
+        verify(mockedFlowStore).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
     }
 
+    private void setupPresenterCreateImpl() {
+        presenterCreateImpl = new PresenterCreateImpl(header);
+        presenterCreateImpl.viewInjector = mockedViewGinjector;
+        presenterCreateImpl.commonInjector = mockedCommonGinjector;
+    }
 }

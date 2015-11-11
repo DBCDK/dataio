@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.sink.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -30,8 +31,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,21 +42,21 @@ import java.util.Set;
  * This class represents the show sinks presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private ClientFactory clientFactory;
-    private View view;
-    private FlowStoreProxyAsync flowStoreProxy;
-    private final PlaceController placeController;
 
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+
+    PlaceController placeController;
+    private String header;
 
     /**
      * Default constructor
      *
-     * @param clientFactory The client factory to be used
+     * @param header breadcrumb Header text
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        placeController = clientFactory.getPlaceController();
+    public PresenterImpl(PlaceController placeController, String header) {
+        this.placeController = placeController;
+        this.header = header;
     }
 
 
@@ -70,9 +70,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getSinksShowView();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setHeader(this.header);
+        getView().setPresenter(this);
+        containerWidget.setWidget(getView().asWidget());
         fetchSinks();
     }
 
@@ -83,7 +83,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void editSink(SinkModel model) {
-        placeController.goTo(new EditPlace(model));
+        this.placeController.goTo(new EditPlace(model));
     }
 
     /**
@@ -91,8 +91,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createSink() {
-        view.selectionModel.clear();
-        placeController.goTo(new CreatePlace());
+        getView().selectionModel.clear();
+        this.placeController.goTo(new CreatePlace());
     }
 
     /*
@@ -103,7 +103,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all sinks, and sends them to the view
      */
     private void fetchSinks() {
-        flowStoreProxy.findAllSinks(new FetchSinksCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllSinks(new FetchSinksCallback());
     }
 
     /**
@@ -114,13 +114,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setSinksAndDecipherSelection(Set<SinkModel> dataProviderSet, List<SinkModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            view.selectionModel.clear();
-            view.setSinks(models);
+            getView().selectionModel.clear();
+            getView().setSinks(models);
         } else {
             for (SinkModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    view.setSinks(models);
-                    view.selectionModel.setSelected(current, true);
+                    getView().setSinks(models);
+                    getView().selectionModel.setSelected(current, true);
                     break;
                 }
             }
@@ -137,13 +137,17 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override
         public void onSuccess(List<SinkModel> models) {
-            setSinksAndDecipherSelection(new HashSet<SinkModel>(view.dataProvider.getList()), models);
+            setSinksAndDecipherSelection(new HashSet<SinkModel>(getView().dataProvider.getList()), models);
         }
+    }
+
+    View getView() {
+        return viewInjector.getView();
     }
 
 }

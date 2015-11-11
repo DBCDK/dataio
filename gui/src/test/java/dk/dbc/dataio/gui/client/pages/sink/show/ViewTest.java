@@ -57,6 +57,8 @@ public class ViewTest {
     @Mock ClientFactory mockedClientFactory;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock static ClickEvent mockedClickEvent;
+    @Mock private ViewGinjector mockedViewGinjector;
+    private final String header = "Header Text";
 
 
     // Test Data
@@ -75,9 +77,21 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: columnHeader_Name";
     final static String MOCKED_COLUMNHEADER_RESOURCENAME = "Mocked Text: columnHeader_ResourceName";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
+
+    class ViewConcrete extends View {
+        public ViewConcrete() {
+            super();
+        }
+        @Override
+        public Texts getTexts() {
+            return mockedTexts;
+        }
+    }
+
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedClientFactory.getSinksShowTexts()).thenReturn(mockedTexts);
+//        when(mockedClientFactory.getSinksShowTexts()).thenReturn(mockedTexts);
+        when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
         when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_Sinks()).thenReturn("Header Text");
 
@@ -95,8 +109,10 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
+
         // Subject Under Test
-        view = new View(mockedClientFactory);
+        view = new ViewConcrete();
+        view.injector = mockedViewGinjector;
 
         // Verify invocations
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
@@ -106,8 +122,9 @@ public class ViewTest {
 
     @Test
     public void constructor_setupData_dataSetupCorrect() {
-        view = new View(mockedClientFactory);
 
+        // Setup
+        view = new ViewConcrete();
         List<SinkModel> models = view.dataProvider.getList();
 
         assertThat(models.isEmpty(), is(true));
@@ -124,7 +141,9 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSinkNameColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+
+        // Setup
+        view = new View();
 
         // Subject Under Test
         Column column = view.constructNameColumn();
@@ -136,7 +155,8 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructResourceNameColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        // Setup
+        view = new View();
 
         // Subject Under Test
         Column column = view.constructResourceNameColumn();
@@ -148,7 +168,9 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructActionColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+
+        // Setup
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructActionColumn();

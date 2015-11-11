@@ -24,7 +24,9 @@ package dk.dbc.dataio.commons.utils.test.jms;
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.Iterator;
 
 public class NotJmsTextMessage implements Message {
     public static final String DEFAULT_MESSAGE_ID = "mockedMsg";
@@ -36,8 +38,34 @@ public class NotJmsTextMessage implements Message {
         return messageId;
     }
 
-    @Override public void setJMSMessageID(String s) throws JMSException {
-        messageId = s;
+    @Override public void setJMSMessageID(String messageId) throws JMSException {
+        this.messageId = messageId;
+    }
+
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Enumeration getPropertyNames() {
+        return new IteratorEnumeration(Collections.EMPTY_MAP.keySet().iterator());
+    }
+
+    class IteratorEnumeration<E> implements Enumeration<E>
+    {
+        private final Iterator<E> iterator;
+
+        public IteratorEnumeration(Iterator<E> iterator)
+        {
+            this.iterator = iterator;
+        }
+
+        public E nextElement() {
+            return iterator.next();
+        }
+
+        public boolean hasMoreElements() {
+            return iterator.hasNext();
+        }
+
     }
 
     @Override public long getJMSTimestamp() throws JMSException { return 0; }
@@ -73,7 +101,6 @@ public class NotJmsTextMessage implements Message {
     @Override public double getDoubleProperty(String s) throws JMSException { return 0; }
     @Override public String getStringProperty(String s) throws JMSException { return null; }
     @Override public Object getObjectProperty(String s) throws JMSException { return null; }
-    @Override public Enumeration getPropertyNames() throws JMSException { return null; }
     @Override public void setBooleanProperty(String s, boolean b) throws JMSException { }
     @Override public void setByteProperty(String s, byte b) throws JMSException { }
     @Override public void setShortProperty(String s, short i) throws JMSException { }

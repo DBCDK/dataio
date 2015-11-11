@@ -46,7 +46,8 @@ import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -61,6 +62,7 @@ import static org.mockito.Mockito.when;
 public class JobStoreMessageConsumerBeanTest {
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
 
     @Before
     public void setupMocks() {
@@ -79,7 +81,7 @@ public class JobStoreMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_messageArgPayloadIsInvalidNewJob_throws() throws JobProcessorException, JMSException, InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, "{'invalid': 'instance'}");
+        final ConsumedMessage consumedMessage = new ConsumedMessage("id", headers, "{'invalid': 'instance'}");
         final TestableJobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
         try {
             jobStoreMessageConsumerBean.handleConsumedMessage(consumedMessage);
@@ -90,7 +92,7 @@ public class JobStoreMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_messagePayloadCanNotBeUnmarshalledToJson_throws() throws JobProcessorException, InvalidMessageException {
-        final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, "invalid");
+        final ConsumedMessage message = new ConsumedMessage("id", headers, "invalid");
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
         try {
             jobStoreMessageConsumerBean.handleConsumedMessage(message);
@@ -103,11 +105,11 @@ public class JobStoreMessageConsumerBeanTest {
     public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, InvalidMessageException, JMSException, JSONBException {
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
         // The Chunk-type 'processed' is not allowed in the JobProcessor, only 'partitioned' is allowed.
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
-        final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, jsonChunk);
+        final ConsumedMessage message = new ConsumedMessage("id", headers, jsonChunk);
         try {
             jobStoreMessageConsumerBean.handleConsumedMessage(message);
             fail("No exception thrown");
@@ -119,19 +121,19 @@ public class JobStoreMessageConsumerBeanTest {
     public void handleConsumedMessage_happyPath() throws Exception {
 
         final ChunkProcessorBeanTest jsFactory = new ChunkProcessorBeanTest();
-        final Flow flow = jsFactory.getFlow(new ChunkProcessorBeanTest.ScriptWrapper(jsFactory.javaScriptReturnUpperCase,
-                jsFactory.getJavaScript(jsFactory.getJavaScriptReturnUpperCaseFunction())));
+        final Flow flow = jsFactory.getFlow(new ChunkProcessorBeanTest.ScriptWrapper(ChunkProcessorBeanTest.javaScriptReturnUpperCase,
+                ChunkProcessorBeanTest.getJavaScript(ChunkProcessorBeanTest.getJavaScriptReturnUpperCaseFunction())));
         final Sink sink = new SinkBuilder().build();
 
         final ResourceBundle resourceBundle = new ResourceBundle(flow, sink, new SupplementaryProcessDataBuilder().build());
         when(jobStoreServiceConnector.getResourceBundle(anyInt())).thenReturn(resourceBundle);
 
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).setItems(Arrays.asList(item)).build();
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).setItems(Collections.singletonList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
-        final ConsumedMessage message = new ConsumedMessage("id", JmsConstants.CHUNK_PAYLOAD_TYPE, jsonChunk);
+        final ConsumedMessage message = new ConsumedMessage("id", headers, jsonChunk);
         jobStoreMessageConsumerBean.handleConsumedMessage(message);
 
         // This is called when the processor has processed the data.

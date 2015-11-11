@@ -37,6 +37,8 @@ import org.junit.Test;
 
 import javax.ejb.EJBException;
 import javax.xml.ws.WebServiceException;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -48,8 +50,8 @@ import static org.mockito.Mockito.when;
 
 public class JobProcessorMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
-    private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private String PAYLOAD;
+    private Map<String, Object> headers;
 
     private final FbsPusherBean fbsPusherBean = mock(FbsPusherBean.class);
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
@@ -58,6 +60,7 @@ public class JobProcessorMessageConsumerBeanTest {
     @Before
     public void setup() throws JSONBException {
         PAYLOAD = new JSONBContext().marshall(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+        headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
     }
 
     @Before
@@ -67,7 +70,7 @@ public class JobProcessorMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void handleConsumedMessage_consumedMessageArgContainsInvalidPayload_throws() throws InvalidMessageException, SinkException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, "payload");
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, "payload");
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 
@@ -75,7 +78,7 @@ public class JobProcessorMessageConsumerBeanTest {
     public void handleConsumedMessage_pusherThrowsWebServiceException_throws() throws InvalidMessageException, SinkException {
         final WebServiceException webServiceException = new WebServiceException("died");
         when(fbsPusherBean.push(any(ExternalChunk.class))).thenThrow(webServiceException);
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         try {
             getInitializedBean().handleConsumedMessage(consumedMessage);
             fail("No exception thrown");
@@ -90,7 +93,7 @@ public class JobProcessorMessageConsumerBeanTest {
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(deliveredChunk);
         doThrow(jobStoreServiceConnectorException).when(jobStoreServiceConnector).addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         try {
             getInitializedBean().handleConsumedMessage(consumedMessage);
             fail("No exception thrown");
@@ -104,7 +107,7 @@ public class JobProcessorMessageConsumerBeanTest {
         final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
         when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(deliveredChunk);
         when(jobStoreServiceConnector.addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId())).thenReturn(null);
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         getInitializedBean().handleConsumedMessage(consumedMessage);
     }
 

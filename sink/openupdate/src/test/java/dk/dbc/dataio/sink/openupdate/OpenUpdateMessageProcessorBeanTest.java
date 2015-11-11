@@ -85,7 +85,9 @@ public class OpenUpdateMessageProcessorBeanTest {
 
     private ConsumedMessage getConsumedMessageForChunk(ExternalChunk chunk) {
         try {
-            return new ConsumedMessage("42", JmsConstants.CHUNK_PAYLOAD_TYPE, jsonbContext.marshall(chunk));
+            return new ConsumedMessage("42",
+                    Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE),
+                    jsonbContext.marshall(chunk));
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

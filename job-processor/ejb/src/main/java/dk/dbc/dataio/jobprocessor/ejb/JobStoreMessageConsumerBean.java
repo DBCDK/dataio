@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -70,7 +71,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
             process(chunk);
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
-                    consumedMessage.getMessageId(), consumedMessage.getPayloadType()), e);
+                    consumedMessage.getMessageId(), consumedMessage.getHeaderValue(JmsConstants.CHUNK_PAYLOAD_TYPE, String.class)), e);
         }
     }
 

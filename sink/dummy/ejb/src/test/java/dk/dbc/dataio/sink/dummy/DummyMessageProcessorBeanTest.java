@@ -38,8 +38,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -52,6 +54,7 @@ import static org.mockito.Mockito.when;
 public class DummyMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
 
     @Before
     public void setupMocks() {
@@ -61,10 +64,9 @@ public class DummyMessageProcessorBeanTest {
     @Test
     public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
         final String messageId = "id";
-        final String payloadType = JmsConstants.CHUNK_PAYLOAD_TYPE;
         final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
         final String payload = new JSONBContext().marshall(processedChunk);
-        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, payloadType, payload);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, headers, payload);
         getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
 
         verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());

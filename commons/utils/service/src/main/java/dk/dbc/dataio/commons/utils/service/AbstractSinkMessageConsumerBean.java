@@ -39,11 +39,11 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
      * @throws InvalidMessageException if message payload type differs from ExternalChunk,
      * if message payload can not be unmarshalled, or if resulting chunk contains no items.
      */
-    protected ExternalChunk unmarshallPayload(ConsumedMessage consumedMessage)
-            throws NullPointerException, InvalidMessageException {
-        if (!JmsConstants.CHUNK_PAYLOAD_TYPE.equals(consumedMessage.getPayloadType())) {
-            throw new InvalidMessageException(String.format("Message<%s> payload type %s != %s",
-                    consumedMessage.getMessageId(), consumedMessage.getPayloadType(), JmsConstants.CHUNK_PAYLOAD_TYPE));
+    protected ExternalChunk unmarshallPayload(ConsumedMessage consumedMessage) throws NullPointerException, InvalidMessageException {
+        String payloadType = consumedMessage.getHeaderValue(JmsConstants.PAYLOAD_PROPERTY_NAME, String.class);
+        if (!JmsConstants.CHUNK_PAYLOAD_TYPE.equals(payloadType)) {
+            throw new InvalidMessageException(String.format("Message.headers<%s> payload type %s != %s",
+                    consumedMessage.getMessageId(), payloadType, JmsConstants.CHUNK_PAYLOAD_TYPE));
         }
         ExternalChunk processedChunk;
         try {

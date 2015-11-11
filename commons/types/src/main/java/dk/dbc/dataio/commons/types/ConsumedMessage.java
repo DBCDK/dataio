@@ -21,14 +21,16 @@
 
 package dk.dbc.dataio.commons.types;
 
+import java.util.Map;
+
 public class ConsumedMessage {
     private final String messageId;
-    private final String payloadType;
+    private final Map<String, Object> headers;
     private final String messagePayload;
 
-    public ConsumedMessage(String messageId, String payloadType, String messagePayload) {
+    public ConsumedMessage(String messageId, Map<String, Object> headers, String messagePayload) {
         this.messageId = messageId;
-        this.payloadType = payloadType;
+        this.headers = headers;
         this.messagePayload = messagePayload;
     }
 
@@ -36,8 +38,9 @@ public class ConsumedMessage {
         return messageId;
     }
 
-    public String getPayloadType() {
-        return payloadType;
+    @SuppressWarnings("unchecked")
+    public <T> T getHeaderValue(String headerName, Class<T> returnTypeClass) {
+        return returnTypeClass.cast(headers.get(headerName));
     }
 
     public String getMessagePayload() {

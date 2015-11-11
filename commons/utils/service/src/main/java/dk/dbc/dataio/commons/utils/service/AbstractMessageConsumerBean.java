@@ -34,6 +34,9 @@ import javax.ejb.MessageDrivenContext;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.TextMessage;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractMessageConsumerBean.class);
@@ -67,6 +70,13 @@ public abstract class AbstractMessageConsumerBean {
             throw new InvalidMessageException("Message can not be null");
         }
         try {
+            final Map<String, Object> headers = new HashMap <> ();
+            Enumeration messagePropertyNames = message.getPropertyNames();
+            while (messagePropertyNames.hasMoreElements()) {
+                String propertyName = (String) messagePropertyNames.nextElement ();
+                headers.put(propertyName, message.getObjectProperty(propertyName));
+            }
+
             final String messageId = message.getJMSMessageID();
             LOGGER.info("Validating message<{}> with deliveryCount={}", messageId, message.getIntProperty(DELIVERY_COUNT_PROPERTY));
             if (!(message instanceof TextMessage)) {
@@ -83,7 +93,7 @@ public abstract class AbstractMessageConsumerBean {
             if (payloadType == null || payloadType.trim().isEmpty()) {
                 throw new InvalidMessageException(String.format("Message<%s> has no %s property", messageId, JmsConstants.PAYLOAD_PROPERTY_NAME));
             }
-            return new ConsumedMessage(messageId, payloadType, messagePayload);
+            return new ConsumedMessage(messageId, headers, messagePayload);
         } catch (JMSException e) {
             throw new InvalidMessageException("Unexpected exception during message validation");
         }

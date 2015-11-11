@@ -21,13 +21,12 @@
 
 package dk.dbc.dataio.commons.utils.test.jms;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class MockedJmsTextMessage implements TextMessage {
@@ -46,8 +45,8 @@ public class MockedJmsTextMessage implements TextMessage {
     }
 
     @Override
-    public void setText(String s) throws JMSException {
-        payload = s;
+    public void setText(String payload) throws JMSException {
+        this.payload = payload;
     }
 
     @Override
@@ -61,8 +60,8 @@ public class MockedJmsTextMessage implements TextMessage {
     }
 
     @Override
-    public void setJMSMessageID(String s) throws JMSException {
-        messageId = s;
+    public void setJMSMessageID(String messageId) throws JMSException {
+        this.messageId = messageId;
     }
 
     @Override
@@ -85,8 +84,40 @@ public class MockedJmsTextMessage implements TextMessage {
         return (Long) properties.get(name);
     }
 
-    @JsonIgnore
-    @Override public Enumeration getPropertyNames() throws JMSException { return null; }
+    @Override
+    public void setObjectProperty(String name, Object value) throws JMSException {
+        properties.put(name, value);
+    }
+
+    @Override
+    public Object getObjectProperty(String name) throws JMSException {
+        return properties.get(name);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Enumeration getPropertyNames() {
+        return new IteratorEnumeration(properties.keySet().iterator());
+    }
+
+    class IteratorEnumeration<E> implements Enumeration<E>
+    {
+        private final Iterator<E> iterator;
+
+        public IteratorEnumeration(Iterator<E> iterator)
+        {
+            this.iterator = iterator;
+        }
+
+        public E nextElement() {
+            return iterator.next();
+        }
+
+        public boolean hasMoreElements() {
+            return iterator.hasNext();
+        }
+
+    }
 
     @Override public long getJMSTimestamp() throws JMSException { return 0; }
     @Override public void setJMSTimestamp(long l) throws JMSException { }
@@ -118,14 +149,12 @@ public class MockedJmsTextMessage implements TextMessage {
     @Override public int getIntProperty(String s) throws JMSException { return 0; }
     @Override public float getFloatProperty(String s) throws JMSException { return 0; }
     @Override public double getDoubleProperty(String s) throws JMSException { return 0; }
-    @Override public Object getObjectProperty(String s) throws JMSException { return null; }
     @Override public void setBooleanProperty(String s, boolean b) throws JMSException { }
     @Override public void setByteProperty(String s, byte b) throws JMSException { }
     @Override public void setShortProperty(String s, short i) throws JMSException { }
     @Override public void setIntProperty(String s, int i) throws JMSException { }
     @Override public void setFloatProperty(String s, float v) throws JMSException { }
     @Override public void setDoubleProperty(String s, double v) throws JMSException { }
-    @Override public void setObjectProperty(String s, Object o) throws JMSException { }
     @Override public void acknowledge() throws JMSException { }
     @Override public void clearBody() throws JMSException { }
     @Override public <T> T getBody(Class<T> tClass) throws JMSException { return null; }

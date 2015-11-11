@@ -36,6 +36,7 @@ import org.junit.Test;
 
 import javax.ejb.MessageDrivenContext;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -43,8 +44,8 @@ import static org.junit.Assert.assertThat;
 
 public class AbstractSinkMessageConsumerBeanTest {
     private static final String MESSAGE_ID = "id";
-    private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private String PAYLOAD;
+    private final Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
     private final JSONBContext jsonbContext = new JSONBContext();
     
     @Before
@@ -60,13 +61,15 @@ public class AbstractSinkMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void unmarshallPayload_consumedMessageArgContainsUnexpectedPayloadType_throws() throws InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, "notExpectedPayloadType", PAYLOAD);
+        final Map<String, Object> invalidPayloadProperty = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, "notExpectedPayloadType");
+        final ConsumedMessage consumedMessage = new ConsumedMessage(
+                MESSAGE_ID, invalidPayloadProperty, PAYLOAD);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
     @Test(expected = InvalidMessageException.class)
     public void unmarshallPayload_consumedMessageArgPayloadCanNotBeUnmarshalled_throws() throws InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, "payload");
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, "payload");
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
@@ -74,13 +77,13 @@ public class AbstractSinkMessageConsumerBeanTest {
     public void unmarshallPayload_consumedMessageArgPayloadIsEmptyProcessedChunk_throws() throws InvalidMessageException, JSONBException {
         ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
         final String emptyProcessedChunkJson = jsonbContext.marshall(processedChunk);
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, emptyProcessedChunkJson);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, emptyProcessedChunkJson);
         getInitializedBean().unmarshallPayload(consumedMessage);
     }
 
     @Test
     public void unmarshallPayload_consumedMessageArgIsValid_returnsProcessedChunkInstance() throws InvalidMessageException {
-        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, PAYLOAD_TYPE, PAYLOAD);
+        final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         final ExternalChunk processedChunk = getInitializedBean().unmarshallPayload(consumedMessage);
         assertThat(processedChunk, is(notNullValue()));
         assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));

@@ -202,7 +202,7 @@ public class AbstractMessageConsumerBeanTest {
         @Override
         public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
             handleConsumedMessageCalled = true;
-            switch (HandleConsumedMessageReaction.valueOf(consumedMessage.getPayloadType())) {
+            switch (HandleConsumedMessageReaction.valueOf(consumedMessage.getHeaderValue(JmsConstants.PAYLOAD_PROPERTY_NAME, String.class))) {
                 case INVALID:
                     throw new InvalidMessageException("INVALID");
                 case THROW:

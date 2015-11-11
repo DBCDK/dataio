@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.submitter.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -30,8 +31,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.submitter.modify.EditPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,21 +42,19 @@ import java.util.Set;
  * This class represents the show submitters presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private ClientFactory clientFactory;
-    private View view;
-    private FlowStoreProxyAsync flowStoreProxy;
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private final PlaceController placeController;
 
 
     /**
      * Default constructor
      *
-     * @param clientFactory The client factory to be used
+     * @param placeController The client factory to be used
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        placeController = clientFactory.getPlaceController();
+    public PresenterImpl(PlaceController placeController) {
+        this.placeController = placeController;
     }
 
 
@@ -70,9 +68,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getSubmittersShowView();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setPresenter(this);
+        getView().setHeader(commonInjector.getMenuTexts().menu_Submitters());
+        containerWidget.setWidget(getView().asWidget());
         fetchSubmitters();
     }
 
@@ -91,7 +89,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createSubmitter() {
-        view.selectionModel.clear();
+        getView().selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -103,7 +101,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all submitters, and sends them to the view
      */
     private void fetchSubmitters() {
-        flowStoreProxy.findAllSubmitters(new FetchSubmittersCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllSubmitters(new FetchSubmittersCallback());
     }
 
 
@@ -115,13 +113,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setSubmittersAndDecipherSelection(Set<SubmitterModel> dataProviderSet, List<SubmitterModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            view.selectionModel.clear();
-            view.setSubmitters(models);
+            getView().selectionModel.clear();
+            getView().setSubmitters(models);
         } else {
             for (SubmitterModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    view.setSubmitters(models);
-                    view.selectionModel.setSelected(current, true);
+                    getView().setSubmitters(models);
+                    getView().selectionModel.setSelected(current, true);
                     break;
                 }
             }
@@ -139,13 +137,21 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchSubmittersCallback extends FilteredAsyncCallback<List<SubmitterModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override
         public void onSuccess(List<SubmitterModel> models) {
-            setSubmittersAndDecipherSelection(new HashSet<SubmitterModel>(view.dataProvider.getList()), models);
+            setSubmittersAndDecipherSelection(new HashSet<SubmitterModel>(getView().dataProvider.getList()), models);
         }
+    }
+
+    private View getView() {
+        return viewInjector.getView();
+    }
+
+    private Texts getTexts() {
+        return viewInjector.getTexts();
     }
 
 }

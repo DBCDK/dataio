@@ -30,16 +30,17 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
+
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
-
-    protected Texts texts;
 
     // UI Fields
     @UiField Button createButton;
@@ -47,11 +48,10 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     /**
      * Default constructor
-     * @param clientFactory, the client factory
      */
-    public ViewWidget(ClientFactory clientFactory) {
-        super(clientFactory.getMenuTexts().menu_Submitters());
-        texts = clientFactory.getSubmittersShowTexts();
+    public ViewWidget(String header) {
+        super(header);
+        setHeader(commonInjector.getMenuTexts().menu_Submitters());
         add(uiBinder.createAndBindUi(this));
     }
 
@@ -64,4 +64,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         presenter.createSubmitter();
     }
 
+    protected Texts getTexts() {
+        return this.viewInjector.getTexts();
+    }
 }

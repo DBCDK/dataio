@@ -31,7 +31,6 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.List;
 
@@ -42,16 +41,10 @@ public class View extends ViewWidget {
     ListDataProvider<SubmitterModel> dataProvider;
     SingleSelectionModel<SubmitterModel> selectionModel = new SingleSelectionModel<SubmitterModel>();
 
-    /**
-     * Default constructor
-     *
-     * @param clientFactory, the client factory
-     */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
+    public View() {
+        super("");
         setupColumns();
     }
-
 
     /**
      * This method is used to put data into the view
@@ -72,10 +65,10 @@ public class View extends ViewWidget {
         dataProvider = new ListDataProvider<SubmitterModel>();
         dataProvider.addDataDisplay(submittersTable);
 
-        submittersTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_Number());
-        submittersTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
-        submittersTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
-        submittersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
+        submittersTable.addColumn(constructSubmitterNumberColumn(), getTexts().columnHeader_Number());
+        submittersTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
+        submittersTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
+        submittersTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         submittersTable.setSelectionModel(selectionModel);
         submittersTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
@@ -137,7 +130,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(SubmitterModel model) {
                 // The value to display in the button.
-                return texts.button_Edit();
+                return getTexts().button_Edit();
             }
         };
 

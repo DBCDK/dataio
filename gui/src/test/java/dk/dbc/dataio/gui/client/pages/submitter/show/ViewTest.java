@@ -27,7 +27,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,9 +55,11 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @Mock Presenter mockedPresenter;
-    @Mock ClientFactory mockedClientFactory;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock static ClickEvent mockedClickEvent;
+    @Mock ClickEvent mockedClickEvent;
+    @Mock ViewGinjector mockedViewInjector;
+    @Mock CommonGinjector mockedCommonInjector;
+    @Mock Texts mockedTexts;
 
 
     // Test Data
@@ -69,19 +71,28 @@ public class ViewTest {
     private View view;
 
     // Mocked Texts
-    @Mock static Texts mockedTexts;
     final static String MOCKED_LABEL_SUBMITTERS = "Mocked Text: Submittere";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
     final static String MOCKED_COLUMNHEADER_NUMBER = "Mocked Text: Nummer";
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: Navn";
     final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: Beskrivelse";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
+
+    class ViewConcrete extends View {
+        public ViewConcrete() {
+            super();
+        }
+        @Override
+        public Texts getTexts() {
+            return mockedTexts;
+        }
+    }
+
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedClientFactory.getSubmittersShowTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedViewInjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonInjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_Submitters()).thenReturn("Header Text");
-
         when(mockedTexts.label_Submitters()).thenReturn(MOCKED_LABEL_SUBMITTERS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
         when(mockedTexts.columnHeader_Number()).thenReturn(MOCKED_COLUMNHEADER_NUMBER);
@@ -98,7 +109,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Verify invocations
         verify(view.submittersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NUMBER));
@@ -110,7 +121,7 @@ public class ViewTest {
 
     @Test
     public void constructor_setupData_dataSetupCorrect() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         List<SubmitterModel> models = view.dataProvider.getList();
 
@@ -128,7 +139,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmitterNumberColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructSubmitterNumberColumn();
@@ -140,7 +151,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructNameColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructNameColumn();
@@ -152,7 +163,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructDescriptionColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructDescriptionColumn();
@@ -164,7 +175,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructActionColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructActionColumn();
@@ -177,6 +188,12 @@ public class ViewTest {
         FieldUpdater fieldUpdater = column.getFieldUpdater();
         fieldUpdater.update(3, testModel1, "Updated Button Text");  // Simulate a click on the column
         verify(mockedPresenter).editSubmitter(testModel1);
+    }
+
+    private void setupView() {
+        view = new ViewConcrete();
+        view.commonInjector = mockedCommonInjector;
+        view.viewInjector = mockedViewInjector;
     }
 
 }

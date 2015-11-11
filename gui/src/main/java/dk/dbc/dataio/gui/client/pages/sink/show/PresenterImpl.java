@@ -52,6 +52,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * Default constructor
      *
+     * @param placeController Common place controller
      * @param header breadcrumb Header text
      */
     public PresenterImpl(PlaceController placeController, String header) {

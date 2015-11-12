@@ -55,6 +55,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
     private final Pattern validLinePattern =
             Pattern.compile("(\\p{Alnum}{3}) (\\p{Alnum})(\\p{Alnum}) (\\*\\p{IsLatin}.+$)");
 
+    private boolean looksLikeLineFormat = false;
     private int currentLineNo = 0;
 
     /**
@@ -91,8 +92,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
                 line = getNextLine();
             }
         } catch (MarcReaderInvalidRecordException e) {
-            skipRecord();
-            throw e;
+            handleAndRethrow(e);
         }
         return getMarcRecord(fields);
     }
@@ -100,6 +100,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
     private DataField getDataField(StringBuilder buffer) throws MarcReaderInvalidRecordException {
         final Matcher validLine = validLinePattern.matcher(buffer.toString());
         if (validLine.find()) {
+            looksLikeLineFormat = true;
             return new DataField()
                     .setTag(validLine.group(1))
                     .setInd1(validLine.group(2).charAt(0))
@@ -241,6 +242,15 @@ public class DanMarc2LineFormatReader implements MarcReader {
             } catch (MarcReaderException e) {
                 LOGGER.warn("Caught exception while skipping line %d", currentLineNo, e);
             }
+        }
+    }
+
+    private void handleAndRethrow(MarcReaderInvalidRecordException e) throws MarcReaderException {
+        if (looksLikeLineFormat) {
+            skipRecord();
+            throw e;
+        } else {
+            throw new MarcReaderException("Not recognised as line format");
         }
     }
 }

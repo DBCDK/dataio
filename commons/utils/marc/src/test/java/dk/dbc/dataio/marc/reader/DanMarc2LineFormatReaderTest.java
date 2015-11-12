@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -70,9 +71,10 @@ public class DanMarc2LineFormatReaderTest {
         final DanMarc2LineFormatReader reader = newReader(toInputStream(recordWithIllegalLine));
         try {
             reader.read();
-            fail("No MarcReaderInvalidRecordException thrown");
-        } catch (MarcReaderInvalidRecordException e) {
-            assertThat(e.getMessage(), containsString("Format of line"));
+            fail("No MarcReaderException thrown");
+        } catch (MarcReaderException e) {
+            assertThat(e instanceof MarcReaderInvalidRecordException, is(not(true)));
+            assertThat(e.getMessage(), containsString("Not recognised as line format"));
         }
     }
 

@@ -73,6 +73,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
         when(mockedViewGinjector.getView()).thenReturn(mockedView);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         mockedView.selectionModel = mockedSelectionModel;
@@ -115,7 +116,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedViewGinjector, times(2)).getView();
+        verify(mockedViewGinjector, times(3)).getView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFlowStore).findAllFlows(any(AsyncCallback.class));

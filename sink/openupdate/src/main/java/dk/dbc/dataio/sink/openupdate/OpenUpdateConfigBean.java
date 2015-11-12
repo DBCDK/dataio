@@ -33,7 +33,7 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 
 /**
- * This Enterprise Java Bean (EJB) singleton is used as a connector
+ * This Enterprise Java Bean (EJB) singleton is used as a config container for the the Open Update web-service sink
  * to the Open Update web-service.
  */
 @Singleton

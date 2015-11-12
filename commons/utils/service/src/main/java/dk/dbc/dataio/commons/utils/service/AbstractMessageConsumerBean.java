@@ -157,11 +157,11 @@ public abstract class AbstractMessageConsumerBean {
      * Extracts all headers from the message given as input
      * @param message input message
      * @return map containing extracted headers
-     * @throws JMSException on failure to extract property names or properties
+     * @throws JMSException on failure to extract property names and values
      */
     private Map<String, Object> getHeaders(Message message) throws JMSException {
         final Map<String, Object> headers = new HashMap <> ();
-        Enumeration messagePropertyNames = message.getPropertyNames();
+        final Enumeration messagePropertyNames = message.getPropertyNames();
         while (messagePropertyNames.hasMoreElements()) {
             String propertyName = (String) messagePropertyNames.nextElement ();
             headers.put(propertyName, message.getObjectProperty(propertyName));

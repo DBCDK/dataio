@@ -67,4 +67,12 @@ public class SubField {
         result = 31 * result + (data != null ? data.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "SubField{" +
+                "code=" + code +
+                ", data='" + data + '\'' +
+                '}';
+    }
 }

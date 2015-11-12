@@ -19,44 +19,16 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.marc.binding;
+package dk.dbc.dataio.marc.reader;
 
-public class Leader {
-    private String data;
+public class MarcReaderException extends Exception {
+    private static final long serialVersionUID = -1543619910493385281L;
 
-    public String getData() {
-        return data;
+    public MarcReaderException(String message) {
+        super(message);
     }
 
-    public Leader setData(String data) {
-        this.data = data;
-        return this;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Leader leader = (Leader) o;
-
-        return !(data != null ? !data.equals(leader.data) : leader.data != null);
-
-    }
-
-    @Override
-    public int hashCode() {
-        return data != null ? data.hashCode() : 0;
-    }
-
-    @Override
-    public String toString() {
-        return "Leader{" +
-                "data='" + data + '\'' +
-                '}';
+    public MarcReaderException(String message, Exception cause) {
+        super(message, cause);
     }
 }

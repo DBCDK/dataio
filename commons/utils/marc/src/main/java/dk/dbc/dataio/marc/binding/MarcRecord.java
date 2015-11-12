@@ -22,6 +22,7 @@
 package dk.dbc.dataio.marc.binding;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class MarcRecord {
@@ -43,6 +44,16 @@ public class MarcRecord {
 
     public List<Field> getFields() {
         return fields;
+    }
+
+    public MarcRecord addField(Field<? extends Field> field) {
+        fields.add(field);
+        return this;
+    }
+
+    public MarcRecord addAllFields(Collection<? extends Field> fields) {
+        this.fields.addAll(fields);
+        return this;
     }
 
     @Override
@@ -68,5 +79,13 @@ public class MarcRecord {
         int result = leader != null ? leader.hashCode() : 0;
         result = 31 * result + (fields != null ? fields.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "MarcRecord{" +
+                "leader=" + leader +
+                ", fields=" + fields +
+                '}';
     }
 }

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.marc.binding;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class DataField extends Field<DataField> {
@@ -35,6 +36,16 @@ public class DataField extends Field<DataField> {
 
     public List<SubField> getSubfields() {
         return subfields;
+    }
+
+    public DataField addSubfield(SubField subField) {
+        subfields.add(subField);
+        return this;
+    }
+
+    public DataField addAllSubFields(Collection<SubField> subs) {
+        subfields.addAll(subs);
+        return this;
     }
 
     public char getInd1() {
@@ -82,5 +93,15 @@ public class DataField extends Field<DataField> {
         result = 31 * result + (int) ind1;
         result = 31 * result + (int) ind2;
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "DataField{" +
+                "tag=" + tag +
+                ", ind1=" + ind1 +
+                ", ind2=" + ind2 +
+                ", subfields=" + subfields +
+                '}';
     }
 }

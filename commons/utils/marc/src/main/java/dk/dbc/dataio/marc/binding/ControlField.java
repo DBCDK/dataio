@@ -52,4 +52,12 @@ public class ControlField extends Field<ControlField> {
     public int hashCode() {
         return data != null ? data.hashCode() : 0;
     }
+
+    @Override
+    public String toString() {
+        return "ControlField{" +
+                "tag=" + tag +
+                ", data='" + data + '\'' +
+                '}';
+    }
 }

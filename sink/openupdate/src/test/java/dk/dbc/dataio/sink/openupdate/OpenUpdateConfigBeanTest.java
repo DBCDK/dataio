@@ -93,22 +93,18 @@ public class OpenUpdateConfigBeanTest {
     }
 
     @Test
-    public void getConnector_connectorConfigured_ok() throws FlowStoreServiceConnectorException {
+    public void getConnector_connectorConfigured_ok() throws FlowStoreServiceConnectorException, SinkException {
         final OpenUpdateConfigBean openUpdateConfigBean = getInitializedBean();
         final ConsumedMessage consumedMessage = getConsumedMessage(42, 1);
 
         when(flowStoreServiceConnector.getSink(anyLong())).thenReturn(sink);
 
-        try {
-            // Subject under test
-            final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
+        // Subject under test
+        final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
 
-            // Verification
-            assertThat(openUpdateServiceConnector, not(nullValue()));
-            verify(flowStoreServiceConnector, times(1)).getSink(sink.getId());
-        } catch (SinkException e) {
-            fail();
-        }
+        // Verification
+        assertThat(openUpdateServiceConnector, not(nullValue()));
+        verify(flowStoreServiceConnector, times(1)).getSink(sink.getId());
     }
 
     @Test

@@ -122,8 +122,8 @@ public class OpenUpdateConfigBeanTest {
         assertThat(connector, is(connectorUnchanged));
         verify(flowStoreServiceConnector, times(0)).getSink(11L);
 
-        final OpenUpdateServiceConnector ConnectorModified = openUpdateConfigBean.getConnector(getConsumedMessage(12, 2));
-        assertThat(connectorUnchanged, not(ConnectorModified));
+        final OpenUpdateServiceConnector connectorModified = openUpdateConfigBean.getConnector(getConsumedMessage(12, 2));
+        assertThat(connectorUnchanged, not(connectorModified));
         verify(flowStoreServiceConnector, times(1)).getSink(12L);
     }
 

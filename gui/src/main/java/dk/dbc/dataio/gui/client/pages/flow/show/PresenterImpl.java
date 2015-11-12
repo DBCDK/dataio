@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flow.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -30,8 +31,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.pages.flow.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flow.modify.EditPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,21 +42,13 @@ import java.util.Set;
  * This class represents the show flows presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private ClientFactory clientFactory;
-    private View view;
-    private FlowStoreProxyAsync flowStoreProxy;
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private final PlaceController placeController;
 
-
-    /**
-     * Default constructor
-     *
-     * @param clientFactory The client factory to be used
-     */
-    public PresenterImpl(ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        placeController = clientFactory.getPlaceController();
+    public PresenterImpl(PlaceController placeController) {
+        this.placeController = placeController;
     }
 
 
@@ -70,11 +62,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getFlowsShowView();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        initializeView();
+        containerWidget.setWidget(getView().asWidget());
         fetchFlows();
     }
+
 
 
     /**
@@ -93,7 +85,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void refreshFlowComponents(FlowModel model) {
-        flowStoreProxy.refreshFlowComponents(model.getId(), model.getVersion(), new RefreshFlowComponentsCallback());
+        commonInjector.getFlowStoreProxyAsync().refreshFlowComponents(model.getId(), model.getVersion(), new RefreshFlowComponentsCallback());
     }
 
     /**
@@ -101,7 +93,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlow() {
-        view.selectionModel.clear();
+        getView().selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -113,7 +105,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all flows, and sends them to the view
      */
     private void fetchFlows() {
-        flowStoreProxy.findAllFlows(new FetchFlowsCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllFlows(new FetchFlowsCallback());
     }
 
     /**
@@ -124,13 +116,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setFlowsAndDecipherSelection(Set<FlowModel> dataProviderSet, List<FlowModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            view.selectionModel.clear();
-            view.setFlows(models);
+            getView().selectionModel.clear();
+            getView().setFlows(models);
         } else {
             for (FlowModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    view.setFlows(models);
-                    view.selectionModel.setSelected(current, true);
+                    getView().setFlows(models);
+                    getView().selectionModel.setSelected(current, true);
                     break;
                 }
             }
@@ -140,6 +132,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /*
      * Private classes
      */
+    private void initializeView() {
+        getView().setPresenter(this);
+        getView().setHeader(commonInjector.getMenuTexts().menu_Flows());
+    }
+    private View getView() {
+        return viewInjector.getView();
+    }
 
     /**
      * This class is the callback class for the findAllFlows method in the Flow Store
@@ -147,19 +146,19 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
 
         @Override
         public void onSuccess(List<FlowModel> models) {
-            setFlowsAndDecipherSelection(new HashSet<FlowModel>(view.dataProvider.getList()), models);
+            setFlowsAndDecipherSelection(new HashSet<FlowModel>(getView().dataProvider.getList()), models);
         }
     }
 
     protected class RefreshFlowComponentsCallback extends FilteredAsyncCallback<FlowModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override

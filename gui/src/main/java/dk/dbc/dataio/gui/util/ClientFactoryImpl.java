@@ -81,7 +81,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final dk.dbc.dataio.gui.client.pages.job.modify.EditView jobEditView = new dk.dbc.dataio.gui.client.pages.job.modify.EditView(this);
 
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.show.View flowComponentsShowView = new dk.dbc.dataio.gui.client.pages.flowcomponent.show.View(this);
-    private final dk.dbc.dataio.gui.client.pages.flow.show.View flowsShowView = new dk.dbc.dataio.gui.client.pages.flow.show.View(this);
     private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.JobsView(this);
     private final dk.dbc.dataio.gui.client.pages.job.show.View testJobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.TestJobsView(this);
     private final dk.dbc.dataio.gui.client.pages.flowbinder.show.View flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.View(this);
@@ -177,11 +176,6 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.show.View getFlowsShowView() {
-        return flowsShowView;
-    }
-
-    @Override
     public dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView() {
         return jobsShowView;
     }
@@ -211,10 +205,6 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Texts
     @Override
-    public dk.dbc.dataio.gui.client.pages.submitter.modify.Texts getSubmitterModifyTexts() {
-        return submitterModifyTexts;
-    }
-    @Override
     public dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts() {
         return jobModifyTexts;
     }
@@ -237,11 +227,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts() {
         return itemsShowTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flow.show.Texts getFlowsShowTexts() {
-        return flowsShowTexts;
     }
 
     @Override

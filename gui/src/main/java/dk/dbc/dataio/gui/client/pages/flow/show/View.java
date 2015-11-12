@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.flow.show;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
@@ -32,8 +33,8 @@ import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,16 +43,15 @@ import java.util.List;
  * This class is the View class for the Flows Show View
  */
 public class View extends ViewWidget {
+
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
     ListDataProvider<FlowModel> dataProvider;
     SingleSelectionModel<FlowModel> selectionModel = new SingleSelectionModel<FlowModel>();
 
-    /**
-     * Default constructor
-     *
-     * @param clientFactory, the client factory
-     */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
+    public View() {
+        super();
         setupColumns();
     }
 
@@ -81,11 +81,11 @@ public class View extends ViewWidget {
         dataProvider = new ListDataProvider<FlowModel>();
         dataProvider.addDataDisplay(flowsTable);
 
-        flowsTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
-        flowsTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
-        flowsTable.addColumn(constructFlowComponentsColumn(), texts.columnHeader_FlowComponents());
-        flowsTable.addColumn(constructRefreshActionColumn(), texts.columnHeader_Action_Refresh());
-        flowsTable.addColumn(constructEditActionColumn(), texts.columnHeader_Action_Edit());
+        flowsTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
+        flowsTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
+        flowsTable.addColumn(constructFlowComponentsColumn(), getTexts().columnHeader_FlowComponents());
+        flowsTable.addColumn(constructRefreshActionColumn(), getTexts().columnHeader_Action_Refresh());
+        flowsTable.addColumn(constructEditActionColumn(), getTexts().columnHeader_Action_Edit());
         flowsTable.setSelectionModel(selectionModel);
         flowsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
@@ -147,7 +147,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowModel model) {
                 // The value to display in the button.
-                return texts.button_Refresh();
+                return getTexts().button_Refresh();
             }
         };
 
@@ -172,7 +172,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowModel model) {
                 // The value to display in the button.
-                return texts.button_Edit();
+                return getTexts().button_Edit();
             }
         };
 
@@ -254,4 +254,7 @@ public class View extends ViewWidget {
         return handler;
     }
 
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
 }

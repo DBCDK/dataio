@@ -30,7 +30,6 @@ import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
@@ -38,19 +37,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
-    protected Texts texts;
-
     // UI Fields
     @UiField CellTable flowsTable;
 
-
-    /**
-     * Default constructor
-     * @param clientFactory, the client factory
-     */
-    public ViewWidget(ClientFactory clientFactory) {
-        super(clientFactory.getMenuTexts().menu_Flows());
-        texts = clientFactory.getFlowsShowTexts();
+    public ViewWidget() {
+        super("");
         add(uiBinder.createAndBindUi(this));
     }
 

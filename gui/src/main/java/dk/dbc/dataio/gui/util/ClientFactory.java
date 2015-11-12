@@ -61,7 +61,6 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView getFlowBinderCreateView();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView();
     dk.dbc.dataio.gui.client.pages.flowcomponent.show.View getFlowComponentsShowView();
-    dk.dbc.dataio.gui.client.pages.flow.show.View getFlowsShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getTestJobsShowView();
     dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersShowView();
@@ -71,13 +70,11 @@ public interface ClientFactory {
     dk.dbc.dataio.gui.client.pages.navigation.Texts getMenuTexts();
 
     // Texts
-    dk.dbc.dataio.gui.client.pages.submitter.modify.Texts getSubmitterModifyTexts();
     dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts();
     dk.dbc.dataio.gui.client.pages.flow.modify.Texts getFlowModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts getFlowComponentModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts getFlowBinderModifyTexts();
     dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts();
-    dk.dbc.dataio.gui.client.pages.flow.show.Texts getFlowsShowTexts();
     dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts getFlowComponentsShowTexts();
     dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts getFlowBindersShowTexts();
     dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts();

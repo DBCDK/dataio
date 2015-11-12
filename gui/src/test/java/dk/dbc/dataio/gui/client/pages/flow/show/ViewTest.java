@@ -28,7 +28,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,10 +55,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock Presenter mockedPresenter;
-    @Mock ClientFactory mockedClientFactory;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
 
+    @Mock Presenter mockedPresenter;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock CommonGinjector mockedCommonGinjector;
+    @Mock ViewGinjector mockedViewGinjector;
 
     // Test Data
     private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setSvnRevision("FCsrv1").setSvnNext("FCsrv1").build();
@@ -82,10 +83,24 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_ACTION_EDIT = "Mocked Text: columnHeader_Action_edit";
     final static String MOCKED_BUTTON_REFRESH = "Mocked Text: button_Refresh";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
+
+    class ViewConcrete extends View {
+        public ViewConcrete() {
+            super();
+            commonInjector = mockedCommonGinjector;
+            viewInjector = mockedViewGinjector;
+        }
+
+       @Override
+       public Texts getTexts() {
+           return mockedTexts;
+       }
+    }
+
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedClientFactory.getFlowsShowTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_Flows()).thenReturn("Header Text");
 
         when(mockedTexts.label_Flows()).thenReturn(MOCKED_LABEL_FLOWS);
@@ -98,14 +113,11 @@ public class ViewTest {
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
     }
 
-    /*
-     * Testing starts here...
-     */
     @Test
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Verify invocations
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
@@ -115,10 +127,9 @@ public class ViewTest {
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION_EDIT));
     }
 
-
     @Test
     public void setFlows_callSetupFlows_dataSetupCorrect() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         List<FlowModel> models = view.dataProvider.getList();
         assertThat(models.isEmpty(), is(true));
@@ -134,7 +145,7 @@ public class ViewTest {
 
     @Test
     public void setFlows_callSetupFlowsTwice_dataSetupCorrect() {
-        view = new View(mockedClientFactory);
+        setupView();
         List<FlowModel> models = view.dataProvider.getList();
 
         // Subject Under Test
@@ -149,7 +160,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructNameColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructNameColumn();
@@ -161,7 +172,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructDescriptionColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructDescriptionColumn();
@@ -173,7 +184,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowComponentsColumn_oneFlowComponentWithSvnNext_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructFlowComponentsColumn();
@@ -186,7 +197,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowComponentsColumn_oneFlowComponentWithEmptySvnNext_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructFlowComponentsColumn();
@@ -199,7 +210,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowComponentsColumn_twoFlowComponents_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructFlowComponentsColumn();
@@ -214,7 +225,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructRefreshActionColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructRefreshActionColumn();
@@ -232,7 +243,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructEditActionColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructEditActionColumn();
@@ -247,4 +258,7 @@ public class ViewTest {
         verify(mockedPresenter).editFlow(flowModel1);
     }
 
+    private void setupView() {
+        view = new ViewConcrete();
+    }
 }

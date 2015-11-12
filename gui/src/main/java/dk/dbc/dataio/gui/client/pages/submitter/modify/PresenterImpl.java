@@ -48,7 +48,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method
-     *
+     * @param header    Breadcrumb header breadcrumb
      */
     public PresenterImpl(String header) {
         this.header = header;

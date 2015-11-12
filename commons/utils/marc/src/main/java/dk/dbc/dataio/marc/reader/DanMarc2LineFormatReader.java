@@ -39,8 +39,8 @@ import java.util.regex.Pattern;
 
 /**
  * Reader implementation for the line format for danMARC2 with the following additional assumptions:
- *   @ characters in data are escaped with @@
- *   * characters outside of subfield codes are escaped with @*
+ *   {@literal @} characters in data are escaped with {@literal @}{@literal @}
+ *   * characters outside of subfield codes are escaped with {@literal @}*
  * see also http://www.danbib.dk/index.php?doc=linjeformat
  */
 public class DanMarc2LineFormatReader implements MarcReader {

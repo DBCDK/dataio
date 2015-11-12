@@ -26,7 +26,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +52,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     private final static long DEFAULT_SINK_ID = 433L;
 
     class PresenterEditImplConcrete<Place extends EditPlace> extends PresenterEditImpl {
-        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory, String header) {
+        public PresenterEditImplConcrete(Place place, String header) {
             super(place, header);
         }
 
@@ -124,7 +123,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     public void getSinkModelFilteredAsyncCallback_successfulCallback_modelUpdated() {
 
         // Expectations
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, header);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;
 
         // Subject Under Test
@@ -149,7 +148,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     public void getSinkModelFilteredAsyncCallback_unsuccessfulCallback_errorMessage() {
 
         // Expectations
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, header);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;
         presenterEditImpl.commonInjector = mockedCommonGinjector;
 
@@ -168,7 +167,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     public void deleteSinkModelFilteredAsyncCallback_callback_invoked() {
 
         // Expectations
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory, header);
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;
         presenterEditImpl.commonInjector = mockedCommonGinjector;
 

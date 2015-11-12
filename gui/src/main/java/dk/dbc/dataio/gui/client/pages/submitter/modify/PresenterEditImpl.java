@@ -21,11 +21,12 @@
 
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
+import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Submitter Edit
@@ -36,15 +37,24 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     /**
      * Constructor
      * @param place, the place
-     * @param clientFactory, the client factory
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getSubmitterEditView();
+    public PresenterEditImpl(Place place, String header) {
+        super(header);
         id = place.getSubmitterId();
-        view.deleteButton.setVisible(true);
     }
 
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     * @param containerWidget the widget to use
+     * @param eventBus the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
+    }
 
     /**
      * Initializing the model
@@ -62,16 +72,16 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
     void deleteModel() {
-        flowStoreProxy.deleteSubmitter(model.getId(), model.getVersion(), new DeleteSubmitterModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().deleteSubmitter(model.getId(), model.getVersion(), new DeleteSubmitterModelFilteredAsyncCallback());
     }
 
     // Private methods
     private void getSubmitter(final Long submitterId) {
-        flowStoreProxy.getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
     }
 
     /**
@@ -80,7 +90,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     public void deleteButtonPressed() {
         if (model != null) {
             if (!model.isNumberValid()) {
-                view.setErrorText(texts.error_NumberInputFieldValidationError());
+                getView().setErrorText(getTexts().error_NumberInputFieldValidationError());
             } else {
                 deleteModel();
             }
@@ -94,7 +104,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "Submitter.id: " + id;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override
@@ -110,12 +120,12 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     class DeleteSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(Void aVoid) {
-            view.status.setText(texts.status_SubmitterSuccessfullyDeleted());
+            getView().status.setText(getTexts().status_SubmitterSuccessfullyDeleted());
             setSubmitterModel(null);
             History.back();
         }

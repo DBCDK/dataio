@@ -40,8 +40,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface SubmitterBinder extends UiBinder<HTMLPanel, View> {}
     private static SubmitterBinder uiBinder = GWT.create(SubmitterBinder.class);
 
-    public View(String header) {
-        super(header);
+    public View() {
+        super("");
         add(uiBinder.createAndBindUi(this));
     }
 

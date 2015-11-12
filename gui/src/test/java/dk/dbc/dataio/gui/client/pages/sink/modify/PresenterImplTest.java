@@ -33,7 +33,6 @@ import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.SinkServiceProxyAsync;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,7 +70,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private final SinkModel sinkModel = new SinkModelBuilder().build();
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory, String header) {
+        public PresenterImplConcrete(String header) {
             super(header);
             view = PresenterImplTest.this.view;
             model = sinkModel;
@@ -263,7 +262,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
+        presenterImpl = new PresenterImplConcrete(header);
         presenterImpl.model.setSinkName("");
 
         // Subject Under Test
@@ -277,7 +276,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
+        presenterImpl = new PresenterImplConcrete(header);
         presenterImpl.model.setResourceName("");
 
         // Subject Under Test
@@ -397,7 +396,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     private void setupPresenterImpl() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory, header);
+        presenterImpl = new PresenterImplConcrete(header);
         presenterImpl.viewInjector = mockedViewGinjector;
         presenterImpl.commonInjector = mockedCommonGinjector;
     }

@@ -22,13 +22,17 @@
 package dk.dbc.dataio.gui.client.places;
 
 import com.google.gwt.activity.shared.Activity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.place.shared.Place;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Created by ThomasBerg on 05/11/15.
  */
 public abstract class DataioPlace extends Place {
+
+    protected CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     public abstract Activity createPresenter(ClientFactory clientFactory);
 }

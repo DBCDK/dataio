@@ -60,9 +60,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        getView().setHeader(this.header);
+        initializeView();
         initializeViewFields();
-        getView().setPresenter(this);
         containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
@@ -163,6 +162,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /*
      * Private methods
      */
+
+    private void initializeView() {
+        getView().setHeader(this.header);
+        getView().setPresenter(this);
+    }
 
     public void initializeViewFields() {
         View view = getView();

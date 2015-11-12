@@ -36,12 +36,9 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  */
 public class CreatePlace extends DataioPlace {
 
-    public CreatePlace() {
-    }
-
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(clientFactory);
+        return new PresenterCreateImpl(commonInjector.getMenuTexts().menu_SubmitterCreation());
     }
 
     @Prefix("CreateSubmitter")

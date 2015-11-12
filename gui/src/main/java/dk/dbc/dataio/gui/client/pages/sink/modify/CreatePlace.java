@@ -36,7 +36,7 @@ public class CreatePlace extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(clientFactory.getMenuTexts().menu_SinkCreation());
+        return new PresenterCreateImpl(commonInjector.getMenuTexts().menu_SinkCreation());
     }
 
     @Prefix("CreateSink")

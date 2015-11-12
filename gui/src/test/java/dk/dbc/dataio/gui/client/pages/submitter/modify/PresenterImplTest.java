@@ -22,17 +22,14 @@
 
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,14 +49,10 @@ import static org.mockito.Mockito.when;
 *  unitOfWork_stateUnderTest_expectedBehavior
 */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock private ClientFactory mockedClientFactory;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterImplTest extends PresenterImplTestBase {
+
     @Mock private Texts mockedTexts;
-    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
-    @Mock private ProxyException mockedProxyException;
+    @Mock private ViewGinjector mockedViewGinjector;
 
     private View view;
     private PresenterImplConcrete presenterImpl;
@@ -68,10 +61,12 @@ public class PresenterImplTest {
     private final SubmitterModel submitterModel = new SubmitterModelBuilder().build();
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
+        public PresenterImplConcrete(String header) {
+            super(header);
             view = PresenterImplTest.this.view;
             model = submitterModel;
+            viewInjector = mockedViewGinjector;
+            commonInjector = mockedCommonGinjector;
         }
 
         @Override
@@ -88,16 +83,16 @@ public class PresenterImplTest {
 
         // Test method for reading flowStoreProxy
         public FlowStoreProxyAsync getFlowStoreProxy() {
-            return flowStoreProxy;
+            return mockedFlowStore;
         }
 
         // Test method for reading constants
         public Texts getSubmitterModifyTexts() {
-            return texts;
+            return mockedTexts;
         }
 
         public ProxyErrorTexts getProxyErrorTexts() {
-            return proxyErrorTexts;
+            return mockedProxyErrorTexts;
         }
 
         @Override
@@ -110,30 +105,26 @@ public class PresenterImplTest {
 
     @Before
     public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
-    }
-
-    @Before
-    public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        view = new View();  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedViewGinjector.getView()).thenReturn(view);
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
-
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
+        setupPresenterImplConcrete();
+        assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStore));
         assertThat(presenterImpl.getSubmitterModifyTexts(), is(mockedTexts));
         assertThat(presenterImpl.getProxyErrorTexts(), is(mockedProxyErrorTexts));
     }
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(mockedContainerWidget).setWidget(Matchers.any(IsWidget.class));
@@ -181,7 +172,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
         presenterImpl.model.setName("");
 
         presenterImpl.saveButtonPressed();
@@ -191,7 +182,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
         presenterImpl.model.setDescription("");
 
         presenterImpl.saveButtonPressed();
@@ -201,7 +192,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
         presenterImpl.model.setName("*(Flow name)*_%€");
 
         presenterImpl.saveButtonPressed();
@@ -211,7 +202,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithInvalidNumberFormatInNameField_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
         presenterImpl.model.setNumber("Not a number");
 
         presenterImpl.saveButtonPressed();
@@ -221,7 +212,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithValidData_SaveModelIsCalled() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
 
         presenterImpl.saveButtonPressed();
 
@@ -255,10 +246,14 @@ public class PresenterImplTest {
      /*
      * Private methods
      */
-
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
 
+    private void setupPresenterImplConcrete() {
+        presenterImpl = new PresenterImplConcrete(header);
+        presenterImpl.commonInjector = mockedCommonGinjector;
+        presenterImpl.viewInjector = mockedViewGinjector;
+    }
 }

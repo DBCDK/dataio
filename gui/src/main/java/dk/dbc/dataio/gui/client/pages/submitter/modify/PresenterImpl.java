@@ -22,24 +22,23 @@
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 /**
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected final Texts texts;
-    protected final FlowStoreProxyAsync flowStoreProxy;
-    protected final ProxyErrorTexts proxyErrorTexts;
-    protected View view;
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    protected String header;
 
     // Application Models
     protected SubmitterModel model = new SubmitterModel();
@@ -50,12 +49,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method
      *
-     * @param clientFactory, clientFactory
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        texts = clientFactory.getSubmitterModifyTexts();
-        proxyErrorTexts = clientFactory.getProxyErrorTexts();
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+    public PresenterImpl(String header) {
+        this.header = header;
     }
 
 
@@ -68,11 +64,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        initializeView();
         initializeViewFields();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
+
 
     /**
      * A signal to the presenter, saying that the number field has been changed
@@ -102,7 +99,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
-        view.status.setText("");
+        getView().status.setText("");
     }
 
     /**
@@ -111,11 +108,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void saveButtonPressed() {
         if (model != null) {
             if (model.isInputFieldsEmpty()) {
-                view.setErrorText(texts.error_InputFieldValidationError());
+                getView().setErrorText(getTexts().error_InputFieldValidationError());
             } else if (!model.isNumberValid()) {
-               view.setErrorText(texts.error_NumberInputFieldValidationError());
+               getView().setErrorText(getTexts().error_NumberInputFieldValidationError());
             } else if (!model.getDataioPatternMatches().isEmpty()) {
-                view.setErrorText(texts.error_NameFormatValidationError());
+                getView().setErrorText(getTexts().error_NameFormatValidationError());
             } else {
                 saveModel();
             }
@@ -125,8 +122,14 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /*
      * Private methods
      */
+    private void initializeView() {
+        getView().setPresenter(this);
+        getView().setHeader(header);
+    }
 
     public void initializeViewFields() {
+
+        View view = getView();
         view.number.clearText();
         view.number.setEnabled(false);
         view.name.clearText();
@@ -138,6 +141,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
+        View view = getView();
         if(model.getId() == 0) {
             view.number.setEnabled(true);
         }
@@ -177,12 +181,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(SubmitterModel model) {
-            view.status.setText(texts.status_SubmitterSuccessfullySaved());
+            getView().status.setText(getTexts().status_SubmitterSuccessfullySaved());
             setSubmitterModel(model);
             History.back();
         }
@@ -203,4 +207,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     abstract void saveModel();
 
+    protected View getView() {
+        return viewInjector.getView();
+    }
+
+    protected Texts getTexts() {
+        return viewInjector.getTexts();
+    }
 }

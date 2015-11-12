@@ -21,8 +21,9 @@
 
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Submitter Create
@@ -31,11 +32,22 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory, clientFactory
      */
-    public PresenterCreateImpl(ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getSubmitterCreateView();
+    public PresenterCreateImpl(String header) {
+        super(header);
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     * @param containerWidget the widget to use
+     * @param eventBus the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -54,7 +66,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().createSubmitter(model, new SaveSubmitterModelFilteredAsyncCallback());
     }
 
     /**

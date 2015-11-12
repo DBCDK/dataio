@@ -22,13 +22,11 @@
 
 package dk.dbc.dataio.gui.client.pages.submitter.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwtmockito.GwtMockitoTestRunner;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -50,35 +48,26 @@ import static org.mockito.Mockito.when;
 *  unitOfWork_stateUnderTest_expectedBehavior
 */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterCreateImplTest {
-    @Mock private ClientFactory mockedClientFactory;
+public class PresenterCreateImplTest extends PresenterImplTestBase {
     @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
     @Mock private Texts mockedTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
-    @Mock private Exception mockedException;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock TextBox mockedNumber;
     @Mock TextBox mockedName;
-
-    private CreateView createView;
+    @Mock ViewGinjector mockedViewKGinjector;
+    private View createView;
 
     private PresenterCreateImpl presenterCreateImpl;
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
-    public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getSubmitterCreateView()).thenReturn(createView);
-        when(mockedClientFactory.getSubmitterModifyTexts()).thenReturn(mockedTexts);
-    }
-
-    @Before
     public void setupView() {
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        createView = new View();  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
+        when(mockedViewKGinjector.getView()).thenReturn(createView);
+        when(mockedViewKGinjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_SubmitterCreation()).thenReturn("Header Text");
-        createView = new CreateView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
 
@@ -86,19 +75,24 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+        setupPresenterCreateImpl();
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
-        verify(mockedClientFactory).getSubmitterCreateView();
+//        verify(mockedClientFactory).getSubmitterCreateView();
     }
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+
+        // Setup
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
         assertThat(presenterCreateImpl.model, is(notNullValue()));
         assertThat(presenterCreateImpl.model.getName(), is(""));
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
 
+        // Verifications
         assertThat(presenterCreateImpl.model, is(notNullValue()));
         assertThat(presenterCreateImpl.model.getNumber(), is(""));
         assertThat(presenterCreateImpl.model.getName(), is(""));
@@ -107,11 +101,22 @@ public class PresenterCreateImplTest {
 
     @Test
     public void saveModel_submitterContentOk_createSubmitterCalled() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+
+        // Setup
+        setupPresenterCreateImpl();
         presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
         presenterCreateImpl.model = new SubmitterModelBuilder().build();
+
+        // Subject Under Test
         presenterCreateImpl.saveModel();
+
+        // Verifications
         verify(mockedFlowStoreProxy).createSubmitter(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSubmitterModelFilteredAsyncCallback.class));
     }
 
+    private void setupPresenterCreateImpl() {
+        presenterCreateImpl = new PresenterCreateImpl(header);
+        presenterCreateImpl.commonInjector = mockedCommonGinjector;
+        presenterCreateImpl.viewInjector = mockedViewKGinjector;
+    }
 }

@@ -27,62 +27,52 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
-import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
+import dk.dbc.dataio.marc.binding.MarcRecord;
+import dk.dbc.dataio.marc.reader.DanMarc2LineFormatReader;
+import dk.dbc.dataio.marc.reader.MarcReader;
+import dk.dbc.dataio.marc.reader.MarcReaderException;
+import dk.dbc.dataio.marc.writer.MarcWriter;
+import dk.dbc.dataio.marc.writer.MarcXchangeV11Writer;
 import dk.dbc.marc.DanMarc2Charset;
-import dk.dbc.marc.Iso2709Unpacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
-public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
+public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitionerFactory {
 
     /**
-     * Creates new instance of default Iso2709 DataPartitioner
+     * Creates new instance of DanMarc2 LineFormat DataPartitioner
      *
-     * @param inputStream stream from which Iso2709 data to be partitioned can be read
+     * @param inputStream       stream from which data to be partitioned can be read
      * @param specifiedEncoding encoding from job specification (currently only latin 1 is supported).
-     * @return new instance of default Iso2709 DataPartitioner
-     *
+     * @return new instance of DanMarc2 LineFormat DataPartitioner
      * @throws NullPointerException     if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      */
     @Override
-    public DataPartitioner createDataPartitioner(InputStream inputStream, String specifiedEncoding)
-            throws NullPointerException, IllegalArgumentException {
+    public DataPartitioner createDataPartitioner(InputStream inputStream, String specifiedEncoding) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "encoding");
-        return new Iso2709DataPartitioner(inputStream, specifiedEncoding);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "specifiedEncoding");
+        return new Dm2LineFormatDataPartitioner(inputStream, specifiedEncoding);
     }
 
-    private static class Iso2709DataPartitioner implements DataPartitioner {
-        private static final Logger LOGGER = LoggerFactory.getLogger(Iso2709DataPartitioner.class);
+    private static class Dm2LineFormatDataPartitioner implements DataPartitioner {
+        private static final Logger LOGGER = LoggerFactory.getLogger(Dm2LineFormatDataPartitioner.class);
 
         private final ByteCountingInputStream inputStream;
-        private Charset encoding;
         private String specifiedEncoding;
+        private Charset encoding;
 
         private Iterator<ChunkItem> iterator;
         private DanMarc2Charset danMarc2Charset;
         private BufferedInputStream bufferedInputStream;
-        private DocumentBuilderFactory documentBuilderFactory;
 
-
-        public Iso2709DataPartitioner(InputStream inputStream, String specifiedEncoding) {
+        public Dm2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) {
             this.inputStream = new ByteCountingInputStream(inputStream);
             this.encoding = StandardCharsets.UTF_8;
             this.specifiedEncoding = specifiedEncoding;
@@ -99,43 +89,41 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
         }
 
         @Override
-        public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
+        public Iterator<ChunkItem> iterator() {
             if (iterator == null) {
                 validateSpecifiedEncoding();
                 danMarc2Charset = new DanMarc2Charset();
                 bufferedInputStream = new BufferedInputStream(inputStream);
-                documentBuilderFactory = DocumentBuilderFactory.newInstance();
-
             }
+
             iterator = new Iterator<ChunkItem>() {
-                private Document document = null;
+                private MarcRecord marcRecord = null;
+                private MarcWriter marcWriter = new MarcXchangeV11Writer();
+                private MarcReader marcReader = new DanMarc2LineFormatReader(bufferedInputStream, danMarc2Charset);
 
                 @Override
                 public boolean hasNext() {
                     try {
-                        document = Iso2709Unpacker.createMarcXChangeRecord(bufferedInputStream, danMarc2Charset, documentBuilderFactory);
-                    } catch (IOException | ParserConfigurationException e) {
-                        LOGGER.error("Exception caught while creating MarcXChange Record", e);
+                        marcRecord = marcReader.read();
+                    } catch (MarcReaderException e) {
+                        LOGGER.error("Exception caught while creating MarcRecord", e);
                         throw new InvalidDataException(e);
                     }
-                    return document != null;
+                    return marcRecord != null;
                 }
 
                 @Override
                 public ChunkItem next() {
-                    if(document != null) {
-                        try {
-                            return new ChunkItem(0, domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
-                        } catch (TransformerException e) {
-                            LOGGER.error("Unrecoverable error occurred during transformation", e);
-                            throw new InvalidDataException(e);
-                        }
+                    if (marcRecord != null) {
+                        byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
+                        return new ChunkItem(0, marcRecordAsByteArray, ChunkItem.Status.SUCCESS);
                     }
                     return null;
                 }
             };
             return iterator;
         }
+
 
         /*
          * Private methods
@@ -150,22 +138,6 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
                         "Specified encoding not supported: '%s' ", specifiedEncoding));
             }
         }
-
-        /**
-         *
-         * This method converts a document to a String
-         * @param document the document to convert
-         * @return String representation of the document
-         *
-         * @throws TransformerException if it was not possible to create a Transformer instance or
-         *         if an unrecoverable error occurs during the course of the transformation.
-         */
-        private String domToString(Document document) throws TransformerException {
-            DOMSource domSource = new DOMSource(document);
-            StreamResult result = new StreamResult(new StringWriter());
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.transform(domSource, result);
-            return result.getWriter().toString();
-        }
     }
+
 }

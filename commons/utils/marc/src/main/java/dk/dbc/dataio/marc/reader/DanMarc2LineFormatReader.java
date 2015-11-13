@@ -22,6 +22,7 @@
 package dk.dbc.dataio.marc.reader;
 
 import dk.dbc.dataio.marc.binding.DataField;
+import dk.dbc.dataio.marc.binding.Leader;
 import dk.dbc.dataio.marc.binding.MarcRecord;
 import dk.dbc.dataio.marc.binding.SubField;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
     private static final String END_OF_RECORD = "$";
     private static final int ESCAPE_CHAR = 64;      // @
     private static final int SUBFIELD_MARKER = 42;  // *
+    public static final String DEFAULT_LEADER = "00000     22000000 4500 ";
 
     private final BufferedReader reader;
     private final Pattern validLinePattern =
@@ -190,6 +192,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
             return null;
 
         return new MarcRecord()
+                .setLeader(new Leader().setData(DEFAULT_LEADER))
                 .addAllFields(fields);
     }
 

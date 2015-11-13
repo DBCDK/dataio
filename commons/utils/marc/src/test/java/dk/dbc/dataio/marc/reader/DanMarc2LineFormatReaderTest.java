@@ -22,6 +22,7 @@
 package dk.dbc.dataio.marc.reader;
 
 import dk.dbc.dataio.marc.binding.DataField;
+import dk.dbc.dataio.marc.binding.Leader;
 import dk.dbc.dataio.marc.binding.MarcRecord;
 import dk.dbc.dataio.marc.binding.SubField;
 import org.junit.Test;
@@ -160,6 +161,7 @@ public class DanMarc2LineFormatReaderTest {
                 .setInd2('0')
                 .addAllSubFields(Arrays.asList(subFieldA, subFieldB));
         return new MarcRecord()
+                .setLeader(new Leader().setData(DanMarc2LineFormatReader.DEFAULT_LEADER))
                 .addField(dataField245);
     }
 

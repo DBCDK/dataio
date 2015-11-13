@@ -45,7 +45,7 @@ import static org.junit.Assert.fail;
 import static org.xmlunit.builder.Input.fromByteArray;
 import static org.xmlunit.builder.Input.fromStream;
 
-public class Iso2709DataPartitioner_dataTest {
+public class Iso2709DataPartitionerTest {
 
     private final static String SPECIFIED_ENCODING = "latin1";
 
@@ -187,7 +187,7 @@ public class Iso2709DataPartitioner_dataTest {
      */
 
     static InputStream getTestInputStream( String resourceName ) {
-        return Iso2709DataPartitioner_dataTest.class.getResourceAsStream(resourceName);
+        return Iso2709DataPartitionerTest.class.getResourceAsStream(resourceName);
     }
 
 
@@ -199,7 +199,7 @@ public class Iso2709DataPartitioner_dataTest {
     }
 
     private static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
-        final URL url = Iso2709DataPartitioner_dataTest.class.getResource(resourceName);
+        final URL url = Iso2709DataPartitionerTest.class.getResource(resourceName);
         final Path resPath;
         resPath = Paths.get(url.toURI());
         return Files.readAllBytes(resPath);

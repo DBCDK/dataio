@@ -46,6 +46,6 @@ public class EncodingsUtil {
     }
 
     private static String normalizeEncoding(String encoding) {
-        return encoding.replaceAll("-", "").toLowerCase();
+        return encoding.replaceAll("-", "").trim().toLowerCase();
     }
 }

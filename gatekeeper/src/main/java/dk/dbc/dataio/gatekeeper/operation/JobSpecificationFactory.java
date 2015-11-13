@@ -92,7 +92,7 @@ public class JobSpecificationFactory {
             return Constants.MISSING_FIELD_VALUE;
         }
         if (Constants.MISSING_FIELD_VALUE.equals(fileStoreId)) {
-            return fieldValue;
+            return Constants.MISSING_FIELD_VALUE;
         }
         try {
             return FileStoreUrn.create(fileStoreId).toString();

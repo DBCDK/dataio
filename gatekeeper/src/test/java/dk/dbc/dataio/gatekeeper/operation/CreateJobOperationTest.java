@@ -139,7 +139,8 @@ public class CreateJobOperationTest {
         createJobOperation.execute();
 
         final JobInputStream jobInputStream = jobStoreServiceConnector.jobInputStreams.remove();
-        assertThat(jobInputStream.getJobSpecification().getDataFile(), is("123456.file"));
+        assertThat(jobInputStream.getJobSpecification().getAncestry().getDatafile(), is("123456.file"));
+        assertThat(jobInputStream.getJobSpecification().getDataFile(), is(Constants.MISSING_FIELD_VALUE));
 
         verify(fileStoreServiceConnector, times(0)).addFile(any(InputStream.class));
     }

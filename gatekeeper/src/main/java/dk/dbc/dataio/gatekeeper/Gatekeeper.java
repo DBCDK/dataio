@@ -54,7 +54,7 @@ public class Gatekeeper {
         registerShutdownHook(shutdownManager);
 
         final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir,
-                jobStoreServiceUrl, fileStoreServiceUrl, shutdownManager);
+                fileStoreServiceUrl, jobStoreServiceUrl, shutdownManager);
         while (true) {
             gatekeeper.standGuard();
         }

@@ -164,6 +164,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_fileStoreIdArgIsMissing_mapsToOriginalFieldValue() {
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("f=123456.file"), transfileName, Constants.MISSING_FIELD_VALUE);
-        assertThat(jobSpecification.getDataFile(), is("123456.file"));
+        assertThat(jobSpecification.getAncestry().getDatafile(), is("123456.file"));
+        assertThat(jobSpecification.getDataFile(), is(Constants.MISSING_FIELD_VALUE));
     }
 }

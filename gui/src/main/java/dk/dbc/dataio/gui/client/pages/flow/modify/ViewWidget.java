@@ -47,8 +47,8 @@ public class ViewWidget extends ContentPanel<Presenter> {
     protected FlowModel model;
     protected boolean showAvailableFlowComponents;
 
-    public ViewWidget(String header) {
-        super(header);
+    public ViewWidget() {
+        super("");
         add(uiBinder.createAndBindUi(this));
         this.model = new FlowModel();
         this.showAvailableFlowComponents = false;

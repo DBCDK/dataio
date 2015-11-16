@@ -40,7 +40,7 @@ public class CreatePlace extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(clientFactory);
+        return new PresenterCreateImpl(clientFactory.getPlaceController(), commonInjector.getMenuTexts().menu_FlowCreation());
     }
 
     @Prefix("CreateFlow")

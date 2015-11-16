@@ -45,6 +45,7 @@ import static org.mockito.Mockito.verify;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class SelectFlowComponentDialogBoxTest {
+
     private final static String   FLOW_COMPONENT_ID_1 = "111";
     private final static String FLOW_COMPONENT_NAME_1 = "FlowComponentName1";
     private final static String   FLOW_COMPONENT_ID_2 = "222";
@@ -144,5 +145,4 @@ public class SelectFlowComponentDialogBoxTest {
         data.put(FLOW_COMPONENT_ID_4, FLOW_COMPONENT_NAME_4);
         return data;
     }
-
 }

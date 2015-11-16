@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.EventBus;
@@ -30,11 +31,9 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,31 +45,28 @@ import java.util.Map;
  * of flow data in the flow store via RPC proxy
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+
     private final static String EMPTY = "";
     private SelectFlowComponentDialogBox selectFlowComponentDialogBox;
-
-    protected final Texts texts;
-    protected final ProxyErrorTexts proxyErrorTexts;
-    protected FlowStoreProxyAsync flowStoreProxy;
-    protected ViewWidget view;
 
     // Application Models
     protected List<FlowComponentModel> availableFlowComponentModels;
     protected PlaceController placeController;
-
+    protected String header;
 
     /**
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method
      *
-     * @param clientFactory clientFactory
+     * @param placeController PlaceController for navigation
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        texts = clientFactory.getFlowModifyTexts();
-        proxyErrorTexts = clientFactory.getProxyErrorTexts();
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        placeController = clientFactory.getPlaceController();
+    public PresenterImpl(PlaceController placeController, String header) {
+        this.placeController = placeController;
+        this.header = header;
     }
 
     /**
@@ -83,21 +79,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        initializeView();
         initializeViewFields();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        containerWidget.setWidget(getView().asWidget());
         initializeAvailableFlowComponentModels();
         initializeModel();
-    }
-
-    private void initializeViewFields() {
-        view.name.clearText();
-        view.name.setEnabled(false);
-        view.description.clearText();
-        view.description.setEnabled(false);
-        view.flowComponents.clear();
-        view.flowComponents.setEnabled(false);
-        view.status.setText("");
     }
 
     /**
@@ -107,8 +93,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void nameChanged(String name) {
-        if (view.model != null && name != null) {
-            view.model.setFlowName(name);
+        if (getView().model != null && name != null) {
+            getView().model.setFlowName(name);
         }
     }
 
@@ -119,8 +105,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void descriptionChanged(String description) {
-        if (view.model != null && description != null) {
-            view.model.setDescription(description);
+        if (getView().model != null && description != null) {
+            getView().model.setDescription(description);
         }
     }
 
@@ -136,7 +122,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             for (Map.Entry<String, String> entry: flowComponents.entrySet()) {
                 flowComponentModels.add(getFlowComponentModel(entry.getKey()));
             }
-            view.model.setFlowComponents(flowComponentModels);
+            getView().model.setFlowComponents(flowComponentModels);
         }
     }
 
@@ -145,7 +131,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void keyPressed() {
-        view.status.setText(EMPTY);
+        getView().status.setText(EMPTY);
     }
 
     /**
@@ -153,10 +139,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void saveButtonPressed() {
-        if (view.model.isInputFieldsEmpty()) {
-            view.setErrorText(texts.error_InputFieldValidationError());
-        } else if (!view.model.getDataioPatternMatches().isEmpty()) {
-            view.setErrorText(texts.error_NameFormatValidationError());
+        if (getView().model.isInputFieldsEmpty()) {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        } else if (!getView().model.getDataioPatternMatches().isEmpty()) {
+            getView().setErrorText(getTexts().error_NameFormatValidationError());
         } else {
             saveModel();
         }
@@ -176,9 +162,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void removeButtonPressed() {
         try {
-            List<FlowComponentModel> flowComponentModels = view.model.getFlowComponents();
-            flowComponentModels.remove(getFlowComponentModelIndex(view.flowComponents.getSelectedItem()));
-            view.model.setFlowComponents(flowComponentModels);
+            List<FlowComponentModel> flowComponentModels = getView().model.getFlowComponents();
+            flowComponentModels.remove(getFlowComponentModelIndex(getView().flowComponents.getSelectedItem()));
+            getView().model.setFlowComponents(flowComponentModels);
             updateAllFieldsAccordingToCurrentState();
         } catch (Exception e) {  // NOPMD
             // NOPMD
@@ -191,7 +177,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void newFlowComponentButtonPressed() {
-        view.showAvailableFlowComponents = true;
+        getView().showAvailableFlowComponents = true;
         placeController.goTo(new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace());
     }
 
@@ -204,6 +190,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * This method opdates all the fields in the view according to the stored model.
      */
     protected void updateAllFieldsAccordingToCurrentState() {
+        ViewWidget view = getView();
         view.name.setText(view.model.getFlowName());
         view.name.setEnabled(true);
         view.description.setText(view.model.getDescription());
@@ -228,22 +215,46 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param model The model to save
      */
     protected void setFlowModel(FlowModel model) {
-        this.view.model = model;
+        this.getView().model = model;
     }
 
 
     /*
      * Private methods
      */
+    protected ViewWidget getView() {
+        return viewInjector.getView();
+    }
+
+    protected Texts getTexts() {
+        return viewInjector.getTexts();
+    }
+
+    private void initializeView() {
+        getView().setPresenter(this);
+        getView().setHeader(this.header);
+    }
+
+    private void initializeViewFields() {
+        ViewWidget view = getView();
+        view.name.clearText();
+        view.name.setEnabled(false);
+        view.description.clearText();
+        view.description.setEnabled(false);
+        view.flowComponents.clear();
+        view.flowComponents.setEnabled(false);
+        view.status.setText("");
+    }
+
     void initializeAvailableFlowComponentModels() {
-        flowStoreProxy.findAllFlowComponents(new FindAllFlowComponentsAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllFlowComponents(new FindAllFlowComponentsAsyncCallback());
     }
 
     private List<FlowComponentModel> getNonSelectedFlowComponents() {
         List<FlowComponentModel> nonSelectedFlowComponents = new ArrayList<>();
         List<Long> selectedFlowComponentIds = new ArrayList<>();
-        if (view.model != null) {
-            for (FlowComponentModel selected: view.model.getFlowComponents()) {
+        if (getView().model != null) {
+            for (FlowComponentModel selected: getView().model.getFlowComponents()) {
                 selectedFlowComponentIds.add(selected.getId());
             }
         }
@@ -269,7 +280,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     private int getFlowComponentModelIndex(String idString) {
         long id = Long.parseLong(idString);
-        List<FlowComponentModel> flowComponentModels = view.model.getFlowComponents();
+        List<FlowComponentModel> flowComponentModels = getView().model.getFlowComponents();
         for (int index = 0; index < flowComponentModels.size(); index++) {
             if (flowComponentModels.get(index).getId() == id) {
                 return index;
@@ -288,7 +299,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FindAllFlowComponentsAsyncCallback implements AsyncCallback<List<FlowComponentModel>> {
         @Override
         public void onFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowComponentModel> result) {
@@ -303,12 +314,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveFlowModelAsyncCallback implements AsyncCallback<FlowModel> {
         @Override
         public void onFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(FlowModel model) {
-            view.status.setText(texts.status_FlowSuccessfullySaved());
+            getView().status.setText(getTexts().status_FlowSuccessfullySaved());
             setFlowModel(new FlowModel());
             History.back();
         }
@@ -324,9 +335,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             if (selected >= 0) {
                 String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
                 FlowComponentModel selectedModel = getFlowComponentModel(value);
-                List<FlowComponentModel> flowComponentModels = view.model.getFlowComponents();
+                List<FlowComponentModel> flowComponentModels = getView().model.getFlowComponents();
                 flowComponentModels.add(selectedModel);
-                view.model.setFlowComponents(flowComponentModels);
+                getView().model.setFlowComponents(flowComponentModels);
                 updateAllFieldsAccordingToCurrentState();
             }
         }

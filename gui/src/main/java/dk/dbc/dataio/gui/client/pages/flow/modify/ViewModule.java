@@ -18,18 +18,19 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
-
-import dk.dbc.dataio.gui.util.ClientFactory;
+import com.google.gwt.inject.client.AbstractGinModule;
+import com.google.inject.Singleton;
 
 /**
- * This is the View for Flow Modify
+ * Created by ThomasBerg on 09/11/15.
  */
-public class CreateView extends ViewWidget {
-    public CreateView(ClientFactory clientFactory) {
-        super(clientFactory.getMenuTexts().menu_FlowCreation());
-    }
+public class ViewModule extends AbstractGinModule {
 
+    @Override
+    protected void configure() {
+        bind(ViewWidget.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
+    }
 }

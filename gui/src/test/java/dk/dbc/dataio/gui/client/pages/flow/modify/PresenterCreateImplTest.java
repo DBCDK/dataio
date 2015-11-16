@@ -21,12 +21,10 @@
 
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,34 +52,35 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterCreateImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterCreateImplTest extends PresenterImplTestBase {
+
     @Mock Texts mockedTexts;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock ViewGinjector mockedViewGinjector;
 
-    private CreateView createView;
+    private ViewWidget createView;
 
-    private PresenterCreateImpl presenterCreateImpl;
+    private PresenterCreateImplConcrete presenterCreateImpl;
 
     private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
+
+    class PresenterCreateImplConcrete extends PresenterCreateImpl {
+        public PresenterCreateImplConcrete(PlaceController placeController, String header) {
+            super(placeController, header);
+        }
+
+        public ViewWidget getView() {
+            return createView;
+        }
+    }
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
-    public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowCreateView()).thenReturn(createView);
-        when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
-    }
-
-    @Before
-    public void setupView() {
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
-        when(mockedMenuTexts.menu_FlowCreation()).thenReturn("Header Text");
-        createView = new CreateView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
+    public void setup() {
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedViewGinjector.getView()).thenReturn(createView);
+        createView = new ViewWidget();  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -89,17 +88,13 @@ public class PresenterCreateImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
+        presenterCreateImpl = new PresenterCreateImplConcrete(mockedPlaceController, header);
         // The instanitation of presenterCreateImpl instantiates the "Create version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Create specific stuff, which basically is to assert, that the view attribute has been initialized correctly
-
-        verify(mockedClientFactory).getFlowCreateView();
     }
-
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
-        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
+        setupPresenterAndStart();
 
         // Verify, that the model is cleared and updated accordingly
         assertThat(createView.model, is(notNullValue()));
@@ -118,6 +113,8 @@ public class PresenterCreateImplTest {
         verifyNoMoreInteractions(createView.flowComponents);  // To make sure, that there are no addValue() calls
     }
 
+
+
     @Test
     public void saveModel_flowContentOk_createFlowCalled() {
         final String FLOW_NAME = "flow name";
@@ -125,8 +122,7 @@ public class PresenterCreateImplTest {
         final long FLOW_COMPONENT_ID = 534;
         final String FLOW_COMPONENT_NAME = "flow component name";
 
-        presenterCreateImpl = new PresenterCreateImpl(mockedClientFactory);
-        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);
+        setupPresenterAndStart();
 
         presenterCreateImpl.nameChanged(FLOW_NAME);
         presenterCreateImpl.descriptionChanged(DESCRIPTION);
@@ -137,7 +133,13 @@ public class PresenterCreateImplTest {
 
         presenterCreateImpl.saveModel();
 
-        verify(mockedFlowStoreProxy).createFlow(eq(createView.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).createFlow(eq(createView.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
     }
 
+    private void setupPresenterAndStart() {
+        presenterCreateImpl = new PresenterCreateImplConcrete(mockedPlaceController, header);
+        presenterCreateImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
+        presenterCreateImpl.viewInjector = mockedViewGinjector;
+        presenterCreateImpl.commonInjector = mockedCommonGinjector;
+    }
 }

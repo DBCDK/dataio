@@ -21,20 +21,16 @@
 
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
-import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,15 +57,10 @@ import static org.mockito.Mockito.when;
 *  unitOfWork_stateUnderTest_expectedBehavior
 */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock Texts mockedTexts;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
-    @Mock ProxyErrorTexts mockedProxyErrorTexts;
-    @Mock PlaceController mockedPlaceController;
+public class PresenterImplTest extends PresenterImplTestBase {
 
+    @Mock Texts mockedTexts;
+    @Mock ViewGinjector mockedViwGinjector;
     private ViewWidget viewWidget;
 
     private PresenterImplConcrete presenterImpl;
@@ -88,11 +79,11 @@ public class PresenterImplTest {
     private final static String DEFAULT_DESCRIPTION = "FlowDescription";
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
-            view = PresenterImplTest.this.viewWidget;
-            flowStoreProxy = mockedFlowStoreProxy;
-            placeController = mockedPlaceController;
+        public PresenterImplConcrete(PlaceController placeController, String header) {
+            super(placeController, header);
+            commonInjector = mockedCommonGinjector;
+            viewInjector = mockedViwGinjector;
+            this.placeController = mockedPlaceController;
             viewWidget.model = new FlowModelBuilder().setId(DEFAULT_ID).setVersion(DEFAULT_VERSION).setName(DEFAULT_NAME).setDescription(DEFAULT_DESCRIPTION).setComponents(selectedFlowComponentModelList).build();
             availableFlowComponentModels = availableFlowComponentModelList;
             saveModelHasBeenCalled = false;
@@ -122,19 +113,8 @@ public class PresenterImplTest {
 
         public FindAllFlowComponentsAsyncCallback findAllFlowComponentsCallback = new FindAllFlowComponentsAsyncCallback();
 
-        /*
-         * Test methods implemented for the test only
-         */
-        public FlowStoreProxyAsync getFlowStoreProxy() {
-            return flowStoreProxy;
-        }
-
-        public Texts getFlowModifyConstants() {
-            return texts;
-        }
-
-        public ProxyErrorTexts getProxyErrorTexts() {
-            return proxyErrorTexts;
+        public ViewWidget getView() {
+            return viewWidget;
         }
     }
 
@@ -158,30 +138,21 @@ public class PresenterImplTest {
 
     @Before
     public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedViwGinjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
     public void setupView() {
-        viewWidget = new ViewWidget("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        viewWidget = new ViewWidget();  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
-
-    @Test
-    public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
-        assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
-        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedProxyErrorTexts));
-    }
-
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(viewWidget.name).clearText();
@@ -192,14 +163,13 @@ public class PresenterImplTest {
         verify(viewWidget.flowComponents).setEnabled(false);
         verify(viewWidget.status).setText("");
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
-        verify(mockedFlowStoreProxy).findAllFlowComponents(any(PresenterImpl.FindAllFlowComponentsAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllFlowComponents(any(PresenterImpl.FindAllFlowComponentsAsyncCallback.class));
     }
-
     @Test
     public void nameChanged_callNameChanged_nameIsChangedAccordingly() {
         final String CHANGED_NAME = "UpdatedName";
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
 
         presenterImpl.nameChanged(CHANGED_NAME);
 
@@ -208,114 +178,159 @@ public class PresenterImplTest {
 
     @Test
     public void descriptionChanged_callDescriptionChanged_descriptionIsChangedAccordingly() {
+
+        // Setup
         final String CHANGED_DESCRIPTION = "UpdatedDescription";
+        setupPresenterImpl();
 
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-
+        // Subject Under Test
         presenterImpl.descriptionChanged(CHANGED_DESCRIPTION);
 
+        // Verifications
         assertThat(viewWidget.model.getDescription(), is(CHANGED_DESCRIPTION));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void flowComponentsChanged_callFlowComponentsChangedWithUnknownFlowComponent_flowComponentsAreChangedAccordingly() {
+
+        // Setup
         final String NEW_AND_UNKNOWN_FLOW_COMPONENT = "UpdatedFlowComponent";
-
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-
+        setupPresenterImpl();
         HashMap<String, String> changedFlowComponentsMap = new HashMap<>();
         changedFlowComponentsMap.put("123", NEW_AND_UNKNOWN_FLOW_COMPONENT);
+
+        // Subject Under Test
         presenterImpl.flowComponentsChanged(changedFlowComponentsMap);
     }
 
     @Test
     public void flowComponentsChanged_callFlowComponentsChangedWithKnownFlowComponent_flowComponentsAreChangedAccordingly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
+        // Setup
+        setupPresenterImpl();
         HashMap<String, String> changedFlowComponentsMap = new HashMap<>();
         changedFlowComponentsMap.put(String.valueOf(flowComponentModel4.getId()), flowComponentModel4.getName());
+
+        // Subject Under Test
         presenterImpl.flowComponentsChanged(changedFlowComponentsMap);
 
+        // Verifications
         assertThat(viewWidget.model.getFlowComponents().size(), is(1));
         assertThat(viewWidget.model.getFlowComponents().get(0).getName(), is(flowComponentModel4.getName()));
     }
 
     @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
 
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
         presenterImpl.keyPressed();
 
+        // Verifications
         verify(viewWidget.status).setText("");
     }
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         viewWidget.model.setFlowName("");
 
+        // Subject Under Test
         presenterImpl.saveButtonPressed();
 
+        // Verifications
         verify(mockedTexts).error_InputFieldValidationError();
     }
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         viewWidget.model.setDescription("");
 
+        // Subject Under Test
         presenterImpl.saveButtonPressed();
 
+        // Verifications
         verify(mockedTexts).error_InputFieldValidationError();
     }
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithFlowComponentListEmpty_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         viewWidget.model.setFlowComponents(new ArrayList<FlowComponentModel>());
 
+        // Subject Under Test
         presenterImpl.saveButtonPressed();
 
+        // Verifications
         verify(mockedTexts).error_InputFieldValidationError();
     }
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         viewWidget.model = new FlowModelBuilder().setName("*(Flow name)*_%€").build();
 
+        // Subject Under Test
         presenterImpl.saveButtonPressed();
 
+        // Verifications
         verify(mockedTexts).error_NameFormatValidationError();
     }
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithValidData_SaveModelIsCalled() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         viewWidget.model = new FlowModelBuilder().build();
+
+        // Subject Under Test
         presenterImpl.saveButtonPressed();
 
+        // Verifications
         assertThat(saveModelHasBeenCalled, is(true));
     }
 
     @Test
     public void newFlowComponentButtonPressed_call_gotoCreateFlowComponentPlace() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
         presenterImpl.newFlowComponentButtonPressed();
-        assertThat(presenterImpl.view.showAvailableFlowComponents, is(true));
+
+        // Verificaitons
+        assertThat(presenterImpl.getView().showAvailableFlowComponents, is(true));
         verify(mockedPlaceController).goTo(any(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace.class));
     }
 
     @Test
     public void findAllFlowComponentsAsyncCallback_successfulCallback_FlowComponentsAddedAndModelUpdated() {
+
+        // Setup
         final long EXTRA_ID = 127;
         final String EXTRA_NAME = "Extra Name";
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
 
         List<FlowComponentModel> flowComponentModels = new ArrayList<>(availableFlowComponentModelList);
         flowComponentModels.add(new FlowComponentModelBuilder().setId(EXTRA_ID).setName(EXTRA_NAME).build());
+
+        // Subject Under Test
         presenterImpl.findAllFlowComponentsCallback.onSuccess(flowComponentModels);
 
+        // Verifications
         verify(viewWidget.name).setText(DEFAULT_NAME);
         verify(viewWidget.name).setEnabled(true);
         verify(viewWidget.description).setText(DEFAULT_DESCRIPTION);
@@ -341,11 +356,15 @@ public class PresenterImplTest {
 
     @Test
     public void findAllFlowComponentsAsyncCallback_successfulCallback_showAvailableFlowComponentsIsTrueAddButtonPressed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         viewWidget.showAvailableFlowComponents = true;
 
+        // Subject Under Test
         presenterImpl.findAllFlowComponentsCallback.onSuccess(availableFlowComponentModelList);
 
+        // Verifications
         assertThat(addButtonHasBeenPressed, is(true));
         assertThat(viewWidget.showAvailableFlowComponents, is(false));
         verify(viewWidget.flowComponents).setEnabled(true);
@@ -353,37 +372,53 @@ public class PresenterImplTest {
 
     @Test
     public void findAllFlowComponentsAsyncCallback_unsuccessfulCallbackNotFoundError_errorMessageDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         ProxyException mockedProxyException = mock(ProxyException.class);
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.ENTITY_NOT_FOUND);
 
+        // Subject Under Test
         presenterImpl.findAllFlowComponentsCallback.onFailure(mockedProxyException);
 
+        // Verifications
         verify(mockedProxyException).getErrorCode();
         verify(mockedProxyErrorTexts).flowStoreProxy_notFoundError();
     }
 
     @Test
     public void saveFlowModelAsyncCallback_successfulCallback_statusMessageDisplayed() {
+
+        // Setup
         final String STATUS_MESSAGE = "Success Message";
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
         FlowModel model = new FlowModel();
         when(mockedTexts.status_FlowSuccessfullySaved()).thenReturn(STATUS_MESSAGE);
 
+        // Subject Under Test
         presenterImpl.saveFlowCallback.onSuccess(model);
 
+        // Verifications
         verify(viewWidget.status).setText(STATUS_MESSAGE);
     }
 
     @Test
     public void saveFlowModelAsyncCallback_unsuccessfulCallbackConflictError_errorMessageDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImpl();
         ProxyException mockedProxyException = mock(ProxyException.class);
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.CONFLICT_ERROR);
 
+        // Subject Under Test
         presenterImpl.saveFlowCallback.onFailure(mockedProxyException);
 
+        // Verifications
         verify(mockedProxyException).getErrorCode();
         verify(mockedProxyErrorTexts).flowStoreProxy_conflictError();
+    }
+
+    private void setupPresenterImpl() {
+        presenterImpl = new PresenterImplConcrete(mockedPlaceController, header);
     }
 }

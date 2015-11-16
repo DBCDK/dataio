@@ -53,8 +53,6 @@ public interface ClientFactory {
     LogStoreProxyAsync getLogStoreProxyAsync();
 
     // Views
-    dk.dbc.dataio.gui.client.pages.flow.modify.CreateView getFlowCreateView();
-    dk.dbc.dataio.gui.client.pages.flow.modify.EditView getFlowEditView();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView getFlowComponentCreateView();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView getFlowComponentEditView();
     dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView();
@@ -71,7 +69,6 @@ public interface ClientFactory {
 
     // Texts
     dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts();
-    dk.dbc.dataio.gui.client.pages.flow.modify.Texts getFlowModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts getFlowComponentModifyTexts();
     dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts getFlowBinderModifyTexts();
     dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts();

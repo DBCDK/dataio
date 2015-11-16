@@ -21,19 +21,15 @@
 
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.Place;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,90 +52,100 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterEditImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterEditImplTest extends PresenterImplTestBase {
+
     @Mock Texts mockedTexts;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
     @Mock EditPlace mockedEditPlace;
-    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-    @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock ViewGinjector mockedViewGinjector;
 
-    private EditView editView;
-
-    private PresenterEditImpl presenterEditImpl;
+    private ViewWidget editView;
 
     private PresenterEditImplConcrete presenterEditImplConcrete;
 
     class PresenterEditImplConcrete extends PresenterEditImpl {
-        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory) {
-            super(place, clientFactory);
+        public PresenterEditImplConcrete(EditPlace place, PlaceController placeController, String header) {
+            super(place, placeController, header);
+            this.commonInjector = mockedCommonGinjector;
+            this.viewInjector = mockedViewGinjector;
         }
 
         public GetFlowModelAsyncCallback callback = new GetFlowModelAsyncCallback();
+
+        public ViewWidget getView() {
+            return editView;
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
-    public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowEditView()).thenReturn(editView);
-        when(mockedClientFactory.getFlowModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
-    }
-
-    @Before
     public void setupView() {
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedViewGinjector.getView()).thenReturn(editView);
+        when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_FlowEdit()).thenReturn("Header Text");
-        editView = new EditView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        editView = new ViewWidget();  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
+        setupPresenterEditImpl();
         verify(mockedEditPlace).getFlowId();
-        verify(mockedClientFactory).getFlowEditView();
     }
+
 
     @Test
     public void initializeModel_callPresenterStart_getFlowIsInvoked() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
-        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
-        verify(mockedFlowStoreProxy).getFlow(any(Long.class), any(PresenterEditImpl.SaveFlowModelAsyncCallback.class));
+
+        // Setup
+        setupPresenterEditImpl();
+
+        // Subject Under Test
+        presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
+
+        // Verifications
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).getFlow(any(Long.class), any(PresenterEditImpl.SaveFlowModelAsyncCallback.class));
     }
 
     @Test
     public void saveModel_flowContentOk_updateFlowCalled() {
-        presenterEditImpl = new PresenterEditImpl(mockedEditPlace, mockedClientFactory);
-        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
 
-        presenterEditImpl.availableFlowComponentModels = new ArrayList<>();
-        presenterEditImpl.availableFlowComponentModels.add(new FlowComponentModelBuilder().setId(1).setVersion(2).build());
+        // Setup
+        setupPresenterEditImpl();
+
+        // Subject Under Test
+        presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
+
+        // Verifications
+        presenterEditImplConcrete.availableFlowComponentModels = new ArrayList<>();
+        presenterEditImplConcrete.availableFlowComponentModels.add(new FlowComponentModelBuilder().setId(1).setVersion(2).build());
 
         Map<String, String> flowModelMap = new HashMap<>();
-        flowModelMap.put(Long.toString(presenterEditImpl.availableFlowComponentModels.get(0).getId()), presenterEditImpl.availableFlowComponentModels.get(0).getName());
+        flowModelMap.put(Long.toString(presenterEditImplConcrete.availableFlowComponentModels.get(0).getId()), presenterEditImplConcrete.availableFlowComponentModels.get(0).getName());
 
-        presenterEditImpl.nameChanged("a");                                     // Name is ok
-        presenterEditImpl.descriptionChanged("Changed Description");            // Description is ok
-        presenterEditImpl.flowComponentsChanged(flowModelMap);                  // FlowComponents are ok
+        presenterEditImplConcrete.nameChanged("a");                                     // Name is ok
+        presenterEditImplConcrete.descriptionChanged("Changed Description");            // Description is ok
+        presenterEditImplConcrete.flowComponentsChanged(flowModelMap);                  // FlowComponents are ok
 
-        presenterEditImpl.saveModel();
+        presenterEditImplConcrete.saveModel();
 
-        verify(mockedFlowStoreProxy).updateFlow(eq(editView.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).updateFlow(eq(editView.model), any(PresenterImpl.SaveFlowModelAsyncCallback.class));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void getFlowModelFilteredAsyncCallback_successfulCallback_modelIsInitializedCorrectly() {
-        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
+
+        // Setup
+        setupPresenterEditImpl();
+
+        // Subject Under Test
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
-        FlowModel model =
-                getValidFlowModel(4, 5);
+        FlowModel model = getValidFlowModel(4, 5);
         assertThat(editView.model, is(notNullValue()));
 
         presenterEditImplConcrete.callback.onSuccess(model);  // Emulate a successful callback from flowstore
@@ -166,7 +172,11 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowModelFilteredAsyncCallback_unsuccessfulCallback_setErrorTextCalledInView() {
-        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
+
+        // Setup
+        setupPresenterEditImpl();
+
+        // Subject Under Test
         presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
 
         ProxyException mockedProxyException = mock(ProxyException.class);
@@ -181,13 +191,17 @@ public class PresenterEditImplTest {
 
     @Test
     public void deleteFlowModelFilteredAsyncCallback_callback_invoked() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, mockedClientFactory);
-        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
 
-        presenterEditImpl.deleteModel();
+        // Setup
+        setupPresenterEditImpl();
+
+        // Subject Under Test
+        presenterEditImplConcrete.start(mockedContainerWidget, mockedEventBus);
+
+        presenterEditImplConcrete.deleteModel();
 
         // Verify that the proxy call is invoked... Cannot emulate the callback as the return type is Void
-        verify(mockedFlowStoreProxy).deleteFlow(
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).deleteFlow(
                 eq(editView.model.getId()),
                 eq(editView.model.getVersion()),
                 any(PresenterEditImpl.DeleteFlowModelFilteredAsyncCallback.class));
@@ -198,7 +212,6 @@ public class PresenterEditImplTest {
                 .setComponents(Collections.singletonList(new FlowComponentModelBuilder().setId(id).setVersion(version).build()))
                 .build();
     }
-
     private void assertFlowComponentModelsEquals(List<FlowComponentModel> flowComponentModelList1, List<FlowComponentModel> flowComponentModelList2) {
         assertThat(flowComponentModelList1.size(), is(flowComponentModelList2.size()));
         for(int i = 0; i < flowComponentModelList1.size(); i ++) {
@@ -224,4 +237,7 @@ public class PresenterEditImplTest {
         }
     }
 
+    private void setupPresenterEditImpl() {
+        presenterEditImplConcrete = new PresenterEditImplConcrete(mockedEditPlace, mockedPlaceController, header);
+    }
 }

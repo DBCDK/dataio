@@ -21,30 +21,44 @@
 
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
-import com.google.gwt.place.shared.Place;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Flow Binder Edit
  */
-public class PresenterEditImpl extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     private long id;
     /**
      * Constructor
      * @param place the place
-     * @param clientFactory the clientFactory
+     * @param placeController PlaceController for navigation
+     * @param header Breadcrumb header text
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getFlowEditView();
-        EditPlace editPlace = (EditPlace) place;
-        id = editPlace.getFlowId();
-        view.deleteButton.setVisible(true);
+    public PresenterEditImpl(Place place, PlaceController placeController, String header) {
+        super(placeController, header);
+        id = place.getFlowId();
+
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -62,19 +76,19 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateFlow(view.model, new SaveFlowModelAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateFlow(getView().model, new SaveFlowModelAsyncCallback());
     }
 
     /**
      * Deletes the embedded model as a Flow in the database
      */
     void deleteModel() {
-        flowStoreProxy.deleteFlow(view.model.getId(), view.model.getVersion(), new DeleteFlowModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().deleteFlow(getView().model.getId(), getView().model.getVersion(), new DeleteFlowModelFilteredAsyncCallback());
     }
 
     // Private methods
     private void getFlow(final long flowId) {
-        flowStoreProxy.getFlow(flowId, new GetFlowModelAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getFlow(flowId, new GetFlowModelAsyncCallback());
     }
 
     /**
@@ -91,11 +105,11 @@ public class PresenterEditImpl extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "Flow.id: " + id;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
         public void onSuccess(FlowModel model) {
-            if(!view.showAvailableFlowComponents) {
+            if(!getView().showAvailableFlowComponents) {
                 setFlowModel(model);
             }
             updateAllFieldsAccordingToCurrentState();
@@ -108,12 +122,12 @@ public class PresenterEditImpl extends PresenterImpl {
     class DeleteFlowModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(Void aVoid) {
-            view.status.setText(texts.status_FlowSuccessfullyDeleted());
+            getView().status.setText(getTexts().status_FlowSuccessfullyDeleted());
             setFlowModel(new FlowModel());
             History.back();
         }

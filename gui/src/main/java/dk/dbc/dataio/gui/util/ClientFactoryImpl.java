@@ -70,8 +70,6 @@ public class ClientFactoryImpl implements ClientFactory {
     private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
 
     // Views
-    private final dk.dbc.dataio.gui.client.pages.flow.modify.CreateView flowCreateView = new dk.dbc.dataio.gui.client.pages.flow.modify.CreateView(this);
-    private final dk.dbc.dataio.gui.client.pages.flow.modify.EditView flowEditView = new dk.dbc.dataio.gui.client.pages.flow.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView flowComponentCreateView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView(this);
     private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView flowComponentEditView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView flowBinderCreateView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView(this);
@@ -134,16 +132,6 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Views
     @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.CreateView getFlowCreateView() {
-        return flowCreateView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.EditView getFlowEditView() {
-        return flowEditView;
-    }
-
-    @Override
     public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView getFlowComponentCreateView() {
         return flowComponentCreateView;
     }
@@ -205,11 +193,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts() {
         return jobModifyTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flow.modify.Texts getFlowModifyTexts() {
-        return flowModifyTexts;
     }
 
     @Override

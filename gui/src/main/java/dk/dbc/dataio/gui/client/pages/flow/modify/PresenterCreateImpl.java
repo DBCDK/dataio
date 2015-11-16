@@ -22,7 +22,9 @@
 package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 
-import dk.dbc.dataio.gui.util.ClientFactory;
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 
 /**
  * Concrete Presenter Implementation Class for Flow Create
@@ -31,11 +33,25 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory, clientFactory
+     * @param placeController PlaceController for navigation
+     * @param header Breadcrumb header text
      */
-    public PresenterCreateImpl(ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getFlowCreateView();
+    public PresenterCreateImpl(PlaceController placeController, String header) {
+        super(placeController, header);
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(false);
     }
 
     /**
@@ -53,7 +69,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.createFlow(view.model, new SaveFlowModelAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().createFlow(getView().model, new SaveFlowModelAsyncCallback());
     }
 
     /**

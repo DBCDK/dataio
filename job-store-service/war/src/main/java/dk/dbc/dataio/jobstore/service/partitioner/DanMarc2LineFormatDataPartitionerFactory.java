@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -104,19 +105,27 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                 @Override
                 public boolean hasNext() {
                     try {
-                        marcRecord = marcReader.read();
-                    } catch (MarcReaderException e) {
-                        LOGGER.error("Exception caught while creating MarcRecord", e);
+                        bufferedInputStream.mark(1);
+                        int readResult = bufferedInputStream.read();
+                        bufferedInputStream.reset();
+                        return readResult != -1;
+                    } catch (IOException e) {
+                        LOGGER.error("Exception caught while reading input stream", e);
                         throw new InvalidDataException(e);
                     }
-                    return marcRecord != null;
                 }
 
                 @Override
                 public ChunkItem next() {
-                    if (marcRecord != null) {
-                        byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
-                        return new ChunkItem(0, marcRecordAsByteArray, ChunkItem.Status.SUCCESS);
+                    try {
+                        marcRecord = marcReader.read();
+                        if (marcRecord != null) {
+                            byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
+                            return new ChunkItem(0, marcRecordAsByteArray, ChunkItem.Status.SUCCESS);
+                        }
+                    } catch (MarcReaderException e) {
+                        LOGGER.error("Exception caught while creating MarcRecord", e);
+                        throw new InvalidDataException(e);
                     }
                     return null;
                 }

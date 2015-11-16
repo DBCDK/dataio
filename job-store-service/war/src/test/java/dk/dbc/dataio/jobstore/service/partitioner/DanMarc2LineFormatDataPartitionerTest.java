@@ -45,9 +45,6 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     private final static String SPECIFIED_ENCODING = "latin1";
 
-    private String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
-    private String faultyRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@dbc\n";
-
     @Test
     public void specifiedEncodingDiffersFromActualEncoding_throws() throws IOException, URISyntaxException {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory()
@@ -120,6 +117,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void dm2LineFormatDataPartitioner_readValidRecord_returnsChunkItemWithMarcRecordAsMarcXchange() {
+        final String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(simpleRecordInLineFormat, new DanMarc2Charset()), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -129,11 +127,13 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void dm2LineFormatDataPartitioner_readInvalidRecord_throwsInvalidDataException() {
+        final String faultyRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@dbc\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(faultyRecordInLineFormat, new DanMarc2Charset()), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+            assertThat(iterator.hasNext(), is(true));
         try {
-            iterator.hasNext();
+            iterator.next();
             fail("No exception thrown");
         } catch (InvalidDataException e) { }
     }

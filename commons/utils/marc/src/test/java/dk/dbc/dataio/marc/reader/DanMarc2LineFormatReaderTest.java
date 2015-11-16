@@ -27,8 +27,8 @@ import dk.dbc.dataio.marc.binding.MarcRecord;
 import dk.dbc.dataio.marc.binding.SubField;
 import org.junit.Test;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -140,11 +140,11 @@ public class DanMarc2LineFormatReaderTest {
         assertThat(reader.read(), is(getComplexRecord()));
     }
 
-    private InputStream toInputStream(String s) {
-        return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
+    private BufferedInputStream toInputStream(String s) {
+        return new BufferedInputStream(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
     }
 
-    private DanMarc2LineFormatReader newReader(InputStream is) {
+    private DanMarc2LineFormatReader newReader(BufferedInputStream is) {
         return new DanMarc2LineFormatReader(is, StandardCharsets.UTF_8);
     }
 

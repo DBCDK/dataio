@@ -33,13 +33,11 @@ import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.AgencySearchOrder;
-import dk.dbc.rawrepo.AgencySearchOrderFallback;
+import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +47,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
-import java.net.MalformedURLException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.HashMap;
@@ -241,22 +238,21 @@ public class HarvestOperation {
     RawRepoConnector getRawRepoConnector(RawRepoHarvesterConfig.Entry config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         final OpenAgencyTarget openAgencyTarget = config.getOpenAgencyTarget();
-        final AgencySearchOrder agencySearchOrder;
         if (openAgencyTarget == null) {
-            agencySearchOrder = new AgencySearchOrderFallback();
-        } else {
-            try {
-                if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
-                    agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyTarget.getUrl().toString());
-                } else {
-                    agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyTarget.getUrl().toString(),
-                            openAgencyTarget.getUser(), openAgencyTarget.getGroup(), openAgencyTarget.getPassword());
-                }
-            } catch (MalformedURLException e) {
-                throw new IllegalArgumentException(e);
-            }
+            throw new IllegalArgumentException("No OpenAgency target configured");
         }
-        return new RawRepoConnector(config.getResource(), agencySearchOrder);
+        final OpenAgencyServiceFromURL openAgencyService;
+        if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
+            openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl().toString());
+        } else {
+            openAgencyService = OpenAgencyServiceFromURL.builder()
+                                    .authentication(
+                                            openAgencyTarget.getUser(),
+                                            openAgencyTarget.getGroup(),
+                                            openAgencyTarget.getPassword())
+                                    .build(openAgencyTarget.getUrl().toString());
+        }
+        return new RawRepoConnector(config.getResource(), openAgencyService);
     }
 
     private DocumentBuilder getDocumentBuilder() {

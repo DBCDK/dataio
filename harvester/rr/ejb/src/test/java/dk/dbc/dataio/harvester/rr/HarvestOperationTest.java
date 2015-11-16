@@ -29,14 +29,12 @@ import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.rawrepo.AgencySearchOrderFallback;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
-import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -53,6 +51,7 @@ import java.util.Date;
 import java.util.HashMap;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -338,21 +337,23 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getRawRepoConnector_noOpenAgencyTargetIsConfigured_usesFallbackAgencySearchOrder() {
+    public void getRawRepoConnector_noOpenAgencyTargetIsConfigured_throws() {
         try {
             final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
             InMemoryInitialContextFactory.bind(config.getResource(), mock(DataSource.class));
 
-            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
-            final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
-            assertThat(rawRepoConnector.getAgencySearchOrder() instanceof AgencySearchOrderFallback, is(true));
+            try {
+                new HarvestOperation(config, harvesterJobBuilderFactory);
+                fail("No IllegalArgumentException thrown");
+            } catch (IllegalArgumentException e) {
+            }
         } finally {
             InMemoryInitialContextFactory.clear();
         }
     }
 
     @Test
-    public void getRawRepoConnector_openAgencyTargetIsConfigured_usesShowOrderAgencySearchOrder() throws MalformedURLException {
+    public void getRawRepoConnector_openAgencyTargetIsConfigured_configuresOpenAgencyServiceFromUrl() throws MalformedURLException {
         try {
             final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
             openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
@@ -363,28 +364,7 @@ public class HarvestOperationTest {
 
             final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
             final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
-            assertThat(rawRepoConnector.getAgencySearchOrder() instanceof AgencySearchOrderFromShowOrder, is(true));
-        } finally {
-            InMemoryInitialContextFactory.clear();
-        }
-    }
-
-    @Test
-    public void getRawRepoConnector_openAgencyTargetIsConfiguredWithAuthentication_usesShowOrderAgencySearchOrder() throws MalformedURLException {
-        try {
-            final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
-            openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
-            openAgencyTarget.setGroup("groupId");
-            openAgencyTarget.setUser("userId");
-            openAgencyTarget.setPassword("passw0rd");
-
-            final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
-            config.setOpenAgencyTarget(openAgencyTarget);
-            InMemoryInitialContextFactory.bind(config.getResource(), mock(DataSource.class));
-
-            final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
-            final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
-            assertThat(rawRepoConnector.getAgencySearchOrder() instanceof AgencySearchOrderFromShowOrder, is(true));
+            assertThat(rawRepoConnector.getAgencyService(), is(notNullValue()));
         } finally {
             InMemoryInitialContextFactory.clear();
         }

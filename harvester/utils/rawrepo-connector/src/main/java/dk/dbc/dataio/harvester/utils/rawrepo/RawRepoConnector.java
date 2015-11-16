@@ -63,7 +63,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.newInstance(connection, agencySearchOrder)
+                return RawRepoDAO.builder(connection).searchOrder(agencySearchOrder).build()
                         .fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
@@ -77,7 +77,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getStringRecordMap(id, RawRepoDAO.newInstance(connection, agencySearchOrder));
+                return getStringRecordMap(id, RawRepoDAO.builder(connection).searchOrder(agencySearchOrder).build());
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -110,7 +110,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.newInstance(connection, agencySearchOrder).dequeue(consumerId);
+                return RawRepoDAO.builder(connection).searchOrder(agencySearchOrder).build().dequeue(consumerId);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -124,7 +124,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                RawRepoDAO.newInstance(connection, agencySearchOrder).queueFail(queueJob, errorMessage);
+                RawRepoDAO.builder(connection).searchOrder(agencySearchOrder).build().queueFail(queueJob, errorMessage);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }

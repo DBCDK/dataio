@@ -163,7 +163,7 @@ public class ExternalChunkTest {
 
     @Test
     public void convertToJsonAndBackAgain() throws JSONBException {
-        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
+        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE );
         final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
         final ChunkItem thirdItem = new ChunkItem(2L, "Third".getBytes(), ChunkItem.Status.FAILURE);
         chunk.insertItem(firstItem);
@@ -189,7 +189,7 @@ public class ExternalChunkTest {
 
     @Test
     public void unmarshallFromJsonWithoutNext() throws JSONBException {
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\", \"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
         final ExternalChunk chunk = jsonbContext.unmarshall(json, ExternalChunk.class);
         assertThat(chunk, is(notNullValue()));
     }
@@ -198,7 +198,7 @@ public class ExternalChunkTest {
     public void addItemWithStatusSuccess() throws JSONBException {
 
         // Preconditions
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
         ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
         assertThat(externalChunk, is(notNullValue()));
         assertTrue(externalChunk.size() == 1);
@@ -213,7 +213,7 @@ public class ExternalChunkTest {
     public void addItemWithStatusIgnored() throws JSONBException {
 
         // Preconditions
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
         ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
         assertThat(externalChunk, is(notNullValue()));
         assertTrue(externalChunk.size() == 1);
@@ -228,7 +228,7 @@ public class ExternalChunkTest {
     public void addItemWithStatusFailed() throws JSONBException {
 
         // Preconditions
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"}]}";
+        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
         ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
         assertThat(externalChunk, is(notNullValue()));
         assertTrue(externalChunk.size() == 1);

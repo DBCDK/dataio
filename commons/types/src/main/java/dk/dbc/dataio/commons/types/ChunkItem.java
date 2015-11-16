@@ -25,9 +25,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import javax.tools.Diagnostic;
 import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Chunk item DTO class.
@@ -37,18 +39,24 @@ public class ChunkItem implements Serializable {
     private static final long serialVersionUID = -7214362358523195493L;
 
     public enum Status { SUCCESS, FAILURE, IGNORE }
+    public enum Type { UNKNOWN, STRING, GENERICXML }
 
-    private final long id;
+    private long id;
     private final byte[] data;
     private final Status status;
+    @JsonProperty("type") private ArrayList<Type> type;
+    @JsonProperty("diagnostics") private ArrayList<Diagnostic> diagnostics=null;
+    @JsonProperty("encoding") private final String encoding;
+
 
     /**
      * Class constructor
      *
-     * @param id item identifier, must be larger than {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND}
+     * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
      * @param data item data, can be empty
      * @param status item status
-     *
+     * @param type Type of the item. list to support Embedeble formats.
+     * @param encoding The Charset Encoding of The item
      * @throws NullPointerException when given null valued argument
      * @throws IllegalArgumentException when given id value of {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND} or less
      */
@@ -56,11 +64,28 @@ public class ChunkItem implements Serializable {
     public ChunkItem(
             @JsonProperty("id") long id,
             @JsonProperty("data") byte[] data,
-            @JsonProperty("status") Status status) {
+            @JsonProperty("status") Status status,
+            @JsonProperty("type") ArrayList<Type> type,
+            @JsonProperty("encoding") String encoding) {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
+        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
+        this.encoding = InvariantUtil.checkNotNullNotEmptyOrThrow(encoding,"encoding");
     }
+
+
+    /*
+      Constructor used for
+     */
+    public ChunkItem(long id, byte[] data, Status status) {
+        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
+        this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
+        this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
+        this.type = new ArrayList<>(Arrays.asList(ChunkItem.Type.UNKNOWN));
+        this.encoding = "UTF-8";
+    }
+
 
     public long getId() {
         return id;
@@ -74,36 +99,37 @@ public class ChunkItem implements Serializable {
         return status;
     }
 
+    public ArrayList<Type> getType() {
+        return type;
+    }
+
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
+        if (this == o) return true;
+        if (!(o instanceof ChunkItem)) return false;
         ChunkItem chunkItem = (ChunkItem) o;
-
-        return id == chunkItem.id
-                && Arrays.equals(data, chunkItem.data)
-                && status == chunkItem.status;
+        return id == chunkItem.id &&
+                Arrays.equals(data, chunkItem.data) &&
+                status == chunkItem.status &&
+                Objects.equals(type, chunkItem.type) &&
+                Objects.equals(diagnostics, chunkItem.diagnostics) &&
+                Objects.equals(encoding, chunkItem.encoding);
     }
 
     @Override
     public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + Arrays.hashCode(data);
-        result = 31 * result + status.hashCode();
-        return result;
+        return Objects.hash(id, data, status, type, diagnostics, encoding);
     }
 
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("ChunkItem{");
         sb.append("id=").append(id);
-        sb.append(", data=").append(new String(data, StandardCharsets.UTF_8));
+        sb.append(", data=").append(Arrays.toString(data));
         sb.append(", status=").append(status);
+        sb.append(", type=").append(type);
+        sb.append(", endoding=").append(encoding);
         sb.append('}');
         return sb.toString();
     }

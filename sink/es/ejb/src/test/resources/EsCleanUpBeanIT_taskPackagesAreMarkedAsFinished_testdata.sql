@@ -22,4 +22,4 @@ update taskpackagerecordstructure set recordstatus=1 where targetreference = cur
 
 
 insert into esinflight (targetreference, resourcename, chunkid, jobid, recordslots, sinkchunkresult)
-       values (  currval('taskpackagerefseq'), 'test/resource', 0, 1, 3, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}');
+       values (  currval('taskpackagerefseq'), 'test/resource', 0, 1, 3, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS", "type":["UNKNOWN"],"encoding":"UTF-8"}],"encoding":"ISO-8859-1"}');

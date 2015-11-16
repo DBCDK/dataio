@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.commons.utils.test.json;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
@@ -43,11 +42,6 @@ import org.junit.Test;
 public class JsonBuilderTest {
 
     private final JSONBContext jsonbContext = new JSONBContext();
-
-    @Test
-    public void ChunkItemJsonBuilderProducesValidJson() throws JSONBException {
-        jsonbContext.unmarshall(new ChunkItemJsonBuilder().build(), ChunkItem.class);
-    }
 
     @Test
     public void FlowBinderContentJsonBuilderProducesValidJson() throws JSONBException {

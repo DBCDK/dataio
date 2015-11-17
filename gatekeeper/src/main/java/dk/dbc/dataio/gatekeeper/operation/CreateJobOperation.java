@@ -133,7 +133,7 @@ public class CreateJobOperation implements Operation {
             throws OperationExecutionException {
         try {
             final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpecification, true, 0));
-            LOGGER.info("Created job in job-store with ID {}", jobInfoSnapshot.getJobId());
+            LOGGER.info("Created job in job-store with ID {} for trans file {}", jobInfoSnapshot.getJobId(), transfileName);
             return jobInfoSnapshot;
         } catch (Exception e) {
             LOGGER.error("Caught exception from job-store communication", e);

@@ -49,6 +49,7 @@ public class NavigationPanel extends FlowPanel {
     @UiField TreeItem flowComponents;
     @UiField TreeItem flowBinders;
     @UiField TreeItem sinks;
+    @UiField TreeItem ftp;
 
 
     /**
@@ -67,6 +68,7 @@ public class NavigationPanel extends FlowPanel {
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());
         flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
         sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
+        ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
     }
 
     /**
@@ -75,7 +77,7 @@ public class NavigationPanel extends FlowPanel {
      * @param event The triggering event
      */
     @UiHandler("menu")
-    void halloPressed(SelectionEvent<TreeItem> event) {
+    void menuPressed(SelectionEvent<TreeItem> event) {
         Place place = (Place) event.getSelectedItem().getUserObject();
         if (placeController != null && place != null) {
             placeController.goTo(place);

@@ -28,6 +28,7 @@
 @external .dio-MultiProgressBar;
 @external .deleteButton;
 @external .job-filter-list;
+@external .application-panel;
 
 
 
@@ -84,6 +85,11 @@ li {
 
 #content-panel textarea, #content-panel input, #content-panel select {
     border: 2px solid boxFrameColor;
+}
+
+#application-panel > div {
+    height: 100%;
+    width: 100%;
 }
 
 .gwt-Button, table button {
@@ -210,7 +216,7 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 .jobsShowTable {}
 
 .job-filter-list .dio-PromptedData {
-    margin-bottom: 0px;
+    margin-bottom: 0;
     margin-left: 6px;
 }
 
@@ -221,24 +227,24 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .job-filter-list .dio-PromptedData-DataClass {
     font-size: 12px;
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     width: auto;
     height: auto;
 }
 
 .job-filter-list .gwt-TextBox {
-    padding: 1.7px;
+    padding: 2px;
     margin-left: 1.2em;
     vertical-align: middle;
 }
 .job-filter-list .gwt-ListBox {
-    padding: 0.7px;
+    padding: 1px;
     margin-left: 1.2em;
     vertical-align: middle;
 }
 
 .job-filter-list .gwt-PushButton-up, .job-filter-list .gwt-PushButton-up-hovering , .job-filter-list .gwt-PushButton-down-hovering {
-    padding: 0px;
+    padding: 0;
     border: solid 1px rgb(204,204,204);
     outline: none;
     width: 20px;

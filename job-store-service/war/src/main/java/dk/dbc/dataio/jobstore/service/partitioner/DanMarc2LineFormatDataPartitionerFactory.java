@@ -31,6 +31,7 @@ import dk.dbc.dataio.marc.binding.MarcRecord;
 import dk.dbc.dataio.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.dataio.marc.reader.MarcReader;
 import dk.dbc.dataio.marc.reader.MarcReaderException;
+import dk.dbc.dataio.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.dataio.marc.writer.MarcWriter;
 import dk.dbc.dataio.marc.writer.MarcXchangeV11Writer;
 import dk.dbc.marc.DanMarc2Charset;
@@ -77,6 +78,8 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
             this.inputStream = new ByteCountingInputStream(inputStream);
             this.encoding = StandardCharsets.UTF_8;
             this.specifiedEncoding = specifiedEncoding;
+            this.danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
+            validateSpecifiedEncoding();
         }
 
         @Override
@@ -92,8 +95,6 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
         @Override
         public Iterator<ChunkItem> iterator() {
             if (iterator == null) {
-                validateSpecifiedEncoding();
-                danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
                 bufferedInputStream = new BufferedInputStream(inputStream);
             }
 
@@ -108,7 +109,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                         bufferedInputStream.mark(1);
                         int readResult = bufferedInputStream.read();
                         bufferedInputStream.reset();
-                        return readResult != -1;
+                        return readResult > -1;
                     } catch (IOException e) {
                         LOGGER.error("Exception caught while reading input stream", e);
                         throw new InvalidDataException(e);
@@ -125,7 +126,11 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                         }
                     } catch (MarcReaderException e) {
                         LOGGER.error("Exception caught while creating MarcRecord", e);
-                        throw new InvalidDataException(e);
+                        if(e instanceof MarcReaderInvalidRecordException) {
+                            return new ChunkItem(0, ((MarcReaderInvalidRecordException) e).getLinesRead(), ChunkItem.Status.FAILURE);
+                        } else {
+                            throw new InvalidDataException(e);
+                        }
                     }
                     return null;
                 }

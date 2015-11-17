@@ -87,6 +87,8 @@ public class DanMarc2LineFormatReaderTest {
             reader.read();
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
+            assertThat(e.getLinesRead(), not(nullValue()));
+            assertThat(new String(e.getLinesRead(), StandardCharsets.UTF_8).contains(recordWithIllegalEscape), is(true));
             assertThat(e.getMessage(), containsString("'@b'"));
         }
     }
@@ -99,6 +101,8 @@ public class DanMarc2LineFormatReaderTest {
             reader.read();
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
+            assertThat(e.getLinesRead(), not(nullValue()));
+            assertThat(new String(e.getLinesRead(), StandardCharsets.UTF_8).contains(recordWithEscapeAtEndOfLine), is(true));
             assertThat(e.getMessage(), containsString("'@'"));
         }
     }
@@ -111,16 +115,19 @@ public class DanMarc2LineFormatReaderTest {
             reader.read();
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
+            assertThat(e.getLinesRead(), not(nullValue()));
+            assertThat(new String(e.getLinesRead(), StandardCharsets.UTF_8).contains(recordWithSubfieldMarkerAtEndOfLine), is(true));
             assertThat(e.getMessage(), containsString("'*'"));
         }
     }
 
     @Test
     public void read_skipsInvalidRecords() throws MarcReaderException {
+        final String invalidRecord = "245 00 *aA good beginning\n260 00 *atest*b@dbc\ninvalid\ninvalid\n$\n";
         final String records =
                 simpleRecordInLineFormat + endOfRecord +
-                "245 00 *aA good beginning\n260 00 *atest*b@dbc\ninvalid\ninvalid\n$\n" +
-                simpleRecordInLineFormat + endOfRecord;
+                        invalidRecord +
+                        simpleRecordInLineFormat + endOfRecord;
         final DanMarc2LineFormatReader reader = newReader(toInputStream(records));
         assertThat("First record returned", reader.read(), is(simpleRecord));
         try {
@@ -128,6 +135,11 @@ public class DanMarc2LineFormatReaderTest {
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
             assertThat("Second record skipped", e.getMessage(), containsString("'@d'"));
+            assertThat(e.getLinesRead(), not(nullValue()));
+            final String linesRead = new String(e.getLinesRead(), StandardCharsets.UTF_8);
+            assertThat(linesRead.contains(invalidRecord), is(true));
+            assertThat(linesRead.contains(simpleRecordInLineFormat), is(false));
+
         }
         assertThat("Third record returned", reader.read(), is(simpleRecord));
         assertThat("No more records", reader.read(), is(nullValue()));

@@ -33,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -59,6 +60,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
 
     private boolean looksLikeLineFormat = false;
     private int currentLineNo = 0;
+    private final StringBuilder linesRead = new StringBuilder();
 
     /**
      * Creates new danMARC2 line format reader
@@ -78,6 +80,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
     @Override
     public MarcRecord read() throws MarcReaderException {
         final List<DataField> fields = new ArrayList<>();
+        linesRead.setLength(0);
 
         // Process all lines comprising a single record.
         // Record end is indicated by the END_OF_RECORD marker
@@ -199,7 +202,11 @@ public class DanMarc2LineFormatReader implements MarcReader {
     private String getNextLine() throws MarcReaderException {
         try {
             currentLineNo += 1;
-            return reader.readLine();
+            String line = reader.readLine();
+            if(line != null) {
+                linesRead.append(line).append(System.lineSeparator());
+            }
+            return line;
         } catch (IOException e) {
             throw new MarcReaderException(String.format(
                     "Reader caught unrecoverable exception while reading line %d", currentLineNo), e);
@@ -251,6 +258,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
     private void handleAndRethrow(MarcReaderInvalidRecordException e) throws MarcReaderException {
         if (looksLikeLineFormat) {
             skipRecord();
+            e.setLinesRead(linesRead.toString().getBytes(StandardCharsets.UTF_8));
             throw e;
         } else {
             throw new MarcReaderException("Not recognised as line format");

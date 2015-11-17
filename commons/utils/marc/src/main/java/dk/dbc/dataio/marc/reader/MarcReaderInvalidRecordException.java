@@ -23,8 +23,17 @@ package dk.dbc.dataio.marc.reader;
 
 public class MarcReaderInvalidRecordException extends MarcReaderException {
     private static final long serialVersionUID = -1847415578828049853L;
+    private byte[] linesRead;
 
     public MarcReaderInvalidRecordException(String message) {
         super(message);
+    }
+
+    public void setLinesRead(byte[] linesRead) {
+        this.linesRead = linesRead;
+    }
+
+    public byte[] getLinesRead() {
+        return linesRead;
     }
 }

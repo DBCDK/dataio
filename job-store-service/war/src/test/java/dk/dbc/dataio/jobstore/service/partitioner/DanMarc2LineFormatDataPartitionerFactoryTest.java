@@ -34,7 +34,7 @@ import static org.mockito.Mockito.mock;
 public class DanMarc2LineFormatDataPartitionerFactoryTest {
 
     private static final InputStream INPUT_STREAM = mock(InputStream.class);
-    private static final String ENCODING = "UTF-8";
+    private static final String SPECIFIED_ENCODING = "Latin1";
 
     @Test
     public void constructor_returnsNewInstance() {
@@ -46,7 +46,7 @@ public class DanMarc2LineFormatDataPartitionerFactoryTest {
     public void createDataPartitioner_inputStreamArgIsNull_throws() {
         final DanMarc2LineFormatDataPartitionerFactory factory = new DanMarc2LineFormatDataPartitionerFactory();
         try {
-            factory.createDataPartitioner(null, ENCODING);
+            factory.createDataPartitioner(null, SPECIFIED_ENCODING);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -75,6 +75,6 @@ public class DanMarc2LineFormatDataPartitionerFactoryTest {
     @Test
     public void createDataPartitioner_allArgsAreValid_returnsNewDataPartitioner() {
         final DanMarc2LineFormatDataPartitionerFactory factory = new DanMarc2LineFormatDataPartitionerFactory();
-        assertThat(factory.createDataPartitioner(INPUT_STREAM, ENCODING), is(notNullValue()));
+        assertThat(factory.createDataPartitioner(INPUT_STREAM, SPECIFIED_ENCODING), is(notNullValue()));
     }
 }

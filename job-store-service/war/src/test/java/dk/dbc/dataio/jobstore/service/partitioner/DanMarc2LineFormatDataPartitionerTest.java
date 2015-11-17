@@ -24,19 +24,17 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.marc.DanMarc2Charset;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -45,17 +43,15 @@ public class DanMarc2LineFormatDataPartitionerTest {
     private final static String SPECIFIED_ENCODING = "latin1";
 
     @Test
-    public void specifiedEncodingDiffersFromActualEncoding_throws() throws IOException, URISyntaxException {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory()
-                .createDataPartitioner(asInputStream(""), StandardCharsets.UTF_8.name());
+    public void specifiedEncodingDiffersFromActualEncoding_throws() {
         try {
-            dataPartitioner.iterator();
+            new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(asInputStream(""), StandardCharsets.UTF_8.name());
             fail("No exception thrown");
         } catch (InvalidEncodingException e) { }
     }
 
     @Test
-    public void specifiedEncodingIdenticalToActualEncoding_ok() throws IOException, URISyntaxException {
+    public void specifiedEncodingIdenticalToActualEncoding_ok() {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
         createDataPartitioner(asInputStream(""), SPECIFIED_ENCODING);
         try {
@@ -66,7 +62,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
-    public void specifiedEncodingIdenticalToActualEncodingInLowerCase_ok() throws IOException, URISyntaxException {
+    public void specifiedEncodingIdenticalToActualEncodingInLowerCase_ok() {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(""), "LATIN1");
         try {
@@ -77,7 +73,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
-    public void specifiedEncodingIdenticalToActualEncodingAfterTrim_ok() throws IOException, URISyntaxException {
+    public void specifiedEncodingIdenticalToActualEncodingAfterTrim_ok() {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(""), " latin1 ");
         try {
@@ -88,7 +84,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
-    public void specifiedEncodingIdenticalToActualEncodingAfterDashReplace_ok() throws IOException, URISyntaxException {
+    public void specifiedEncodingIdenticalToActualEncodingAfterDashReplace_ok() {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(""), "latin-1");
         try {
@@ -99,7 +95,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
-    public void getEncoding_expectedEncodingReturned() throws IOException, URISyntaxException {
+    public void getEncoding_expectedEncodingReturned() {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(""), SPECIFIED_ENCODING);
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
@@ -121,16 +117,29 @@ public class DanMarc2LineFormatDataPartitionerTest {
                 createDataPartitioner(asInputStream(simpleRecordInLineFormat), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat("Empty input => hasNext() expected to be false", iterator.hasNext(), is(true));
-        assertThat(iterator.next(), not(nullValue()));
+        ChunkItem chunkItem = iterator.next();
+        assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     @Test
-    public void dm2LineFormatDataPartitioner_readInvalidRecord_throwsInvalidDataException() {
-        final String faultyRecordInLineFormat = "245_00_*aA_@*programmer_is_born\n";
+    public void dm2LineFormatDataPartitioner_readInvalidRecord_returnsChunkItemWithFaultyRecordsAsData() {
+        final String faultyRecordInLineFormat = "245 00 *aA @*programmer is *\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(faultyRecordInLineFormat), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
-            assertThat(iterator.hasNext(), is(true));
+        assertThat(iterator.hasNext(), is(true));
+        ChunkItem chunkItem = iterator.next();
+        assertThat(chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat(new String(chunkItem.getData(), StandardCharsets.UTF_8), is(faultyRecordInLineFormat));
+    }
+
+    @Test
+    public void dm2LineFormatDataPartitioner_readInvalidRecordNotRecognisedAsLineFormat_throwsInvalidDataException() {
+        final String faultyRecord = "*aA @*programmer is born";
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
+                createDataPartitioner(asInputStream(faultyRecord, new DanMarc2Charset()), SPECIFIED_ENCODING);
+        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
             fail("No exception thrown");

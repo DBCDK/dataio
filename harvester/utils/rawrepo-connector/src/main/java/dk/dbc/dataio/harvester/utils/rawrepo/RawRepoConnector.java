@@ -41,6 +41,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 /**
  * This class facilitates access to the RawRepo through data source
@@ -51,6 +52,7 @@ public class RawRepoConnector {
 
     private final DataSource dataSource;
     private final OpenAgencyServiceFromURL agencyService;
+    private final ExecutorService agencyServiceExecutor = null;
 
     public RawRepoConnector(String dataSourceResourceName, OpenAgencyServiceFromURL agencyService)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
@@ -63,7 +65,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.builder(connection).openAgency(agencyService).build()
+                return RawRepoDAO.builder(connection).openAgency(agencyService, agencyServiceExecutor).build()
                         .fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
@@ -77,7 +79,9 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getStringRecordMap(id, RawRepoDAO.builder(connection).openAgency(agencyService).build());
+                return getStringRecordMap(id, RawRepoDAO.builder(connection)
+                        .openAgency(agencyService, agencyServiceExecutor)
+                        .build());
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -110,7 +114,8 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.builder(connection).openAgency(agencyService).build().dequeue(consumerId);
+                return RawRepoDAO.builder(connection).openAgency(agencyService, agencyServiceExecutor).build()
+                        .dequeue(consumerId);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -124,7 +129,8 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                RawRepoDAO.builder(connection).openAgency(agencyService).build().queueFail(queueJob, errorMessage);
+                RawRepoDAO.builder(connection).openAgency(agencyService, agencyServiceExecutor).build()
+                        .queueFail(queueJob, errorMessage);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }

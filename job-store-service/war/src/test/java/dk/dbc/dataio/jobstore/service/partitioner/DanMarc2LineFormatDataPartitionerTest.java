@@ -24,7 +24,6 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
-import dk.dbc.marc.DanMarc2Charset;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
@@ -119,7 +118,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
     public void dm2LineFormatDataPartitioner_readValidRecord_returnsChunkItemWithMarcRecordAsMarcXchange() {
         final String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(asInputStream(simpleRecordInLineFormat, new DanMarc2Charset()), SPECIFIED_ENCODING);
+                createDataPartitioner(asInputStream(simpleRecordInLineFormat), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat("Empty input => hasNext() expected to be false", iterator.hasNext(), is(true));
         assertThat(iterator.next(), not(nullValue()));
@@ -127,9 +126,9 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void dm2LineFormatDataPartitioner_readInvalidRecord_throwsInvalidDataException() {
-        final String faultyRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@dbc\n";
+        final String faultyRecordInLineFormat = "245_00_*aA_@*programmer_is_born\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(asInputStream(faultyRecordInLineFormat, new DanMarc2Charset()), SPECIFIED_ENCODING);
+                createDataPartitioner(asInputStream(faultyRecordInLineFormat), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
             assertThat(iterator.hasNext(), is(true));
         try {
@@ -142,12 +141,12 @@ public class DanMarc2LineFormatDataPartitionerTest {
      *  Private methods
      */
 
-    private InputStream asInputStream(String xml) {
-        return asInputStream(xml, StandardCharsets.UTF_8);
+    private InputStream asInputStream(String s) {
+        return asInputStream(s, StandardCharsets.US_ASCII);
     }
 
-    private InputStream asInputStream(String xml, Charset encoding) {
-        return new ByteArrayInputStream(xml.getBytes(encoding));
+    private InputStream asInputStream(String s, Charset encoding) {
+        return new ByteArrayInputStream(s.getBytes(encoding));
     }
 
 }

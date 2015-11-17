@@ -59,8 +59,10 @@ public class MailNotificationTest {
     private static final String JOB_CREATED_OK_BODY = "/notifications/job_created_ok.body";
     private static final String JOB_CREATED_FAIL_BODY = "/notifications/job_created_fail.body";
     private static final String JOB_COMPLETED_BODY = "/notifications/job_completed.body";
+    private static final String JOB_COMPLETED_WITH_FAILURES_BODY = "/notifications/job_completed_with_failures.body";
     private static final String INCOMPLETE_TRANSFILE_BODY = "/notifications/incomplete_transfile.body";
     private static final String JOB_CREATED_SUBJECT = "DANBIB:postmester";
+    private static final String JOB_COMPLETED_SUBJECT = "DANBIB:baseindlaeg";
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
     private final String mailFrom = "dataio@dbc.dk";
@@ -253,14 +255,7 @@ public class MailNotificationTest {
         final State state = notification.getJob().getState();
         final StateChange stateChange = new StateChange();
         stateChange.setPhase(State.Phase.PARTITIONING);
-        stateChange.setFailed(1);
-        state.updateState(stateChange);
-        stateChange.setPhase(State.Phase.PROCESSING);
-        stateChange.setFailed(2);
-        state.updateState(stateChange);
         stateChange.setPhase(State.Phase.DELIVERING);
-        stateChange.setFailed(3);
-        stateChange.setIgnored(1);
         stateChange.setSucceeded(96);
         state.updateState(stateChange);
 
@@ -269,8 +264,38 @@ public class MailNotificationTest {
 
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final String content = (String) inbox.get(0).getContent();
-        assertThat("Notification content", content, is(getResourceContent(JOB_COMPLETED_BODY)));
+        final Message message = inbox.get(0);
+        assertThat("Notification subject", message.getSubject(), is(JOB_COMPLETED_SUBJECT));
+        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_COMPLETED_BODY)));
+    }
+
+    @Test
+    public void send_appliesJobCompletedWithFailuresTemplate() throws JobStoreException, MessagingException, IOException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.JOB_COMPLETED, getJobEntity());
+        final State state = notification.getJob().getState();
+        final StateChange stateChange = new StateChange();
+        stateChange.setPhase(State.Phase.PARTITIONING);
+        stateChange.setFailed(1);
+        state.updateState(stateChange);
+        stateChange.setPhase(State.Phase.PROCESSING);
+        stateChange.setFailed(1);
+        stateChange.setFailed(2);
+        state.updateState(stateChange);
+        stateChange.setPhase(State.Phase.DELIVERING);
+        stateChange.setFailed(3);
+        stateChange.setIgnored(3);
+        stateChange.setSucceeded(94);
+        state.updateState(stateChange);
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+        final Message message = inbox.get(0);
+        assertThat("Notification subject", message.getSubject(), is(JOB_COMPLETED_SUBJECT));
+        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_BODY)));
     }
 
     private MailNotification getMailNotification(NotificationEntity notification) {

@@ -10,7 +10,13 @@ Initialer               :     ${specification.resultmailInitials}
 Job                     :     ${jobId}
 Antal poster            :     ${numberOfItems}
   heraf ok              :     ${state.states.DELIVERING.succeeded}
-  heraf not ok          :     0
-Besked                  :     
+  heraf not ok          :     __SUM__{state.states.PARTITIONING.failed, state.states.PROCESSING.failed, state.states.DELIVERING.failed}
+Besked                  :     Fejl i en eller flere poster
 Dato                    :     __DATE__{timeOfCompletion}
+
+
+
+Følgende post/poster er blevet afvist:
+
+
 

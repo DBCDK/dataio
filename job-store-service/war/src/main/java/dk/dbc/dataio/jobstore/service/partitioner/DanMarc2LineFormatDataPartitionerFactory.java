@@ -93,7 +93,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
         public Iterator<ChunkItem> iterator() {
             if (iterator == null) {
                 validateSpecifiedEncoding();
-                danMarc2Charset = new DanMarc2Charset();
+                danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
                 bufferedInputStream = new BufferedInputStream(inputStream);
             }
 

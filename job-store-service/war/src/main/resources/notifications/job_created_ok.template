@@ -1,6 +1,6 @@
-**************************
-Besked fra DanBibs Posthus
-**************************
+***********************
+Besked fra Postmesteren
+***********************
 
 Bibliotek               :     ${specification.submitterId}
 Trans fil               :     ${specification.ancestry.transfile}

@@ -60,6 +60,7 @@ public class MailNotificationTest {
     private static final String JOB_CREATED_FAIL_BODY = "/notifications/job_created_fail.body";
     private static final String JOB_COMPLETED_BODY = "/notifications/job_completed.body";
     private static final String INCOMPLETE_TRANSFILE_BODY = "/notifications/incomplete_transfile.body";
+    private static final String JOB_CREATED_SUBJECT = "DANBIB:postmester";
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
     private final String mailFrom = "dataio@dbc.dk";
@@ -224,8 +225,9 @@ public class MailNotificationTest {
 
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final String content = (String) inbox.get(0).getContent();
-        assertThat("Notification content", content, is(getResourceContent(JOB_CREATED_OK_BODY)));
+        final Message message = inbox.get(0);
+        assertThat("Notification subject", message.getSubject(), is(JOB_CREATED_SUBJECT));
+        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_CREATED_OK_BODY)));
     }
 
     @Test
@@ -239,8 +241,9 @@ public class MailNotificationTest {
 
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final String content = (String) inbox.get(0).getContent();
-        assertThat("Notification content", content, is(getResourceContent(JOB_CREATED_FAIL_BODY)));
+        final Message message = inbox.get(0);
+        assertThat("Notification subject", message.getSubject(), is(JOB_CREATED_SUBJECT));
+        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_CREATED_FAIL_BODY)));
     }
 
     @Test

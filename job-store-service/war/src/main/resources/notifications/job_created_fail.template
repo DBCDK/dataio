@@ -1,6 +1,6 @@
-**********************************
-Fejlmeddelelse fra DanBibs Posthus
-**********************************
+*******************************
+Fejlmeddelelse fra Postmesteren
+*******************************
 
 Bibliotek               :     ${specification.submitterId}
 Trans fil               :     ${specification.ancestry.transfile}

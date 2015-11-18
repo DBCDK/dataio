@@ -29,8 +29,6 @@ import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.places.DataioPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
@@ -56,7 +54,6 @@ public class ClientFactoryImpl implements ClientFactory {
 
     // Proxies
     private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
-    private final JavaScriptProjectFetcherAsync javaScriptProjectFetcher = JavaScriptProjectFetcher.Factory.getAsyncInstance();
     private final JobStoreProxyAsync jobStoreProxyAsync = JobStoreProxy.Factory.getAsyncInstance();
     private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
 
@@ -95,11 +92,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public FlowStoreProxyAsync getFlowStoreProxyAsync() {
         return flowStoreProxyAsync;
-    }
-
-    @Override
-    public JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync() {
-        return javaScriptProjectFetcher;
     }
 
     @Override

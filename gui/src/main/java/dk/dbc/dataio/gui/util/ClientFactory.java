@@ -27,7 +27,6 @@ import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.places.DataioPlace;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 
@@ -47,7 +46,6 @@ public interface ClientFactory {
 
     // Proxies
     FlowStoreProxyAsync getFlowStoreProxyAsync();
-    JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
     JobStoreProxyAsync getJobStoreProxyAsync();
     LogStoreProxyAsync getLogStoreProxyAsync();
 

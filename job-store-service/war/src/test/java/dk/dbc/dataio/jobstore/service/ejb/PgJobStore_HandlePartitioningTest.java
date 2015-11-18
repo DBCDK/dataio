@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
@@ -34,7 +35,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
-import dk.dbc.dataio.jobstore.types.Diagnostic;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -52,8 +52,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter;
-import static dk.dbc.dataio.jobstore.types.Diagnostic.Level.FATAL;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;

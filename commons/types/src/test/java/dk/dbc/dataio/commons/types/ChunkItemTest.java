@@ -21,12 +21,17 @@
 
 package dk.dbc.dataio.commons.types;
 
+
+import dk.dbc.dataio.commons.types.ChunkItem.Type;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ChunkItemTest {
@@ -54,7 +59,8 @@ public class ChunkItemTest {
         assertThat(new ChunkItem(ID, new byte[0], STATUS), is(notNullValue()));
     }
 
-    public void constructor_allArgsAreValid_returnsNewInstance() {
+    @Test
+    public void constructor_combatallArgsAreValid_returnsNewInstance() {
         final ChunkItem instance = new ChunkItem(ID, DATA, STATUS);
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getId(), is(ID));
@@ -62,7 +68,39 @@ public class ChunkItemTest {
         assertThat(instance.getStatus(), is(STATUS));
     }
 
+    @Test
+    public void constructor_allArgsAreValid_returnsNewInstance() {
+        ArrayList<Type> types=new ArrayList<>(Arrays.asList(Type.UNKNOWN, Type.GENERICXML));
+        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS, types, "UTF-8");
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getId(), is(ID));
+        assertThat(instance.getData(), is(DATA));
+        assertThat(instance.getStatus(), is(STATUS));
+        assertThat(instance.getType(), is( Arrays.asList(Type.UNKNOWN, Type.GENERICXML)));
+        assertThat(instance.getEncoding(), is("UTF-8"));
+    }
+
+    @Test
+    public void appenddiagnostics_setsStatusToFaiolure() throws Exception {
+        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS);
+        assertThat(instance.getDiagnostics(), is(nullValue()));
+        assertThat(instance.getStatus(), is( STATUS ));
+
+        instance.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "Test Fatal"));
+        assertThat(instance.getDiagnostics(), notNullValue());
+        assertThat(instance.getDiagnostics().size(),is(1));
+        assertThat(instance.getStatus(), is(ChunkItem.Status.FAILURE ));
+        instance.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "Test Fatal2"));
+
+        assertThat(instance.getDiagnostics(), notNullValue());
+        assertThat(instance.getDiagnostics().size(),is(2));
+
+    }
+
     public static ChunkItem newChunkItemInstance() {
         return new ChunkItem(ID, DATA, STATUS);
     }
+
+
+
 }

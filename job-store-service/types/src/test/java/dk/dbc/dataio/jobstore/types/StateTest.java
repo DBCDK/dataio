@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.Diagnostic;
 import org.junit.Test;
 
 import java.util.ArrayList;

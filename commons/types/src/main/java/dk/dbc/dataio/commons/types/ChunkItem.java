@@ -25,7 +25,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
-import javax.tools.Diagnostic;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,12 +37,13 @@ public class ChunkItem implements Serializable {
     public static final ChunkItem UNDEFINED = null;
     private static final long serialVersionUID = -7214362358523195493L;
 
+
     public enum Status { SUCCESS, FAILURE, IGNORE }
     public enum Type { UNKNOWN, STRING, GENERICXML }
 
     private long id;
     private final byte[] data;
-    private final Status status;
+    private Status status;
     @JsonProperty("type") private ArrayList<Type> type;
     @JsonProperty("diagnostics") private ArrayList<Diagnostic> diagnostics=null;
     @JsonProperty("encoding") private final String encoding;
@@ -87,6 +87,20 @@ public class ChunkItem implements Serializable {
     }
 
 
+    /**
+     * Set Status to FAILURE and append Diagnostics to describe the reason
+     * for failing the item.
+     *
+     * @param diag Description of the reason for the failure
+     */
+    public void appendDiagnostics( Diagnostic diag) {
+        this.status = Status.FAILURE;
+        if (diagnostics == null) {
+            diagnostics = new ArrayList<>();
+        }
+        diagnostics.add(diag);
+    }
+
     public long getId() {
         return id;
     }
@@ -103,6 +117,11 @@ public class ChunkItem implements Serializable {
         return type;
     }
 
+    public ArrayList<Diagnostic> getDiagnostics() {
+        return diagnostics;
+    }
+
+    public String getEncoding() { return encoding; }
 
     @Override
     public boolean equals(Object o) {

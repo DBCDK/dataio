@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.Diagnostic;
 
 import java.util.ArrayList;
 import java.util.Date;

@@ -27,8 +27,9 @@ import java.util.List;
 
 public class DataField extends Field<DataField> {
     private final List<SubField> subfields;
-    private char ind1;
-    private char ind2;
+    private Character ind1;
+    private Character ind2;
+    private Character ind3;
 
     public DataField() {
         this.subfields = new ArrayList<>();
@@ -48,21 +49,30 @@ public class DataField extends Field<DataField> {
         return this;
     }
 
-    public char getInd1() {
+    public Character getInd1() {
         return ind1;
     }
 
-    public DataField setInd1(char ind1) {
+    public DataField setInd1(Character ind1) {
         this.ind1 = ind1;
         return this;
     }
 
-    public char getInd2() {
+    public Character getInd2() {
         return ind2;
     }
 
-    public DataField setInd2(char ind2) {
+    public DataField setInd2(Character ind2) {
         this.ind2 = ind2;
+        return this;
+    }
+
+    public Character getInd3() {
+        return ind3;
+    }
+
+    public DataField setInd3(Character ind3) {
+        this.ind3 = ind3;
         return this;
     }
 
@@ -77,21 +87,25 @@ public class DataField extends Field<DataField> {
 
         DataField dataField = (DataField) o;
 
-        if (ind1 != dataField.ind1) {
+        if (subfields != null ? !subfields.equals(dataField.subfields) : dataField.subfields != null) {
             return false;
         }
-        if (ind2 != dataField.ind2) {
+        if (ind1 != null ? !ind1.equals(dataField.ind1) : dataField.ind1 != null) {
             return false;
         }
-        return !(subfields != null ? !subfields.equals(dataField.subfields) : dataField.subfields != null);
+        if (ind2 != null ? !ind2.equals(dataField.ind2) : dataField.ind2 != null) {
+            return false;
+        }
+        return !(ind3 != null ? !ind3.equals(dataField.ind3) : dataField.ind3 != null);
 
     }
 
     @Override
     public int hashCode() {
         int result = subfields != null ? subfields.hashCode() : 0;
-        result = 31 * result + (int) ind1;
-        result = 31 * result + (int) ind2;
+        result = 31 * result + (ind1 != null ? ind1.hashCode() : 0);
+        result = 31 * result + (ind2 != null ? ind2.hashCode() : 0);
+        result = 31 * result + (ind3 != null ? ind3.hashCode() : 0);
         return result;
     }
 
@@ -101,6 +115,7 @@ public class DataField extends Field<DataField> {
                 "tag=" + tag +
                 ", ind1=" + ind1 +
                 ", ind2=" + ind2 +
+                ", ind3=" + ind3 +
                 ", subfields=" + subfields +
                 '}';
     }

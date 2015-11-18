@@ -38,7 +38,7 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeXml10;
  *
  * This class is thread safe.
  */
-public class MarcXchangeV11Writer implements MarcWriter {
+public class MarcXchangeV1Writer implements MarcWriter {
     @Override
     public byte[] write(MarcRecord marcRecord, Charset encoding) {
         final StringBuilder buffer = new StringBuilder();
@@ -56,8 +56,7 @@ public class MarcXchangeV11Writer implements MarcWriter {
     }
 
     private void addLeader(StringBuilder buffer, Leader leader) {
-        buffer.append(String.format("<leader>%s</leader>",
-                escape(leader.getData())));
+        buffer.append("<leader>").append(escape(leader.getData())).append("</leader>");
     }
 
     private void addField(StringBuilder buffer, Field field) {
@@ -69,25 +68,36 @@ public class MarcXchangeV11Writer implements MarcWriter {
     }
 
     private void addControlField(StringBuilder buffer, ControlField field) {
-        buffer.append(String.format("<controlfield tag='%s'>%s</controlfield>",
-                escape(field.getTag()), escape(field.getData())));
+        buffer.append("<controlfield tag='").append(escape(field.getTag())).append("'>")
+                    .append(escape(field.getData()))
+              .append("</controlfield>");
     }
 
     private void addDataField(StringBuilder buffer, DataField field) {
-        buffer.append(String.format("<datafield ind1='%s' ind2='%s' tag='%s'>",
-                escape(field.getInd1()), escape(field.getInd2()), escape(field.getTag())));
+        buffer.append("<datafield");
+        if (field.getInd1() != null) {
+            buffer.append(" ind1='").append(escape(field.getInd1())).append("'");
+        }
+        if (field.getInd2() != null) {
+            buffer.append(" ind2='").append(escape(field.getInd2())).append("'");
+        }
+        if (field.getInd3() != null) {
+            buffer.append(" ind3='").append(escape(field.getInd3())).append("'");
+        }
+        buffer.append(" tag='").append(escape(field.getTag())).append("'>");
         field.getSubfields().stream()
                 .forEach(subfield -> addSubField(buffer, subfield));
         buffer.append("</datafield>");
     }
 
     private void addSubField(StringBuilder buffer, SubField subField) {
-        buffer.append(String.format("<subfield code='%s'>%s</subfield>",
-                escape(subField.getCode()), escape(subField.getData())));
+        buffer.append("<subfield code='").append(escape(subField.getCode())).append("'>")
+                    .append(escape(subField.getData()))
+              .append("</subfield>");
     }
 
     private void addXmlDeclaration(StringBuilder buffer, Charset encoding) {
-        buffer.append(String.format("<?xml version='1.0' encoding='%s'?>\n", encoding.name()));
+        buffer.append("<?xml version='1.0' encoding='").append(encoding.name()).append("'?>\n");
     }
 
     private String escape(String s) {

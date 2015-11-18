@@ -42,14 +42,14 @@ import java.util.Arrays;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-public class MarcXchangeV11WriterTest {
+public class MarcXchangeV1WriterTest {
     private static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
     private static final String JAXP_SCHEMA_LANGUAGE = "http://java.sun.com/xml/jaxp/properties/schemaLanguage";
     private static final String W3C_XML_SCHEMA = "http://www.w3.org/2001/XMLSchema";
 
     @Test
     public void write_equality() {
-        final MarcXchangeV11Writer writer = new MarcXchangeV11Writer();
+        final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
         final String out = new String(writer.write(getMarcRecord(), StandardCharsets.UTF_8), StandardCharsets.UTF_8);
         assertThat(out, is(getMarcRecordAsMarcXchange()));
     }
@@ -61,7 +61,7 @@ public class MarcXchangeV11WriterTest {
         documentBuilderFactory.setValidating(true);
         documentBuilderFactory.setAttribute(JAXP_SCHEMA_LANGUAGE, W3C_XML_SCHEMA);
         documentBuilderFactory.setAttribute(JAXP_SCHEMA_SOURCE,
-                MarcXchangeV11WriterTest.class.getResource("/marcxchange-1-1.xsd").toString());
+                MarcXchangeV1WriterTest.class.getResource("/marcxchange-1-1.xsd").toString());
         final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         documentBuilder.setErrorHandler(new ErrorHandler() {
             @Override
@@ -78,7 +78,7 @@ public class MarcXchangeV11WriterTest {
             }
         });
 
-        final MarcXchangeV11Writer writer = new MarcXchangeV11Writer();
+        final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
         final byte[] out = writer.write(getMarcRecord(), StandardCharsets.UTF_8);
         documentBuilder.parse(new ByteArrayInputStream(out));
     }

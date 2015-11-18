@@ -33,7 +33,7 @@ import dk.dbc.dataio.marc.reader.MarcReader;
 import dk.dbc.dataio.marc.reader.MarcReaderException;
 import dk.dbc.dataio.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.dataio.marc.writer.MarcWriter;
-import dk.dbc.dataio.marc.writer.MarcXchangeV11Writer;
+import dk.dbc.dataio.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.marc.DanMarc2Charset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +100,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
 
             iterator = new Iterator<ChunkItem>() {
                 private MarcRecord marcRecord = null;
-                private MarcWriter marcWriter = new MarcXchangeV11Writer();
+                private MarcWriter marcWriter = new MarcXchangeV1Writer();
                 private MarcReader marcReader = new DanMarc2LineFormatReader(bufferedInputStream, danMarc2Charset);
 
                 @Override

@@ -22,14 +22,14 @@
 package dk.dbc.dataio.marc.binding;
 
 public class SubField {
-    private char code;
+    private Character code;
     private String data;
 
-    public char getCode() {
+    public Character getCode() {
         return code;
     }
 
-    public SubField setCode(char code) {
+    public SubField setCode(Character code) {
         this.code = code;
         return this;
     }
@@ -54,7 +54,7 @@ public class SubField {
 
         SubField subField = (SubField) o;
 
-        if (code != subField.code) {
+        if (code != null ? !code.equals(subField.code) : subField.code != null) {
             return false;
         }
         return !(data != null ? !data.equals(subField.data) : subField.data != null);
@@ -63,7 +63,7 @@ public class SubField {
 
     @Override
     public int hashCode() {
-        int result = (int) code;
+        int result = code != null ? code.hashCode() : 0;
         result = 31 * result + (data != null ? data.hashCode() : 0);
         return result;
     }

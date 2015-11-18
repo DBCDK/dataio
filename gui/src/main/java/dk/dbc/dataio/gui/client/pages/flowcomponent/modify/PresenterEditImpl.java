@@ -21,28 +21,24 @@
 
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
-import com.google.gwt.place.shared.Place;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Flow Component Edit
  */
-public class PresenterEditImpl extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     private long id;
 
     /**
      * Constructor
-     * @param place, the place
-     * @param clientFactory the clientFactory
+     * @param place     the place
+     * @param header    Breadcrumb header text
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getFlowComponentEditView();
-        EditPlace editPlace = (EditPlace) place;
-        id = editPlace.getFlowComponentId();
+    public PresenterEditImpl(Place place, String header) {
+        super(header);
+        id = place.getFlowComponentId();
     }
     /**
      * Initializing the model
@@ -59,12 +55,12 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateFlowComponent(model, new SaveFlowComponentModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateFlowComponent(model, new SaveFlowComponentModelFilteredAsyncCallback());
     }
 
     // Private methods
     private void getFlowComponent(final long flowComponentId) {
-        flowStoreProxy.getFlowComponent(flowComponentId, new GetFlowComponentModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getFlowComponent(flowComponentId, new GetFlowComponentModelFilteredAsyncCallback());
     }
 
     /**
@@ -74,7 +70,7 @@ public class PresenterEditImpl extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "Flowcomponent.id: " + id;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
         public void onSuccess(FlowComponentModel model) {

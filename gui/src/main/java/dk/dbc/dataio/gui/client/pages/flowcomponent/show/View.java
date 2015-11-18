@@ -30,7 +30,6 @@ import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.List;
 
@@ -38,16 +37,10 @@ public class View extends ViewWidget {
     ListDataProvider<FlowComponentModel> dataProvider;
     SingleSelectionModel<FlowComponentModel> selectionModel = new SingleSelectionModel<FlowComponentModel>();
 
-    /**
-     * Default constructor
-     *
-     * @param clientFactory, the client factory
-     */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
+    public View() {
+        super("");
         setupColumns();
     }
-
 
     /**
      * This method is used to put data into the view
@@ -59,11 +52,9 @@ public class View extends ViewWidget {
         dataProvider.getList().addAll(flowComponentModels);
     }
 
-
     /**
      * Private methods
      */
-
 
     /**
      * This method sets up all columns in the view
@@ -74,6 +65,7 @@ public class View extends ViewWidget {
         dataProvider = new ListDataProvider<FlowComponentModel>();
         dataProvider.addDataDisplay(flowComponentsTable);
 
+        Texts texts = getTexts();
         flowComponentsTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
         flowComponentsTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
         flowComponentsTable.addColumn(constructJavaScriptNameColumn(), texts.columnHeader_ScriptName());
@@ -219,7 +211,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowComponentModel model) {
                 // The value to display in the button.
-                return texts.button_Edit();
+                return getTexts().button_Edit();
             }
         };
 

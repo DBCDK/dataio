@@ -37,8 +37,8 @@ import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedDualList;
 import dk.dbc.dataio.gui.client.components.PromptedList;
-import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
+import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.Collection;
@@ -47,8 +47,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {}
     private static FlowbinderBinder uiBinder = GWT.create(FlowbinderBinder.class);
 
-    public View(String header) {
-        super(header);
+    public View() {
+        super("");
         add(uiBinder.createAndBindUi(this));
     }
 

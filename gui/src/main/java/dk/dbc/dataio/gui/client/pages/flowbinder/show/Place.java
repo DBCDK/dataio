@@ -44,7 +44,7 @@ public class Place extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(clientFactory);
+        return new PresenterImpl(clientFactory.getPlaceController(), commonInjector.getMenuTexts().menu_FlowBinders());
     }
 
     @Prefix("ShowFlowBinders")

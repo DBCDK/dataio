@@ -23,17 +23,13 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 
-import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -43,10 +39,9 @@ import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,39 +66,35 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock FlowStoreProxyAsync mockedFlowStore;
-    @Mock PlaceController mockedPlaceController;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
+public class PresenterImplTest extends PresenterImplTestBase {
+
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
-    @Mock ProxyException mockedProxyException;
-    @Mock ProxyErrorTexts mockedProxyErrorTexts;
     @Mock SingleSelectionModel<FlowBinderModel> mockedSelectionModel;
     @Mock ListDataProvider<FlowBinderModel> mockedDataProvider;
+    @Mock ViewGinjector mockedViewGinjector;
 
     // Setup mocked data
     @Before
     public void setupMockedData() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
-        when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
-        when(mockedClientFactory.getFlowBindersShowView()).thenReturn(mockedView);
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedViewGinjector.getView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         mockedView.selectionModel = mockedSelectionModel;
         mockedView.dataProvider = mockedDataProvider;
     }
 
     // Subject Under Test
-    private PresenterImpl presenterImpl;
+    private PresenterImplConcrete presenterImpl;
 
 
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
+        public PresenterImplConcrete(PlaceController placeController, String header) {
+            super(placeController, header);
+            viewInjector = mockedViewGinjector;
+            commonInjector = mockedCommonGinjector;
         }
         public FetchFlowBindersCallback fetchFlowBindersCallback = new FetchFlowBindersCallback();
     }
@@ -133,31 +124,35 @@ public class PresenterImplTest {
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
         // Test Subject Under Test
-        presenterImpl = new PresenterImpl(mockedClientFactory);
+        setupPresenterImplConcrete();
 
-        // Verify Test
-        verify(mockedClientFactory).getFlowStoreProxyAsync();
-        verify(mockedClientFactory).getPlaceController();
     }
-
     @Test
     @SuppressWarnings("unchecked")
     public void start_callStart_ok() {
-        presenterImpl = new PresenterImpl(mockedClientFactory);
 
-        // Test Subject Under Test
+        // Setup
+        setupPresenterImplConcrete();
+
+        // Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedClientFactory).getFlowBindersShowView();
+        verify(mockedViewGinjector, times(3)).getView();
+
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFlowStore).findAllFlowBinders(any(AsyncCallback.class));
     }
 
+
     @Test
     public void editFlowBinder_call_gotoEditPlace() {
-        presenterImpl = new PresenterImpl(mockedClientFactory);
+
+        // Setup
+        setupPresenterImplConcrete();
+
+        // Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -169,10 +164,12 @@ public class PresenterImplTest {
 
     @Test
     public void createFlowBinder_call_gotoCreatePlace() {
-        presenterImpl = new PresenterImpl(mockedClientFactory);
+
+        // Setup
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.createFlowBinder();
 
         // Verify Test
@@ -181,15 +178,17 @@ public class PresenterImplTest {
 
     @Test
     public void fetchFlowBinders_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.SERVICE_NOT_FOUND);
 
-        // Test Subject Under Test
+        // Subject Under Test
         presenterImpl.fetchFlowBindersCallback.onFilteredFailure(mockedProxyException);
 
         // Verify Test
-        verify(mockedClientFactory).getProxyErrorTexts();
+        verify(mockedCommonGinjector).getProxyErrorTexts();
         verify(mockedProxyException).getErrorCode();
         verify(mockedProxyErrorTexts).flowStoreProxy_serviceError();
         verify(mockedView).setErrorText(anyString());
@@ -197,7 +196,9 @@ public class PresenterImplTest {
 
     @Test
     public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedInitialCallback() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -210,7 +211,9 @@ public class PresenterImplTest {
 
     @Test
     public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedNoChanges() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedDataProvider.getList()).thenReturn(flowBinderModels);
@@ -225,7 +228,9 @@ public class PresenterImplTest {
 
     @Test
     public void fetchFlowBinders_callbackWithSuccess_flowBindersAreFetchedOneHasChangedSelectionIsSet() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenterImplConcrete();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedDataProvider.getList()).thenReturn(flowBinderModels);
@@ -242,4 +247,7 @@ public class PresenterImplTest {
         verify(mockedView).setFlowBinders(flowBinderModels);
     }
 
+    private void setupPresenterImplConcrete() {
+        presenterImpl = new PresenterImplConcrete(mockedPlaceController, header);
+    }
 }

@@ -33,7 +33,6 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,13 +44,8 @@ public class View extends ViewWidget {
     ListDataProvider<FlowBinderModel> dataProvider;
     SingleSelectionModel<FlowBinderModel> selectionModel = new SingleSelectionModel<FlowBinderModel>();
 
-    /**
-     * Default constructor
-     *
-     * @param clientFactory, the client factory
-     */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
+    public View() {
+        super("");
         setupColumns();
     }
 
@@ -81,17 +75,17 @@ public class View extends ViewWidget {
         dataProvider = new ListDataProvider<FlowBinderModel>();
         dataProvider.addDataDisplay(flowBindersTable);
 
-        flowBindersTable.addColumn(constructNameColumn(), texts.columnHeader_Name());
-        flowBindersTable.addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
-        flowBindersTable.addColumn(constructPackagingColumn(), texts.columnHeader_Packaging());
-        flowBindersTable.addColumn(constructFormatColumn(), texts.columnHeader_Format());
-        flowBindersTable.addColumn(constructCharsetColumn(), texts.columnHeader_Charset());
-        flowBindersTable.addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
-        flowBindersTable.addColumn(constructRecordSplitterColumn(), texts.columnHeader_RecordSplitter());
-        flowBindersTable.addColumn(constructSubmittersColumn(), texts.columnHeader_Submitters());
-        flowBindersTable.addColumn(constructFlowColumn(), texts.columnHeader_Flow());
-        flowBindersTable.addColumn(constructSinkColumn(), texts.columnHeader_Sink());
-        flowBindersTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
+        flowBindersTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
+        flowBindersTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
+        flowBindersTable.addColumn(constructPackagingColumn(), getTexts().columnHeader_Packaging());
+        flowBindersTable.addColumn(constructFormatColumn(), getTexts().columnHeader_Format());
+        flowBindersTable.addColumn(constructCharsetColumn(), getTexts().columnHeader_Charset());
+        flowBindersTable.addColumn(constructDestinationColumn(), getTexts().columnHeader_Destination());
+        flowBindersTable.addColumn(constructRecordSplitterColumn(), getTexts().columnHeader_RecordSplitter());
+        flowBindersTable.addColumn(constructSubmittersColumn(), getTexts().columnHeader_Submitters());
+        flowBindersTable.addColumn(constructFlowColumn(), getTexts().columnHeader_Flow());
+        flowBindersTable.addColumn(constructSinkColumn(), getTexts().columnHeader_Sink());
+        flowBindersTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         flowBindersTable.setSelectionModel(selectionModel);
         flowBindersTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
@@ -262,7 +256,7 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowBinderModel model) {
                 // The value to display in the button.
-                return texts.button_Edit();
+                return getTexts().button_Edit();
             }
         };
         column.setFieldUpdater(new FieldUpdater<FlowBinderModel, String>() {

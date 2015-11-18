@@ -18,38 +18,19 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
-import com.google.gwt.activity.shared.Activity;
-import com.google.gwt.place.shared.PlaceTokenizer;
-import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import com.google.gwt.inject.client.AbstractGinModule;
+import com.google.inject.Singleton;
 
 /**
- * CreatePlace
+ * Created by ThomasBerg on 09/11/15.
  */
-public class CreatePlace extends DataioPlace {
-
-    public CreatePlace() {}
+public class ViewModule extends AbstractGinModule {
 
     @Override
-    public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(commonInjector.getMenuTexts().menu_FlowComponentCreation());
+    protected void configure() {
+        bind(View.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
     }
-
-    @Prefix("CreateFlowComponent")
-    public static class Tokenizer implements PlaceTokenizer<CreatePlace> {
-        @Override
-        public String getToken(CreatePlace place) {
-            return "";
-        }
-
-        @Override
-        public CreatePlace getPlace(String token) {
-            return new CreatePlace();
-        }
-    }
-
 }

@@ -22,19 +22,18 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,11 +45,11 @@ import java.util.Map;
  * of flowbinder data in the flow store via RPC proxy
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+
     private final static String EMPTY = "";
-    protected final Texts texts;
-    protected final ProxyErrorTexts proxyErrorTexts;
-    protected FlowStoreProxyAsync flowStoreProxy;
-    protected View view;
 
     // Application Models
     protected FlowBinderModel model = new FlowBinderModel();
@@ -58,21 +57,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected List<SubmitterModel> availableSubmitters = new ArrayList<>();
     protected List<FlowModel> availableFlows = new ArrayList<>();
     protected List<SinkModel> availableSinks = new ArrayList<>();
+    protected String header;
 
-
-    /**
-     * Constructor
-     * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
-     * Put code, utilizing view in the start method
-     *
-     * @param clientFactory, clientFactory
-     */
-    public PresenterImpl(ClientFactory clientFactory) {
-        texts = clientFactory.getFlowBinderModifyTexts();
-        proxyErrorTexts = clientFactory.getProxyErrorTexts();
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+    public PresenterImpl(String header) {
+        super();
+        this.header = header;
     }
-
     /**
      * start method
      * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
@@ -83,40 +73,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        getView().setPresenter(this);
+        getView().setHeader(this.header);
         initializeViewFields();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        containerWidget.setWidget(getView().asWidget());
         fetchAvailableSubmitters();
         fetchAvailableFlows();
         fetchAvailableSinks();
         initializeModel();
         setAvailableRecordSplitters();
-    }
-
-    private void initializeViewFields() {
-        view.name.clearText();
-        view.name.setEnabled(false);
-        view.description.clearText();
-        view.description.setEnabled(false);
-        view.frame.clearText();
-        view.frame.setEnabled(false);
-        view.format.clearText();
-        view.format.setEnabled(false);
-        view.charset.clearText();
-        view.charset.setEnabled(false);
-        view.destination.clearText();
-        view.destination.setEnabled(false);
-        view.recordSplitter.clear();
-        view.recordSplitter.setEnabled(false);
-        view.sequenceAnalysis.setEnabled(true);
-        view.recordSplitter.setEnabled(false);
-        view.submitters.clear();
-        view.submitters.setEnabled(false);
-        view.flow.clear();
-        view.flow.setEnabled(false);
-        view.sink.clear();
-        view.sink.setEnabled(false);
-        view.status.setText("");
     }
 
     /**
@@ -247,7 +212,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void keyPressed() {
-        view.status.setText(EMPTY);
+        getView().status.setText(EMPTY);
     }
 
     /**
@@ -256,9 +221,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void saveButtonPressed() {
         if (model.isInputFieldsEmpty()) {
-            view.setErrorText(texts.error_InputFieldValidationError());
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
         } else if (!model.getDataioPatternMatches().isEmpty()) {
-            view.setErrorText(texts.error_NameFormatValidationError());
+            getView().setErrorText(getTexts().error_NameFormatValidationError());
         } else {
             saveModel();
         }
@@ -273,6 +238,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     protected void updateAllFieldsAccordingToCurrentState() {
+        View view = getView();
         view.name.setText(model.getName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
@@ -332,50 +298,84 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for (SubmitterModel model : models) {
             submitters.put(String.valueOf(model.getId()), formatSubmitterName(model));
         }
-        view.submitters.setAvailableItems(submitters);
-        view.submitters.setEnabled(true);
+        getView().submitters.setAvailableItems(submitters);
+        getView().submitters.setEnabled(true);
     }
 
     protected void setAvailableFlows(List<FlowModel> models) {
         this.availableFlows = models;
-        view.flow.clear();
+        getView().flow.clear();
         for (FlowModel model : models) {
-            view.flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
+            getView().flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
         }
-        view.flow.setEnabled(true);
+        getView().flow.setEnabled(true);
     }
 
     protected void setAvailableSinks(List<SinkModel> models) {
         this.availableSinks = models;
-        view.sink.clear();
+        getView().sink.clear();
         for (SinkModel model : models) {
-            view.sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
+            getView().sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
         }
-        view.sink.setEnabled(true);
+        getView().sink.setEnabled(true);
     }
 
     protected void setAvailableRecordSplitters() {
         availableRecordSplitters = RecordSplitterConstants.getRecordSplitters();
-        view.recordSplitter.clear();
+        getView().recordSplitter.clear();
         for (RecordSplitterConstants.RecordSplitter recordSplitter : availableRecordSplitters) {
-            view.recordSplitter.addAvailableItem(recordSplitter.name());
+            getView().recordSplitter.addAvailableItem(recordSplitter.name());
         }
-        view.recordSplitter.setEnabled(true);
+        getView().recordSplitter.setEnabled(true);
         if (model.getRecordSplitter().isEmpty()) {
             model.setRecordSplitter(availableRecordSplitters.get(0).name());
         }
     }
 
+    View getView() {
+        return viewInjector.getView();
+    }
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
+
+    private void initializeViewFields() {
+        View view = getView();
+        view.name.clearText();
+        view.name.setEnabled(false);
+        view.description.clearText();
+        view.description.setEnabled(false);
+        view.frame.clearText();
+        view.frame.setEnabled(false);
+        view.format.clearText();
+        view.format.setEnabled(false);
+        view.charset.clearText();
+        view.charset.setEnabled(false);
+        view.destination.clearText();
+        view.destination.setEnabled(false);
+        view.recordSplitter.clear();
+        view.recordSplitter.setEnabled(false);
+        view.sequenceAnalysis.setEnabled(true);
+        view.recordSplitter.setEnabled(false);
+        view.submitters.clear();
+        view.submitters.setEnabled(false);
+        view.flow.clear();
+        view.flow.setEnabled(false);
+        view.sink.clear();
+        view.sink.setEnabled(false);
+        view.status.setText("");
+    }
+
     private void fetchAvailableSubmitters() {
-        flowStoreProxy.findAllSubmitters(new FetchAvailableSubmittersCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllSubmitters(new FetchAvailableSubmittersCallback());
     }
 
     private void fetchAvailableFlows() {
-        flowStoreProxy.findAllFlows(new FetchAvailableFlowsCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllFlows(new FetchAvailableFlowsCallback());
     }
 
     private void fetchAvailableSinks() {
-        flowStoreProxy.findAllSinks(new FetchAvailableSinksCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllSinks(new FetchAvailableSinksCallback());
     }
 
     private SubmitterModel getSubmitterModel(long submitterId) {
@@ -420,7 +420,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableSubmittersCallback extends FilteredAsyncCallback<List<SubmitterModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<SubmitterModel> submitters) {
@@ -435,7 +435,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableFlowsCallback extends FilteredAsyncCallback<List<FlowModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowModel> flows) {
@@ -450,7 +450,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class FetchAvailableSinksCallback extends FilteredAsyncCallback<List<SinkModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<SinkModel> sinks) {
@@ -465,11 +465,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     class SaveFlowBinderModelFilteredAsyncCallback extends FilteredAsyncCallback<FlowBinderModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
         @Override
         public void onSuccess(FlowBinderModel model) {
-            view.status.setText(texts.status_SaveSuccess());
+            getView().status.setText(getTexts().status_SaveSuccess());
             setFlowBinderModel(model);
             updateAllFieldsAccordingToCurrentState();
             History.back();

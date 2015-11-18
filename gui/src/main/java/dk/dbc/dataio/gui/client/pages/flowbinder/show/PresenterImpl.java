@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -30,8 +31,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,21 +42,23 @@ import java.util.Set;
  * This class represents the show flow binders presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private ClientFactory clientFactory;
-    private View view;
-    private FlowStoreProxyAsync flowStoreProxy;
-    private final PlaceController placeController;
+
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
+    PlaceController placeController;
+    String header;
 
 
     /**
      * Default constructor
      *
-     * @param clientFactory The client factory to be used
+     * @param placeController   PlaceController for navigation
+     * @param header            Breadcrumb header text
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        placeController = clientFactory.getPlaceController();
+    public PresenterImpl(PlaceController placeController, String header) {
+        this.placeController = placeController;
+        this.header = header;
     }
 
 
@@ -70,9 +72,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getFlowBindersShowView();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setPresenter(this);
+        getView().setHeader(this.header);
+        containerWidget.setWidget(getView().asWidget());
         fetchFlowBinders();
     }
 
@@ -91,7 +93,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlowBinder() {
-        view.selectionModel.clear();
+        getView().selectionModel.clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -102,8 +104,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This method fetches all flowbinders, and sends them to the view
      */
+    View getView() {
+        return this.viewInjector.getView();
+    }
+
+    Texts getTexts() {
+        return this.viewInjector.getTexts();
+    }
+
     private void fetchFlowBinders() {
-        flowStoreProxy.findAllFlowBinders(new FetchFlowBindersCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllFlowBinders(new FetchFlowBindersCallback());
     }
 
     /**
@@ -114,13 +124,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setFlowBindersAndDecipherSelection(Set<FlowBinderModel> dataProviderSet, List<FlowBinderModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            view.selectionModel.clear();
-            view.setFlowBinders(models);
+            getView().selectionModel.clear();
+            getView().setFlowBinders(models);
         } else {
             for (FlowBinderModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    view.setFlowBinders(models);
-                    view.selectionModel.setSelected(current, true);
+                    getView().setFlowBinders(models);
+                    getView().selectionModel.setSelected(current, true);
                     break;
                 }
             }
@@ -137,11 +147,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     protected class FetchFlowBindersCallback extends FilteredAsyncCallback<List<FlowBinderModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, clientFactory.getProxyErrorTexts(), this.getClass().getCanonicalName()));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
         @Override
         public void onSuccess(List<FlowBinderModel> models) {
-            setFlowBindersAndDecipherSelection(new HashSet<FlowBinderModel>(view.dataProvider.getList()), models);
+            setFlowBindersAndDecipherSelection(new HashSet<FlowBinderModel>(getView().dataProvider.getList()), models);
         }
     }
 

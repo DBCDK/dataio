@@ -18,24 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dbc.dataio.gui.client.util;
+package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
 import com.google.gwt.inject.client.GinModules;
 import com.google.gwt.inject.client.Ginjector;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
-import dk.dbc.dataio.gui.client.pages.navigation.Texts;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * Created by ThomasBerg on 09/11/15.
  */
-@GinModules(CommonModule.class)
-public interface CommonGinjector extends Ginjector {
-    Texts getMenuTexts();
-    ProxyErrorTexts getProxyErrorTexts();
-    FlowStoreProxyAsync getFlowStoreProxyAsync();
-    JavaScriptProjectFetcherAsync getJavaScriptProjectFetcherAsync();
-    Resources getResources();
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
 }

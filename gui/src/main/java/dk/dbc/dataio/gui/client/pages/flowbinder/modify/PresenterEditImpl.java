@@ -21,30 +21,41 @@
 
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
-import com.google.gwt.place.shared.Place;
+import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Flow Binder Edit
  */
-public class PresenterEditImpl extends PresenterImpl {
+public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
     private long id;
     /**
      * Constructor
-     * @param place the edit place
-     * @param clientFactory the clientFactory
+     * @param place     the edit place
+     * @param header    Breadcrumb header text
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getFlowBinderEditView();
-        EditPlace editPlace = (EditPlace) place;
-        id = editPlace.getFlowBinderId();
-        view.deleteButton.setVisible(true);
+    public PresenterEditImpl(Place place, String header) {
+        super(header);
+        id = place.getFlowBinderId();
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -62,14 +73,14 @@ public class PresenterEditImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.updateFlowBinder(model, new SaveFlowBinderModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateFlowBinder(model, new SaveFlowBinderModelFilteredAsyncCallback());
     }
 
     /**
      * Deletes the embedded model as a FlowBinder in the database
      */
     void deleteModel() {
-        flowStoreProxy.deleteFlowBinder(model.getId(), model.getVersion(), new DeleteFlowBinderModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().deleteFlowBinder(model.getId(), model.getVersion(), new DeleteFlowBinderModelFilteredAsyncCallback());
     }
 
     /**
@@ -83,7 +94,7 @@ public class PresenterEditImpl extends PresenterImpl {
 
     // Private methods
     private void getFlowBinder(final long flowBinderId) {
-        flowStoreProxy.getFlowBinder(flowBinderId, new GetFlowBinderModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getFlowBinder(flowBinderId, new GetFlowBinderModelFilteredAsyncCallback());
     }
 
     /**
@@ -93,7 +104,7 @@ public class PresenterEditImpl extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "Flowbinder.id: " + id;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
         public void onSuccess(FlowBinderModel model) {
@@ -108,12 +119,12 @@ public class PresenterEditImpl extends PresenterImpl {
     class DeleteFlowBinderModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override
         public void onSuccess(Void aVoid) {
-            view.status.setText(texts.status_FlowBinderSuccessfullyDeleted());
+            getView().status.setText(getTexts().status_FlowBinderSuccessfullyDeleted());
             setFlowBinderModel(null);
             History.back();
         }

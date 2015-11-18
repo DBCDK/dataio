@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Flow Component Create
@@ -31,13 +30,11 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory, clientFactory
+     * @param header    Breadcrumb header text
      */
-    public PresenterCreateImpl(ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getFlowComponentCreateView();
+    public PresenterCreateImpl(String header) {
+        super(header);
     }
-
     /**
      * getModel - initializes the model
      * When starting the form, the fields should be empty, therefore an empty Model is instantiated
@@ -54,8 +51,8 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        view.status.setText(texts.status_SavingFlowComponent());
-        flowStoreProxy.createFlowComponent(model, new SaveFlowComponentModelFilteredAsyncCallback());
+        getView().status.setText(getTexts().status_SavingFlowComponent());
+        commonInjector.getFlowStoreProxyAsync().createFlowComponent(model, new SaveFlowComponentModelFilteredAsyncCallback());
     }
 
 }

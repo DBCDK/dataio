@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
@@ -30,11 +31,8 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,11 +43,10 @@ import java.util.List;
  * an existing flow component in the flow store via RPC proxy
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected Texts texts;
-    protected final ProxyErrorTexts proxyErrorTexts;
-    protected FlowStoreProxyAsync flowStoreProxy;
-    protected JavaScriptProjectFetcherAsync javaScriptProjectFetcher;
-    protected View view;
+
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
     protected FlowComponentModel model = new FlowComponentModel();
     protected List<String> availableRevisions = new ArrayList<String>();
     protected List<String> availableNextRevisions = new ArrayList<String>();
@@ -57,19 +54,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected List<String> availableInvocationMethods = new ArrayList<String>();
 
     private static boolean isInitialPopulationOfView;
+    private String header;
 
     /**
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method.
-     * @param clientFactory, clientFactory
+     * @param header    Breadcrumb header text
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        texts = clientFactory.getFlowComponentModifyTexts();
-        proxyErrorTexts = clientFactory.getProxyErrorTexts();
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
-        javaScriptProjectFetcher = clientFactory.getJavaScriptProjectFetcherAsync();
+    public PresenterImpl(String header) {
         isInitialPopulationOfView = true;
+        this.header = header;
     }
 
     /**
@@ -81,9 +76,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        getView().setPresenter(this);
+        getView().setHeader(this.header);
         initializeViewFields();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
 
@@ -111,6 +107,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void projectChanged(String projectName) {
         model.setSvnProject(projectName);
+        View view = getView();
         view.busy.setVisible(true);
         view.revision.setEnabled(false);
         view.next.setEnabled(false);
@@ -126,6 +123,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void revisionChanged(String selectedRevision) {
         model.setSvnRevision(selectedRevision == null ? "" : selectedRevision);
+        View view = getView();
         view.busy.setVisible(true);
         view.script.setEnabled(false);
         view.method.setEnabled(false);
@@ -148,8 +146,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void scriptNameChanged(String selectedScript) {
         model.setInvocationJavascript(selectedScript == null ? "" : selectedScript);
-        view.busy.setVisible(true);
-        view.method.setEnabled(false);
+        getView().busy.setVisible(true);
+        getView().method.setEnabled(false);
         fetchAvailableInvocationMethods(model.getSvnProject(), Long.valueOf(model.getSvnRevision()), model.getInvocationJavascript());
     }
 
@@ -167,7 +165,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void keyPressed() {
-        view.status.setText("");
+        getView().status.setText("");
     }
 
     /**
@@ -176,11 +174,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void saveButtonPressed() {
         if (model.isInputFieldsEmptyModulesExcluded()) {
-            view.setErrorText(texts.error_InputFieldValidationError());
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
         } else if (!model.getDataioPatternMatches().isEmpty()) {
-            view.setErrorText(texts.error_NameFormatValidationError());
+            getView().setErrorText(getTexts().error_NameFormatValidationError());
         } else {
-            view.status.setText(texts.status_SavingFlowComponent());
+            getView().status.setText(getTexts().status_SavingFlowComponent());
             saveModel();
         }
     }
@@ -211,9 +209,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
-            view.revision.setEnabled(true);
-            view.next.setEnabled(true);
-            view.script.setEnabled(true);
+            getView().revision.setEnabled(true);
+            getView().next.setEnabled(true);
+            getView().script.setEnabled(true);
             setAvailableScripts(new ArrayList<String>());
             setAvailableInvocationMethods(new ArrayList<String>());
             model.setInvocationJavascript("");
@@ -232,6 +230,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onFilteredFailure(Throwable e) {
             onFailureSendExceptionToView(e);
+            View view = getView();
             view.revision.setEnabled(true);
             view.next.setEnabled(true);
             view.script.setEnabled(true);
@@ -256,7 +255,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
         @Override
         public void onSuccess(FlowComponentModel flowComponentModel) {
-            view.status.setText(texts.status_FlowComponentSuccessfullySaved());
+            getView().status.setText(getTexts().status_FlowComponentSuccessfullySaved());
             setFlowComponentModel(flowComponentModel);
             History.back();
         }
@@ -297,6 +296,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for(RevisionInfo revisionInfo : revisionInfoList) {
             availableRevisions.add(Long.toString(revisionInfo.getRevision()));
         }
+        View view = getView();
         view.revision.setAvailableItems(availableRevisions);
         availableNextRevisions = new ArrayList<String>(availableRevisions);
         view.next.setAvailableItems(availableNextRevisions);
@@ -314,6 +314,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     protected void setAvailableScripts(List<String> scriptNames) {
         availableScripts = scriptNames;
+        View view = getView();
         view.script.setAvailableItems(scriptNames);
         view.script.setSelectedText(model.getInvocationJavascript());
         view.script.fireChangeEvent();
@@ -325,6 +326,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     protected void setAvailableInvocationMethods(List<String> invocationMethods) {
         availableInvocationMethods = invocationMethods;
+        View view = getView();
         view.method.setAvailableItems(invocationMethods);
         view.method.setSelectedText(model.getInvocationMethod());
         view.method.fireChangeEvent();
@@ -351,6 +353,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * in order to fully populate the view.
      */
     protected void updateAllFieldsAccordingToCurrentState() {
+        View view = getView();
         view.name.setText(model.getName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
@@ -367,10 +370,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     * Private methods
     */
 
+    View getView() {
+        return viewInjector.getView();
+    }
+
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
     /**
      * Method used to set the initial state of the fields in the view
      */
     private void initializeViewFields() {
+        View view = getView();
         view.name.clearText();
         view.name.setEnabled(false);
         view.description.clearText();
@@ -408,13 +419,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private void translateJavaScriptProjectFetcherError(Throwable e) {
         JavaScriptProjectFetcherError errorCode = ((JavaScriptProjectFetcherException) e).getErrorCode();
         switch (errorCode) {
-            case SCM_RESOURCE_NOT_FOUND: view.setErrorText(texts.error_ScmProjectNotFoundError());
+            case SCM_RESOURCE_NOT_FOUND: getView().setErrorText(getTexts().error_ScmProjectNotFoundError());
                 break;
-            case SCM_ILLEGAL_PROJECT_NAME: view.setErrorText(texts.error_ScmIllegalProjectNameError());
+            case SCM_ILLEGAL_PROJECT_NAME: getView().setErrorText(getTexts().error_ScmIllegalProjectNameError());
                 break;
-            case JAVASCRIPT_REFERENCE_ERROR: view.setErrorText(texts.error_JavaScriptReferenceError());
+            case JAVASCRIPT_REFERENCE_ERROR: getView().setErrorText(getTexts().error_JavaScriptReferenceError());
                 break;
-            default: view.setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
+            default: getView().setErrorText(e.getClass().getName() + " - " + e.getMessage() + " - " + Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -423,11 +434,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param e the exception previously thrown
      */
     private void onFailureSendExceptionToView(Throwable e) {
-        view.busy.setVisible(false);
+        getView().busy.setVisible(false);
         if(e instanceof JavaScriptProjectFetcherException) {
             translateJavaScriptProjectFetcherError(e);
         } else {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
     }
 
@@ -436,7 +447,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param projectName the svn project name value
      */
     void fetchAvailableRevisions(String projectName) {
-        javaScriptProjectFetcher.fetchRevisions(projectName, new FetchRevisionsFilteredAsyncCallback());
+        commonInjector.getJavaScriptProjectFetcherAsync().fetchRevisions(projectName, new FetchRevisionsFilteredAsyncCallback());
     }
 
     /**
@@ -445,7 +456,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param revision the given revision
      */
     void fetchAvailableScripts(String projectName, long revision) {
-        javaScriptProjectFetcher.fetchJavaScriptFileNames(projectName, revision, new FetchScriptsFilteredAsyncCallback());
+        commonInjector.getJavaScriptProjectFetcherAsync().fetchJavaScriptFileNames(projectName, revision, new FetchScriptsFilteredAsyncCallback());
     }
 
     /**
@@ -456,7 +467,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param scriptName the chosen script
      */
     void fetchAvailableInvocationMethods(String projectName, long revision, String scriptName) {
-        javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectName, revision, scriptName, new FetchInvocationMethodsFilteredAsyncCallback());
+        commonInjector.getJavaScriptProjectFetcherAsync().fetchJavaScriptInvocationMethods(projectName, revision, scriptName, new FetchInvocationMethodsFilteredAsyncCallback());
     }
 
      /*

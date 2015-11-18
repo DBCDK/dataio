@@ -30,7 +30,6 @@ import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
-import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * Provides access to common objects across the application including:
@@ -53,15 +52,9 @@ public interface ClientFactory {
     LogStoreProxyAsync getLogStoreProxyAsync();
 
     // Views
-    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView getFlowComponentCreateView();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView getFlowComponentEditView();
     dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView();
-    dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView getFlowBinderCreateView();
-    dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.show.View getFlowComponentsShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
     dk.dbc.dataio.gui.client.pages.job.show.View getTestJobsShowView();
-    dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersShowView();
     dk.dbc.dataio.gui.client.pages.item.show.View getItemsShowView();
 
     // Menu text
@@ -69,18 +62,9 @@ public interface ClientFactory {
 
     // Texts
     dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts getFlowComponentModifyTexts();
-    dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts getFlowBinderModifyTexts();
     dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts();
-    dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts getFlowComponentsShowTexts();
-    dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts getFlowBindersShowTexts();
     dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts();
     dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts getProxyErrorTexts();
 
-    // Resources
-    Resources getImageResources();
-
-
     AppPlaceHistoryMapper getHistoryMapper();
-
 }

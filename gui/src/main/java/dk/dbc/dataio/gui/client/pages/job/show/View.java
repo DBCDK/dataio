@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
@@ -32,7 +33,7 @@ import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 
@@ -41,7 +42,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 */
 public class View extends ViewWidget {
 
-    private static Resources resources;
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private boolean dataHasNotYetBeenLoaded = true;
 
@@ -75,7 +76,6 @@ public class View extends ViewWidget {
     /* Package scoped Constructor used for unit testing. */
     View(ClientFactory clientFactory, String headerText, Boolean setupColumns, Boolean updateUserCriteria) {
         super(clientFactory, headerText);
-        View.resources = clientFactory.getImageResources();
         if( setupColumns ) {
             setupColumns();
         }
@@ -291,7 +291,7 @@ public class View extends ViewWidget {
      */
     Column constructJobStateColumn() {
         final ImageResourceCell statusCell = new ImageResourceCell();
-        return new StatusColumn(resources, statusCell);
+        return new StatusColumn(commonInjector.getResources(), statusCell);
     }
 
     Column constructRerunColumn() {

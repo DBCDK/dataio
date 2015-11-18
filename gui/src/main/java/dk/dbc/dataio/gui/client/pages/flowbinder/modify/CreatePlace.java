@@ -41,7 +41,7 @@ public class CreatePlace extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterCreateImpl(clientFactory);
+        return new PresenterCreateImpl(commonInjector.getMenuTexts().menu_FlowBinderCreation());
     }
 
     @Prefix("CreateFlowBinder")

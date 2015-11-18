@@ -18,13 +18,19 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
-package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
+import com.google.gwt.inject.client.AbstractGinModule;
+import com.google.inject.Singleton;
 
-import dk.dbc.dataio.gui.util.ClientFactory;
+/**
+ * Created by ThomasBerg on 09/11/15.
+ */
+public class ViewModule extends AbstractGinModule {
 
-public class CreateView extends View {
-    public CreateView(ClientFactory clientFactory) {
-        super(clientFactory.getMenuTexts().menu_FlowBinderCreation());
+    @Override
+    protected void configure() {
+        bind(View.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
     }
 }

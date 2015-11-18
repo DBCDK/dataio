@@ -21,20 +21,16 @@
 
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,15 +57,11 @@ import static org.mockito.Mockito.when;
  * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock private ClientFactory mockedClientFactory;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
-    @Mock private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
+public class PresenterImplTest extends PresenterImplTestBase {
+
     @Mock private Texts mockedTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
-    @Mock private Exception mockedException;
-    @Mock ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock private JavaScriptProjectFetcherAsync mockedJavaScriptProjectFetcher;
+    @Mock private ViewGinjector mockedViewGinjector;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -93,11 +85,10 @@ public class PresenterImplTest {
             .build();
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
-            flowStoreProxy = mockedFlowStoreProxy;
-            javaScriptProjectFetcher = mockedJavaScriptProjectFetcher;
-            view = PresenterImplTest.this.view;
+        public PresenterImplConcrete(String header) {
+            super(header);
+            viewInjector = mockedViewGinjector;
+            commonInjector = mockedCommonGinjector;
             model = flowComponentModel;
             initializeModelHasBeenCalled = false;
             saveModelHasBeenCalled = false;
@@ -113,55 +104,34 @@ public class PresenterImplTest {
             saveModelHasBeenCalled = true;
         }
 
-        /*
-         * The following instances of the callback classes allows a unit test for each of them
-         */
+        // The following instances of the callback classes allows a unit test for each of them
         public FetchRevisionsFilteredAsyncCallback fetchRevisionsFilteredAsyncCallback = new FetchRevisionsFilteredAsyncCallback();
         public FetchScriptsFilteredAsyncCallback fetchScriptsFilteredAsyncCallback = new FetchScriptsFilteredAsyncCallback();
         public FetchInvocationMethodsFilteredAsyncCallback fetchInvocationMethodsFilteredAsyncCallback = new FetchInvocationMethodsFilteredAsyncCallback();
         public SaveFlowComponentModelFilteredAsyncCallback saveFlowComponentModelFilteredAsyncCallback = new SaveFlowComponentModelFilteredAsyncCallback();
-
-        /*
-         * Test methods implemented for the test only
-         */
-        public FlowStoreProxyAsync getFlowStoreProxy() {
-            return flowStoreProxy;
-        }
-
-        public JavaScriptProjectFetcherAsync getProjectFetcher() {
-            return javaScriptProjectFetcher;
-        }
-
-        public Texts getFlowComponentModifyConstants() {
-            return texts;
-        }
     }
 
     @Before
     public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
-        when(mockedClientFactory.getFlowComponentModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        view = new View();  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getJavaScriptProjectFetcherAsync()).thenReturn(mockedJavaScriptProjectFetcher);
+        when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedViewGinjector.getView()).thenReturn(view);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
-
-    @Before
-    public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
-    }
-
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
-        assertThat(presenterImpl.getProjectFetcher(), is(mockedJavaScriptProjectFetcher));
-        assertThat(presenterImpl.getFlowComponentModifyConstants(), is(mockedTexts));
+
+        // Subject Under Test
+        setupPresenter();
     }
+
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
@@ -368,13 +338,14 @@ public class PresenterImplTest {
         assertThat(presenterImpl.model, is(flowComponentModel));
     }
 
-     /*
-     * Private methods
-     */
-
+    // Private methods
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
-
+    private void setupPresenter() {
+        presenterImpl = new PresenterImplConcrete(header);
+        presenterImpl.commonInjector = mockedCommonGinjector;
+        presenterImpl.viewInjector = mockedViewGinjector;
+    }
 }

@@ -21,14 +21,11 @@
 
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -37,8 +34,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.FlowBinderModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,14 +64,10 @@ import static org.mockito.Mockito.when;
  * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock private ClientFactory mockedClientFactory;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterImplTest extends PresenterImplTestBase {
+
     @Mock private Texts mockedTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
-    @Mock private Exception mockedException;
-    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
+    @Mock private ViewGinjector mockedViewInjector;
 
     private static boolean initializeModelHasBeenCalled;
     private static boolean saveModelHasBeenCalled;
@@ -96,10 +88,8 @@ public class PresenterImplTest {
     private final SinkModel sinkModel3 = new SinkModelBuilder().setId(303L).setName("Snm3").build();
 
     class PresenterImplConcrete extends PresenterImpl {
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
-            flowStoreProxy = mockedFlowStoreProxy;
-            view = PresenterImplTest.this.view;
+        public PresenterImplConcrete(String header) {
+            super(header);
             model = new FlowBinderModelBuilder().setFlowModel(flowModel1).setSubmitterModels(Collections.singletonList(submitterModel1)).setSinkModel(sinkModel1).build();
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
@@ -119,28 +109,18 @@ public class PresenterImplTest {
             saveModelHasBeenCalled = true;
         }
 
-        /*
-         * The following instances of the callback classes allows a unit test for each of them
-         */
+        @Override
+        View getView() {
+            return view;
+        }
+
+        // The following instances of the callback classes allows a unit test for each of them
         public FetchAvailableSubmittersCallback fetchAvailableSubmittersCallback = new FetchAvailableSubmittersCallback();
         public FetchAvailableFlowsCallback fetchAvailableFlowsCallback = new FetchAvailableFlowsCallback();
         public FetchAvailableSinksCallback fetchAvailableSinksCallback = new FetchAvailableSinksCallback();
         public SaveFlowBinderModelFilteredAsyncCallback saveFlowBinderCallback = new SaveFlowBinderModelFilteredAsyncCallback();
 
-        /*
-         * Test methods implemented for the test only
-         */
-        public FlowStoreProxyAsync getFlowStoreProxy() {
-            return flowStoreProxy;
-        }
-
-        public Texts getFlowModifyConstants() {
-            return texts;
-        }
-
-        public ProxyErrorTexts getProxyErrorTexts() {
-            return proxyErrorTexts;
-        }
+        // Test methods implemented for the test only
 
         @Override
         public void deleteButtonPressed() {
@@ -151,24 +131,17 @@ public class PresenterImplTest {
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
-    public void setupSubmitterLists() {
+    public void setupMockedObjects() {
+        view = new View();  // GwtMockito automagically populates mocked versions of all UiFields in the view
         availableSubmitterModelList = new ArrayList<>(4);
         availableSubmitterModelList.add(submitterModel1);
         availableSubmitterModelList.add(submitterModel2);
         availableSubmitterModelList.add(submitterModel3);
         availableSubmitterModelList.add(submitterModel4);
-    }
-
-    @Before
-    public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
-    }
-
-    @Before
-    public void setupView() {
-        view = new View("Header Text");  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedViewInjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedViewInjector.getView()).thenReturn(view);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -176,21 +149,20 @@ public class PresenterImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
-        assertThat(presenterImpl.getFlowStoreProxy(), is(mockedFlowStoreProxy));
-        assertThat(presenterImpl.getFlowModifyConstants(), is(mockedTexts));
-        assertThat(presenterImpl.getProxyErrorTexts(), is(mockedProxyErrorTexts));
+        setupPresenterImpl();
+        assertThat(presenterImpl.getTexts(), is(mockedTexts));
     }
+
 
     @Test
     public void start_instantiateAndCallStart_objectCorrectInitializedAndViewAndModelInitializedCorrectly() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         verify(mockedContainerWidget).setWidget(any(IsWidget.class));
-        verify(mockedFlowStoreProxy).findAllSubmitters(any(FilteredAsyncCallback.class));
-        verify(mockedFlowStoreProxy).findAllFlows(any(FilteredAsyncCallback.class));
-        verify(mockedFlowStoreProxy).findAllSinks(any(FilteredAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllSubmitters(any(FilteredAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllFlows(any(FilteredAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllSinks(any(FilteredAsyncCallback.class));
         assertThat(initializeModelHasBeenCalled, is(true));
         FlowBinderModel model = presenterImpl.model;
         Map<String, String> selectedSubmitterModel = new HashMap<>();
@@ -363,7 +335,7 @@ public class PresenterImplTest {
 
     @Test
     public void saveButtonPressed_callSaveButtonPressedWithInvalidCharactersInNameField_ErrorTextIsDisplayed() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.model.setName("*(Flow binder name)*_%€");
 
         presenterImpl.saveButtonPressed();
@@ -460,13 +432,14 @@ public class PresenterImplTest {
     }
 
 
-    /*
-     * Private methods
-     */
-
+    //Private methods
     private void initializeAndStartPresenter() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
     }
-
+    private void setupPresenterImpl() {
+        presenterImpl = new PresenterImplConcrete(header);
+        presenterImpl.commonInjector = mockedCommonGinjector;
+        presenterImpl.viewInjector = mockedViewInjector;
+    }
 }

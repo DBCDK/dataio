@@ -21,17 +21,12 @@
 
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
-import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.place.shared.Place;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,48 +43,44 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterEditImplTest {
-    @Mock private ClientFactory mockedClientFactory;
-    @Mock private FlowStoreProxyAsync mockedFlowStoreProxy;
+public class PresenterEditImplTest extends PresenterImplTestBase {
+
     @Mock private Texts mockedTexts;
-    @Mock private ProxyErrorTexts mockedProxyErrorTexts;
-    @Mock private AcceptsOneWidget mockedContainerWidget;
-    @Mock private EventBus mockedEventBus;
     @Mock private EditPlace mockedPlace;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
+    @Mock ViewGinjector mockedViewInjector;
 
-    private EditView editView;
+    private View editView;
 
-    private PresenterEditImpl presenterEditImpl;
+    private PresenterEditImplConcrete presenterEditImpl;
 
     private final static String INPUT_FIELD_VALIDATION_ERROR = "InputFieldValidationError";
     private final static long DEFAULT_FLOWBINDER_ID = 776L;
 
-    class PresenterEditImplConcrete extends PresenterEditImpl {
-        public PresenterEditImplConcrete(Place place, ClientFactory clientFactory) {
-            super(place, clientFactory);
+    class PresenterEditImplConcrete <Place extends EditPlace> extends PresenterEditImpl {
+        public PresenterEditImplConcrete(Place place, String header) {
+            super(place, header);
         }
 
+        public View getView() {
+            return editView;
+        }
         public GetFlowBinderModelFilteredAsyncCallback callback = new GetFlowBinderModelFilteredAsyncCallback();
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
     @Before
-    public void setupMockedObjects() {
-        when(mockedClientFactory.getFlowStoreProxyAsync()).thenReturn(mockedFlowStoreProxy);
-        when(mockedClientFactory.getFlowBinderEditView()).thenReturn(editView);
-        when(mockedClientFactory.getFlowBinderModifyTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+    public void setupView() {
+        editView = new View();  // GwtMockito automagically populates mocked versions of all UiFields in the view
+        when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedViewInjector.getView()).thenReturn(editView);
+        when(mockedViewInjector.getTexts()).thenReturn(mockedTexts);
+        when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedTexts.error_InputFieldValidationError()).thenReturn(INPUT_FIELD_VALIDATION_ERROR);
         when(mockedPlace.getFlowBinderId()).thenReturn(DEFAULT_FLOWBINDER_ID);
-    }
-
-    @Before
-    public void setupView() {
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
+        when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_FlowBinderEdit()).thenReturn("Header Text");
-        editView = new EditView(mockedClientFactory);  // GwtMockito automagically populates mocked versions of all UiFields in the view
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -97,17 +88,16 @@ public class PresenterEditImplTest {
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
+        setupPresenterEditImplConcrete();
         // The instanitation of presenterEditImpl instantiates the "Edit version" of the presenter - and the basic test has been done in the test of PresenterImpl
         // Therefore, we only intend to test the Edit specific stuff, which basically is to assert, that the view attribute has been initialized correctly
 
-        verify(mockedClientFactory).getFlowBinderEditView();
         verify(mockedPlace).getFlowBinderId();
     }
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
+        setupPresenterEditImplConcrete();
         assertThat(presenterEditImpl.model, is(notNullValue()));
         assertThat(presenterEditImpl.model.getName(), is(""));
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);  // Calls initializeModel
@@ -127,15 +117,15 @@ public class PresenterEditImplTest {
         assertThat(presenterEditImpl.model.getSinkModel(), is(notNullValue()));
         assertThat(presenterEditImpl.model.getSinkModel().getSinkName(), is(""));
 
-        verify(mockedFlowStoreProxy).findAllSubmitters(any(PresenterEditImpl.FetchAvailableSubmittersCallback.class));
-        verify(mockedFlowStoreProxy).findAllFlows(any(PresenterEditImpl.FetchAvailableFlowsCallback.class));
-        verify(mockedFlowStoreProxy).findAllSinks(any(PresenterEditImpl.FetchAvailableSinksCallback.class));
-        verify(mockedFlowStoreProxy).getFlowBinder(eq(DEFAULT_FLOWBINDER_ID), any(PresenterEditImpl.GetFlowBinderModelFilteredAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllSubmitters(any(PresenterEditImpl.FetchAvailableSubmittersCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllFlows(any(PresenterEditImpl.FetchAvailableFlowsCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllSinks(any(PresenterEditImpl.FetchAvailableSinksCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).getFlowBinder(eq(DEFAULT_FLOWBINDER_ID), any(PresenterEditImpl.GetFlowBinderModelFilteredAsyncCallback.class));
     }
 
     @Test
     public void saveModel_callSaveModel_updateFlowBinderMethodInFlowStoreCalled() {
-        presenterEditImpl = new PresenterEditImpl(mockedPlace, mockedClientFactory);
+        setupPresenterEditImplConcrete();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_BINDER_MODEL_NAME = "Completely New Flow Binder Model Name";
         FlowBinderModel flowBinderModel = new FlowBinderModel();
@@ -145,13 +135,13 @@ public class PresenterEditImplTest {
         presenterEditImpl.saveModel();
 
         ArgumentCaptor<FlowBinderModel> flowBinderModelArgumentCaptor = ArgumentCaptor.forClass(FlowBinderModel.class);
-        verify(mockedFlowStoreProxy).updateFlowBinder(flowBinderModelArgumentCaptor.capture(), any(PresenterImpl.SaveFlowBinderModelFilteredAsyncCallback.class));
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).updateFlowBinder(flowBinderModelArgumentCaptor.capture(), any(PresenterImpl.SaveFlowBinderModelFilteredAsyncCallback.class));
         assertThat(flowBinderModelArgumentCaptor.getValue().getName(), is(FLOW_BINDER_MODEL_NAME));
     }
 
     @Test
     public void getFlowBinderModelFilteredAsyncCallback_unSuccessfullCalback_errorMessage() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
+        setupPresenterEditImplConcrete();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         ProxyException mockedProxyException = mock(ProxyException.class);
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.ENTITY_NOT_FOUND);
@@ -164,7 +154,7 @@ public class PresenterEditImplTest {
 
     @Test
     public void getFlowBinderModelFilteredAsyncCallback_successfullCalback_modelUpdated() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
+        setupPresenterEditImplConcrete();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
         final String FLOW_BINDER_MODEL_NAME = "New Flow Binder Model Name";
         FlowBinderModel flowBinderModel = new FlowBinderModel();
@@ -177,17 +167,21 @@ public class PresenterEditImplTest {
 
     @Test
     public void deleteFlowBinderModelFilteredAsyncCallback_callback_invoked() {
-        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, mockedClientFactory);
+        setupPresenterEditImplConcrete();
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
 
         presenterEditImpl.deleteModel();
 
         // Verify that the proxy call is invoked... Cannot emulate the callback as the return type is Void
-        verify(mockedFlowStoreProxy).deleteFlowBinder(
+        verify(mockedCommonGinjector.getFlowStoreProxyAsync()).deleteFlowBinder(
                 eq(presenterEditImpl.model.getId()),
                 eq(presenterEditImpl.model.getVersion()),
                 any(PresenterEditImpl.DeleteFlowBinderModelFilteredAsyncCallback.class));
     }
 
-
+    private void setupPresenterEditImplConcrete() {
+        this.presenterEditImpl = new PresenterEditImplConcrete(mockedPlace, header);
+        this.presenterEditImpl.commonInjector = mockedCommonGinjector;
+        this.presenterEditImpl.viewInjector = mockedViewInjector;
+    }
 }

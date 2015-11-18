@@ -35,23 +35,15 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
-import dk.dbc.dataio.gui.client.resources.Resources;
 
 public class ClientFactoryImpl implements ClientFactory {
 
     // Menu texts constants declarations
     private final static dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts proxyErrorTexts = GWT.create(dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts.class);
     private final static dk.dbc.dataio.gui.client.pages.navigation.Texts menuTexts = GWT.create(dk.dbc.dataio.gui.client.pages.navigation.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts flowBindersShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.job.show.Texts jobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts flowComponentsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts flowComponentModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts flowBinderModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.job.modify.Texts jobModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.modify.Texts.class);
     private final static dk.dbc.dataio.gui.client.pages.item.show.Texts itemsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.item.show.Texts.class);
-
-    // Image Resources
-    private final static Resources RESOURCES = GWT.create(Resources.class);
 
     // Event Bus
     private final EventBus eventBus = new SimpleEventBus();
@@ -69,20 +61,12 @@ public class ClientFactoryImpl implements ClientFactory {
     private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
 
     // Views
-    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView flowComponentCreateView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView(this);
-    private final dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView flowComponentEditView = new dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView(this);
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView flowBinderCreateView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView(this);
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView flowBinderEditView = new dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView(this);
     private final dk.dbc.dataio.gui.client.pages.job.modify.EditView jobEditView = new dk.dbc.dataio.gui.client.pages.job.modify.EditView(this);
-
-    private final dk.dbc.dataio.gui.client.pages.flowcomponent.show.View flowComponentsShowView = new dk.dbc.dataio.gui.client.pages.flowcomponent.show.View(this);
     private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.JobsView(this);
     private final dk.dbc.dataio.gui.client.pages.job.show.View testJobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.TestJobsView(this);
-    private final dk.dbc.dataio.gui.client.pages.flowbinder.show.View flowBindersShowView = new dk.dbc.dataio.gui.client.pages.flowbinder.show.View(this);
     private final dk.dbc.dataio.gui.client.pages.item.show.View itemsShowView = new dk.dbc.dataio.gui.client.pages.item.show.View(this);
 
-    public ClientFactoryImpl() {
-    }
+    public ClientFactoryImpl() {}
 
     // Event Bus
     @Override
@@ -130,34 +114,10 @@ public class ClientFactoryImpl implements ClientFactory {
 
 
     // Views
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreateView getFlowComponentCreateView() {
-        return flowComponentCreateView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.EditView getFlowComponentEditView() {
-        return flowComponentEditView;
-    }
 
     @Override
     public dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView() {
         return jobEditView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.CreateView getFlowBinderCreateView() {
-        return flowBinderCreateView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.EditView getFlowBinderEditView() {
-        return flowBinderEditView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.show.View getFlowComponentsShowView() {
-        return flowComponentsShowView;
     }
 
     @Override
@@ -168,11 +128,6 @@ public class ClientFactoryImpl implements ClientFactory {
     @Override
     public dk.dbc.dataio.gui.client.pages.job.show.View getTestJobsShowView() {
         return testJobsShowView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.show.View getFlowBindersShowView() {
-        return flowBindersShowView;
     }
 
     @Override
@@ -195,28 +150,8 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.modify.Texts getFlowComponentModifyTexts() {
-        return flowComponentModifyTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.modify.Texts getFlowBinderModifyTexts() {
-        return flowBinderModifyTexts;
-    }
-
-    @Override
     public dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts() {
         return itemsShowTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts getFlowComponentsShowTexts() {
-        return flowComponentsShowTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts getFlowBindersShowTexts() {
-        return flowBindersShowTexts;
     }
 
     @Override
@@ -228,12 +163,4 @@ public class ClientFactoryImpl implements ClientFactory {
     public dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts getProxyErrorTexts() {
         return proxyErrorTexts;
     }
-
-
-    // Image resources
-    @Override
-    public Resources getImageResources() {
-        return RESOURCES;
-    }
-
 }

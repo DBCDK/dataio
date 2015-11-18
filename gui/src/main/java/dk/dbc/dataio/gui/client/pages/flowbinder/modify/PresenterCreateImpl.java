@@ -22,8 +22,9 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Flowbinder Create
@@ -32,11 +33,24 @@ public class PresenterCreateImpl extends PresenterImpl {
 
     /**
      * Constructor
-     * @param clientFactory, clientFactory
+     * @param header    Breadcrumb header text
      */
-    public PresenterCreateImpl(ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getFlowBinderCreateView();
+    public PresenterCreateImpl(String header) {
+        super(header);
+    }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -55,7 +69,7 @@ public class PresenterCreateImpl extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        flowStoreProxy.createFlowBinder(model, new SaveFlowBinderModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().createFlowBinder(model, new SaveFlowBinderModelFilteredAsyncCallback());
     }
 
     /**

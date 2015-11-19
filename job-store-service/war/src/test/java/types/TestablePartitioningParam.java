@@ -1,11 +1,11 @@
 package types;
 
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
-import dk.dbc.dataio.jobstore.types.Diagnostic;
 
 import java.io.InputStream;
 import java.util.List;

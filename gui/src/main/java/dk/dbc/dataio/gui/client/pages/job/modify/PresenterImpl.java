@@ -38,6 +38,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     // Application Models
     protected JobModel model = new JobModel();
+    protected String header;
+    /**
+     * Constructor
+     * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
+     * Put code, utilizing view in the start method
+     *
+     * @param header    Breadcrumb header text
+     */
+    public PresenterImpl(String header) {
+        this.header = header;
+    }
+
 
     /**
      * start method

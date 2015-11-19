@@ -36,8 +36,8 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      * Constructor
      * @param place     the place
      */
-    public PresenterEditImpl(Place place) {
-        super();
+    public PresenterEditImpl(Place place, String header) {
+        super(header);
         id = place.getJobId();
 //        view.deleteButton.setVisible(true);
     }

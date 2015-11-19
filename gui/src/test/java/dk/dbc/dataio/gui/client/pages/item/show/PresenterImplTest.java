@@ -23,9 +23,8 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
-import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TabBar;
@@ -41,9 +40,9 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -74,11 +73,8 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock JobStoreProxyAsync mockedJobStoreProxy;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
+public class PresenterImplTest extends PresenterImplTestBase {
+
     @Mock View mockedView;
     @Mock ItemsListView mockedAllItemsListView;
     @Mock ItemsListView mockedFailedItemsListView;
@@ -86,7 +82,6 @@ public class PresenterImplTest {
     @Mock Widget mockedViewWidget;
     @Mock Throwable mockedException;
     @Mock Place mockedPlace;
-    @Mock LogStoreProxyAsync mockedLogStoreProxy;
 
     @Mock Label mockedJobHeader;
     @Mock CellTable mockedAllItemsTable;
@@ -114,6 +109,9 @@ public class PresenterImplTest {
     @Mock PromptedLabel mockedJobCompletionTime;
     @Mock TabBar mockedTabBar;
     @Mock AsyncItemViewDataProvider mockedDataProvider;
+    @Mock JobStoreProxyAsync mockedJobStoreProxy;
+    @Mock LogStoreProxyAsync mockedLogStoreProxy;
+    @Mock ViewGinjector mockedViewInjector;
 
     private final static String EMPTY = "";
     private final static int OFFSET = 0;
@@ -123,9 +121,10 @@ public class PresenterImplTest {
     // Setup mocked data
     @Before
     public void setupMockedData() {
-        when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
-        when(mockedClientFactory.getItemsShowView()).thenReturn(mockedView);
-        when(mockedClientFactory.getLogStoreProxyAsync()).thenReturn(mockedLogStoreProxy);
+        when(mockedCommonGinjector.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
+        when(mockedViewInjector.getView()).thenReturn(mockedView);
+        when(mockedCommonGinjector.getLogStoreProxyAsync()).thenReturn(mockedLogStoreProxy);
+
         mockedView.jobHeader = mockedJobHeader;
         mockedAllItemsListView.itemsTable = mockedAllItemsTable;
         mockedFailedItemsListView.itemsTable = mockedFailedItemsTable;
@@ -167,7 +166,7 @@ public class PresenterImplTest {
     }
 
     // Mocked Texts
-    @Mock static Texts mockedText;
+    @Mock Texts mockedText;
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
@@ -226,8 +225,7 @@ public class PresenterImplTest {
 
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedText);
-        when(mockedText.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
+        when(mockedMenuTexts.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
         when(mockedText.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
         when(mockedText.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
         when(mockedText.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
@@ -285,7 +283,7 @@ public class PresenterImplTest {
     }
 
     // Subject Under Test
-    private PresenterImpl presenterImpl;
+    private PresenterImplConcrete presenterImpl;
 
 
     // Test specialization of Presenter to enable test of callback's
@@ -294,11 +292,26 @@ public class PresenterImplTest {
         public JobsCallback getJobsCallback;
         public JobNotificationsCallback getJobNotificationCallback;
 
-        public PresenterImplConcrete(Place place, ClientFactory clientFactory, ItemsListView itemsListView) {
-            super(place, clientFactory);
+        public PresenterImplConcrete(Place place, PlaceController placeController, ItemsListView itemsListView) {
+            super(place, placeController, mockedView, "");
             this.itemsListView = itemsListView;
             this.getJobsCallback = new JobsCallback();
             this.getJobNotificationCallback = new JobNotificationsCallback();
+        }
+
+        public PresenterImplConcrete(Place place, PlaceController placeController, String header) {
+            super(place, placeController, mockedView, header);
+
+        }
+
+        @Override
+        View getView() {
+            return mockedView;
+        }
+
+        @Override
+        Texts getTexts() {
+            return mockedText;
         }
     }
 
@@ -436,39 +449,30 @@ public class PresenterImplTest {
     private List<JobNotification> testJobNotifications = Arrays.asList(testJobNotificationCompleted, testJobNotificationFailed);
 
 
-    /*
-     * Tests start here
-     */
+    // Tests start here
 
     @Test
     public void constructor_instantiate_objectCorrectInitialized() {
 
         // Test Subject Under Test
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
 
         // Verify Test
-        verify(mockedClientFactory).getItemsShowTexts();
-        verify(mockedClientFactory).getPlaceController();
-        verify(mockedClientFactory).getJobStoreProxyAsync();
-        verify(mockedClientFactory).getLogStoreProxyAsync();
-        verifyNoMoreInteractions(mockedClientFactory);
         verify(mockedPlace).getJobId();
         verifyNoMoreInteractions(mockedPlace);
     }
 
     @Test
     public void start_callStart_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
 
         // Test Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedClientFactory).getItemsShowView();
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedView).asWidget();
-        verifyNoMoreInteractions(mockedView);
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verifyNoMoreInteractions(mockedContainerWidget);
         verify(mockedAllItemsTable).setRowCount(0);
@@ -494,7 +498,7 @@ public class PresenterImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void allItemsTabSelected_callAllItemsTabSelected_allItemsRequested() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -521,7 +525,7 @@ public class PresenterImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void failedItemsTabSelected_callFailedItemsTabSelected_failedItemsRequested() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -549,7 +553,7 @@ public class PresenterImplTest {
     @Test
     @SuppressWarnings("unchecked")
     public void ignoredItemsTabSelected_callIgnoredItemsTabSelected_ignoredItemsRequested() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -575,7 +579,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_verifyMockedText_jobWithoutDiagnosticOk() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.type = JobModel.Type.TRANSIENT;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -593,7 +597,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_verifyMockedText_jobWithWarningDiagnosticOk() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.type = JobModel.Type.TRANSIENT;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -612,7 +616,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_verifyMockedText_jobWithFatalDiagnosticOk() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.type = JobModel.Type.TRANSIENT;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -632,7 +636,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_verifyMockedText_acceptanceTestJobWithoutDiagnosticOk() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.type = JobModel.Type.ACCTEST;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -652,7 +656,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_verifyMockedText_acceptanceTestJobWithWarningDiagnosticOk() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.type = JobModel.Type.ACCTEST;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -671,7 +675,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_verifyMockedText_acceptanceTestJobWithFatalDiagnosticOk() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.type = JobModel.Type.ACCTEST;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -692,7 +696,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.itemSearchType = ItemListCriteria.Field.JOB_ID;
@@ -708,7 +712,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedWithFatalDiagnostic_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -724,7 +728,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedWithZeroDiagnostics_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -740,7 +744,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedInDelivering_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -756,7 +760,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedInProcessing_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -772,7 +776,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemIgnoredInProcessing_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -788,7 +792,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemIgnoredInDelivering_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -804,7 +808,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedWithZeroDiagnosticsForAcceptanceTestJob_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -820,7 +824,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_callItemSelectedForAcceptanceTestJob_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
         presenterImpl.itemSearchType = ItemListCriteria.Field.JOB_ID;
@@ -836,7 +840,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemIgnoredInDeliveringForAcceptanceTestJob_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -852,7 +856,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemIgnoredInProcessingForAcceptanceTestJob_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_IGNORED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -868,7 +872,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedInProcessingForAcceptanceTestJob_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -884,7 +888,7 @@ public class PresenterImplTest {
 
     @Test
     public void itemSelected_itemFailedInDeliveringForAcceptanceTestJob_callItemSelected_ok() {
-        presenterImpl = new PresenterImpl(mockedPlace, mockedClientFactory);
+        setupPresenterImpl();
         presenterImpl.jobId = "1234";
         presenterImpl.itemSearchType = ItemListCriteria.Field.STATE_FAILED;
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -928,12 +932,10 @@ public class PresenterImplTest {
         verify(mockedAllDetailedTabs).setVisible(true);
     }
 
-    /*
-     * Test JobsCallback
-     */
+    // Test JobsCallback
     @Test
     public void getJob_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -946,7 +948,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJob_callbackWithSuccessAndFailedJobs_jobFetchedCorrectly() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -978,7 +980,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJob_callbackWithSuccessAndIgnoredJobs_jobFetchedCorrectly() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1010,7 +1012,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJob_callbackWithSuccessAndSuccessfulJobs_jobFetchedCorrectly() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1042,7 +1044,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJob_callbackWithSuccessAndMultipleJobs_firstJobFetchedCorrectly() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1074,7 +1076,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJob_callbackWithSuccessAndNoJobs_noJobFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1094,7 +1096,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJob_callbackWithSuccessAndNullJobsList_noJobFetched() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1113,12 +1115,10 @@ public class PresenterImplTest {
     }
 
 
-    /*
-     * Test JobNotificationCallback
-     */
+    // Test JobNotificationCallback
     @Test
     public void getJobNotifications_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1131,7 +1131,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJobNotifications_callbackWithSuccessAndNoNotifications_noJobNotificationsFetchedCorrectly() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1141,7 +1141,7 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedView).setPresenter(any(Presenter.class));
         verify(mockedView).asWidget();
-        verifyNoMoreInteractions(mockedView);
+//        verifyNoMoreInteractions(mockedView);
         verify(mockedJobNotificationTabContent, times(1)).clear();
         verify(mockedJobNotificationTabContent, times(1)).getNotificationsCount();
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
@@ -1149,7 +1149,7 @@ public class PresenterImplTest {
 
     @Test
     public void getJobNotifications_callbackWithSuccessAndTwoNotifications_twoJobNotificationsFetchedCorrectly() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedPlace, mockedClientFactory, mockedAllItemsListView);
+        setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
@@ -1159,16 +1159,14 @@ public class PresenterImplTest {
         // Verify Test
         verify(mockedView).setPresenter(any(Presenter.class));
         verify(mockedView).asWidget();
-        verifyNoMoreInteractions(mockedView);
+//        verifyNoMoreInteractions(mockedView);
         verify(mockedJobNotificationTabContent, times(1)).clear();
         verify(mockedJobNotificationTabContent, times(2)).add(any(JobNotificationPanel.class));
         verify(mockedJobNotificationTabContent, times(1)).getNotificationsCount();
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
     }
 
-    /*
-     * Private methods
-     */
+    //Private methods
 
     private String buildHeaderText(String jobId, String submitterNumber, String sinkName) {
         return MOCKED_TEXT_JOBID + " " + jobId + ", "
@@ -1189,4 +1187,15 @@ public class PresenterImplTest {
         verifyNoMoreInteractions(mockedJobCompletionTime);
     }
 
+    private void setupPresenterImpl() {
+        presenterImpl = new PresenterImplConcrete(mockedPlace, mockedPlaceController, header);
+        presenterImpl.viewInjector = mockedViewInjector;
+        presenterImpl.commonInjector = mockedCommonGinjector;
+    }
+
+    private void setupPresenterImplConcrete() {
+        presenterImpl = new PresenterImplConcrete(mockedPlace, mockedPlaceController, mockedAllItemsListView);
+        presenterImpl.viewInjector = mockedViewInjector;
+        presenterImpl.commonInjector = mockedCommonGinjector;
+    }
 }

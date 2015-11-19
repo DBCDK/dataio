@@ -21,13 +21,13 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -35,7 +35,8 @@ import java.util.List;
 
 public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
 
-    private JobStoreProxyAsync jobStoreProxy;
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+
     private View view;
     // The 3 Radio Buttons
     JobListCriteria userCriteria = null;
@@ -45,14 +46,13 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private int criteriaIncarnation=0;
     private JobListCriteria currentCriteria = new JobListCriteria();
 
-    public AsyncJobViewDataProvider(ClientFactory clientFactory, View view_) {
-        this(clientFactory, view_, true);
+    public AsyncJobViewDataProvider(View view) {
+        this(view, true);
     }
 
     /* Package scoped Constructor used for unit testing. */
-    AsyncJobViewDataProvider(ClientFactory clientFactory, View view_, Boolean updateUserCriteria) {
-        jobStoreProxy = clientFactory.getJobStoreProxyAsync();
-        view = view_;
+    AsyncJobViewDataProvider(View view, Boolean updateUserCriteria) {
+        this.view = view;
         if (updateUserCriteria) {
             updateUserCriteria();
         }
@@ -128,7 +128,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
         currentCriteria.offset(range.getStart());
 
 
-        jobStoreProxy.listJobs(currentCriteria, new FilteredAsyncCallback<List<JobModel>>() {
+        commonInjector.getJobStoreProxyAsync().listJobs(currentCriteria, new FilteredAsyncCallback<List<JobModel>>() {
                     // protection against old calls updating the view with old data.
                     int criteriaIncarnationOnRequestCall=criteriaIncarnation;
                     int offsetOnRequestCall = currentCriteria.getOffset();
@@ -160,7 +160,7 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
      *
      */
     public void updateCount()  {
-        jobStoreProxy.countJobs(currentCriteria, new FilteredAsyncCallback<Long>() {
+        commonInjector.getJobStoreProxyAsync().countJobs(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
             int criteriaIncarnationOnCall=criteriaIncarnation;
 

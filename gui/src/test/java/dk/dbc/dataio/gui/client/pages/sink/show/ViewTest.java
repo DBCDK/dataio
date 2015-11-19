@@ -27,7 +27,6 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +53,6 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
     @Mock Presenter mockedPresenter;
-    @Mock ClientFactory mockedClientFactory;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock static ClickEvent mockedClickEvent;
     @Mock private ViewGinjector mockedViewGinjector;
@@ -90,11 +88,8 @@ public class ViewTest {
 
     @Before
     public void setupMockedTextsBehaviour() {
-//        when(mockedClientFactory.getSinksShowTexts()).thenReturn(mockedTexts);
         when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
-        when(mockedClientFactory.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedMenuTexts.menu_Sinks()).thenReturn("Header Text");
-
         when(mockedTexts.label_Sinks()).thenReturn(MOCKED_LABEL_SINKS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);

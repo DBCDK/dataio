@@ -34,7 +34,6 @@ import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 
 /**
@@ -42,6 +41,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 */
 public class View extends ViewWidget {
 
+    ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private boolean dataHasNotYetBeenLoaded = true;
@@ -61,25 +61,18 @@ public class View extends ViewWidget {
         NOT_DONE, DONE_WITH_ERROR, DONE_WITHOUT_ERROR
     }
 
-
-    /**
-     * Default constructor
-     *
-     * @param clientFactory, the client factory
-     * @param headerText, the text to display in the header
-     */
-    public View(ClientFactory clientFactory, String headerText) {
-        this(clientFactory, headerText, true, true);
+    public View() {
+        this("", true, true);
         dataProvider.addDataDisplay(jobsTable);
     }
 
     /* Package scoped Constructor used for unit testing. */
-    View(ClientFactory clientFactory, String headerText, Boolean setupColumns, Boolean updateUserCriteria) {
-        super(clientFactory, headerText);
+    View(String headerText, Boolean setupColumns, Boolean updateUserCriteria) {
+        super(headerText);
         if( setupColumns ) {
             setupColumns();
         }
-        dataProvider = new AsyncJobViewDataProvider(clientFactory, this, updateUserCriteria);
+        dataProvider = new AsyncJobViewDataProvider(this, updateUserCriteria);
     }
 
 
@@ -117,6 +110,7 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     void setupColumns() {
+        Texts texts = getTexts();
         jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
@@ -299,7 +293,7 @@ public class View extends ViewWidget {
         ButtonCell rerunButtonCell = new ButtonCell();
         Column<JobModel,String> rerunButtonColumn = new Column<JobModel,String>(rerunButtonCell) {
             public String getValue(JobModel object) {
-                return texts.button_RerunJob();
+                return getTexts().button_RerunJob();
             }
         };
 
@@ -316,6 +310,10 @@ public class View extends ViewWidget {
         return rerunButtonColumn;
     }
 
+    Texts getTexts() {
+        return viewInjector.getTexts();
+
+    }
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.

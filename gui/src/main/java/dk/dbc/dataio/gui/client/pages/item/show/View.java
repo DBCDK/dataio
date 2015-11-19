@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -30,7 +31,6 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 import java.util.List;
 
@@ -39,6 +39,8 @@ import java.util.List;
  * This class is the View class for the Items Show View
  */
 public class View extends ViewWidget {
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     class Context {
         SingleSelectionModel<ItemModel> selectionModel = new SingleSelectionModel<>();
@@ -55,14 +57,9 @@ public class View extends ViewWidget {
     Context ignoredContext = new Context(ignoredItemsList);
     public AsyncItemViewDataProvider dataProvider;
 
-    /**
-     * Default constructor
-     *
-     * @param clientFactory, the client factory
-     */
-    public View(ClientFactory clientFactory) {
-        super(clientFactory);
-        dataProvider = new AsyncItemViewDataProvider(clientFactory,this);
+    public View() {
+        super("");
+        dataProvider = new AsyncItemViewDataProvider(this);
         setupColumns(allItemsList);
         dataProvider.addDataDisplay(allItemsList.itemsTable);
         setupColumns(failedItemsList);
@@ -75,10 +72,10 @@ public class View extends ViewWidget {
     /*
      * Package scoped Constructor used for unit testing.
      */
-    View(ClientFactory clientFactory, Boolean setupColumns) {
-        super(clientFactory);
+    View(Boolean setupColumns) {
+        super("");
 
-        dataProvider = new AsyncItemViewDataProvider(clientFactory, this);
+        dataProvider = new AsyncItemViewDataProvider(this);
         if(setupColumns) {
             setupColumns(allItemsList);
             setupColumns(failedItemsList);
@@ -142,16 +139,16 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     void setupColumns(final ItemsListView listView) {
-        listView.itemsTable.addColumn(constructItemColumn(), texts.column_Item());
-        listView.itemsTable.addColumn(constructStatusColumn(), texts.column_Status());
+        listView.itemsTable.addColumn(constructItemColumn(), getTexts().column_Item());
+        listView.itemsTable.addColumn(constructStatusColumn(), getTexts().column_Status());
         listView.itemsTable.setVisibleRange(0, 20);
         listView.itemsPager.setDisplay(listView.itemsTable);
     }
 
     @SuppressWarnings("unchecked")
     void setupColumns(final JobDiagnosticTabContent jobDiagnosticTabContent) {
-        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticLevelColumn(), texts.column_Level());
-        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticMessageColumn(), texts.column_Message());
+        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticLevelColumn(), getTexts().column_Level());
+        jobDiagnosticTabContent.jobDiagnosticTable.addColumn(constructDiagnosticMessageColumn(), getTexts().column_Message());
     }
 
     Column constructDiagnosticLevelColumn() {
@@ -183,7 +180,7 @@ public class View extends ViewWidget {
         return new TextColumn<ItemModel>() {
             @Override
             public String getValue(ItemModel model) {
-                return texts.text_Item() + " " + model.getItemNumber();
+                return getTexts().text_Item() + " " + model.getItemNumber();
             }
         };
     }
@@ -206,15 +203,15 @@ public class View extends ViewWidget {
     private String formatStatus(ItemModel.LifeCycle lifeCycle) {
         switch (lifeCycle) {
             case PARTITIONING:
-                return texts.lifecycle_Partitioning();
+                return getTexts().lifecycle_Partitioning();
             case PROCESSING:
-                return texts.lifecycle_Processing();
+                return getTexts().lifecycle_Processing();
             case DELIVERING:
-                return texts.lifecycle_Delivering();
+                return getTexts().lifecycle_Delivering();
             case DONE:
-                return texts.lifecycle_Done();
+                return getTexts().lifecycle_Done();
             default:
-                return texts.lifecycle_Unknown();
+                return getTexts().lifecycle_Unknown();
         }
     }
 
@@ -237,4 +234,7 @@ public class View extends ViewWidget {
         }
     }
 
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
 }

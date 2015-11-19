@@ -31,5 +31,6 @@ public class ViewModule extends AbstractGinModule {
     @Override
     protected void configure() {
         bind(View.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
     }
 }

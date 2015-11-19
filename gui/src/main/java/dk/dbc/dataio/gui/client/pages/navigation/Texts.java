@@ -83,5 +83,8 @@ public interface Texts extends Constants {
     String menu_JobEdit();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_Items();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_Ftp();
 }

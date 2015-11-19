@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
-import dk.dbc.dataio.gui.util.ClientFactory;
+import com.google.gwt.place.shared.PlaceController;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -32,11 +32,12 @@ public class PresenterJobsImpl extends PresenterImpl {
     /**
      * Default constructor
      *
-     * @param clientFactory The client factory to be used
+     * @param placeController   PlaceController for navigation
+     * @param globalJobsView    Global Jobs View, necessary for keeping filter state etc.
+     * @param header            Breadcrumb header text
      */
-    public PresenterJobsImpl(ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getJobsShowView();
+    public PresenterJobsImpl(PlaceController placeController, View globalJobsView, String header) {
+        super(placeController, globalJobsView, header);
     }
 
     /**
@@ -49,6 +50,6 @@ public class PresenterJobsImpl extends PresenterImpl {
         JobListCriteria criteria=new JobListCriteria()
                 .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
                 .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
-        view.dataProvider.setBaseCriteria( criteria );
+        getView().dataProvider.setBaseCriteria( criteria );
     }
 }

@@ -27,21 +27,10 @@ import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.places.DataioPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.LogStoreProxy;
-import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 
 public class ClientFactoryImpl implements ClientFactory {
 
-    // Menu texts constants declarations
-    private final static dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts proxyErrorTexts = GWT.create(dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts.class);
-    private final static dk.dbc.dataio.gui.client.pages.navigation.Texts menuTexts = GWT.create(dk.dbc.dataio.gui.client.pages.navigation.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.job.show.Texts jobsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.show.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.job.modify.Texts jobModifyTexts = GWT.create(dk.dbc.dataio.gui.client.pages.job.modify.Texts.class);
-    private final static dk.dbc.dataio.gui.client.pages.item.show.Texts itemsShowTexts = GWT.create(dk.dbc.dataio.gui.client.pages.item.show.Texts.class);
+    private GlobalViewsFactory globalViewFactory = new GlobalViewsFactory();
 
     // Event Bus
     private final EventBus eventBus = new SimpleEventBus();
@@ -52,18 +41,12 @@ public class ClientFactoryImpl implements ClientFactory {
     // History Mapper
     private final AppPlaceHistoryMapper historyMapper = GWT.create(AppPlaceHistoryMapper.class);
 
-    // Proxies
-    private final FlowStoreProxyAsync flowStoreProxyAsync = FlowStoreProxy.Factory.getAsyncInstance();
-    private final JobStoreProxyAsync jobStoreProxyAsync = JobStoreProxy.Factory.getAsyncInstance();
-    private final LogStoreProxyAsync logStoreProxyAsync = LogStoreProxy.Factory.getAsyncInstance();
-
-    // Views
-    private final dk.dbc.dataio.gui.client.pages.job.modify.EditView jobEditView = new dk.dbc.dataio.gui.client.pages.job.modify.EditView(this);
-    private final dk.dbc.dataio.gui.client.pages.job.show.View jobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.JobsView(this);
-    private final dk.dbc.dataio.gui.client.pages.job.show.View testJobsShowView = new dk.dbc.dataio.gui.client.pages.job.show.TestJobsView(this);
-    private final dk.dbc.dataio.gui.client.pages.item.show.View itemsShowView = new dk.dbc.dataio.gui.client.pages.item.show.View(this);
-
     public ClientFactoryImpl() {}
+
+    @Override
+    public GlobalViewsFactory getGlobalViewsFactory() {
+        return globalViewFactory;
+    }
 
     // Event Bus
     @Override
@@ -86,73 +69,5 @@ public class ClientFactoryImpl implements ClientFactory {
     // getPresenter
     public com.google.gwt.activity.shared.Activity getPresenter(DataioPlace place) {
         return place.createPresenter(this);
-    }
-
-    // Proxies
-    @Override
-    public FlowStoreProxyAsync getFlowStoreProxyAsync() {
-        return flowStoreProxyAsync;
-    }
-
-    @Override
-    public JobStoreProxyAsync getJobStoreProxyAsync() {
-        return jobStoreProxyAsync;
-    }
-
-    @Override
-    public LogStoreProxyAsync getLogStoreProxyAsync() {
-        return logStoreProxyAsync;
-    }
-
-
-    // Views
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView() {
-        return jobEditView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView() {
-        return jobsShowView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.job.show.View getTestJobsShowView() {
-        return testJobsShowView;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.item.show.View getItemsShowView() {
-        return itemsShowView;
-    }
-
-
-    // Menu text
-    @Override
-    public dk.dbc.dataio.gui.client.pages.navigation.Texts getMenuTexts() {
-        return menuTexts;
-    }
-
-
-    // Texts
-    @Override
-    public dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts() {
-        return jobModifyTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts() {
-        return itemsShowTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts() {
-        return jobsShowTexts;
-    }
-
-    @Override
-    public dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts getProxyErrorTexts() {
-        return proxyErrorTexts;
     }
 }

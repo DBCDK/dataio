@@ -26,9 +26,6 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
 import dk.dbc.dataio.gui.client.places.DataioPlace;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 
 /**
  * Provides access to common objects across the application including:
@@ -37,32 +34,15 @@ import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
  * - any RPC proxies.
  */
 public interface ClientFactory {
+
+    // Factory for Global Views
+    GlobalViewsFactory getGlobalViewsFactory();
+
     // Event Bus
     EventBus getEventBus();
 
     // Place Controller
     PlaceController getPlaceController();
     Activity getPresenter(DataioPlace place);
-
-    // Proxies
-    FlowStoreProxyAsync getFlowStoreProxyAsync();
-    JobStoreProxyAsync getJobStoreProxyAsync();
-    LogStoreProxyAsync getLogStoreProxyAsync();
-
-    // Views
-    dk.dbc.dataio.gui.client.pages.job.modify.EditView getJobEditView();
-    dk.dbc.dataio.gui.client.pages.job.show.View getJobsShowView();
-    dk.dbc.dataio.gui.client.pages.job.show.View getTestJobsShowView();
-    dk.dbc.dataio.gui.client.pages.item.show.View getItemsShowView();
-
-    // Menu text
-    dk.dbc.dataio.gui.client.pages.navigation.Texts getMenuTexts();
-
-    // Texts
-    dk.dbc.dataio.gui.client.pages.job.modify.Texts getJobModifyTexts();
-    dk.dbc.dataio.gui.client.pages.item.show.Texts getItemsShowTexts();
-    dk.dbc.dataio.gui.client.pages.job.show.Texts getJobsShowTexts();
-    dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts getProxyErrorTexts();
-
     AppPlaceHistoryMapper getHistoryMapper();
 }

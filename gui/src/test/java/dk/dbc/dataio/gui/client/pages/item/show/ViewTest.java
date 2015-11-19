@@ -37,7 +37,6 @@ import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,7 +61,8 @@ import static org.mockito.Mockito.when;
 */
 @RunWith(GwtMockitoTestRunner.class)
 public class ViewTest {
-    @Mock ClientFactory mockedClientFactory;
+
+    @Mock ViewGinjector mockedViewInjector;
     @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
@@ -87,6 +87,7 @@ public class ViewTest {
      * itemsPager and detailedTabs.
      * This is done in the following:
      */
+
     @GwtMock ItemsListView mockedItemsList;
     @Mock CellTable mockedItemsTable;
     @GwtMock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
@@ -103,10 +104,11 @@ public class ViewTest {
 
 
     // Subject Under Test
-    private View view;
+    private ConcreteView view;
 
     // Mocked Texts
-    @Mock static Texts mockedTexts;
+    @Mock Texts mockedTexts;
+    @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuItems;
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
     final static String MOCKED_COLUMN_LEVEL = "Mocked Diagnostic level";
@@ -125,8 +127,7 @@ public class ViewTest {
     final static String MOCKED_LIFECYCLE_UNKNOWN = "Mocked Ukendt Lifecycle";
     @Before
     public void setupMockedTextsBehaviour() {
-        when(mockedClientFactory.getItemsShowTexts()).thenReturn(mockedTexts);
-        when(mockedTexts.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
+        when(mockedMenuItems.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
         when(mockedTexts.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
         when(mockedTexts.column_Message()).thenReturn(MOCKED_COLUMN_MESSAGE);
         when(mockedTexts.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
@@ -145,14 +146,13 @@ public class ViewTest {
     }
 
 
-    /*
-     * Testing starts here...
-     */
+    // Testing starts here...
     @Test
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
+
         // Subject Under Test
-        view = new View(mockedClientFactory, false);
+        setupView();
         view.setupColumns(mockedItemsList);
         view.setupColumns(mockedJobDiagnosticTabContent);
 
@@ -165,42 +165,10 @@ public class ViewTest {
         verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_MESSAGE));
     }
 
-//    @Test
-//    public void enableSelection_enableSelectionTrue_selectionEnabled() {
-//        // Test setup
-//        view = new View(mockedClientFactory, false);
-//        Context context = new Context(mockedItemsList);
-//        context.selectionModel = mockedSelectionModel;
-//
-//        // Subject Under Test
-//        view.enableSelection(true, context);
-//
-//        // Verification
-//        assertThat(context.listView, is(mockedItemsList));
-//        assertThat(context.selectionModel, is(not(nullValue())));
-//        verify(mockedSelectionModel).addSelectionChangeHandler(any(View.SelectionChangeHandlerClass.class));
-//        verify(mockedItemsList.itemsTable).setSelectionModel(context.selectionModel);
-//    }
-//
-//    @Test
-//    public void enableSelection_enableSelectionFalse_selectionDisabled() {
-//        // Test setup
-//        view = new View(mockedClientFactory, false);
-//        Context context = new Context(mockedItemsList);
-//        context.handlerRegistration = mockedHandlerRegistration;
-//
-//        // Subject Under Test
-//        view.enableSelection(false, context);
-//
-//        // Verification
-//        verify(mockedHandlerRegistration).removeHandler();
-//        verify(mockedItemsList.itemsTable).setSelectionModel(null);
-//    }
-
     @Test
     public void setSelectionEnabled_setSelectionEnabled_selectionsEnabled() {
         // Test setup
-        view = new View(mockedClientFactory, false);
+        setupView();
 
         // Subject Under Test
         view.setSelectionEnabled(true);
@@ -215,17 +183,23 @@ public class ViewTest {
         Context context = new Context(mockedItemsList);
         SelectionChangeHandlerClass selectionChangeHandler = new SelectionChangeHandlerClass(context);
 
-        public ConcreteView(ClientFactory clientFactory) {
-            super(clientFactory, false);
+        public ConcreteView() {
+            super(false);
+            this.viewInjector = mockedViewInjector;
             context.handlerRegistration = mockedHandlerRegistration;
             context.selectionModel = mockedSelectionModel;
+        }
+
+        @Override
+        Texts getTexts() {
+            return mockedTexts;
         }
     }
 
     @Test
     public void selectionChangeHandlerClass_callEventHandler_verify() {
         // Test setup
-        ConcreteView concreteView = new ConcreteView(mockedClientFactory);
+        ConcreteView concreteView = setupViewConcrete();
         when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedItemModel);
         concreteView.setPresenter(mockedPresenter);
 
@@ -236,10 +210,11 @@ public class ViewTest {
         verify(mockedPresenter).itemSelected(mockedItemsList, mockedItemModel);
     }
 
+
     @Test
     public void selectionChangeHandlerClass_callEventHandlerWithEmptySelection_verifyNoSelectionSetToPresenter() {
         // Test setup
-        ConcreteView concreteView = new ConcreteView(mockedClientFactory);
+        ConcreteView concreteView = setupViewConcrete();
         when(mockedSelectionModel.getSelectedObject()).thenReturn(null);
         concreteView.setPresenter(mockedPresenter);
 
@@ -254,7 +229,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructItemColumn_call_correctlySetup() {
         // Test setup
-        view = new View(mockedClientFactory, false);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructItemColumn();
@@ -266,7 +241,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructStatusColumn_call_correctlySetup() {
-        view = new View(mockedClientFactory, false);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructStatusColumn();
@@ -279,7 +254,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructDiagnosticLevelColumn_call_correctlySetup() {
         // Test setup
-        view = new View(mockedClientFactory, false);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructDiagnosticLevelColumn();
@@ -292,7 +267,7 @@ public class ViewTest {
     @SuppressWarnings("unchecked")
     public void constructDiagnosticMessageColumn_call_correctlySetup() {
         // Test setup
-        view = new View(mockedClientFactory, false);
+        setupView();
 
         // Subject Under Test
         Column column = view.constructDiagnosticMessageColumn();
@@ -301,4 +276,11 @@ public class ViewTest {
         assertThat((String) column.getValue(diagnosticModel), is(diagnosticModel.getMessage()));
     }
 
+    private ConcreteView setupViewConcrete() {
+        return new ConcreteView();
+    }
+    private void setupView() {
+        view = new ConcreteView();
+        view.viewInjector = mockedViewInjector;
+    }
 }

@@ -27,7 +27,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class AsyncJobViewDataProviderTest {
 
-    @Mock ClientFactory mockedClientFactory;
+    @Mock CommonGinjector mockedCommonInjector;
     @Mock View mockedView;
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
     @Mock SingleSelectionModel<JobModel> mockedSelectionModel;
@@ -58,7 +58,7 @@ public class AsyncJobViewDataProviderTest {
 
     @Before
     public void setUp() throws Exception {
-        when(mockedClientFactory.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
+        when(mockedCommonInjector.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
         mockedView.selectionModel = mockedSelectionModel;
         mockedView.jobFilter = mockedJobFilter;
         mockedView.processingFailedJobsButton = mockedProcessingFailedJobsButton;
@@ -68,13 +68,13 @@ public class AsyncJobViewDataProviderTest {
 
     @Test
     public void InitialSetup() throws Exception {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory, mockedView);
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView);
     }
 
     @Test
     public void testSetBaseCriteria() throws Exception {
 
-        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory, mockedView);
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView);
 
         JobListCriteria criteria = new JobListCriteria()
                  .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
@@ -103,7 +103,7 @@ public class AsyncJobViewDataProviderTest {
 
     @Test
     public void testUpdateUserCriteria_initialSearch_allJobsRequested() throws Exception {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory, mockedView );
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView );
         when(mockedJobFilter.getValue()).thenReturn(new JobListCriteria());
 
         objectUnderTest.updateUserCriteria();
@@ -111,12 +111,10 @@ public class AsyncJobViewDataProviderTest {
         verify(mockedView, times(0)).refreshJobsTable();
     }
 
-    /*
-     * Private methods
-     */
+    // Private methods
 
     private void genericUpdateUserCriteriaAssertSearchType(RadioButton radioButton, JobListCriteria.Field field) {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedClientFactory, mockedView );
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView );
         when(mockedJobFilter.getValue()).thenReturn(new JobListCriteria());
         when(radioButton.getValue()).thenReturn(true);
         objectUnderTest.updateUserCriteria();

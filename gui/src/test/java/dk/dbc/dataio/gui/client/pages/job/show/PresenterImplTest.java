@@ -23,17 +23,14 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 
-import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
-import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.TextBox;
-import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Before;
@@ -56,22 +53,19 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PresenterImplTest {
-    @Mock ClientFactory mockedClientFactory;
-    @Mock PlaceController mockedPlaceController;
-    @Mock AcceptsOneWidget mockedContainerWidget;
-    @Mock EventBus mockedEventBus;
+public class PresenterImplTest extends PresenterImplTestBase {
+
+    @Mock JobStoreProxyAsync mockedJobStore;
     @Mock View mockedView;
-    @Mock Widget mockedViewWidget;
+    @Mock ViewJobsGinjector mockedViewInjector;
     @Mock Throwable mockedException;
     @Mock SingleSelectionModel<JobModel> mockedSingleSelectionModel;
     @Mock AsyncJobViewDataProvider mockedAsyncJobViewDataProvider;
     @Mock CellTable mockedJobsTable;
     @Mock TextBox mockedJobIdInputField;
-    @Mock JobStoreProxyAsync mockedJobStoreProxy;
 
     // Mocked Texts
-    @Mock static Texts mockedText;
+    @Mock Texts mockedText;
     final static String MOCKED_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     final static String MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     final static String MOCKED_JOB_NOT_FOUND_ERROR = "mocked error_JobNotFound()";
@@ -80,31 +74,30 @@ public class PresenterImplTest {
     // Setup mocked data
     @Before
     public void setupMockedData() {
-        when(mockedClientFactory.getPlaceController()).thenReturn(mockedPlaceController);
-        when(mockedClientFactory.getJobsShowView()).thenReturn(mockedView);
-        when(mockedView.asWidget()).thenReturn(mockedViewWidget);
-
+        when(mockedCommonGinjector.getJobStoreProxyAsync()).thenReturn(mockedJobStore);
+        when(mockedViewInjector.getView()).thenReturn(mockedView);
+        when(mockedView.getTexts()).thenReturn(mockedText);
+        when(mockedViewInjector.getTexts()).thenReturn(mockedText);
         mockedView.selectionModel = mockedSingleSelectionModel;
         mockedView.dataProvider = mockedAsyncJobViewDataProvider;
         mockedView.jobsTable = mockedJobsTable;
         mockedView.jobIdInputField = mockedJobIdInputField;
-
-        mockedView.texts = mockedText;
         when(mockedText.error_InputFieldValidationError()).thenReturn(MOCKED_INPUT_FIELD_VALIDATION_ERROR);
         when(mockedText.error_NumericInputFieldValidationError()).thenReturn(MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR);
         when(mockedText.error_JobNotFound()).thenReturn(MOCKED_JOB_NOT_FOUND_ERROR);
     }
 
     // Subject Under Test
-    private PresenterImpl presenterImpl;
+    private PresenterImplConcrete presenterImpl;
 
 
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
         public CountExistingJobsWithJobIdCallBack getJobCountCallback;
-        public PresenterImplConcrete(ClientFactory clientFactory) {
-            super(clientFactory);
-            view = mockedView;
+        public PresenterImplConcrete(PlaceController placeController, String header) {
+            super(placeController, mockedView, header);
+//            this.viewInjector = mockedViewInjector;
+            this.commonInjector = mockedCommonGinjector;
             this.getJobCountCallback = new CountExistingJobsWithJobIdCallBack();
         }
 
@@ -115,7 +108,12 @@ public class PresenterImplTest {
                      .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
                      .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
 
-            view.dataProvider.setBaseCriteria( criteria );
+            getView().dataProvider.setBaseCriteria( criteria );
+        }
+
+        @Override
+        View getView() {
+            return mockedView;
         }
     }
 
@@ -123,27 +121,29 @@ public class PresenterImplTest {
     public void constructor_instantiate_objectCorrectInitialized() {
 
         // Test Subject Under Test
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+        setupPresenter();
 
-        // Verify Test
-        verify(mockedClientFactory).getJobStoreProxyAsync();
     }
 
     @Test
     public void start_callStart_ok() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
 
         // Test Subject Under Test
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
         verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedContainerWidget).setWidget(mockedViewWidget);
+//        verify(mockedContainerWidget).setWidget(mockedViewWidget);
     }
 
     @Test
     public void filterJobs_updateSelectedJobs() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Subject under test
@@ -158,7 +158,9 @@ public class PresenterImplTest {
 
     @Test
     public void showJob_jobIdInputFieldIsEmpty_errorMessageInView() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedJobIdInputField.getValue()).thenReturn("");
@@ -168,12 +170,14 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedView).setErrorText(MOCKED_INPUT_FIELD_VALIDATION_ERROR);
-        verify(mockedJobStoreProxy, times(0)).countJobs(any(JobListCriteria.class), any(PresenterImpl.CountExistingJobsWithJobIdCallBack.class));
+        verify(mockedCommonGinjector.getJobStoreProxyAsync(), times(0)).countJobs(any(JobListCriteria.class), any(PresenterImpl.CountExistingJobsWithJobIdCallBack.class));
     }
 
     @Test
     public void showJob_jobIdInputFieldContainsNoneNumericValue_errorMessageInView() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedJobIdInputField.getValue()).thenReturn("test123");
@@ -183,27 +187,31 @@ public class PresenterImplTest {
 
         // Verify Test
         verify(mockedView).setErrorText(MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR);
-        verify(mockedJobStoreProxy, times(0)).countJobs(any(JobListCriteria.class), any(PresenterImpl.CountExistingJobsWithJobIdCallBack.class));
+        verify(mockedCommonGinjector.getJobStoreProxyAsync(), times(0)).countJobs(any(JobListCriteria.class), any(PresenterImpl.CountExistingJobsWithJobIdCallBack.class));
     }
 
     @Test
     public void showJob_jobIdInputFieldContainsValidJobId_countJobsCalled() {
-        presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedJobIdInputField.getValue()).thenReturn("140");
-        presenterImpl.jobStoreProxy = mockedJobStoreProxy;
+//        presenterImpl.jobStoreProxy = mockedJobStoreProxy;
 
         // Subject under test
         presenterImpl.showJob();
 
         // Verify Test
-        verify(mockedJobStoreProxy).countJobs(any(JobListCriteria.class), any(PresenterImpl.CountExistingJobsWithJobIdCallBack.class));
+        verify(mockedCommonGinjector.getJobStoreProxyAsync()).countJobs(any(JobListCriteria.class), any(PresenterImpl.CountExistingJobsWithJobIdCallBack.class));
     }
 
     @Test
     public void showJob_callbackWithError_errorMessageInView() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -216,7 +224,9 @@ public class PresenterImplTest {
 
     @Test
     public void showJob_callbackWithSuccess_JobNotFound() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -229,7 +239,9 @@ public class PresenterImplTest {
 
     @Test
     public void showJob_callbackWithSuccess_jobFound() {
-        PresenterImplConcrete presenterImpl = new PresenterImplConcrete(mockedClientFactory);
+
+        // Setup
+        setupPresenter();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
@@ -240,4 +252,9 @@ public class PresenterImplTest {
         verify(mockedPlaceController).goTo(any(dk.dbc.dataio.gui.client.pages.item.show.Place.class));
     }
 
+    private void setupPresenter() {
+        presenterImpl = new PresenterImplConcrete(mockedPlaceController, header);
+//        presenterImpl.viewInjector = mockedViewInjector;
+        presenterImpl.commonInjector = mockedCommonGinjector;
+    }
 }

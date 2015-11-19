@@ -40,7 +40,6 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
@@ -53,7 +52,15 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
-    protected Texts texts;
+    /**
+     * Default constructor
+     * @param headerText, the text for the header in the view
+     */
+    public ViewWidget(String headerText) {
+        super(headerText);
+        add(uiBinder.createAndBindUi(this));
+        this.allJobsButton.setValue(true);
+    }
 
     // UI Fields
     @UiField CellTable jobsTable;
@@ -106,16 +113,5 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         }
     }
 
-    /**
-     * Default constructor
-     * @param clientFactory, the client factory
-     * @param headerText, the text for the header in the view
-     */
-    public ViewWidget(ClientFactory clientFactory, String headerText) {
-        super(headerText);
-        texts = clientFactory.getJobsShowTexts();
-        add(uiBinder.createAndBindUi(this));
-        this.allJobsButton.setValue(true);
-    }
 
 }

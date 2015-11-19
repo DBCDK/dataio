@@ -51,7 +51,11 @@ public class Place extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(this, clientFactory);
+        return new PresenterImpl(
+                this,
+                clientFactory.getPlaceController(),
+                clientFactory.getGlobalViewsFactory().getItemsView(),
+                commonInjector.getMenuTexts().menu_Items());
     }
 
     @Prefix("ShowItems")

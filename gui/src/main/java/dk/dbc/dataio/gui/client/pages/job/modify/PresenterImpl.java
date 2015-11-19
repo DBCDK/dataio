@@ -22,37 +22,32 @@
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 /**
  * Abstract Presenter Implementation Class for Submitter Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected final Texts texts;
-    protected final FlowStoreProxyAsync flowStoreProxy;
-    protected final ProxyErrorTexts proxyErrorTexts;
-    protected View view;
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     // Application Models
     protected JobModel model = new JobModel();
-
-
+    private String header;
     /**
      * Constructor
      * Please note, that in the constructor, view has NOT been initialized and can therefore not be used
      * Put code, utilizing view in the start method
      *
-     * @param clientFactory, clientFactory
+     * @param header    Breadcrumb header text
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        texts = clientFactory.getJobModifyTexts();
-        proxyErrorTexts = clientFactory.getProxyErrorTexts();
-        flowStoreProxy = clientFactory.getFlowStoreProxyAsync();
+    public PresenterImpl(String header) {
+        this.header = header;
     }
 
 
@@ -66,8 +61,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         initializeViewFields();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setPresenter(this);
+        containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
 
@@ -157,6 +152,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Protected methods
      */
 
+    View getView(){
+        return viewInjector.getView();
+    }
     /**
      * Method used to set the model after a successful update or a save
      * @param model The model to save

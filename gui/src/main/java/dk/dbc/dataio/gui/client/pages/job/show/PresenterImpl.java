@@ -22,14 +22,14 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -38,19 +38,25 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 * This class represents the show jobs presenter implementation
 */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    protected View view;
-    protected JobStoreProxyAsync jobStoreProxy;
+
+//    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    View globalJobsView;
     private PlaceController placeController;
     private String jobId;
+    private String header;
 
     /**
      * Default constructor
      *
-     * @param clientFactory The client factory to be used
+     * @param placeController   PlaceController for navigation
+     * @param globalJobsView    Global Jobs View, necessary for keeping filter state etc.
+     * @param header            Breadcrumb header text
      */
-    public PresenterImpl(ClientFactory clientFactory) {
-        placeController = clientFactory.getPlaceController();
-        jobStoreProxy = clientFactory.getJobStoreProxyAsync();
+    public PresenterImpl(PlaceController placeController, View globalJobsView, String header) {
+        this.placeController = placeController;
+        this.globalJobsView = globalJobsView;
+        this.header = header;
     }
 
     /*
@@ -68,8 +74,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setPresenter(this);
+        getView().setHeader(this.header);
+        containerWidget.setWidget(getView().asWidget());
         updateBaseQuery();
     }
 
@@ -84,6 +91,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void updateSelectedJobs() {
+        View view = getView();
         view.selectionModel.clear();
         view.dataProvider.updateUserCriteria();
         view.dataProvider.updateCurrentCriteria();
@@ -93,7 +101,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void refresh() {
-        view.refreshJobsTable();
+        getView().refreshJobsTable();
     }
 
     /**
@@ -101,7 +109,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void showJob() {
-        this.jobId = view.jobIdInputField.getValue().trim();
+        this.jobId = getView().jobIdInputField.getValue().trim();
         if(isJobIdValid()) {
             countExistingJobsWithJobId();
         }
@@ -115,6 +123,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Private methods
      */
 
+    View getView() {
+        return this.globalJobsView;
+    }
 
     /**
      * validates if the job id is in a valid format (not empty and numeric)
@@ -122,7 +133,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     private boolean isJobIdValid() {
         if(jobId.isEmpty()) {
-            view.setErrorText(view.texts.error_InputFieldValidationError());
+            getView().setErrorText(getView().getTexts().error_InputFieldValidationError());
             return false;
         }
         return isJobIdValidNumber();
@@ -136,7 +147,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         try {
             Long.valueOf(jobId);
         } catch (NumberFormatException e) {
-            view.setErrorText(view.texts.error_NumericInputFieldValidationError());
+            getView().setErrorText(getView().getTexts().error_NumericInputFieldValidationError());
             return false;
         }
         return true;
@@ -151,7 +162,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 ListFilter.Op.EQUAL,
                 Long.valueOf(jobId).intValue()));
 
-        jobStoreProxy.countJobs(jobListCriteria, new CountExistingJobsWithJobIdCallBack());
+        commonInjector.getJobStoreProxyAsync().countJobs(jobListCriteria, new CountExistingJobsWithJobIdCallBack());
     }
 
 
@@ -169,18 +180,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     protected class CountExistingJobsWithJobIdCallBack extends FilteredAsyncCallback<Long> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+            getView().setErrorText(e.getClass().getName() + " - " + e.getMessage());
         }
 
         @Override
         public void onSuccess(Long count) {
             if (count == 0) {
-                view.setErrorText(view.texts.error_JobNotFound());
+                getView().setErrorText(getView().getTexts().error_JobNotFound());
             } else {
-                view.jobIdInputField.setText("");
+                getView().jobIdInputField.setText("");
                 placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(jobId));
             }
         }
     }
-
 }

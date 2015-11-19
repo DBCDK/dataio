@@ -21,13 +21,13 @@
 
 package dk.dbc.dataio.gui.client.pages.item.show;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.util.ClientFactory;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 
 import java.util.List;
@@ -35,7 +35,7 @@ import java.util.List;
 
 public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
 
-    private JobStoreProxyAsync jobStoreProxy;
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private View view;
     private int criteriaIncarnation = 0;
     private ItemListCriteria currentCriteria = new ItemListCriteria();
@@ -44,8 +44,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
     ItemsListView listView;
     ItemListCriteria.Field searchType;
 
-    public AsyncItemViewDataProvider(ClientFactory clientFactory, View view) {
-        jobStoreProxy = clientFactory.getJobStoreProxyAsync();
+    public AsyncItemViewDataProvider(View view) {
         this.view = view;
 
         updateCurrentCriteria();
@@ -92,7 +91,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
         currentCriteria.offset(range.getStart());
 
         if(searchType != null) {
-            jobStoreProxy.listItems(searchType, currentCriteria, new FilteredAsyncCallback<List<ItemModel>>() {
+            commonInjector.getJobStoreProxyAsync().listItems(searchType, currentCriteria, new FilteredAsyncCallback<List<ItemModel>>() {
                         // protection against old calls updating the view with old data.
                         int criteriaIncarnationOnRequestCall = criteriaIncarnation;
                         int offsetOnRequestCall = currentCriteria.getOffset();
@@ -126,7 +125,7 @@ public class AsyncItemViewDataProvider extends AsyncDataProvider<ItemModel>  {
      *
      */
     public void updateCount()  {
-        jobStoreProxy.countItems(currentCriteria, new FilteredAsyncCallback<Long>() {
+        commonInjector.getJobStoreProxyAsync().countItems(currentCriteria, new FilteredAsyncCallback<Long>() {
             // protection against old calls updating the view with old data.
             int criteriaIncarnationOnCall = criteriaIncarnation;
 

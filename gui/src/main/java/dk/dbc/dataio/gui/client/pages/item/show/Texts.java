@@ -27,11 +27,6 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 public interface Texts extends Constants {
 
-    // Menu Texts
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Items();
-
-
     // ColumnLabels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String column_Item();

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
@@ -31,10 +32,8 @@ import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.gui.util.ClientFactory;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -44,31 +43,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PresenterImpl extends AbstractActivity implements Presenter {
+public class PresenterImpl<P extends Place> extends AbstractActivity implements Presenter {
+
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+
     private final Map<String, Integer> tabIndexes = new HashMap<>(0);
     private static final String EMPTY ="";
 
-    protected ClientFactory clientFactory;
-    protected Texts texts;
-    protected View view;
     protected PlaceController placeController;
-    protected JobStoreProxyAsync jobStoreProxy;
-    protected LogStoreProxyAsync logStoreProxy;
+    View globalItemsView;
     protected String jobId;
     protected int allItemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
     protected JobModel.Type type;
     protected ItemListCriteria.Field itemSearchType;
+    private String header;
 
-    public PresenterImpl(com.google.gwt.place.shared.Place place, ClientFactory clientFactory) {
-        this.clientFactory = clientFactory;
-        texts = clientFactory.getItemsShowTexts();
-        placeController = clientFactory.getPlaceController();
-        jobStoreProxy = clientFactory.getJobStoreProxyAsync();
-        logStoreProxy = clientFactory.getLogStoreProxyAsync();
-        Place itemsShowPlace = (Place) place;
-        this.jobId = itemsShowPlace.getJobId();
+    public PresenterImpl(P place, PlaceController placeController, View globalItemsView, String header) {
+        this.placeController = placeController;
+        this.globalItemsView = globalItemsView;
+        this.jobId = place.getJobId();
+        this.header = header;
     }
 
      /*
@@ -85,9 +82,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        view = clientFactory.getItemsShowView();
-        view.setPresenter(this);
-        containerWidget.setWidget(view.asWidget());
+        getView().setPresenter(this);
+        getView().setHeader(this.header);
+        containerWidget.setWidget(getView().asWidget());
         initializeView();
         listJobs(jobId);
         listNotifications(jobId);
@@ -102,7 +99,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         itemSearchType = ItemListCriteria.Field.JOB_ID;
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition);
-        listItems(itemSearchType, itemListCriteria, view.allItemsList);
+        listItems(itemSearchType, itemListCriteria, getView().allItemsList);
     }
 
     /**
@@ -115,7 +112,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_FAILED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        listItems(itemSearchType, itemListCriteria, view.failedItemsList);
+        listItems(itemSearchType, itemListCriteria, getView().failedItemsList);
 
     }
 
@@ -129,7 +126,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         final ListFilter jobIdEqualsCondition = new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, Long.valueOf(jobId).intValue());
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
-        listItems(itemSearchType, itemListCriteria, view.ignoredItemsList);
+        listItems(itemSearchType, itemListCriteria, getView().ignoredItemsList);
     }
 
     /**
@@ -153,6 +150,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Sets the view according to the supplied job model
      */
     private void initializeView() {
+        View view = getView();
         view.allItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.failedItemsList.itemsTable.setRowCount(0); //clear table on startup
         view.ignoredItemsList.itemsTable.setRowCount(0); //clear table on startup
@@ -168,7 +166,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         final JobListCriteria jobListCriteria = new JobListCriteria().where(
                 new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
 
-        jobStoreProxy.listJobs(jobListCriteria, new JobsCallback());
+        commonInjector.getJobStoreProxyAsync().listJobs(jobListCriteria, new JobsCallback());
     }
 
     /**
@@ -177,7 +175,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param jobId Job Id
      */
     private void listNotifications(String jobId) {
-        jobStoreProxy.listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
+        commonInjector.getJobStoreProxyAsync().listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
     }
 
 
@@ -187,10 +185,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param listView The list view in question
      */
     private void listItems(ItemListCriteria.Field searchType, ItemListCriteria itemListCriteria, ItemsListView listView) {
-        view.setSelectionEnabled(false);
+        getView().setSelectionEnabled(false);
         listView.detailedTabs.clear();
         listView.detailedTabs.setVisible(false);
-        view.dataProvider.setBaseCriteria(searchType, listView, itemListCriteria);
+        getView().dataProvider.setBaseCriteria(searchType, listView, itemListCriteria);
     }
 
     /**
@@ -202,7 +200,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         type = jobModel.getType();
-        view.jobHeader.setText(constructJobHeaderText(jobModel));
+        getView().jobHeader.setText(constructJobHeaderText(jobModel));
         setDiagnosticModels(jobModel);
         selectJobTab(jobModel);
         setJobInfoTab(jobModel);
@@ -214,7 +212,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param jobNotifications The list of Job Notifications to view
      */
     private void setJobNotifications(List<JobNotification> jobNotifications) {
-        view.jobNotificationsTabContent.clear();
+        getView().jobNotificationsTabContent.clear();
         for (JobNotification notification: jobNotifications) {
             JobNotificationPanel panel = new JobNotificationPanel();
             panel.setJobId(String.valueOf(notification.getJobId()));
@@ -225,24 +223,24 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             panel.setStatus(formatStatus(notification.getStatus()));
             panel.setStatusMessage(notification.getStatusMessage());
             panel.setContent(notification.getContent());
-            view.jobNotificationsTabContent.add(panel);
+            getView().jobNotificationsTabContent.add(panel);
         }
         selectJobTabVisibility();
     }
 
     private String formatType(JobNotification.Type type) {
         switch (type) {
-            case JOB_COMPLETED: return texts.typeJobCompleted();
-            case JOB_CREATED:   return texts.typeJobCreated();
+            case JOB_COMPLETED: return getTexts().typeJobCompleted();
+            case JOB_CREATED:   return getTexts().typeJobCreated();
             default: return EMPTY;
         }
     }
 
     private String formatStatus(JobNotification.Status status) {
         switch (status) {
-            case COMPLETED: return texts.statusCompleted();
-            case FAILED:    return texts.statusFailed();
-            case WAITING:   return texts.statusWaiting();
+            case COMPLETED: return getTexts().statusCompleted();
+            case FAILED:    return getTexts().statusFailed();
+            case WAITING:   return getTexts().statusWaiting();
             default: return EMPTY;
         }
     }
@@ -255,7 +253,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
-        view.setSelectionEnabled(true);
+        getView().setSelectionEnabled(true);
         if(itemModels.size() > 0) {
             listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
         }
@@ -265,6 +263,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * ============= > Methods used for displaying job data and showing/hiding/selecting job tabs < =============
      */
 
+    View getView(){
+        return this.globalItemsView;
+    }
+    Texts getTexts(){
+        return  viewInjector.getTexts();
+    }
     /**
      * Hides job tabs
      */
@@ -294,9 +298,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @return The resulting Job Header Text
      */
     private String constructJobHeaderText(String jobId, String submitterNumber, String sinkName) {
-        return texts.text_JobId() + " " + jobId + ", "
-                + texts.text_Submitter() + " " + submitterNumber + ", "
-                + texts.text_Sink() + " " + sinkName;
+        return getTexts().text_JobId() + " " + jobId + ", "
+                + getTexts().text_Submitter() + " " + submitterNumber + ", "
+                + getTexts().text_Sink() + " " + sinkName;
     }
 
     /**
@@ -306,11 +310,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, true);
 
         // Show diagnostic tab if one or more diagnostics exists
-        if (view.jobDiagnosticTabContent.jobDiagnosticTable.getRowCount() > 0) {
+        if (getView().jobDiagnosticTabContent.jobDiagnosticTable.getRowCount() > 0) {
             setJobTabVisibility(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, true);
         }
         // Show notification tab if one or more notifications exists
-        if (view.jobNotificationsTabContent.getNotificationsCount() > 0) {
+        if (getView().jobNotificationsTabContent.getNotificationsCount() > 0) {
             setJobTabVisibility(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT, true);
         }
         // Show item information if one or more items exist
@@ -331,14 +335,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void selectJobTab(JobModel jobModel) {
         if(jobModel.isDiagnosticFatal()) {
-            view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+            getView().tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         } else {
             if (failedItemCounter != 0) {
-                view.tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
+                getView().tabPanel.selectTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
             } else if (ignoredItemCounter != 0) {
-                view.tabPanel.selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+                getView().tabPanel.selectTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
             } else {
-                view.tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
+                getView().tabPanel.selectTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
             }
         }
     }
@@ -352,7 +356,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param showTab whether to show or hide the tab.
      */
     private void setJobTabVisibility(int tabIndex, boolean showTab) {
-        TabBar.Tab tabObject = view.tabPanel.getTabBar().getTab(tabIndex);
+        TabBar.Tab tabObject = getView().tabPanel.getTabBar().getTab(tabIndex);
         if (tabObject == null) {
             return;
         }
@@ -366,6 +370,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param jobModel The Job Model, where the Job Info data is taken
      */
     private void setJobInfoTab(JobModel jobModel) {
+        View view = getView();
         view.jobInfoTabContent.packaging.setText(jobModel.getPackaging());
         view.jobInfoTabContent.format.setText(jobModel.getFormat());
         view.jobInfoTabContent.charset.setText(jobModel.getCharset());
@@ -384,7 +389,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param jobModel The Job Model, where the list of Diagnostic data is taken
      */
     private void setDiagnosticModels(JobModel jobModel) {
-        view.jobDiagnosticTabContent.jobDiagnosticTable.setRowData(0, jobModel.getDiagnosticModels());
+        getView().jobDiagnosticTabContent.jobDiagnosticTable.setRowData(0, jobModel.getDiagnosticModels());
     }
 
     /*
@@ -428,20 +433,21 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * @param itemModel The model containing the item data
      */
     private void addItemTabs(ItemsListView listView, ItemModel itemModel) {
+        Texts texts = getTexts();
         if(tabIndexes.containsKey(ItemsListView.JAVASCRIPT_LOG_TAB_CONTENT)) {
-            listView.detailedTabs.add(new JavascriptLogTabContent(texts, logStoreProxy, itemModel), texts.tab_JavascriptLog());
+            listView.detailedTabs.add(new JavascriptLogTabContent(texts, commonInjector.getLogStoreProxyAsync(), itemModel), texts.tab_JavascriptLog());
         }
         if(tabIndexes.containsKey(ItemsListView.INPUT_POST_TAB_CONTENT)) {
-            listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
+            listView.detailedTabs.add(new ItemTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel, ItemModel.LifeCycle.PARTITIONING), texts.tab_PartitioningPost());
         }
         if(tabIndexes.containsKey(ItemsListView.OUTPUT_POST_TAB_CONTENT)) {
-            listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
+            listView.detailedTabs.add(new ItemTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel, ItemModel.LifeCycle.PROCESSING), texts.tab_ProcessingPost());
         }
         if(tabIndexes.containsKey(ItemsListView.NEXT_OUTPUT_POST_TAB_CONTENT)) {
-            listView.detailedTabs.add(new NextTabContent(texts, jobStoreProxy, itemModel), texts.tab_NextOutputPost());
+            listView.detailedTabs.add(new NextTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel), texts.tab_NextOutputPost());
         }
         if(tabIndexes.containsKey(ItemsListView.SINK_RESULT_TAB_CONTENT)) {
-            listView.detailedTabs.add(new ItemTabContent(texts, jobStoreProxy, itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
+            listView.detailedTabs.add(new ItemTabContent(texts, commonInjector.getJobStoreProxyAsync(), itemModel, ItemModel.LifeCycle.DELIVERING), texts.tab_DeliveringPost());
         }
         if(tabIndexes.containsKey(ItemsListView.ITEM_DIAGNOSTIC_TAB_CONTENT)) {
             setDiagnosticModels(listView, itemModel);
@@ -497,10 +503,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * 3) The method sets an error message for the user.
      */
     private void prepareViewForJobNotFoundDisplay() {
+        View view = getView();
         view.jobHeader.setText(constructJobHeaderText(jobId, EMPTY, EMPTY));
         setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, true);
         view.tabPanel.selectTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
-        view.setErrorText(texts.error_CouldNotFindJob());
+        view.setErrorText(getTexts().error_CouldNotFindJob());
     }
 
     /*
@@ -513,7 +520,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     class JobsCallback implements AsyncCallback<List<JobModel>> {
         @Override
         public void onFailure(Throwable throwable) {
-            view.setErrorText(texts.error_CouldNotFetchJob());
+            getView().setErrorText(getTexts().error_CouldNotFetchJob());
         }
         @Override
         public void onSuccess(List<JobModel> jobModels) {
@@ -528,7 +535,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     class JobNotificationsCallback implements AsyncCallback<List<JobNotification>> {
         @Override
         public void onFailure(Throwable throwable) {
-            view.setErrorText(texts.error_CouldNotFetchJobNotifications());
+            getView().setErrorText(getTexts().error_CouldNotFetchJobNotifications());
         }
         @Override
         public void onSuccess(List<JobNotification> jobNotifications) {

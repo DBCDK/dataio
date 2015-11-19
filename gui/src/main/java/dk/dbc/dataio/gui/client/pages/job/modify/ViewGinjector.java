@@ -18,18 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.job.modify;
 
-package dk.dbc.dataio.gui.client.pages.job.show;
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
 
-import dk.dbc.dataio.gui.util.ClientFactory;
-
-public class JobsView extends View {
-    /**
-     * Default constructor
-     *
-     * @param clientFactory Clientfactory to be used in the View
-     */
-    public JobsView(ClientFactory clientFactory) {
-        super(clientFactory, clientFactory.getMenuTexts().menu_Jobs());
-    }
+/**
+ * Created by ThomasBerg on 09/11/15.
+ */
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
 }

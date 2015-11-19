@@ -31,10 +31,8 @@ import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
-    protected Texts texts;
     // Please do note, that this list of sequential numbers are maintained manually
     // They must follow the order, given in the UI Binder file ViewWidget.ui.xml
     static final int ALL_ITEMS_TAB_INDEX = 0;
@@ -60,11 +58,10 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
     /**
      * Constructor with header and text
-     * @param clientFactory, the client factory
+     * @param header    Breadcrumb header text
      */
-    public ViewWidget(ClientFactory clientFactory) {
-        super(clientFactory.getItemsShowTexts().menu_Items());
-        texts = clientFactory.getItemsShowTexts();
+    public ViewWidget(String header) {
+        super(header);
         add(uiBinder.createAndBindUi(this));
         allItemsList.itemsPager.firstPage();
         failedItemsList.itemsPager.firstPage();

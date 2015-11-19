@@ -18,31 +18,19 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dbc.dataio.gui.client.util;
+package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.inject.client.AbstractGinModule;
 import com.google.inject.Singleton;
-import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
-import dk.dbc.dataio.gui.client.pages.navigation.Texts;
-import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcherAsync;
-import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
-import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
-import dk.dbc.dataio.gui.client.resources.Resources;
 
 /**
  * Created by ThomasBerg on 09/11/15.
  */
-public class CommonModule extends AbstractGinModule {
+public class ViewModule extends AbstractGinModule {
 
     @Override
     protected void configure() {
-        bind(ProxyErrorTexts.class).in(Singleton.class);
-        bind(FlowStoreProxyAsync.class).in(Singleton.class);
-        bind(JavaScriptProjectFetcherAsync.class).in(Singleton.class);
-        bind(JobStoreProxyAsync.class).in(Singleton.class);
-        bind(LogStoreProxyAsync.class).in(Singleton.class);
+        bind(View.class).in(Singleton.class);
         bind(Texts.class).in(Singleton.class);
-        bind(Resources.class).in(Singleton.class);
     }
 }

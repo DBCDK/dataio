@@ -56,7 +56,10 @@ public class ShowTestJobsPlace extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterTestJobsImpl(clientFactory);
+        return new PresenterTestJobsImpl(
+                clientFactory.getPlaceController(),
+                clientFactory.getGlobalViewsFactory().getTestJobsView(),
+                commonInjector.getMenuTexts().menu_TestJobs());
     }
 }
 

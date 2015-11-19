@@ -44,7 +44,10 @@ public class ShowJobsPlace extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(clientFactory);
+        return new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(
+                clientFactory.getPlaceController(),
+                clientFactory.getGlobalViewsFactory().getJobsView(),
+                commonInjector.getMenuTexts().menu_Jobs());
     }
 
     @Prefix("ShowJobs")
@@ -53,7 +56,7 @@ public class ShowJobsPlace extends DataioPlace {
         public String getToken(ShowJobsPlace place) {
             return place.getJobsShowName();
         }
-           @Override
+        @Override
         public ShowJobsPlace getPlace(String token) {
             return new ShowJobsPlace(token);
         }

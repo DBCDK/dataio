@@ -32,8 +32,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     interface EditJobBinder extends UiBinder<HTMLPanel, View> {}
     private static EditJobBinder uiBinder = GWT.create(EditJobBinder.class);
 
-    public View(String header) {
-        super(header);
+    public View() {
+        super("");
         add(uiBinder.createAndBindUi(this));
     }
 

@@ -25,7 +25,6 @@ import com.google.gwt.user.client.History;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Concrete Presenter Implementation Class for Submitter Edit
@@ -35,12 +34,11 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
     /**
      * Constructor
-     * @param place, the place
-     * @param clientFactory, the client factory
+     * @param place     the place
+     * @param header    Breadcrumb header text
      */
-    public PresenterEditImpl(Place place, ClientFactory clientFactory) {
-        super(clientFactory);
-        view = clientFactory.getJobEditView();
+    public PresenterEditImpl(Place place, String header) {
+        super(header);
         id = place.getJobId();
 //        view.deleteButton.setVisible(true);
     }
@@ -65,12 +63,12 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     }
 
     void deleteModel() {
-        flowStoreProxy.deleteSubmitter(model.getId(), model.getVersion(), new DeleteSubmitterModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().deleteSubmitter(model.getId(), model.getVersion(), new DeleteSubmitterModelFilteredAsyncCallback());
     }
 
     // Private methods
     private void getSubmitter(final Long submitterId) {
-        flowStoreProxy.getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getSubmitter(submitterId, new GetSubmitterModelFilteredAsyncCallback());
     }
 
     /**
@@ -93,7 +91,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "Submitter.id: " + id;
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override
@@ -109,7 +107,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     class DeleteSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
 
         @Override

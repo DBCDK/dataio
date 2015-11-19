@@ -32,9 +32,9 @@ public class PresenterTestJobsImpl extends PresenterImpl {
     /**
      * Default constructor
      *
-     * @param placeController       PlaceController for navigation
+     * @param placeController   PlaceController for navigation
      * @param globalJobsView    Global Jobs View, necessary for keeping filter state etc.
-     * @param header
+     * @param header            Breadcrumb header text
      */
     public PresenterTestJobsImpl(PlaceController placeController, View globalJobsView, String header) {
         super(placeController, globalJobsView, header);

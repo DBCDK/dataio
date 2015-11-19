@@ -28,7 +28,6 @@ public class JndiConstants {
     public static final String JDBC_RESOURCE_SINK_DIFF = "jdbc/dataio/diff";
 
     public static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
-    public static final String URL_RESOURCE_OPEN_UPDATE_WS = "url/dataio/openupdate/ws";
     public static final String URL_RESOURCE_FILESTORE_RS = "url/dataio/filestore/rs";
     public static final String URL_RESOURCE_LOGSTORE_RS = "url/dataio/logstore/rs";
     public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";

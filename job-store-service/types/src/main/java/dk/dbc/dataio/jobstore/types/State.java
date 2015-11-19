@@ -245,8 +245,7 @@ public class State {
 
         State state = (State) o;
 
-        if (!states.equals(state.states)) return false;
-        return diagnostics.equals(state.diagnostics);
+        return states.equals(state.states) && diagnostics.equals(state.diagnostics);
 
     }
 

@@ -27,7 +27,7 @@ import java.util.List;
 
 public abstract class RecordSplitterConstants {
 
-    public enum RecordSplitter { XML, ISO2709 }
+    public enum RecordSplitter { XML, ISO2709, DANMARC2 }
 
     /**
      * @return the list of recordSplitters, containing all available recordSplitters

@@ -258,7 +258,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
     private void handleAndRethrow(MarcReaderInvalidRecordException e) throws MarcReaderException {
         if (looksLikeLineFormat) {
             skipRecord();
-            e.setLinesRead(linesRead.toString().getBytes(StandardCharsets.UTF_8));
+            e.setBytesRead(linesRead.toString().getBytes(StandardCharsets.UTF_8));
             throw e;
         } else {
             throw new MarcReaderException("Not recognised as line format");

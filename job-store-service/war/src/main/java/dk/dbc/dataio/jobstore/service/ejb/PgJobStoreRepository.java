@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
 
@@ -107,9 +108,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         final List<ChunkEntity> chunkEntities = new ChunkListQuery(entityManager).execute(criteria);
         final List<CollisionDetectionElement> collisionDetectionElements = new ArrayList<>(chunkEntities.size());
-        for(ChunkEntity chunkEntity : chunkEntities) {
-            collisionDetectionElements.add(chunkEntity.toCollisionDetectionElement());
-        }
+        collisionDetectionElements.addAll(chunkEntities.stream().map(ChunkEntity::toCollisionDetectionElement).collect(Collectors.toList()));
         return collisionDetectionElements;
     }
 
@@ -124,9 +123,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         InvariantUtil.checkNotNullOrThrow(criteria, "criteria");
         final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
         final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(itemEntities.size());
-        for (ItemEntity itemEntity : itemEntities) {
-            itemInfoSnapshots.add(ItemInfoSnapshotConverter.toItemInfoSnapshot(itemEntity));
-        }
+        itemInfoSnapshots.addAll(itemEntities.stream().map(ItemInfoSnapshotConverter::toItemInfoSnapshot).collect(Collectors.toList()));
         return itemInfoSnapshots;
     }
 
@@ -564,28 +561,29 @@ public class PgJobStoreRepository extends RepositoryBase {
                is still created but with a serialized JobError as payload instead.
              */
             for (ChunkItem chunkItem : dataPartitioner) {
-                String recordFromPartitionerAsString=new String(chunkItem.getData(),StandardCharsets.UTF_8);
+                if (chunkItem != null) {
+                    String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 
-                final ItemData itemData = new ItemData(StringUtil.base64encode(recordFromPartitionerAsString), dataPartitioner.getEncoding());
+                    final ItemData itemData = new ItemData(StringUtil.base64encode(recordFromPartitionerAsString), dataPartitioner.getEncoding());
+                    StateChange stateChange = new StateChange()
+                            .setPhase(State.Phase.PARTITIONING)
+                            .setBeginDate(nextItemBegin)
+                            .setEndDate(new Date());
 
-                final StateChange stateChange = new StateChange()
-                        .setPhase(State.Phase.PARTITIONING)
-                        .setSucceeded(1)
-                        .setBeginDate(nextItemBegin)
-                        .setEndDate(new Date());
-                final State itemState = new State();
-                itemState.updateState(stateChange);
+                    setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, stateChange);
 
-                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, itemData));
-                chunkItemEntities.records.add(recordFromPartitionerAsString);
-                chunkItemEntities.chunkStateChange.incSucceeded(1);
+                    final State itemState = new State();
+                    itemState.updateState(stateChange);
 
-                if (itemCounter == maxChunkSize) {
-                    break;
+                    chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, itemData));
+                    chunkItemEntities.records.add(recordFromPartitionerAsString);
+
+                    if (itemCounter == maxChunkSize) {
+                        break;
+                    }
+                    nextItemBegin = new Date();
                 }
-                nextItemBegin = new Date();
             }
-
         } catch (UnrecoverableDataException e) {
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
             final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,

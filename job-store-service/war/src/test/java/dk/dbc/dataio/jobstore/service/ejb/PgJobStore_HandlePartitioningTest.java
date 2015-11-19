@@ -27,13 +27,12 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -41,16 +40,17 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
+import types.TestableJobEntity;
+import types.TestableJobEntityBuilder;
+import types.TestablePartitioningParam;
+import types.TestablePartitioningParamBuilder;
 
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter;
@@ -81,22 +81,22 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Setup preconditions
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
 
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(mockedPartitioningParam.getJobEntity());
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(testablePartitioningParam.getJobEntity());
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
-        final Diagnostic diagnostic = mockedPartitioningParam.getJobEntity().getState().getDiagnostics().get(0);
+        final Diagnostic diagnostic = testablePartitioningParam.getJobEntity().getState().getDiagnostics().get(0);
         final String diagnosticsStacktrace = diagnostic.getStacktrace();
-        assertTrue(!mockedPartitioningParam.getJobEntity().getState().getDiagnostics().isEmpty());
+        assertTrue(!testablePartitioningParam.getJobEntity().getState().getDiagnostics().isEmpty());
         assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("Caused by: dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException: unexpected status code"));
         assertThat("Diagnostics stacktrace", diagnosticsStacktrace, containsString("dk.dbc.dataio.jobstore.types.JobStoreException: Could not retrieve byte size"));
@@ -109,27 +109,27 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         pgJobStore.jobQueueRepository = newJobQueueRepository();
 
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
 
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(mockedPartitioningParam.getJobEntity());
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(testablePartitioningParam.getJobEntity());
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999l);
 
         setupMockedSink();
         setupMockedJobQueueNamedQueryForFindByJob();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
         assertThat("Fatal error occurred", jobInfoSnapshot.hasFatalError(), is(true));
 
-        final Diagnostic diagnostic = mockedPartitioningParam.getJobEntity().getState().getDiagnostics().get(0);
+        final Diagnostic diagnostic = testablePartitioningParam.getJobEntity().getState().getDiagnostics().get(0);
         final String diagnosticsMessage = diagnostic.getMessage();
-        assertTrue(!mockedPartitioningParam.getJobEntity().getState().getDiagnostics().isEmpty());
+        assertTrue(!testablePartitioningParam.getJobEntity().getState().getDiagnostics().isEmpty());
         assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
-        assertThat("Diagnostics message", diagnosticsMessage, containsString("DataPartitioner.byteSize was: 269"));
+        assertThat("Diagnostics message", diagnosticsMessage, containsString("DataPartitioner.byteSize was: 307"));
         assertThat("Diagnostics message", diagnosticsMessage, containsString("FileStore.byteSize was: 99999"));
     }
 
@@ -143,12 +143,12 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, ERROR_MESSAGE)));
         final JobEntity jobEntity = pgJobStore.jobStoreRepository.createJobEntity(mockedAddJobParam);
 
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam(jobEntity);
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().setJobEntity(jobEntity).build();
 
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(mockedPartitioningParam.getJobEntity());
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(testablePartitioningParam.getJobEntity());
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -166,23 +166,19 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         pgJobStore.jobQueueRepository = newJobQueueRepository();
 
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
 
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(new State());
-        jobEntity.setSpecification(mockedPartitioningParam.getJobEntity().getSpecification());
-        jobEntity.setCachedSink(EXPECTED_SINK_CACHE_ENTITY);
-
+        final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(testablePartitioningParam.getJobEntity().getSpecification()).build();
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269l);
+
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
 
         setupMockedSink();
         setupMockedJobQueueNamedQueryForFindByJob();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -192,7 +188,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
-        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(mockedPartitioningParam.getDiagnostics()));
+        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(testablePartitioningParam.getDiagnostics()));
     }
 
     @Test
@@ -202,27 +198,25 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         pgJobStore.jobQueueRepository = newJobQueueRepository();
 
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
-        mockedPartitioningParam.setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)));
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder()
+                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)))
+                .build();
+
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
 
         final State state = new State();
-        state.getDiagnostics().addAll(mockedPartitioningParam.getDiagnostics());
+        state.getDiagnostics().addAll(testablePartitioningParam.getDiagnostics());
 
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(state);
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
-        jobEntity.setCachedSink(EXPECTED_SINK_CACHE_ENTITY);
+        final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setState(state).build();
 
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269l);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307l);
 
         setupMockedSink();
         setupMockedJobQueueNamedQueryForFindByJob();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
@@ -232,7 +226,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
 
-        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(mockedPartitioningParam.getDiagnostics()));
+        assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(testablePartitioningParam.getDiagnostics()));
     }
 
 
@@ -241,24 +235,19 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Setup preconditions
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
 
         final Sink EXPECTED_SINK = new Sink(5l, 1l, new SinkContent("TestSink", "TestResource", "TestDescription"));
-        final SinkCacheEntity mockedSinkCache  = mock(SinkCacheEntity.class);
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(new State());
-        jobEntity.setSpecification(mockedPartitioningParam.getJobEntity().getSpecification());
-        jobEntity.setCachedSink(mockedSinkCache);
+        final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(testablePartitioningParam.getJobEntity().getSpecification()).build();
 
-        when(mockedSinkCache.getSink()).thenReturn(EXPECTED_SINK);
+        when(jobEntity.getCachedSink().getSink()).thenReturn(EXPECTED_SINK);
         when(pgJobStore.jobStoreRepository.getExclusiveAccessFor(eq(JobEntity.class), anyInt())).thenReturn(jobEntity);
         setupMockedSink();
         setupMockedJobQueueNamedQueryForFindByJob();
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("Sink not occupied!", jobInfoSnapshot, is(notNullValue()));
@@ -270,20 +259,12 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Setup preconditions
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
-
-        final SinkCacheEntity mockedSinkCacheJob1  = mock(SinkCacheEntity.class);
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(new State());
-        jobEntity.setSpecification(mockedPartitioningParam.getJobEntity().getSpecification());
-        jobEntity.setCachedSink(mockedSinkCacheJob1);
-
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
         when(pgJobStore.jobQueueRepository.addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), anyBoolean(), any(RecordSplitter.class))).thenReturn(OCCUPIED);
 
         // Subject Under Test
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(mockedPartitioningParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("Sink for job occupied!", jobInfoSnapshot, is(notNullValue()));
@@ -295,16 +276,8 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Setup preconditions
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedPartitioningParam mockedPartitioningParam = new MockedPartitioningParam();
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
-
-        final SinkCacheEntity mockedSinkCacheJob  = mock(SinkCacheEntity.class);
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(new State());
-        jobEntity.setSpecification(mockedPartitioningParam.getJobEntity().getSpecification());
-        jobEntity.setCachedSink(mockedSinkCacheJob);
-
+        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
+        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
         setupMockedSink(0l);
         setupMockedJobQueueNamedQueryForFindByJob();
 
@@ -317,6 +290,43 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Verify
         assertThat("Sink for job NOT occupied!", sinkOccupied, is(false));
+    }
+
+    @Test
+    public void handlePartitioning_invalidLineFormat_doesNotCauseFatalError() throws FileStoreServiceConnectorException, JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        pgJobStore.jobQueueRepository = newJobQueueRepository();
+        String lineFormat = "245 00 *aA @*programmer is *\n";
+        JobInfoSnapshot jobInfoSnapshot = getHandlePartitioningForLineFormatJobInfoSnapshotResult(pgJobStore, lineFormat);
+        assertThat("Fatal error did not occur", jobInfoSnapshot.getState().fatalDiagnosticExists(), is(false));
+    }
+
+    @Test
+    public void handlePartitioning_lineFormatNotRecognized_causesFatalError () throws FileStoreServiceConnectorException, JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        pgJobStore.jobQueueRepository = newJobQueueRepository();
+        String lineFormat = "*aA @*programmer is born";
+        JobInfoSnapshot jobInfoSnapshot = getHandlePartitioningForLineFormatJobInfoSnapshotResult(pgJobStore, lineFormat);
+        assertThat("Fatal error did occur", jobInfoSnapshot.getState().fatalDiagnosticExists(), is(true));
+    }
+
+    private JobInfoSnapshot getHandlePartitioningForLineFormatJobInfoSnapshotResult(PgJobStore pgJobStore, String lineFormat) throws FileStoreServiceConnectorException, JobStoreException {
+        InputStream dataFileInputStream = new ByteArrayInputStream(lineFormat.getBytes(StandardCharsets.UTF_8));
+        DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(dataFileInputStream, "latin1");
+        final PartitioningParam mockedPartitioningParam = new TestablePartitioningParamBuilder().setRecords(lineFormat).setDataPartitioner(dataPartitioner).setRecordSplitter(RecordSplitter.DANMARC2).build();
+
+        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
+
+        final TestableJobEntity jobEntity = new TestableJobEntityBuilder().build();
+
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) lineFormat.getBytes().length);
+
+        setupMockedSink();
+        setupMockedJobQueueNamedQueryForFindByJob();
+
+        // Subject Under Test
+        return pgJobStore.handlePartitioning(mockedPartitioningParam);
     }
 
     @Test
@@ -334,17 +344,10 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         mockedAddJobParam.setFlowStoreReferences(flowStoreReferences);
 
-        final SinkCacheEntity mockedSinkCacheJob1  = mock(SinkCacheEntity.class);
-        final TestableJobEntity job1Entity = new TestableJobEntity();
-        job1Entity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        job1Entity.setState(new State());
-        job1Entity.setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences());
-        job1Entity.setSpecification(mockedAddJobParam.getJobInputStream().getJobSpecification());
-        job1Entity.setCachedSink(mockedSinkCacheJob1);
+        final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences()).build();
 
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(job1Entity);
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269l);
-        when(mockedSinkCacheJob1.getSink()).thenReturn(EXPECTED_SINK);
         Long expectedNumberOfJobsBySink = 1l;
 
         Query mockedNamedQueryFindJobsBySink = mock(Query.class);
@@ -378,12 +381,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         setupMockedSink(0l);
     }
     private void setupMockedSink(Long numberJobsBySink) {
-        Long expectedNumberOfJobsBySink = numberJobsBySink;
         Query mockedNamedQueryFindJobsBySink = mock(Query.class);
         when(entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)).thenReturn(mockedNamedQueryFindJobsBySink);
         when(mockedNamedQueryFindJobsBySink.setParameter(eq(JobQueueEntity.FIELD_SINK_ID), anyLong())).thenReturn(mockedNamedQueryFindJobsBySink);
         when(mockedNamedQueryFindJobsBySink.setParameter(eq(JobQueueEntity.FIELD_STATE), anyObject())).thenReturn(mockedNamedQueryFindJobsBySink);
-        when(mockedNamedQueryFindJobsBySink.getSingleResult()).thenReturn(expectedNumberOfJobsBySink);
+        when(mockedNamedQueryFindJobsBySink.getSingleResult()).thenReturn(numberJobsBySink);
     }
 
     private void setupMockedJobQueueNamedQueryForFindByJob() {
@@ -392,31 +394,5 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_JOB)).thenReturn(mockedNamedQueryFindByJob);
         when(mockedNamedQueryFindByJob.setParameter(eq(JobQueueEntity.FIELD_JOB_ID), anyInt())).thenReturn(mockedNamedQueryFindByJob);
         when(mockedNamedQueryFindByJob.getSingleResult()).thenReturn(jobQueueEntity);
-    }
-    class MockedPartitioningParam extends PartitioningParam {
-
-        final String xml =
-                "<records>"
-                        + "<record>first</record>" + "<record>second</record>" + "<record>third</record>"
-                        + "<record>fourth</record>" + "<record>fifth</record>" + "<record>sixth</record>"
-                        + "<record>seventh</record>" + "<record>eighth</record>" + "<record>ninth</record>"
-                        + "<record>tenth</record>" + "<record>eleventh</record>"
-                        + "</records>";
-
-        public MockedPartitioningParam() {
-            this(newTestableJobEntity(new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).build()));
-        }
-        public MockedPartitioningParam(JobEntity jobEntity) {
-            super(jobEntity, mockedFileStoreServiceConnector, false, RecordSplitter.XML);
-
-            diagnostics = new ArrayList<>();
-            dataFileInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream, StandardCharsets.UTF_8.name());
-        }
-
-        public void setDiagnostics(List<Diagnostic> diagnostics) {
-            this.diagnostics.clear();
-            this.diagnostics.addAll(diagnostics);
-        }
     }
 }

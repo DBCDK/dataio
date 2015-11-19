@@ -60,11 +60,11 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
     public DataPartitioner createDataPartitioner(InputStream inputStream, String specifiedEncoding) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
         InvariantUtil.checkNotNullNotEmptyOrThrow(specifiedEncoding, "specifiedEncoding");
-        return new Dm2LineFormatDataPartitioner(inputStream, specifiedEncoding);
+        return new DanMarc2LineFormatDataPartitioner(inputStream, specifiedEncoding);
     }
 
-    private static class Dm2LineFormatDataPartitioner implements DataPartitioner {
-        private static final Logger LOGGER = LoggerFactory.getLogger(Dm2LineFormatDataPartitioner.class);
+    private static class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
+        private static final Logger LOGGER = LoggerFactory.getLogger(DanMarc2LineFormatDataPartitioner.class);
 
         private final ByteCountingInputStream inputStream;
         private String specifiedEncoding;
@@ -74,7 +74,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
         private DanMarc2Charset danMarc2Charset;
         private BufferedInputStream bufferedInputStream;
 
-        public Dm2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) {
+        public DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) {
             this.inputStream = new ByteCountingInputStream(inputStream);
             this.encoding = StandardCharsets.UTF_8;
             this.specifiedEncoding = specifiedEncoding;
@@ -127,7 +127,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                     } catch (MarcReaderException e) {
                         LOGGER.error("Exception caught while creating MarcRecord", e);
                         if(e instanceof MarcReaderInvalidRecordException) {
-                            return new ChunkItem(0, ((MarcReaderInvalidRecordException) e).getLinesRead(), ChunkItem.Status.FAILURE);
+                            return new ChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Status.FAILURE);
                         } else {
                             throw new InvalidDataException(e);
                         }

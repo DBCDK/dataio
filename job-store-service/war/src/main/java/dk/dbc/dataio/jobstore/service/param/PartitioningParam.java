@@ -6,6 +6,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -38,7 +39,7 @@ import static dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory.
 public class PartitioningParam {
     private static final Logger LOGGER = LoggerFactory.getLogger(PartitioningParam.class);
 
-    protected final FileStoreServiceConnector fileStoreServiceConnector;
+    private final FileStoreServiceConnector fileStoreServiceConnector;
     protected List<Diagnostic> diagnostics = new ArrayList<>();
     private boolean doSequenceAnalysis = Boolean.FALSE;
     private JobEntity jobEntity;
@@ -130,6 +131,8 @@ public class PartitioningParam {
                     return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ISO2709:
                     return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case DANMARC2:
+                    return new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
                     diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitterType));
             }

@@ -26,21 +26,18 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
+import types.TestableJobEntityBuilder;
 
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -72,30 +69,21 @@ public class PgJobStore_AddAndScheduleJobTest extends PgJobStoreBaseTest {
                 .setDataFile(FILE_STORE_URN.toString())
                 .setAncestry(new JobSpecificationBuilder.AncestryBuilder().build())
                 .build();
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(jobSpecification);
+
         final JobInputStream jobInputStream = getJobInputStream(jobSpecification.getDataFile());
         final String xml = getXml();
         final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
         setupSuccessfulMockedReturnsFromFlowStore(jobInputStream.getJobSpecification());
 
-        final SinkCacheEntity mockedSinkCacheJob  = mock(SinkCacheEntity.class);
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(new State());
-        jobEntity.setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences());
-        jobEntity.setSpecification(mockedAddJobParam.getJobInputStream().getJobSpecification());
-        jobEntity.setCachedSink(mockedSinkCacheJob);
-
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(newTestableJobEntity(jobInputStream.getJobSpecification()));
+        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(new TestableJobEntityBuilder().setJobSpecification(jobInputStream.getJobSpecification()).build());
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(byteArrayInputStream);
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) xml.getBytes().length);
 
-        Long expectedNumberOfJobsBySink = 0l;
         Query mockedNamedQueryFindJobsBySink = mock(Query.class);
         when(entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)).thenReturn(mockedNamedQueryFindJobsBySink);
         when(mockedNamedQueryFindJobsBySink.setParameter(eq(JobQueueEntity.FIELD_SINK_ID), anyLong())).thenReturn(mockedNamedQueryFindJobsBySink);
-        when(mockedNamedQueryFindJobsBySink.getSingleResult()).thenReturn(expectedNumberOfJobsBySink);
+        when(mockedNamedQueryFindJobsBySink.getSingleResult()).thenReturn(0);
 
         try {
             final JobInfoSnapshot jobInfoSnapshotReturned = pgJobStore.addAndScheduleJob(jobInputStream);

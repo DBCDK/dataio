@@ -34,6 +34,7 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
@@ -53,6 +54,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.Test;
+import types.TestableJobEntityBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.Charset;
@@ -133,6 +135,52 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("First item: succeeded", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getSucceeded(), is(1));
         assertThat("Second item: failed", chunkItemEntities.entities.get(1).getState().getPhase(PARTITIONING).getFailed(), is(1));
         assertThat("Second item: has fatal diagnostic", chunkItemEntities.entities.get(1).getState().fatalDiagnosticExists(), is(true));
+    }
+
+    @Test
+    public void createChunkItemEntities_danMarc2dataPartitionerReadsRecord_succeededItemIsCreated() throws JobStoreException, JSONBException {
+        String validRecord = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(validRecord);
+
+        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
+        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
+        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getSucceeded(), is(1));
+        assertThat("First item: failed", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getSucceeded(), is(1));
+        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(false));
+    }
+
+    @Test
+    public void createChunkItemEntities_danMarc2dataPartitionerSkipsRecord_failedItemIsCreated() throws JobStoreException, JSONBException {
+        final String partiallyInvalidRecord = "245 00 *aA good beginning\n260 00 *atest*b@@dbc\ninvalid\ninvalid\n$\n";
+
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(partiallyInvalidRecord);
+
+        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
+        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
+        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
+        assertThat("First item: failed", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getFailed(), is(1));
+        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(false));
+    }
+
+    @Test
+    public void createChunkItemEntities_danMarc2dataPartitionerUnrecognizableLineFormat_fatalDiagnosticIsCreated() throws JobStoreException, JSONBException {
+        final String invalidRecord = "*aA @*programmer is born\n";
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(invalidRecord);
+
+        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
+        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
+        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
+        assertThat("First item: failed", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getFailed(), is(1));
+        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(true));
+    }
+
+    @Test
+    public void createChunkItemEntities_danMarc2dataPartitionerReturnsNull_chunkItemNotCreated() throws JobStoreException {
+        final String emptyRecord = "$\n";
+        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(emptyRecord);
+
+        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
+        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 0));
     }
 
     @Test
@@ -238,7 +286,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
             final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-            final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.singletonList(PARTITIONING));
+            final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
+            final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
             when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
             when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -262,7 +311,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.singletonList(PARTITIONING));
+        final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
+        final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -289,11 +339,12 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        jobEntity.getState().getPhase(PARTITIONING).setSucceeded(126);
-        jobEntity.getState().getPhase(PROCESSING).setFailed(41);
-        jobEntity.getState().getPhase(PROCESSING).setIgnored(41);
-        jobEntity.getState().getPhase(PROCESSING).setSucceeded(41);
+        final State state = getUpdatedState(chunk.size(), Collections.singletonList(PARTITIONING));
+        state.getPhase(PARTITIONING).setSucceeded(126);
+        state.getPhase(PROCESSING).setFailed(41);
+        state.getPhase(PROCESSING).setIgnored(41);
+        state.getPhase(PROCESSING).setSucceeded(41);
+        JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -322,7 +373,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
-        final JobEntity jobEntity = getJobEntity(chunk.size(), Collections.<State.Phase>emptyList());
+        final State state = getUpdatedState(chunk.size(), Collections.<State.Phase>emptyList());
+        final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -350,8 +402,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         final ExternalChunk chunk = getExternalChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, SUCCESS, SUCCESS));
         setItemEntityExpectations(chunk, Arrays.asList(PARTITIONING, PROCESSING));
 
-        ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
-        JobEntity jobEntity = getJobEntity(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
+        final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
+        final State state = getUpdatedState(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
+        final JobEntity jobEntity = new TestableJobEntityBuilder().setNumberOfItems(chunk.size()).setState(state).build();
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class), eq(PESSIMISTIC_WRITE))).thenReturn(chunkEntity);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
@@ -499,22 +552,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
      */
 
     // Helper class for parameter values (with defaults)
-    private static class Params {
-        final String xml =
-                "<records>"
-                        + "<record>first</record>"
-                        + "<record>second</record>"
-                        + "<record>third</record>"
-                        + "<record>fourth</record>"
-                        + "<record>fifth</record>"
-                        + "<record>sixth</record>"
-                        + "<record>seventh</record>"
-                        + "<record>eighth</record>"
-                        + "<record>ninth</record>"
-                        + "<record>tenth</record>"
-                        + "<record>eleventh</record>"
-                        + "</records>";
-
+    private class Params {
+        final String xml = getXml();
         public JobInputStream jobInputStream;
         public DataPartitionerFactory.DataPartitioner dataPartitioner;
         public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
@@ -631,5 +670,16 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
         chunkEntity.setState(chunkState);
         return chunkEntity;
+    }
+
+    private PgJobStoreRepository.ChunkItemEntities createChunkItemEntitiesForDanMarc2Partitioning(String data) throws JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
+        final Params params = new Params();
+
+        params.dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(
+                new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)),
+                "latin1");
+
+        return pgJobStore.jobStoreRepository.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
     }
 }

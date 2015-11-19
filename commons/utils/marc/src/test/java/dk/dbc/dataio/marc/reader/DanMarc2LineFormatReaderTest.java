@@ -87,8 +87,8 @@ public class DanMarc2LineFormatReaderTest {
             reader.read();
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
-            assertThat(e.getLinesRead(), not(nullValue()));
-            assertThat(new String(e.getLinesRead(), StandardCharsets.UTF_8).contains(recordWithIllegalEscape), is(true));
+            assertThat(e.getBytesRead(), not(nullValue()));
+            assertThat(new String(e.getBytesRead(), StandardCharsets.UTF_8).contains(recordWithIllegalEscape), is(true));
             assertThat(e.getMessage(), containsString("'@b'"));
         }
     }
@@ -101,8 +101,8 @@ public class DanMarc2LineFormatReaderTest {
             reader.read();
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
-            assertThat(e.getLinesRead(), not(nullValue()));
-            assertThat(new String(e.getLinesRead(), StandardCharsets.UTF_8).contains(recordWithEscapeAtEndOfLine), is(true));
+            assertThat(e.getBytesRead(), not(nullValue()));
+            assertThat(new String(e.getBytesRead(), StandardCharsets.UTF_8).contains(recordWithEscapeAtEndOfLine), is(true));
             assertThat(e.getMessage(), containsString("'@'"));
         }
     }
@@ -115,8 +115,8 @@ public class DanMarc2LineFormatReaderTest {
             reader.read();
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
-            assertThat(e.getLinesRead(), not(nullValue()));
-            assertThat(new String(e.getLinesRead(), StandardCharsets.UTF_8).contains(recordWithSubfieldMarkerAtEndOfLine), is(true));
+            assertThat(e.getBytesRead(), not(nullValue()));
+            assertThat(new String(e.getBytesRead(), StandardCharsets.UTF_8).contains(recordWithSubfieldMarkerAtEndOfLine), is(true));
             assertThat(e.getMessage(), containsString("'*'"));
         }
     }
@@ -135,8 +135,8 @@ public class DanMarc2LineFormatReaderTest {
             fail("No MarcReaderInvalidRecordException thrown");
         } catch (MarcReaderInvalidRecordException e) {
             assertThat("Second record skipped", e.getMessage(), containsString("'@d'"));
-            assertThat(e.getLinesRead(), not(nullValue()));
-            final String linesRead = new String(e.getLinesRead(), StandardCharsets.UTF_8);
+            assertThat(e.getBytesRead(), not(nullValue()));
+            final String linesRead = new String(e.getBytesRead(), StandardCharsets.UTF_8);
             assertThat(linesRead.contains(invalidRecord), is(true));
             assertThat(linesRead.contains(simpleRecordInLineFormat), is(false));
 

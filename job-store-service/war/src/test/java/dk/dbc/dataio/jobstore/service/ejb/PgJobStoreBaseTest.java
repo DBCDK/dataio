@@ -54,7 +54,6 @@ import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.net.URISyntaxException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -174,7 +173,7 @@ public abstract class PgJobStoreBaseTest {
         return new JobInputStream(jobSpecification, true, 3);
     }
 
-    protected void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException{
+    protected void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException {
         final FlowBinder flowBinder = new FlowBinderBuilder().build();
         final Flow flow = new FlowBuilder().build();
         final Sink sink = new SinkBuilder().build();
@@ -184,17 +183,6 @@ public abstract class PgJobStoreBaseTest {
         when(mockedFlowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId())).thenReturn(flow);
         when(mockedFlowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId())).thenReturn(sink);
         when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
-    }
-
-    protected TestableJobEntity newTestableJobEntity(JobSpecification jobSpecification) {
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-        jobEntity.setState(new State());
-        jobEntity.setSpecification(jobSpecification);
-        final SinkCacheEntity mockedCachedSink = mock(SinkCacheEntity.class);
-        jobEntity.setCachedSink(mockedCachedSink);
-
-        return jobEntity;
     }
 
     protected String getXml() {
@@ -214,9 +202,7 @@ public abstract class PgJobStoreBaseTest {
                 + "</records>";
     }
 
-    protected JobEntity getJobEntity(int numberOfItems, List<State.Phase> phasesDone) {
-        final TestableJobEntity jobEntity = new TestableJobEntity();
-        jobEntity.setNumberOfItems(numberOfItems);
+    protected State getUpdatedState(int numberOfItems, List<State.Phase> phasesDone) {
         final StateChange jobStateChange = new StateChange();
         final State jobState = new State();
         for (State.Phase phase : phasesDone) {
@@ -226,13 +212,7 @@ public abstract class PgJobStoreBaseTest {
                     .setEndDate(new Date());
             jobState.updateState(jobStateChange);
         }
-
-        jobEntity.setState(jobState);
-        jobEntity.setFlowStoreReferences(new FlowStoreReferencesBuilder().build());
-        jobEntity.setSpecification(new JobSpecificationBuilder().build());
-        jobEntity.setTimeOfCreation(new Timestamp(new Date().getTime()));
-
-        return jobEntity;
+        return jobState;
     }
 
     protected JobEntity getJobEntity(int jobId) {
@@ -273,13 +253,6 @@ public abstract class PgJobStoreBaseTest {
         return query;
     }
 
-    // Inner classes
-    protected class TestableJobEntity extends JobEntity {
-        public void setTimeOfCreation(Timestamp timeOfCreation) {
-            this.timeOfCreation = timeOfCreation;
-        }
-    }
-
     class MockedAddJobParam extends AddJobParam {
 
         public MockedAddJobParam() {
@@ -308,5 +281,4 @@ public abstract class PgJobStoreBaseTest {
             this.diagnostics.addAll(diagnostics);
         }
     }
-
 }

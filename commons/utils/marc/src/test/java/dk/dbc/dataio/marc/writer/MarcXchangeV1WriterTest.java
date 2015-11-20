@@ -41,6 +41,7 @@ import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class MarcXchangeV1WriterTest {
     private static final String JAXP_SCHEMA_SOURCE = "http://java.sun.com/xml/jaxp/properties/schemaSource";
@@ -50,8 +51,17 @@ public class MarcXchangeV1WriterTest {
     @Test
     public void write_equality() {
         final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
-        final String out = new String(writer.write(getMarcRecord(), StandardCharsets.UTF_8), StandardCharsets.UTF_8);
-        assertThat(out, is(getMarcRecordAsMarcXchange()));
+        final byte[] out = writer.write(getMarcRecord(), StandardCharsets.UTF_8);
+        assertThat(asString(out), is(getMarcRecordAsMarcXchange()));
+    }
+
+    @Test
+    public void write_skipAddXmlDeclaration() {
+        final MarcXchangeV1Writer writer = new MarcXchangeV1Writer()
+                .setProperty(MarcXchangeV1Writer.Property.ADD_XML_DECLARATION, Boolean.FALSE);
+        final byte[] out = writer.write(getMarcRecord(), StandardCharsets.UTF_8);
+        final String expectedOutput = getMarcRecordAsMarcXchange();
+        assertThat(asString(out), is(expectedOutput.substring(expectedOutput.indexOf('\n') + 1)));
     }
 
     @Test
@@ -81,6 +91,20 @@ public class MarcXchangeV1WriterTest {
         final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
         final byte[] out = writer.write(getMarcRecord(), StandardCharsets.UTF_8);
         documentBuilder.parse(new ByteArrayInputStream(out));
+    }
+
+    @Test
+    public void setProperty_valueOfIncompatibleType_throws() {
+        final MarcXchangeV1Writer writer = new MarcXchangeV1Writer();
+        try {
+            writer.setProperty(MarcXchangeV1Writer.Property.ADD_XML_DECLARATION, "true");
+            fail("No ClassCastException thrown");
+        } catch (ClassCastException e) {
+        }
+    }
+
+    private String asString(byte[] bytes) {
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
     private MarcRecord getMarcRecord() {

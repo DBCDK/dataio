@@ -29,6 +29,8 @@ import dk.dbc.dataio.marc.binding.MarcRecord;
 import dk.dbc.dataio.marc.binding.SubField;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.apache.commons.lang3.StringEscapeUtils.escapeXml10;
 
@@ -39,6 +41,34 @@ import static org.apache.commons.lang3.StringEscapeUtils.escapeXml10;
  * This class is thread safe.
  */
 public class MarcXchangeV1Writer implements MarcWriter {
+    public enum Property {
+        ADD_XML_DECLARATION(Boolean.class);
+
+        private Class type;
+
+        Property(Class type) {
+            this.type = type;
+        }
+    }
+
+    private final Map<Property, Boolean> flags;
+
+    public MarcXchangeV1Writer() {
+        flags = new HashMap<>();
+        setProperty(Property.ADD_XML_DECLARATION, Boolean.TRUE);
+    }
+
+    public MarcXchangeV1Writer setProperty(Property property, Object value) throws ClassCastException {
+        switch (property.type.getSimpleName()) {
+            case "Boolean":
+                flags.put(property, (Boolean) value);
+                break;
+            default:
+                throw new IllegalStateException("Unhandled property " + property);
+        }
+        return this;
+    }
+
     @Override
     public byte[] write(MarcRecord marcRecord, Charset encoding) {
         final StringBuilder buffer = new StringBuilder();
@@ -97,7 +127,9 @@ public class MarcXchangeV1Writer implements MarcWriter {
     }
 
     private void addXmlDeclaration(StringBuilder buffer, Charset encoding) {
-        buffer.append("<?xml version='1.0' encoding='").append(encoding.name()).append("'?>\n");
+        if (flags.get(Property.ADD_XML_DECLARATION)) {
+            buffer.append("<?xml version='1.0' encoding='").append(encoding.name()).append("'?>\n");
+        }
     }
 
     private String escape(String s) {

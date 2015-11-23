@@ -43,7 +43,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
+
+import static dk.dbc.dataio.commons.types.ChunkItem.Status;
+import static dk.dbc.dataio.commons.types.ChunkItem.Type;
 
 public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitionerFactory {
 
@@ -120,19 +125,27 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                 public ChunkItem next() {
                     try {
                         marcRecord = marcReader.read();
-                        if (marcRecord != null) {
+                        if(marcRecord.getFields().isEmpty()) {
+                            return new ChunkItem(0, ("Empty record").getBytes(encoding), Status.IGNORE,
+                                    new ArrayList<>(Collections.singletonList(Type.STRING)),
+                                    encoding.name());
+                        } else {
                             byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
-                            return new ChunkItem(0, marcRecordAsByteArray, ChunkItem.Status.SUCCESS);
+                            return new ChunkItem(0, marcRecordAsByteArray, Status.SUCCESS,
+                                    new ArrayList<>(Collections.singletonList(Type.MARCXCHANGE)),
+                                    encoding.name());
                         }
                     } catch (MarcReaderException e) {
                         LOGGER.error("Exception caught while creating MarcRecord", e);
                         if(e instanceof MarcReaderInvalidRecordException) {
-                            return new ChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Status.FAILURE);
+                            return new ChunkItem(
+                                    0, ((MarcReaderInvalidRecordException) e).getBytesRead(), Status.FAILURE,
+                                    new ArrayList<>(Collections.singletonList(Type.STRING)),
+                                    encoding.name());
                         } else {
                             throw new InvalidDataException(e);
                         }
                     }
-                    return null;
                 }
             };
             return iterator;

@@ -34,7 +34,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -47,7 +46,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         try {
             new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(asInputStream(""), StandardCharsets.UTF_8.name());
             fail("No exception thrown");
-        } catch (InvalidEncodingException e) { }
+        } catch (InvalidEncodingException ignored) { }
     }
 
     @Test
@@ -102,27 +101,30 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
-    public void dm2LineFormatDataPartitioner_inputStreamIsEmpty_returnsNull()  {
+    public void dm2LineFormatDataPartitioner_inputStreamContainsOnlyEndMark_returnsChunkItemWithStatusIgnore()  {
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(asInputStream(""), SPECIFIED_ENCODING);
+                createDataPartitioner(asInputStream("$\n"), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
-        assertThat("Empty input => hasNext() expected to be false", iterator.hasNext(), is(false));
-        assertThat("Empty input => nex() expected to return null", iterator.next(), is(nullValue()));
+        assertThat("Empty input => hasNext() expected to be true", iterator.hasNext(), is(true));
+        ChunkItem chunkItem = iterator.next();
+        assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
     @Test
-    public void dm2LineFormatDataPartitioner_readValidRecord_returnsChunkItemWithMarcRecordAsMarcXchange() {
+    public void dm2LineFormatDataPartitioner_readValidRecord_returnsChunkItemWithMarcRecordAsMarcXchangeAndStatusSuccess() {
         final String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(simpleRecordInLineFormat), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
-        assertThat("Empty input => hasNext() expected to be false", iterator.hasNext(), is(true));
+        assertThat("Valid input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
     @Test
-    public void dm2LineFormatDataPartitioner_readInvalidRecord_returnsChunkItemWithFaultyRecordsAsData() {
+    public void dm2LineFormatDataPartitioner_readInvalidRecord_returnsChunkItemWithFaultyRecordsAsDataAndStatusFailure() {
         final String faultyRecordInLineFormat = "245 00 *aA @*programmer is *\n";
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
                 createDataPartitioner(asInputStream(faultyRecordInLineFormat), SPECIFIED_ENCODING);
@@ -131,6 +133,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(new String(chunkItem.getData(), StandardCharsets.UTF_8), is(faultyRecordInLineFormat));
+        assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
     @Test
@@ -143,7 +146,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         try {
             iterator.next();
             fail("No exception thrown");
-        } catch (InvalidDataException e) { }
+        } catch (InvalidDataException ignored) { }
     }
 
     /*

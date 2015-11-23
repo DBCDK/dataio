@@ -30,9 +30,6 @@ import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -47,9 +44,6 @@ import types.TestablePartitioningParamBuilder;
 
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
@@ -290,43 +284,6 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Verify
         assertThat("Sink for job NOT occupied!", sinkOccupied, is(false));
-    }
-
-    @Test
-    public void handlePartitioning_invalidLineFormat_doesNotCauseFatalError() throws FileStoreServiceConnectorException, JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        pgJobStore.jobQueueRepository = newJobQueueRepository();
-        String lineFormat = "245 00 *aA @*programmer is *\n";
-        JobInfoSnapshot jobInfoSnapshot = getHandlePartitioningForLineFormatJobInfoSnapshotResult(pgJobStore, lineFormat);
-        assertThat("Fatal error did not occur", jobInfoSnapshot.getState().fatalDiagnosticExists(), is(false));
-    }
-
-    @Test
-    public void handlePartitioning_lineFormatNotRecognized_causesFatalError () throws FileStoreServiceConnectorException, JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        pgJobStore.jobQueueRepository = newJobQueueRepository();
-        String lineFormat = "*aA @*programmer is born";
-        JobInfoSnapshot jobInfoSnapshot = getHandlePartitioningForLineFormatJobInfoSnapshotResult(pgJobStore, lineFormat);
-        assertThat("Fatal error did occur", jobInfoSnapshot.getState().fatalDiagnosticExists(), is(true));
-    }
-
-    private JobInfoSnapshot getHandlePartitioningForLineFormatJobInfoSnapshotResult(PgJobStore pgJobStore, String lineFormat) throws FileStoreServiceConnectorException, JobStoreException {
-        InputStream dataFileInputStream = new ByteArrayInputStream(lineFormat.getBytes(StandardCharsets.UTF_8));
-        DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(dataFileInputStream, "latin1");
-        final PartitioningParam mockedPartitioningParam = new TestablePartitioningParamBuilder().setRecords(lineFormat).setDataPartitioner(dataPartitioner).setRecordSplitter(RecordSplitter.DANMARC2).build();
-
-        when(mockedPartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
-
-        final TestableJobEntity jobEntity = new TestableJobEntityBuilder().build();
-
-        when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) lineFormat.getBytes().length);
-
-        setupMockedSink();
-        setupMockedJobQueueNamedQueryForFindByJob();
-
-        // Subject Under Test
-        return pgJobStore.handlePartitioning(mockedPartitioningParam);
     }
 
     @Test

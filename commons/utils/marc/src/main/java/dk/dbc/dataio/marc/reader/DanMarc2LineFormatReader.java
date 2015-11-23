@@ -81,13 +81,13 @@ public class DanMarc2LineFormatReader implements MarcReader {
     public MarcRecord read() throws MarcReaderException {
         final List<DataField> fields = new ArrayList<>();
         linesRead.setLength(0);
-
+        String line = null;
         // Process all lines comprising a single record.
         // Record end is indicated by the END_OF_RECORD marker
         // or by end of stream.
 
         try {
-            String line = getNextLine();
+            line = getNextLine();
             while (!END_OF_RECORD.equals(line) && line != null) {
                 final StringBuilder buffer = new StringBuilder(line);
                 while (isNextLineContinuation()) {
@@ -98,6 +98,9 @@ public class DanMarc2LineFormatReader implements MarcReader {
             }
         } catch (MarcReaderInvalidRecordException e) {
             handleAndRethrow(e);
+        }
+        if(fields.isEmpty() && line == null) {
+            return null;
         }
         return getMarcRecord(fields);
     }
@@ -192,7 +195,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
 
     private MarcRecord getMarcRecord(List<DataField> fields) {
         if (fields.isEmpty())
-            return null;
+            return new MarcRecord();
 
         return new MarcRecord()
                 .setLeader(new Leader().setData(DEFAULT_LEADER))

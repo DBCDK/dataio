@@ -131,7 +131,7 @@ public class PartitioningParam {
                     return new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ISO2709:
                     return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
-                case DANMARC2:
+                case DANMARC2_LINE_FORMAT:
                     return new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
                     diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitterType));

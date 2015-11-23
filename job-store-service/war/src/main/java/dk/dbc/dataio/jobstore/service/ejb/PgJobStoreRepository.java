@@ -561,28 +561,26 @@ public class PgJobStoreRepository extends RepositoryBase {
                is still created but with a serialized JobError as payload instead.
              */
             for (ChunkItem chunkItem : dataPartitioner) {
-                if (chunkItem != null) {
-                    String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
+                String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 
-                    final ItemData itemData = new ItemData(StringUtil.base64encode(recordFromPartitionerAsString), dataPartitioner.getEncoding());
-                    StateChange stateChange = new StateChange()
-                            .setPhase(State.Phase.PARTITIONING)
-                            .setBeginDate(nextItemBegin)
-                            .setEndDate(new Date());
+                final ItemData itemData = new ItemData(StringUtil.base64encode(recordFromPartitionerAsString), dataPartitioner.getEncoding());
+                StateChange stateChange = new StateChange()
+                        .setPhase(State.Phase.PARTITIONING)
+                        .setBeginDate(nextItemBegin)
+                        .setEndDate(new Date());
 
-                    setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, stateChange);
+                setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, stateChange);
 
-                    final State itemState = new State();
-                    itemState.updateState(stateChange);
+                final State itemState = new State();
+                itemState.updateState(stateChange);
 
-                    chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, itemData));
-                    chunkItemEntities.records.add(recordFromPartitionerAsString);
+                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, itemData));
+                chunkItemEntities.records.add(recordFromPartitionerAsString);
 
-                    if (itemCounter == maxChunkSize) {
-                        break;
-                    }
-                    nextItemBegin = new Date();
+                if (itemCounter == maxChunkSize) {
+                    break;
                 }
+                nextItemBegin = new Date();
             }
         } catch (UnrecoverableDataException e) {
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);

@@ -138,19 +138,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void createChunkItemEntities_danMarc2dataPartitionerReadsRecord_succeededItemIsCreated() throws JobStoreException, JSONBException {
-        String validRecord = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
-        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(validRecord);
-
-        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
-        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getSucceeded(), is(1));
-        assertThat("First item: failed", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getSucceeded(), is(1));
-        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(false));
-    }
-
-    @Test
-    public void createChunkItemEntities_danMarc2dataPartitionerSkipsRecord_failedItemIsCreated() throws JobStoreException, JSONBException {
+    public void createChunkItemEntities_dataPartitionerSkipsRecord_failedItemIsCreated() throws JobStoreException, JSONBException {
         final String partiallyInvalidRecord = "245 00 *aA good beginning\n260 00 *atest*b@@dbc\ninvalid\ninvalid\n$\n";
 
         PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(partiallyInvalidRecord);
@@ -163,24 +151,15 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void createChunkItemEntities_danMarc2dataPartitionerUnrecognizableLineFormat_fatalDiagnosticIsCreated() throws JobStoreException, JSONBException {
-        final String invalidRecord = "*aA @*programmer is born\n";
-        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(invalidRecord);
-
-        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
-        assertThat("Chunk: number of failed items", chunkItemEntities.chunkStateChange.getFailed(), is(1));
-        assertThat("First item: failed", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getFailed(), is(1));
-        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(true));
-    }
-
-    @Test
-    public void createChunkItemEntities_danMarc2dataPartitionerReturnsNull_chunkItemNotCreated() throws JobStoreException {
+    public void createChunkItemEntities_dataPartitionerReceivesEmptyRecord_ignoredItemIsCreated() throws JobStoreException {
         final String emptyRecord = "$\n";
         PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(emptyRecord);
 
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 0));
+        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
+        assertThat("Chunk: number of ignored items", chunkItemEntities.chunkStateChange.getIgnored(), is(1));
+        assertThat("First item: ignored", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getIgnored(), is(1));
+        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(false));
     }
 
     @Test

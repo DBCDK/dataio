@@ -34,22 +34,18 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -59,7 +55,6 @@ import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
@@ -73,6 +68,8 @@ import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import types.TestableAddJobParam;
+import types.TestableAddJobParamBuilder;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -87,11 +84,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
@@ -110,6 +106,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
 
     private static final State.Phase PROCESSING = State.Phase.PROCESSING;
+    private static final int MAX_CHUNK_SIZE = 10;
 
     static {
         try {
@@ -118,30 +115,21 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             throw new IllegalStateException(e);
         }
     }
+    private final String defaultXml = "<records>"
+            + "<record>first</record>"
+            + "<record>second</record>"
+            + "<record>third</record>"
+            + "<record>fourth</record>"
+            + "<record>fifth</record>"
+            + "<record>sixth</record>"
+            + "<record>seventh</record>"
+            + "<record>eighth</record>"
+            + "<record>ninth</record>"
+            + "<record>tenth</record>"
+            + "<record>eleventh</record>"
+            + "</records>";
 
-    @Test
-    public void jobQueue_addingQueueElementInProgress() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
-
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final int expectedNumberOfJobs = 1;
-        final int expectedNumberOfChunks = 2;
-        final int expectedNumberOfItems = 11;
-
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
-
-        // Setup mocks
-        setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
-
-        // Set up mocked return for identical byte sizes
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length);
-
-        // When...
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
-        jobTransaction.commit();
-    }
+    private final long defaultByteSize = defaultXml.getBytes().length;
 
     /**
      * Given: a jobstore with empty flowcache
@@ -200,11 +188,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             // When adding jobs with non-ACCTEST type referencing flows which only differs on
             // their "next" components the flows are trimmed resulting in cache hits.
 
-            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(new JobInputStream(
-                    new JobSpecificationBuilder()
-                            .setType(type)
-                            .setDataFile(FILE_STORE_URN.toString())
-                            .build(), true, 0));
+            JobSpecification jobSpecification = new JobSpecificationBuilder()
+                    .setType(type)
+                    .setDataFile(FILE_STORE_URN.toString())
+                    .build();
+
             final FlowContent flowContent = new FlowContentBuilder()
                     .setComponents(Collections.singletonList(
                             new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision++).build()).build()
@@ -213,36 +201,43 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             final Flow flow = new FlowBuilder()
                     .setContent(flowContent)
                     .build();
-            mockedAddJobParam.setFlow(flow);
+
+            final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                    .setJobSpecification(jobSpecification)
+                    .setFlow(flow).build();
 
             final EntityTransaction transaction = entityManager.getTransaction();
             transaction.begin();
-            pgJobStore.jobStoreRepository.createJobEntity(mockedAddJobParam);
+            pgJobStore.jobStoreRepository.createJobEntity(testableAddJobParam);
             transaction.commit();
 
             assertThat("flow cache table size when flow is trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
         }
 
         // When adding job with type ACCTEST the flow is not trimmed resulting in cache insert.
+        JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setType(JobSpecification.Type.ACCTEST)
+                .setDataFile(FILE_STORE_URN.toString())
+                .build();
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(new JobInputStream(
-                new JobSpecificationBuilder()
-                        .setType(JobSpecification.Type.ACCTEST)
-                        .setDataFile(FILE_STORE_URN.toString())
-                        .build(), true, 0));
         final FlowContent flowContent = new FlowContentBuilder()
                 .setComponents(Collections.singletonList(
                         new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision++).build()).build()
                 ))
                 .build();
+
         final Flow flow = new FlowBuilder()
                 .setContent(flowContent)
                 .build();
-        mockedAddJobParam.setFlow(flow);
+
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setJobSpecification(jobSpecification)
+                .setFlow(flow).build();
 
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        pgJobStore.jobStoreRepository.createJobEntity(mockedAddJobParam);
+        pgJobStore.jobStoreRepository.createJobEntity(testableAddJobParam);
+
         transaction.commit();
 
         assertThat("flow cache table size when flow is not trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(2L));
@@ -311,18 +306,18 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfChunks = 2;
         final int expectedNumberOfItems = 11;
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
 
         // Setup mocks
-        setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
+        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
 
         // Set up mocked return for identical byte sizes
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length);
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
         jobTransaction.commit();
 
         // Then...
@@ -367,11 +362,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfItems = 11;
         final long fileStoreByteSize = 42;
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
-        final long dataPartitionerByteSize = MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length;
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        final long dataPartitionerByteSize = testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length;
 
         // Setup mocks
-        setupSuccessfulMockedReturnsFromFlowStore(mockedAddJobParam);
+        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
 
         // Set up mocked return for different byte sizes
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(fileStoreByteSize);
@@ -379,13 +374,13 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
         jobTransaction.commit();
 
         final JobInfoSnapshot jobInfoSnapshotAfterWait = waitForJobCompletion(jobInfoSnapshot.getJobId(), pgJobStore);
         assertTrue(!jobInfoSnapshotAfterWait.getState().getDiagnostics().isEmpty());
         final Diagnostic diagnostic = jobInfoSnapshotAfterWait.getState().getDiagnostics().get(0);
-        assertThat("Diagnostics level", diagnostic.getLevel(), is(FATAL));
+        assertThat("Diagnostics level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("jobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
 
         // And...
@@ -395,47 +390,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // And...
         assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
     }
-
-    private JobInfoSnapshot waitForJobCompletion(long jobId, PgJobStore pgJobStore) {
-        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
-        JobInfoSnapshot jobInfoSnapshot = null;
-        // Wait for Job-completion
-        long remainingWaitInMs = MAX_WAIT_IN_MS;
-
-        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - waiting in MAX milliseconds: " + MAX_WAIT_IN_MS);
-        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
-
-
-        while ( remainingWaitInMs > 0 ) {
-            LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
-
-            jobInfoSnapshot = pgJobStore.jobStoreRepository.listJobs(criteria).get(0);
-            if (phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
-                break;
-            } else {
-                try {
-                    Thread.sleep(SLEEP_INTERVAL_IN_MS);
-                    remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;
-                } catch (InterruptedException ex) {
-                    break;
-                }
-            }
-        }
-        if (!phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
-            throw new IllegalStateException(String.format("Job %d did not complete successfully in time",
-                    jobInfoSnapshot.getJobId()));
-        }
-
-        return jobInfoSnapshot;
-    }
-
-    private boolean phasePartitioningDoneSuccessfully(JobInfoSnapshot jobInfoSnapshot) {
-        final State state = jobInfoSnapshot.getState();
-        return state.phaseIsDone(State.Phase.PARTITIONING);
-    }
-
-
-
 
     /**
      * Given: an empty jobstore
@@ -455,30 +409,30 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfChunks = 0;
         final int expectedNumberOfItems = 0;
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(Boolean.FALSE);
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
 
         // Setup mocks
-        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(mockedAddJobParam.getFlow());
+        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(testableAddJobParam.getFlow());
         when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorException("error"));
-        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(mockedAddJobParam.getSubmitter());
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
         when(mockedFlowStoreServiceConnector.getFlowBinder(
                 anyString(),
                 anyString(),
                 anyString(),
                 anyLong(),
                 anyString())).
-                thenReturn(mockedAddJobParam.getFlowBinder());
+                thenReturn(testableAddJobParam.getFlowBinder());
 
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(mockedAddJobParam.getJobInputStream());
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
         jobTransaction.commit();
 
         // Then...
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
         assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
-        assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, new ArrayList<State.Phase>());
+        assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, new ArrayList<>());
 
         // And...
         assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(nullValue()));
@@ -521,12 +475,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfItems = 0;
 
         // When...
-        JobInfoSnapshot jobInfoSnapshot = addJobWithDiagnostic(pgJobStore, Diagnostic.Level.FATAL, Boolean.FALSE);
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, ERROR_MESSAGE)))
+                .build();
+
+        final JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, testableAddJobParam);
 
         // Then...
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
         assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
-        assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, new ArrayList<State.Phase>());
+        assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, new ArrayList<>());
 
         // And...
         assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(nullValue()));
@@ -561,12 +519,13 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                 + "<records>"
                      + "<record>first</record>"
                 + "</records>";
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(iso8859, Boolean.TRUE);
+
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(iso8859).build();
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
         transaction.commit();
 
         // Then...
@@ -587,12 +546,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(getInvalidXml(), Boolean.TRUE);
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(getInvalidXml()).build();
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
         transaction.commit();
 
         // Then...
@@ -621,8 +580,13 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfItems = 11;
 
         // When...
-        setupExpectationOnGetByteSize();
-        JobInfoSnapshot jobInfoSnapshot = addJobWithDiagnostic(pgJobStore, Diagnostic.Level.WARNING, Boolean.TRUE);
+        setupExpectationOnGetByteSize(defaultByteSize);
+
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)))
+                .build();
+
+        final JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, testableAddJobParam);
 
         // Then...
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
@@ -664,7 +628,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int expectedNumberOfItems = 11;
 
         // When...
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         JobInfoSnapshot jobInfoSnapshot = addJobs(expectedNumberOfJobs, pgJobStore).get(0);
 
         // Then...
@@ -695,7 +659,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
         final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
@@ -752,7 +716,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
         final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshotNewJob, not(nullValue()));
@@ -824,7 +788,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.
         final int numberOfItems = 10;
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunk(
@@ -887,7 +851,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
         final List<JobInfoSnapshot> expectedSnapshots = snapshots.subList(1, snapshots.size() - 1);
 
@@ -900,7 +864,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final JobListCriteria jobListCriteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonValue.toString()))
                 .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
-                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()));
+                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()))
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC));
 
         final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteria);
 
@@ -919,7 +884,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void countJobs() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
 
         // When...
@@ -959,7 +924,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
         final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1002,7 +967,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
         final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1036,10 +1001,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Adding job that fails in job creation
         final JobInfoSnapshot jobFailedInJobCreation = addJobs(1, pgJobStore).get(0);
 
-        // Adding job that fails in partitioning
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(getInvalidXml(), Boolean.TRUE);
-        final EntityTransaction transaction = entityManager.getTransaction();
-
         // When...
         final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
         final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaJobCreationFailed);
@@ -1058,16 +1019,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void listJobsWithFatalError_fatalByJobPartitioning() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize();
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(getInvalidXml().getBytes()));
 
 
         // Adding job that fails in partitioning
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(getInvalidXml(), Boolean.FALSE);
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(getInvalidXml()).build();
+        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
         final EntityTransaction transaction = entityManager.getTransaction();
 
         transaction.begin();
-        final JobInfoSnapshot jobFailedInPartitioning = pgJobStore.addJob(mockedAddJobParam);
+        final JobInfoSnapshot jobFailedInPartitioning = pgJobStore.addJob(testableAddJobParam);
         transaction.commit();
 
         // When...
@@ -1087,7 +1048,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void listJobsWithFatalError_noFailure() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
 
         // Adding job without failure
         addJobs(1, pgJobStore);
@@ -1104,10 +1065,14 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void listJobsWithFatalError_warningNoMatch() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize();
 
         // Adding job with diagnostic with level WARNING
-        addJobWithDiagnostic(pgJobStore, Diagnostic.Level.WARNING, Boolean.TRUE);
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
+                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)))
+                .build();
+
+        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
+        commitJob(pgJobStore, testableAddJobParam);
 
         // When...
         final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
@@ -1126,7 +1091,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void countItems() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> snapshots = addJobs(2, pgJobStore);
 
         // When...
@@ -1157,15 +1122,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Create 3 jobs, each containing params with reference to different sinks.
         for(int i = 0; i < numberOfJobs; i ++) {
-            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
             FlowStoreReference flowStoreReference = new FlowStoreReference(i + 1, i + 1, "sinkName" + (i + 1));
-            mockedAddJobParam.setFlowStoreReferences(new FlowStoreReferencesBuilder()
-                    .setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build());
+            FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder()
+                    .setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build();
+
+            final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setFlowStoreReferences(flowStoreReferences).build();
+            setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
 
             final EntityTransaction jobTransaction = entityManager.getTransaction();
-            setupExpectationOnGetByteSize();
             jobTransaction.begin();
-            snapshots.add(pgJobStore.addJob(mockedAddJobParam));
+            snapshots.add(pgJobStore.addJob(testableAddJobParam));
             jobTransaction.commit();
         }
 
@@ -1199,7 +1165,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1235,7 +1201,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
         final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1271,7 +1237,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final short failedItemId = 3;          // The failed item will be the 4th out of 10
         final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1310,11 +1276,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Given...
         Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         final EntityTransaction transaction = entityManager.getTransaction();
-        setupExpectationOnGetByteSize();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
         transaction.begin();
-        pgJobStore.addJob(mockedAddJobParam);
+        pgJobStore.addJob(testableAddJobParam);
         transaction.commit();
 
         // When...
@@ -1354,13 +1320,13 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void getResourceBundle() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
 
         final EntityTransaction jobTransaction = entityManager.getTransaction();
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
         jobTransaction.commit();
 
         assertThat(jobInfoSnapshot, not(nullValue()));
@@ -1371,14 +1337,14 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Then...
         assertThat("ResourceBundle", resourceBundle, not(nullValue()));
         assertThat("ResourceBundle.flow", resourceBundle.getFlow(), not(nullValue()));
-        assertThat(resourceBundle.getFlow(), is(mockedAddJobParam.getFlow()));
+        assertThat(resourceBundle.getFlow(), is(testableAddJobParam.getFlow()));
 
         assertThat("ResourceBundle.sink", resourceBundle.getSink(), not(nullValue()));
-        assertThat(resourceBundle.getSink(), is(mockedAddJobParam.getSink()));
+        assertThat(resourceBundle.getSink(), is(testableAddJobParam.getSink()));
 
         assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), not(nullValue()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(mockedAddJobParam.getJobInputStream().getJobSpecification().getSubmitterId()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(mockedAddJobParam.getJobInputStream().getJobSpecification().getFormat()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(testableAddJobParam.getJobInputStream().getJobSpecification().getSubmitterId()));
+        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(testableAddJobParam.getJobInputStream().getJobSpecification().getFormat()));
     }
 
     /**
@@ -1389,12 +1355,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void getChunk() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
         final EntityTransaction transaction = entityManager.getTransaction();
 
-        setupExpectationOnGetByteSize();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
         transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
         transaction.commit();
 
         // Then...
@@ -1419,7 +1385,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         assertThat(jobInfoSnapshot, not(nullValue()));
@@ -1460,7 +1426,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final short successfulItemId = 0;
         final PgJobStore pgJobStore = newPgJobStore();
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
@@ -1525,7 +1491,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final short successfulItemId = 0;
         final PgJobStore pgJobStore = newPgJobStore();
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
         ExternalChunk processedChunk = buildExternalChunk(jobInfoSnapshot.getJobId(), chunkId, 10, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
@@ -1582,7 +1548,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final int chunkId = 1;                  // second chunk is used, hence the chunk id is 1.
         final PgJobStore pgJobStore = newPgJobStore();
 
-        setupExpectationOnGetByteSize();
+        setupExpectationOnGetByteSize(defaultByteSize);
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
@@ -1603,9 +1569,50 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("chunkItem.data", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(successfulItemEntity.getNextProcessingOutcome().getData())));
     }
 
-    private void setupExpectationOnGetByteSize() throws FileStoreServiceConnectorException {
-        Long byteSizeOfMockedData = (long) MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8).length;
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(byteSizeOfMockedData);
+    /*
+     * Private methods
+     */
+
+    private JobInfoSnapshot waitForJobCompletion(long jobId, PgJobStore pgJobStore) {
+        final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
+        JobInfoSnapshot jobInfoSnapshot = null;
+        // Wait for Job-completion
+        long remainingWaitInMs = MAX_WAIT_IN_MS;
+
+        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - waiting in MAX milliseconds: " + MAX_WAIT_IN_MS);
+        LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - sleeping in milliseconds: " + SLEEP_INTERVAL_IN_MS);
+
+
+        while ( remainingWaitInMs > 0 ) {
+            LOGGER.info("AddJobIT.createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated - remaining wait in milliseconds: " + remainingWaitInMs);
+
+            jobInfoSnapshot = pgJobStore.jobStoreRepository.listJobs(criteria).get(0);
+            if (phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
+                break;
+            } else {
+                try {
+                    Thread.sleep(SLEEP_INTERVAL_IN_MS);
+                    remainingWaitInMs -= SLEEP_INTERVAL_IN_MS;
+                } catch (InterruptedException ex) {
+                    break;
+                }
+            }
+        }
+        if (!phasePartitioningDoneSuccessfully(jobInfoSnapshot)) {
+            throw new IllegalStateException(String.format("Job %d did not complete successfully in time",
+                    jobInfoSnapshot.getJobId()));
+        }
+
+        return jobInfoSnapshot;
+    }
+
+    private boolean phasePartitioningDoneSuccessfully(JobInfoSnapshot jobInfoSnapshot) {
+        final State state = jobInfoSnapshot.getState();
+        return state.phaseIsDone(State.Phase.PARTITIONING);
+    }
+
+    private void setupExpectationOnGetByteSize(long expectedByteSize) throws FileStoreServiceConnectorException {
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(expectedByteSize);
     }
 
     private PgJobStore newPgJobStore() throws FileStoreServiceConnectorException {
@@ -1630,48 +1637,40 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
         when(mockedFlowStoreServiceConnectorBean.getConnector()).thenReturn(mockedFlowStoreServiceConnector);
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(MockedAddJobParam.XML.getBytes(StandardCharsets.UTF_8)));
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml.getBytes(StandardCharsets.UTF_8)));
         when(mockedSessionContext.getBusinessObject(PgJobStore.class)).thenReturn(pgJobStore);
 
         return pgJobStore;
     }
 
-    private JobInfoSnapshot addJobWithDiagnostic(PgJobStore pgJobStore, Diagnostic.Level level, boolean doSequenceAnalysis) throws JobStoreException {
-        final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam(doSequenceAnalysis);
-        mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(level, ERROR_MESSAGE)));
-        return commitJob(pgJobStore, mockedAddJobParam);
-    }
-
     private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
-
-            final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
-            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, mockedAddJobParam);
+            JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new TestableAddJobParamBuilder().build());
             snapshots.add(jobInfoSnapshot);
         }
         return snapshots;
     }
 
-    private JobInfoSnapshot commitJob(PgJobStore pgJobStore, MockedAddJobParam mockedAddJobParam) throws JobStoreException {
+    private JobInfoSnapshot commitJob(PgJobStore pgJobStore, TestableAddJobParam testableAddJobParam) throws JobStoreException {
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(mockedAddJobParam);
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
         jobTransaction.commit();
         return jobInfoSnapshot;
     }
 
-    private void setupSuccessfulMockedReturnsFromFlowStore(MockedAddJobParam mockedAddJobParam) throws FlowStoreServiceConnectorException {
-        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(mockedAddJobParam.getFlow());
-        when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenReturn(mockedAddJobParam.getSink());
-        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(mockedAddJobParam.getSubmitter());
+    private void setupSuccessfulMockedReturnsFromFlowStore(TestableAddJobParam testableAddJobParam) throws FlowStoreServiceConnectorException {
+        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(testableAddJobParam.getFlow());
+        when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenReturn(testableAddJobParam.getSink());
+        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
         when(mockedFlowStoreServiceConnector.getFlowBinder(
                 anyString(),
                 anyString(),
                 anyString(),
                 anyLong(),
                 anyString())).
-                thenReturn(mockedAddJobParam.getFlowBinder());
+                thenReturn(testableAddJobParam.getFlowBinder());
     }
 
     private void assertTableSizes(int expectedJobTableSize, int expectedChunkTableSize, int expectedItemTableSize) throws SQLException {
@@ -1691,8 +1690,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private void assertEntities(JobEntity jobEntity, int expectedNumberOfChunks, int expectedNumberOfItems, List<State.Phase> phases) {
         assertJobEntity(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, phases);
         for (int chunkId = 0; chunkId < expectedNumberOfChunks; chunkId++) {
-            final short expectedNumberOfChunkItems = expectedNumberOfItems / ((chunkId + 1) * MockedAddJobParam.MAX_CHUNK_SIZE) > 0 ? MockedAddJobParam.MAX_CHUNK_SIZE
-                    : (short) (expectedNumberOfItems - (chunkId * MockedAddJobParam.MAX_CHUNK_SIZE));
+            final short expectedNumberOfChunkItems = expectedNumberOfItems / ((chunkId + 1) * MAX_CHUNK_SIZE) > 0 ? MAX_CHUNK_SIZE
+                    : (short) (expectedNumberOfItems - (chunkId * MAX_CHUNK_SIZE));
             final ChunkEntity.Key chunkKey = new ChunkEntity.Key(chunkId, jobEntity.getId());
             final ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkKey);
             assertChunkEntity(chunkEntity, chunkKey, expectedNumberOfChunkItems, phases);
@@ -1840,65 +1839,5 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                 + "<record>tenth</record>"
                 + "<record>eleventh"
                 + "</records>";
-    }
-
-    private class MockedAddJobParam extends AddJobParam {
-        public static final short MAX_CHUNK_SIZE = 10;
-        public static final String UNDEFINED_DATA = "";
-        public static final String XML =
-                "<records>"
-                    + "<record>first</record>"
-                    + "<record>second</record>"
-                    + "<record>third</record>"
-                    + "<record>fourth</record>"
-                    + "<record>fifth</record>"
-                    + "<record>sixth</record>"
-                    + "<record>seventh</record>"
-                    + "<record>eighth</record>"
-                    + "<record>ninth</record>"
-                    + "<record>tenth</record>"
-                    + "<record>eleventh</record>"
-                + "</records>";
-
-        public MockedAddJobParam(JobInputStream jobInputStream, String utf8Data, boolean doSequenceAnalysis) {
-            super(jobInputStream, mockedFlowStoreServiceConnector);
-            submitter = new SubmitterBuilder().build();
-            flow = new FlowBuilder().build();
-            sink = new SinkBuilder().build();
-            flowBinder = new FlowBinderBuilder().setContent(new FlowBinderContentBuilder().setSequneceAnalysis(doSequenceAnalysis).build()).build();
-            flowStoreReferences = new FlowStoreReferencesBuilder().build();
-        }
-
-        public MockedAddJobParam(JobInputStream jobInputStream) {
-            this(jobInputStream, UNDEFINED_DATA, Boolean.TRUE);
-        }
-
-        public MockedAddJobParam(String utf8Data, boolean doSequenceAnalysis) {
-            this(new JobInputStream(
-                    new JobSpecificationBuilder().setDataFile(FILE_STORE_URN.toString()).setCharset(StandardCharsets.UTF_8.name()).build(), true, 0
-                ),
-                utf8Data,
-                doSequenceAnalysis);
-        }
-
-        public MockedAddJobParam() {
-            this(XML, Boolean.TRUE);
-        }
-
-        public MockedAddJobParam(boolean doSequenceAnalysis) {
-            this(XML, doSequenceAnalysis);
-        }
-
-        public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
-            this.flowStoreReferences = flowStoreReferences;
-        }
-
-        public void setDiagnostics(List<Diagnostic> diagnostics) {
-            this.diagnostics = diagnostics;
-        }
-
-        public void setFlow(Flow flow) {
-            this.flow = flow;
-        }
     }
 }

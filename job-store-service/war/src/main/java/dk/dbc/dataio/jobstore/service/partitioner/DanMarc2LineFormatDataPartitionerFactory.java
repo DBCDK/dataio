@@ -126,7 +126,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                     try {
                         marcRecord = marcReader.read();
                         if(marcRecord.getFields().isEmpty()) {
-                            return new ChunkItem(0, ("Empty record").getBytes(encoding), Status.IGNORE,
+                            return new ChunkItem(0, "Empty record".getBytes(encoding), Status.IGNORE,
                                     new ArrayList<>(Collections.singletonList(Type.STRING)),
                                     encoding.name());
                         } else {

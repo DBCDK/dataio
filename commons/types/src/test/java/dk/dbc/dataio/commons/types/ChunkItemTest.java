@@ -23,6 +23,8 @@ package dk.dbc.dataio.commons.types;
 
 
 import dk.dbc.dataio.commons.types.ChunkItem.Type;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
@@ -97,10 +99,14 @@ public class ChunkItemTest {
 
     }
 
+    @Test
+    public void unmarshalling() throws JSONBException {
+        final String json = "{\"id\":0,\"data\":\"MQ==\",\"status\":\"SUCCESS\"}";
+        final JSONBContext jsonbContext = new JSONBContext();
+        jsonbContext.unmarshall(json, ChunkItem.class);
+    }
+
     public static ChunkItem newChunkItemInstance() {
         return new ChunkItem(ID, DATA, STATUS);
     }
-
-
-
 }

@@ -26,8 +26,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 
 /**
@@ -55,8 +57,8 @@ public class ChunkItem implements Serializable {
      * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
      * @param data item data, can be empty
      * @param status item status
-     * @param type Type of the item. list to support Embedeble formats.
-     * @param encoding The Charset Encoding of The item
+     * @param type item type as list to support Embeddable formats.
+     * @param encoding item charset encoding
      * @throws NullPointerException when given null valued argument
      * @throws IllegalArgumentException when given id value of {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND} or less
      */
@@ -70,20 +72,14 @@ public class ChunkItem implements Serializable {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
-        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
-        this.encoding = InvariantUtil.checkNotNullNotEmptyOrThrow(encoding,"encoding");
+        // ToDo: type and encoding must have invariant checks after a transition period
+        this.type = type;
+        this.encoding = encoding;
     }
 
 
-    /*
-      Constructor used for
-     */
     public ChunkItem(long id, byte[] data, Status status) {
-        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
-        this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
-        this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
-        this.type = new ArrayList<>(Arrays.asList(ChunkItem.Type.UNKNOWN));
-        this.encoding = "UTF-8";
+        this(id, data, status, new ArrayList<>(Collections.singletonList(Type.UNKNOWN)), StandardCharsets.UTF_8.name());
     }
 
 
@@ -93,7 +89,7 @@ public class ChunkItem implements Serializable {
      *
      * @param diag Description of the reason for the failure
      */
-    public void appendDiagnostics( Diagnostic diag) {
+    public void appendDiagnostics(Diagnostic diag) {
         this.status = Status.FAILURE;
         if (diagnostics == null) {
             diagnostics = new ArrayList<>();

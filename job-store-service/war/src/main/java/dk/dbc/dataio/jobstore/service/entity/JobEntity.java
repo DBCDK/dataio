@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -99,6 +100,10 @@ public class JobEntity {
     @Column(columnDefinition = "json")
     @Convert(converter = FlowStoreReferencesConverter.class)
     private FlowStoreReferences flowStoreReferences;
+
+    @Column(columnDefinition = "json")
+    @Convert(converter = WorkflowNoteConverter.class)
+    private WorkflowNote workflowNote;
 
     public JobEntity() {}
 
@@ -184,6 +189,14 @@ public class JobEntity {
 
     public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
         this.flowStoreReferences = flowStoreReferences;
+    }
+
+    public WorkflowNote getWorkflowNote() {
+        return workflowNote;
+    }
+
+    public void setWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
     }
 
     public FlowCacheEntity getCachedFlow() {

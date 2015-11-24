@@ -42,6 +42,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>
@@ -64,6 +65,7 @@
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationEntity</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationTypeConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.NotificationStatusConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
     </properties>

@@ -1,0 +1,83 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.jobstore.types;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+
+import java.io.Serializable;
+
+public class WorkflowNote implements Serializable {
+
+    private final boolean processed;
+    private final String assignee;
+    private final String description;
+
+    /**
+     * Class constructor
+     * @param processed determines if the workflow has finished manual processing
+     * @param assignee defining who is assigned to process the workflow
+     * @param description containing any relevant information regarding the workflow
+     */
+    @JsonCreator
+    public WorkflowNote(@JsonProperty("processed") boolean processed,
+                        @JsonProperty("assignee") String assignee,
+                        @JsonProperty("description") String description) throws NullPointerException, IllegalArgumentException {
+
+        this.processed = processed;
+        this.assignee = InvariantUtil.checkNotNullNotEmptyOrThrow(assignee, "assignee");
+        this.description = description;
+    }
+
+    public boolean isProcessed() {
+        return processed;
+    }
+
+    public String getAssignee() {
+        return assignee;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof WorkflowNote)) return false;
+
+        WorkflowNote that = (WorkflowNote) o;
+
+        if (processed != that.processed) return false;
+        return !(assignee != null ? !assignee.equals(that.assignee) : that.assignee != null) &&
+                !(description != null ? !description.equals(that.description) : that.description != null);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (processed ? 1 : 0);
+        result = 31 * result + (assignee != null ? assignee.hashCode() : 0);
+        result = 31 * result + (description != null ? description.hashCode() : 0);
+        return result;
+    }
+}

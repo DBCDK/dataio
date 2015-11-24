@@ -32,6 +32,7 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -43,6 +44,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
@@ -96,7 +98,7 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForSequenceAnalysisData() throws Exception {
-        final String json = jsonbContext.marshall(new SequenceAnalysisData(new HashSet<String>()));
+        final String json = jsonbContext.marshall(new SequenceAnalysisData(new HashSet<>()));
         jsonbContext.unmarshall(json, SequenceAnalysisData.class);
     }
 
@@ -116,6 +118,18 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForFlowStoreReferences() throws Exception {
         final String json = jsonbContext.marshall(new FlowStoreReferencesBuilder().build());
         jsonbContext.unmarshall(json, FlowStoreReferences.class);
+    }
+
+    @Test
+    public void verify_jsonMarshallingForWorkflowNote() throws Exception {
+        final String json = jsonbContext.marshall(new WorkflowNoteBuilder().build());
+        jsonbContext.unmarshall(json, WorkflowNote.class);
+    }
+
+    @Test
+    public void verify_jsonMarshallingForNullValuedWorkflowNote() throws Exception {
+        final String json = jsonbContext.marshall(null);
+        jsonbContext.unmarshall(json, WorkflowNote.class);
     }
 
     @Test

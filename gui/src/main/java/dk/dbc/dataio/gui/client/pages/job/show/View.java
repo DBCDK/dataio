@@ -111,6 +111,7 @@ public class View extends ViewWidget {
     @SuppressWarnings("unchecked")
     void setupColumns() {
         Texts texts = getTexts();
+        jobsTable.addColumn(constructRerunColumn(), texts.columnHeader_Action());
         jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
@@ -122,7 +123,6 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructIgnoredCounterColumn(), texts.columnHeader_IgnoredCounter());
         jobsTable.addColumn(constructProgressBarColumn(), texts.columnHeader_ProgressBar());
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
-        jobsTable.addColumn(constructRerunColumn(), texts.columnHeader_RerunJob());
         jobsTable.setSelectionModel(selectionModel);
         jobsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
 

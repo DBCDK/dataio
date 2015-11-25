@@ -54,7 +54,8 @@ public final class JobInfoSnapshotConverter {
                 toDate(jobEntity.getTimeOfCompletion()),
                 jobEntity.getSpecification(),
                 jobEntity.getState(),
-                jobEntity.getFlowStoreReferences());
+                jobEntity.getFlowStoreReferences(),
+                jobEntity.getWorkflowNote());
     }
 
     /**

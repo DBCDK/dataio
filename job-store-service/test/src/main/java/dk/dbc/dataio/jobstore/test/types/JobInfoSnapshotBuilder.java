@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 
 import java.util.Date;
 
@@ -42,6 +43,7 @@ public class JobInfoSnapshotBuilder {
     private JobSpecification specification = new JobSpecificationBuilder().build();
     private State state = new State();
     private FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder().build();
+    private WorkflowNote workflowNote = null;
 
     public JobInfoSnapshotBuilder setEoj(boolean eoj) {
         this.eoj = eoj;
@@ -103,8 +105,13 @@ public class JobInfoSnapshotBuilder {
         return this;
     }
 
+    public JobInfoSnapshotBuilder setWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
+        return this;
+    }
+
     public JobInfoSnapshot build() {
         return new JobInfoSnapshot(jobId, eoj, fatalError, partNumber, numberOfChunks, numberOfItems, timeOfCreation,
-                timeOfLastModification, timeOfCompletion, specification, state, flowStoreReferences);
+                timeOfLastModification, timeOfCompletion, specification, state, flowStoreReferences, workflowNote);
     }
 }

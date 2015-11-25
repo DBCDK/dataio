@@ -40,6 +40,7 @@ public class JobInfoSnapshot {
     private JobSpecification specification;
     private State state;
     private FlowStoreReferences flowStoreReferences;
+    private WorkflowNote workflowNote;
 
     @JsonCreator
     public JobInfoSnapshot(@JsonProperty ("jobId")int jobId,
@@ -53,7 +54,8 @@ public class JobInfoSnapshot {
                            @JsonProperty ("timeOfCompletion")Date timeOfCompletion,
                            @JsonProperty ("specification") JobSpecification specification,
                            @JsonProperty ("state")State state,
-                           @JsonProperty ("flowStoreReferences") FlowStoreReferences flowStoreReferences) {
+                           @JsonProperty ("flowStoreReferences") FlowStoreReferences flowStoreReferences,
+                           @JsonProperty ("workflowNote") WorkflowNote workflowNote) {
 
         this.jobId = jobId;
         this.eoj = eoj;
@@ -67,6 +69,7 @@ public class JobInfoSnapshot {
         this.specification = specification;
         this.state = state;
         this.flowStoreReferences = flowStoreReferences;
+        this.workflowNote = workflowNote;
     }
 
     public int getJobId() {
@@ -118,52 +121,30 @@ public class JobInfoSnapshot {
         return flowStoreReferences;
     }
 
+    public WorkflowNote getWorkflowNote() {
+        return workflowNote;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof JobInfoSnapshot)) return false;
 
         JobInfoSnapshot that = (JobInfoSnapshot) o;
 
-        if (jobId != that.jobId) {
-            return false;
-        }
-        if (eoj != that.eoj) {
-            return false;
-        }
-        if (fatalError != that.fatalError) {
-            return false;
-        }
-        if (partNumber != that.partNumber) {
-            return false;
-        }
-        if (numberOfChunks != that.numberOfChunks) {
-            return false;
-        }
-        if (numberOfItems != that.numberOfItems) {
-            return false;
-        }
-        if (timeOfCreation != null ? !timeOfCreation.equals(that.timeOfCreation) : that.timeOfCreation != null) {
-            return false;
-        }
-        if (timeOfLastModification != null ? !timeOfLastModification.equals(that.timeOfLastModification) : that.timeOfLastModification != null) {
-            return false;
-        }
-        if (timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null) {
-            return false;
-        }
-        if (specification != null ? !specification.equals(that.specification) : that.specification != null) {
-            return false;
-        }
-        if (state != null ? !state.equals(that.state) : that.state != null) {
-            return false;
-        }
-        return !(flowStoreReferences != null ? !flowStoreReferences.equals(that.flowStoreReferences) : that.flowStoreReferences != null);
-
+        return jobId == that.jobId
+                && eoj == that.eoj
+                && fatalError == that.fatalError
+                && partNumber == that.partNumber
+                && numberOfChunks == that.numberOfChunks
+                && numberOfItems == that.numberOfItems
+                && !(timeOfCreation != null ? !timeOfCreation.equals(that.timeOfCreation) : that.timeOfCreation != null)
+                && !(timeOfLastModification != null ? !timeOfLastModification.equals(that.timeOfLastModification) : that.timeOfLastModification != null)
+                && !(timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null)
+                && !(specification != null ? !specification.equals(that.specification) : that.specification != null)
+                && !(state != null ? !state.equals(that.state) : that.state != null)
+                && !(flowStoreReferences != null ? !flowStoreReferences.equals(that.flowStoreReferences) : that.flowStoreReferences != null)
+                && !(workflowNote != null ? !workflowNote.equals(that.workflowNote) : that.workflowNote != null);
     }
 
     @Override
@@ -180,6 +161,7 @@ public class JobInfoSnapshot {
         result = 31 * result + (specification != null ? specification.hashCode() : 0);
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (flowStoreReferences != null ? flowStoreReferences.hashCode() : 0);
+        result = 31 * result + (workflowNote != null ? workflowNote.hashCode() : 0);
         return result;
     }
 }

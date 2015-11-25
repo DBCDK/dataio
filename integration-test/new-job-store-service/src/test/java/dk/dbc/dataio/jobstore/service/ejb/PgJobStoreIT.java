@@ -330,6 +330,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // And...
         assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(notNullValue()));
+        assertThat("JobEntity: workflowNote", jobEntity.getWorkflowNote(), is(nullValue()));
 
         // And...
         assertThat("jobEntity.State : diagnostics", jobEntity.getState().getDiagnostics().size(), is(0));
@@ -344,6 +345,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("JobInfoSnapshot flowbinder reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), is(notNullValue()));
         assertThat("JobInfoSnapshot flow reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW), is(notNullValue()));
         assertThat("JobInfoSnapshot sink reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK), is(notNullValue()));
+        assertThat("JobInforSnapshot workflowNote", jobInfoSnapshot.getWorkflowNote(), is(nullValue()));
     }
 
     /**

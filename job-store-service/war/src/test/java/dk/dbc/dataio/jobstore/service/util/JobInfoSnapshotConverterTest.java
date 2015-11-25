@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
@@ -60,6 +61,7 @@ public class JobInfoSnapshotConverterTest {
         jobEntity.setNumberOfChunks(10);
         jobEntity.setNumberOfItems(5);
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        jobEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
         return jobEntity;
     }
 
@@ -70,8 +72,8 @@ public class JobInfoSnapshotConverterTest {
         assertThat(jobInfoSnapshot.getSpecification(), is(jobEntity.getSpecification()));
         assertThat(jobInfoSnapshot.getNumberOfChunks(), is(jobEntity.getNumberOfChunks()));
         assertThat(jobInfoSnapshot.getNumberOfItems(), is(jobEntity.getNumberOfItems()));
-
         assertThat(jobInfoSnapshot.getTimeOfCompletion().getTime(), is(jobEntity.getTimeOfCompletion().getTime()));
+        assertThat(jobInfoSnapshot.getWorkflowNote(), is(jobEntity.getWorkflowNote()));
     }
 
 }

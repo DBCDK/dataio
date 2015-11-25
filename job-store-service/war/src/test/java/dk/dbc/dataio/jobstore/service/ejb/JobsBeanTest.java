@@ -41,6 +41,7 @@ import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemData;
@@ -52,6 +53,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -59,8 +61,6 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
@@ -72,7 +72,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -87,6 +86,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyShort;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -198,23 +198,17 @@ public class JobsBeanTest {
     public void addChunkProcessed_messageIsSentToSink() throws Exception {
 
         when(jmsContext.createTextMessage(any(String.class)))
-        .thenAnswer(new Answer<MockedJmsTextMessage>() {
-            @Override
-            public MockedJmsTextMessage answer(InvocationOnMock invocation) throws Throwable {
-                final Object[] args = invocation.getArguments();
-                final MockedJmsTextMessage message = new MockedJmsTextMessage();
-                message.setText((String) args[0]);
-                return message;
-            }
+        .thenAnswer(invocation -> {
+            final Object[] args = invocation.getArguments();
+            final MockedJmsTextMessage message = new MockedJmsTextMessage();
+            message.setText((String) args[0]);
+            return message;
         })
-        .thenAnswer(new Answer<MockedJmsTextMessage>() {
-            @Override
-            public MockedJmsTextMessage answer(InvocationOnMock invocation) throws Throwable {
-                final Object[] args = invocation.getArguments();
-                final MockedJmsTextMessage message = new MockedJmsTextMessage();
-                message.setText((String) args[0]);
-                return message;
-            }
+        .thenAnswer(invocation -> {
+            final Object[] args = invocation.getArguments();
+            final MockedJmsTextMessage message = new MockedJmsTextMessage();
+            message.setText((String) args[0]);
+            return message;
         });
 
         final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
@@ -222,11 +216,10 @@ public class JobsBeanTest {
         jobsBean.sinkMessageProducer = sinkMessageProducerBean;
 
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Arrays.asList(item)).build();
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final Sink sink = new SinkBuilder().build();
-        final Flow flow = new FlowBuilder().build();
         when(jobsBean.jobStoreRepository.getSinkByJobId(anyLong())).thenReturn(sink);
 
         // Subject Under Test
@@ -573,6 +566,42 @@ public class JobsBeanTest {
         final List<JobNotification> notifications = jsonbContext.unmarshall(response.getEntity().toString(),
                 jsonbContext.getTypeFactory().constructCollectionType(List.class, JobNotification.class));
         assertThat("Number of notifications returned", notifications.size(), is(1));
+    }
+
+    // ************************************* setWorkflowNote() tests **********************************************************
+
+    @Test(expected = JobStoreException.class)
+    public void setWorkflowNote_setWorkflowNoteFailure_throwsJobStoreException() throws Exception {
+        when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), anyInt())).thenThrow(new JobStoreException("Error"));
+        jobsBean.setWorkflowNote(asJson(new WorkflowNoteBuilder().build()), JOB_ID);
+    }
+
+    @Test
+    public void setWorkflowNote_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        final Response response = jobsBean.setWorkflowNote("invalid JSON", JOB_ID);
+        assertThat(response.hasEntity(), is(true));
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat(jobErrorReturned, is(notNullValue()));
+        assertThat(jobErrorReturned.getCode(), is(JobError.Code.INVALID_JSON));
+    }
+
+    @Test
+    public void setWorkflowNote_returnsResponseWithHttpStatusOk_returnsJobInfoSnapshot() throws Exception {
+        WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).setWorkflowNote(workflowNote).build();
+
+        when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), eq(JOB_ID))).thenReturn(jobInfoSnapshot);
+
+        final Response response = jobsBean.setWorkflowNote(asJson(workflowNote), JOB_ID);
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+
+        final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
+        assertThat(returnedJobInfoSnapshot, is(notNullValue()));
+        assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat(returnedJobInfoSnapshot.getWorkflowNote(), is(jobInfoSnapshot.getWorkflowNote()));
     }
 
     /*

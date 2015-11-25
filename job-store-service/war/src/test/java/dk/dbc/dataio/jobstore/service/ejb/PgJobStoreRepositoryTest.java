@@ -28,15 +28,18 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.Test;
 
 import javax.persistence.LockModeType;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -73,6 +76,44 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         assertThat(pgJobStoreRepository.resetJob(DEFAULT_JOB_ID), is(nullValue()));
+    }
+
+    @Test
+    public void setWorkflowNote_jobEntityNotFound_throws() {
+        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+
+        try {
+            pgJobStoreRepository.setJobEntityWorkFlowNote(workflowNote, DEFAULT_JOB_ID);
+            fail("No exception thrown");
+        } catch (JobStoreException e) {}
+    }
+
+    @Test
+    public void setWorkflowNote_jobEntityFound_returnsUpdatedJobEntityWithGivenWorkflowNote() throws JobStoreException {
+        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(new JobEntity());
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+
+        JobEntity updatedJobEntity = pgJobStoreRepository.setJobEntityWorkFlowNote(workflowNote, DEFAULT_JOB_ID);
+        assertThat(updatedJobEntity, is(notNullValue()));
+        assertThat(updatedJobEntity.getWorkflowNote(), is(workflowNote));
+    }
+
+    @Test
+    public void setWorkflowNote_jobEntityFound_returnsUpdatedJobEntityWithNullAsWorkflowNote() throws JobStoreException {
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
+        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+
+        JobEntity updatedJobEntity = pgJobStoreRepository.setJobEntityWorkFlowNote(null, DEFAULT_JOB_ID);
+        assertThat(updatedJobEntity, is(notNullValue()));
+        assertThat(updatedJobEntity.getWorkflowNote(), is(nullValue()));
     }
 
     @Test

@@ -48,6 +48,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -58,6 +59,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -615,7 +617,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: an empty jobstore
-     * When : adding a job with addJobParam.level.WARNING as input, a job is added
+     * When : adding a job
      * Then : a new job entity and the required number of chunk and item entities are created
      * And  : a flow cache entity is created
      * And  : a sink cache entity is created
@@ -1570,6 +1572,41 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("chunkItem", chunkItem, not(nullValue()));
         assertThat("chunkItem.data", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(successfulItemEntity.getNextProcessingOutcome().getData())));
     }
+
+    /**
+     * Given: an a job store containing a job entity
+     * When : calling setWorkflowNote()
+     * Then : the job entity is updated
+     * And  : the returned JobInfoSnapshot contains the workflowNote
+     */
+    @Test
+    public void setWorkflowNote_jobEntityUpdated_returnsJobInfoSnapShot() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length);
+
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
+        jobTransaction.commit();
+
+        // When...
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        jobTransaction.begin();
+        final JobInfoSnapshot updatedJobInfoSnapshot = pgJobStore.setWorkflowNote(workflowNote, jobInfoSnapshot.getJobId());
+        jobTransaction.commit();
+
+        // Then...
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertThat(jobEntity.getWorkflowNote(), is(workflowNote));
+
+        // And...
+        assertThat(updatedJobInfoSnapshot, is(notNullValue()));
+        assertThat(updatedJobInfoSnapshot.getWorkflowNote(), is(workflowNote));
+    }
+
 
     /*
      * Private methods

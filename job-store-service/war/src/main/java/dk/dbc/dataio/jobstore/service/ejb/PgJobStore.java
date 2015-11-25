@@ -46,6 +46,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -329,6 +330,19 @@ public class PgJobStore {
             final JobError jobError = new JobError(JobError.Code.ILLEGAL_CHUNK, errMsg, null);
             throw new InvalidInputException(errMsg, jobError);
         }
+    }
+
+    /**
+     * Sets a workflow note on a job
+     * @param workflowNote the note to attach
+     * @param jobId identifying the job
+     * @return information snapshot of updated job
+     * @throws JobStoreException referenced job entity was not found
+     */
+    @Stopwatch
+    public JobInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId) throws JobStoreException {
+        final JobEntity jobEntity = jobStoreRepository.setJobEntityWorkFlowNote(workflowNote, jobId);
+        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
 
     /*

@@ -40,6 +40,7 @@ public class JobStoreServiceConstants {
     public static final String CHUNK_ITEM_PROCESSED_NEXT        = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/processed/next";
     public static final String CHUNK_ITEM_DELIVERED             = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/delivered";
     public static final String JOB_NOTIFICATIONS                = "jobs/{jobId}/notifications";
+    public static final String JOB_WORKFLOW_NOTE                = "jobs/{jobId}/workflownote";
 
     public static final String NOTIFICATIONS                    = "notifications";
     public static final String NOTIFICATIONS_TEST               = "notifications/test";

@@ -39,6 +39,7 @@ import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -275,6 +276,22 @@ public class PgJobStoreRepository extends RepositoryBase {
         jobState.updateState(stateChange);
         jobEntity.setState(jobState);
         return jobState;
+    }
+
+    /**
+     * sets a workflow note on an existing job. Any workflow previously added will be wiped in the process
+     * @param workflowNote the note to set
+     * @param jobId of the job to which a workflow note should be attached.
+     * @return the updated jobEntity
+     * @throws JobStoreException if unable to find referenced job entity
+     */
+    public JobEntity setJobEntityWorkFlowNote(WorkflowNote workflowNote, int jobId) throws JobStoreException {
+        final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
+        if (jobEntity == null) {
+            throw new JobStoreException(String.format("JobEntity.%s could not be found", jobId));
+        }
+        jobEntity.setWorkflowNote(workflowNote);
+        return jobEntity;
     }
 
     /**

@@ -38,6 +38,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -128,6 +129,32 @@ public class JobsBean {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
+                    .entity(jsonbContext.marshall(jobInfoSnapshot))
+                    .build();
+
+        } catch (JSONBException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        } catch(InvalidInputException e) {
+            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
+        }
+    }
+
+    @POST
+    @Path(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response setWorkflowNote(String workflowNoteString, @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
+        LOGGER.trace("jobId: {}, workflowNote: {}", jobId, workflowNoteString);
+        JobInfoSnapshot jobInfoSnapshot;
+        final WorkflowNote workflowNote;
+
+        try {
+            workflowNote = jsonbContext.unmarshall(workflowNoteString, WorkflowNote.class);
+            jobInfoSnapshot = jobStore.setWorkflowNote(workflowNote, jobId);
+            return Response.ok()
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();
 

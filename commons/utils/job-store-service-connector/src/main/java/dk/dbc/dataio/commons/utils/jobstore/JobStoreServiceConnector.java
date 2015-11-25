@@ -35,6 +35,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -392,6 +393,30 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: listJobNotificationsForJob took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+
+    public JobInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: setWorkflowNote();");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final Response response;
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+            try {
+                response = HttpClient.doPostWithJson(httpClient, workflowNote, baseUrl, path.build());
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, JobInfoSnapshot.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

@@ -37,6 +37,7 @@ import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -46,6 +47,7 @@ import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
@@ -628,6 +630,49 @@ public class JobStoreServiceConnectorTest {
         assertThat(jobNotification, is(expectedJobNotification));
     }
 
+    // ******************************************* set workflowNote tests ********************************************
+
+    @Test(expected = JobStoreServiceConnectorException.class)
+    public void setWorkflowNote_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        callSetWorkflowNoteWithMockedHttpResponse(new WorkflowNoteBuilder().build(), JOB_ID, Response.Status.OK, null);
+    }
+
+    @Test
+    public void setWorkflowNote_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        try {
+            callSetWorkflowNoteWithMockedHttpResponse(new WorkflowNoteBuilder().build(), JOB_ID, Response.Status.BAD_REQUEST, jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void setWorkflowNote_onProcessingException_throws() {
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(JOB_ID));
+        when(HttpClient.doPostWithJson(CLIENT, workflowNote, JOB_STORE_URL, path.build()))
+                .thenThrow(new ProcessingException("Connection reset"));
+
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.setWorkflowNote(workflowNote, JOB_ID);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void setWorkflowNote_workflowNoteIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshotBuilder().setWorkflowNote(workflowNote).build();
+        final JobInfoSnapshot jobInfoSnapshot = callSetWorkflowNoteWithMockedHttpResponse(workflowNote, JOB_ID, Response.Status.OK, expectedJobInfoSnapshot);
+        assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
+    }
+
     /*
      * Private methods
      */
@@ -730,6 +775,17 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.addNotification(request);
+    }
+
+    private JobInfoSnapshot callSetWorkflowNoteWithMockedHttpResponse(WorkflowNote workflowNote, int jobId, Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+
+        final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
+                .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));
+        when(HttpClient.doPostWithJson(CLIENT, workflowNote, JOB_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.setWorkflowNote(workflowNote, jobId);
     }
 
     private String getAddChunkBasePath(ExternalChunk chunk) {

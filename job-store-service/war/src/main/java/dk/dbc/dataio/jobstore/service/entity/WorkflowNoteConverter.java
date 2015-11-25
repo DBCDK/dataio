@@ -46,7 +46,11 @@ public class WorkflowNoteConverter implements AttributeConverter<WorkflowNote, P
     @Override
     public WorkflowNote convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
-            return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), WorkflowNote.class);
+            if(pgObject != null) {
+                return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), WorkflowNote.class);
+            } else {
+                return null;
+            }
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

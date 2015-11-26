@@ -39,4 +39,5 @@ public interface JobStoreProxyAsync {
     void getProcessedNextResult(int jobId, int chunkId, short itemId, AsyncCallback<String> async);
     void listJobNotificationsForJob(int jobId, AsyncCallback<List<JobNotification>> async);
     void close(AsyncCallback<Void> async);
+    void addJob(JobModel jobModel, AsyncCallback<JobModel> async);
 }

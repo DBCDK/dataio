@@ -57,6 +57,8 @@ public class JobModelBuilder {
     private String mailForNotificationAboutProcessing = "-mailForNotificationAboutProcessing-";
     private String resultMailInitials = "-resultmailInitials-";
     private JobModel.Type type = JobModel.Type.TRANSIENT;
+    private String dataFile = "";
+    private int partNumber = 0;
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -188,6 +190,16 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setDataFile(String dataFile) {
+        this.dataFile = dataFile;
+        return this;
+    }
+
+    public JobModelBuilder setPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -215,6 +227,9 @@ public class JobModelBuilder {
                 mailForNotificationAboutVerification,
                 mailForNotificationAboutProcessing,
                 resultMailInitials,
-                type);
+                type,
+                dataFile,
+                partNumber
+        );
     }
 }

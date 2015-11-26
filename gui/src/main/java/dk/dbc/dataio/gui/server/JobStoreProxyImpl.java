@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
@@ -284,6 +285,54 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         return jobNotifications;
     }
 
+
+    @Override
+    public JobModel addJob(JobModel jobModel) throws NullPointerException, ProxyException {
+        final String callerMethodName = "addJob";
+//        Sink sink = null;
+        JobInfoSnapshot jobInfoSnapshot = null;
+        log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobModel.getJobId());
+        try {
+            jobInfoSnapshot = jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel));
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+
+        return JobModelMapper.toModel(jobInfoSnapshot);
+    }
+
+
+    /**
+     * Handle exceptions thrown by the JobStoreServiceConnector and wrap them in ProxyExceptions
+     * @param exception generic exception which in turn can be both Checked and Unchecked
+     * @param callerMethodName calling method name for logging
+     * @throws ProxyException GUI exception
+     * @throws NullPointerException
+     */
+    private void handleExceptions(Exception exception, String callerMethodName) throws ProxyException, NullPointerException {
+
+        if(exception instanceof JobStoreServiceConnectorUnexpectedStatusCodeException)  {
+            JobStoreServiceConnectorUnexpectedStatusCodeException jsscusce = (JobStoreServiceConnectorUnexpectedStatusCodeException) exception;
+            log.error("JobStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(jsscusce.getStatusCode()), jsscusce);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(jsscusce.getStatusCode()), jsscusce.getMessage());
+        } else if (exception instanceof JobStoreServiceConnectorException) {
+            JobStoreServiceConnectorException fssce = (JobStoreServiceConnectorException) exception;
+            log.error("JobStoreProxy: " + callerMethodName + " - Service Not Found", fssce);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, fssce);
+        } else if (exception instanceof IllegalArgumentException) {
+            IllegalArgumentException iae = (IllegalArgumentException) exception;
+            log.error("JobStoreProxy: " + callerMethodName + " - Invalid Field Value Exception", iae);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, iae);
+        } else if (exception instanceof JavaScriptProjectFetcherException) {
+            JavaScriptProjectFetcherException jspfe = (JavaScriptProjectFetcherException) exception;
+            log.error("JobStoreProxy: " + callerMethodName + " - Subversion Lookup Failed Exception", jspfe);
+            throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, jspfe);
+        } else if(exception instanceof NullPointerException){
+            throw (NullPointerException) exception;
+        } else {
+            throw new ProxyException(ProxyError.ERROR_UNKNOWN, exception);
+        }
+    }
 
     /**
      * Determines if a string is xml alike:

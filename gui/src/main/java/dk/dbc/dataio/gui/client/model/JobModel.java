@@ -55,6 +55,8 @@ public class JobModel extends GenericBackendModel {
     private final static String     MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY = "";
     private final static String     MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY = "";
     private final static String     RESULT_MAIL_INITIALS_EMPTY = "";
+    private final static String     DATAFILE_EMPTY = "";
+    private final static int        PARTNUMBER_ZERO = 0;
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 
@@ -84,6 +86,8 @@ public class JobModel extends GenericBackendModel {
     private String mailForNotificationAboutProcessing;
     private String resultmailInitials;
     private Type type;
+    private String dataFile;
+    private int partNumber;
 
     /**
      * Constructor with full parameter list
@@ -140,7 +144,9 @@ public class JobModel extends GenericBackendModel {
                     String mailForNotificationAboutVerification,
                     String mailForNotificationAboutProcessing,
                     String resultmailInitials,
-                    Type type) {
+                    Type type,
+                    String dataFile,
+                    int partNumber) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -167,6 +173,8 @@ public class JobModel extends GenericBackendModel {
         this.mailForNotificationAboutProcessing = mailForNotificationAboutProcessing;
         this.resultmailInitials = resultmailInitials;
         this.type = type;
+        this.dataFile = dataFile;
+        this.partNumber = partNumber;
     }
 
     /**
@@ -199,9 +207,10 @@ public class JobModel extends GenericBackendModel {
                 MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION_EMPTY,
                 MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING_EMPTY,
                 RESULT_MAIL_INITIALS_EMPTY,
-                Type.TRANSIENT);
+                Type.TRANSIENT,
+                DATAFILE_EMPTY,
+                PARTNUMBER_ZERO);
     }
-
 
     /**
      * Gets the Job Creation Time
@@ -643,5 +652,36 @@ public class JobModel extends GenericBackendModel {
      */
     public Type getType() {
         return type;
+    }
+
+    public void setType(JobModel.Type type) {
+        this.type = type;
+    }
+
+
+    public int getPartNumber() {
+        return partNumber;
+    }
+
+    /**
+     * Gets the data file
+     *
+     * @return The data file of the job
+     */
+    public String getDataFile() {
+        return dataFile;
+    };
+    /**
+     * Checks for empty String values
+     * @return true if no empty String values were found, otherwise false
+     */
+    public boolean isInputFieldsEmpty() {
+        return
+                jobId.isEmpty()
+                || packaging.isEmpty()
+                || format.isEmpty()
+                || charset.isEmpty()
+                || destination.isEmpty()
+                || type == null;
     }
 }

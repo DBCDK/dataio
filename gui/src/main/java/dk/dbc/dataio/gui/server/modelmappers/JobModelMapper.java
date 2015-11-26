@@ -29,6 +29,7 @@ import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 
@@ -78,9 +79,29 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getMailForNotificationAboutVerification(),
                 jobInfoSnapshot.getSpecification().getMailForNotificationAboutProcessing(),
                 jobInfoSnapshot.getSpecification().getResultmailInitials(),
-                getType(jobInfoSnapshot.getSpecification().getType()));
+                getType(jobInfoSnapshot.getSpecification().getType()),
+                jobInfoSnapshot.getSpecification().getDataFile(),
+                jobInfoSnapshot.getPartNumber()
+        );
     }
 
+    public static JobInputStream toJobInputStream(JobModel jobModel) {
+
+        final JobSpecification  jobSpecification = new JobSpecification(
+                jobModel.getPackaging(),
+                jobModel.getFormat(),
+                jobModel.getCharset(),
+                jobModel.getDestination(),
+                Integer.parseInt(jobModel.getSubmitterNumber()),
+                jobModel.getMailForNotificationAboutVerification(),
+                jobModel.getMailForNotificationAboutProcessing(),
+                jobModel.getResultmailInitials(),
+                jobModel.getDataFile(),
+                getType(jobModel.getType())
+        );
+        final JobInputStream jobInputStream = new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());
+        return jobInputStream;
+    }
     /**
      * Maps a list of JobInfoSnapshot objects to a list of JobModel objects
      * @param jobInfoSnapshots A list of input JobInfoSnapshot objects
@@ -227,6 +248,15 @@ public class JobModelMapper {
             case TEST: return JobModel.Type.TEST;
             case ACCTEST: return JobModel.Type.ACCTEST;
             default: return JobModel.Type.TRANSIENT;
+        }
+    }
+
+    private static JobSpecification.Type getType(JobModel.Type type) {
+        switch (type) {
+            case TRANSIENT: return JobSpecification.Type.TRANSIENT;
+            case TEST: return JobSpecification.Type.TEST;
+            case ACCTEST: return JobSpecification.Type.ACCTEST;
+            default: return JobSpecification.Type.TRANSIENT;
         }
     }
 

@@ -26,6 +26,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.texts.ProxyErrorTexts;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
+import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.mockito.Mock;
 
@@ -34,6 +35,7 @@ import org.mockito.Mock;
  */
 public abstract class PresenterImplTestBase {
     @Mock protected FlowStoreProxyAsync mockedFlowStore;
+    @Mock protected JobStoreProxyAsync mockedJobStore;
     @Mock protected PlaceController mockedPlaceController;
     @Mock protected AcceptsOneWidget mockedContainerWidget;
     @Mock protected EventBus mockedEventBus;

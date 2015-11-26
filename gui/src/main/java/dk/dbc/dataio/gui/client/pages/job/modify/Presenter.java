@@ -21,13 +21,18 @@
 
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
+import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
-    void numberChanged(String number);
-    void nameChanged(String name);
-    void descriptionChanged(String description);
+    void packagingChanged(String packaging);
+    void formatChanged(String format);
+    void charsetChanged(String charset);
+    void destinationChanged(String destination);
+    void mailForNotificationAboutVerificationChanged(String mailForNotificationAboutVerification);
+    void mailForNotificationAboutProcessingChanged(String mailForNotificationAboutProcessing);
+    void resultMailInitialsChanged(String resultMailInitialsChanged);
+    void typeChanged(JobModel.Type type);
     void keyPressed();
-    void saveButtonPressed();
-    void deleteButtonPressed();
+    void rerunButtonPressed();
 }

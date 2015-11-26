@@ -37,7 +37,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     // Application Models
-    protected JobModel model = new JobModel();
+    protected JobModel jobModel = new JobModel();
     protected String header;
     /**
      * Constructor
@@ -60,93 +60,107 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
-        initializeViewFields();
         getView().setPresenter(this);
+        initializeViewFields();
         containerWidget.setWidget(getView().asWidget());
         initializeModel();
     }
 
-    /**
-     * A signal to the presenter, saying that the number field has been changed
-     * @param number, the new number value
-     */
-    public void numberChanged(String number) {
-//        model.setNumber(number);
+
+    @Override
+    public void packagingChanged(String packaging) {
+        jobModel.setPackaging(packaging);
+        print();
     }
 
-    /**
-     * A signal to the presenter, saying that the name field has been changed
-     * @param name, the new name value
-     */
-    public void nameChanged(String name) {
-//        model.setName(name);
+
+    @Override
+    public void formatChanged(String format) {
+        jobModel.setFormat(format);
+        print();
     }
 
-    /**
-     * A signal to the presenter, saying that the description field has been changed
-     * @param description, the new description value
-     */
-    public void descriptionChanged(String description) {
-//        model.setDescription(description);
+    @Override
+    public void charsetChanged(String charset) {
+        jobModel.setCharset(charset);
+        print();
+    }
+
+    @Override
+    public void destinationChanged(String destination) {
+        jobModel.setDestination(destination);
+        print();
+    }
+
+    @Override
+    public void mailForNotificationAboutVerificationChanged(String mailForNotificationvoidAboutVerification) {
+        jobModel.setMailForNotificationvoidAboutProcessing(mailForNotificationvoidAboutVerification);
+        print();
+    }
+
+    @Override
+    public void mailForNotificationAboutProcessingChanged(String mailForNotificationvoidAboutProcessing) {
+        jobModel.setMailForNotificationvoidAboutProcessing(mailForNotificationvoidAboutProcessing);
+        print();
+    }
+
+    @Override
+    public void resultMailInitialsChanged(String resultMailInitialsChanged) {
+        jobModel.setResultmailInitials(resultMailInitialsChanged);
+        print();
+    }
+
+    @Override
+    public void typeChanged(JobModel.Type type) {
+        jobModel.setType(type);
+        print();
     }
 
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
-//        view.status.setText("");
+        getView().status.setText("");
     }
 
     /**
      * A signal to the presenter, saying that the save button has been pressed
      */
-    public void saveButtonPressed() {
-        /*
-        if (model != null) {
-            if (model.isInputFieldsEmpty()) {
-                view.setErrorText(texts.error_InputFieldValidationError());
-            } else if (!model.isNumberValid()) {
-               view.setErrorText(texts.error_NumberInputFieldValidationError());
-            } else if (!model.getDataioPatternMatches().isEmpty()) {
-                view.setErrorText(texts.error_NameFormatValidationError());
+    public void rerunButtonPressed() {
+
+        if (jobModel != null) {
+            if (jobModel.isInputFieldsEmpty()) {
+                getView().setErrorText(getTexts().error_InputFieldValidationError());
             } else {
-                saveModel();
+                doRerunJobInJobStore();
             }
-        }*/
+        }
     }
 
     /*
      * Private methods
      */
 
-    public void initializeViewFields() {
-//        view.number.clearText();
-//        view.number.setEnabled(false);
-//        view.name.clearText();
-//        view.name.setEnabled(false);
-//        view.description.clearText();
-//        view.description.setEnabled(false);
-    }
+    protected abstract void initializeViewFields();
     /**
      * Method used to update all fields in the view according to the current state of the class
      */
     void updateAllFieldsAccordingToCurrentState() {
-//        if(model.getId() == 0) {
-//            view.number.setEnabled(true);
-//        }
-//        view.number.setText(model.getNumber());
-//        view.name.setText(model.getName());
-//        view.name.setEnabled(true);
-//        view.description.setText(model.getDescription());
-//        view.description.setEnabled(true);
-//        view.status.setText("");
-//        if (view.number.isEnabled()) {
-//            view.number.setFocus(true);
-//        } else if (view.name.isEnabled()) {
-//            view.name.setFocus(true);
-//        }
+        View view = getView();
+        view.jobId.setText(jobModel.getJobId());
+        view.packaging.setText(jobModel.getPackaging());
+        view.format.setText(jobModel.getFormat());
+        view.charset.setText(jobModel.getCharset());
+        view.destination.setText(jobModel.getDestination());
+        view.mailForNotificationAboutVerification.setText(jobModel.getMailForNotificationAboutVerification());
+        view.mailForNotificationAboutProcessing.setText(jobModel.getMailForNotificationAboutProcessing());
+        view.resultMailInitials.setText(jobModel.getResultmailInitials());
+        view.type.setText(jobModel.getType().toString());
+        view.datafile.setText(jobModel.getDataFile());
+        view.partnumber.setText(String.valueOf(jobModel.getPartNumber()));
+        view.jobcreationtime.setText(jobModel.getJobCreationTime());
+        view.jobcreationtime.setText(jobModel.getJobCompletionTime());
     }
-
 
     /*
      * Protected methods
@@ -155,36 +169,36 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     View getView(){
         return viewInjector.getView();
     }
+
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
     /**
      * Method used to set the model after a successful update or a save
-     * @param model The model to save
+     * @param jobModel The model to save
      */
-    protected void setSubmitterModel(JobModel model) {
-        this.model = model;
+    protected void setJobModel(JobModel jobModel) {
+        this.jobModel = jobModel;
     }
 
     /*
      * Local class
      */
 
-    /**
-     * Local call back class to be instantiated in the call to createSubmitter or updateSubmitter in flowstore proxy
-     */
-    /*
-    class SaveSubmitterModelFilteredAsyncCallback extends FilteredAsyncCallback<SubmitterModel> {
-        @Override
-        public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, proxyErrorTexts, null));
-        }
+    private void print() {
+        StringBuffer stringBuilder = new StringBuffer();
+        stringBuilder.append("JobID: " + jobModel.getJobId() + "\n");
+        stringBuilder.append("Ramme: " + jobModel.getPackaging() + "\n");
+        stringBuilder.append("Format: " + jobModel.getFormat() + "\n");
+        stringBuilder.append("Charset: " + jobModel.getCharset() + "\n");
+        stringBuilder.append("Destination: " + jobModel.getDestination() + "\n");
+        stringBuilder.append("Mail veri.: " + jobModel.getMailForNotificationAboutVerification() + "\n");
+        stringBuilder.append("Mail Proc.: " + jobModel.getMailForNotificationAboutProcessing() + "\n");
+        stringBuilder.append("Initials: " + jobModel.getResultmailInitials() + "\n");
+        stringBuilder.append("Type: " + jobModel.getType() + "\n");
 
-        @Override
-        public void onSuccess(SubmitterModel model) {
-            view.status.setText(texts.status_SubmitterSuccessfullySaved());
-            setSubmitterModel(model);
-            History.back();
-        }
-    }*/
-
+        System.out.println(stringBuilder.toString());
+    }
 
     /*
      * Abstract methods
@@ -198,6 +212,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /**
      * saveModel
      */
-    abstract void saveModel();
+    abstract void doRerunJobInJobStore();
 
 }

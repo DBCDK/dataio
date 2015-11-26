@@ -26,22 +26,50 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
 public interface Texts extends Constants {
+
     // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_SubmitterNumber();
+    String promptJobInfo_JobId();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_SubmitterName();
+    String promptJobInfo_Packaging();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String label_Description();
+    String promptJobInfo_Format();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_Charset();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_Destination();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_MailForNotificationAboutVerification();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_MailForNotificationAboutProcessing();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_ResultMailInitials();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_Type();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_JobCompletionTime();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_JobCreationTime();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_DataFile();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_PartNumber();
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Save();
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Delete();
+    String button_Rerun();
 
 
     // Error messages
@@ -56,8 +84,5 @@ public interface Texts extends Constants {
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String status_SubmitterSuccessfullySaved();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String status_SubmitterSuccessfullyDeleted();
+    String status_JobSuccesfullyRerun();
 }

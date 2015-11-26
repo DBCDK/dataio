@@ -27,17 +27,25 @@
     <g:HTMLPanel>
 
         <span>Her bliver det muligt at redigere jobspecifikationen for det valgte job.</span>
-        <!--
-        <li><dio:PromptedTextBox ui:field="number" guiId="submitternumberpanel" prompt="{txt.label_SubmitterNumber}" maxLength="160" toolTip=""/></li>
-        <li><dio:PromptedTextBox ui:field="name" guiId="submitternamepanel" prompt="{txt.label_SubmitterName}" maxLength="160" toolTip=""/></li>
-        <li><dio:PromptedTextArea ui:field="description" guiId="submitterdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+
+        <li><dio:PromptedTextBox ui:field="jobId" guiId="jobinfojobidpanel" prompt="{txt.promptJobInfo_JobId}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="packaging" guiId="jobinfopackagingpanel" prompt="{txt.promptJobInfo_Packaging}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="format" guiId="jobinfoformatpanel" prompt="{txt.promptJobInfo_Format}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="charset" guiId="jobinfocharsetpanel" prompt="{txt.promptJobInfo_Charset}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="destination" guiId="jobinfodestinationpanel" prompt="{txt.promptJobInfo_Destination}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="mailForNotificationAboutVerification" guiId="jobinfomailaboutverificationpanel" prompt="{txt.promptJobInfo_MailForNotificationAboutVerification}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="mailForNotificationAboutProcessing" guiId="jobinfomailaboutprodessingpanel" prompt="{txt.promptJobInfo_MailForNotificationAboutProcessing}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="resultMailInitials" guiId="jobinfoinitialspanel" prompt="{txt.promptJobInfo_ResultMailInitials}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="type" guiId="jobinfotypepanel" prompt="{txt.promptJobInfo_Type}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="datafile" guiId="datafilepanel" prompt="{txt.promptJobInfo_DataFile}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="partnumber" guiId="partnumberpanel" prompt="{txt.promptJobInfo_PartNumber}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="jobcreationtime" guiId="jobinfocreationtimepanel" prompt="{txt.promptJobInfo_JobCreationTime}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="jobcompletiontime" guiId="jobinfocompletiontimepanel" prompt="{txt.promptJobInfo_JobCompletionTime}" maxLength="160" toolTip=""/></li>
         <li>
-            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
-            <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
+            <g:Button ui:field="rerunButton" visible="true"><ui:text from="{txt.button_Rerun}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"></g:Label></li>
-        -->
     </g:HTMLPanel>
 
 </ui:UiBinder>

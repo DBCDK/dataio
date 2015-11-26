@@ -50,6 +50,8 @@ public interface JobStoreProxy extends RemoteService {
 
     void close();
 
+    JobModel addJob(JobModel jobModel) throws ProxyException;
+
     class Factory {
 
         private static JobStoreProxyAsync asyncInstance = null;

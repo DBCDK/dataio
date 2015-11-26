@@ -149,10 +149,12 @@ public class JobsBean {
     public Response setWorkflowNote(String workflowNoteString, @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         LOGGER.trace("jobId: {}, workflowNote: {}", jobId, workflowNoteString);
         JobInfoSnapshot jobInfoSnapshot;
-        final WorkflowNote workflowNote;
+        WorkflowNote workflowNote = null;
 
         try {
-            workflowNote = jsonbContext.unmarshall(workflowNoteString, WorkflowNote.class);
+            if(workflowNoteString != null) {
+                workflowNote = jsonbContext.unmarshall(workflowNoteString, WorkflowNote.class);
+            }
             jobInfoSnapshot = jobStore.setWorkflowNote(workflowNote, jobId);
             return Response.ok()
                     .entity(jsonbContext.marshall(jobInfoSnapshot))

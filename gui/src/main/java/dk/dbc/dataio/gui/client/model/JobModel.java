@@ -118,6 +118,8 @@ public class JobModel extends GenericBackendModel {
      * @param mailForNotificationAboutProcessing   The Mail For Notification About Processing
      * @param resultmailInitials                   The Resultmail Initials
      * @param type                                 The type of job (TRANSIENT, PERSISTENT, TEST, ACCTEST)
+     * @param dataFile                             The data file of the job
+     * @param partNumber                           The part number
      */
     public JobModel(String jobCreationTime,
                     String jobCompletionTime,

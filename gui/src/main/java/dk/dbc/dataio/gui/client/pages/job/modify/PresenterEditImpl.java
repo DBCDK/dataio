@@ -101,9 +101,10 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
             if (jobModels != null  && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
                 updateAllFieldsAccordingToCurrentState();
-            } else {
-                //prepareViewForJobNotFoundDisplay();
             }
+//            else {
+                //prepareViewForJobNotFoundDisplay();
+//            }
         }
     }
 

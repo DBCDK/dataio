@@ -70,50 +70,42 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void packagingChanged(String packaging) {
         jobModel.setPackaging(packaging);
-        print();
     }
 
 
     @Override
     public void formatChanged(String format) {
         jobModel.setFormat(format);
-        print();
     }
 
     @Override
     public void charsetChanged(String charset) {
         jobModel.setCharset(charset);
-        print();
     }
 
     @Override
     public void destinationChanged(String destination) {
         jobModel.setDestination(destination);
-        print();
     }
 
     @Override
     public void mailForNotificationAboutVerificationChanged(String mailForNotificationvoidAboutVerification) {
         jobModel.setMailForNotificationvoidAboutProcessing(mailForNotificationvoidAboutVerification);
-        print();
     }
 
     @Override
     public void mailForNotificationAboutProcessingChanged(String mailForNotificationvoidAboutProcessing) {
         jobModel.setMailForNotificationvoidAboutProcessing(mailForNotificationvoidAboutProcessing);
-        print();
     }
 
     @Override
     public void resultMailInitialsChanged(String resultMailInitialsChanged) {
         jobModel.setResultmailInitials(resultMailInitialsChanged);
-        print();
     }
 
     @Override
     public void typeChanged(JobModel.Type type) {
         jobModel.setType(type);
-        print();
     }
 
     /**
@@ -184,21 +176,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /*
      * Local class
      */
-
-    private void print() {
-        StringBuffer stringBuilder = new StringBuffer();
-        stringBuilder.append("JobID: " + jobModel.getJobId() + "\n");
-        stringBuilder.append("Ramme: " + jobModel.getPackaging() + "\n");
-        stringBuilder.append("Format: " + jobModel.getFormat() + "\n");
-        stringBuilder.append("Charset: " + jobModel.getCharset() + "\n");
-        stringBuilder.append("Destination: " + jobModel.getDestination() + "\n");
-        stringBuilder.append("Mail veri.: " + jobModel.getMailForNotificationAboutVerification() + "\n");
-        stringBuilder.append("Mail Proc.: " + jobModel.getMailForNotificationAboutProcessing() + "\n");
-        stringBuilder.append("Initials: " + jobModel.getResultmailInitials() + "\n");
-        stringBuilder.append("Type: " + jobModel.getType() + "\n");
-
-        System.out.println(stringBuilder.toString());
-    }
 
     /*
      * Abstract methods

@@ -106,7 +106,9 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.jobModel = new JobModel();
 
         presenterEditImpl.packagingChanged("a");                   // Name is ok
-//        presenterEditImpl.resourceChanged("resource");        // Resource is ok
+        presenterEditImpl.formatChanged("b");
+        presenterEditImpl.charsetChanged("c");
+        presenterEditImpl.destinationChanged("d");
 
         presenterEditImpl.doRerunJobInJobStore();
 

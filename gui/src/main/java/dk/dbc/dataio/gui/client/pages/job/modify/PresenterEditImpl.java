@@ -97,7 +97,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(List<JobModel> jobModels) {
 
-            System.out.println("Number of jobs found: " + jobModels.size());
             if (jobModels != null  && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
                 updateAllFieldsAccordingToCurrentState();
@@ -121,7 +120,6 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(JobModel jobModel) {
 
-            System.out.println("Rerun of job: " + jobModel.getJobId());
             getView().status.setText(getTexts().status_JobSuccesfullyRerun());
             setJobModel(jobModel);
             updateAllFieldsAccordingToCurrentState();

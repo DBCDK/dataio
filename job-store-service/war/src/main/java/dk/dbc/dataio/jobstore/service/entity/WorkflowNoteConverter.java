@@ -36,7 +36,11 @@ public class WorkflowNoteConverter implements AttributeConverter<WorkflowNote, P
         final PGobject pgObject = new PGobject();
         pgObject.setType("jsonb");
         try {
-            pgObject.setValue(ConverterJSONBContext.getInstance().marshall(workflowNote));
+            if(workflowNote != null) {
+                pgObject.setValue(ConverterJSONBContext.getInstance().marshall(workflowNote));
+            } else {
+                pgObject.setValue(null);
+            }
         } catch (SQLException | JSONBException e) {
             throw new IllegalStateException(e);
         }

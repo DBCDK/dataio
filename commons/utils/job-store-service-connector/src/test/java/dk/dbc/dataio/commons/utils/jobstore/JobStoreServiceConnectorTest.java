@@ -632,6 +632,12 @@ public class JobStoreServiceConnectorTest {
 
     // ******************************************* set workflowNote tests ********************************************
 
+    @Test(expected = NullPointerException.class)
+    public void setWorkflowNote_workflowNoteArgIsNull_throws() throws JobStoreServiceConnectorException {
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        jobStoreServiceConnector.setWorkflowNote(null, JOB_ID);
+    }
+
     @Test(expected = JobStoreServiceConnectorException.class)
     public void setWorkflowNote_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
         callSetWorkflowNoteWithMockedHttpResponse(new WorkflowNoteBuilder().build(), JOB_ID, Response.Status.OK, null);

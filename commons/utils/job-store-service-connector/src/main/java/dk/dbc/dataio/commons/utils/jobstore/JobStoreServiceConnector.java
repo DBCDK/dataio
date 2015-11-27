@@ -401,6 +401,7 @@ public class JobStoreServiceConnector {
         log.trace("JobStoreServiceConnector: setWorkflowNote();");
         final StopWatch stopWatch = new StopWatch();
         try {
+            InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
             final Response response;
             final PathBuilder path = new PathBuilder(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
                     .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId));

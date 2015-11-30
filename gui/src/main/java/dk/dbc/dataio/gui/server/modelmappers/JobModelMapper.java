@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -32,6 +33,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -81,7 +83,8 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getResultmailInitials(),
                 getType(jobInfoSnapshot.getSpecification().getType()),
                 jobInfoSnapshot.getSpecification().getDataFile(),
-                jobInfoSnapshot.getPartNumber()
+                jobInfoSnapshot.getPartNumber(),
+                toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote())
         );
     }
 
@@ -116,10 +119,26 @@ public class JobModelMapper {
         return jobInfoSnapshotModels;
     }
 
+    public static WorkflowNote toWorkflowNote(WorkflowNoteModel workflowNoteModel) {
+        if(workflowNoteModel != null) {
+            return new WorkflowNote(workflowNoteModel.isProcessed(), workflowNoteModel.getAssignee(), workflowNoteModel.getDescription());
+        } else {
+            return null;
+        }
+    }
+
 
     /*
      * Private Methods
      */
+
+    private static WorkflowNoteModel toWorkflowNoteModel(WorkflowNote workflowNote) {
+        if(workflowNote != null) {
+            return new WorkflowNoteModel(workflowNote.isProcessed(), workflowNote.getAssignee(), workflowNote.getDescription());
+        } else {
+            return null;
+        }
+    }
 
     /**
      * This method retrieves the name of the submitter.

@@ -57,6 +57,8 @@ public class JobModel extends GenericBackendModel {
     private final static String     RESULT_MAIL_INITIALS_EMPTY = "";
     private final static String     DATAFILE_EMPTY = "";
     private final static int        PARTNUMBER_ZERO = 0;
+    private final static WorkflowNoteModel WORKFLOW_NOTE_MODEL_NULL = null;
+
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
 
@@ -88,6 +90,7 @@ public class JobModel extends GenericBackendModel {
     private Type type;
     private String dataFile;
     private int partNumber;
+    private WorkflowNoteModel workflowNoteModel;
 
     /**
      * Constructor with full parameter list
@@ -120,6 +123,7 @@ public class JobModel extends GenericBackendModel {
      * @param type                                 The type of job (TRANSIENT, PERSISTENT, TEST, ACCTEST)
      * @param dataFile                             The data file of the job
      * @param partNumber                           The part number
+     * @param workflowNoteModel                    The workflow note model
      */
     public JobModel(String jobCreationTime,
                     String jobCompletionTime,
@@ -148,7 +152,8 @@ public class JobModel extends GenericBackendModel {
                     String resultmailInitials,
                     Type type,
                     String dataFile,
-                    int partNumber) {
+                    int partNumber,
+                    WorkflowNoteModel workflowNoteModel) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -177,6 +182,7 @@ public class JobModel extends GenericBackendModel {
         this.type = type;
         this.dataFile = dataFile;
         this.partNumber = partNumber;
+        this.workflowNoteModel = workflowNoteModel;
     }
 
     /**
@@ -211,7 +217,8 @@ public class JobModel extends GenericBackendModel {
                 RESULT_MAIL_INITIALS_EMPTY,
                 Type.TRANSIENT,
                 DATAFILE_EMPTY,
-                PARTNUMBER_ZERO);
+                PARTNUMBER_ZERO,
+                WORKFLOW_NOTE_MODEL_NULL);
     }
 
     /**
@@ -672,7 +679,16 @@ public class JobModel extends GenericBackendModel {
      */
     public String getDataFile() {
         return dataFile;
-    };
+    }
+
+    public WorkflowNoteModel getWorkflowNoteModel() {
+        return workflowNoteModel;
+    }
+
+    public void setWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
+        this.workflowNoteModel = workflowNoteModel;
+    }
+
     /**
      * Checks for empty String values
      * @return true if no empty String values were found, otherwise false

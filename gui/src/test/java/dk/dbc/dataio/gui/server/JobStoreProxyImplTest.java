@@ -27,13 +27,17 @@ import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.util.Format;
+import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.glassfish.jersey.client.ClientConfig;
@@ -52,6 +56,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.IsNull.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
@@ -250,6 +255,30 @@ public class JobStoreProxyImplTest {
             assertThat(jobNotifications, is(testJobNotifications));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listJobs()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void setWorkflowNote_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), (any(Integer.class)))).thenThrow(new JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.setWorkflowNote(new WorkflowNoteModelBuilder().build(), 1);
+    }
+
+    @Test
+    public void setWorkflowNote_remoteServiceReturnsHttpStatusOk_returnsUpdatedJobModel() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
+
+        when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt()))
+                .thenReturn(new JobInfoSnapshotBuilder().setWorkflowNote(JobModelMapper.toWorkflowNote(workflowNoteModel)).build());
+        try {
+            JobModel updatedJobModel = jobStoreProxy.setWorkflowNote(workflowNoteModel, 1);
+            assertThat(updatedJobModel, is(notNullValue()));
+            assertThat(updatedJobModel.getWorkflowNoteModel(), is(workflowNoteModel));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: setWorkflowNote()");
         }
     }
 

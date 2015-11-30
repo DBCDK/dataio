@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.modelBuilders;
 
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +47,7 @@ public class JobModelBuilder {
     private long partitionedCounter = 14;
     private long processedCounter = 15;
     private long deliveredCounter = 16;
-    private List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(Collections.singletonList(
+    private List<DiagnosticModel> diagnosticModels = new ArrayList<>(Collections.singletonList(
             new DiagnosticModelBuilder().build()));
     private boolean diagnosticFatal = false;
     private String packaging = "-packaging-";
@@ -59,6 +60,7 @@ public class JobModelBuilder {
     private JobModel.Type type = JobModel.Type.TRANSIENT;
     private String dataFile = "";
     private int partNumber = 0;
+    private WorkflowNoteModel workflowNoteModel = null;
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -200,6 +202,11 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
+        this.workflowNoteModel = workflowNoteModel;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -229,7 +236,8 @@ public class JobModelBuilder {
                 resultMailInitials,
                 type,
                 dataFile,
-                partNumber
+                partNumber,
+                workflowNoteModel
         );
     }
 }

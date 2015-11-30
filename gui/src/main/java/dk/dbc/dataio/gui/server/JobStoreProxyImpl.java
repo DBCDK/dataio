@@ -33,6 +33,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.server.modelmappers.ItemModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
@@ -301,6 +302,33 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         return JobModelMapper.toModel(jobInfoSnapshot);
     }
 
+    @Override
+    public JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException {
+        final JobInfoSnapshot jobInfoSnapshot;
+        log.trace("JobStoreProxy: setWorkflowNote({})", jobId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            jobInfoSnapshot = jobStoreServiceConnector.setWorkflowNote(JobModelMapper.toWorkflowNote(workflowNoteModel), jobId);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: setWorkflowNote - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e) {
+            log.error("JobStoreProxy: setWorkflowNote - Invalid Field Value Exception", e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("JobStoreProxy: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return JobModelMapper.toModel(jobInfoSnapshot);
+    }
 
     /**
      * Handle exceptions thrown by the JobStoreServiceConnector and wrap them in ProxyExceptions

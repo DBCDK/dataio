@@ -55,7 +55,6 @@ public class View extends ViewWidget {
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private boolean dataHasNotYetBeenLoaded = true;
-    private Cell.Context currentContext;
 
     Column jobCreationTimeColumn;
     public AsyncJobViewDataProvider dataProvider;

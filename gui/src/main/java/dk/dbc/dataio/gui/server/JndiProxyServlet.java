@@ -18,13 +18,31 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dbc.dataio.gui.client.pages.ftp.show;
 
-import com.google.gwt.inject.client.GinModules;
-import com.google.gwt.inject.client.Ginjector;
+package dk.dbc.dataio.gui.server;
 
-@GinModules(ViewModule.class)
-public interface ViewGinjector extends Ginjector {
-    View getView();
-    Texts getTexts();
+import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import dk.dbc.dataio.gui.client.proxies.JndiProxy;
+
+import javax.servlet.ServletException;
+
+public class JndiProxyServlet extends RemoteServiceServlet implements JndiProxy {
+    private static final long serialVersionUID = -7540416788150791657L;
+    private transient JndiProxy jndiProxy = null;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        jndiProxy = new JndiProxyImpl();
+    }
+
+    @Override
+    public String getJndiResource(String jndiName) {
+        return jndiProxy.getJndiResource(jndiName);
+    }
+
+    @Override
+    public void destroy() {
+        super.destroy();
+    }
 }

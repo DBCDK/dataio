@@ -18,13 +18,17 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package dk.dbc.dataio.gui.client.pages.ftp.show;
 
-import com.google.gwt.inject.client.GinModules;
-import com.google.gwt.inject.client.Ginjector;
+import com.google.gwt.i18n.client.Constants;
+import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
-@GinModules(ViewModule.class)
-public interface ViewGinjector extends Ginjector {
-    View getView();
-    Texts getTexts();
+
+public interface Texts extends Constants {
+
+    // Error messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_JndiFetchError();
+
 }

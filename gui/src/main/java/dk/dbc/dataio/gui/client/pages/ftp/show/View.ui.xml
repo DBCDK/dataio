@@ -31,7 +31,7 @@
 
     <g:HTMLPanel ui:field="container">
 
-        <g:Frame url="ftp://dataio-be-s02.dbc.dk/datain" ui:field="ftpFrame" addStyleNames="{style.ftp-frame}"></g:Frame>
+        <g:Frame url="" ui:field="ftpFrame" addStyleNames="{style.ftp-frame}"></g:Frame>
 
     </g:HTMLPanel>
 

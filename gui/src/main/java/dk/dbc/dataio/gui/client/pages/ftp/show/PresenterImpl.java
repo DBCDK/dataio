@@ -24,7 +24,12 @@ package dk.dbc.dataio.gui.client.pages.ftp.show;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
+
+import javax.naming.NamingException;
 
 
 /**
@@ -33,12 +38,25 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 public class PresenterImpl extends AbstractActivity implements Presenter {
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
 
     /**
      * Default constructor
      */
     public PresenterImpl() {
+        commonInjector.getJndiProxyAsync().getJndiResource(
+                JndiConstants.URL_RESOURCE_GUI_FTP,
+                new AsyncCallback<String>() {
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiFetchError());
+                    }
+                    @Override
+                    public void onSuccess(String jndiUrl) {
+                        viewInjector.getView().ftpFrame.setUrl(jndiUrl);
+                    }
+                });
     }
 
 

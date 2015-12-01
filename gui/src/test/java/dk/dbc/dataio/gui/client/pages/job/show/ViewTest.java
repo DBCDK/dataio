@@ -31,6 +31,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.junit.Before;
@@ -91,6 +92,7 @@ public class ViewTest {
             .setPartitionedCounter(51)
             .setProcessedCounter(52)
             .setDeliveredCounter(53)
+            .setWorkflowNoteModel(new WorkflowNoteModelBuilder().setAssignee("testAssignee").build())
             .build();
 
     // Subject Under Test
@@ -110,6 +112,8 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_IGNORED = "Mocked Column Header Ignored";
     final static String MOCKED_COLUMN_HEADER_PROGRESS = "Mocked Column Header Progress";
     final static String MOCKED_COLUMN_HEADER_JOB_STATUS = "Mocked Column Header Job Status";
+    final static String MOCKED_COLUMN_HEADER_IS_FIXED = "Mocked Column Header Fixed";
+    final static String MOCKED_COLUMN_HEADER_ASSIGNEE = "Mocked Column Header Assignee";
 
     public class ViewConcrete extends View {
         public ViewConcrete(String header) {
@@ -141,6 +145,8 @@ public class ViewTest {
         when(mockedTexts.columnHeader_IgnoredCounter()).thenReturn(MOCKED_COLUMN_HEADER_IGNORED);
         when(mockedTexts.columnHeader_ProgressBar()).thenReturn(MOCKED_COLUMN_HEADER_PROGRESS);
         when(mockedTexts.columnHeader_JobStatus()).thenReturn(MOCKED_COLUMN_HEADER_JOB_STATUS);
+        when(mockedTexts.columnHeader_Fixed()).thenReturn(MOCKED_COLUMN_HEADER_IS_FIXED);
+        when(mockedTexts.columnHeader_Assignee()).thenReturn(MOCKED_COLUMN_HEADER_ASSIGNEE);
     }
 
     //Testing starts here...
@@ -152,6 +158,8 @@ public class ViewTest {
 
         viewConcrete.setupColumns();
         // Verify invocations
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_IS_FIXED));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_ASSIGNEE));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER));
@@ -223,6 +231,29 @@ public class ViewTest {
         verifyNoMoreInteractions(view.jobsTable);
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructIsFixedColumn_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructIsFixedColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().isProcessed()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructAssigneeColumn_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructAssigneeColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().getAssignee()));
+    }
 
     @Test
     @SuppressWarnings("unchecked")
@@ -233,7 +264,7 @@ public class ViewTest {
         Column column = view.constructJobCreationTimeColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getJobCreationTime()));
+        assertThat(column.getValue(testModel1), is(testModel1.getJobCreationTime()));
     }
 
     @Test
@@ -245,7 +276,7 @@ public class ViewTest {
         Column column = view.constructJobIdColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getJobId()));
+        assertThat(column.getValue(testModel1), is(testModel1.getJobId()));
     }
 
     @Test
@@ -257,7 +288,7 @@ public class ViewTest {
         Column column = view.constructSubmitterNumberColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getSubmitterNumber()));
+        assertThat(column.getValue(testModel1), is(testModel1.getSubmitterNumber()));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
@@ -272,7 +303,7 @@ public class ViewTest {
         Column column = view.constructSubmitterNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getSubmitterName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getSubmitterName()));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
@@ -288,7 +319,7 @@ public class ViewTest {
         Column column = view.constructFlowBinderNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getFlowBinderName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getFlowBinderName()));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
@@ -303,7 +334,7 @@ public class ViewTest {
         Column column = view.constructSinkNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getSinkName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getSinkName()));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
@@ -320,7 +351,7 @@ public class ViewTest {
         Column column = view.constructFailedCounterColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getFailedCounter())));
+        assertThat(column.getValue(testModel1), is(String.valueOf(testModel1.getFailedCounter())));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));
@@ -335,7 +366,7 @@ public class ViewTest {
         Column column = view.constructIgnoredCounterColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(String.valueOf(testModel1.getProcessingIgnoredCounter())));
+        assertThat(column.getValue(testModel1), is(String.valueOf(testModel1.getProcessingIgnoredCounter())));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));

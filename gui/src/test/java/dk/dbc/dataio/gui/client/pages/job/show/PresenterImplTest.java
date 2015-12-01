@@ -29,6 +29,9 @@ import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -38,7 +41,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -94,11 +101,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
         public CountExistingJobsWithJobIdCallBack getJobCountCallback;
+        public SetWorkflowNoteCallBack getWorkflowNoteCallback;
         public PresenterImplConcrete(PlaceController placeController, String header) {
             super(placeController, mockedView, header);
-//            this.viewInjector = mockedViewInjector;
             this.commonInjector = mockedCommonGinjector;
             this.getJobCountCallback = new CountExistingJobsWithJobIdCallBack();
+            this.getWorkflowNoteCallback = new SetWorkflowNoteCallBack();
         }
 
         @Override
@@ -136,7 +144,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedView).setPresenter(presenterImpl);
-//        verify(mockedContainerWidget).setWidget(mockedViewWidget);
     }
 
     @Test
@@ -198,7 +205,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         when(mockedJobIdInputField.getValue()).thenReturn("140");
-//        presenterImpl.jobStoreProxy = mockedJobStoreProxy;
 
         // Subject under test
         presenterImpl.showJob();
@@ -252,9 +258,117 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedPlaceController).goTo(any(dk.dbc.dataio.gui.client.pages.item.show.Place.class));
     }
 
+    @Test
+    public void setWorkflowNote_inputIsValid_setWorkflowNoteCalled() {
+
+        // Setup
+        setupPresenter();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
+        presenterImpl.setWorkflowNote(workflowNoteModel, "1");
+
+        // Verify Test
+        verify(mockedCommonGinjector.getJobStoreProxyAsync()).setWorkflowNote(any(WorkflowNoteModel.class), anyInt(), any(PresenterImpl.SetWorkflowNoteCallBack.class));
+    }
+
+    @Test
+    public void setWorkflowNote_callbackWithError_errorMessageInView() {
+
+        // Setup
+        setupPresenter();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getWorkflowNoteCallback.onFailure(mockedException);
+
+        // Verify Test
+        verify(mockedView).setErrorText(anyString());
+    }
+
+    @Test
+    public void setWorkflowNote_callbackWithSuccess_selectionModelUpdated() {
+
+        // Setup
+        setupPresenter();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        final JobModel jobModel = new JobModelBuilder().setWorkflowNoteModel(new WorkflowNoteModelBuilder().setAssignee("assignee").build()).build();
+        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(jobModel);
+
+        // Test Subject Under Test
+        presenterImpl.getWorkflowNoteCallback.onSuccess(mockedSingleSelectionModel.getSelectedObject());
+
+        // Verify Test
+        verify(mockedView.selectionModel).setSelected(jobModel, Boolean.TRUE);
+    }
+
+    @Test
+    public void preProcessAssignee_assigneeIsEmptyValue_errorMessageInView() {
+
+        // Setup
+        setupPresenter();
+
+        // Subject under test
+        presenterImpl.preProcessAssignee("");
+
+        // Verify Test
+        verify(mockedView).setErrorText(anyString());
+    }
+
+    @Test
+    public void preProcessAssignee_assigneeIsValidAndWorkflowNoteIsNotNull_returnsWorkflowNoteModel() {
+
+        // Setup
+        setupPresenter();
+        final String assignee = "assignee";
+
+        final WorkflowNoteModel existingWorkflowNoteModel = new WorkflowNoteModelBuilder()
+                .setAssignee("old")
+                .setDescription("testDescription")
+                .setProcessed(false)
+                .build();
+
+        final JobModel jobModel = new JobModelBuilder().setWorkflowNoteModel(existingWorkflowNoteModel).build();
+
+        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(jobModel);
+
+        // Subject under test
+        WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(assignee);
+
+        // Verify Test
+        assertThat(updatedWorkflowNoteModel, is(notNullValue()));
+        assertThat(updatedWorkflowNoteModel.getAssignee(), is(assignee.toUpperCase()));
+        assertThat(updatedWorkflowNoteModel.getDescription(), is(existingWorkflowNoteModel.getDescription()));
+        assertThat(updatedWorkflowNoteModel.isProcessed(), is(existingWorkflowNoteModel.isProcessed()));
+    }
+
+    @Test
+    public void preProcessAssignee_assigneeIsValidAndWorkflowNoteIsNull_returnsWorkflowNoteModel() {
+
+        // Setup
+        setupPresenter();
+        final String assignee = "assignee";
+
+        final WorkflowNoteModel expectedWorkflowNoteModel = new WorkflowNoteModelBuilder()
+                .setAssignee(assignee.toUpperCase())
+                .setDescription("")
+                .setProcessed(false)
+                .build();
+
+        when(mockedSingleSelectionModel.getSelectedObject()).thenReturn(new JobModelBuilder().setWorkflowNoteModel(null).build());
+
+        // Subject under test
+        WorkflowNoteModel updatedWorkflowNoteModel = presenterImpl.preProcessAssignee(assignee);
+
+        // Verify Test
+        assertThat(updatedWorkflowNoteModel, is(notNullValue()));
+        assertThat(updatedWorkflowNoteModel, is(expectedWorkflowNoteModel));
+    }
+
     private void setupPresenter() {
         presenterImpl = new PresenterImplConcrete(mockedPlaceController, header);
-//        presenterImpl.viewInjector = mockedViewInjector;
         presenterImpl.commonInjector = mockedCommonGinjector;
     }
 }

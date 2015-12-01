@@ -60,11 +60,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getJobStoreServiceEndpoint() throws NamingException {
-        String jobStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
-        if (jobStoreServiceEndpoint == null || jobStoreServiceEndpoint.isEmpty()) {
-            jobStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
-        }
-        return jobStoreServiceEndpoint;
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_JOBSTORE_RS);
     }
 
     /**
@@ -79,11 +75,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getFileStoreServiceEndpoint() throws NamingException {
-        String fileStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_FILESTORE_RS);
-        if (fileStoreServiceEndpoint == null || fileStoreServiceEndpoint.isEmpty()) {
-            fileStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_FILESTORE_RS);
-        }
-        return fileStoreServiceEndpoint;
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_FILESTORE_RS);
     }
 
     /**
@@ -96,11 +88,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getFlowStoreServiceEndpoint() throws NamingException {
-        String flowStoreServiceEndpoint = System.getProperty("flowStoreURL");
-        if (flowStoreServiceEndpoint == null || flowStoreServiceEndpoint.isEmpty()) {
-            flowStoreServiceEndpoint = getStringValueFromResource(FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
-        }
-        return flowStoreServiceEndpoint;
+        return getStringValueFromSystemPropertyOrJndi(FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
     }
 
     /**
@@ -115,11 +103,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getLogStoreServiceEndpoint() throws NamingException {
-        String logStoreServiceEndpoint = System.getProperty(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
-        if (logStoreServiceEndpoint == null || logStoreServiceEndpoint.isEmpty()) {
-            logStoreServiceEndpoint = getStringValueFromResource(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
-        }
-        return logStoreServiceEndpoint;
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
     }
 
     /**
@@ -133,11 +117,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getSinkServiceEndpoint() throws NamingException {
-        String sinkServiceEndpoint = System.getProperty(SINK_SERVICE_ENDPOINT_RESOURCE);
-        if (sinkServiceEndpoint == null || sinkServiceEndpoint.isEmpty()) {
-            sinkServiceEndpoint = getStringValueFromResource(SINK_SERVICE_ENDPOINT_RESOURCE);
-        }
-        return sinkServiceEndpoint;
+        return getStringValueFromSystemPropertyOrJndi(SINK_SERVICE_ENDPOINT_RESOURCE);
     }
 
     /**
@@ -151,11 +131,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getSubversionScmEndpoint() throws NamingException {
-        String subversionScmEndpoint = System.getProperty(SUBVERSION_SCM_ENDPOINT_RESOURCE);
-        if (subversionScmEndpoint == null || subversionScmEndpoint.isEmpty()) {
-            subversionScmEndpoint = getStringValueFromResource(SUBVERSION_SCM_ENDPOINT_RESOURCE);
-        }
-        return subversionScmEndpoint;
+        return getStringValueFromSystemPropertyOrJndi(SUBVERSION_SCM_ENDPOINT_RESOURCE);
     }
 
     /**
@@ -214,6 +190,31 @@ public class ServiceUtil {
         return sw.toString();
     }
 
+    /**
+     * Looks up a resource through Java Naming and Directory Interface (JNDI)
+     * using the name passed as a parameter in the call to this method. For testing purposes
+     * the JNDI lookup can be bypassed by defining a similar named system property.
+     *
+     * @return JNDI or System Property name as String
+     *
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getStringValueFromSystemPropertyOrJndi(String resourceName) throws NamingException {
+        String value = System.getProperty(resourceName);
+        if (value == null || value.isEmpty()) {
+            value = getStringValueFromResource(resourceName);
+        }
+        return value;
+    }
+
+    /**
+     * Looks up a resource through Java Naming and Directory Interface (JNDI)
+     * using the name passed as a parameter in the call to this method
+     *
+     * @param resourceName The name of the resource
+     * @return The string content of the resource, if found
+     * @throws NamingException
+     */
     public static String getStringValueFromResource(String resourceName) throws NamingException {
         String resourceValue;
         InitialContext initialContext = null;

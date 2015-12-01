@@ -195,8 +195,8 @@ public class ServiceUtil {
      * using the name passed as a parameter in the call to this method. For testing purposes
      * the JNDI lookup can be bypassed by defining a similar named system property.
      *
+     * @param resourceName The name of the resource
      * @return JNDI or System Property name as String
-     *
      * @throws NamingException if unable to lookup name
      */
     public static String getStringValueFromSystemPropertyOrJndi(String resourceName) throws NamingException {
@@ -213,7 +213,7 @@ public class ServiceUtil {
      *
      * @param resourceName The name of the resource
      * @return The string content of the resource, if found
-     * @throws NamingException
+     * @throws NamingException if unable to lookup name
      */
     public static String getStringValueFromResource(String resourceName) throws NamingException {
         String resourceValue;

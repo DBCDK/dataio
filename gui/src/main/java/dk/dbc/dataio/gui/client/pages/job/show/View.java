@@ -22,17 +22,27 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.cell.client.TextInputCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 
@@ -45,6 +55,7 @@ public class View extends ViewWidget {
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private boolean dataHasNotYetBeenLoaded = true;
+    private Cell.Context currentContext;
 
     Column jobCreationTimeColumn;
     public AsyncJobViewDataProvider dataProvider;
@@ -54,6 +65,7 @@ public class View extends ViewWidget {
             return (jobModel == null) ? null : jobModel.getJobId();
         }
     };
+
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>(keyProvider);
 
     // Enums
@@ -111,6 +123,9 @@ public class View extends ViewWidget {
     @SuppressWarnings("unchecked")
     void setupColumns() {
         Texts texts = getTexts();
+        jobsTable.addColumn(constructIsFixedColumn(), texts.columnHeader_Fixed());
+        jobsTable.addColumn(constructAssigneeColumn(), texts.columnHeader_Assignee());
+
         jobsTable.addColumn(constructRerunColumn(), texts.columnHeader_Action());
         jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
@@ -125,11 +140,79 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
         jobsTable.setSelectionModel(selectionModel);
         jobsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
+        jobsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
 
         pagerTop.setDisplay(jobsTable);
         pagerBottom.setDisplay(jobsTable);
 
         jobsTable.setVisibleRange(0,20);
+    }
+
+    /**
+     * This method constructs the IsFixed column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed IsFixed column
+     */
+    Column constructIsFixedColumn() {
+        CheckboxCell checkboxCell = new CheckboxCell(true, false);
+        Column<JobModel, Boolean> workflowNoteColumn = new Column<JobModel, Boolean>(checkboxCell) {
+            @Override
+            public Boolean getValue(JobModel jobModel) {
+                if (jobModel.getWorkflowNoteModel() == null) {
+                    return false;
+                } else {
+                    return jobModel.getWorkflowNoteModel().isProcessed();
+                }
+            }
+        };
+        return workflowNoteColumn;
+    }
+
+    /**
+     * This method constructs the Assignee column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Assignee column
+     */
+    Column constructAssigneeColumn() {
+        TextInputCell textInputCell = new TextInputCell();
+        final Cell.Context[] currentContext = new Cell.Context[1];
+        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(textInputCell)
+        {
+            @Override
+            public String getValue(JobModel model) {
+                return model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
+            }
+
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
+                if(event.getType().equals(BrowserEvents.CHANGE) || event.getKeyCode() == KeyCodes.KEY_ENTER) {
+                    currentContext[0] = context;
+                    selectionModel.setSelected(jobModel, true);
+                }
+                super.onBrowserEvent(context, elem, jobModel, event);
+            }
+        };
+
+        assigneeColumn.setFieldUpdater(new FieldUpdater<JobModel, String>() {
+            @Override
+            public void update(int index, JobModel selectedRowModel, String value) {
+                WorkflowNoteModel updatedWorkflowNoteModel = presenter.preProcessAssignee(value);
+                if(updatedWorkflowNoteModel != null) {
+                    presenter.setWorkflowNote(updatedWorkflowNoteModel, selectedRowModel.getJobId());
+
+                    // Update the TextInputCell value after save in order to display assignee with capital letters
+                    // without reloading all table data.
+                    TextInputCell.ViewData updatedViewData = new TextInputCell.ViewData(updatedWorkflowNoteModel.getAssignee());
+                    TextInputCell updatedTextInputCell = (TextInputCell) jobsTable.getColumn(ASSIGNEE_COLUMN).getCell();
+                    updatedTextInputCell.setViewData(currentContext[0].getKey(), updatedViewData);
+                    selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
+                    jobsTable.redraw();
+                }
+            }
+        });
+        return assigneeColumn;
     }
 
     /**
@@ -314,6 +397,11 @@ public class View extends ViewWidget {
         return viewInjector.getTexts();
 
     }
+
+    /*
+     * Private methods
+     */
+
     /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
@@ -330,5 +418,25 @@ public class View extends ViewWidget {
             }
         };
         return handler;
+    }
+
+    /*
+     * inner classes
+     */
+
+    class CellPreviewHandlerClass implements CellPreviewEvent.Handler<JobModel> {
+        @Override
+        public void onCellPreview(CellPreviewEvent<JobModel> cellPreviewEvent) {
+            if(BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType()) && cellPreviewEvent.getColumn() == IS_FIXED_COLUMN) {
+                final WorkflowNoteModel workflowNoteModel = cellPreviewEvent.getValue().getWorkflowNoteModel();
+                if(workflowNoteModel == null) {
+                    Window.alert(getTexts().error_InputCellValidationError());
+                    jobsTable.redraw();
+                } else {
+                    workflowNoteModel.setProcessed(workflowNoteModel.isProcessed() ? false : true);
+                    presenter.setWorkflowNote(workflowNoteModel, selectionModel.getSelectedObject().getJobId());
+                }
+            }
+        }
     }
 }

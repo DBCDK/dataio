@@ -46,6 +46,8 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     // Constants
     protected static final int PAGE_SIZE = 20;
     protected static final int FAST_FORWARD_PAGES = 5;
+    protected static final int IS_FIXED_COLUMN = 0;
+    protected static final int ASSIGNEE_COLUMN = 1;
 
 
     // Instantiate UI Binder

@@ -29,6 +29,7 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -39,7 +40,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
 
-//    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    private static final String EMPTY = "";
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     View globalJobsView;
     private PlaceController placeController;
@@ -119,6 +120,32 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobId));
     }
 
+    @Override
+    public void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId) {
+        commonInjector.getJobStoreProxyAsync().setWorkflowNote(workflowNoteModel, Long.valueOf(jobId).intValue(), new SetWorkflowNoteCallBack());
+    }
+
+    /**
+     * This method evaluates the assignee given as input.
+     * If the assignee is empty, an error is displayed in the view.
+     * Otherwise the assignee input value is set on a new workflow note model.
+     *
+     * @param assignee the assignee to set
+     * @return null if the assignee value was empty, otherwise a new workflow note model with the input string set as assignee.
+     */
+    @Override
+    public WorkflowNoteModel preProcessAssignee(String assignee) {
+        WorkflowNoteModel workflowNoteModel = null;
+        if (assignee.trim().equals(EMPTY)) {
+            getView().setErrorText(getView().getTexts().error_CheckboxCellValidationError());
+        } else {
+            workflowNoteModel = mapValuesToWorkflowNoteModel(getView().selectionModel.getSelectedObject().getWorkflowNoteModel());
+            workflowNoteModel.setAssignee(assignee.trim().toUpperCase());
+        }
+        return workflowNoteModel;
+    }
+
+
     /*
      * Private methods
      */
@@ -165,6 +192,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         commonInjector.getJobStoreProxyAsync().countJobs(jobListCriteria, new CountExistingJobsWithJobIdCallBack());
     }
 
+    /**
+     * Creates a new workflow note model.
+     * If input is not null, the method maps the values from input to the new workflow note model
+     *
+     * @param current the current workflow note model or null
+     * @return workflowNoteModel
+     */
+    private WorkflowNoteModel mapValuesToWorkflowNoteModel(WorkflowNoteModel current) {
+        final WorkflowNoteModel workflowNoteModel = new WorkflowNoteModel();
+        if(current != null) {
+            workflowNoteModel.setProcessed(current.isProcessed());
+            workflowNoteModel.setDescription(current.getDescription());
+        }
+        return workflowNoteModel;
+    }
+
 
     /**
      * Abstract Methods
@@ -191,6 +234,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 getView().jobIdInputField.setText("");
                 placeController.goTo(new dk.dbc.dataio.gui.client.pages.item.show.Place(jobId));
             }
+        }
+    }
+
+    protected class SetWorkflowNoteCallBack extends FilteredAsyncCallback<JobModel> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            getView().setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(JobModel jobModel) {
+            getView().selectionModel.setSelected(jobModel, true);
         }
     }
 }

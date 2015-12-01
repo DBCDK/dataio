@@ -28,8 +28,8 @@
     <ui:style>
         .outerHtmlPanel {
             width: 100%;
-            max-width: 125em;
-            min-width: 88em;
+            max-width: 130em;
+            min-width: 110em;
 
             /*
              * min-width:
@@ -80,6 +80,22 @@
             border-top: slategray solid 2px;
             border-bottom: slategray solid 2px;
         }
+
+        .jobsTable input {
+            color: inherit;
+            border: dotted 0.2px rgb(204, 204, 204) !important;
+            background: transparent;
+            max-width: 35px;
+            text-align: center;
+            height: 16px;
+            padding-top: 3.5px;
+        }
+
+        .jobsTable button {
+            padding-top: 2px;
+            margin: 1em -0.6em;
+        }
+
     </ui:style>
 
     <g:HTMLPanel styleName="{style.outerHtmlPanel}">

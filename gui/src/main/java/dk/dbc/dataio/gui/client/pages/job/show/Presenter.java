@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
@@ -30,4 +31,6 @@ public interface Presenter extends GenericPresenter {
     void refresh();
     void showJob();
     void editJob(JobModel rowModel);
+    void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
+    WorkflowNoteModel preProcessAssignee(String assignee);
 }

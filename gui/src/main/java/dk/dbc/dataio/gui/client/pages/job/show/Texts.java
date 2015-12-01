@@ -70,6 +70,12 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Fixed();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Assignee();
+
     // Button texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_AllJobs();
@@ -101,4 +107,10 @@ public interface Texts extends Constants {
 
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_JobNotFound();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_InputCellValidationError();
+
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CheckboxCellValidationError();
 }

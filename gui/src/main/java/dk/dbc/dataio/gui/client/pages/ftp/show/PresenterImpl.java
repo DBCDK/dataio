@@ -29,13 +29,12 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
-import javax.naming.NamingException;
-
 
 /**
  * This class represents the show ftp's presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
+    private static final String PRE_FTP_URL_FRAGMENT = "ftp://anonymous:info%40dbc.dk@";
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -54,7 +53,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
                     }
                     @Override
                     public void onSuccess(String jndiUrl) {
-                        viewInjector.getView().ftpFrame.setUrl(jndiUrl);
+                        viewInjector.getView().ftpFrame.setUrl(PRE_FTP_URL_FRAGMENT + jndiUrl);
                     }
                 });
     }

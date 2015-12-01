@@ -43,6 +43,8 @@ public class JndiProxyImpl implements JndiProxy {
             return ServiceUtil.getStringValueFromSystemPropertyOrJndi(jndiName);
         } catch (NamingException e) {  // We must catch this exception, because it is not present in JRE Emulation Library
             throw new IllegalArgumentException("Naming Exception");
+        } finally {
+            log.debug("JndiProxy: getJndiResource took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

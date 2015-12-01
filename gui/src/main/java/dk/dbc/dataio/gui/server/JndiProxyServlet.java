@@ -41,8 +41,4 @@ public class JndiProxyServlet extends RemoteServiceServlet implements JndiProxy 
         return jndiProxy.getJndiResource(jndiName);
     }
 
-    @Override
-    public void destroy() {
-        super.destroy();
-    }
 }

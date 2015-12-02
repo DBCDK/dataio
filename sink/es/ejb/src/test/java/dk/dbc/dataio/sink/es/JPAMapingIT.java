@@ -26,6 +26,7 @@ public class JPAMapingIT {
     public void LoadTaskPackage() throws Exception {
         EntityManager em=JPATestUtils.createEntityManagerForIntegrationTest("esIT");
         JPATestUtils.runSqlFromResource(em,this, "JPAMappingIT_load_testdata.sql");
+        JPATestUtils.clearEntityManagerCache(em);
 
         TaskSpecificUpdateEntity tp=em.find(TaskSpecificUpdateEntity.class, 1);
         tp.loadDiagsIfExists(em);

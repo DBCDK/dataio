@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.test.types;
 
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 
 import java.util.Date;
 
@@ -36,6 +37,7 @@ public class ItemInfoSnapshotBuilder {
     private Date timeOfLastModification = new Date() ;
     private Date timeOfCompletion = new Date();
     private State state = new State();
+    private WorkflowNote workflowNote = null;
 
     public ItemInfoSnapshotBuilder setItemId(short itemId) {
         this.itemId = itemId;
@@ -74,8 +76,13 @@ public class ItemInfoSnapshotBuilder {
         return this;
     }
 
+    public ItemInfoSnapshotBuilder setWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
+        return this;
+    }
+
     public ItemInfoSnapshot build() {
-        return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state);
+        return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state, workflowNote);
     }
 
     private int calculateItemNumber() {

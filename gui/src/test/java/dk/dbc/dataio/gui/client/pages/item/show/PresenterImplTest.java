@@ -489,6 +489,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
+        verify(mockedTabBar).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verifyNoMoreInteractions(mockedTabBar);
         verify(mockedJobStoreProxy).listJobs(any(JobListCriteria.class), any(PresenterImpl.JobsCallback.class));
         verify(mockedJobStoreProxy).listJobNotificationsForJob(any(Integer.class), any(PresenterImpl.JobNotificationsCallback.class));

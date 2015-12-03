@@ -166,6 +166,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_JobCreationTime();
 
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_Note();
+
 
     // JobNotification Prompt Labels
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -207,5 +210,9 @@ public interface Texts extends Constants {
 
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String statusWaiting();
+
+    // Buttons
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Save();
 
 }

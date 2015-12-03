@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.SelectionEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
@@ -41,6 +42,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     static final int JOB_INFO_TAB_CONTENT = 3;
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
     static final int JOB_NOTIFICATION_TAB_CONTENT = 5;
+    static final int WORKFLOW_NOTE_TAB_CONTENT = 6;
 
     interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
 
@@ -54,7 +56,7 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     @UiField JobInfoTabContent jobInfoTabContent;
     @UiField JobDiagnosticTabContent jobDiagnosticTabContent;
     @UiField JobNotificationsTabContent jobNotificationsTabContent;
-
+    @UiField WorkflowNoteTabContent workflowNoteTabContent;
 
     /**
      * Constructor with header and text
@@ -84,8 +86,16 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
             case IGNORED_ITEMS_TAB_INDEX:
                 presenter.ignoredItemsTabSelected();
                 break;
+            case WORKFLOW_NOTE_TAB_CONTENT:
+                presenter.noteTabSelected();
+                break;
         }
     }
 
+    @SuppressWarnings("unused")
+    @UiHandler("saveButton")
+    void saveButtonPressed(ClickEvent event) {
+        presenter.setWorkflowNoteModel(workflowNoteTabContent.note.getText());
+    }
 }
 

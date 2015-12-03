@@ -30,6 +30,9 @@
         }
         .tab-content {
         }
+        .saveButton {
+            margin: 0 0.5em 0;
+        }
     </ui:style>
 
     <g:HTMLPanel styleName="items-show-table">
@@ -58,6 +61,16 @@
             </g:Tab>
             <g:Tab text="{txt.tab_JobNotification}">
                 <dio:JobNotificationsTabContent ui:field="jobNotificationsTabContent"/>
+            </g:Tab>
+            <g:Tab text="{txt.tab_Note}">
+                <g:HTMLPanel>
+                    <g:VerticalPanel verticalAlignment="middle">
+                        <dio:WorkflowNoteTabContent ui:field="workflowNoteTabContent"/>
+                        <g:cell horizontalAlignment="right">
+                            <g:Button ui:field="saveButton" addStyleNames="{style.saveButton}"><ui:text from="{txt.button_Save}"/></g:Button>
+                        </g:cell>
+                    </g:VerticalPanel>
+                </g:HTMLPanel>
             </g:Tab>
         </g:DecoratedTabPanel>
     </g:HTMLPanel>

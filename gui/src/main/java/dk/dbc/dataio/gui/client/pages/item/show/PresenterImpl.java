@@ -25,13 +25,16 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.JobNotification;
@@ -57,6 +60,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     protected int allItemCounter;
     protected int failedItemCounter;
     protected int ignoredItemCounter;
+    protected WorkflowNoteModel workflowNoteModel;
     protected JobModel.Type type;
     protected ItemListCriteria.Field itemSearchType;
     private String header;
@@ -113,7 +117,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         final ListFilter itemStatus = new ListFilter<>(ItemListCriteria.Field.STATE_FAILED);
         final ItemListCriteria itemListCriteria = new ItemListCriteria().where(jobIdEqualsCondition).and(itemStatus);
         listItems(itemSearchType, itemListCriteria, getView().failedItemsList);
-
     }
 
     /**
@@ -140,6 +143,40 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         populateItemTabIndexes(itemModel);
         addItemTabs(listView, itemModel);
         selectItemTab(listView, itemModel);
+    }
+
+    /**
+     * This method is called by the view, whenever the Note tab has been selected
+     * and sets the focus within the TextArea at cursor position 0
+     */
+    @Override
+    public void noteTabSelected() {
+        View view = getView();
+        view.workflowNoteTabContent.note.setFocus(true);
+        view.workflowNoteTabContent.note.setCursorPos(0);
+    }
+
+    /**
+     * This method is called after a click on the save button is captured. It saves the description
+     * given as input on the workflowNoteModel
+     * @param description the description to save
+     */
+    @Override
+    public void setWorkflowNoteModel(String description) {
+        workflowNoteModel.setDescription(description);
+        commonInjector.getJobStoreProxyAsync().setWorkflowNote(workflowNoteModel, Long.valueOf(jobId).intValue(), new SetWorkflowNoteCallback());
+    }
+
+    /**
+     * Sets the view according to the supplied item model list
+     * @param itemModels The list of item models, containing the data to display in the view
+     */
+    @Override
+    public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
+        getView().setSelectionEnabled(true);
+        if(itemModels.size() > 0) {
+            listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
+        }
     }
 
     /*
@@ -178,7 +215,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         commonInjector.getJobStoreProxyAsync().listJobNotificationsForJob(Integer.parseInt(jobId), new JobNotificationsCallback());
     }
 
-
     /**
      * This method fetches items from the job store, and instantiates a callback class to take further action
      * @param itemListCriteria The search criteria
@@ -199,11 +235,13 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         allItemCounter = (int) jobModel.getItemCounter();
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
+        workflowNoteModel = jobModel.getWorkflowNoteModel();
         type = jobModel.getType();
         getView().jobHeader.setText(constructJobHeaderText(jobModel));
         setDiagnosticModels(jobModel);
         selectJobTab(jobModel);
         setJobInfoTab(jobModel);
+        setWorkflowNoteTab();
         selectJobTabVisibility();
     }
 
@@ -245,20 +283,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
-
-    /**
-     * Sets the view according to the supplied item model list
-     *
-     * @param itemModels The list of item models, containing the data to display in the view
-     */
-    @Override
-    public void setItemModels(ItemsListView listView, List<ItemModel> itemModels) {
-        getView().setSelectionEnabled(true);
-        if(itemModels.size() > 0) {
-            listView.itemsTable.getSelectionModel().setSelected(itemModels.get(0), true);
-        }
-    }
-
     /*
      * ============= > Methods used for displaying job data and showing/hiding/selecting job tabs < =============
      */
@@ -269,6 +293,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     Texts getTexts(){
         return  viewInjector.getTexts();
     }
+
     /**
      * Hides job tabs
      */
@@ -279,6 +304,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         setJobTabVisibility(ViewWidget.JOB_INFO_TAB_CONTENT, false);
         setJobTabVisibility(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT, false);
         setJobTabVisibility(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT, false);
+        setJobTabVisibility(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT, false);
     }
 
     /**
@@ -326,6 +352,9 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             if (ignoredItemCounter != 0) {
                 setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
             }
+        }
+        if(workflowNoteModel != null) {
+            setJobTabVisibility(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT, true);
         }
     }
 
@@ -383,13 +412,21 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
     }
 
-
     /**
      * Sets the Job Diagnostic tab according to the supplied Job Model
      * @param jobModel The Job Model, where the list of Diagnostic data is taken
      */
     private void setDiagnosticModels(JobModel jobModel) {
         getView().jobDiagnosticTabContent.jobDiagnosticTable.setRowData(0, jobModel.getDiagnosticModels());
+    }
+
+    /**
+     * Sets the note tab according to the supplied Job Model
+     */
+    private void setWorkflowNoteTab() {
+        if(workflowNoteModel != null) {
+            getView().workflowNoteTabContent.note.setText(workflowNoteModel.getDescription());
+        }
     }
 
     /*
@@ -542,6 +579,18 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             if (jobNotifications != null) {
                 setJobNotifications(jobNotifications);
             }
+        }
+    }
+
+    protected class SetWorkflowNoteCallback extends FilteredAsyncCallback<JobModel> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            getView().setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(JobModel jobModel) {
+            History.back();
         }
     }
 

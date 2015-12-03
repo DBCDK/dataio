@@ -203,7 +203,8 @@ CREATE TABLE item (
     partitioningoutcome json,
     processingoutcome json,
     deliveringoutcome json,
-    nextprocessingoutcome json
+    nextprocessingoutcome json,
+    workflownote jsonb
 );
 
 
@@ -225,7 +226,8 @@ CREATE TABLE job (
     cachedflow integer,
     cachedsink integer,
     flowstorereferences json NOT NULL,
-    fatalerror boolean DEFAULT false NOT NULL
+    fatalerror boolean DEFAULT false NOT NULL,
+    workflownote jsonb
 );
 
 

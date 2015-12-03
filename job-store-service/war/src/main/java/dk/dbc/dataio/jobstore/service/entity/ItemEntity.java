@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -76,6 +77,10 @@ public class ItemEntity {
     @Column(columnDefinition = "json")
     @Convert(converter = ItemDataConverter.class)
     private ItemData deliveringOutcome;
+
+    @Column(columnDefinition = "json")
+    @Convert(converter = WorkflowNoteConverter.class)
+    private WorkflowNote workflowNote;
 
     public Key getKey() {
         return key;
@@ -139,6 +144,14 @@ public class ItemEntity {
 
     public void setDeliveringOutcome(ItemData deliveringOutcome) {
         this.deliveringOutcome = deliveringOutcome;
+    }
+
+    public WorkflowNote getWorkflowNote() {
+        return workflowNote;
+    }
+
+    public void setWorkflowNote(WorkflowNote workflowNote) {
+        this.workflowNote = workflowNote;
     }
 
     @Embeddable

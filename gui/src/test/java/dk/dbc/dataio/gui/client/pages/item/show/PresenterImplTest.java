@@ -25,21 +25,24 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TabBar;
+import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwt.view.client.Range;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
-import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
@@ -59,10 +62,12 @@ import java.util.Date;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -97,6 +102,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock JobDiagnosticTabContent mockedJobDiagnosticTabContent;
     @Mock JobNotificationsTabContent mockedJobNotificationTabContent;
     @Mock ItemDiagnosticTabContent mockedItemDiagnosticTabContent;
+    @Mock WorkflowNoteTabContent mockedWorkflowNoteTabContent;
+    @Mock TextArea mockedTextArea;
     @Mock PromptedLabel mockedPackaging;
     @Mock PromptedLabel mockedFormat;
     @Mock PromptedLabel mockedCharset;
@@ -130,6 +137,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedFailedItemsListView.itemsTable = mockedFailedItemsTable;
         mockedView.jobDiagnosticTabContent = mockedJobDiagnosticTabContent;
         mockedView.jobNotificationsTabContent = mockedJobNotificationTabContent;
+        mockedView.workflowNoteTabContent = mockedWorkflowNoteTabContent;
+        mockedView.workflowNoteTabContent.note = mockedTextArea;
         mockedIgnoredItemsListView.itemsTable = mockedIgnoredItemsTable;
         mockedAllItemsListView.itemDiagnosticTabContent = mockedItemDiagnosticTabContent;
         mockedAllItemsListView.itemDiagnosticTabContent.itemDiagnosticTable = mockedItemDiagnosticTable;
@@ -291,12 +300,14 @@ public class PresenterImplTest extends PresenterImplTestBase {
         ItemsListView itemsListView;
         public JobsCallback getJobsCallback;
         public JobNotificationsCallback getJobNotificationCallback;
+        public SetWorkflowNoteCallback getSetWorkflowNoteCallback;
 
         public PresenterImplConcrete(Place place, PlaceController placeController, ItemsListView itemsListView) {
             super(place, placeController, mockedView, "");
             this.itemsListView = itemsListView;
             this.getJobsCallback = new JobsCallback();
             this.getJobNotificationCallback = new JobNotificationsCallback();
+            this.getSetWorkflowNoteCallback = new SetWorkflowNoteCallback();
         }
 
         public PresenterImplConcrete(Place place, PlaceController placeController, String header) {
@@ -319,7 +330,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private ItemModel testModelDelivering = new ItemModelBuilder().setItemNumber("11").setItemId("1001").setChunkId("1111").setJobId("1").setLifeCycle(ItemModel.LifeCycle.DELIVERING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
     private ItemModel testModelProcessing = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
     private ItemModel testModelFatalError = new ItemModelBuilder().setHasDiagnosticFatal(true).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
-    private ItemModel testModelEmptyDiagn = new ItemModelBuilder().setDiagnosticModels(new ArrayList<DiagnosticModel>()).build();
+    private ItemModel testModelEmptyDiagn = new ItemModelBuilder().setDiagnosticModels(new ArrayList<>()).build();
+    private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().setAssignee("assignee").build();
 
     private JobModel testJobModelSucceeded = new JobModelBuilder()
             .setJobId("1418716277429")
@@ -344,6 +356,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setJobCreationTime("2015-09-02 10:38:43")
             .setJobCompletionTime("2015-09-02 10:39:55")
             .setType(JobModel.Type.TRANSIENT)
+            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
@@ -576,6 +589,21 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedFailedItemsTable);
         verifyNoMoreInteractions(mockedAllDetailedTabs);
         verifyNoMoreInteractions(mockedFailedDetailedTabs);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void NoteTabSelected_callNoteTabSelected_focusIsSet() {
+        setupPresenterImpl();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.noteTabSelected();
+
+        // Verify Test
+        verify(mockedWorkflowNoteTabContent.note).setFocus(true);
+        verify(mockedWorkflowNoteTabContent.note).setCursorPos(0);
     }
 
     @Test
@@ -975,6 +1003,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1007,6 +1036,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1039,6 +1069,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1071,6 +1102,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1089,7 +1121,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
-        verify(mockedTabBar).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        verify(mockedTabBar).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verify(mockedView.jobHeader).setText(buildHeaderText(presenterImpl.jobId, "", ""));
         verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFINDJOB);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1110,6 +1143,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
         verify(mockedTabBar).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
+        verify(mockedTabBar).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
         verify(mockedView.jobHeader).setText(buildHeaderText(presenterImpl.jobId, "", ""));
         verify(mockedView).setErrorText(MOCKED_ERROR_COULDNOTFINDJOB);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1142,7 +1176,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         verify(mockedView).setPresenter(any(Presenter.class));
         verify(mockedView).asWidget();
-//        verifyNoMoreInteractions(mockedView);
         verify(mockedJobNotificationTabContent, times(1)).clear();
         verify(mockedJobNotificationTabContent, times(1)).getNotificationsCount();
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
@@ -1160,11 +1193,55 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verify Test
         verify(mockedView).setPresenter(any(Presenter.class));
         verify(mockedView).asWidget();
-//        verifyNoMoreInteractions(mockedView);
         verify(mockedJobNotificationTabContent, times(1)).clear();
         verify(mockedJobNotificationTabContent, times(2)).add(any(JobNotificationPanel.class));
         verify(mockedJobNotificationTabContent, times(1)).getNotificationsCount();
         verifyNoMoreInteractions(mockedJobNotificationTabContent);
+    }
+
+    @Test
+    public void setWorkflowNote_inputIsValid_setWorkflowNoteCalled() {
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.workflowNoteModel = new WorkflowNoteModelBuilder().setAssignee("test").build();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.setWorkflowNoteModel("Description set for the workflow note");
+
+        // Verify Test
+        verify(mockedCommonGinjector.getJobStoreProxyAsync()).setWorkflowNote(
+                eq(presenterImpl.workflowNoteModel),
+                eq(Long.valueOf(presenterImpl.jobId).intValue()),
+                any(AsyncCallback.class));
+    }
+
+    @Test
+    public void setWorkflowNote_callbackWithError_errorMessageInView() {
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getSetWorkflowNoteCallback.onFailure(mockedException);
+
+        // Verify Test
+        verify(mockedView).setErrorText(anyString());
+
+    }
+
+    @Test
+    public void setWorkflowNote_callbackWithSuccess_noErrorMessageInView() {
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getSetWorkflowNoteCallback.onSuccess(testJobModelSucceeded);
+
+        // Verify Test
+        verify(mockedView, times(0)).setErrorText(anyString());
+        verifyZeroInteractions(mockedWorkflowNoteTabContent);
     }
 
     //Private methods

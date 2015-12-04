@@ -299,10 +299,13 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * sets a workflow note on an existing item. Any workflow previously added will be wiped in the process
+     *
      * @param workflowNote the note to set
-     * @param jobId of the job to which a workflow note should be attached.
-     * @return the updated jobEntity
-     * @throws JobStoreException if unable to find referenced job entity
+     * @param jobId of the referenced job
+     * @param chunkId of the referenced chunk
+     * @param itemId of the item to which a workflow note should be attached.
+     * @return the updated itemEntity
+     * @throws JobStoreException if unable to find referenced item entity
      */
     public ItemEntity setItemEntityWorkFlowNote(WorkflowNote workflowNote, int jobId, int chunkId, short itemId) throws JobStoreException {
         ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);

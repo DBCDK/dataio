@@ -79,6 +79,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         getView().setHeader(this.header);
         containerWidget.setWidget(getView().asWidget());
         updateBaseQuery();
+        refresh();
     }
 
     /**

@@ -144,12 +144,8 @@ public class JobsBeanTest {
     @Test
     public void addJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final Response response = jobsBean.addJob(mockedUriInfo, "invalid JSON");
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(JobError.Code.INVALID_JSON));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
     }
 
     @Test
@@ -255,11 +251,7 @@ public class JobsBeanTest {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
         final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId() + 1, chunk.getChunkId(), ExternalChunk.Type.PROCESSED, chunk);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JOB_IDENTIFIER);
     }
 
     @Test
@@ -267,11 +259,7 @@ public class JobsBeanTest {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
         final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId() + 1, ExternalChunk.Type.PROCESSED, chunk);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
+        assertBadRequestResponse(response, JobError.Code.INVALID_CHUNK_IDENTIFIER);
     }
 
     @Test
@@ -279,23 +267,14 @@ public class JobsBeanTest {
         final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(JOB_ID).setChunkId(CHUNK_ID).build();
 
         final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId() + 1, ExternalChunk.Type.DELIVERED, chunk);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
+        assertBadRequestResponse(response, JobError.Code.INVALID_CHUNK_IDENTIFIER);
     }
 
     @Test
     public void addChunk_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
-
         final Response response = jobsBean.addChunkDelivered(mockedUriInfo, "invalid json", JOB_ID, CHUNK_ID);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
 
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(JobError.Code.INVALID_JSON));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
     }
 
     @Test
@@ -307,12 +286,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStore.addChunk(any(ExternalChunk.class))).thenThrow(invalidInputException);
 
         final Response response = jobsBean.addChunk(mockedUriInfo, chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED, chunk);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(jobError.getCode()));
+        assertBadRequestResponse(response, JobError.Code.ILLEGAL_CHUNK);
     }
 
     @Test(expected = JobStoreException.class)
@@ -355,13 +329,7 @@ public class JobsBeanTest {
     @Test
     public void listJobs_unableToUnmarshallJobListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
         final Response response = jobsBean.listJobs("Invalid JSON");
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-
-        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat("JobError", jobError, is(notNullValue()));
-        assertThat("JobError code", jobError.getCode(), is(JobError.Code.INVALID_JSON));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
     }
 
     @Test
@@ -406,13 +374,7 @@ public class JobsBeanTest {
     @Test
     public void listItems_unableToUnmarshallItemListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
         final Response response = jobsBean.listJobs("Invalid JSON");
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-
-        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat("JobError", jobError, is(notNullValue()));
-        assertThat("JobError code", jobError.getCode(), is(JobError.Code.INVALID_JSON));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
     }
 
     @Test
@@ -452,13 +414,7 @@ public class JobsBeanTest {
     @Test
     public void countItems_unableToUnmarshallItemListCriteria_returnsStatusBadRequestWithJobError() throws JSONBException {
         final Response response = jobsBean.countJobs("Invalid JSON");
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-
-        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat("JobError", jobError, is(notNullValue()));
-        assertThat("JobError code", jobError.getCode(), is(JobError.Code.INVALID_JSON));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
     }
 
     // ************************************* getResourceBundle() tests ***********************************************************
@@ -568,23 +524,18 @@ public class JobsBeanTest {
         assertThat("Number of notifications returned", notifications.size(), is(1));
     }
 
-    // ************************************* setWorkflowNote() tests **********************************************************
+    // ************************************* setWorkflowNote() on job tests **********************************************************
 
     @Test(expected = JobStoreException.class)
-    public void setWorkflowNote_setWorkflowNoteFailure_throwsJobStoreException() throws Exception {
+    public void setWorkflowNote_setWorkflowNoteOnJobFailure_throwsJobStoreException() throws Exception {
         when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), anyInt())).thenThrow(new JobStoreException("Error"));
         jobsBean.setWorkflowNote(asJson(new WorkflowNoteBuilder().build()), JOB_ID);
     }
 
     @Test
-    public void setWorkflowNote_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
+    public void setWorkflowNoteOnJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
         final Response response = jobsBean.setWorkflowNote("invalid JSON", JOB_ID);
-        assertThat(response.hasEntity(), is(true));
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
-
-        final JobError jobErrorReturned = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
-        assertThat(jobErrorReturned, is(notNullValue()));
-        assertThat(jobErrorReturned.getCode(), is(JobError.Code.INVALID_JSON));
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
     }
 
     @Test
@@ -595,13 +546,46 @@ public class JobsBeanTest {
         when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), eq(JOB_ID))).thenReturn(jobInfoSnapshot);
 
         final Response response = jobsBean.setWorkflowNote(asJson(workflowNote), JOB_ID);
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response has entity", response.hasEntity(), is(true));
 
         final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
-        assertThat(returnedJobInfoSnapshot, is(notNullValue()));
-        assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat(returnedJobInfoSnapshot.getWorkflowNote(), is(jobInfoSnapshot.getWorkflowNote()));
+        assertThat("JobInfoSnapshot not null", returnedJobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.jobId", returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat("JobInfoSnapshot.workflowNote", returnedJobInfoSnapshot.getWorkflowNote(), is(jobInfoSnapshot.getWorkflowNote()));
+    }
+
+    // ************************************* setWorkflowNote() on item tests **********************************************************
+
+    @Test(expected = JobStoreException.class)
+    public void setWorkflowNote_setWorkflowNoteOnItemFailure_throwsJobStoreException() throws Exception {
+        when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), anyInt(), anyInt(), anyShort())).thenThrow(new JobStoreException("Error"));
+        jobsBean.setWorkflowNote(asJson(new WorkflowNoteBuilder().build()), JOB_ID, CHUNK_ID, ITEM_ID);
+    }
+
+    @Test
+    public void setWorkflowNoteOnItem_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        final Response response = jobsBean.setWorkflowNote("invalid JSON", JOB_ID, CHUNK_ID, ITEM_ID);
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
+    }
+
+    @Test
+    public void setWorkflowNote_returnsResponseWithHttpStatusOk_returnsItemInfoSnapshot() throws Exception {
+        WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+        final ItemInfoSnapshot itemInfoSnapshot = new ItemInfoSnapshotBuilder().setJobId(JOB_ID).setWorkflowNote(workflowNote).build();
+
+        when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID))).thenReturn(itemInfoSnapshot);
+
+        final Response response = jobsBean.setWorkflowNote(asJson(workflowNote), JOB_ID, CHUNK_ID, ITEM_ID);
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response has entity", response.hasEntity(), is(true));
+
+        final ItemInfoSnapshot returnedItemInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), ItemInfoSnapshot.class);
+        assertThat("ItemInfoSnapshot not null", returnedItemInfoSnapshot, is(notNullValue()));
+        assertThat("ItemInfoSnapshot.jobId", returnedItemInfoSnapshot.getJobId(), is(itemInfoSnapshot.getJobId()));
+        assertThat("ItemInfoSnapshot.chunkId", returnedItemInfoSnapshot.getChunkId(), is(itemInfoSnapshot.getChunkId()));
+        assertThat("ItemInfoSnapshot.itemId", returnedItemInfoSnapshot.getItemId(), is(itemInfoSnapshot.getItemId()));
+        assertThat("ItemInfoSnapshot.workflowNote", returnedItemInfoSnapshot.getWorkflowNote(), is(itemInfoSnapshot.getWorkflowNote()));
     }
 
     /*
@@ -617,6 +601,17 @@ public class JobsBeanTest {
 
     private String asJson(Object object) throws JSONBException {
         return jsonbContext.marshall(object);
+    }
+
+    private void assertBadRequestResponse(Response response, JobError.Code code) throws JSONBException {
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response", response, is(notNullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+
+        final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
+        assertThat("JobError", jobError, is(notNullValue()));
+        assertThat("JobError code", jobError.getCode(), is(code));
     }
 
 }

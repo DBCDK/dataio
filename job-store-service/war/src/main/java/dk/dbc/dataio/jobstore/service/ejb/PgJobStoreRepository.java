@@ -82,6 +82,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Creates job listing based on given criteria
+     *
      * @param criteria job listing criteria
      * @return list of information snapshots of selected jobs
      * @throws NullPointerException if given null-valued criteria argument
@@ -100,6 +101,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Creates chunk collision detection element listing based on given criteria
+     *
      * @param criteria chunk listing criteria
      * @return list of collision detection elements
      * @throws NullPointerException if given null-valued criteria argument
@@ -115,6 +117,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Creates item listing based on given criteria
+     *
      * @param criteria item listing criteria
      * @return list of information snapshots of selected items
      * @throws NullPointerException if given null-valued criteria argument
@@ -129,7 +132,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     *
      * @param criteria item listing criteria
      * @return the number of items located through the criteria
      * @throws NullPointerException if given null-valued criteria argument
@@ -149,6 +151,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
      * </p>
+     *
      * @param addJobParam containing parameter abstraction for the parameters needed by PgJobStore.addJob() method.
      * @return created job entity (managed)
      * @throws JobStoreException if unable to cache associated flow or sink
@@ -174,7 +177,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     LOGGER.info("Forcing diff sink on ACCTEST job");
                     sinkJson = jsonbContext.marshall(
                             new Sink(1, 1,
-                                new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality")));
+                                    new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality")));
                 } else {
                     flowJson = new FlowTrimmer(jsonbContext).trim(flowJson);
                     sinkJson = jsonbContext.marshall(addJobParam.getSink());
@@ -201,12 +204,13 @@ public class PgJobStoreRepository extends RepositoryBase {
      * intended for use outside of this class - accessibility is only so defined
      * to allow the method to be called internally as an EJB business method.
      * </p>
-     * @param jobId id of job for which the chunk is to be created
-     * @param chunkId id of the chunk to be created
-     * @param maxChunkSize maximum number of items to be associated to the chunk
-     * @param dataPartitioner data partitioner used for item data extraction
+     *
+     * @param jobId                        id of job for which the chunk is to be created
+     * @param chunkId                      id of the chunk to be created
+     * @param maxChunkSize                 maximum number of items to be associated to the chunk
+     * @param dataPartitioner              data partitioner used for item data extraction
      * @param sequenceAnalyserKeyGenerator sequence analyser key generator
-     * @param dataFileId id of data file from where the items of the chunk originated
+     * @param dataFileId                   id of data file from where the items of the chunk originated
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion
      * @throws JobStoreException on referenced entities not found
      */
@@ -255,7 +259,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     *
      * @param entityClass class of the Entity
      * @param primaryKey the primary key
      * @param <T> the type
@@ -266,7 +269,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     *
      * @param jobEntity Job Entity
      * @param stateChange changed state of the Job
      * @return the updated state
@@ -280,6 +282,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * sets a workflow note on an existing job. Any workflow previously added will be wiped in the process
+     *
      * @param workflowNote the note to set
      * @param jobId of the job to which a workflow note should be attached.
      * @return the updated jobEntity
@@ -292,6 +295,23 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
         jobEntity.setWorkflowNote(workflowNote);
         return jobEntity;
+    }
+
+    /**
+     * sets a workflow note on an existing item. Any workflow previously added will be wiped in the process
+     * @param workflowNote the note to set
+     * @param jobId of the job to which a workflow note should be attached.
+     * @return the updated jobEntity
+     * @throws JobStoreException if unable to find referenced job entity
+     */
+    public ItemEntity setItemEntityWorkFlowNote(WorkflowNote workflowNote, int jobId, int chunkId, short itemId) throws JobStoreException {
+        ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
+        final ItemEntity itemEntity = getExclusiveAccessFor(ItemEntity.class, key);
+        if (itemEntity == null) {
+            throw new JobStoreException(String.format("ItemEntity.key{jobId: %s, chunkId: %s, itemId: %s} could not be found", jobId, chunkId, itemId));
+        }
+        itemEntity.setWorkflowNote(workflowNote);
+        return itemEntity;
     }
 
     /**

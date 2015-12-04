@@ -141,6 +141,17 @@ public class JobsBean {
         }
     }
 
+    /**
+     * Sets the workflow note from POSTed workflow note string on the given job, and persists it in the underlying data store
+     *
+     * @param workflowNoteString the workflow note to set on the job entity
+     * @param jobId of the job entity
+     * @return a HTTP 200 OK response with jobInfoSnapshot as JSON,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to set workflow note
+     */
     @POST
     @Path(JobStoreServiceConstants.JOB_WORKFLOW_NOTE)
     @Consumes({ MediaType.APPLICATION_JSON })
@@ -148,7 +159,7 @@ public class JobsBean {
     @Stopwatch
     public Response setWorkflowNote(String workflowNoteString, @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId) throws JSONBException, JobStoreException {
         LOGGER.trace("jobId: {}, workflowNote: {}", jobId, workflowNoteString);
-        JobInfoSnapshot jobInfoSnapshot;
+        final JobInfoSnapshot jobInfoSnapshot;
         try {
             final WorkflowNote workflowNote = jsonbContext.unmarshall(workflowNoteString, WorkflowNote.class);
             jobInfoSnapshot = jobStore.setWorkflowNote(workflowNote, jobId);
@@ -160,8 +171,44 @@ public class JobsBean {
             return Response.status(BAD_REQUEST)
                     .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                     .build();
-        } catch(InvalidInputException e) {
-            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
+        }
+    }
+
+    /**
+     * Sets the workflow note from POSTed workflow note string on the given item, and persists it in the underlying data store
+     *
+     * @param workflowNoteString the workflow note to set on the item entity
+     * @param jobId of the referenced job
+     * @param chunkId of the referenced job
+     * @param itemId of the item
+     * @return a HTTP 200 OK response with jobInfoSnapshot as JSON,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to set workflow note
+     */
+    @POST
+    @Path(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response setWorkflowNote(String workflowNoteString,
+                                    @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
+                                    @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
+                                    @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
+        LOGGER.trace("jobId: {}, chunkId: {}, itemId: {}, workflowNote: {}", jobId, chunkId, itemId, workflowNoteString);
+        final ItemInfoSnapshot itemInfoSnapshot;
+        try {
+            final WorkflowNote workflowNote = jsonbContext.unmarshall(workflowNoteString, WorkflowNote.class);
+            itemInfoSnapshot = jobStore.setWorkflowNote(workflowNote, jobId, chunkId, itemId);
+            return Response.ok()
+                    .entity(jsonbContext.marshall(itemInfoSnapshot))
+                    .build();
+
+        } catch (JSONBException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
         }
     }
 

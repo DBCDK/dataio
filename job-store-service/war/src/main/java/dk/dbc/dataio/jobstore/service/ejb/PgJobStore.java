@@ -31,14 +31,17 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
+import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -337,12 +340,27 @@ public class PgJobStore {
      * @param workflowNote the note to attach
      * @param jobId identifying the job
      * @return information snapshot of updated job
-     * @throws JobStoreException referenced job entity was not found
+     * @throws JobStoreException if referenced job entity was not found
      */
     @Stopwatch
     public JobInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId) throws JobStoreException {
         final JobEntity jobEntity = jobStoreRepository.setJobEntityWorkFlowNote(workflowNote, jobId);
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+    }
+
+    /**
+     * Sets a workflow note on an item
+     * @param workflowNote the note to attach
+     * @param jobId identifying the job
+     * @param chunkId identifying the chunk
+     * @param itemId identifying the item
+     * @return information snapshot of updated item
+     * @throws JobStoreException if referenced item entity was not found
+     */
+    @Stopwatch
+    public ItemInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId, int chunkId, short itemId) throws JobStoreException {
+        final ItemEntity itemEntity = jobStoreRepository.setItemEntityWorkFlowNote(workflowNote, jobId, chunkId, itemId);
+        return ItemInfoSnapshotConverter.toItemInfoSnapshot(itemEntity);
     }
 
     /*

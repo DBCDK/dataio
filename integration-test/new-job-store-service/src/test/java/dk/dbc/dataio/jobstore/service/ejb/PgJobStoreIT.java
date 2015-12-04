@@ -1600,11 +1600,45 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Then...
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
-        assertThat(jobEntity.getWorkflowNote(), is(workflowNote));
+        assertThat("JobEntity.workflowNote", jobEntity.getWorkflowNote(), is(workflowNote));
 
         // And...
-        assertThat(updatedJobInfoSnapshot, is(notNullValue()));
-        assertThat(updatedJobInfoSnapshot.getWorkflowNote(), is(workflowNote));
+        assertThat("JobInfoSnapshot not null", updatedJobInfoSnapshot, is(notNullValue()));
+        assertThat("JobInfoSnapshot.workflowNote", updatedJobInfoSnapshot.getWorkflowNote(), is(workflowNote));
+    }
+
+    /**
+     * Given: an a job store containing a job entity
+     * When : calling setWorkflowNote() on an item
+     * Then : the item entity is updated
+     * And  : the returned ItemInfoSnapshot contains the workflowNote
+     */
+    @Test
+    public void setWorkflowNote_itemEntityUpdated_returnsItemInfoSnapShot() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
+        // Given...
+        final PgJobStore pgJobStore = newPgJobStore();
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
+        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length);
+
+        final EntityTransaction jobTransaction = entityManager.getTransaction();
+        jobTransaction.begin();
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
+        jobTransaction.commit();
+
+        final WorkflowNote itemWorkflowNote = new WorkflowNoteBuilder().build();
+        jobTransaction.begin();
+        final ItemInfoSnapshot updatedItemInfoSnapshot = pgJobStore.setWorkflowNote(itemWorkflowNote, jobInfoSnapshot.getJobId(), 0, (short)7);
+        jobTransaction.commit();
+
+        // Then...
+        ItemEntity.Key key = new ItemEntity.Key(jobInfoSnapshot.getJobId(), 0, (short)7);
+        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
+        assertThat("ItemEntity.workflowNote", itemEntity.getWorkflowNote(), is(itemWorkflowNote));
+
+        // And...
+        assertThat("ItemInfoSnapshot not null", updatedItemInfoSnapshot, is(notNullValue()));
+        assertThat("ItemInfoSnapshot.workflowNote", updatedItemInfoSnapshot.getWorkflowNote(), is(itemWorkflowNote));
     }
 
 

@@ -99,6 +99,8 @@ public abstract class PgJobStoreBaseTest {
     protected final static boolean OCCUPIED = true;
 
     protected static final int DEFAULT_JOB_ID = 1;
+    protected static final int DEFAULT_CHUNK_ID = 0;
+    protected static final short DEFAULT_ITEM_ID = 0;
 
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);

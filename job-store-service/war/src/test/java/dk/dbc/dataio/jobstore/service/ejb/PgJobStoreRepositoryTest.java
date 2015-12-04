@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -105,15 +106,57 @@ public class PgJobStoreRepositoryTest extends PgJobStoreBaseTest {
 
     @Test
     public void setWorkflowNote_jobEntityFound_returnsUpdatedJobEntityWithNullAsWorkflowNote() throws JobStoreException {
-        final JobEntity jobEntity = new JobEntity();
-        jobEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
-        when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
+         final JobEntity jobEntity = new JobEntity();
+
+         jobEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
+         when(entityManager.find(JobEntity.class, DEFAULT_JOB_ID, LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
+
+
+         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+         JobEntity updatedJobEntity = pgJobStoreRepository.setJobEntityWorkFlowNote(null, DEFAULT_JOB_ID);
+         assertThat(updatedJobEntity, is(notNullValue()));
+         assertThat(updatedJobEntity.getWorkflowNote(), is(nullValue()));
+     }
+
+    @Test
+    public void setWorkflowNote_itemEntityNotFound_throws() {
+        final ItemEntity.Key key = new ItemEntity.Key(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        when(entityManager.find(ItemEntity.class, key, LockModeType.PESSIMISTIC_WRITE)).thenReturn(null);
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
 
-        JobEntity updatedJobEntity = pgJobStoreRepository.setJobEntityWorkFlowNote(null, DEFAULT_JOB_ID);
-        assertThat(updatedJobEntity, is(notNullValue()));
-        assertThat(updatedJobEntity.getWorkflowNote(), is(nullValue()));
+        try {
+            pgJobStoreRepository.setItemEntityWorkFlowNote(workflowNote, key.getJobId(), key.getChunkId(), key.getId());
+            fail("No exception thrown");
+        } catch (JobStoreException e) {}
+    }
+
+    @Test
+    public void setWorkflowNote_itemEntityFound_returnsUpdatedItemEntityWithGivenWorkflowNote() throws JobStoreException {
+        final ItemEntity.Key key = new ItemEntity.Key(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        when(entityManager.find(ItemEntity.class, key, LockModeType.PESSIMISTIC_WRITE)).thenReturn(new ItemEntity());
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+
+        ItemEntity updatedItemEntity = pgJobStoreRepository.setItemEntityWorkFlowNote(workflowNote, key.getJobId(), key.getChunkId(), key.getId());
+        assertThat(updatedItemEntity, is(notNullValue()));
+        assertThat(updatedItemEntity.getWorkflowNote(), is(workflowNote));
+    }
+
+    @Test
+    public void setWorkflowNote_itemEntityFound_returnsUpdatedItemEntityWithNullAsWorkflowNote() throws JobStoreException {
+        final ItemEntity itemEntity = new ItemEntity();
+        final ItemEntity.Key key = new ItemEntity.Key(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        itemEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
+        when(entityManager.find(ItemEntity.class, key, LockModeType.PESSIMISTIC_WRITE)).thenReturn(itemEntity);
+
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        ItemEntity updatedItemEntity = pgJobStoreRepository.setItemEntityWorkFlowNote(null, key.getJobId(), key.getChunkId(), key.getId());
+        assertThat(updatedItemEntity, is(notNullValue()));
+        assertThat(updatedItemEntity.getWorkflowNote(), is(nullValue()));
     }
 
     @Test

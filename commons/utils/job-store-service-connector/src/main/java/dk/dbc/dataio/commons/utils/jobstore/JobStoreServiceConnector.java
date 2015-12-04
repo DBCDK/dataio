@@ -398,7 +398,7 @@ public class JobStoreServiceConnector {
 
 
     public JobInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId) throws NullPointerException, JobStoreServiceConnectorException {
-        log.trace("JobStoreServiceConnector: setWorkflowNote();");
+        log.trace("JobStoreServiceConnector: setWorkflowNote({});", jobId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
@@ -413,6 +413,32 @@ public class JobStoreServiceConnector {
             try {
                 verifyResponseStatus(response, Response.Status.OK);
                 return readResponseEntity(response, JobInfoSnapshot.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    public ItemInfoSnapshot setWorkflowNote(WorkflowNote workflowNote, int jobId, int chunkId, short itemId) throws NullPointerException, JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: setWorkflowNote({}, {}, {}, {});", jobId, chunkId, itemId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(workflowNote, "workflowNote");
+            final Response response;
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.ITEM_WORKFLOW_NOTE)
+                    .bind(JobStoreServiceConstants.JOB_ID_VARIABLE, Long.toString(jobId))
+                    .bind(JobStoreServiceConstants.CHUNK_ID_VARIABLE, Long.toString(chunkId))
+                    .bind(JobStoreServiceConstants.ITEM_ID_VARIABLE, Long.toString(itemId));
+            try {
+                response = HttpClient.doPostWithJson(httpClient, workflowNote, baseUrl, path.build());
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, ItemInfoSnapshot.class);
             } finally {
                 response.close();
             }

@@ -37,6 +37,7 @@ import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.server.modelmappers.ItemModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobNotification;
@@ -308,7 +309,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: setWorkflowNote({})", jobId);
         final StopWatch stopWatch = new StopWatch();
         try {
-            jobInfoSnapshot = jobStoreServiceConnector.setWorkflowNote(JobModelMapper.toWorkflowNote(workflowNoteModel), jobId);
+            jobInfoSnapshot = jobStoreServiceConnector.setWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel), jobId);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);

@@ -35,7 +35,7 @@ public class ItemModel extends GenericBackendModel {
     private LifeCycle lifeCycle;
     private List<DiagnosticModel> diagnosticModels;
     private boolean diagnosticFatal;
-
+    private WorkflowNoteModel workflowNoteModel;
 
     public ItemModel(
             String itemNumber,
@@ -44,7 +44,8 @@ public class ItemModel extends GenericBackendModel {
             String jobId,
             LifeCycle lifeCycle,
             List<DiagnosticModel> diagnosticModels,
-            boolean diagnosticFatal) {
+            boolean diagnosticFatal,
+            WorkflowNoteModel workflowNoteModel) {
 
 
         this.itemNumber = itemNumber;
@@ -54,10 +55,11 @@ public class ItemModel extends GenericBackendModel {
         this.lifeCycle = lifeCycle;
         this.diagnosticModels = diagnosticModels;
         this.diagnosticFatal = diagnosticFatal;
+        this.workflowNoteModel = workflowNoteModel;
     }
 
     public ItemModel() {
-        this("1", "0", "0", "0", LifeCycle.PARTITIONING, new ArrayList<DiagnosticModel>(), false);
+        this("1", "0", "0", "0", LifeCycle.PARTITIONING, new ArrayList<DiagnosticModel>(), false, (WorkflowNoteModel)null);
     }
 
     public String getItemNumber() {
@@ -86,5 +88,13 @@ public class ItemModel extends GenericBackendModel {
 
     public boolean isDiagnosticFatal() {
         return diagnosticFatal;
+    }
+
+    public WorkflowNoteModel getWorkflowNoteModel() {
+        return workflowNoteModel;
+    }
+
+    public void setWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
+        this.workflowNoteModel = workflowNoteModel;
     }
 }

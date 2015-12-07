@@ -30,7 +30,7 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.util.Format;
-import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -272,7 +272,7 @@ public class JobStoreProxyImplTest {
         WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
 
         when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt()))
-                .thenReturn(new JobInfoSnapshotBuilder().setWorkflowNote(JobModelMapper.toWorkflowNote(workflowNoteModel)).build());
+                .thenReturn(new JobInfoSnapshotBuilder().setWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel)).build());
         try {
             JobModel updatedJobModel = jobStoreProxy.setWorkflowNote(workflowNoteModel, 1);
             assertThat(updatedJobModel, is(notNullValue()));

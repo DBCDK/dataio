@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.modelBuilders;
 
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,9 +35,10 @@ public class ItemModelBuilder {
     private String chunkId = "0";
     private String jobId = "1";
     private ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING;
-    private List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(Collections.singletonList(
+    private List<DiagnosticModel> diagnosticModels = new ArrayList<>(Collections.singletonList(
             new DiagnosticModelBuilder().build()));
     private boolean diagnosticFatal = false;
+    private WorkflowNoteModel workflowNoteModel = null;
 
     public ItemModelBuilder setItemNumber(String itemNumber) {
         this.itemNumber = itemNumber;
@@ -64,7 +66,7 @@ public class ItemModelBuilder {
     }
 
     public ItemModelBuilder setDiagnosticModels(List<DiagnosticModel> diagnosticModels) {
-        this.diagnosticModels = new ArrayList<DiagnosticModel>(diagnosticModels);
+        this.diagnosticModels = new ArrayList<>(diagnosticModels);
         return this;
     }
 
@@ -73,8 +75,13 @@ public class ItemModelBuilder {
         return this;
     }
 
+    public ItemModelBuilder setWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
+        this.workflowNoteModel = workflowNoteModel;
+        return this;
+    }
+
     public ItemModel build() {
-        return new ItemModel(itemNumber, itemId, chunkId, jobId, lifeCycle, diagnosticModels, diagnosticFatal);
+        return new ItemModel(itemNumber, itemId, chunkId, jobId, lifeCycle, diagnosticModels, diagnosticFatal, workflowNoteModel);
     }
 
 }

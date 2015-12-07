@@ -48,7 +48,7 @@ public final class ItemModelMapper {
      * @return list of item model containing the mapped values
      */
     public static List<ItemModel> toFailedItemsModel(List<ItemInfoSnapshot> itemInfoSnapshots) {
-        List<ItemModel> itemInfoSnapshotModels = new ArrayList<ItemModel>(itemInfoSnapshots.size());
+        List<ItemModel> itemInfoSnapshotModels = new ArrayList<>(itemInfoSnapshots.size());
         for (ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
             itemInfoSnapshotModels.add(toFailedItemsModel(itemInfoSnapshot));
         }
@@ -63,7 +63,7 @@ public final class ItemModelMapper {
      * @return list of item model containing the mapped values
      */
     public static List<ItemModel> toIgnoredItemsModel(List<ItemInfoSnapshot> itemInfoSnapshots) {
-        List<ItemModel> itemInfoSnapshotModels = new ArrayList<ItemModel>(itemInfoSnapshots.size());
+        List<ItemModel> itemInfoSnapshotModels = new ArrayList<>(itemInfoSnapshots.size());
         for (ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
             itemInfoSnapshotModels.add(toIgnoredItemsModel(itemInfoSnapshot));
         }
@@ -78,7 +78,7 @@ public final class ItemModelMapper {
      * @return list of item model containing the mapped values
      */
     public static List<ItemModel> toAllItemsModel(List<ItemInfoSnapshot> itemInfoSnapshots) {
-        List<ItemModel> itemInfoSnapshotModels = new ArrayList<ItemModel>(itemInfoSnapshots.size());
+        List<ItemModel> itemInfoSnapshotModels = new ArrayList<>(itemInfoSnapshots.size());
         for (ItemInfoSnapshot itemInfoSnapshot : itemInfoSnapshots) {
             itemInfoSnapshotModels.add(toAllItemsModel(itemInfoSnapshot));
         }
@@ -103,7 +103,8 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
                 searchFailed(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
-                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()));
+                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
+                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()));
     }
 
     /**
@@ -113,7 +114,7 @@ public final class ItemModelMapper {
      * @return list of diagnostic models
      */
     private static List<DiagnosticModel> toDiagnosticModels(List<Diagnostic> diagnostics) {
-        List<DiagnosticModel> diagnosticModels = new ArrayList<DiagnosticModel>(diagnostics.size());
+        List<DiagnosticModel> diagnosticModels = new ArrayList<>(diagnostics.size());
         for (Diagnostic diagnostic : diagnostics) {
             diagnosticModels.add(new DiagnosticModel(diagnostic.getLevel().name(), diagnostic.getMessage(), diagnostic.getStacktrace()));
         }
@@ -149,7 +150,8 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
                 searchIgnored(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
-                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()));
+                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
+                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()));
     }
 
     /**
@@ -166,7 +168,8 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
                 searchAll(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
-                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()));
+                hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
+                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()));
     }
 
     /**

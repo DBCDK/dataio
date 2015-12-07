@@ -61,4 +61,8 @@ public class MainPanel extends DockLayoutPanel {
         add(applicationPanel);
     }
 
+//    @Override
+//    public void onResize() {
+//        super.onResize();
+//    }
 }

@@ -29,6 +29,8 @@
 @external .deleteButton;
 @external .job-filter-list;
 @external .application-panel;
+@external .hide-cell, .show-cell;
+@external .collapsed;
 
 
 
@@ -263,4 +265,14 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
     vertical-align: middle;
 }
 
+.hide-cell:hover {
+    cursor: w-resize;
+}
 
+.show-cell:hover {
+    cursor: e-resize;
+}
+
+.collapsed {
+    visibility: collapse;
+}

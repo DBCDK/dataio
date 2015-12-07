@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
+import com.google.gwt.cell.client.ClickableTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.TextInputCell;
@@ -35,6 +36,7 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.CellPreviewEvent;
@@ -50,13 +52,16 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 * This class is the View class for the New Jobs Show View
 */
 public class View extends ViewWidget {
+    protected static final int IS_FIXED_COLUMN = 1;
+    protected static final int ASSIGNEE_COLUMN = 2;
+    protected static final int ACTION_COLUMN = 3;
 
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private boolean dataHasNotYetBeenLoaded = true;
+    private boolean workFlowColumnsVisible = true;
 
-    Column jobCreationTimeColumn;
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = new ProvidesKey<JobModel>() {
         @Override
@@ -75,6 +80,7 @@ public class View extends ViewWidget {
     public View() {
         this("", true, true);
         dataProvider.addDataDisplay(jobsTable);
+        HideColumn(true);  // Default: Do not show Work Flow columns
     }
 
     /* Package scoped Constructor used for unit testing. */
@@ -122,11 +128,11 @@ public class View extends ViewWidget {
     @SuppressWarnings("unchecked")
     void setupColumns() {
         Texts texts = getTexts();
+        jobsTable.addColumn(constructHideShowWorkflow(), new HideShowColumnHeader());
         jobsTable.addColumn(constructIsFixedColumn(), texts.columnHeader_Fixed());
         jobsTable.addColumn(constructAssigneeColumn(), texts.columnHeader_Assignee());
-
         jobsTable.addColumn(constructRerunColumn(), texts.columnHeader_Action());
-        jobsTable.addColumn(jobCreationTimeColumn = constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
+        jobsTable.addColumn(constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
         jobsTable.addColumn(constructSubmitterNameColumn(), texts.columnHeader_SubmitterName());
@@ -145,6 +151,16 @@ public class View extends ViewWidget {
         pagerBottom.setDisplay(jobsTable);
 
         jobsTable.setVisibleRange(0,20);
+    }
+
+    /**
+     * This method constructs the Hide/Show Workflow column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Hide/Show Workflow column
+     */
+    Column constructHideShowWorkflow() {
+        return new HideShowCell();
     }
 
     /**
@@ -419,10 +435,43 @@ public class View extends ViewWidget {
         return handler;
     }
 
+    private String getHideShowSymbol() {
+        return workFlowColumnsVisible ? "<" : ">";
+    }
+
+    private String getHideShowStyle() {
+        return workFlowColumnsVisible ? "hide-cell" : "show-cell";
+    }
+
+    private void collapseColumn(boolean collapse, int columnIndex) {
+        if (collapse) {
+            jobsTable.addColumnStyleName(columnIndex, "collapsed");
+        } else {
+            jobsTable.removeColumnStyleName(columnIndex, "collapsed");
+        }
+    }
+
+    private void HideColumn(boolean hide) {
+        workFlowColumnsVisible = !hide;
+        collapseColumn(hide, IS_FIXED_COLUMN);
+        collapseColumn(hide, ASSIGNEE_COLUMN);
+        collapseColumn(hide, ACTION_COLUMN);
+        refreshJobsTable();
+    }
+
+    private void HideOrShowColumn() {
+        HideColumn(workFlowColumnsVisible);
+    }
+
+
     /*
-     * inner classes
+     * Local classes
+     * These classes should all be private, but in order to enable unit test, they are package scoped
      */
 
+    /**
+     * Cell Preview Handler
+     */
     class CellPreviewHandlerClass implements CellPreviewEvent.Handler<JobModel> {
         @Override
         public void onCellPreview(CellPreviewEvent<JobModel> cellPreviewEvent) {
@@ -438,4 +487,70 @@ public class View extends ViewWidget {
             }
         }
     }
+
+    /**
+     * Hide/Show Column Header class
+     */
+    class HideShowColumnHeader extends Header<String> {
+
+        public HideShowColumnHeader(Cell cell) {
+            super(cell);
+        }
+
+        public HideShowColumnHeader() {
+            super(new ClickableTextCell());
+        }
+
+        @Override
+        public String getValue() {
+            return getHideShowSymbol();
+        }
+
+        @Override
+        public String getHeaderStyleNames() {
+            return getHideShowStyle();
+        }
+
+        @Override
+        public void onBrowserEvent(Cell.Context context, Element elem, NativeEvent event) {
+            super.onBrowserEvent(context, elem, event);
+            if ("click".equals(event.getType())) {
+                HideOrShowColumn();
+            }
+
+        }
+
+    }
+
+    /**
+     * Hide/Show Cell class
+     */
+    class HideShowCell extends Column<JobModel, String> {
+
+        public HideShowCell(Cell<String> cell) {
+            super(cell);
+        }
+
+        public HideShowCell() {
+            this(new ClickableTextCell());
+        }
+
+        @Override
+        public String getValue(JobModel model) {
+            return "";
+        }
+
+        @Override
+        public String getCellStyleNames(Cell.Context context, JobModel model) {
+            return getHideShowStyle();
+        }
+
+        @Override
+        public void onBrowserEvent(Cell.Context context, Element elem, JobModel model, NativeEvent event) {
+            super.onBrowserEvent(context, elem, model, event);
+            if ("click".equals(event.getType())) {
+                HideOrShowColumn();
+            }
+        }
+    };
 }

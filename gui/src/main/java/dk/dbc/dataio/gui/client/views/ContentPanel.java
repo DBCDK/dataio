@@ -33,8 +33,10 @@ import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 /**
  * This is a container panel, for holding a Header panel together with
  * a content panel
+ *
  * @param <T> The presenter to use with this view
  */
+//public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel implements RequiresResize, ProvidesResize {
 public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel {
     protected final static MainConstants mainConstants = GWT.create(MainConstants.class);
     private static final String GUIID_HEADER_PANEL = "header-panel";
@@ -47,6 +49,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
 
     /**
      * Constructor
+     *
      * @param header The text to use as the header test
      */
     public ContentPanel(String header) {
@@ -61,6 +64,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
 
     /**
      * Set the presenter for the concrete view
+     *
      * @param presenter the presenter for the instance of the view to use
      */
     public void setPresenter(T presenter) {
@@ -80,6 +84,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
 
     /**
      * Set the header text for the HeaderPanel
+     *
      * @param text The header text
      */
     public void setHeader(String text) {
@@ -92,6 +97,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
 
     /**
      * Adds a child to the content panel
+     *
      * @param child The child widget to add to the content panel
      */
     @Override
@@ -99,8 +105,19 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
         contentPanel.add(child);
     }
 
+
+//    @Override
+//    public void onResize() {
+//        for (Widget child : getChildren()) {
+//            if (child instanceof RequiresResize) {
+//                ((RequiresResize) child).onResize();
+//            }
+//        }
+//    }
+
     /**
      * Generic method to signal a failure to the user
+     *
      * @param message the message to display in the view
      */
     public void setErrorText(String message) {
@@ -114,6 +131,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
     private static class HeaderPanel extends Label {
         /**
          * Constructor for Header Panel
+         *
          * @param label The Header Text
          * @param guiId The GUI Id for Header Panel
          */
@@ -130,6 +148,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
     private static class ContentContainerPanel extends FlowPanel {
         /**
          * Constructor for Content Panel
+         *
          * @param guiId The GUI Id for Content Panel
          */
         public ContentContainerPanel(String guiId) {

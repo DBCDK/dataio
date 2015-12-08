@@ -29,6 +29,7 @@ import java.io.Serializable;
 
 public class WorkflowNote implements Serializable {
 
+    private static final long serialVersionUID = -5906791615171663485L;
     private final boolean processed;
     private final String assignee;
     private final String description;
@@ -36,7 +37,7 @@ public class WorkflowNote implements Serializable {
     /**
      * Class constructor
      * @param processed determines if the workflow has finished manual processing
-     * @param assignee defining who is assigned to process the workflow
+     * @param assignee defining who is assigned to process the workflow. Assignee cannot be null or empty
      * @param description containing any relevant information regarding the workflow
      */
     @JsonCreator
@@ -68,15 +69,16 @@ public class WorkflowNote implements Serializable {
 
         WorkflowNote that = (WorkflowNote) o;
 
-        if (processed != that.processed) return false;
-        return !(assignee != null ? !assignee.equals(that.assignee) : that.assignee != null) &&
-                !(description != null ? !description.equals(that.description) : that.description != null);
+        return processed == that.processed
+                && assignee.equals(that.assignee)
+                && !(description != null ? !description.equals(that.description) : that.description != null);
+
     }
 
     @Override
     public int hashCode() {
         int result = (processed ? 1 : 0);
-        result = 31 * result + (assignee != null ? assignee.hashCode() : 0);
+        result = 31 * result + assignee.hashCode();
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }

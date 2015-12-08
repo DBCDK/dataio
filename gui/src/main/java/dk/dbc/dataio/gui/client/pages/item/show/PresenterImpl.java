@@ -624,7 +624,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            placeController.goTo(new Place(jobId));
+            selectJobTab(jobModel);
         }
     }
 

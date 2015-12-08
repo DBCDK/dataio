@@ -94,7 +94,7 @@ public class AbstractJobStoreIT {
         datasource = new PGSimpleDataSource();
         datasource.setDatabaseName(DATABASE_NAME);
         datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port")));
+        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
         datasource.setUser(System.getProperty("user.name"));
         datasource.setPassword(System.getProperty("user.name"));
     }
@@ -111,7 +111,7 @@ public class AbstractJobStoreIT {
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, System.getProperty("user.name"));
         properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/jobstore", System.getProperty("postgresql.port")));
+        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/jobstore", System.getProperty("postgresql.port","5432")));
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
 

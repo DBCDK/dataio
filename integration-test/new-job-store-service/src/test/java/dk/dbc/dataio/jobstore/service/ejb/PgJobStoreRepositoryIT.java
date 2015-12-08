@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -34,23 +35,38 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
+
+
+    public void createEmptyJobs(int... jobids) {
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        for( int jobid: jobids ) {
+            Query q=entityManager.createNativeQuery("INSERT INTO job (id,specification,state,flowstorereferences ) VALUES (?1, '{}'::JSONB, '{}'::JSON, '{}'::JSON );");
+            q.setParameter(1, jobid);
+            q.executeUpdate();
+        }
+        transaction.commit();
+    }
+
     /**
      * Given: a job repository containing chunks from multiple jobs
      * When : the chunks are purged for a job
      * Then : all the chunks associated with the given job are deleted
      * And  : the remaining chunks do not belong to the purged job
      */
+
     @Test
     public void purgeChunks() {
         // Given...
         final int job1 = 1;
         final int job2 = 2;
+
+        createEmptyJobs( 1, 2);
         newPersistedChunkEntity(new ChunkEntity.Key(0, job1));
         newPersistedChunkEntity(new ChunkEntity.Key(1, job1));
         newPersistedChunkEntity(new ChunkEntity.Key(0, job2));
         newPersistedChunkEntity(new ChunkEntity.Key(1, job2));
         newPersistedChunkEntity(new ChunkEntity.Key(2, job2));
-
         // When...
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final EntityTransaction transaction = entityManager.getTransaction();
@@ -80,6 +96,11 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         final int job1 = 1;
         final int job2 = 2;
         final int chunkId = 0;
+
+        createEmptyJobs( 1, 2);
+        createEmptyChunksForJob(1, 0);
+        createEmptyChunksForJob(2, 0);
+
         newPersistedItemEntity(new ItemEntity.Key(job1, chunkId, (short)0));
         newPersistedItemEntity(new ItemEntity.Key(job1, chunkId, (short)1));
         newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)0));
@@ -101,6 +122,15 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         for (ItemEntity entity : remainingItems) {
             assertThat("Job ID of remaining item", entity.getKey().getJobId(), is(not(job2)));
         }
+    }
+
+    private void createEmptyChunksForJob(int jobId, int chunkId) {
+        entityManager.getTransaction().begin();
+        Query q=entityManager.createNativeQuery("INSERT INTO chunk (jobid, id, datafileid, sequenceanalysisdata, state ) VALUES (?1,?2,'test','{}'::JSON, '{}'::JSON);");
+        q.setParameter(1,jobId);
+        q.setParameter(2,chunkId);
+        q.executeUpdate();
+        entityManager.getTransaction().commit();
     }
 
     /**

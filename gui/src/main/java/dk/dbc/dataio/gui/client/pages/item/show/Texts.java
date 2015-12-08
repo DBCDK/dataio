@@ -35,6 +35,9 @@ public interface Texts extends Constants {
     String column_Status();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String column_Fixed();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String column_Level();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -214,5 +217,4 @@ public interface Texts extends Constants {
     // Buttons
     @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
-
 }

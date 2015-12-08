@@ -22,15 +22,20 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
+import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 
 import java.util.List;
 
@@ -139,10 +144,33 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     void setupColumns(final ItemsListView listView) {
+        listView.itemsTable.setWidth("100%", true);
         listView.itemsTable.addColumn(constructItemColumn(), getTexts().column_Item());
+        listView.itemsTable.setColumnWidth(0, 8, Style.Unit.EM);
         listView.itemsTable.addColumn(constructStatusColumn(), getTexts().column_Status());
+        listView.itemsTable.setColumnWidth(1, 8, Style.Unit.EM);
         listView.itemsTable.setVisibleRange(0, 20);
         listView.itemsPager.setDisplay(listView.itemsTable);
+
+    }
+
+    void addFixedColumn() {
+        if(failedContext.listView.itemsTable.getColumnCount() == 2) {
+            failedContext.listView.itemsTable.addColumn(constructIsFixedColumn(), getTexts().column_Fixed());
+            failedContext.listView.itemsTable.setColumnWidth(2, 4, Style.Unit.EM);
+            failedContext.listView.itemsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
+            failedContext.listView.itemsTable.setVisibleRange(0, 20);
+            failedContext.listView.itemsTable.redraw();
+        }
+    }
+
+    void removeFixedColumn() {
+        if(failedContext.listView.itemsTable.getColumnCount() == 3) {
+            failedContext.listView.itemsTable.getColumn(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+            failedContext.listView.itemsTable.clearColumnWidth(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+            failedContext.listView.itemsTable.removeColumn(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+            failedContext.listView.itemsTable.redraw();
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -198,6 +226,40 @@ public class View extends ViewWidget {
                 return formatStatus(model.getStatus());
             }
         };
+    }
+
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    Column constructIsFixedColumn() {
+        CheckboxCell checkboxCell = new CheckboxCell(true, false);
+        Column<ItemModel, Boolean> workflowNoteColumn = new Column<ItemModel, Boolean>(checkboxCell) {
+            @Override
+            public Boolean getValue(ItemModel itemModel) {
+                if (itemModel.getWorkflowNoteModel() == null) {
+                    return false;
+                } else {
+                    return itemModel.getWorkflowNoteModel().isProcessed();
+                }
+            }
+        };
+        return workflowNoteColumn;
+    }
+
+    class CellPreviewHandlerClass implements CellPreviewEvent.Handler<ItemModel> {
+        @Override
+        public void onCellPreview(CellPreviewEvent<ItemModel> cellPreviewEvent) {
+            if(BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType()) && cellPreviewEvent.getColumn() == 2) {
+                final WorkflowNoteModel workflowNoteModel = cellPreviewEvent.getValue().getWorkflowNoteModel();
+                boolean isProcessed = false;
+                if(workflowNoteModel != null) {
+                    isProcessed = workflowNoteModel.isProcessed() ? false : true;
+                }
+                presenter.setWorkflowNoteModel(cellPreviewEvent.getValue(), isProcessed);
+            }
+        }
     }
 
     private String formatStatus(ItemModel.LifeCycle lifeCycle) {

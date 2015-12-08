@@ -300,14 +300,14 @@ public class PresenterImplTest extends PresenterImplTestBase {
         ItemsListView itemsListView;
         public JobsCallback getJobsCallback;
         public JobNotificationsCallback getJobNotificationCallback;
-        public SetWorkflowNoteCallback getSetWorkflowNoteCallback;
+        public SetJobWorkflowNoteCallback getSetJobWorkflowNoteCallback;
 
         public PresenterImplConcrete(Place place, PlaceController placeController, ItemsListView itemsListView) {
             super(place, placeController, mockedView, "");
             this.itemsListView = itemsListView;
             this.getJobsCallback = new JobsCallback();
             this.getJobNotificationCallback = new JobNotificationsCallback();
-            this.getSetWorkflowNoteCallback = new SetWorkflowNoteCallback();
+            this.getSetJobWorkflowNoteCallback = new SetJobWorkflowNoteCallback();
         }
 
         public PresenterImplConcrete(Place place, PlaceController placeController, String header) {
@@ -1223,7 +1223,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getSetWorkflowNoteCallback.onFailure(mockedException);
+        presenterImpl.getSetJobWorkflowNoteCallback.onFailure(mockedException);
 
         // Verify Test
         verify(mockedView).setErrorText(anyString());
@@ -1237,7 +1237,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getSetWorkflowNoteCallback.onSuccess(testJobModelSucceeded);
+        presenterImpl.getSetJobWorkflowNoteCallback.onSuccess(testJobModelSucceeded);
 
         // Verify Test
         verify(mockedView, times(0)).setErrorText(anyString());

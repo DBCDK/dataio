@@ -52,7 +52,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private final Map<String, Integer> tabIndexes = new HashMap<>(0);
-    private static final String EMPTY ="";
+    private static final String EMPTY = "";
 
     protected PlaceController placeController;
     View globalItemsView;
@@ -134,7 +134,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     /**
      * An indication from the view, that an item has been selected
-     * @param listView The list view in question
+     *
+     * @param listView  The list view in question
      * @param itemModel The model for the selected item
      */
     @Override
@@ -159,12 +160,33 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     /**
      * This method is called after a click on the save button is captured. It saves the description
      * given as input on the workflowNoteModel
+     *
      * @param description the description to save
      */
     @Override
     public void setWorkflowNoteModel(String description) {
         workflowNoteModel.setDescription(description);
-        commonInjector.getJobStoreProxyAsync().setWorkflowNote(workflowNoteModel, Long.valueOf(jobId).intValue(), new SetWorkflowNoteCallback());
+        commonInjector.getJobStoreProxyAsync().setWorkflowNote(workflowNoteModel, Long.valueOf(jobId).intValue(), new SetJobWorkflowNoteCallback());
+    }
+
+    @Override
+    public void setWorkflowNoteModel(ItemModel itemModel, boolean isProcessed) {
+        WorkflowNoteModel itemModelWorkflowNoteModel = itemModel.getWorkflowNoteModel();
+        if (itemModelWorkflowNoteModel == null) {
+            itemModelWorkflowNoteModel = new WorkflowNoteModel(true, workflowNoteModel.getAssignee(), EMPTY);
+        } else {
+            if (itemModelWorkflowNoteModel.isProcessed()) {
+                itemModelWorkflowNoteModel.setProcessed(false);
+            } else {
+                itemModelWorkflowNoteModel.setProcessed(true);
+            }
+        }
+        commonInjector.getJobStoreProxyAsync().setWorkflowNote(
+                itemModelWorkflowNoteModel,
+                Long.valueOf(itemModel.getJobId()).intValue(),
+                Long.valueOf(itemModel.getChunkId()).intValue(),
+                Long.valueOf(itemModel.getItemId()).shortValue(),
+                new SetItemWorkflowNoteCallback());
     }
 
     /**
@@ -236,6 +258,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();
+        AddOrRemoveFixedColumn();
         type = jobModel.getType();
         getView().jobHeader.setText(constructJobHeaderText(jobModel));
         setDiagnosticModels(jobModel);
@@ -243,6 +266,18 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         setJobInfoTab(jobModel);
         setWorkflowNoteTab();
         selectJobTabVisibility();
+    }
+
+    /**
+     * Adds or removes the fixed column from the failed items table
+     */
+    private void AddOrRemoveFixedColumn() {
+        View view = getView();
+        if(workflowNoteModel == null) {
+            view.removeFixedColumn();
+        } else {
+            view.addFixedColumn();
+        }
     }
 
     /**
@@ -582,7 +617,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
-    protected class SetWorkflowNoteCallback extends FilteredAsyncCallback<JobModel> {
+    protected class SetJobWorkflowNoteCallback extends FilteredAsyncCallback<JobModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
             getView().setErrorText(e.getClass().getName() + " - " + e.getMessage());
@@ -592,6 +627,16 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         public void onSuccess(JobModel jobModel) {
             History.back();
         }
+    }
+
+    protected class SetItemWorkflowNoteCallback extends FilteredAsyncCallback<ItemModel> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            getView().setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        }
+
+        @Override
+        public void onSuccess(ItemModel itemModel) {}
     }
 
 }

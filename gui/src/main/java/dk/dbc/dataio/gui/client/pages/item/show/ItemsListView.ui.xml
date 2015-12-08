@@ -37,7 +37,7 @@
         <c:SimplePager ui:field="itemsPager" />
         <g:HorizontalPanel verticalAlignment="top" horizontalAlignment="left" width="100%" >
             <g:cell>
-                <c:CellTable ui:field='itemsTable' width="16em" addStyleNames="{style.horizontal-element}"/>
+                <c:CellTable ui:field='itemsTable' addStyleNames="{style.horizontal-element}"/>
             </g:cell>
 
             <g:cell width="100%">

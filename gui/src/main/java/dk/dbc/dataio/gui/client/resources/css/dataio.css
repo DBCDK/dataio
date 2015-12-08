@@ -30,7 +30,7 @@
 @external .job-filter-list;
 @external .application-panel;
 @external .hide-cell, .show-cell;
-@external .collapsed;
+@external .invisible;
 
 
 
@@ -273,6 +273,6 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
     cursor: e-resize;
 }
 
-.collapsed {
-    visibility: collapse;
+.invisible {
+    display: none;
 }

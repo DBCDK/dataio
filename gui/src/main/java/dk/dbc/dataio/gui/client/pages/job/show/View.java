@@ -27,6 +27,7 @@ import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.ClickableTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
+import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.cell.client.TextInputCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
@@ -54,7 +55,6 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 public class View extends ViewWidget {
     protected static final int IS_FIXED_COLUMN = 1;
     protected static final int ASSIGNEE_COLUMN = 2;
-    protected static final int ACTION_COLUMN = 3;
 
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -129,9 +129,9 @@ public class View extends ViewWidget {
     void setupColumns() {
         Texts texts = getTexts();
         jobsTable.addColumn(constructHideShowWorkflow(), new HideShowColumnHeader());
-        jobsTable.addColumn(constructIsFixedColumn(), texts.columnHeader_Fixed());
-        jobsTable.addColumn(constructAssigneeColumn(), texts.columnHeader_Assignee());
-        jobsTable.addColumn(constructRerunColumn(), texts.columnHeader_Action());
+        jobsTable.addColumn(constructIsFixedColumn(), new HidableColumnHeader(texts.columnHeader_Fixed()));
+        jobsTable.addColumn(constructAssigneeColumn(), new HidableColumnHeader(texts.columnHeader_Assignee()));
+        jobsTable.addColumn(constructRerunColumn(), new HidableColumnHeader(texts.columnHeader_Action()));
         jobsTable.addColumn(constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
         jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
@@ -171,17 +171,16 @@ public class View extends ViewWidget {
      */
     Column constructIsFixedColumn() {
         CheckboxCell checkboxCell = new CheckboxCell(true, false);
-        Column<JobModel, Boolean> workflowNoteColumn = new Column<JobModel, Boolean>(checkboxCell) {
+        return new Column<JobModel, Boolean>(checkboxCell) {
             @Override
             public Boolean getValue(JobModel jobModel) {
-                if (jobModel.getWorkflowNoteModel() == null) {
-                    return false;
-                } else {
-                    return jobModel.getWorkflowNoteModel().isProcessed();
-                }
+                return jobModel.getWorkflowNoteModel() != null && jobModel.getWorkflowNoteModel().isProcessed();
+            }
+            @Override
+            public String getCellStyleNames(Cell.Context context, JobModel model) {
+                return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
-        return workflowNoteColumn;
     }
 
     /**
@@ -207,6 +206,10 @@ public class View extends ViewWidget {
                     selectionModel.setSelected(jobModel, true);
                 }
                 super.onBrowserEvent(context, elem, jobModel, event);
+            }
+            @Override
+            public String getCellStyleNames(Cell.Context context, JobModel model) {
+                return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
 
@@ -386,12 +389,22 @@ public class View extends ViewWidget {
         return new StatusColumn(commonInjector.getResources(), statusCell);
     }
 
+    /**
+     * This method constructs the ReRun column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed ReRun column
+     */
     Column constructRerunColumn() {
 
         ButtonCell rerunButtonCell = new ButtonCell();
         Column<JobModel,String> rerunButtonColumn = new Column<JobModel,String>(rerunButtonCell) {
             public String getValue(JobModel object) {
                 return getTexts().button_RerunJob();
+            }
+            @Override
+            public String getCellStyleNames(Cell.Context context, JobModel model) {
+                return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
 
@@ -423,7 +436,7 @@ public class View extends ViewWidget {
      * @return the double click handler
      */
     private DoubleClickHandler getDoubleClickHandler(){
-        DoubleClickHandler handler = new DoubleClickHandler() {
+        return new DoubleClickHandler() {
             @Override
             public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
                 JobModel selected = selectionModel.getSelectedObject();
@@ -432,7 +445,6 @@ public class View extends ViewWidget {
                 }
             }
         };
-        return handler;
     }
 
     private String getHideShowSymbol() {
@@ -443,19 +455,8 @@ public class View extends ViewWidget {
         return workFlowColumnsVisible ? "hide-cell" : "show-cell";
     }
 
-    private void collapseColumn(boolean collapse, int columnIndex) {
-        if (collapse) {
-            jobsTable.addColumnStyleName(columnIndex, "collapsed");
-        } else {
-            jobsTable.removeColumnStyleName(columnIndex, "collapsed");
-        }
-    }
-
     private void HideColumn(boolean hide) {
         workFlowColumnsVisible = !hide;
-        collapseColumn(hide, IS_FIXED_COLUMN);
-        collapseColumn(hide, ASSIGNEE_COLUMN);
-        collapseColumn(hide, ACTION_COLUMN);
         refreshJobsTable();
     }
 
@@ -481,7 +482,7 @@ public class View extends ViewWidget {
                     Window.alert(getTexts().error_InputCellValidationError());
                     jobsTable.redraw();
                 } else {
-                    workflowNoteModel.setProcessed(workflowNoteModel.isProcessed() ? false : true);
+                    workflowNoteModel.setProcessed(!workflowNoteModel.isProcessed());
                     presenter.setWorkflowNote(workflowNoteModel, selectionModel.getSelectedObject().getJobId());
                 }
             }
@@ -489,14 +490,30 @@ public class View extends ViewWidget {
     }
 
     /**
+     * Normal Column Header class (to be hidden upon request)
+     */
+    class HidableColumnHeader extends Header<String> {
+        private String headerText;
+        public HidableColumnHeader(String text) {
+            super(new TextCell());
+            headerText = text;
+        }
+
+        @Override
+        public String getValue() {
+            return headerText;
+        }
+
+        @Override
+        public String getHeaderStyleNames() {
+            return workFlowColumnsVisible ? "visible" : "invisible";
+        }
+    }
+
+    /**
      * Hide/Show Column Header class
      */
     class HideShowColumnHeader extends Header<String> {
-
-        public HideShowColumnHeader(Cell cell) {
-            super(cell);
-        }
-
         public HideShowColumnHeader() {
             super(new ClickableTextCell());
         }
@@ -517,16 +534,13 @@ public class View extends ViewWidget {
             if ("click".equals(event.getType())) {
                 HideOrShowColumn();
             }
-
         }
-
     }
 
     /**
      * Hide/Show Cell class
      */
     class HideShowCell extends Column<JobModel, String> {
-
         public HideShowCell(Cell<String> cell) {
             super(cell);
         }
@@ -552,5 +566,5 @@ public class View extends ViewWidget {
                 HideOrShowColumn();
             }
         }
-    };
+    }
 }

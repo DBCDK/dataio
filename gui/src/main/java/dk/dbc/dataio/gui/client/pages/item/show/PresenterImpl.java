@@ -25,7 +25,6 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
@@ -625,7 +624,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
         @Override
         public void onSuccess(JobModel jobModel) {
-            History.back();
+            placeController.goTo(new Place(jobId));
         }
     }
 

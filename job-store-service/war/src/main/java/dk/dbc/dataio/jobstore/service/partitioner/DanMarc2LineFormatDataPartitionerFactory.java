@@ -148,6 +148,10 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                         }
                     } catch (MarcWriterException e) {
                         LOGGER.error("Exception caught while writing MarcRecord", e);
+                        return new ChunkItem(
+                                0, marcRecord.toString().getBytes(StandardCharsets.UTF_8), Status.FAILURE,
+                                new ArrayList<>(Collections.singletonList(Type.STRING)),
+                                StandardCharsets.UTF_8.name());
                     }
                 }
             };

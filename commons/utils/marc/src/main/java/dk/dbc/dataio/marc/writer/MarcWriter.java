@@ -31,6 +31,7 @@ public interface MarcWriter {
      * @param marcRecord record to be written
      * @param encoding output encoding
      * @return bytes written
+     * @throws MarcWriterException in case of error while writing record
      */
-    byte[] write(MarcRecord marcRecord, Charset encoding);
+    byte[] write(MarcRecord marcRecord, Charset encoding) throws MarcWriterException;
 }

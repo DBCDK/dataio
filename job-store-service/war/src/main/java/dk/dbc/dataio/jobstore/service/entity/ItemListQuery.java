@@ -56,6 +56,9 @@ public class ItemListQuery extends ListQuery<ItemListCriteria, ItemListCriteria.
         fieldMap.put(ItemListCriteria.Field.ITEM_ID, new BooleanOpField("id", new ListQuery.NumricValue()));
         fieldMap.put(ItemListCriteria.Field.TIME_OF_CREATION, new BooleanOpField("timeOfCreation", new ListQuery.TimestampValue()));
         fieldMap.put(ItemListCriteria.Field.STATE_FAILED, new VerbatimField("(state->'states'->'PARTITIONING'->>'failed' != '0' OR state->'states'->'PROCESSING'->>'failed' != '0' OR state->'states'->'DELIVERING'->>'failed' != '0')"));
+        fieldMap.put(ItemListCriteria.Field.PARTITIONING_FAILED, new VerbatimField("state->'states'->'PARTITIONING'->>'failed' != '0'"));
+        fieldMap.put(ItemListCriteria.Field.PROCESSING_FAILED, new VerbatimField("state->'states'->'PROCESSING'->>'failed' != '0'"));
+        fieldMap.put(ItemListCriteria.Field.DELIVERY_FAILED, new VerbatimField("state->'states'->'DELIVERING'->>'failed' != '0'"));
         fieldMap.put(ItemListCriteria.Field.STATE_IGNORED, new VerbatimField("(state->'states'->'PARTITIONING'->>'ignored' != '0' OR state->'states'->'PROCESSING'->>'ignored' != '0' OR state->'states'->'DELIVERING'->>'ignored' != '0')"));
     }
 

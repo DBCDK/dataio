@@ -73,10 +73,8 @@ import static org.powermock.api.mockito.PowerMockito.when;
     Format.class
 })
 public class JobStoreProxyImplTest {
-    private final String jobStoreServiceUrl = "http://dataio/job-service";
     private final Client client = mock(Client.class);
     private final dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector jobStoreServiceConnector = mock(dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector.class);
-
     private final long ID = 737L;
 
     @Before
@@ -84,6 +82,7 @@ public class JobStoreProxyImplTest {
         mockStatic(ServiceUtil.class);
         mockStatic(HttpClient.class);
         mockStatic(Format.class);
+        String jobStoreServiceUrl = "http://dataio/job-service";
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenReturn(jobStoreServiceUrl);
         when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
     }
@@ -101,7 +100,7 @@ public class JobStoreProxyImplTest {
 
 
     @Test(expected = ProxyException.class)
-    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
+    public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -124,7 +123,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
+    public void listItems_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.listItems(any(ItemListCriteria.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -233,7 +232,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void listJobNotificationsForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException {
+    public void listJobNotificationsForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.listJobNotificationsForJob(any(Integer.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -259,7 +258,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void setWorkflowNote_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+    public void setWorkflowNoteForJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
         when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), (any(Integer.class)))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
@@ -267,7 +266,7 @@ public class JobStoreProxyImplTest {
     }
 
     @Test
-    public void setWorkflowNote_remoteServiceReturnsHttpStatusOk_returnsUpdatedJobModel() throws Exception {
+    public void setWorkflowNoteForJob_remoteServiceReturnsHttpStatusOk_returnsUpdatedJobModel() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
 
@@ -277,6 +276,30 @@ public class JobStoreProxyImplTest {
             JobModel updatedJobModel = jobStoreProxy.setWorkflowNote(workflowNoteModel, 1);
             assertThat(updatedJobModel, is(notNullValue()));
             assertThat(updatedJobModel.getWorkflowNoteModel(), is(workflowNoteModel));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: setWorkflowNote()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void setWorkflowNoteForItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt(), anyInt(), anyShort())).thenThrow(new JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.setWorkflowNote(new WorkflowNoteModelBuilder().build(), 1, 0, (short)0);
+    }
+
+    @Test
+    public void setWorkflowNoteForItem_remoteServiceReturnsHttpStatusOk_returnsUpdatedItemModel() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
+
+        when(jobStoreServiceConnector.setWorkflowNote(any(WorkflowNote.class), anyInt(), anyInt(), anyShort()))
+                .thenReturn(new ItemInfoSnapshotBuilder().setWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel)).build());
+        try {
+            ItemModel updatedItemModel = jobStoreProxy.setWorkflowNote(workflowNoteModel, 1, 0, (short) 0);
+            assertThat(updatedItemModel, is(notNullValue()));
+            assertThat(updatedItemModel.getWorkflowNoteModel(), is(workflowNoteModel));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: setWorkflowNote()");
         }

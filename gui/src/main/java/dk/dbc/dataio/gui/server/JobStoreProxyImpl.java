@@ -146,16 +146,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             criteria.orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC));
             criteria.orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
             itemInfoSnapshotList = jobStoreServiceConnector.listItems(criteria);
-
-            switch (searchType) {
-                case STATE_FAILED:
-                    return ItemModelMapper.toFailedItemsModel(itemInfoSnapshotList);
-                case STATE_IGNORED:
-                    return ItemModelMapper.toIgnoredItemsModel(itemInfoSnapshotList);
-                default:
-                    return ItemModelMapper.toAllItemsModel(itemInfoSnapshotList);
-            }
-
+            return toPredefinedItemModel(searchType, itemInfoSnapshotList);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: listItems - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
@@ -291,7 +282,6 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     @Override
     public JobModel addJob(JobModel jobModel) throws NullPointerException, ProxyException {
         final String callerMethodName = "addJob";
-//        Sink sink = null;
         JobInfoSnapshot jobInfoSnapshot = null;
         log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobModel.getJobId());
         try {
@@ -329,6 +319,45 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             log.debug("JobStoreProxy: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
         }
         return JobModelMapper.toModel(jobInfoSnapshot);
+    }
+
+    @Override
+    public ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException {
+        final ItemInfoSnapshot itemInfoSnapshot;
+        log.trace("JobStoreProxy: setWorkflowNote({}, {}, {})", jobId, chunkId, itemId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            itemInfoSnapshot = jobStoreServiceConnector.setWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel), jobId, chunkId, itemId);
+            return ItemModelMapper.toFailedItemsModel(itemInfoSnapshot);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: setWorkflowNote - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: setWorkflowNote - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e) {
+            log.error("JobStoreProxy: setWorkflowNote - Invalid Field Value Exception", e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("JobStoreProxy: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    private List<ItemModel> toPredefinedItemModel(ItemListCriteria.Field searchType, List<ItemInfoSnapshot> itemInfoSnapshotList) {
+        switch (searchType) {
+            case STATE_FAILED:
+                return ItemModelMapper.toFailedItemsModel(itemInfoSnapshotList);
+            case STATE_IGNORED:
+                return ItemModelMapper.toIgnoredItemsModel(itemInfoSnapshotList);
+            default:
+                return ItemModelMapper.toAllItemsModel(itemInfoSnapshotList);
+        }
     }
 
     /**

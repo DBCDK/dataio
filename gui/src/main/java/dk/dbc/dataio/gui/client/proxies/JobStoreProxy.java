@@ -53,6 +53,9 @@ public interface JobStoreProxy extends RemoteService {
 
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;
 
+    ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException;
+
+
     void close();
     class Factory {
 

@@ -41,7 +41,6 @@ public interface JobStoreProxyAsync {
     void listJobNotificationsForJob(int jobId, AsyncCallback<List<JobNotification>> async);
     void addJob(JobModel jobModel, AsyncCallback<JobModel> async);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, AsyncCallback<JobModel> async);
-
+    void setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId, AsyncCallback<ItemModel> async);
     void close(AsyncCallback<Void> async);
-
 }

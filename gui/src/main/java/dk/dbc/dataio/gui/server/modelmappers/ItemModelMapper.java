@@ -95,7 +95,7 @@ public final class ItemModelMapper {
      * @param itemInfoSnapshot item info snapshot to map
      * @return item model containing the mapped values
      */
-    private static ItemModel toFailedItemsModel(ItemInfoSnapshot itemInfoSnapshot) {
+    public static ItemModel toFailedItemsModel(ItemInfoSnapshot itemInfoSnapshot) {
         return new ItemModel(
                 Long.valueOf(itemInfoSnapshot.getItemNumber()).toString(),
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),

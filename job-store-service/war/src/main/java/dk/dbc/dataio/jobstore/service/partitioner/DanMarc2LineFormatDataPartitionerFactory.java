@@ -33,6 +33,7 @@ import dk.dbc.dataio.marc.reader.MarcReader;
 import dk.dbc.dataio.marc.reader.MarcReaderException;
 import dk.dbc.dataio.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.dataio.marc.writer.MarcWriter;
+import dk.dbc.dataio.marc.writer.MarcWriterException;
 import dk.dbc.dataio.marc.writer.MarcXchangeV1Writer;
 import dk.dbc.marc.DanMarc2Charset;
 import org.slf4j.Logger;
@@ -145,6 +146,8 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                         } else {
                             throw new InvalidDataException(e);
                         }
+                    } catch (MarcWriterException e) {
+                        LOGGER.error("Exception caught while writing MarcRecord", e);
                     }
                 }
             };

@@ -179,6 +179,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
+    final static String MOCKED_COLUMN_FIXED = "Mocked Fixed";
     final static String MOCKED_COLUMN_LEVEL = "Niveau";
     final static String MOCKED_COLUMN_MESSAGE = "Besked";
     final static String MOCKED_ERROR_COULDNOTFETCHJOB = "Mocked Det var ikke muligt at hente jobbet fra Job Store";
@@ -237,6 +238,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedMenuTexts.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
         when(mockedText.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
         when(mockedText.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
+        when(mockedText.column_Fixed()).thenReturn(MOCKED_COLUMN_FIXED);
         when(mockedText.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
         when(mockedText.column_Message()).thenReturn(MOCKED_COLUMN_MESSAGE);
         when(mockedText.error_CouldNotFetchJob()).thenReturn(MOCKED_ERROR_COULDNOTFETCHJOB);
@@ -301,6 +303,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public JobsCallback getJobsCallback;
         public JobNotificationsCallback getJobNotificationCallback;
         public SetJobWorkflowNoteCallback getSetJobWorkflowNoteCallback;
+        public SetItemWorkflowNoteCallback getSetItemWorkflowNoteCallback;
 
         public PresenterImplConcrete(Place place, PlaceController placeController, ItemsListView itemsListView) {
             super(place, placeController, mockedView, "");
@@ -308,6 +311,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             this.getJobsCallback = new JobsCallback();
             this.getJobNotificationCallback = new JobNotificationsCallback();
             this.getSetJobWorkflowNoteCallback = new SetJobWorkflowNoteCallback();
+            this.getSetItemWorkflowNoteCallback = new SetItemWorkflowNoteCallback();
         }
 
         public PresenterImplConcrete(Place place, PlaceController placeController, String header) {
@@ -356,7 +360,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setJobCreationTime("2015-09-02 10:38:43")
             .setJobCompletionTime("2015-09-02 10:39:55")
             .setType(JobModel.Type.TRANSIENT)
-            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
@@ -380,6 +383,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
             .setType(JobModel.Type.TEST)
+            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private JobModel testJobModelIgnored = new JobModelBuilder()
@@ -1003,7 +1007,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
-        verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedTabBar, times(2)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedView, times(1)).addFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1037,6 +1042,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1069,7 +1075,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
-        verify(mockedTabBar, times(2)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1103,6 +1110,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
     }
@@ -1200,7 +1208,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void setWorkflowNote_inputIsValid_setWorkflowNoteCalled() {
+    public void setWorkflowNoteForJob_inputIsValid_setWorkflowNoteCalled() {
         setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.workflowNoteModel = new WorkflowNoteModelBuilder().setAssignee("test").build();
@@ -1217,7 +1225,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void setWorkflowNote_callbackWithError_errorMessageInView() {
+    public void setWorkflowNoteForJob_callbackWithError_errorMessageInView() {
         setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
@@ -1227,21 +1235,65 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedView).setErrorText(anyString());
-
     }
 
     @Test
-    public void setWorkflowNote_callbackWithSuccess_noErrorMessageInView() {
+    public void setWorkflowNoteForJob_callbackWithSuccess_noErrorMessageInView() {
         setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getSetJobWorkflowNoteCallback.onSuccess(testJobModelSucceeded);
+        presenterImpl.getSetJobWorkflowNoteCallback.onSuccess(testJobModelFailed);
 
         // Verify Test
         verify(mockedView, times(0)).setErrorText(anyString());
         verifyZeroInteractions(mockedWorkflowNoteTabContent);
+    }
+
+    @Test
+    public void setWorkflowNoteForItem_inputIsValid_setWorkflowNoteCalled() {
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.workflowNoteModel = new WorkflowNoteModelBuilder().setAssignee("test").build();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Subject under test
+        presenterImpl.setWorkflowNoteModel(testModelDelivering, true);
+
+        verify(mockedCommonGinjector.getJobStoreProxyAsync()).setWorkflowNote(
+                any(WorkflowNoteModel.class),
+                eq(Long.valueOf(testModelDelivering.getJobId()).intValue()),
+                eq(Long.valueOf(testModelDelivering.getChunkId()).intValue()),
+                eq(Long.valueOf(testModelDelivering.getItemId()).shortValue()),
+                any(AsyncCallback.class));
+    }
+
+    @Test
+    public void setWorkflowNoteForItem_callbackWithSuccess_noErrorMessageInView() {
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getSetItemWorkflowNoteCallback.onSuccess(testModelDelivering);
+
+        // Verify Test
+        verify(mockedView, times(0)).setErrorText(anyString());
+    }
+
+    @Test
+    public void setWorkflowNoteForItem_callbackWithError_errorMessageInView() {
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getSetItemWorkflowNoteCallback.onFailure(mockedException);
+
+        // Verify Test
+        verify(mockedView).setErrorText(anyString());
+
     }
 
     //Private methods

@@ -36,6 +36,7 @@ import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.modelBuilders.DiagnosticModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.ItemModelBuilder;
+import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,7 +75,7 @@ public class ViewTest {
 
     // Test Data
     private DiagnosticModel diagnosticModel = new DiagnosticModelBuilder().build();
-    private ItemModel itemModel = new ItemModelBuilder().setLifeCycle(ItemModel.LifeCycle.DELIVERING).build();
+    private ItemModel itemModel = new ItemModelBuilder().setLifeCycle(ItemModel.LifeCycle.DELIVERING).setWorkflowNoteModel(new WorkflowNoteModelBuilder().build()).build();
 
     /*
      * The tested view contains nested UiBinder views: ViewWidget (a UiBinder view) instantiates three ItemsListView
@@ -111,6 +112,7 @@ public class ViewTest {
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuItems;
     final static String MOCKED_MENU_ITEMS = "Mocked Poster";
     final static String MOCKED_COLUMN_ITEM = "Mocked Post";
+    final static String MOCKED_COLUMN_FIXED = "Mocked Fixed";
     final static String MOCKED_COLUMN_LEVEL = "Mocked Diagnostic level";
     final static String MOCKED_COLUMN_MESSAGE = "Mocked Diagnostic message";
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
@@ -129,6 +131,7 @@ public class ViewTest {
     public void setupMockedTextsBehaviour() {
         when(mockedMenuItems.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
         when(mockedTexts.column_Item()).thenReturn(MOCKED_COLUMN_ITEM);
+        when(mockedTexts.column_Fixed()).thenReturn(MOCKED_COLUMN_FIXED);
         when(mockedTexts.column_Message()).thenReturn(MOCKED_COLUMN_MESSAGE);
         when(mockedTexts.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
         when(mockedTexts.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
@@ -235,7 +238,7 @@ public class ViewTest {
         Column column = view.constructItemColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(itemModel), is(MOCKED_TEXT_ITEM + " " + itemModel.getItemNumber()));
+        assertThat(column.getValue(itemModel), is(MOCKED_TEXT_ITEM + " " + itemModel.getItemNumber()));
     }
 
     @Test
@@ -247,7 +250,19 @@ public class ViewTest {
         Column column = view.constructStatusColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(itemModel), is(MOCKED_LIFECYCLE_DELIVERING));
+        assertThat(column.getValue(itemModel), is(MOCKED_LIFECYCLE_DELIVERING));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructFixedColumn_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructFixedColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(itemModel), is(itemModel.getWorkflowNoteModel().isProcessed()));
     }
 
     @Test
@@ -260,7 +275,7 @@ public class ViewTest {
         Column column = view.constructDiagnosticLevelColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(diagnosticModel), is(diagnosticModel.getLevel()));
+        assertThat(column.getValue(diagnosticModel), is(diagnosticModel.getLevel()));
     }
 
     @Test
@@ -273,7 +288,7 @@ public class ViewTest {
         Column column = view.constructDiagnosticMessageColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(diagnosticModel), is(diagnosticModel.getMessage()));
+        assertThat(column.getValue(diagnosticModel), is(diagnosticModel.getMessage()));
     }
 
     private ConcreteView setupViewConcrete() {

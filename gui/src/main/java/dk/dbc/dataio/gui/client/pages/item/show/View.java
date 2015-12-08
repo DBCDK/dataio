@@ -156,7 +156,7 @@ public class View extends ViewWidget {
 
     void addFixedColumn() {
         if(failedContext.listView.itemsTable.getColumnCount() == 2) {
-            failedContext.listView.itemsTable.addColumn(constructIsFixedColumn(), getTexts().column_Fixed());
+            failedContext.listView.itemsTable.addColumn(constructFixedColumn(), getTexts().column_Fixed());
             failedContext.listView.itemsTable.setColumnWidth(2, 4, Style.Unit.EM);
             failedContext.listView.itemsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
             failedContext.listView.itemsTable.setVisibleRange(0, 20);
@@ -233,9 +233,9 @@ public class View extends ViewWidget {
      * the presenter with the selection model selected value.
      * @return the double click handler
      */
-    Column constructIsFixedColumn() {
+    Column constructFixedColumn() {
         CheckboxCell checkboxCell = new CheckboxCell(true, false);
-        Column<ItemModel, Boolean> workflowNoteColumn = new Column<ItemModel, Boolean>(checkboxCell) {
+        Column<ItemModel, Boolean> FixedColumn = new Column<ItemModel, Boolean>(checkboxCell) {
             @Override
             public Boolean getValue(ItemModel itemModel) {
                 if (itemModel.getWorkflowNoteModel() == null) {
@@ -245,7 +245,7 @@ public class View extends ViewWidget {
                 }
             }
         };
-        return workflowNoteColumn;
+        return FixedColumn;
     }
 
     class CellPreviewHandlerClass implements CellPreviewEvent.Handler<ItemModel> {

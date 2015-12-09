@@ -59,7 +59,9 @@ li {
 #header-panel {
     background-color: backgroundDarkGrey;
     color: headerTextColor;
-    font-size: 12px;
+    font-family: Trebuchet MS;
+    font-size: 14px;
+    /*font-weight: bold;*/
     padding: 0.4em;
 }
 

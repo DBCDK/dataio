@@ -38,6 +38,7 @@ public class PresenterTestJobsImpl extends PresenterImpl {
      */
     public PresenterTestJobsImpl(PlaceController placeController, View globalJobsView, String header) {
         super(placeController, globalJobsView, header);
+        globalJobsView.jobsTable.getElement().getStyle().setBackgroundColor("#ffd982");
     }
 
     /**
@@ -48,8 +49,8 @@ public class PresenterTestJobsImpl extends PresenterImpl {
     @Override
     protected void updateBaseQuery() {
         JobListCriteria criteria=new JobListCriteria()
-                .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
-                .or(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
+                .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
         getView().dataProvider.setBaseCriteria( criteria );
     }
 }

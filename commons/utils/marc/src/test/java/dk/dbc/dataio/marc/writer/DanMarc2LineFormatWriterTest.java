@@ -22,9 +22,9 @@ public class DanMarc2LineFormatWriterTest {
     private final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
     private final MarcRecord record = getMarcRecord();
     private final String recordAsLineFormat =
-            "245 12 *a A @*programmer is born *b everyday@@dbc\n" +
-            "530 00 *i this is a very long text exceeding the maximum number of seventy nine\n" +
-            "     characters per line which results in a line continuation\n" +
+            "245 12 *aA @*programmer is born*beveryday@@dbc\n" +
+            "530 00 *ithis is a very long text exceeding the maximum number of seventy nine \n" +
+            "    characters per line which results in a line continuation\n" +
             "$\n";
 
     @Test

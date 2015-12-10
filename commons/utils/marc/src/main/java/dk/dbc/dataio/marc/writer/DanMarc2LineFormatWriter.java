@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * MarcWriter implementation for transforming MarcRecord instances into
- * DanMarc2 line format representations.
+ * DanMarc2 line format representations (see also http://www.danbib.dk/index.php?doc=linjeformat).
  *
  * Note that no DanMarc2 charset variants are currently supported as
  * output encoding and will cause an UnsupportedCharsetException to be
@@ -78,7 +78,7 @@ public class DanMarc2LineFormatWriter implements MarcWriter {
                 .append(dataField.getTag()).append(BLANK).append(getInd1(dataField)).append(getInd2(dataField)).append(BLANK)
                 .append(dataField.getSubfields().stream()
                     .map(this::subfieldToString)
-                    .collect(Collectors.joining(BLANK)))
+                    .collect(Collectors.joining("")))
                 .append(LF);
 
             try {
@@ -100,7 +100,7 @@ public class DanMarc2LineFormatWriter implements MarcWriter {
         }
 
         private String subfieldToString(SubField subfield) {
-            return String.format("*%s %s", subfield.getCode(), escapeLineFormat(subfield.getData()));
+            return String.format("*%s%s", subfield.getCode(), escapeLineFormat(subfield.getData()));
         }
 
         private String escapeLineFormat(String s) {

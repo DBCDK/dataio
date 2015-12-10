@@ -36,6 +36,7 @@
 
   <properties>
     <wsdl.url>http://oss-services.dbc.dk/opencat/WSContracts/catalogingUpdate/trunk</wsdl.url>
+    <logback.jndi.resource>${jndi.url.sink.update.logback}</logback.jndi.resource>
   </properties>
 
   <dependencies>

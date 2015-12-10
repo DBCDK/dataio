@@ -34,6 +34,10 @@
   <name>dataio-sink-diff</name>
   <packaging>war</packaging>
 
+  <properties>
+    <logback.jndi.resource>${jndi.url.sink.diff.logback}</logback.jndi.resource>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>javax</groupId>

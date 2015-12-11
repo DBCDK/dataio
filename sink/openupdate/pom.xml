@@ -69,6 +69,11 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-logback</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-test</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>

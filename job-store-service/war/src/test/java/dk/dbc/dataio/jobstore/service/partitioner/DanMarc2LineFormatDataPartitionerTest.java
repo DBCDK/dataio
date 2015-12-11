@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -108,7 +109,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         assertThat("Empty input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat(chunkItem.getDiagnostics().size(), is(0));
+        assertThat(chunkItem.getDiagnostics(), is(nullValue()));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
@@ -121,7 +122,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         assertThat("Valid input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat(chunkItem.getDiagnostics().size(), is(0));
+        assertThat(chunkItem.getDiagnostics(), is(nullValue()));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 

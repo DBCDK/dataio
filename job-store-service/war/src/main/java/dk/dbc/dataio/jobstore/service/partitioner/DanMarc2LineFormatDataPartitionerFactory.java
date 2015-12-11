@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
@@ -105,7 +106,6 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
             }
 
             iterator = new Iterator<ChunkItem>() {
-                private MarcRecord marcRecord = null;
                 private MarcWriter marcWriter = new MarcXchangeV1Writer();
                 private MarcReader marcReader = new DanMarc2LineFormatReader(bufferedInputStream, danMarc2Charset);
 
@@ -125,33 +125,16 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                 @Override
                 public ChunkItem next() {
                     try {
-                        marcRecord = marcReader.read();
-                        if(marcRecord.getFields().isEmpty()) {
-                            return new ChunkItem(0, "Empty record".getBytes(encoding), Status.IGNORE,
-                                    new ArrayList<>(Collections.singletonList(Type.STRING)),
-                                    encoding.name());
-                        } else {
-                            byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
-                            return new ChunkItem(0, marcRecordAsByteArray, Status.SUCCESS,
-                                    new ArrayList<>(Collections.singletonList(Type.MARCXCHANGE)),
-                                    encoding.name());
-                        }
+                        return processMarcReaderReadResult(marcReader.read(), marcWriter);
                     } catch (MarcReaderException e) {
                         LOGGER.error("Exception caught while creating MarcRecord", e);
-                        if(e instanceof MarcReaderInvalidRecordException) {
-                            return new ChunkItem(
-                                    0, ((MarcReaderInvalidRecordException) e).getBytesRead(), Status.FAILURE,
-                                    new ArrayList<>(Collections.singletonList(Type.STRING)),
-                                    encoding.name());
+                        if (e instanceof MarcReaderInvalidRecordException) {
+                            ChunkItem chunkItem = buildChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), Status.FAILURE, Type.STRING, encoding);
+                            chunkItem.appendDiagnostics(buildDiagnostic(e.getMessage()));
+                            return chunkItem;
                         } else {
                             throw new InvalidDataException(e);
                         }
-                    } catch (MarcWriterException e) {
-                        LOGGER.error("Exception caught while writing MarcRecord", e);
-                        return new ChunkItem(
-                                0, marcRecord.toString().getBytes(StandardCharsets.UTF_8), Status.FAILURE,
-                                new ArrayList<>(Collections.singletonList(Type.STRING)),
-                                StandardCharsets.UTF_8.name());
                     }
                 }
             };
@@ -162,6 +145,55 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
         /*
          * Private methods
          */
+
+
+        /**
+         * Process the result of the marcReader.read() method.
+         * If the marcRecord contains no fields (special case), a new chunk item with status IGNORE is returned
+         * If the marcRecord can be written, a new chunk item with status SUCCESS is returned
+         * If an error occours while writing the record, a new chunk item with status FAILURE is returned
+         * @param marcRecord the marcRecord result from the marcReader.read() method
+         * @param marcWriter the marcWriter used to write the marcRecord
+         * @return chunkItem
+         */
+        private ChunkItem processMarcReaderReadResult(MarcRecord marcRecord, MarcWriter marcWriter) {
+            ChunkItem chunkItem;
+            try {
+                if(marcRecord.getFields().isEmpty()) {
+                    chunkItem = buildChunkItem(0, "Empty Record".getBytes(encoding), Status.IGNORE, Type.STRING, encoding);
+                } else {
+                    byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
+                    chunkItem = buildChunkItem(0, marcRecordAsByteArray, Status.SUCCESS, Type.MARCXCHANGE, encoding);
+                }
+            } catch (MarcWriterException e) {
+                LOGGER.error("Exception caught while writing MarcRecord", e);
+                chunkItem = buildChunkItem(0, marcRecord.toString().getBytes(encoding), Status.FAILURE, Type.STRING, encoding);
+                chunkItem.appendDiagnostics(buildDiagnostic(e.getMessage()));
+            }
+            return chunkItem;
+        }
+
+        /**
+         * Builds a new ChunkItem from the input values
+         * @param id of the ChunkItem
+         * @param data to set on the ChunkItem
+         * @param status of the ChunkItem
+         * @param type of the data
+         * @param encoding of the data
+         * @return chunkItem
+         */
+        private ChunkItem buildChunkItem(long id, byte[] data, ChunkItem.Status status, ChunkItem.Type type, Charset encoding) {
+            return new ChunkItem(id, data, status, new ArrayList<>(Collections.singletonList(type)), encoding.name());
+        }
+
+        /**
+         * Creates a new Diagnostic with Level FATAL and with input String as message
+         * @param message the input message
+         * @return diagnostic
+         */
+        private Diagnostic buildDiagnostic(String message) {
+            return new Diagnostic(Diagnostic.Level.FATAL, message);
+        }
 
         /**
          * This method verifies if the specified encoding is latin1

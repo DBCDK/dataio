@@ -108,6 +108,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         assertThat("Empty input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(chunkItem.getDiagnostics().size(), is(0));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
@@ -120,6 +121,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         assertThat("Valid input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat(chunkItem.getDiagnostics().size(), is(0));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
@@ -133,6 +135,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         ChunkItem chunkItem = iterator.next();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(new String(chunkItem.getData(), StandardCharsets.UTF_8), is(faultyRecordInLineFormat));
+        assertThat(chunkItem.getDiagnostics().size(), is(1));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 

@@ -182,7 +182,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
          * @param encoding of the data
          * @return chunkItem
          */
-        private ChunkItem buildChunkItem(long id, byte[] data, ChunkItem.Status status, ChunkItem.Type type, Charset encoding) {
+        private ChunkItem buildChunkItem(long id, byte[] data, Status status, Type type, Charset encoding) {
             return new ChunkItem(id, data, status, new ArrayList<>(Collections.singletonList(type)), encoding.name());
         }
 

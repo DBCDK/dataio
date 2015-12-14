@@ -24,18 +24,20 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.DomEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -65,13 +67,13 @@ import static org.mockito.Mockito.when;
 public class ViewTest {
 
     @Mock CommonGinjector mockedCommonInjector;
-    @Mock
-    ViewJobsGinjector mockedViewInjector;
+    @Mock ViewJobsGinjector mockedViewInjector;
     @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
     @Mock static ClickEvent mockedClickEvent;
     @Mock SingleSelectionModel mockedSelectionModel;
     @Mock JobModel mockedJobModel;
+    @Mock WorkflowNoteModel mockedWorkflowNoteModel;
     @Mock CellPreviewEvent<JobModel> mockedCellPreviewEvent;
     @Mock NativeEvent mockedNativeEvent;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
@@ -97,7 +99,7 @@ public class ViewTest {
             .build();
 
     // Subject Under Test
-    private View view;
+    private ViewConcrete view;
 
     // Mocked Texts
     @Mock static Texts mockedTexts;
@@ -115,10 +117,17 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_JOB_STATUS = "Mocked Column Header Job Status";
     final static String MOCKED_COLUMN_HEADER_IS_FIXED = "Mocked Column Header Fixed";
     final static String MOCKED_COLUMN_HEADER_ASSIGNEE = "Mocked Column Header Assignee";
+    final static String MOCKED_BUTTON_RERUN_JOB = "Mocked Button Rerun Job";
+
 
     public class ViewConcrete extends View {
-        public ViewConcrete(String header) {
-            super(header, false, false);
+        CellPreviewHandlerClass cellPreviewHandler = new CellPreviewHandlerClass();
+        HidableColumnHeader hidableColumnHeader = new HidableColumnHeader("header");
+        HideShowColumnHeader hideShowColumnHeader = new HideShowColumnHeader();
+        HideShowCell hideShowCell = new HideShowCell();
+
+        public ViewConcrete() {
+            super("header", false, false);
             this.commonInjector = mockedCommonInjector;
             this.viewInjector = mockedViewInjector;
         }
@@ -128,6 +137,8 @@ public class ViewTest {
             return mockedTexts;
         }
     }
+
+
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedViewInjector.getTexts()).thenReturn(mockedTexts);
@@ -148,20 +159,20 @@ public class ViewTest {
         when(mockedTexts.columnHeader_JobStatus()).thenReturn(MOCKED_COLUMN_HEADER_JOB_STATUS);
         when(mockedTexts.columnHeader_Fixed()).thenReturn(MOCKED_COLUMN_HEADER_IS_FIXED);
         when(mockedTexts.columnHeader_Assignee()).thenReturn(MOCKED_COLUMN_HEADER_ASSIGNEE);
+        when(mockedTexts.button_RerunJob()).thenReturn(MOCKED_BUTTON_RERUN_JOB);
     }
 
     //Testing starts here...
-    @Ignore
     @Test
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
         // Subject Under Test
-        ViewConcrete viewConcrete = new ViewConcrete("header");
-
+        ViewConcrete viewConcrete = new ViewConcrete();
         viewConcrete.setupColumns();
+
         // Verify invocations
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_IS_FIXED));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_ASSIGNEE));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), isA(View.HideShowColumnHeader.class));
+        verify(viewConcrete.jobsTable, times(3)).addColumn(isA(Column.class), isA(View.HidableColumnHeader.class));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER));
@@ -173,8 +184,15 @@ public class ViewTest {
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_IGNORED));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_PROGRESS));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_STATUS));
+        verify(viewConcrete.jobsTable).setSelectionModel(isA(SingleSelectionModel.class));
+        verify(viewConcrete.jobsTable).addDomHandler(isA(DoubleClickHandler.class), isA(DomEvent.Type.class));
+        verify(viewConcrete.jobsTable).addCellPreviewHandler(isA(View.CellPreviewHandlerClass.class));
+        verify(viewConcrete.jobsTable).setVisibleRange(0, 20);
+        verifyNoMoreInteractions(viewConcrete.jobsTable);
         verify(viewConcrete.pagerTop).setDisplay(viewConcrete.jobsTable);
+        verifyNoMoreInteractions(viewConcrete.pagerTop);
         verify(viewConcrete.pagerBottom).setDisplay(viewConcrete.jobsTable);
+        verifyNoMoreInteractions(viewConcrete.pagerBottom);
         assertThat(viewConcrete.refreshButton, not(nullValue()));
         assertThat(viewConcrete.showJobButton, not(nullValue()));
         assertThat(viewConcrete.jobIdInputField, not(nullValue()));
@@ -183,7 +201,7 @@ public class ViewTest {
     @Test
     public void refreshJobsTable_call_ok() {
         // Subject Under Test
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         view.refreshJobsTable();
@@ -191,12 +209,13 @@ public class ViewTest {
         // Verify test
         verify(view.jobsTable).getVisibleRange();
         verify(view.jobsTable).setVisibleRangeAndClearData(any(Range.class), eq(true));
+        verifyNoMoreInteractions(view.jobsTable);
     }
 
     @Test
     public void loadJobsTable_dataProviderNotSetup_nop() {
         // Subject Under Test
-        setupView();
+        view = new ViewConcrete();
         view.dataProvider = null;
 
         // Subject Under Test
@@ -209,7 +228,7 @@ public class ViewTest {
     @Test
     public void loadJobsTable_oneLoad_setVisibleRangeAndClearData() {
         // Subject Under Test
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         view.loadJobsTable();
@@ -222,7 +241,7 @@ public class ViewTest {
     @Test
     public void loadJobsTable_twoLoads_setVisibleRangeAndClearData() {
         // Subject Under Test
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         view.loadJobsTable();
@@ -235,32 +254,62 @@ public class ViewTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void constructIsFixedColumn_call_correctlySetup() {
-        setupView();
+    public void constructIsFixedColumn_callWhileVisible_correctlySetup() {
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructIsFixedColumn();
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().isProcessed()));
+        assertThat(column.getCellStyleNames(null, null), is("visible"));
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    public void constructAssigneeColumn_call_correctlySetup() {
-        setupView();
+    public void constructIsFixedColumn_callWhileNotVisible_correctlySetup() {
+        view = new ViewConcrete();
+        view.HideColumn(true);
+
+        // Subject Under Test
+        Column column = view.constructIsFixedColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().isProcessed()));
+        assertThat(column.getCellStyleNames(null, null), is("invisible"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructAssigneeColumn_callWhileVisible_correctlySetup() {
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructAssigneeColumn();
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().getAssignee()));
+        assertThat(column.getCellStyleNames(null, null), is("visible"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructAssigneeColumn_callWhileNotVisible_correctlySetup() {
+        view = new ViewConcrete();
+        view.HideColumn(true);
+
+        // Subject Under Test
+        Column column = view.constructAssigneeColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(testModel1.getWorkflowNoteModel().getAssignee()));
+        assertThat(column.getCellStyleNames(null, null), is("invisible"));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void constructJobCreationTimeColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructJobCreationTimeColumn();
@@ -272,7 +321,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructJobIdColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructJobIdColumn();
@@ -284,7 +333,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmitterNumberColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructSubmitterNumberColumn();
@@ -299,7 +348,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmitterNameColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructSubmitterNameColumn();
@@ -314,7 +363,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFlowBinderNameColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
         view.dataProvider = mockedDataProvider;
 
         // Subject Under Test
@@ -330,7 +379,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructSinkNameColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructSinkNameColumn();
@@ -347,7 +396,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructFailedCounterColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructFailedCounterColumn();
@@ -362,7 +411,7 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructIgnoredCounterColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         Column column = view.constructIgnoredCounterColumn();
@@ -378,8 +427,18 @@ public class ViewTest {
     }
 
     @Test
+    public void constructProgressColumn_call_correctlySetup() {
+        view = new ViewConcrete();
+
+        // Subject Under Test
+        ProgressColumn column = (ProgressColumn) view.constructProgressBarColumn();
+        assertThat(column.getCell(), is(notNullValue()));
+        assertThat(column.getCell() instanceof ProgressColumn.ProgressCell, is(true));
+    }
+
+    @Test
     public void constructJobStateColumn_call_correctlySetup() {
-        setupView();
+        view = new ViewConcrete();
 
         // Subject Under Test
         StatusColumn column = (StatusColumn) view.constructJobStateColumn();
@@ -388,17 +447,132 @@ public class ViewTest {
     }
 
     @Test
-    public void constructProgressColumn_call_correctlySetup() {
-        setupView();
+    @SuppressWarnings("unchecked")
+    public void constructRerunColumn_callWhileVisible_correctlySetup() {
+        view = new ViewConcrete();
 
         // Subject Under Test
-        ProgressColumn column = (ProgressColumn) view.constructProgressBarColumn();
-        assertThat(column.getCell(), is(notNullValue()));
-        assertThat(column.getCell() instanceof ProgressColumn.ProgressCell, is(true));
+        Column column = view.constructRerunColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUN_JOB));
+        assertThat(column.getCellStyleNames(null, null), is("visible"));
     }
 
-    private void setupView() {
-        view = new View("Header Text", false, false);
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructRerunColumn_callWhileNotVisible_correctlySetup() {
+        view = new ViewConcrete();
+        view.HideColumn(true);
+
+        // Subject Under Test
+        Column column = view.constructRerunColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUN_JOB));
+        assertThat(column.getCellStyleNames(null, null), is("invisible"));
+
+        // Test that setFieldUpdater is setup correctly, by calling it and verify behaviour
+        JobModel testModel = new JobModel();
+        view.setPresenter(mockedPresenter);
+
+        column.getFieldUpdater().update(0, testModel, "bla");
+        verify(mockedPresenter).editJob(testModel);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+
+    /*
+     * Test CellPreviewHandlerClass
+     */
+    @Test
+    public void cellPreviewHandlerClass_callOnCellPreviewNullInput_noAction() {
+        view = new ViewConcrete();
+        view.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        view.cellPreviewHandler.onCellPreview(null);
+
+        // Test that correct getValue handler has been setup
+        verifyNoMoreInteractions(view.jobsTable);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void cellPreviewHandlerClass_callOnCellPreviewNotAClick_noAction() {
+        view = new ViewConcrete();
+        view.setPresenter(mockedPresenter);
+        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
+        when(mockedNativeEvent.getType()).thenReturn("not a click");
+        when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which is Fixed Column
+
+        // Subject Under Test
+        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
+
+        // Test that correct getValue handler has been setup
+        verifyNoMoreInteractions(view.jobsTable);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void cellPreviewHandlerClass_callOnCellPreviewNotFixedColumn_noAction() {
+        view = new ViewConcrete();
+        view.setPresenter(mockedPresenter);
+        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
+        when(mockedNativeEvent.getType()).thenReturn("click");
+        when(mockedCellPreviewEvent.getColumn()).thenReturn(2);  // Which is NOT Fixed Column
+
+        // Subject Under Test
+        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
+
+        // Test that correct getValue handler has been setup
+        verifyNoMoreInteractions(view.jobsTable);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void cellPreviewHandlerClass_callOnCellPreviewClickNoWorkFlowNoteModel_onlyRedraw() {
+        view = new ViewConcrete();
+        view.setPresenter(mockedPresenter);
+        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
+        when(mockedNativeEvent.getType()).thenReturn("click");
+        when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which IS Fixed Column
+        when(mockedCellPreviewEvent.getValue()).thenReturn(mockedJobModel);
+        when(mockedJobModel.getWorkflowNoteModel()).thenReturn(null);  // No WorkflowNoteModel inside JobModel
+
+        // Subject Under Test
+        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
+
+        // Test that correct getValue handler has been setup
+        verify(view.jobsTable).redraw();
+        verifyNoMoreInteractions(view.jobsTable);
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void cellPreviewHandlerClass_callOnCellPreviewClickWithWorkFlowNoteModel_setWorkflowNoteModel() {
+        view = new ViewConcrete();
+        view.setPresenter(mockedPresenter);
+        view.selectionModel = mockedSelectionModel;
+        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
+        when(mockedNativeEvent.getType()).thenReturn("click");
+        when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which IS Fixed Column
+        when(mockedCellPreviewEvent.getValue()).thenReturn(mockedJobModel);
+        when(mockedJobModel.getWorkflowNoteModel()).thenReturn(mockedWorkflowNoteModel);
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedJobModel);
+        when(mockedJobModel.getJobId()).thenReturn("7897");
+        when(mockedWorkflowNoteModel.isProcessed()).thenReturn(true);
+
+        // Subject Under Test
+        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
+
+        // Test that correct getValue handler has been setup
+        verifyNoMoreInteractions(view.jobsTable);
+        verify(mockedWorkflowNoteModel).isProcessed();
+        verify(mockedWorkflowNoteModel).setProcessed(false);
+        verifyNoMoreInteractions(mockedWorkflowNoteModel);
+        verify(mockedPresenter).setWorkflowNote(mockedWorkflowNoteModel, "7897");
+        verifyNoMoreInteractions(mockedPresenter);
     }
 
 }

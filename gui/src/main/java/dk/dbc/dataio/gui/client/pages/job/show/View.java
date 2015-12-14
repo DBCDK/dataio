@@ -396,7 +396,6 @@ public class View extends ViewWidget {
      * @return the constructed ReRun column
      */
     Column constructRerunColumn() {
-
         ButtonCell rerunButtonCell = new ButtonCell();
         Column<JobModel,String> rerunButtonColumn = new Column<JobModel,String>(rerunButtonCell) {
             public String getValue(JobModel object) {
@@ -407,28 +406,28 @@ public class View extends ViewWidget {
                 return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
-
         rerunButtonColumn.setFieldUpdater(new FieldUpdater<JobModel, String>() {
             @Override
             public void update(int index, JobModel selectedRowModel, String value) {
-
                 if(selectedRowModel != null) {
                     presenter.editJob(selectedRowModel);
                 }
             }
         });
-
         return rerunButtonColumn;
-    }
-
-    Texts getTexts() {
-        return viewInjector.getTexts();
-
     }
 
     /*
      * Private methods
      */
+
+    /**
+     * This method fetches the texts attribute
+     * @return The texts for this class
+     */
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
 
     /**
      * This method constructs a double click event handler. On double click event, the method calls
@@ -447,19 +446,34 @@ public class View extends ViewWidget {
         };
     }
 
+    /**
+     * Fetches the Hide/Show symbol to be shown as the header text for the hide/show column
+     * @return The Hide/Show symbol
+     */
     private String getHideShowSymbol() {
         return workFlowColumnsVisible ? "<" : ">";
     }
 
+    /**
+     * Fetches the css class to be used for a cell
+     * @return The CSS class name for a cell
+     */
     private String getHideShowStyle() {
         return workFlowColumnsVisible ? "hide-cell" : "show-cell";
     }
 
-    private void HideColumn(boolean hide) {
+    /**
+     * Hides or Shows a hideable column
+     * @param hide Boolean stating whether to show or hide a column: True=hide, False=show
+     */
+    void HideColumn(boolean hide) { // Should have been private, but is package-private to enable unit test
         workFlowColumnsVisible = !hide;
         refreshJobsTable();
     }
 
+    /**
+     * Toggles the visiblity of a hideable column
+     */
     private void HideOrShowColumn() {
         HideColumn(workFlowColumnsVisible);
     }
@@ -476,7 +490,9 @@ public class View extends ViewWidget {
     class CellPreviewHandlerClass implements CellPreviewEvent.Handler<JobModel> {
         @Override
         public void onCellPreview(CellPreviewEvent<JobModel> cellPreviewEvent) {
-            if(BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType()) && cellPreviewEvent.getColumn() == IS_FIXED_COLUMN) {
+            if (cellPreviewEvent != null
+                    && BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())
+                    && cellPreviewEvent.getColumn() == IS_FIXED_COLUMN) {
                 final WorkflowNoteModel workflowNoteModel = cellPreviewEvent.getValue().getWorkflowNoteModel();
                 if(workflowNoteModel == null) {
                     Window.alert(getTexts().error_InputCellValidationError());

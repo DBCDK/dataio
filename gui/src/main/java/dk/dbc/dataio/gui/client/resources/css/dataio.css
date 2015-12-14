@@ -9,6 +9,7 @@
 @def deleteButtonColor OrangeRed;
 @def boxFrameColor #4f6853;
 @def tableBorderColor #6F7277;
+@def testTableHeaderColor #ffd982;
 
 /*
  * Externals
@@ -28,6 +29,7 @@
 @external .dio-MultiProgressBar;
 @external .deleteButton;
 @external .job-filter-list;
+@external .test-jobs-table;
 @external .application-panel;
 @external .hide-cell, .show-cell;
 @external .invisible;
@@ -276,4 +278,8 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .invisible {
     display: none;
+}
+
+.test-jobs-table thead {
+    background-color: testTableHeaderColor !important;
 }

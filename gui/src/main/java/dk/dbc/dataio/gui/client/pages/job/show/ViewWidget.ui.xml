@@ -76,9 +76,12 @@
         .jobsTable {
             width: inherit;
             min-width: inherit;
-            background-color: #e5e9f4;
             border-top: slategray solid 2px;
             border-bottom: slategray solid 2px;
+        }
+
+        .jobsTable thead {
+            background-color: #e5e9f4;
         }
 
         .jobsTable input {

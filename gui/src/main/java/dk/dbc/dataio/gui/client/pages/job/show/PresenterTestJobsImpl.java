@@ -38,7 +38,7 @@ public class PresenterTestJobsImpl extends PresenterImpl {
      */
     public PresenterTestJobsImpl(PlaceController placeController, View globalJobsView, String header) {
         super(placeController, globalJobsView, header);
-        globalJobsView.jobsTable.getElement().getStyle().setBackgroundColor("#ffd982");
+        globalJobsView.jobsTable.getElement().addClassName("test-jobs-table");
     }
 
     /**

@@ -37,6 +37,8 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.nio.charset.Charset;
 import java.sql.Timestamp;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Entity
 @Table(name = "item")
@@ -244,6 +246,12 @@ public class ItemEntity {
             return itemData.getEncoding();
         }
         return null;
+    }
+
+    public Optional<State.Phase> getFailedPhase() {
+        return Arrays.stream(State.Phase.values())
+                .filter(phase -> getChunkItemStatusForPhase(phase) == ChunkItem.Status.FAILURE)
+                .findFirst();
     }
 
     private ItemData getItemDataForPhase(State.Phase phase) {

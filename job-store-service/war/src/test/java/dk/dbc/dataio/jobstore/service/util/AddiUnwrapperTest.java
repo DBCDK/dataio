@@ -1,0 +1,116 @@
+package dk.dbc.dataio.jobstore.service.util;
+
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
+import org.junit.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+public class AddiUnwrapperTest {
+    private final AddiUnwrapper unwrapper = new AddiUnwrapper();
+
+    @Test
+    public void unwrap_chunkItemArgIsNull_throws() throws JobStoreException {
+       try {
+            unwrapper.unwrap(null);
+            fail("No NullPointerException thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void unwrap_chunkItemUnwrappedWithUnknownType_throws() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.MARCXCHANGE)
+                .build();
+        try {
+            unwrapper.unwrap(chunkItem);
+            fail("No JobStoreException thrown");
+        } catch (JobStoreException e) {
+        }
+    }
+
+    @Test
+    public void unwrap_chunkItemUnwrappedWithUnknownType_returnsUnwrappedChunkItemWithMarcXchangeType() throws JobStoreException {
+        final String expectedData = "test";
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.UNKNOWN)
+                .setData(getValidAddi(expectedData))
+                .build();
+        final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
+        assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(1));
+        final ChunkItem unwrappedChunkItem = unwrappedChunkItems.get(0);
+        assertThat("Unwrapped item type", unwrappedChunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.MARCXCHANGE)));
+        assertThat("Unwrapped item data", StringUtil.asString(unwrappedChunkItem.getData()), is(expectedData));
+    }
+
+    @Test
+    public void unwrap_chunkItemWrappedWithNonAddiType_throws() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(Arrays.asList(ChunkItem.Type.GENERICXML, ChunkItem.Type.MARCXCHANGE))
+                .build();
+        try {
+            unwrapper.unwrap(chunkItem);
+            fail("No JobStoreException thrown");
+        } catch (JobStoreException e) {
+        }
+    }
+
+    @Test
+    public void unwrap_chunkItemWrappedWithMalformedAddiData_throws() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.STRING))
+                .build();
+        try {
+            unwrapper.unwrap(chunkItem);
+            fail("No JobStoreException thrown");
+        } catch (JobStoreException e) {
+        }
+    }
+
+    @Test
+    public void unwrap_chunkItemWrappedWithAddiType_returnsUnwrappedChunkItemWithWrappedType() throws JobStoreException {
+        final String expectedData = "test";
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.STRING))
+                .setData(getValidAddi(expectedData))
+                .build();
+        final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
+        assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(1));
+        final ChunkItem unwrappedChunkItem = unwrappedChunkItems.get(0);
+        assertThat("Unwrapped item type", unwrappedChunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
+        assertThat("Unwrapped item data", StringUtil.asString(unwrappedChunkItem.getData()), is(expectedData));
+    }
+
+    @Test
+    public void unwrap_addiWrapsMultipleItems_returnsMultipleChunkItemsWithWrappedType() throws JobStoreException {
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.STRING))
+                .setData(getValidAddi("first", "second"))
+                .build();
+        final List<ChunkItem> unwrappedChunkItems = unwrapper.unwrap(chunkItem);
+        assertThat("Number of unwrapped items", unwrappedChunkItems.size(), is(2));
+        assertThat("First unwrapped item type", unwrappedChunkItems.get(0).getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
+        assertThat("First unwrapped item data", StringUtil.asString(unwrappedChunkItems.get(0).getData()), is("first"));
+        assertThat("Second unwrapped item type", unwrappedChunkItems.get(1).getType(), is(Collections.singletonList(ChunkItem.Type.STRING)));
+        assertThat("Second unwrapped item data", StringUtil.asString(unwrappedChunkItems.get(1).getData()), is("second"));
+    }
+
+    public static byte[] getValidAddi(String... content) {
+        final StringBuilder addi = new StringBuilder();
+        for (String s : content) {
+            addi.append(String.format("19\n<es:referencedata/>\n%d\n%s\n",
+                    s.getBytes(StandardCharsets.UTF_8).length, s));
+        }
+        return addi.toString().getBytes(StandardCharsets.UTF_8);
+    }
+}

@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ChunkItemBuilder {
     private long id = 0L;
@@ -56,6 +57,11 @@ public class ChunkItemBuilder {
 
     public ChunkItemBuilder setType( ChunkItem.Type type ) {
         this.type= new ArrayList<>(Arrays.asList( type ));
+        return this;
+    }
+
+    public ChunkItemBuilder setType(List<ChunkItem.Type> type) {
+        this.type= new ArrayList<>(type);
         return this;
     }
 

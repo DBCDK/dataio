@@ -8,6 +8,7 @@ import java.util.List;
 /**
  * General interface to unwrap content from wrapping formats
  */
+@FunctionalInterface
 public interface ChunkItemUnwrapper {
     /**
      * Unwraps content from given chunk item

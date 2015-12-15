@@ -1,0 +1,129 @@
+package dk.dbc.dataio.jobstore.service.util;
+
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Class for chunk item exporting
+ */
+public class ChunkItemExporter {
+    private AddiUnwrapper addiUnwrapper = new AddiUnwrapper();
+    private MarcXchangeV1ToDanMarc2LineFormatConverter marcXchangeV1ToDanMarc2LineFormatConverter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
+
+    /* Associates wrapping formats with their corresponding unwrap handler */
+    private Map<ChunkItem.Type, ChunkItemUnwrapper> wrapperFormats = new HashMap<>();
+    {
+        wrapperFormats.put(ChunkItem.Type.UNKNOWN, addiUnwrapper);  // ToDo: remove when all chunk items are created with type information
+        wrapperFormats.put(ChunkItem.Type.ADDI, addiUnwrapper);
+    }
+
+    /* Associates legal conversions with their corresponding convert handler */
+    private Map<Conversion, ChunkItemConverter> conversions = new HashMap<>();
+    {
+        conversions.put(new Conversion(ChunkItem.Type.MARCXCHANGE, ChunkItem.Type.DANMARC2LINEFORMAT),
+                marcXchangeV1ToDanMarc2LineFormatConverter);
+    }
+
+    /**
+     * Exports given chunk item as given type in given encoding
+     * @param chunkItem chunk item to be exported
+     * @param asType type of export
+     * @param encodedAs export encoding
+     * @return export as bytes
+     * @throws NullPointerException if given null-valued argument
+     * @throws JobStoreException on unwrap error, on illegal type conversion, on failure to read input data
+     * or on failure to write output data
+     */
+    byte[] export(ChunkItem chunkItem, ChunkItem.Type asType, Charset encodedAs) throws NullPointerException, JobStoreException {
+        InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
+        InvariantUtil.checkNotNullOrThrow(asType, "asType");
+        InvariantUtil.checkNotNullOrThrow(encodedAs, "encodedAs");
+
+        final List<ChunkItem> chunkItems = unwrap(chunkItem);
+        final Conversion conversion = new Conversion(chunkItems.get(0).getType().get(0), asType);
+        if (!isLegalConversion(conversion)) {
+            throw new JobStoreException("Illegal conversion " + conversion.toString());
+        }
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for (ChunkItem item : chunkItems) {
+            try {
+                byteArrayOutputStream.write(conversions.get(conversion).convert(item, encodedAs));
+            } catch (IOException e) {
+                throw new JobStoreException("Exception caught while writing output bytes", e);
+            }
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    /*
+       Unwraps chunk item.
+       Multiple wrapping layers are currently not supported.
+    */
+    private List<ChunkItem> unwrap(ChunkItem chunkItem) throws JobStoreException {
+        final ChunkItem.Type type = chunkItem.getType().get(0);
+        if (isWrapperFormat(type)) {
+            return wrapperFormats.get(type).unwrap(chunkItem);
+        }
+        return Collections.singletonList(chunkItem);
+    }
+
+    private boolean isWrapperFormat(ChunkItem.Type type) {
+        return wrapperFormats.containsKey(type);
+    }
+
+    private boolean isLegalConversion(Conversion conversion) {
+        return conversions.containsKey(conversion);
+    }
+
+    private static class Conversion {
+        private final ChunkItem.Type from;
+        private final ChunkItem.Type to;
+
+        public Conversion(ChunkItem.Type from, ChunkItem.Type to) {
+            this.from = from;
+            this.to = to;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Conversion that = (Conversion) o;
+
+            if (from != that.from) {
+                return false;
+            }
+            return to == that.to;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = from.hashCode();
+            result = 31 * result + to.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "Conversion{" +
+                    "from=" + from +
+                    ", to=" + to +
+                    '}';
+        }
+    }
+}

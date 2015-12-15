@@ -121,9 +121,6 @@ public class ViewTest {
 
     public class ViewConcrete extends View {
         CellPreviewHandlerClass cellPreviewHandler = new CellPreviewHandlerClass();
-        HidableColumnHeader hidableColumnHeader = new HidableColumnHeader("header");
-        HideShowColumnHeader hideShowColumnHeader = new HideShowColumnHeader();
-        HideShowCell hideShowCell = new HideShowCell();
 
         public ViewConcrete() {
             super("header", false, false);

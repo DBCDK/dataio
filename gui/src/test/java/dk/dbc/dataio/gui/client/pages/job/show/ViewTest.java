@@ -106,8 +106,7 @@ public class ViewTest {
     final static String MOCKED_LABEL_JOBS = "Mocked Label Jobs";
     final static String MOCKED_COLUMN_HEADER_JOB_CREATION_TIME = "Mocked Column Header Job Creation Time";
     final static String MOCKED_COLUMN_HEADER_JOB_ID = "Mocked Column Header Job Id";
-    final static String MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER = "Mocked Column Header Submitter Number";
-    final static String MOCKED_COLUMN_HEADER_SUBMITTER_NAME = "Mocked Column Header Submitter Name";
+    final static String MOCKED_COLUMN_HEADER_SUBMITTER = "Mocked Column Header Submitter";
     final static String MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME = "Mocked Column Header Flow Binder Name";
     final static String MOCKED_COLUMN_HEADER_SINK_NAME = "Mocked Column Header Sink Name";
     final static String MOCKED_COLUMN_HEADER_ITEM_COUNTER = "Mocked Column Header Item Counter";
@@ -148,8 +147,7 @@ public class ViewTest {
         when(mockedTexts.label_Jobs()).thenReturn(MOCKED_LABEL_JOBS);
         when(mockedTexts.columnHeader_JobCreationTime()).thenReturn(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME);
         when(mockedTexts.columnHeader_JobId()).thenReturn(MOCKED_COLUMN_HEADER_JOB_ID);
-        when(mockedTexts.columnHeader_SubmitterNumber()).thenReturn(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER);
-        when(mockedTexts.columnHeader_SubmitterName()).thenReturn(MOCKED_COLUMN_HEADER_SUBMITTER_NAME);
+        when(mockedTexts.columnHeader_Submitter()).thenReturn(MOCKED_COLUMN_HEADER_SUBMITTER);
         when(mockedTexts.columnHeader_FlowBinderName()).thenReturn(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME);
         when(mockedTexts.columnHeader_SinkName()).thenReturn(MOCKED_COLUMN_HEADER_SINK_NAME);
         when(mockedTexts.columnHeader_TotalChunkCount()).thenReturn(MOCKED_COLUMN_HEADER_ITEM_COUNTER);
@@ -175,8 +173,7 @@ public class ViewTest {
         verify(viewConcrete.jobsTable, times(3)).addColumn(isA(Column.class), isA(View.HidableColumnHeader.class));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NUMBER));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER_NAME));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SINK_NAME));
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_ITEM_COUNTER));
@@ -336,25 +333,10 @@ public class ViewTest {
         view = new ViewConcrete();
 
         // Subject Under Test
-        Column column = view.constructSubmitterNumberColumn();
+        Column column = view.constructSubmitterColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat(column.getValue(testModel1), is(testModel1.getSubmitterNumber()));
-
-        // Test that column is set to sortable
-        assertThat(column.isSortable(), is(false));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void constructSubmitterNameColumn_call_correctlySetup() {
-        view = new ViewConcrete();
-
-        // Subject Under Test
-        Column column = view.constructSubmitterNameColumn();
-
-        // Test that correct getValue handler has been setup
-        assertThat(column.getValue(testModel1), is(testModel1.getSubmitterName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getSubmitterNumber() + " (" + testModel1.getSubmitterName() + ")"));
 
         // Test that column is set to sortable
         assertThat(column.isSortable(), is(false));

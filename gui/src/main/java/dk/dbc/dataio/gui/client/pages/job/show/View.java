@@ -47,6 +47,7 @@ import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.client.util.Format;
 
 
 /**
@@ -134,8 +135,7 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructRerunColumn(), new HidableColumnHeader(texts.columnHeader_Action()));
         jobsTable.addColumn(constructJobCreationTimeColumn(), texts.columnHeader_JobCreationTime());
         jobsTable.addColumn(constructJobIdColumn(), texts.columnHeader_JobId());
-        jobsTable.addColumn(constructSubmitterNumberColumn(), texts.columnHeader_SubmitterNumber());
-        jobsTable.addColumn(constructSubmitterNameColumn(), texts.columnHeader_SubmitterName());
+        jobsTable.addColumn(constructSubmitterColumn(), texts.columnHeader_Submitter());
         jobsTable.addColumn(constructFlowBinderNameColumn(), texts.columnHeader_FlowBinderName());
         jobsTable.addColumn(constructSinkNameColumn(), texts.columnHeader_SinkName());
         jobsTable.addColumn(constructItemCountColumn(), texts.columnHeader_TotalChunkCount());
@@ -264,31 +264,16 @@ public class View extends ViewWidget {
     }
 
     /**
-     * This method constructs the SubmitterNumber column
+     * This method constructs the Submitter column
      * Should have been private, but is package-private to enable unit test
      *
-     * @return the constructed SubmitterNumber column
+     * @return the constructed Submitter column
      */
-    Column constructSubmitterNumberColumn() {
+    Column constructSubmitterColumn() {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model.getSubmitterNumber();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the SubmitterName column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed SubmitterName column
-     */
-    Column constructSubmitterNameColumn() {
-        return new TextColumn<JobModel>() {
-            @Override
-            public String getValue(JobModel model) {
-                return model.getSubmitterName();
+                return Format.inBracketsPairString(model.getSubmitterNumber(), model.getSubmitterName());
             }
         };
     }

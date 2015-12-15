@@ -38,10 +38,7 @@ public interface Texts extends Constants {
     String columnHeader_JobId();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_SubmitterNumber();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_SubmitterName();
+    String columnHeader_Submitter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_FlowBinderName();

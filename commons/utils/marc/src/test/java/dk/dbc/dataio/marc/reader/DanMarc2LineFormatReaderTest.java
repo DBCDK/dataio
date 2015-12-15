@@ -43,7 +43,7 @@ public class DanMarc2LineFormatReaderTest {
     private String endOfRecord = "$\n";
     private String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
     private String complexRecordInLineFormat = simpleRecordInLineFormat +
-            "260 00 *a[Ballerup]*bDBC*c2015\n" +
+            "610 00 *0*aGoogle*2DBC\n" +
             "s10 00 *aDBC\n";
     private MarcRecord simpleRecord = getSimpleMarcRecord();
 
@@ -178,19 +178,19 @@ public class DanMarc2LineFormatReaderTest {
     }
 
     private MarcRecord getComplexRecord() {
-        final DataField dataField260 = new DataField()
-                .setTag("260")
+        final DataField dataField610 = new DataField()
+                .setTag("610")
                 .setInd1('0')
                 .setInd2('0')
                 .addSubfield(new SubField()
+                        .setCode('0')
+                        .setData(""))
+                .addSubfield(new SubField()
                         .setCode('a')
-                        .setData("[Ballerup]"))
-                .addSubfield(new SubField()
-                        .setCode('b')
-                        .setData("DBC"))
-                .addSubfield(new SubField()
-                        .setCode('c')
-                        .setData("2015"));
+                        .setData("Google"))
+               .addSubfield(new SubField()
+                        .setCode('2')
+                        .setData("DBC"));
         final DataField dataFields01 = new DataField()
                 .setTag("s01")
                 .setInd1('0')
@@ -198,8 +198,9 @@ public class DanMarc2LineFormatReaderTest {
                 .addSubfield(new SubField()
                         .setCode('a')
                         .setData("DBC"));
+
         return getSimpleMarcRecord()
-                .addField(dataField260)
+                .addField(dataField610)
                 .addField(dataFields01);
     }
 }

@@ -126,15 +126,20 @@ public class ChunkProcessorBean {
         List<ChunkItem> processedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
             final StopWatch stopWatchForItem = new StopWatch();
-            try {
-                final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
-                        String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId());
-                final ChunkItem processedItem = processItemWithLogStoreTracking(item, logStoreTrackingId,
-                        supplementaryData, jsWrappers);
-                processedItems.add(processedItem);
-            } finally {
-                LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
-                        chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+
+            if(item.getStatus() != ChunkItem.Status.SUCCESS) {
+                processedItems.add(skippedItem(item, chunk.getJobId(), chunk.getChunkId()));
+            } else {
+                try {
+                    final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
+                            String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId());
+                    final ChunkItem processedItem = processItemWithLogStoreTracking(item, logStoreTrackingId,
+                            supplementaryData, jsWrappers);
+                    processedItems.add(processedItem);
+                } finally {
+                    LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+                            chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+                }
             }
         }
         return processedItems;
@@ -161,6 +166,18 @@ public class ChunkProcessorBean {
         return processedItem;
     }
 
+    /*
+     * Skips javascript processing of an item and sets status to ignore.
+     */
+    private ChunkItem skippedItem(ChunkItem item, long jobId, long chunkId) {
+        LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
+                jobId, chunkId, item.getId(), item.getStatus());
+
+        return new ChunkItem(item.getId(),
+                StringUtil.asBytes(String.format("Ignored by job-processor since returned status was {%s}", item.getStatus())),
+                ChunkItem.Status.IGNORE);
+    }
+
     /* Processes given item
      */
     private ChunkItem processItem(ChunkItem item, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers, LogStoreTrackingId trackingId) {
@@ -179,7 +196,7 @@ public class ChunkProcessorBean {
             } else {
                 processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(data), ChunkItem.Status.SUCCESS);
             }
-        } catch (IgnoreRecord ex ) {
+        } catch (IgnoreRecord ex) {
             LOGGER.error("Record Ignored by JS with Message: {}", ex.getMessage());
             processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(ex.getMessage()), ChunkItem.Status.IGNORE);
         } catch (FailRecord ex) {

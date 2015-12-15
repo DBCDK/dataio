@@ -66,7 +66,7 @@ public class ChunkProcessorBeanTest {
     public void process_emptyChunk_returnsEmptyResult() throws Exception {
         final ExternalChunk emptyChunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
                 .setJobId(jobId)
-                .setItems(new ArrayList<ChunkItem>(0))
+                .setItems(new ArrayList<>(0))
                 .build();
         final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnUpperCase,
                 getJavaScript(getJavaScriptReturnUpperCaseFunction()));
@@ -288,6 +288,54 @@ public class ChunkProcessorBeanTest {
         final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
         assertThat("Chunk has next items", processedChunk.hasNextItems(), is(true));
     }
+
+    @Test
+    public void process_skipsOnlyChunkItemsWithStatusFailureAndIgnore_returnsResultOfJavascriptPipe() throws Exception {
+
+        final String record = "zero";
+        final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
+                getJavaScript(getJavaScriptReturnUpperCaseFunction()));
+        final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnConcatenation,
+                getJavaScript(getJavaScriptReturnConcatenationFunction()));
+        final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
+
+        final List<ChunkItem> items = new ArrayList<>();
+        items.add(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(record)).build());
+        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.FAILURE).build());
+        items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.IGNORE).build());
+
+        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED)
+                .setJobId(jobId)
+                .setItems(items)
+                .build();
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+        assertProcessedChunk(processedChunk, jobId, 1, 3);
+        final Iterator<ChunkItem> iterator = processedChunk.iterator();
+
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem0 = iterator.next();
+        assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()),
+                is(String.format("%s%s%s", submitter, record.toUpperCase(), format)));
+        assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
+
+        assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem1 = iterator.next();
+        assertThat("Chunk item[1] data", processedItem1.getData().length == 0, is(false));
+        assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.IGNORE));
+
+        assertThat("Chunk has item[2]", iterator.hasNext(), is(true));
+        final ChunkItem processedItem2 = iterator.next();
+        assertThat("Chunk item[2] data", processedItem2.getData().length == 0, is(false));
+        assertThat("Chunk item[2] status", processedItem2.getStatus(), is(ChunkItem.Status.IGNORE));
+
+        assertThat("Chunk has item[3]", iterator.hasNext(), is(false));
+    }
+
+    /*
+     * private methods
+     */
 
 
     private void assertProcessedChunk(ExternalChunk chunk, long jobID, long chunkId, int chunkSize) {

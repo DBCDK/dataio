@@ -43,7 +43,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -128,7 +130,9 @@ public class ChunkProcessorBean {
             final StopWatch stopWatchForItem = new StopWatch();
 
             if(item.getStatus() != ChunkItem.Status.SUCCESS) {
-                processedItems.add(skippedItem(item, chunk.getJobId(), chunk.getChunkId()));
+                processedItems.add(skipItem(item));
+                LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
+                        chunk.getJobId(), chunk.getChunkId(), item.getId(), item.getStatus());
             } else {
                 try {
                     final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
@@ -169,13 +173,12 @@ public class ChunkProcessorBean {
     /*
      * Skips javascript processing of an item and sets status to ignore.
      */
-    private ChunkItem skippedItem(ChunkItem item, long jobId, long chunkId) {
-        LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
-                jobId, chunkId, item.getId(), item.getStatus());
-
+    private ChunkItem skipItem(ChunkItem item) {
         return new ChunkItem(item.getId(),
                 StringUtil.asBytes(String.format("Ignored by job-processor since returned status was {%s}", item.getStatus())),
-                ChunkItem.Status.IGNORE);
+                ChunkItem.Status.IGNORE,
+                new ArrayList<>(Collections.singletonList(ChunkItem.Type.STRING)),
+                StandardCharsets.UTF_8.name());
     }
 
     /* Processes given item

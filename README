@@ -29,7 +29,7 @@ $ startServer start
 $ mvn verify
 
 
-3. DOCUMENTATION
+2. DOCUMENTATION
 ================
 Documentation can be found on:
 

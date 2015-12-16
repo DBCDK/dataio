@@ -34,12 +34,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class DanMarc2LineFormatDataPartitionerTest {
-
     private final static String SPECIFIED_ENCODING = "latin1";
 
     @Test
@@ -151,6 +151,19 @@ public class DanMarc2LineFormatDataPartitionerTest {
             iterator.next();
             fail("No exception thrown");
         } catch (InvalidDataException ignored) { }
+    }
+
+    @Test
+    public void dm2LineFormatDataPartitioner_multipleIterations() {
+        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
+                createDataPartitioner(getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
+        int chunkItemNo = 0;
+        for (ChunkItem chunkItem : dataPartitioner) {
+            chunkItemNo++;
+            assertThat("Chunk item " + chunkItemNo, chunkItem, is(notNullValue()));
+        }
+        assertThat("Number of chunk item created", chunkItemNo, is(74));
+        assertThat("Number of bytes read", dataPartitioner.getBytesRead(), is(71516L));
     }
 
     /*

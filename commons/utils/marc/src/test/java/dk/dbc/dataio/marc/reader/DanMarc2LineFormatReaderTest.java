@@ -152,6 +152,22 @@ public class DanMarc2LineFormatReaderTest {
         assertThat(reader.read(), is(getComplexRecord()));
     }
 
+    @Test
+    public void hasNext_inputStreamIsEmpty_returnsFalse() throws MarcReaderException {
+        final DanMarc2LineFormatReader reader = newReader(toInputStream(""));
+        assertThat(reader.hasNext(), is(false));
+    }
+
+    @Test
+    public void hasNext() throws MarcReaderException {
+        final String record = complexRecordInLineFormat + endOfRecord;
+        final DanMarc2LineFormatReader reader = newReader(toInputStream(record));
+        assertThat(reader.hasNext(), is(true));
+        assertThat(reader.hasNext(), is(true));
+        reader.read();
+        assertThat(reader.hasNext(), is(false));
+    }
+
     private BufferedInputStream toInputStream(String s) {
         return new BufferedInputStream(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
     }

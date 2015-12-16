@@ -30,7 +30,6 @@ import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.marc.binding.MarcRecord;
 import dk.dbc.dataio.marc.reader.DanMarc2LineFormatReader;
-import dk.dbc.dataio.marc.reader.MarcReader;
 import dk.dbc.dataio.marc.reader.MarcReaderException;
 import dk.dbc.dataio.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.dataio.marc.writer.MarcWriter;
@@ -40,8 +39,6 @@ import dk.dbc.marc.DanMarc2Charset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -74,12 +71,13 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
         private static final Logger LOGGER = LoggerFactory.getLogger(DanMarc2LineFormatDataPartitioner.class);
 
         private final ByteCountingInputStream inputStream;
+        private final MarcXchangeV1Writer marcWriter;
+        private final DanMarc2LineFormatReader marcReader;
         private String specifiedEncoding;
         private Charset encoding;
 
         private Iterator<ChunkItem> iterator;
         private DanMarc2Charset danMarc2Charset;
-        private BufferedInputStream bufferedInputStream;
 
         public DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) {
             this.inputStream = new ByteCountingInputStream(inputStream);
@@ -87,6 +85,8 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
             this.specifiedEncoding = specifiedEncoding;
             this.danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
             validateSpecifiedEncoding();
+            marcWriter = new MarcXchangeV1Writer();
+            marcReader = new DanMarc2LineFormatReader(this.inputStream, danMarc2Charset);
         }
 
         @Override
@@ -101,23 +101,12 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
 
         @Override
         public Iterator<ChunkItem> iterator() {
-            if (iterator == null) {
-                bufferedInputStream = new BufferedInputStream(inputStream);
-            }
-
             iterator = new Iterator<ChunkItem>() {
-                private MarcWriter marcWriter = new MarcXchangeV1Writer();
-                private MarcReader marcReader = new DanMarc2LineFormatReader(bufferedInputStream, danMarc2Charset);
-
                 @Override
                 public boolean hasNext() {
                     try {
-                        bufferedInputStream.mark(1);
-                        int readResult = bufferedInputStream.read();
-                        bufferedInputStream.reset();
-                        return readResult > -1;
-                    } catch (IOException e) {
-                        LOGGER.error("Exception caught while reading input stream", e);
+                        return marcReader.hasNext();
+                    } catch (MarcReaderException e) {
                         throw new InvalidDataException(e);
                     }
                 }

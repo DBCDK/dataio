@@ -23,6 +23,8 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.marc.binding.ControlField;
 import dk.dbc.dataio.marc.binding.DataField;
@@ -35,7 +37,6 @@ import dk.dbc.dataio.marc.writer.MarcWriterException;
 import dk.dbc.dataio.marc.writer.MarcXchangeV1Writer;
 import org.junit.Test;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
@@ -59,7 +60,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
             "e01 00 *aThis is the third diagnostic FATAL message\n";
 
     @Test
-    public void MarcXchangeV1ToDanMarc2LineFormatConverter_convertInvalidMarc_throws() throws MarcReaderException, JobStoreException {
+    public void convert_invalidMarc_throws() throws MarcReaderException, JobStoreException {
         final ChunkItem chunkItem = buildChunkItem("invalid", ChunkItem.Status.FAILURE);
         final MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
         try {
@@ -71,7 +72,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     }
 
     @Test
-    public void MarcXchangeV1ToDanMarc2LineFormatConverter_convertIllegalEncoding_throws() {
+    public void convert_illegalEncoding_throws() {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE, "unsupported");
         final MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
         try {
@@ -83,7 +84,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     }
 
     @Test
-    public void MarcXchangeV1ToDanMarc2LineFormatConverter_convertMarcRecordContainingControlField_throws() {
+    public void convert_marcRecordContainingControlField_throws() {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecordWithControlFields()), ChunkItem.Status.FAILURE);
         final MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
         try {
@@ -95,7 +96,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     }
 
     @Test
-    public void MarcXchangeV1ToDanMarc2LineFormatConverter_convertChunkItemWithDiagnostics_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
+    public void convert_chunkItemWithDiagnostics_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
         ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.FAILURE);
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the first diagnostic FATAL message"));
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the second diagnostic FATAL message"));
@@ -104,17 +105,17 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
         MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
 
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
-        assertThat(asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticSubfieldsAsLineFormat + endTag));
+        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticSubfieldsAsLineFormat + endTag));
     }
 
     @Test
-    public void MarcXchangeV1ToDanMarc2LineFormatConverter_convertChunkItemWithoutDiagnostics_returnsDanmarc2LineFormatWithoutDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
+    public void convert_chunkItemWithoutDiagnostics_returnsDanmarc2LineFormatWithoutDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
         ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.SUCCESS);
 
         MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
 
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
-        assertThat(asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + endTag));
+        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + endTag));
     }
 
 
@@ -123,19 +124,17 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
      */
 
     private ChunkItem buildChunkItem(String data, ChunkItem.Status status) {
-        return new ChunkItem(0, data.getBytes(), status);
+        return new ChunkItemBuilder().setId(0).setData(data.getBytes()).setStatus(status).build();
     }
 
     private ChunkItem buildChunkItem(String data, ChunkItem.Status status, String encoding) {
-        return new ChunkItem(0, data.getBytes(), status, new ArrayList<>(Collections.singletonList(ChunkItem.Type.UNKNOWN)), encoding);
-    }
-
-    private String asString(byte[] bytes) {
-        return asString(bytes, StandardCharsets.UTF_8);
-    }
-
-    private String asString(byte[] bytes, Charset encoding) {
-        return new String(bytes, encoding);
+        return new ChunkItemBuilder()
+                .setId(0)
+                .setData(data.getBytes())
+                .setStatus(status)
+                .setType(new ArrayList<>(Collections.singletonList(ChunkItem.Type.UNKNOWN)))
+                .setEncoding(encoding)
+                .build();
     }
 
     private MarcRecord getMarcRecord() {

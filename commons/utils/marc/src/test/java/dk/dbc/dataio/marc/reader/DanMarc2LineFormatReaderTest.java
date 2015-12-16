@@ -29,6 +29,7 @@ import org.junit.Test;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
@@ -46,6 +47,11 @@ public class DanMarc2LineFormatReaderTest {
             "610 00 *0*aGoogle*2DBC\n" +
             "s10 00 *aDBC\n";
     private MarcRecord simpleRecord = getSimpleMarcRecord();
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_inputStreamIsOfTypeBufferedInputStream_throws() {
+        newReader(new BufferedInputStream(toInputStream("")));
+    }
 
     @Test
     public void read_inputStreamIsEmpty_returnsNull() throws MarcReaderException {
@@ -168,11 +174,15 @@ public class DanMarc2LineFormatReaderTest {
         assertThat(reader.hasNext(), is(false));
     }
 
-    private BufferedInputStream toInputStream(String s) {
-        return new BufferedInputStream(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
+    private ByteArrayInputStream toInputStream(String s) {
+        return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
     }
 
-    private DanMarc2LineFormatReader newReader(BufferedInputStream is) {
+//    private BufferedInputStream toInputStream(String s) {
+//        return new BufferedInputStream(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
+//    }
+
+    private DanMarc2LineFormatReader newReader(InputStream is) {
         return new DanMarc2LineFormatReader(is, StandardCharsets.UTF_8);
     }
 

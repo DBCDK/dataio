@@ -28,6 +28,7 @@ import dk.dbc.dataio.marc.binding.SubField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -68,6 +69,9 @@ public class DanMarc2LineFormatReader implements MarcReader {
      * @param encoding line format records encoding
      */
     public DanMarc2LineFormatReader(InputStream inputStream, Charset encoding) {
+        if(inputStream instanceof BufferedInputStream) {
+            throw new IllegalArgumentException("InputStream cannot be of type BufferedInputStream");
+        }
         reader = new BufferedReader(new InputStreamReader(inputStream, encoding));
     }
 

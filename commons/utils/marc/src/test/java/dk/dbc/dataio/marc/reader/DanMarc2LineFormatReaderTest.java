@@ -178,10 +178,6 @@ public class DanMarc2LineFormatReaderTest {
         return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
     }
 
-//    private BufferedInputStream toInputStream(String s) {
-//        return new BufferedInputStream(new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8)));
-//    }
-
     private DanMarc2LineFormatReader newReader(InputStream is) {
         return new DanMarc2LineFormatReader(is, StandardCharsets.UTF_8);
     }

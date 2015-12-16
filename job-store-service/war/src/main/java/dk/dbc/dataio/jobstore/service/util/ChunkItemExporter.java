@@ -64,7 +64,7 @@ public class ChunkItemExporter {
      * @throws JobStoreException on unwrap error, on illegal type conversion, on failure to read input data
      * or on failure to write output data
      */
-    byte[] export(ChunkItem chunkItem, ChunkItem.Type asType, Charset encodedAs) throws NullPointerException, JobStoreException {
+    public byte[] export(ChunkItem chunkItem, ChunkItem.Type asType, Charset encodedAs) throws NullPointerException, JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         InvariantUtil.checkNotNullOrThrow(asType, "asType");
         InvariantUtil.checkNotNullOrThrow(encodedAs, "encodedAs");

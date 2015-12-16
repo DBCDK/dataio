@@ -171,15 +171,10 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     @Override
     public void setWorkflowNoteModel(ItemModel itemModel, boolean isProcessed) {
         WorkflowNoteModel itemModelWorkflowNoteModel = itemModel.getWorkflowNoteModel();
-        if (itemModelWorkflowNoteModel == null) {
-            itemModelWorkflowNoteModel = new WorkflowNoteModel(true, workflowNoteModel.getAssignee(), EMPTY);
-        } else {
-            if (itemModelWorkflowNoteModel.isProcessed()) {
-                itemModelWorkflowNoteModel.setProcessed(false);
-            } else {
-                itemModelWorkflowNoteModel.setProcessed(true);
-            }
+        if (itemModelWorkflowNoteModel.getAssignee().isEmpty()) {
+            itemModelWorkflowNoteModel.setAssignee(workflowNoteModel.getAssignee());
         }
+        itemModelWorkflowNoteModel.setProcessed(isProcessed);
         commonInjector.getJobStoreProxyAsync().setWorkflowNote(
                 itemModelWorkflowNoteModel,
                 Long.valueOf(itemModel.getJobId()).intValue(),
@@ -272,7 +267,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     private void AddOrRemoveFixedColumn() {
         View view = getView();
-        if(workflowNoteModel == null) {
+        if(workflowNoteModel.getAssignee().isEmpty()) {
             view.removeFixedColumn();
         } else {
             view.addFixedColumn();
@@ -387,7 +382,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 setJobTabVisibility(ViewWidget.IGNORED_ITEMS_TAB_INDEX, true);
             }
         }
-        if(workflowNoteModel != null) {
+        if(workflowNoteModel != null && !workflowNoteModel.getAssignee().isEmpty()) {
             setJobTabVisibility(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT, true);
         }
     }

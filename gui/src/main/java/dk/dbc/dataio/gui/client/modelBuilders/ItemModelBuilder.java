@@ -38,7 +38,7 @@ public class ItemModelBuilder {
     private List<DiagnosticModel> diagnosticModels = new ArrayList<>(Collections.singletonList(
             new DiagnosticModelBuilder().build()));
     private boolean diagnosticFatal = false;
-    private WorkflowNoteModel workflowNoteModel = null;
+    private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
 
     public ItemModelBuilder setItemNumber(String itemNumber) {
         this.itemNumber = itemNumber;

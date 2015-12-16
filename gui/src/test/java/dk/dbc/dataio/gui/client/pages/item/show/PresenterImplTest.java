@@ -335,7 +335,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private ItemModel testModelProcessing = new ItemModelBuilder().setItemNumber("14").setItemId("1004").setChunkId("1114").setJobId("1").setLifeCycle(ItemModel.LifeCycle.PROCESSING).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().build())).build();
     private ItemModel testModelFatalError = new ItemModelBuilder().setHasDiagnosticFatal(true).setDiagnosticModels(Collections.singletonList(new DiagnosticModelBuilder().setLevel("FATAL").build())).build();
     private ItemModel testModelEmptyDiagn = new ItemModelBuilder().setDiagnosticModels(new ArrayList<>()).build();
-    private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().setAssignee("assignee").build();
+    private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().setAssignee("").build();
 
     private JobModel testJobModelSucceeded = new JobModelBuilder()
             .setJobId("1418716277429")
@@ -360,6 +360,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setJobCreationTime("2015-09-02 10:38:43")
             .setJobCompletionTime("2015-09-02 10:39:55")
             .setType(JobModel.Type.TRANSIENT)
+            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
@@ -383,7 +384,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
             .setType(JobModel.Type.TEST)
-            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private JobModel testJobModelIgnored = new JobModelBuilder()
@@ -407,6 +407,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
             .setType(JobModel.Type.PERSISTENT)
+            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private JobModel testJobModelIgnored2 = new JobModelBuilder()
@@ -432,6 +433,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setMailForNotificationAboutProcessing("mailProcessingB")
             .setResultMailInitials("resultMailInitialsB")
             .setType(JobModel.Type.ACCTEST)
+            .setWorkflowNoteModel(workflowNoteModel)
             .build();
 
     private List<JobModel> testJobModelsEmpty = new ArrayList<>();

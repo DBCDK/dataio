@@ -43,7 +43,7 @@ public class WorkflowNoteModelMapper {
         if(workflowNote != null) {
             return new WorkflowNoteModel(workflowNote.isProcessed(), workflowNote.getAssignee(), workflowNote.getDescription());
         } else {
-            return null;
+            return new WorkflowNoteModel();
         }
     }
 }

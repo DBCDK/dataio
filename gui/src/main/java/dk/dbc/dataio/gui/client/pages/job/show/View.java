@@ -479,7 +479,7 @@ public class View extends ViewWidget {
                     && BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())
                     && cellPreviewEvent.getColumn() == IS_FIXED_COLUMN) {
                 final WorkflowNoteModel workflowNoteModel = cellPreviewEvent.getValue().getWorkflowNoteModel();
-                if(workflowNoteModel == null) {
+                if(workflowNoteModel.getAssignee().isEmpty()) {
                     Window.alert(getTexts().error_InputCellValidationError());
                     jobsTable.redraw();
                 } else {

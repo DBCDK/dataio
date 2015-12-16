@@ -35,7 +35,6 @@ import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
-import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 
 import java.util.List;
 
@@ -251,12 +250,10 @@ public class View extends ViewWidget {
     class CellPreviewHandlerClass implements CellPreviewEvent.Handler<ItemModel> {
         @Override
         public void onCellPreview(CellPreviewEvent<ItemModel> cellPreviewEvent) {
-            if(BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType()) && cellPreviewEvent.getColumn() == 2) {
-                final WorkflowNoteModel workflowNoteModel = cellPreviewEvent.getValue().getWorkflowNoteModel();
-                boolean isProcessed = false;
-                if(workflowNoteModel != null) {
-                    isProcessed = workflowNoteModel.isProcessed() ? false : true;
-                }
+            if(cellPreviewEvent != null
+                    && BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())
+                    && cellPreviewEvent.getColumn() == 2) {
+                final boolean isProcessed = cellPreviewEvent.getValue().getWorkflowNoteModel().isProcessed() ? false : true;
                 presenter.setWorkflowNoteModel(cellPreviewEvent.getValue(), isProcessed);
             }
         }

@@ -60,7 +60,7 @@ public class JobModelBuilder {
     private JobModel.Type type = JobModel.Type.TRANSIENT;
     private String dataFile = "";
     private int partNumber = 0;
-    private WorkflowNoteModel workflowNoteModel = null;
+    private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;

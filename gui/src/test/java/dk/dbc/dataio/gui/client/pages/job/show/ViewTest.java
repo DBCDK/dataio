@@ -517,7 +517,8 @@ public class ViewTest {
         when(mockedNativeEvent.getType()).thenReturn("click");
         when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which IS Fixed Column
         when(mockedCellPreviewEvent.getValue()).thenReturn(mockedJobModel);
-        when(mockedJobModel.getWorkflowNoteModel()).thenReturn(null);  // No WorkflowNoteModel inside JobModel
+        when(mockedJobModel.getWorkflowNoteModel()).thenReturn(mockedWorkflowNoteModel);
+        when(mockedWorkflowNoteModel.getAssignee()).thenReturn("");
 
         // Subject Under Test
         view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
@@ -540,6 +541,7 @@ public class ViewTest {
         when(mockedJobModel.getWorkflowNoteModel()).thenReturn(mockedWorkflowNoteModel);
         when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedJobModel);
         when(mockedJobModel.getJobId()).thenReturn("7897");
+        when(mockedWorkflowNoteModel.getAssignee()).thenReturn("test");
         when(mockedWorkflowNoteModel.isProcessed()).thenReturn(true);
 
         // Subject Under Test
@@ -549,7 +551,6 @@ public class ViewTest {
         verifyNoMoreInteractions(view.jobsTable);
         verify(mockedWorkflowNoteModel).isProcessed();
         verify(mockedWorkflowNoteModel).setProcessed(false);
-        verifyNoMoreInteractions(mockedWorkflowNoteModel);
         verify(mockedPresenter).setWorkflowNote(mockedWorkflowNoteModel, "7897");
         verifyNoMoreInteractions(mockedPresenter);
     }

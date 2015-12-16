@@ -61,10 +61,15 @@ public class MailNotification {
 
     private final Session mailSession;
     private final NotificationEntity notification;
+    private final StringBuilder builder;
 
-    public MailNotification(Session mailSession, NotificationEntity notification) {
+    public MailNotification(Session mailSession, NotificationEntity notification) throws JobStoreException {
         this.mailSession = mailSession;
         this.notification = notification;
+        if (isUndefined(notification.getContent())) {
+            format();
+        }
+        builder = new StringBuilder(notification.getContent());
     }
 
     /**
@@ -77,15 +82,16 @@ public class MailNotification {
             if (isUndefined(destination)) {
                 setDestination();
             }
-            if (isUndefined(notification.getContent())) {
-                format();
-            }
             final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"), FROM_ADDRESS_PERSONAL_NAME);
             final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
             Transport.send(buildMimeMessage(fromAddress, toAddresses));
         } catch (Exception e) {
             throw new JobStoreException("Unable to send notification", e);
         }
+    }
+
+    public void append(byte[] addenda) {
+        builder.append(new String(addenda, StandardCharsets.UTF_8));
     }
 
     private void setDestination() {
@@ -196,7 +202,7 @@ public class MailNotification {
                 break;
         }
         message.setSentDate(new Date());
-        message.setText(notification.getContent(), StandardCharsets.UTF_8.name());
+        message.setText(builder.toString());
         return message;
     }
 

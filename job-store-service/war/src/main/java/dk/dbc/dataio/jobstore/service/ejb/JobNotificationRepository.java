@@ -124,8 +124,8 @@ public class JobNotificationRepository extends RepositoryBase {
             return false;
         }
 
-        final MailNotification mailNotification = new MailNotification(mailSession, notification);
         try {
+            final MailNotification mailNotification = new MailNotification(mailSession, notification);
             mailNotification.send();
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);

@@ -196,7 +196,7 @@ public class JobNotificationRepository extends RepositoryBase {
     private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
         final MailNotification mailNotification = new MailNotification(mailSession, notification);
         final JobEntity job = notification.getJob();
-        if (notification.getType() == JobNotification.Type.JOB_COMPLETED && hasJobFailed(job)) {
+        if (notification.getType() == JobNotification.Type.JOB_COMPLETED && hasJobFailed(job) && !job.getState().fatalDiagnosticExists()) {
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.DELIVERING),

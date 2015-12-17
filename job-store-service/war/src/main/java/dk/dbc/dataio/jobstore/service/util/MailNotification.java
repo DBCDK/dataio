@@ -202,7 +202,7 @@ public class MailNotification {
                 break;
         }
         message.setSentDate(new Date());
-        message.setText(builder.toString());
+        message.setText(builder.toString(), StandardCharsets.UTF_8.name());
         return message;
     }
 

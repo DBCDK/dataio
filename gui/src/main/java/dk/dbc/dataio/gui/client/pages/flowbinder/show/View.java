@@ -23,11 +23,16 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 
 import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.ClickableTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -41,6 +46,7 @@ import java.util.List;
  * This class is the View class for the FlowBinders Show View
  */
 public class View extends ViewWidget {
+    final static String CLICKABLE_SUBMITTER_COLUMN_STYLE = "clickable-submitter-column-style";
     ListDataProvider<FlowBinderModel> dataProvider;
     SingleSelectionModel<FlowBinderModel> selectionModel = new SingleSelectionModel<FlowBinderModel>();
 
@@ -202,16 +208,7 @@ public class View extends ViewWidget {
      * @return the constructed Submitters column
      */
     Column constructSubmittersColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                List<String> result = new ArrayList<String>();
-                for (SubmitterModel submitterModel: model.getSubmitterModels()) {
-                    result.add(Format.inBracketsPairString(submitterModel.getNumber(), submitterModel.getName()));
-                }
-                return Format.commaSeparate(result);
-            }
-        };
+        return new SubmitterColumn();
     }
 
     /**
@@ -285,4 +282,65 @@ public class View extends ViewWidget {
         };
     }
 
+
+    /**
+     * Private classes
+     */
+    class SubmitterColumn extends Column<FlowBinderModel, String> {
+        public SubmitterColumn(Cell<String> cell) {
+            super(cell);
+        }
+
+        public SubmitterColumn() {
+            this(new ClickableTextCell());
+        }
+
+        @Override
+        public String getValue(FlowBinderModel model) {
+            List<String> result = new ArrayList<String>();
+            for (SubmitterModel submitterModel: model.getSubmitterModels()) {
+                result.add(Format.inBracketsPairString(submitterModel.getNumber(), submitterModel.getName()));
+            }
+            return formatSubmitters(model.getSubmitterModels());
+        }
+
+        @Override
+        public String getCellStyleNames(Cell.Context context, FlowBinderModel model) {
+            List<SubmitterModel> models = model.getSubmitterModels();
+            if (models != null && models.size() > 1) {
+                return CLICKABLE_SUBMITTER_COLUMN_STYLE;
+            } else {
+                return "";
+            }
+        }
+
+        @Override
+        public void onBrowserEvent(Cell.Context context, Element elem, FlowBinderModel model, NativeEvent event) {
+            super.onBrowserEvent(context, elem, model, event);
+            if (isClickableColumn(model.getSubmitterModels()) && "click".equals(event.getType())) {
+                // To be implemented
+                Window.alert("Her kommer en liste med " + model.getSubmitterModels().size() + " submitter navne");
+            }
+        }
+
+        // Private methods
+        private boolean isEmptySubmitterColumn(List<SubmitterModel> models) {
+            return models == null || models.size() == 0;
+        }
+
+        private boolean isClickableColumn(List<SubmitterModel> models) {
+            return models != null && models.size() > 1;
+        }
+
+        private String formatSubmitters(List<SubmitterModel> models) {
+            if (isEmptySubmitterColumn(models)) {
+                return "";
+            } else if (isClickableColumn(models)) {
+                return models.size() + " " + getTexts().text_Submitters();
+            } else {
+                SubmitterModel model = models.get(0);
+                return Format.inBracketsPairString(model.getNumber(), model.getName());
+            }
+        }
+    };
 }

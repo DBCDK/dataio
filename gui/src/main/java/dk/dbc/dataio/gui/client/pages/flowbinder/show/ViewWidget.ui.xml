@@ -23,6 +23,16 @@
              xmlns:c="urn:import:com.google.gwt.user.cellview.client">
     <ui:with type="dk.dbc.dataio.gui.client.pages.flowbinder.show.Texts" field="txt"/>
 
+    <ui:style>
+        .flowBindersTable thead th {
+            padding: 3px;
+        }
+
+        .flowBindersTable tbody td {
+            padding: 0 3px;
+        }
+    </ui:style>
+
     <g:HTMLPanel>
 
         <g:Button ui:field="createButton" text="{txt.button_Create}" />
@@ -30,7 +40,7 @@
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
                 <td id="flowbinders-show-table" valign='top'>
-                    <c:CellTable pageSize='500' ui:field='flowBindersTable' />
+                    <c:CellTable pageSize='500' ui:field='flowBindersTable' addStyleNames="{style.flowBindersTable}" />
                 </td>
             </tr>
         </table>

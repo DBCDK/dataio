@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -30,6 +31,7 @@ import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -44,6 +47,9 @@ import javax.ejb.TransactionAttributeType;
 import javax.mail.Session;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -66,6 +72,9 @@ public class JobNotificationRepository extends RepositoryBase {
 
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
+
+    @EJB
+    JobExporter jobExporter;
 
     /**
      * Gets all notifications associated with job
@@ -125,8 +134,7 @@ public class JobNotificationRepository extends RepositoryBase {
         }
 
         try {
-            final MailNotification mailNotification = new MailNotification(mailSession, notification);
-            mailNotification.send();
+            newMailNotification(notification).send();
         } catch (JobStoreException e) {
             LOGGER.error("Notification processing failed", e);
             notification.setStatus(JobNotification.Status.FAILED);
@@ -135,7 +143,6 @@ public class JobNotificationRepository extends RepositoryBase {
         }
 
         notification.setStatus(JobNotification.Status.COMPLETED);
-
         return true;
     }
 
@@ -184,5 +191,26 @@ public class JobNotificationRepository extends RepositoryBase {
 
     private JobNotificationRepository getProxyToSelf() {
         return sessionContext.getBusinessObject(JobNotificationRepository.class);
+    }
+
+    private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
+        final MailNotification mailNotification = new MailNotification(mailSession, notification);
+        final JobEntity job = notification.getJob();
+        if (notification.getType() == JobNotification.Type.JOB_COMPLETED && hasJobFailed(job)) {
+            mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
+                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
+            mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.DELIVERING),
+                    ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
+        }
+        return mailNotification;
+    }
+
+    private boolean hasJobFailed(JobEntity job) {
+        final State state = job.getState();
+        return Arrays.stream(State.Phase.values())
+                .filter(phase -> state.getPhase(phase).getFailed() > 0)
+                .map(phase -> true)
+                .findFirst()
+                .orElse(false);
     }
 }

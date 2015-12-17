@@ -21,21 +21,32 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.State;
+import dk.dbc.dataio.jobstore.types.StateChange;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import javax.ejb.SessionContext;
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -134,6 +145,81 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     }
 
     /**
+     * Given: a repository containing a job with two chunks, where
+     *        the first chunk has a single item failed during processing,
+     *        the second chunk has a single item failed during delivering,
+     * When : a notification for the job of type JOB_COMPLETED is processed
+     * Then : notification is updated with completed status
+     * And  : a mail notification is sent containing item exports in the order
+     *        first chunk item before second chunk item
+     */
+    @Test
+    public void processNotificationWithAppendedFailures() throws MessagingException, IOException {
+        // Given...
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setSpecification(
+                new JobSpecificationBuilder()
+                        .setMailForNotificationAboutVerification("verification@company.com")
+                        .build()
+        );
+        jobEntity.getState()
+                .updateState(new StateChange()
+                    .setPhase(State.Phase.PROCESSING)
+                    .incFailed(1));
+        jobEntity.getState()
+                .updateState(new StateChange()
+                    .setPhase(State.Phase.DELIVERING)
+                    .incFailed(1));
+        persist(jobEntity);
+
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        newPersistedChunkEntity(new ChunkEntity.Key(1, jobEntity.getId()));
+
+        final ItemEntity itemFailedDuringProcessing = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 1));
+        itemFailedDuringProcessing.getState()
+                .updateState(new StateChange()
+                    .setPhase(State.Phase.PROCESSING)
+                    .incFailed(1));
+        itemFailedDuringProcessing.setPartitioningOutcome(getItemDataFor(asAddi(getMarcXchange("recordFromPartitioning"))));
+        final ItemEntity itemFailedDuringDelivering = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 1, (short) 0));
+        itemFailedDuringDelivering.getState()
+                .updateState(new StateChange()
+                    .setPhase(State.Phase.DELIVERING)
+                    .incFailed(1));
+        itemFailedDuringDelivering.setProcessingOutcome(getItemDataFor(asAddi(getMarcXchange("recordFromProcessing"))));
+
+        persist(itemFailedDuringProcessing);
+        persist(itemFailedDuringDelivering);
+
+        final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
+
+        // When...
+        final EntityTransaction transaction = entityManager.getTransaction();
+        transaction.begin();
+        NotificationEntity notification = jobNotificationRepository.addNotification(
+                JobNotification.Type.JOB_COMPLETED, jobEntity);
+        transaction.commit();
+
+        transaction.begin();
+        jobNotificationRepository.processNotification(notification);
+        transaction.commit();
+
+        // Then...
+        final List<NotificationEntity> notifications = findAllNotifications();
+        assertThat("Number of notifications", notifications.size(), is(1));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+
+        // And...
+        final List<Message> inbox = Mailbox.get(jobEntity.getSpecification().getMailForNotificationAboutVerification());
+        assertThat("Number of notifications published", inbox.size(), is(1));
+
+        final String mailContent = (String) inbox.get(0).getContent();
+        final Pattern pattern = Pattern.compile("\\*arecordFromPartitioning.*\\*arecordFromProcessing", Pattern.DOTALL);
+        final Matcher matcher = pattern.matcher(mailContent);
+        assertThat(matcher.find(), is(true));
+    }
+
+    /**
      * Given: a repository with a number of notifications
      * When : notifications are flushed
      * Then : all waiting notifications are processed
@@ -178,10 +264,14 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", "dataio@dbc.dk");
 
+        final JobExporter jobExporter = new JobExporter();
+        jobExporter.entityManager = entityManager;
+
         final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
+        jobNotificationRepository.jobExporter = jobExporter;
 
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 
@@ -191,5 +281,23 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     public List<NotificationEntity> findAllNotifications() {
         final Query query = entityManager.createQuery("SELECT e FROM NotificationEntity e");
         return (List<NotificationEntity>) query.getResultList();
+    }
+
+    private String getMarcXchange(String id) {
+        return  "<?xml version='1.0' encoding='UTF-8'?>\n" +
+                "<record xmlns='info:lc/xmlns/marcxchange-v1' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='info:lc/xmlns/marcxchange-v1 http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd'>" +
+                "<datafield ind1='0' ind2='0' tag='001'>" +
+                "<subfield code='a'>" + id + "</subfield>" +
+                "</datafield>" +
+                "</record>";
+    }
+
+    private String asAddi(String content) {
+        return String.format("19\n<es:referencedata/>\n%d\n%s\n",
+                    content.getBytes(StandardCharsets.UTF_8).length, content);
+    }
+
+    private ItemData getItemDataFor(String data) {
+        return new ItemData(StringUtil.base64encode(data), StandardCharsets.UTF_8);
     }
 }

@@ -215,6 +215,33 @@ public class JobEntity {
         this.cachedSink = cachedSink;
     }
 
+    public boolean hasFailedItems() {
+        /*
+        Due to bytecode manipulation being done internally in eclipselink
+        we are prevented from using some java 8 constructs in our entity
+        classes, since our current GlassFish version is stuck with v2.5.2.
+
+        See https://bugs.eclipse.org/bugs/show_bug.cgi?id=429992 for further info.
+
+        return Arrays.stream(State.Phase.values())
+                .filter(phase -> state.getPhase(phase).getFailed() > 0)
+                .map(phase -> true)
+                .findFirst()
+                .orElse(false);
+        */
+
+        for (State.Phase phase : State.Phase.values()) {
+            if (state.getPhase(phase).getFailed() > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasFatalDiagnostics() {
+        return state.fatalDiagnosticExists();
+    }
+
     /* Package scoped constructor used for unit testing
      */
     JobEntity(int id) {

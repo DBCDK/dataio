@@ -22,10 +22,8 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
@@ -39,7 +37,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 
@@ -159,14 +156,14 @@ public class MailNotification {
                 resource = INCOMPLETE_TRANSFILE_TEMPLATE;
                 break;
             case JOB_COMPLETED:
-                if (hasFailures(notification.getJob())) {
+                if (notification.getJob().hasFailedItems()) {
                     resource = JOB_COMPLETED_WITH_FAILURES_TEMPLATE;
                 } else {
                     resource = JOB_COMPLETED_TEMPLATE;
                 }
                 break;
             default:
-                if (notification.getJob().getState().fatalDiagnosticExists()) {
+                if (notification.getJob().hasFatalDiagnostics()) {
                     resource = JOB_CREATED_FAIL_TEMPLATE;
                 } else {
                     resource = JOB_CREATED_OK_TEMPLATE;
@@ -204,14 +201,5 @@ public class MailNotification {
         message.setSentDate(new Date());
         message.setText(builder.toString(), StandardCharsets.UTF_8.name());
         return message;
-    }
-
-    private boolean hasFailures(JobEntity job) {
-        final State state = job.getState();
-        return Arrays.stream(State.Phase.values())
-                .filter(phase -> state.getPhase(phase).getFailed() > 0)
-                .map(phase -> true)
-                .findFirst()
-                .orElse(false);
     }
 }

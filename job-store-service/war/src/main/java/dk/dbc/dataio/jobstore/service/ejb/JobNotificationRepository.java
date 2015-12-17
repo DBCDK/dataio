@@ -196,21 +196,12 @@ public class JobNotificationRepository extends RepositoryBase {
     private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
         final MailNotification mailNotification = new MailNotification(mailSession, notification);
         final JobEntity job = notification.getJob();
-        if (notification.getType() == JobNotification.Type.JOB_COMPLETED && hasJobFailed(job) && !job.getState().fatalDiagnosticExists()) {
+        if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.DELIVERING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
         }
         return mailNotification;
-    }
-
-    private boolean hasJobFailed(JobEntity job) {
-        final State state = job.getState();
-        return Arrays.stream(State.Phase.values())
-                .filter(phase -> state.getPhase(phase).getFailed() > 0)
-                .map(phase -> true)
-                .findFirst()
-                .orElse(false);
     }
 }

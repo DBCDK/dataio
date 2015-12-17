@@ -22,14 +22,16 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.dom.client.BrowserEvents;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.view.client.CellPreviewEvent;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SelectionChangeEvent;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -157,7 +159,6 @@ public class View extends ViewWidget {
         if(failedContext.listView.itemsTable.getColumnCount() == 2) {
             failedContext.listView.itemsTable.addColumn(constructFixedColumn(), getTexts().column_Fixed());
             failedContext.listView.itemsTable.setColumnWidth(2, 4, Style.Unit.EM);
-            failedContext.listView.itemsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
             failedContext.listView.itemsTable.setVisibleRange(0, 20);
             failedContext.listView.itemsTable.redraw();
         }
@@ -243,20 +244,19 @@ public class View extends ViewWidget {
                     return itemModel.getWorkflowNoteModel().isProcessed();
                 }
             }
+
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, ItemModel itemModel, NativeEvent event) {
+                int eventType = Event.as(event).getTypeInt();
+                if (eventType == Event.ONCHANGE) {
+                    event.preventDefault();
+                    final boolean isProcessed = !itemModel.getWorkflowNoteModel().isProcessed();
+                    presenter.setWorkflowNoteModel(itemModel, isProcessed);
+                }
+                super.onBrowserEvent(context, elem, itemModel, event);
+            }
         };
         return FixedColumn;
-    }
-
-    class CellPreviewHandlerClass implements CellPreviewEvent.Handler<ItemModel> {
-        @Override
-        public void onCellPreview(CellPreviewEvent<ItemModel> cellPreviewEvent) {
-            if(cellPreviewEvent != null
-                    && BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())
-                    && cellPreviewEvent.getColumn() == 2) {
-                final boolean isProcessed = cellPreviewEvent.getValue().getWorkflowNoteModel().isProcessed() ? false : true;
-                presenter.setWorkflowNoteModel(cellPreviewEvent.getValue(), isProcessed);
-            }
-        }
     }
 
     private String formatStatus(ItemModel.LifeCycle lifeCycle) {

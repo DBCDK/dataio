@@ -324,7 +324,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     @Override
     public ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException {
         final ItemInfoSnapshot itemInfoSnapshot;
-        log.trace("JobStoreProxy: setWorkflowNote({}, {}, {})", jobId, chunkId, itemId);
+        log.debug("JobStoreProxy: setWorkflowNote({}, {}, {})", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
         try {
             itemInfoSnapshot = jobStoreServiceConnector.setWorkflowNote(WorkflowNoteModelMapper.toWorkflowNote(workflowNoteModel), jobId, chunkId, itemId);

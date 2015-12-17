@@ -98,7 +98,7 @@ public class JobDispatcherIT {
     public void staticTransfilesProcessed() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "file.trs",
-                "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "slut");
+                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "slut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -125,7 +125,7 @@ public class JobDispatcherIT {
     @Test(timeout = 5000)
     public void stalledTransfilesProcessed() throws Throwable {
         // Given...
-        final Path transfile = writeFile(dir, "file.trs", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final Path transfile = writeFile(dir, "file.trs", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
         stallFile(transfile);
 
         final JobDispatcher jobDispatcher = getJobDispatcher();
@@ -155,7 +155,7 @@ public class JobDispatcherIT {
     public void walProcessedAfterRestart() throws Throwable {
         // Given...
         final Path transfile = writeFile(dir, "file.trans",
-                "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "slut");
+                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "slut");
         JobDispatcher jobDispatcher = getJobDispatcher();
 
         Thread t = getJobDispatcherThread(jobDispatcher);
@@ -232,7 +232,7 @@ public class JobDispatcherIT {
 
         // Given...
         final Path transfile = writeFile(dir, "file.trans",
-                "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
+                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -277,8 +277,8 @@ public class JobDispatcherIT {
         }
 
         // Given...
-        final Path stalledTransfile = writeFile(dir, "stalled.trans", "b=danbib,f=111111.file,t=lin,c=latin-1,o=marc2");
-        final Path transfile = writeFile(dir, "file.trans", "b=danbib,f=222222.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
+        final Path stalledTransfile = writeFile(dir, "stalled.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
+        final Path transfile = writeFile(dir, "file.trans", "b=danbib,f=820030.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 

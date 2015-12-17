@@ -100,7 +100,7 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_singleParallelLineWithDatafile_returnsModifications() throws IOException {
-        final String line = "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2";
+        final String line = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, line + System.lineSeparator());
         writeFile(transfilePath, "slut");
@@ -114,7 +114,7 @@ public class ModificationFactoryTest {
         assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.DELETE_FILE));
 
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
-        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("123456.file"));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
         assertThat("Modification 4 arg", modifications.get(3).getArg(), is(transfilePath.getFileName().toString()));
 
         final String createTransfileArg = modifications.get(2).getArg();
@@ -124,7 +124,7 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_multipleParallelLines_returnsModifications() throws IOException {
-        final String line1 = "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2";
+        final String line1 = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final String line2 = "b=danbib,t=lin,c=utf-8,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, line1 + System.lineSeparator());
@@ -141,7 +141,7 @@ public class ModificationFactoryTest {
         assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.DELETE_FILE));
 
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line1));
-        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("123456.file"));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
         assertThat("Modification 3 arg", modifications.get(2).getArg(), is(line2));
         assertThat("Modification 5 arg", modifications.get(4).getArg(), is(transfilePath.getFileName().toString()));
 
@@ -153,7 +153,7 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_multipleMixedTypes_returnsModifications() throws IOException {
-        final String line1 = "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2";
+        final String line1 = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final String line2 = "b=dfa,f=654321.file,t=lin,c=utf-8,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, line1 + System.lineSeparator());
@@ -170,7 +170,7 @@ public class ModificationFactoryTest {
         assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.DELETE_FILE));
 
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line1));
-        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("123456.file"));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
         assertThat("Modification 3 arg", modifications.get(2).getArg(), is("654321.file"));
         assertThat("Modification 5 arg", modifications.get(4).getArg(), is(transfilePath.getFileName().toString()));
 
@@ -194,7 +194,7 @@ public class ModificationFactoryTest {
     @Test
     public void processLine_parallelLineContainsDatafile_returnsModifications() throws IOException {
         final Path transfilePath = testFolder.newFile().toPath();
-        writeFile(transfilePath, "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        writeFile(transfilePath, "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile);
         final List<Modification> modifications = modificationFactory.processLine(transfile.getLines().get(0));

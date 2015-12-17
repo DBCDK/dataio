@@ -21,7 +21,9 @@
 
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.gatekeeper.operation.JobSpecificationFactory;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
@@ -29,13 +31,30 @@ import dk.dbc.dataio.gatekeeper.wal.Modification;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class derives the necessary WAL modifications from a given transfile
  */
 public class ModificationFactory {
     private static final String EMPTY_STRING = "";
+
+    private static Set<Long> submittersForDataIo = Stream.of(
+            Constants.MISSING_SUBMITTER_VALUE,
+            125600L,
+            159003L,
+            810015L,
+            820010L,
+            820030L,
+            820040L,
+            820060L,
+            830060L,
+            850160L,
+            861800L,
+            873310L
+    ).collect(Collectors.toSet());
 
     enum Type {
         DATAIO_EXCLUSIVE,
@@ -158,7 +177,10 @@ public class ModificationFactory {
         final String t = line.getField("t");
         final String o = line.getField("o");
 
-        if ("danbib".equals(b) && ("lin".equals(t) || "iso".equals(t)) && "marc2".equals(o)) {
+        if ("danbib".equals(b)
+                && ("lin".equals(t) || "iso".equals(t))
+                && "marc2".equals(o)
+                && submittersForDataIo.contains(JobSpecificationFactory.getSubmitterIdOrMissing(line))) {
             return Type.PARALLEL;
         }
         return Type.POSTHUS_EXCLUSIVE;

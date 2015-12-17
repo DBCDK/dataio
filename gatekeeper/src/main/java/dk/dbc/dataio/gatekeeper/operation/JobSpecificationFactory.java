@@ -64,15 +64,7 @@ public class JobSpecificationFactory {
                 getAncestry(transfileName, line));
     }
 
-    private static String getFieldValueOrMissing(TransFile.Line line, String fieldName) {
-        final String fieldValue = line.getField(fieldName);
-        if (fieldValue == null || fieldValue.trim().isEmpty()) {
-            return Constants.MISSING_FIELD_VALUE;
-        }
-        return fieldValue;
-    }
-
-    private static long getSubmitterIdOrMissing(TransFile.Line line) {
+    public static long getSubmitterIdOrMissing(TransFile.Line line) {
         final String fieldValue = getFieldValueOrMissing(line, "f");
         if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
             return Constants.MISSING_SUBMITTER_VALUE;
@@ -83,6 +75,14 @@ public class JobSpecificationFactory {
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
+    }
+
+    private static String getFieldValueOrMissing(TransFile.Line line, String fieldName) {
+        final String fieldValue = line.getField(fieldName);
+        if (fieldValue == null || fieldValue.trim().isEmpty()) {
+            return Constants.MISSING_FIELD_VALUE;
+        }
+        return fieldValue;
     }
 
     private static String getFileStoreUrnOrMissing(TransFile.Line line, String fileStoreId)

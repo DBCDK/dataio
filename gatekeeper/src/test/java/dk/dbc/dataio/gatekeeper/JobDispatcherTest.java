@@ -146,7 +146,7 @@ public class JobDispatcherTest {
     @Test
     public void processIfCompleteTransfile_fileIsComplete_processedReturnsTrue()
             throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
-        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2\nslut");
+        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(true));
 
@@ -162,7 +162,7 @@ public class JobDispatcherTest {
     @Test
     public void processTransfile() throws IOException, OperationExecutionException, InterruptedException, ModificationLockedException {
         final Path transfilePath = writeFile(dir,
-                "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
+                "file.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
                 "slut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
@@ -234,7 +234,7 @@ public class JobDispatcherTest {
     @Test
     public void writeWal_addModificationsToWal() throws IOException {
         final Path transfilePath = writeFile(dir,
-                "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
+                "file.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
                 "slut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();

@@ -48,7 +48,6 @@ import javax.mail.Session;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

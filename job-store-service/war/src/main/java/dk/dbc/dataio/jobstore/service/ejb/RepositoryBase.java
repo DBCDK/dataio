@@ -2,7 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.util.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;

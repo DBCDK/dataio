@@ -53,11 +53,10 @@ public class JobExporterTest {
     final EntityManager entityManager = mock(EntityManager.class);
     final ChunkItemExporter chunkItemExporter = mock(ChunkItemExporter.class);
     final ItemEntity.Key itemEntityKey = new ItemEntity.Key(1, 2, (short) 3);
-    final JobExporter jobExporter = new JobExporter();
+    final JobExporter jobExporter = new JobExporter(entityManager);
 
     {
         jobExporter.MAX_NUMBER_OF_ITEMS_PER_QUERY = 2;
-        jobExporter.entityManager = entityManager;
         jobExporter.chunkItemExporter = chunkItemExporter;
     }
 

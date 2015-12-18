@@ -22,10 +22,10 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
 import dk.dbc.dataio.jobstore.service.util.ChunkItemExporter;
-import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -34,8 +34,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,15 +41,19 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 /**
- * This stateless Enterprise Java Bean (EJB) is responsible for job exports
+ * This class is responsible for job exports.
+ *
+ * This class is not thread safe.
  */
-@Stateless
 public class JobExporter {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobExporter.class);
     int MAX_NUMBER_OF_ITEMS_PER_QUERY = 1000;
 
-    @Inject @JobstoreDB
-    EntityManager entityManager;
+    private final EntityManager entityManager;
+
+    public JobExporter(EntityManager entityManager) throws NullPointerException {
+        this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
+    }
 
     ChunkItemExporter chunkItemExporter = new ChunkItemExporter();
 

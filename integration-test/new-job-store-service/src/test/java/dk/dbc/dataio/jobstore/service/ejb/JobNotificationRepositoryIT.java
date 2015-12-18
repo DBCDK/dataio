@@ -264,14 +264,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", "dataio@dbc.dk");
 
-        final JobExporter jobExporter = new JobExporter();
-        jobExporter.entityManager = entityManager;
-
         final JobNotificationRepository jobNotificationRepository = new JobNotificationRepository();
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
-        jobNotificationRepository.jobExporter = jobExporter;
+        jobNotificationRepository.jobExporter = new JobExporter(entityManager);
 
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 

@@ -26,6 +26,7 @@ import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -238,20 +239,13 @@ public class View extends ViewWidget {
         Column<ItemModel, Boolean> FixedColumn = new Column<ItemModel, Boolean>(checkboxCell) {
             @Override
             public Boolean getValue(ItemModel itemModel) {
-                if (itemModel.getWorkflowNoteModel() == null) {
-                    return false;
-                } else {
-                    return itemModel.getWorkflowNoteModel().isProcessed();
-                }
+                return itemModel.getWorkflowNoteModel().isProcessed();
             }
 
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, ItemModel itemModel, NativeEvent event) {
-                int eventType = Event.as(event).getTypeInt();
-                if (eventType == Event.ONCHANGE) {
-                    event.preventDefault();
-                    final boolean isProcessed = !itemModel.getWorkflowNoteModel().isProcessed();
-                    presenter.setWorkflowNoteModel(itemModel, isProcessed);
+                if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
+                    presenter.setWorkflowNoteModel(itemModel, ((InputElement) elem.getFirstChild()).isChecked());
                 }
                 super.onBrowserEvent(context, elem, itemModel, event);
             }

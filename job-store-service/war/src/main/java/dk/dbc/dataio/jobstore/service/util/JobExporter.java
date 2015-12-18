@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -51,7 +50,7 @@ public class JobExporter {
     private final EntityManager entityManager;
 
     public JobExporter(EntityManager entityManager) throws NullPointerException {
-        this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
+        this.entityManager = entityManager;
     }
 
     ChunkItemExporter chunkItemExporter = new ChunkItemExporter();

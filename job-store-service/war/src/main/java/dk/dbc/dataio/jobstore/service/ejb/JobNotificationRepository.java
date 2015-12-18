@@ -73,8 +73,7 @@ public class JobNotificationRepository extends RepositoryBase {
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
 
-    @EJB
-    JobExporter jobExporter;
+    JobExporter jobExporter = new JobExporter(entityManager);
 
     /**
      * Gets all notifications associated with job

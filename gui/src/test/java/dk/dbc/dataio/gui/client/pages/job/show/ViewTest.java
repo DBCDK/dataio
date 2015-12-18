@@ -23,7 +23,6 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.DomEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
@@ -70,7 +69,6 @@ public class ViewTest {
     @Mock ViewJobsGinjector mockedViewInjector;
     @Mock Presenter mockedPresenter;
     @Mock Resources mockedResources;
-    @Mock static ClickEvent mockedClickEvent;
     @Mock SingleSelectionModel mockedSelectionModel;
     @Mock JobModel mockedJobModel;
     @Mock WorkflowNoteModel mockedWorkflowNoteModel;
@@ -120,7 +118,6 @@ public class ViewTest {
 
 
     public class ViewConcrete extends View {
-        CellPreviewHandlerClass cellPreviewHandler = new CellPreviewHandlerClass();
 
         public ViewConcrete() {
             super("header", false, false);
@@ -180,7 +177,6 @@ public class ViewTest {
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_STATUS));
         verify(viewConcrete.jobsTable).setSelectionModel(isA(SingleSelectionModel.class));
         verify(viewConcrete.jobsTable).addDomHandler(isA(DoubleClickHandler.class), isA(DomEvent.Type.class));
-        verify(viewConcrete.jobsTable).addCellPreviewHandler(isA(View.CellPreviewHandlerClass.class));
         verify(viewConcrete.jobsTable).setVisibleRange(0, 20);
         verifyNoMoreInteractions(viewConcrete.jobsTable);
         verify(viewConcrete.pagerTop).setDisplay(viewConcrete.jobsTable);
@@ -371,7 +367,6 @@ public class ViewTest {
     }
 
 
-
     @Test
     @SuppressWarnings("unchecked")
     public void constructFailedCounterColumn_call_correctlySetup() {
@@ -457,101 +452,6 @@ public class ViewTest {
 
         column.getFieldUpdater().update(0, testModel, "bla");
         verify(mockedPresenter).editJob(testModel);
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-
-    /*
-     * Test CellPreviewHandlerClass
-     */
-    @Test
-    public void cellPreviewHandlerClass_callOnCellPreviewNullInput_noAction() {
-        view = new ViewConcrete();
-        view.setPresenter(mockedPresenter);
-
-        // Subject Under Test
-        view.cellPreviewHandler.onCellPreview(null);
-
-        // Test that correct getValue handler has been setup
-        verifyNoMoreInteractions(view.jobsTable);
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-    @Test
-    public void cellPreviewHandlerClass_callOnCellPreviewNotAClick_noAction() {
-        view = new ViewConcrete();
-        view.setPresenter(mockedPresenter);
-        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
-        when(mockedNativeEvent.getType()).thenReturn("not a click");
-        when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which is Fixed Column
-
-        // Subject Under Test
-        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
-
-        // Test that correct getValue handler has been setup
-        verifyNoMoreInteractions(view.jobsTable);
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-    @Test
-    public void cellPreviewHandlerClass_callOnCellPreviewNotFixedColumn_noAction() {
-        view = new ViewConcrete();
-        view.setPresenter(mockedPresenter);
-        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
-        when(mockedNativeEvent.getType()).thenReturn("click");
-        when(mockedCellPreviewEvent.getColumn()).thenReturn(2);  // Which is NOT Fixed Column
-
-        // Subject Under Test
-        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
-
-        // Test that correct getValue handler has been setup
-        verifyNoMoreInteractions(view.jobsTable);
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-    @Test
-    public void cellPreviewHandlerClass_callOnCellPreviewClickNoWorkFlowNoteModel_onlyRedraw() {
-        view = new ViewConcrete();
-        view.setPresenter(mockedPresenter);
-        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
-        when(mockedNativeEvent.getType()).thenReturn("click");
-        when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which IS Fixed Column
-        when(mockedCellPreviewEvent.getValue()).thenReturn(mockedJobModel);
-        when(mockedJobModel.getWorkflowNoteModel()).thenReturn(mockedWorkflowNoteModel);
-        when(mockedWorkflowNoteModel.getAssignee()).thenReturn("");
-
-        // Subject Under Test
-        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
-
-        // Test that correct getValue handler has been setup
-        verify(view.jobsTable).redraw();
-        verifyNoMoreInteractions(view.jobsTable);
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-    @Test
-    public void cellPreviewHandlerClass_callOnCellPreviewClickWithWorkFlowNoteModel_setWorkflowNoteModel() {
-        view = new ViewConcrete();
-        view.setPresenter(mockedPresenter);
-        view.selectionModel = mockedSelectionModel;
-        when(mockedCellPreviewEvent.getNativeEvent()).thenReturn(mockedNativeEvent);
-        when(mockedNativeEvent.getType()).thenReturn("click");
-        when(mockedCellPreviewEvent.getColumn()).thenReturn(1);  // Which IS Fixed Column
-        when(mockedCellPreviewEvent.getValue()).thenReturn(mockedJobModel);
-        when(mockedJobModel.getWorkflowNoteModel()).thenReturn(mockedWorkflowNoteModel);
-        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedJobModel);
-        when(mockedJobModel.getJobId()).thenReturn("7897");
-        when(mockedWorkflowNoteModel.getAssignee()).thenReturn("test");
-        when(mockedWorkflowNoteModel.isProcessed()).thenReturn(true);
-
-        // Subject Under Test
-        view.cellPreviewHandler.onCellPreview(mockedCellPreviewEvent);
-
-        // Test that correct getValue handler has been setup
-        verifyNoMoreInteractions(view.jobsTable);
-        verify(mockedWorkflowNoteModel).isProcessed();
-        verify(mockedWorkflowNoteModel).setProcessed(false);
-        verify(mockedPresenter).setWorkflowNote(mockedWorkflowNoteModel, "7897");
         verifyNoMoreInteractions(mockedPresenter);
     }
 

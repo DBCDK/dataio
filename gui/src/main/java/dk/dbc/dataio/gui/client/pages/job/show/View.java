@@ -32,6 +32,7 @@ import com.google.gwt.cell.client.TextInputCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.BrowserEvents;
 import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
@@ -39,8 +40,8 @@ import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.Window;
-import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -145,7 +146,6 @@ public class View extends ViewWidget {
         jobsTable.addColumn(constructJobStateColumn(), texts.columnHeader_JobStatus());
         jobsTable.setSelectionModel(selectionModel);
         jobsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
-        jobsTable.addCellPreviewHandler(new CellPreviewHandlerClass());
 
         pagerTop.setDisplay(jobsTable);
         pagerBottom.setDisplay(jobsTable);
@@ -180,8 +180,23 @@ public class View extends ViewWidget {
             public String getCellStyleNames(Cell.Context context, JobModel model) {
                 return workFlowColumnsVisible ? "visible" : "invisible";
             }
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
+                if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
+                    final WorkflowNoteModel workflowNoteModel = jobModel.getWorkflowNoteModel();
+                    if(workflowNoteModel.getAssignee().isEmpty()) {
+                        Window.alert(getTexts().error_InputCellValidationError());
+                        jobsTable.redraw();
+                    } else {
+                        workflowNoteModel.setProcessed(((InputElement) elem.getFirstChild()).isChecked());
+                        presenter.setWorkflowNote(workflowNoteModel, selectionModel.getSelectedObject().getJobId());
+                    }
+                }
+                super.onBrowserEvent(context, elem, jobModel, event);
+            }
         };
     }
+
 
     /**
      * This method constructs the Assignee column
@@ -468,27 +483,6 @@ public class View extends ViewWidget {
      * Local classes
      * These classes should all be private, but in order to enable unit test, they are package scoped
      */
-
-    /**
-     * Cell Preview Handler
-     */
-    class CellPreviewHandlerClass implements CellPreviewEvent.Handler<JobModel> {
-        @Override
-        public void onCellPreview(CellPreviewEvent<JobModel> cellPreviewEvent) {
-            if (cellPreviewEvent != null
-                    && BrowserEvents.CLICK.equals(cellPreviewEvent.getNativeEvent().getType())
-                    && cellPreviewEvent.getColumn() == IS_FIXED_COLUMN) {
-                final WorkflowNoteModel workflowNoteModel = cellPreviewEvent.getValue().getWorkflowNoteModel();
-                if(workflowNoteModel.getAssignee().isEmpty()) {
-                    Window.alert(getTexts().error_InputCellValidationError());
-                    jobsTable.redraw();
-                } else {
-                    workflowNoteModel.setProcessed(!workflowNoteModel.isProcessed());
-                    presenter.setWorkflowNote(workflowNoteModel, selectionModel.getSelectedObject().getJobId());
-                }
-            }
-        }
-    }
 
     /**
      * Normal Column Header class (to be hidden upon request)

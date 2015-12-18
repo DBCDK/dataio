@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -116,10 +117,11 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
 
         @Override
         public void onSuccess(JobModel jobModel) {
-
-            getView().status.setText(getTexts().status_JobSuccesfullyRerun());
+            final Texts texts = getTexts();
+            getView().status.setText(texts.status_JobSuccesfullyRerun());
             setJobModel(jobModel);
             updateAllFieldsAccordingToCurrentState();
+            Window.alert(texts.text_Job() + " " + jobModel.getJobId() + " " + texts.text_Created());
             History.back();
         }
     }

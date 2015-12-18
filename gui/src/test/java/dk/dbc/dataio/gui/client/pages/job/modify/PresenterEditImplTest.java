@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.job.modify;
 
+import com.google.gwt.user.client.Window;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
@@ -41,8 +42,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Texts mockedTexts;
     @Mock private EditPlace mockedEditPlace;
     @Mock private ViewGinjector mockedViewGinjector;
-
-    private View editView;
+    @Mock private Window mockedWindow;
 
     private PresenterEditImpl presenterEditImpl;
 
@@ -61,10 +61,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         when(mockedCommonGinjector.getJobStoreProxyAsync()).thenReturn(mockedJobStore);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
-//        when(mockedEditPlace.getSinkId()).thenReturn(DEFAULT_SINK_ID);
         when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
-//        when(mockedMenuTexts.menu_SinkEdit()).thenReturn("Header Text");
-        editView = new View(); // GwtMockito automagically populates mocked versions of all UiFields in the view
+        View editView = new View();
         when(mockedViewGinjector.getView()).thenReturn(editView);
 
     }
@@ -82,6 +80,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void initializeModel_callPresenterStart_listItemsIsInvoked() {
 
         // Expectations
@@ -96,6 +95,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void RerunJob_jobModelContentOk_rerunJobCalled() {
 
         // Expectations
@@ -116,6 +116,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedJobStore).addJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.RerunJobFilteredAsyncCallback.class));
     }
 
+    @SuppressWarnings("unchecked")
     private void setupPresenterEditImpl() {
         presenterEditImpl = new PresenterEditImpl(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;

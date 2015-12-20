@@ -581,15 +581,10 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param maxChunkSize maximum number of items to be associated to the chunk
      * @param dataPartitioner data partitioner used for item data extraction
      * @return item entities compound object
-     * @throws JobStoreException on failure to create item data
      */
     @Stopwatch
-    ChunkItemEntities createChunkItemEntities(
-            int jobId,
-            int chunkId,
-            short maxChunkSize,
-            DataPartitionerFactory.DataPartitioner dataPartitioner)
-            throws JobStoreException {
+    ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize,
+            DataPartitionerFactory.DataPartitioner dataPartitioner) {
 
         Date nextItemBegin = new Date();
         short itemCounter = 0;
@@ -622,7 +617,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 }
                 nextItemBegin = new Date();
             }
-        } catch (UnrecoverableDataException e) {
+        } catch (RuntimeException e) {
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
             final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,
                     String.format("Unable to complete partitioning at chunk %d item %d: %s",

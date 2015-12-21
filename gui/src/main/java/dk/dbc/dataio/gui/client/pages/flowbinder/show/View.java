@@ -39,7 +39,6 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.Format;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -297,10 +296,6 @@ public class View extends ViewWidget {
 
         @Override
         public String getValue(FlowBinderModel model) {
-            List<String> result = new ArrayList<String>();
-            for (SubmitterModel submitterModel: model.getSubmitterModels()) {
-                result.add(Format.inBracketsPairString(submitterModel.getNumber(), submitterModel.getName()));
-            }
             return formatSubmitters(model.getSubmitterModels());
         }
 

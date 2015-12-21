@@ -23,7 +23,10 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -39,15 +42,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -84,6 +91,35 @@ public class ViewTest {
             .setSubmitterModels(Collections.singletonList(new SubmitterModelBuilder().build()))
             .setSinkModel(sinkModel1).build();
 
+    private FlowBinderModel flowBinderModelEmpty = new FlowBinderModelBuilder()
+            .setName("FB No Subs")
+            .setFlowModel(flowModel1)
+            .setSubmitterModels(new ArrayList<>())
+            .setSinkModel(sinkModel1).build();
+
+    private FlowBinderModel flowBinderModelOneSubmitter = new FlowBinderModelBuilder()
+            .setName("FB One Sub")
+            .setFlowModel(flowModel1)
+            .setSubmitterModels(Collections.singletonList(new SubmitterModelBuilder().setName("Sub 1").setNumber("1234").build()))
+            .setSinkModel(sinkModel1).build();
+
+    private FlowBinderModel flowBinderModelTwoSubmitters = new FlowBinderModelBuilder()
+            .setName("FB Two Subs")
+            .setFlowModel(flowModel1)
+            .setSubmitterModels(Arrays.asList(
+                    new SubmitterModelBuilder().setName("Sub 1").setNumber("1234").build(),
+                    new SubmitterModelBuilder().setName("Sub 2").setNumber("2345").build() ))
+            .setSinkModel(sinkModel1).build();
+
+    private FlowBinderModel flowBinderModelThreeSubmitters = new FlowBinderModelBuilder()
+            .setName("FB Three Subs")
+            .setFlowModel(flowModel1)
+            .setSubmitterModels(Arrays.asList(
+                    new SubmitterModelBuilder().setName("Sub 1").setNumber("1234").build(),
+                    new SubmitterModelBuilder().setName("Sub 2").setNumber("2345").build(),
+                    new SubmitterModelBuilder().setName("Sub 3").setNumber("3456").build() ))
+            .setSinkModel(sinkModel1).build();
+
     private List<FlowBinderModel> flowBinderModels = Arrays.asList(flowBinderModel1, flowBinderModel2);
 
     // Subject Under Test
@@ -104,6 +140,8 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_SINK = "Mocked Text: Sink";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
+    final static String MOCKED_TEXT_SUBMITTERS = "Mocked Text: submittere";
+
 
     @Before
     public void setupMockedTextsBehaviour() {
@@ -124,6 +162,7 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Sink()).thenReturn(MOCKED_COLUMNHEADER_SINK);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
+        when(mockedTexts.text_Submitters()).thenReturn(MOCKED_TEXT_SUBMITTERS);
     }
 
 
@@ -138,7 +177,9 @@ public class ViewTest {
         }
     }
 
-     //Testing starts here...
+
+     // Testing starts here...
+
     @Test
     @SuppressWarnings("unchecked")
     public void constructor_instantiate_objectCorrectInitialized() {
@@ -146,6 +187,8 @@ public class ViewTest {
         setupView();
 
         // Verify invocations
+        verify(view.flowBindersTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
+        verify(view.flowBindersTable).setRowCount(anyInt(), eq(true));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_PACKAGING));
@@ -157,13 +200,15 @@ public class ViewTest {
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FLOW));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SINK));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
+        verify(view.flowBindersTable).setSelectionModel(view.selectionModel);
+        verify(view.flowBindersTable).addDomHandler(any(DoubleClickHandler.class), eq(DoubleClickEvent.getType()));
+        verifyNoMoreInteractions(view.flowBindersTable);
     }
 
 
 
     @Test
-    public void constructor_setupData_dataSetupCorrect() {
-
+    public void setFlowBinders_validData_dataSetupCorrect() {
         // Setup
         setupView();
 
@@ -183,7 +228,6 @@ public class ViewTest {
     @Test
     @SuppressWarnings("unchecked")
     public void constructNameColumn_call_correctlySetup() {
-
         // Setup
         setupView();
 
@@ -191,7 +235,7 @@ public class ViewTest {
         Column column = view.constructNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getName()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getName()));
     }
 
     @Test
@@ -205,7 +249,7 @@ public class ViewTest {
         Column column = view.constructDescriptionColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getDescription()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getDescription()));
     }
 
     @Test
@@ -219,7 +263,7 @@ public class ViewTest {
         Column column = view.constructPackagingColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getPackaging()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getPackaging()));
     }
 
     @Test
@@ -233,7 +277,7 @@ public class ViewTest {
         Column column = view.constructFormatColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getFormat()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getFormat()));
     }
 
     @Test
@@ -247,7 +291,7 @@ public class ViewTest {
         Column column = view.constructCharsetColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getCharset()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getCharset()));
     }
 
     @Test
@@ -261,7 +305,7 @@ public class ViewTest {
         Column column = view.constructDestinationColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getDestination()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getDestination()));
     }
 
     @Test
@@ -275,12 +319,14 @@ public class ViewTest {
         Column column = view.constructRecordSplitterColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getRecordSplitter()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getRecordSplitter()));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void constructSubmittersColumn_call_correctlySetup() {
+
+        // See also the detailed test of SubmitterColumn class below
 
         // Setup
         setupView();
@@ -289,7 +335,7 @@ public class ViewTest {
         Column column = view.constructSubmittersColumn();
 
         // Test that correct getValue handler has been setup - remember format: "name (number)"
-        assertThat((String) column.getValue(flowBinderModel1),
+        assertThat(column.getValue(flowBinderModel1),
                 is(flowBinderModel1.getSubmitterModels().get(0).getNumber() + " ("
                         + flowBinderModel1.getSubmitterModels().get(0).getName() + ")"));
     }
@@ -305,7 +351,7 @@ public class ViewTest {
         Column column = view.constructFlowColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getFlowModel().getFlowName()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getFlowModel().getFlowName()));
     }
 
     @Test
@@ -319,7 +365,7 @@ public class ViewTest {
         Column column = view.constructSinkColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(flowBinderModel1.getSinkModel().getSinkName()));
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getSinkModel().getSinkName()));
     }
 
     @Test
@@ -333,7 +379,7 @@ public class ViewTest {
         Column column = view.constructActionColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowBinderModel1), is(mockedTexts.button_Edit()));
+        assertThat(column.getValue(flowBinderModel1), is(mockedTexts.button_Edit()));
 
         // Test that the right action is activated upon click
         view.setPresenter(mockedPresenter);
@@ -342,6 +388,129 @@ public class ViewTest {
         verify(mockedPresenter).editFlowBinder(flowBinderModel1);
     }
 
+    @Test(expected = NullPointerException.class)
+    public void submitterColumn_getValue_nullSubmitters_exception() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        submitterColumn.getValue(null);  // Throws exception
+    }
+
+    @Test
+    public void submitterColumn_getValue_noSubmitters_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = submitterColumn.getValue(flowBinderModelEmpty);
+
+        // Verify test
+        assertThat(value, is(""));
+    }
+
+    @Test
+    public void submitterColumn_getValue_oneSubmitter_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = submitterColumn.getValue(flowBinderModelOneSubmitter);
+
+        // Verify test
+        assertThat(value, is("1234 (Sub 1)"));
+    }
+
+    @Test
+    public void submitterColumn_getValue_twoSubmitters_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = submitterColumn.getValue(flowBinderModelTwoSubmitters);
+
+        // Verify test
+        assertThat(value, is("2 Mocked Text: submittere"));
+    }
+
+    @Test
+    public void submitterColumn_getValue_threeSubmitters_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = submitterColumn.getValue(flowBinderModelThreeSubmitters);
+
+        // Verify test
+        assertThat(value, is("3 Mocked Text: submittere"));
+    }
+
+    @Test
+    public void submitterColumn_getCellStyleNames_nullSubmitters_ok() {
+
+    }
+
+    @Test
+    public void submitterColumn_getCellStyleNames_noSubmitters_ok() {
+
+        // Setup
+        View.SubmitterColumn submitterColumn = new View().new SubmitterColumn();
+
+        // Test subject under test
+        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelEmpty);  // Mysterious cast is made due to IntelliJ Inspection bug
+
+        // Verify test
+        assertThat(value, is(""));
+    }
+
+    @Test
+    public void submitterColumn_getCellStyleNames_oneSubmitter_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelOneSubmitter);  // Mysterious cast is made due to IntelliJ Inspection bug
+
+        // Verify test
+        assertThat(value, is(""));
+    }
+
+    @Test
+    public void submitterColumn_getCellStyleNames_twoSubmitters_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelTwoSubmitters);  // Mysterious cast is made due to IntelliJ Inspection bug
+
+        // Verify test
+        assertThat(value, is(View.CLICKABLE_SUBMITTER_COLUMN_STYLE));
+    }
+
+    @Test
+    public void submitterColumn_getCellStyleNames_threeSubmitters_ok() {
+
+        // Setup
+        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
+
+        // Test subject under test
+        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelThreeSubmitters);  // Mysterious cast is made due to IntelliJ Inspection bug
+
+        // Verify test
+        assertThat(value, is(View.CLICKABLE_SUBMITTER_COLUMN_STYLE));
+    }
+
+
+    /*
+     * Private methods
+     */
     private void setupView() {
         view = new ViewConcrete();
         view.viewInjector = mockedViewInjector;

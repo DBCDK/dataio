@@ -23,6 +23,8 @@ package dk.dbc.dataio.commons.utils.lang;
 
 import org.apache.commons.codec.binary.Base64;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
@@ -41,6 +43,14 @@ public class StringUtil {
         if (str != null)
             return str.getBytes(encoding);
         return new byte[0];
+    }
+
+    public static InputStream asInputStream(String s) {
+        return asInputStream(s, STANDARD_CHARSET);
+    }
+
+    public static InputStream asInputStream(String s, Charset encoding) {
+        return new ByteArrayInputStream(s.getBytes(encoding));
     }
 
     public static String asString(byte[] bytes) {

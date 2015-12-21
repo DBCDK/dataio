@@ -86,6 +86,10 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
             this.inputStream = new ByteCountingInputStream(inputStream);
             this.encoding = StandardCharsets.UTF_8;
             this.specifiedEncoding = specifiedEncoding;
+            validateSpecifiedEncoding();
+            danMarc2Charset = new DanMarc2Charset();
+            bufferedInputStream = new BufferedInputStream(this.inputStream);
+            documentBuilderFactory = DocumentBuilderFactory.newInstance();
         }
 
         @Override
@@ -100,38 +104,28 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
 
         @Override
         public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
-            if (iterator == null) {
-                validateSpecifiedEncoding();
-                danMarc2Charset = new DanMarc2Charset();
-                bufferedInputStream = new BufferedInputStream(inputStream);
-                documentBuilderFactory = DocumentBuilderFactory.newInstance();
-
-            }
             iterator = new Iterator<ChunkItem>() {
-                private Document document = null;
-
                 @Override
                 public boolean hasNext() {
                     try {
-                        document = Iso2709Unpacker.createMarcXChangeRecord(bufferedInputStream, danMarc2Charset, documentBuilderFactory);
-                    } catch (IOException | ParserConfigurationException e) {
-                        LOGGER.error("Exception caught while creating MarcXChange Record", e);
+                        bufferedInputStream.mark(1);
+                        int readResult = bufferedInputStream.read();
+                        bufferedInputStream.reset();
+                        return readResult != -1;
+                    } catch (IOException e) {
                         throw new InvalidDataException(e);
                     }
-                    return document != null;
                 }
 
                 @Override
                 public ChunkItem next() {
-                    if(document != null) {
-                        try {
-                            return new ChunkItem(0, domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
-                        } catch (TransformerException e) {
-                            LOGGER.error("Unrecoverable error occurred during transformation", e);
-                            throw new InvalidDataException(e);
-                        }
+                    try {
+                        final Document document = Iso2709Unpacker.createMarcXChangeRecord(bufferedInputStream, danMarc2Charset, documentBuilderFactory);
+                        return new ChunkItem(0, domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
+                    } catch (ParserConfigurationException | IOException | TransformerException e) {
+                        LOGGER.error("Unrecoverable error occurred during record creation", e);
+                        throw new InvalidDataException(e);
                     }
-                    return null;
                 }
             };
             return iterator;

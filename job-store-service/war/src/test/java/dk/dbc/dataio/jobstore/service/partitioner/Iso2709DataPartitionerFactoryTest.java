@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -29,12 +30,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
 
 public class Iso2709DataPartitionerFactoryTest {
-
-    private static final InputStream INPUT_STREAM = mock(InputStream.class);
-    private static final String ENCODING = "UTF-8";
+    private static final InputStream INPUT_STREAM = StringUtil.asInputStream("");
+    private static final String ENCODING = "latin1";
 
     @Test
     public void constructor_returnsNewInstance() {

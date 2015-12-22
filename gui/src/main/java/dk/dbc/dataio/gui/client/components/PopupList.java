@@ -35,6 +35,9 @@ public class PopupList extends Composite implements HasWidgets {
 
     /**
      * Constructor
+     *
+     * @param dialogTitle The title text to display on the Dialog Box (mandatory)
+     * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
     @UiConstructor
     public PopupList(String dialogTitle, String okButtonText) {

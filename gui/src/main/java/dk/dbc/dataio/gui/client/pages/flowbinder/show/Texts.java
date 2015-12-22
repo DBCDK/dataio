@@ -73,8 +73,15 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Create();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Ok();
+
 
     // Other texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_Submitters();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_SubmitterDialogBoxTitle();
+
 }

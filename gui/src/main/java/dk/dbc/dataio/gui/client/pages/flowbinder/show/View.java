@@ -32,7 +32,6 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -47,7 +46,9 @@ import java.util.List;
 public class View extends ViewWidget {
     final static String CLICKABLE_SUBMITTER_COLUMN_STYLE = "clickable-submitter-column-style";
     ListDataProvider<FlowBinderModel> dataProvider;
-    SingleSelectionModel<FlowBinderModel> selectionModel = new SingleSelectionModel<FlowBinderModel>();
+    SingleSelectionModel<FlowBinderModel> selectionModel = new SingleSelectionModel<>();
+
+
 
     public View() {
         super("");
@@ -77,7 +78,7 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<FlowBinderModel>();
+        dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(flowBindersTable);
 
         flowBindersTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
@@ -313,12 +314,15 @@ public class View extends ViewWidget {
         public void onBrowserEvent(Cell.Context context, Element elem, FlowBinderModel model, NativeEvent event) {
             super.onBrowserEvent(context, elem, model, event);
             if (isClickableColumn(model.getSubmitterModels()) && "click".equals(event.getType())) {
-                // To be implemented
-                Window.alert("Her kommer en liste med " + model.getSubmitterModels().size() + " submitter navne");
+                showSubmittersInPopupList(model.getSubmitterModels());
             }
         }
 
-        // Private methods
+
+        /*
+         * Private methods
+         */
+
         private boolean isEmptySubmitterColumn(List<SubmitterModel> models) {
             return models == null || models.size() == 0;
         }
@@ -337,5 +341,13 @@ public class View extends ViewWidget {
                 return Format.inBracketsPairString(model.getNumber(), model.getName());
             }
         }
-    };
+
+        private void showSubmittersInPopupList(List<SubmitterModel> submitters) {
+            popupList.clear();
+            for (SubmitterModel model: submitters) {
+                popupList.add(Format.inBracketsPairString(model.getNumber(), model.getName()));
+            }
+            popupList.show();
+        }
+    }
 }

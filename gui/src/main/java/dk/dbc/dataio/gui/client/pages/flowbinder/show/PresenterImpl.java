@@ -101,9 +101,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Local methods
      */
 
-    /**
-     * This method fetches all flowbinders, and sends them to the view
-     */
     View getView() {
         return this.viewInjector.getView();
     }
@@ -112,6 +109,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         return this.viewInjector.getTexts();
     }
 
+    /**
+     * This method fetches all flowbinders, and sends them to the view
+     */
     private void fetchFlowBinders() {
         commonInjector.getFlowStoreProxyAsync().findAllFlowBinders(new FetchFlowBindersCallback());
     }
@@ -151,7 +151,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<FlowBinderModel> models) {
-            setFlowBindersAndDecipherSelection(new HashSet<FlowBinderModel>(getView().dataProvider.getList()), models);
+            setFlowBindersAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
         }
     }
 

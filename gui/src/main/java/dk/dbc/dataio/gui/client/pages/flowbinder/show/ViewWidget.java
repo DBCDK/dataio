@@ -29,6 +29,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.PopupList;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
@@ -40,6 +41,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     // UI Fields
     @UiField CellTable flowBindersTable;
+    @UiField PopupList popupList;
 
 
     /**
@@ -59,6 +61,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     void backButtonPressed(ClickEvent event) {
         presenter.createFlowBinder();
     }
+
+
+    /**
+     * Private methods
+     */
 
     Texts getTexts() {
         return viewInjector.getTexts();

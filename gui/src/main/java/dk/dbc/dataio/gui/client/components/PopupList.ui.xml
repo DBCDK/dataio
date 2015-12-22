@@ -1,0 +1,13 @@
+<ui:UiBinder xmlns:ui='urn:ui:com.google.gwt.uibinder'
+             xmlns:g='urn:import:com.google.gwt.user.client.ui'>
+    <g:HTMLPanel>
+
+        <g:DialogBox ui:field="dialogBox" animationEnabled="true" glassEnabled="true">
+            <g:VerticalPanel>
+                <g:VerticalPanel ui:field="content"/>
+                <g:Button ui:field="okButton"></g:Button>
+            </g:VerticalPanel>
+        </g:DialogBox>
+
+    </g:HTMLPanel>
+</ui:UiBinder>

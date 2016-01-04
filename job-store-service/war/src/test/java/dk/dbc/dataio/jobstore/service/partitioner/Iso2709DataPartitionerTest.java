@@ -150,7 +150,7 @@ public class Iso2709DataPartitionerTest {
         }
     }
 
-    @Test
+    @Test(timeout = 5000)
     public void iso2709DataPartitioner_iteration_terminates() {
         final byte[] isoRecords = readTestRecord(INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO);
         final DataPartitionerFactory.DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()

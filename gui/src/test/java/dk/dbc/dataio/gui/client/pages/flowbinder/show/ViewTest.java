@@ -21,7 +21,9 @@
 
 package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
@@ -71,6 +73,8 @@ public class ViewTest {
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock static ClickEvent mockedClickEvent;
     @Mock ViewGinjector mockedViewInjector;
+    @Mock Cell.Context mockedContext;
+    @Mock NativeEvent mockedEvent;
 
 
     // Test Data
@@ -450,8 +454,14 @@ public class ViewTest {
         assertThat(value, is("3 Mocked Text: submittere"));
     }
 
-    @Test
+    @Test(expected = NullPointerException.class)
     public void submitterColumn_getCellStyleNames_nullSubmitters_ok() {
+
+        // Setup
+        View.SubmitterColumn submitterColumn = new View().new SubmitterColumn();
+
+        // Test subject under test
+        String value = ((Column) submitterColumn).getCellStyleNames(null, null);  // Mysterious cast is made due to IntelliJ Inspection bug
 
     }
 
@@ -505,6 +515,102 @@ public class ViewTest {
 
         // Verify test
         assertThat(value, is(View.CLICKABLE_SUBMITTER_COLUMN_STYLE));
+    }
+
+    @Test
+    public void submitterColumn_onBrowserEvent_notClick_displayNothing() {
+
+        // Setup
+        setupView();
+        ViewConcrete.SubmitterColumn submitterColumn = view.new SubmitterColumn();
+        when(mockedEvent.getType()).thenReturn("clickX");
+
+        // Test subject under test
+        ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelThreeSubmitters, mockedEvent);
+
+        // Verify test
+        verifyNoMoreInteractions(view.popupList);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void submitterColumn_onBrowserEvent_nullSubmitters_throw() {
+
+        // Setup
+        setupView();
+        ViewConcrete.SubmitterColumn submitterColumn = view.new SubmitterColumn();
+        when(mockedEvent.getType()).thenReturn("click");
+
+        // Test subject under test
+        ((Column) submitterColumn).onBrowserEvent(mockedContext, null, null, mockedEvent);
+    }
+
+    @Test
+    public void submitterColumn_onBrowserEvent_noSubmitters_displayNothing() {
+
+        // Setup
+        setupView();
+        ViewConcrete.SubmitterColumn submitterColumn = view.new SubmitterColumn();
+        when(mockedEvent.getType()).thenReturn("click");
+
+        // Test subject under test
+        ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelEmpty, mockedEvent);
+
+        // Verify test
+        verifyNoMoreInteractions(view.popupList);
+    }
+
+    @Test
+    public void submitterColumn_onBrowserEvent_oneSubmitters_displayNothing() {
+
+        // Setup
+        setupView();
+        ViewConcrete.SubmitterColumn submitterColumn = view.new SubmitterColumn();
+        when(mockedEvent.getType()).thenReturn("click");
+
+        // Test subject under test
+        ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelOneSubmitter, mockedEvent);
+
+        // Verify test
+        verifyNoMoreInteractions(view.popupList);
+    }
+
+    @Test
+    public void submitterColumn_onBrowserEvent_twoSubmitters_displayDialogBox() {
+
+        // Setup
+        setupView();
+        ViewConcrete.SubmitterColumn submitterColumn = view.new SubmitterColumn();
+        when(mockedEvent.getType()).thenReturn("click");
+
+        // Test subject under test
+        ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelTwoSubmitters, mockedEvent);
+
+        // Verify test
+        verify(view.popupList).clear();
+        verify(view.popupList).add("1234 (Sub 1)");
+        verify(view.popupList).add("2345 (Sub 2)");
+        verify(view.popupList).show();
+        verifyNoMoreInteractions(view.popupList);
+    }
+
+    @Test
+    public void submitterColumn_onBrowserEvent_threeSubmitters_displayDialogBox() {
+
+        // Setup
+        setupView();
+        ViewConcrete.SubmitterColumn submitterColumn = view.new SubmitterColumn();
+        when(mockedEvent.getType()).thenReturn("click");
+
+        // Test subject under test
+        ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelThreeSubmitters, mockedEvent);
+
+        // Verify test
+        verify(view.popupList).clear();
+        verify(view.popupList).add("1234 (Sub 1)");
+        verify(view.popupList).add("2345 (Sub 2)");
+        verify(view.popupList).add("3456 (Sub 3)");
+        verify(view.popupList).show();
+        verifyNoMoreInteractions(view.popupList);
     }
 
 

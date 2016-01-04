@@ -86,6 +86,10 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
             this.inputStream = new ByteCountingInputStream(inputStream);
             this.encoding = StandardCharsets.UTF_8;
             this.specifiedEncoding = specifiedEncoding;
+            validateSpecifiedEncoding();
+            danMarc2Charset = new DanMarc2Charset();
+            bufferedInputStream = new BufferedInputStream(this.inputStream);
+            documentBuilderFactory = DocumentBuilderFactory.newInstance();
         }
 
         @Override
@@ -100,13 +104,6 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
 
         @Override
         public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
-            if (iterator == null) {
-                validateSpecifiedEncoding();
-                danMarc2Charset = new DanMarc2Charset();
-                bufferedInputStream = new BufferedInputStream(inputStream);
-                documentBuilderFactory = DocumentBuilderFactory.newInstance();
-
-            }
             iterator = new Iterator<ChunkItem>() {
                 private Document document = null;
 

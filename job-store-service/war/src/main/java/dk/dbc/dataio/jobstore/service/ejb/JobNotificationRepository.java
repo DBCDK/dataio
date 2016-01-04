@@ -73,8 +73,6 @@ public class JobNotificationRepository extends RepositoryBase {
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
 
-    JobExporter jobExporter = new JobExporter(entityManager);
-
     /**
      * Gets all notifications associated with job
      * @param jobId id of job for which to get notifications
@@ -196,6 +194,7 @@ public class JobNotificationRepository extends RepositoryBase {
         final MailNotification mailNotification = new MailNotification(mailSession, notification);
         final JobEntity job = notification.getJob();
         if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
+            final JobExporter jobExporter = new JobExporter(entityManager);
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.DELIVERING),

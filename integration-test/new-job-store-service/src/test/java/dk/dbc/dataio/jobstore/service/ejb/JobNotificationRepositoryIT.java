@@ -269,7 +269,6 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
-        jobNotificationRepository.jobExporter = new JobExporter(entityManager);
 
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 

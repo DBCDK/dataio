@@ -23,13 +23,14 @@ package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
-import dk.dbc.dataio.sink.openupdate.mapping.OpenUpdateResponseDTO;
-import dk.dbc.dataio.sink.openupdate.mapping.UpdateRecordResponseMapper;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
+import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,10 +46,12 @@ public class AddiRecordsToItemWrapper {
     private AddiRecordPreprocessor addiRecordPreprocessor;
     private OpenUpdateServiceConnector openUpdateServiceConnector;
     private ChunkItem processedChunkItem;
+    private UpdateRecordResultMarshaller updateRecordResultMarshaller;
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
     private UUID trackingId;
+    private List<Diagnostic> diagnostics = new ArrayList<>();
 
     /**
      * @param processedChunkItem processed Chunk Item to copy values from
@@ -57,11 +60,13 @@ public class AddiRecordsToItemWrapper {
      * @throws NullPointerException NullPointer thrown if arguments are null
      */
     public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
-                                    OpenUpdateServiceConnector openUpdateServiceConnector) throws NullPointerException {
+                                    OpenUpdateServiceConnector openUpdateServiceConnector,
+                                    UpdateRecordResultMarshaller updateRecordResultMarshaller) throws NullPointerException {
 
         this.processedChunkItem = InvariantUtil.checkNotNullOrThrow(processedChunkItem, "processedChunkItem");
         this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
         this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
+        this.updateRecordResultMarshaller = InvariantUtil.checkNotNullOrThrow(updateRecordResultMarshaller, "updateRecordResultMarshaller");
     }
 
     /**
@@ -89,14 +94,22 @@ public class AddiRecordsToItemWrapper {
                 // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
                 .findFirst();
 
-        return new ChunkItem(
-                processedChunkItem.getId(),
+        ChunkItem chunkItem = new ChunkItem(processedChunkItem.getId(),
                 asBytes(this.getItemContentCrossAddiRecords()),
                 failed.isPresent() ? ChunkItem.Status.FAILURE : ChunkItem.Status.SUCCESS);
+        //TODO => once slf's get diagnostics method has been implemented, this can simply be set to ChunkItem.Status.SUCCESS
+
+        if(failed.isPresent()) {
+            diagnostics.stream().forEach(chunkItem::appendDiagnostics);
+        }
+        return chunkItem;
     }
 
-    // Package scoped for test reasons - originally private visibility.
-    AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex) {
+    /*
+     * Private methods
+     */
+
+    private AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex) {
         this.addiRecordIndex = addiRecordIndex + 1;
         trackingId = UUID.randomUUID();
         try {
@@ -107,19 +120,21 @@ public class AddiRecordsToItemWrapper {
                     preprocessorResult.getTemplate(),
                     preprocessorResult.getBibliographicRecord(),
                     trackingId);
-            final OpenUpdateResponseDTO mappedWebServiceResult = new UpdateRecordResponseMapper(webserviceResult).mapToDto(trackingId);
 
-            if(mappedWebServiceResult.getStatus() == OpenUpdateResponseDTO.Status.OK) {
+            if(webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );
                 return AddiStatus.OK;
-            } else {
+            }
+           else {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
-                crossAddiRecordsMessage.append(mappedWebServiceResult.asXml());
+                crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));
+                //TODO => call slf's get diagnostics method from here and append to diagnostics
                 return AddiStatus.FAILED_VALIDATION;
             }
         } catch (Throwable t) {
             crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
             crossAddiRecordsMessage.append(getStackTraceAsString(t));
+            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, getStackTraceAsString(t)));
             return AddiStatus.FAILED_STACKTRACE;
         }
     }

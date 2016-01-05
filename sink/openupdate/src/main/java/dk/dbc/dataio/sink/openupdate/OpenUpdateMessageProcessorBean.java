@@ -46,6 +46,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
 
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
+    private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
 
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB OpenUpdateConfigBean openUpdateConfigBean;
@@ -60,7 +61,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         for (ChunkItem processedChunkItem : processedChunk) {
             final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
             final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
-                    processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector);
+                    processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
 
             switch (processedChunkItem.getStatus()) {
                 case SUCCESS: chunkForDelivery.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());

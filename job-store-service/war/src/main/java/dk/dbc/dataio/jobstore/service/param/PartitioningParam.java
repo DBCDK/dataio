@@ -54,32 +54,45 @@ public class PartitioningParam {
             FileStoreServiceConnector fileStoreServiceConnector,
             boolean doSequenceAnalysis,
             RecordSplitter recordSplitterType) throws NullPointerException {
-
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobEntity = InvariantUtil.checkNotNullOrThrow(jobEntity, "jobEntity");
-        this.doSequenceAnalysis = doSequenceAnalysis;
-        this.recordSplitterType = recordSplitterType;
-        this.sequenceAnalyserKeyGenerator = newSequenceAnalyserKeyGenerator();
-        this.dataFileId = extractDataFileIdFromURN();
-        this.dataFileInputStream = newDataFileInputStream();
-        this.dataPartitioner = newDataPartitioner();
+        if (!this.jobEntity.hasFatalError()) {
+            this.doSequenceAnalysis = doSequenceAnalysis;
+            this.recordSplitterType = recordSplitterType;
+            this.sequenceAnalyserKeyGenerator = newSequenceAnalyserKeyGenerator();
+            this.dataFileId = extractDataFileIdFromURN();
+            this.dataFileInputStream = newDataFileInputStream();
+            this.dataPartitioner = newDataPartitioner();
+        }
     }
 
     public String getDataFileId() {
         return dataFileId;
     }
-    public InputStream getDataFileInputStream() {return dataFileInputStream;}
+
+    public InputStream getDataFileInputStream() {
+        return dataFileInputStream;
+    }
+
     public List<Diagnostic> getDiagnostics() {
         return diagnostics;
     }
+
     public JobEntity getJobEntity() {
         return this.jobEntity;
     }
+
     public DataPartitioner getDataPartitioner() {
         return dataPartitioner;
     }
-    public boolean getDoSequenceAnalysis() {return doSequenceAnalysis;}
-    public RecordSplitter getRecordSplitterType() {return recordSplitterType;}
+
+    public boolean getDoSequenceAnalysis() {
+        return doSequenceAnalysis;
+    }
+
+    public RecordSplitter getRecordSplitterType() {
+        return recordSplitterType;
+    }
 
     public SequenceAnalyserKeyGenerator getSequenceAnalyserKeyGenerator() {
         return sequenceAnalyserKeyGenerator;
@@ -95,12 +108,7 @@ public class PartitioningParam {
         }
     }
 
-    /*
-     *  Private methods
-     */
-
     private SequenceAnalyserKeyGenerator newSequenceAnalyserKeyGenerator() {
-
         if (doSequenceAnalysis) {
             if (jobEntity.getCachedSink().getSink() != null) {
                 return new SequenceAnalyserSinkKeyGenerator(jobEntity.getCachedSink().getSink().getId());
@@ -118,7 +126,6 @@ public class PartitioningParam {
             } catch (FileStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not get input stream for data file: %s", jobEntity.getSpecification().getDataFile());
                 diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
-
             }
         }
         return null;

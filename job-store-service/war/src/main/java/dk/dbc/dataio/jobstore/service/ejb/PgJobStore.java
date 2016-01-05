@@ -136,10 +136,9 @@ public class PgJobStore {
     }
 
     /**
-     * This method is a public wrapper to support asynchronous behavior
-     *
-     * @param partitioningParam     see description in above addJob method
-     * @throws JobStoreException    see description in above addJob method
+     * This method is a wrapper of the handlePartitioning method to support asynchronous behavior
+     * @param partitioningParam containing the state required to partition a new job
+     * @throws JobStoreException on failure to partition job
      */
     @Asynchronous
     public void handlePartitioningAsynchronously(PartitioningParam partitioningParam) throws JobStoreException {
@@ -147,79 +146,43 @@ public class PgJobStore {
     }
 
     /**
-     * This method has package scope so testing is possible
-     * @param partitioningParam     see description in above addJob method
-     * @return JobInfoSnapshot      information snapshot of added job
-     * @throws JobStoreException    see description in above addJob method
+     * Attempts to partition a job into chunks as specified by given partitioning parameter
+     * if first in line for its sink destination, otherwise the job is queued for later partitioning
+     * @param partitioningParam containing the state required to partition a new job
+     * @return JobInfoSnapshot information snapshot of added job
+     * @throws JobStoreException on failure to partition job
      */
-    JobInfoSnapshot handlePartitioning(PartitioningParam partitioningParam) throws JobStoreException {
+    public JobInfoSnapshot handlePartitioning(PartitioningParam partitioningParam) throws JobStoreException {
+        try {  // This try has a 'finally' block ensuring that the input stream is closed even if an unhandled exception is thrown
 
-        JobEntity jobEntity = partitioningParam.getJobEntity();
-        boolean sinkAvailable = true;
-
-        if (!jobEntity.hasFatalError()) {
-
-            sinkAvailable = isSinkAvailableAndAddJobToJobQueue(
-                    jobEntity,
-                    jobEntity.getCachedSink().getSink(),
-                    partitioningParam.getDoSequenceAnalysis(),
-                    partitioningParam.getRecordSplitterType());
-        }
-
-        final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
-
-
-        try {  // This try have a 'finally' which ensures that the file is closed even if an unhandled exception is thrown!
-            if (sinkAvailable) {
-
-                // Continue only if no fatal error has occurred (all required remote entities could be located).
-                if (!jobEntity.hasFatalError()) {
-
-                    LOGGER.info("Start partitioning...");
-                    doPartitioningToChunksAndItems(partitioningParam, jobEntity.getId(), abortDiagnostics);
-
-                    // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
-                    final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-
-                    jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
-                    jobStoreRepository.updateJobEntityState(jobEntity, jobStateChange);
-                    if (!abortDiagnostics.isEmpty()) {
-                        abortJob(jobEntity, abortDiagnostics);
-                    }
-                }
-
-                /*
-                    Important that this is done after partitioning is done otherwise DataPartitioner is not updated with file info - hence filesize is 0.
-                    & it is also important that catching all possible exceptions and set diagnostics otherwise the transaction is rolled back hence state will be incorrect!
-                */
-                if (!jobEntity.hasFatalError()) {
-                    try {
-                        compareByteSize(partitioningParam.getDataFileId(), partitioningParam.getDataPartitioner());
-                    } catch (Exception exception) {
-                        final String diagnosticMessageOnJobLevel = String.format("Partitioning succeeded but validation 'compareByteSize' failed: %s", exception.getMessage());
-                        final Diagnostic diagnostic = new Diagnostic(FATAL, diagnosticMessageOnJobLevel, exception);
-
-                        abortDiagnostics.add(diagnostic);
-                        if (!abortDiagnostics.isEmpty()) {
-                            abortJob(jobEntity, abortDiagnostics);
-                        }
-                    }
-                }
-
-                jobQueueRepository.removeJobFromJobQueueIfExists(jobEntity);
-
-            } else {
-                LOGGER.info("Skip partitioning...");
+            // We have to merge the job entity since this method is called asynchronously
+            // and therefore in a different persistence context from the one used when
+            // the partitioning parameter was created.
+            JobEntity jobEntity = jobStoreRepository.merge(partitioningParam.getJobEntity());
+            if (!partitioningParam.getDiagnostics().isEmpty()) {
+                jobEntity = abortJob(jobEntity, partitioningParam.getDiagnostics());
             }
-        } finally {
 
+            if (!jobEntity.hasFatalError()) {
+                // This does not ensure FIFO behaviour and is in my opinion a flawed design (JBN)
+                final boolean sinkAvailable = isSinkAvailableAndAddJobToJobQueue(jobEntity, jobEntity.getCachedSink().getSink(),
+                        partitioningParam.getDoSequenceAnalysis(),
+                        partitioningParam.getRecordSplitterType());
+
+                if (sinkAvailable) {
+                    jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
+                    jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
+                    jobQueueRepository.removeJobFromJobQueueIfExists(jobEntity);
+                }
+            }
+
+            jobStoreRepository.flushEntityManager();
+            logTimerMessage(jobEntity);
+            return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
+
+        } finally {
             partitioningParam.closeDataFile();
         }
-
-        jobStoreRepository.flushEntityManager();
-        logTimerMessage(jobEntity);
-
-        return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
 
     // Important that the Sink ID is the real Sink's ID and not the cached ones because the Cache can hold the same Sink in different versions.
@@ -238,36 +201,66 @@ public class PgJobStore {
         }
     }
 
-    void doPartitioningToChunksAndItems(
-            PartitioningParam partitioningParam,
-            int jobId,
-            List<Diagnostic> abortDiagnostics) throws JobStoreException {
+    private JobEntity partitionJobIntoChunksAndItems(JobEntity job, PartitioningParam partitioningParam) throws JobStoreException {
+        // Attempt partitioning only if no fatal error has occurred
+        if (!job.hasFatalError()) {
+            final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
+            final short maxChunkSize = 10;
 
-        final ChunkEntity NO_MORE_CHUNKS = null;
-        final short maxChunkSize = 10;
-        int chunkId = 0;
-        ChunkEntity chunkEntity;
-        do {
-            // Creates each chunk entity (and associated item entities) in its own
-            // transactional scope to enable external visibility of job creation progress
-            chunkEntity = jobStoreRepository.createChunkEntity(
-                    jobId,
-                    chunkId++,
-                    maxChunkSize,
-                    partitioningParam.getDataPartitioner(),
-                    partitioningParam.getSequenceAnalyserKeyGenerator(),
-                    partitioningParam.getJobEntity().getSpecification().getDataFile());
+            LOGGER.info("Partitioning job {}", job.getId());
 
-            if (chunkEntity == NO_MORE_CHUNKS) {
-                break;
+            int chunkId = 0;
+            ChunkEntity chunkEntity;
+            do {
+                // Creates each chunk entity (and associated item entities) in its own
+                // transactional scope to enable external visibility of job creation progress
+                chunkEntity = jobStoreRepository.createChunkEntity(job.getId(), chunkId++, maxChunkSize,
+                        partitioningParam.getDataPartitioner(),
+                        partitioningParam.getSequenceAnalyserKeyGenerator(),
+                        job.getSpecification().getDataFile());
+
+                if (chunkEntity == null) { // no more chunks
+                    break;
+                }
+                if (chunkEntity.getState().fatalDiagnosticExists()) {
+                    // Partitioning resulted in unrecoverable error - set diagnostic to force job abortion
+                    abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
+                    break;
+                }
+                jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), job.getCachedSink().getSink());
+            } while (true);
+
+            // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
+            final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+
+            job = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, job.getId());
+            jobStoreRepository.updateJobEntityState(job, jobStateChange);
+            if (!abortDiagnostics.isEmpty()) {
+                job = abortJob(job, abortDiagnostics);
             }
-            if (chunkEntity.getState().fatalDiagnosticExists()) {
-                // Partitioning resulted in unrecoverable error - set diagnostic to force job abortion
-                abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
-                break;
+        }
+        return job;
+    }
+
+    /* Verifies that the input stream was processed entirely during partitioning */
+    private JobEntity verifyJobPartitioning(JobEntity job, PartitioningParam partitioningParam) {
+        // Verify partitioning only if no fatal error has occurred
+        if (!job.hasFatalError()) {
+            final List<Diagnostic> abortDiagnostics = new ArrayList<>(0);
+            try {
+                compareByteSize(partitioningParam.getDataFileId(), partitioningParam.getDataPartitioner());
+            } catch (Exception exception) {
+                final Diagnostic diagnostic = new Diagnostic(FATAL, String.format(
+                        "Partitioning succeeded but validation 'compareByteSize' failed: %s", exception.getMessage()),
+                        exception);
+
+                abortDiagnostics.add(diagnostic);
+                if (!abortDiagnostics.isEmpty()) {
+                    job = abortJob(job, abortDiagnostics);
+                }
             }
-            jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), partitioningParam.getJobEntity().getCachedSink().getSink());
-        } while (true);
+        }
+        return job;
     }
 
     /**

@@ -1,6 +1,5 @@
 package dk.dbc.dataio.jobstore.service.param;
 
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
@@ -8,6 +7,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 
 import java.io.InputStream;
@@ -23,15 +23,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PartitioningParamTest extends ParamBaseTest {
-
-    private final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
-    private final static boolean NOT_DO_SEQUENCE_ANALYSIS = false;
-    private final static RecordSplitterConstants.RecordSplitter XML_RECORD_SPLITTER = RecordSplitterConstants.RecordSplitter.XML;
+    private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private final RecordSplitterConstants.RecordSplitter dataPartitionerType = RecordSplitterConstants.RecordSplitter.XML;
+    private final boolean doSequenceAnalysisFlag = false;
 
     @Test
     public void constructor_jobEntityArgIsNull_throws() {
         try {
-            new PartitioningParam(null, mockedFileStoreServiceConnector, NOT_DO_SEQUENCE_ANALYSIS, XML_RECORD_SPLITTER);
+            new PartitioningParam(null, fileStoreServiceConnector, doSequenceAnalysisFlag, dataPartitionerType);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -39,7 +38,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
         try {
-            new PartitioningParam(new JobEntity(), null, NOT_DO_SEQUENCE_ANALYSIS, XML_RECORD_SPLITTER);
+            new PartitioningParam(new JobEntity(), null, doSequenceAnalysisFlag, dataPartitionerType);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -47,22 +46,21 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsPartitioningParam() {
-
-        final PartitioningParam partitioningParam = constructPartitioningParam(false, jobSpecification);
+        final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
         assertThat(partitioningParam, is(notNullValue()));
-
         assertThat(partitioningParam.getDiagnostics(), is(notNullValue()));
         assertThat(partitioningParam.getDiagnostics().size(), is(0));
     }
 
     @Test
-    public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
-        when(mockedFileStoreServiceConnector.getFile(null)).thenThrow(new NullPointerException());
+    public void extractDataFileIdFromURN_invalidUrn_diagnosticLevelFatalAddedForUrnAndDataFileInputStream() throws FileStoreServiceConnectorException {
+        when(fileStoreServiceConnector.getFile(null)).thenThrow(new NullPointerException());
 
-        final PartitioningParam partitioningParam = constructPartitioningParam(false, new JobSpecificationBuilder().setDataFile(DATA_FILE_ID).build());
+        final JobSpecification jobSpecification = new JobSpecificationBuilder().setDataFile("invalid_urn").build();
+
+        final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         final List<Diagnostic> diagnostics = partitioningParam.getDiagnostics();
-
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(partitioningParam.getJobEntity().getSpecification().getDataFile()), is(true));
@@ -71,27 +69,24 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void extractDataFileIdFromURN_validUrnAndFileFound_dataFileIdAndDataFileInputStreamAndDataPartitionerSet() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void extractDataFileIdFromURN_validUrnAndFileFound_dataFileIdAndDataFileInputStreamAndDataPartitionerSet() throws FileStoreServiceConnectorException {
+        final InputStream mockedInputStream = mock(InputStream.class);
+        when(fileStoreServiceConnector.getFile(anyString())).thenReturn(mockedInputStream);
 
-        InputStream mockedInputStream = mock(InputStream.class);
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mockedInputStream);
-
-        final PartitioningParam partitioningParam = constructPartitioningParam(true, jobSpecification);
+        final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         final List<Diagnostic> diagnostics = partitioningParam.getDiagnostics();
         assertThat(diagnostics.size(), is(0));
         assertThat(partitioningParam.getDataFileId(), is(notNullValue()));
         assertThat(partitioningParam.getDataFileInputStream(), is(notNullValue()));
         assertThat(partitioningParam.getDataPartitioner(), is(notNullValue()));
-
     }
 
     @Test
-    public void newDataFileInputStream_fileNotFound_diagnosticLevelFatalAddedForInputStream() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void newDataFileInputStream_fileNotFound_diagnosticLevelFatalAddedForInputStream() throws FileStoreServiceConnectorException {
+        when(fileStoreServiceConnector.getFile(anyString())).thenThrow(new FileStoreServiceConnectorException(ERROR_MESSAGE));
 
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new FileStoreServiceConnectorException(ERROR_MESSAGE));
-
-        final PartitioningParam partitioningParam = constructPartitioningParam(true, jobSpecification);
+        final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         final List<Diagnostic> diagnostics = partitioningParam.getDiagnostics();
         assertThat(diagnostics.size(), is(1));
@@ -100,11 +95,10 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     @Test
-    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
+    public void addJobParam_allReachableParametersSet_expectedValuesReturnedThroughGetters() throws FileStoreServiceConnectorException {
+        when(fileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
 
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(mock(InputStream.class));
-
-        final PartitioningParam partitioningParam = constructPartitioningParam(true, jobSpecification);
+        final PartitioningParam partitioningParam = newPartitioningParam(getJobEntity(jobSpecification));
 
         assertThat(partitioningParam.getSequenceAnalyserKeyGenerator(), is(notNullValue()));
         assertThat(partitioningParam.getDataPartitioner(), is(notNullValue()));
@@ -112,25 +106,14 @@ public class PartitioningParamTest extends ParamBaseTest {
         assertThat(partitioningParam.getDataFileId(), is(DATA_FILE_ID));
     }
 
-    /*
-     * private methods
-     */
+    private PartitioningParam newPartitioningParam(JobEntity jobEntity) {
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, doSequenceAnalysisFlag, dataPartitionerType);
+    }
 
-    private PartitioningParam constructPartitioningParam(boolean isDataFileInputStreamMocked, JobSpecification jobSpecification){
-        final PartitioningParam partitioningParam;
-        final JobEntity jobEntity;
-
-        if(isDataFileInputStreamMocked) {
-            jobEntity = new JobEntity();
-            jobEntity.setSpecification(jobSpecification);
-            partitioningParam = new PartitioningParam(jobEntity, mockedFileStoreServiceConnector, NOT_DO_SEQUENCE_ANALYSIS, XML_RECORD_SPLITTER);
-            partitioningParam.dataFileInputStream = mock(InputStream.class);
-        } else {
-
-            jobEntity = new JobEntity();
-            jobEntity.setSpecification(jobSpecification);
-            partitioningParam = new PartitioningParam(jobEntity, mockedFileStoreServiceConnector, NOT_DO_SEQUENCE_ANALYSIS, XML_RECORD_SPLITTER);
-        }
-        return partitioningParam;
+    private JobEntity getJobEntity(JobSpecification jobSpecification) {
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setSpecification(jobSpecification);
+        jobEntity.setState(new State());
+        return jobEntity;
     }
 }

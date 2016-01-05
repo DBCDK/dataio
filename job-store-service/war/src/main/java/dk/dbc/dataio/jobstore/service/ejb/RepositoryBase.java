@@ -1,8 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -31,9 +32,26 @@ public abstract class RepositoryBase {
     /**
      * The EJB specification requires these to be public because they are called from another EJB!
      */
+
+    /**
+     * Merge the state of the given entity into the current persistence context
+     * @param entity entity instance
+     * @param <T> entity type parameter
+     * @return the managed instance that the state was merged to
+     * @throws JobStoreException on failure to merge entity state
+     */
+    public <T> T merge(T entity) throws JobStoreException {
+        try {
+            return entityManager.merge(entity);
+        } catch (RuntimeException e) {
+            throw new JobStoreException("Unable to merge entity state into persistence context", e);
+        }
+    }
+
     public void flushEntityManager() {
         entityManager.flush();
     }
+
     public void refreshFromDatabase(JobEntity jobEntity) {
         entityManager.refresh(jobEntity);
     }

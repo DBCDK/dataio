@@ -46,6 +46,7 @@ import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import org.junit.Before;
@@ -118,7 +119,7 @@ public abstract class PgJobStoreBaseTest {
     }
 
     @Before
-    public void setupExpectations() {
+    public void setupExpectations() throws JobStoreException {
         final Query cacheFlowQuery = mock(Query.class);
         when(entityManager.createNamedQuery(FlowCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheFlowQuery);
         when(cacheFlowQuery.getSingleResult()).thenReturn(EXPECTED_FLOW_CACHE_ENTITY);
@@ -128,6 +129,12 @@ public abstract class PgJobStoreBaseTest {
         when(entityManager.createNamedQuery(SinkCacheEntity.NAMED_QUERY_SET_CACHE)).thenReturn(cacheSinkQuery);
         when(cacheSinkQuery.getSingleResult()).thenReturn(EXPECTED_SINK_CACHE_ENTITY);
         when(EXPECTED_SINK_CACHE_ENTITY.getSink()).thenReturn(EXPECTED_SINK);
+
+        when(entityManager.merge(any()))
+                .thenAnswer(invocation -> {
+                    final Object[] args = invocation.getArguments();
+                    return args[0];
+                });
     }
 
 

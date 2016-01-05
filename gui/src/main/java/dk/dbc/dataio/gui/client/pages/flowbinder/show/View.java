@@ -293,7 +293,7 @@ public class View extends ViewWidget {
         }
 
         @Override
-        public void render(com.google.gwt.cell.client.Cell.Context context, SafeHtml value, SafeHtmlBuilder sb) {
+        public void render(Context context, SafeHtml value, SafeHtmlBuilder sb) {
             if (value != null) {
                 sb.append(value);
             }

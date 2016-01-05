@@ -57,6 +57,7 @@ public class AddiRecordsToItemWrapper {
      * @param processedChunkItem processed Chunk Item to copy values from
      * @param addiRecordPreprocessor ADDI record pre-processor
      * @param openUpdateServiceConnector OpenUpdate webservice connector
+     * @param updateRecordResultMarshaller updateRecordResultMarshaller
      * @throws NullPointerException NullPointer thrown if arguments are null
      */
     public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, AddiRecordPreprocessor addiRecordPreprocessor,

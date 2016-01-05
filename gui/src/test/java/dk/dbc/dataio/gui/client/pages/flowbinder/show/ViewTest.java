@@ -27,6 +27,7 @@ import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -339,7 +340,8 @@ public class ViewTest {
         Column column = view.constructSubmittersColumn();
 
         // Test that correct getValue handler has been setup - remember format: "name (number)"
-        assertThat(column.getValue(flowBinderModel1),
+        SafeHtml cellValue = (SafeHtml) column.getValue(flowBinderModel1);
+        assertThat(cellValue.asString(),
                 is(flowBinderModel1.getSubmitterModels().get(0).getNumber() + " ("
                         + flowBinderModel1.getSubmitterModels().get(0).getName() + ")"));
     }
@@ -409,10 +411,10 @@ public class ViewTest {
         ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
 
         // Test subject under test
-        String value = submitterColumn.getValue(flowBinderModelEmpty);
+        SafeHtml value = submitterColumn.getValue(flowBinderModelEmpty);
 
         // Verify test
-        assertThat(value, is(""));
+        assertThat(value.asString(), is(""));
     }
 
     @Test
@@ -422,10 +424,10 @@ public class ViewTest {
         ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
 
         // Test subject under test
-        String value = submitterColumn.getValue(flowBinderModelOneSubmitter);
+        SafeHtml value = submitterColumn.getValue(flowBinderModelOneSubmitter);
 
         // Verify test
-        assertThat(value, is("1234 (Sub 1)"));
+        assertThat(value.asString(), is("1234 (Sub 1)"));
     }
 
     @Test
@@ -435,10 +437,10 @@ public class ViewTest {
         ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
 
         // Test subject under test
-        String value = submitterColumn.getValue(flowBinderModelTwoSubmitters);
+        SafeHtml value = submitterColumn.getValue(flowBinderModelTwoSubmitters);
 
         // Verify test
-        assertThat(value, is("2 Mocked Text: submittere"));
+        assertThat(value.asString(), is("<a href='javascript:;'>2 Mocked Text: submittere</a>"));
     }
 
     @Test
@@ -448,73 +450,10 @@ public class ViewTest {
         ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
 
         // Test subject under test
-        String value = submitterColumn.getValue(flowBinderModelThreeSubmitters);
+        SafeHtml value = submitterColumn.getValue(flowBinderModelThreeSubmitters);
 
         // Verify test
-        assertThat(value, is("3 Mocked Text: submittere"));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void submitterColumn_getCellStyleNames_nullSubmitters_ok() {
-
-        // Setup
-        View.SubmitterColumn submitterColumn = new View().new SubmitterColumn();
-
-        // Test subject under test
-        String value = ((Column) submitterColumn).getCellStyleNames(null, null);  // Mysterious cast is made due to IntelliJ Inspection bug
-
-    }
-
-    @Test
-    public void submitterColumn_getCellStyleNames_noSubmitters_ok() {
-
-        // Setup
-        View.SubmitterColumn submitterColumn = new View().new SubmitterColumn();
-
-        // Test subject under test
-        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelEmpty);  // Mysterious cast is made due to IntelliJ Inspection bug
-
-        // Verify test
-        assertThat(value, is(""));
-    }
-
-    @Test
-    public void submitterColumn_getCellStyleNames_oneSubmitter_ok() {
-
-        // Setup
-        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
-
-        // Test subject under test
-        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelOneSubmitter);  // Mysterious cast is made due to IntelliJ Inspection bug
-
-        // Verify test
-        assertThat(value, is(""));
-    }
-
-    @Test
-    public void submitterColumn_getCellStyleNames_twoSubmitters_ok() {
-
-        // Setup
-        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
-
-        // Test subject under test
-        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelTwoSubmitters);  // Mysterious cast is made due to IntelliJ Inspection bug
-
-        // Verify test
-        assertThat(value, is(View.CLICKABLE_SUBMITTER_COLUMN_STYLE));
-    }
-
-    @Test
-    public void submitterColumn_getCellStyleNames_threeSubmitters_ok() {
-
-        // Setup
-        ViewConcrete.SubmitterColumn submitterColumn = new ViewConcrete().new SubmitterColumn();
-
-        // Test subject under test
-        String value = ((Column) submitterColumn).getCellStyleNames(null, flowBinderModelThreeSubmitters);  // Mysterious cast is made due to IntelliJ Inspection bug
-
-        // Verify test
-        assertThat(value, is(View.CLICKABLE_SUBMITTER_COLUMN_STYLE));
+        assertThat(value.asString(), is("<a href='javascript:;'>3 Mocked Text: submittere</a>"));
     }
 
     @Test

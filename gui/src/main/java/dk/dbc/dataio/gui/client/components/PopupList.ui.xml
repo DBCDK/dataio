@@ -2,7 +2,7 @@
              xmlns:g='urn:import:com.google.gwt.user.client.ui'>
     <g:HTMLPanel>
 
-        <g:DialogBox ui:field="dialogBox" animationEnabled="true" glassEnabled="true">
+        <g:DialogBox ui:field="dialogBox" animationEnabled="true" glassEnabled="true" modal="false">
             <g:VerticalPanel>
                 <g:VerticalPanel ui:field="content"/>
                 <g:Button ui:field="okButton"></g:Button>

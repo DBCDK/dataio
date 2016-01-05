@@ -22,14 +22,16 @@
 package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
 
+import com.google.gwt.cell.client.AbstractCell;
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
-import com.google.gwt.cell.client.ClickableTextCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
@@ -44,7 +46,6 @@ import java.util.List;
  * This class is the View class for the FlowBinders Show View
  */
 public class View extends ViewWidget {
-    final static String CLICKABLE_SUBMITTER_COLUMN_STYLE = "clickable-submitter-column-style";
     ListDataProvider<FlowBinderModel> dataProvider;
     SingleSelectionModel<FlowBinderModel> selectionModel = new SingleSelectionModel<>();
 
@@ -286,28 +287,43 @@ public class View extends ViewWidget {
     /**
      * Private classes
      */
-    class SubmitterColumn extends Column<FlowBinderModel, String> {
-        public SubmitterColumn(Cell<String> cell) {
+    class SafeHtmlCell extends AbstractCell<SafeHtml> {
+        public SafeHtmlCell() {
+            super("click", "keydown");
+        }
+
+        @Override
+        public void render(com.google.gwt.cell.client.Cell.Context context, SafeHtml value, SafeHtmlBuilder sb) {
+            if (value != null) {
+                sb.append(value);
+            }
+        }
+    }
+
+    class SubmitterColumn extends Column<FlowBinderModel, SafeHtml> {
+        public SubmitterColumn(Cell<SafeHtml> cell) {
             super(cell);
         }
 
         public SubmitterColumn() {
-            this(new ClickableTextCell());
+            this(new SafeHtmlCell());
         }
 
         @Override
-        public String getValue(FlowBinderModel model) {
-            return formatSubmitters(model.getSubmitterModels());
-        }
-
-        @Override
-        public String getCellStyleNames(Cell.Context context, FlowBinderModel model) {
+        public SafeHtml getValue(FlowBinderModel model) {
             List<SubmitterModel> models = model.getSubmitterModels();
-            if (models != null && models.size() > 1) {
-                return CLICKABLE_SUBMITTER_COLUMN_STYLE;
+            SafeHtmlBuilder sb = new SafeHtmlBuilder();
+            if (isClickableColumn(models)) {
+                sb.appendHtmlConstant("<a href='javascript:;'>");
+                sb.append(models.size()).appendEscaped(" ").appendEscaped(getTexts().text_Submitters());
+                sb.appendHtmlConstant("</a>");
             } else {
-                return "";
+                if (!models.isEmpty()) {
+                    SubmitterModel submitter = models.get(0);
+                    sb.appendEscaped(Format.inBracketsPairString(submitter.getNumber(), submitter.getName()));
+                }
             }
+            return sb.toSafeHtml();
         }
 
         @Override
@@ -318,28 +334,8 @@ public class View extends ViewWidget {
             }
         }
 
-
-        /*
-         * Private methods
-         */
-
-        private boolean isEmptySubmitterColumn(List<SubmitterModel> models) {
-            return models == null || models.size() == 0;
-        }
-
         private boolean isClickableColumn(List<SubmitterModel> models) {
             return models != null && models.size() > 1;
-        }
-
-        private String formatSubmitters(List<SubmitterModel> models) {
-            if (isEmptySubmitterColumn(models)) {
-                return "";
-            } else if (isClickableColumn(models)) {
-                return models.size() + " " + getTexts().text_Submitters();
-            } else {
-                SubmitterModel model = models.get(0);
-                return Format.inBracketsPairString(model.getNumber(), model.getName());
-            }
         }
 
         private void showSubmittersInPopupList(List<SubmitterModel> submitters) {

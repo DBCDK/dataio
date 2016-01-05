@@ -44,8 +44,13 @@ public class PopupList extends Composite implements HasWidgets {
         initWidget(ourUiBinder.createAndBindUi(this));
         dialogBox.setText(dialogTitle);
         okButton.setText(okButtonText);
+        boolean animationEnabled = dialogBox.isAnimationEnabled();
+        dialogBox.setAnimationEnabled(false);  // Assure, that the dialogbox will not blink upon startup when executing the next two statements...
         show();  // First show the DialogBox in order to add it to the DOM
         hide();  // ... but we don't want it shown upon startup - so hide it again
+        if (animationEnabled) {
+            dialogBox.setAnimationEnabled(true);
+        }
     }
 
     /**

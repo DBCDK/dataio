@@ -76,6 +76,7 @@ import types.TestableAddJobParamBuilder;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.persistence.EntityTransaction;
+import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -440,13 +441,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     public void addJob_failsFastDuringCreation_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final String iso8859 =
-                "<?xml encoding=\"ISO-8859-1\""
-                + "<records>"
-                     + "<record>first</record>"
-                + "</records>";
+        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
 
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(iso8859).build();
+        when(mockedFileStoreServiceConnector.getFile(anyString())).thenThrow(new ProcessingException("Died"));
 
         // When...
         final EntityTransaction transaction = entityManager.getTransaction();

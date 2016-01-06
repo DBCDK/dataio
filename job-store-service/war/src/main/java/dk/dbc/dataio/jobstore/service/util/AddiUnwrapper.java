@@ -49,7 +49,7 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
         return addiUnwrap(InvariantUtil.checkNotNullOrThrow(wrappedChunkItem, "wrappedChunkItem"));
     }
 
-    private List getUnwrappedType(ChunkItem wrappedChunkItem) throws JobStoreException {
+    private List<ChunkItem.Type> getUnwrappedType(ChunkItem wrappedChunkItem) throws JobStoreException {
         final List<ChunkItem.Type> type = wrappedChunkItem.getType();
         final List<ChunkItem.Type> unwrappedType = new ArrayList<>(Math.max(type.size() - 1, 1));
         if (type.size() == 1) {
@@ -71,7 +71,7 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
     }
 
     private List<ChunkItem> addiUnwrap(ChunkItem wrappedChunkItem) throws JobStoreException {
-        final List unwrappedType = getUnwrappedType(wrappedChunkItem);
+        final List<ChunkItem.Type> unwrappedType = getUnwrappedType(wrappedChunkItem);
         try {
             final ArrayList<Diagnostic> diagnostics = wrappedChunkItem.getDiagnostics();
             final ArrayList<ChunkItem> unwrappedChunkItems = new ArrayList<>();

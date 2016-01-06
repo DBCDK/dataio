@@ -40,6 +40,8 @@ import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.Format;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -339,6 +341,12 @@ public class View extends ViewWidget {
         }
 
         private void showSubmittersInPopupList(List<SubmitterModel> submitters) {
+            Collections.sort(submitters, new Comparator<SubmitterModel>() {
+                @Override
+                public int compare(SubmitterModel  submitterModel1, SubmitterModel  submitterModel2) {
+                    return Long.valueOf(submitterModel1.getNumber()).compareTo(Long.valueOf(submitterModel2.getNumber()));
+                }
+            });
             popupList.clear();
             for (SubmitterModel model: submitters) {
                 popupList.add(Format.inBracketsPairString(model.getNumber(), model.getName()));

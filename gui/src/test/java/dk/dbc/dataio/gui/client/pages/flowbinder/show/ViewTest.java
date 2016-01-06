@@ -43,6 +43,7 @@ import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -120,8 +122,8 @@ public class ViewTest {
             .setName("FB Three Subs")
             .setFlowModel(flowModel1)
             .setSubmitterModels(Arrays.asList(
-                    new SubmitterModelBuilder().setName("Sub 1").setNumber("1234").build(),
                     new SubmitterModelBuilder().setName("Sub 2").setNumber("2345").build(),
+                    new SubmitterModelBuilder().setName("Sub 1").setNumber("1234").build(),
                     new SubmitterModelBuilder().setName("Sub 3").setNumber("3456").build() ))
             .setSinkModel(sinkModel1).build();
 
@@ -525,9 +527,10 @@ public class ViewTest {
         ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelTwoSubmitters, mockedEvent);
 
         // Verify test
+        InOrder inOrder = inOrder(view.popupList);
         verify(view.popupList).clear();
-        verify(view.popupList).add("1234 (Sub 1)");
-        verify(view.popupList).add("2345 (Sub 2)");
+        inOrder.verify(view.popupList).add("1234 (Sub 1)");
+        inOrder.verify(view.popupList).add("2345 (Sub 2)");
         verify(view.popupList).show();
         verifyNoMoreInteractions(view.popupList);
     }
@@ -544,10 +547,11 @@ public class ViewTest {
         ((Column) submitterColumn).onBrowserEvent(mockedContext, null, flowBinderModelThreeSubmitters, mockedEvent);
 
         // Verify test
+        InOrder inOrder = inOrder(view.popupList);
         verify(view.popupList).clear();
-        verify(view.popupList).add("1234 (Sub 1)");
-        verify(view.popupList).add("2345 (Sub 2)");
-        verify(view.popupList).add("3456 (Sub 3)");
+        inOrder.verify(view.popupList).add("1234 (Sub 1)");
+        inOrder.verify(view.popupList).add("2345 (Sub 2)");
+        inOrder.verify(view.popupList).add("3456 (Sub 3)");
         verify(view.popupList).show();
         verifyNoMoreInteractions(view.popupList);
     }

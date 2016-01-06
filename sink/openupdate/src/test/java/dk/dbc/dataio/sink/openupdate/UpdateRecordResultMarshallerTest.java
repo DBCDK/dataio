@@ -29,7 +29,6 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
-
 import java.math.BigInteger;
 
 import static junit.framework.TestCase.fail;
@@ -61,8 +60,6 @@ public class UpdateRecordResultMarshallerTest {
         UpdateRecordResult updateRecordResult = new UpdateRecordResult();
         updateRecordResult.setUpdateStatus(UpdateStatusEnum.VALIDATION_ERROR);
         updateRecordResult.setValidateInstance(validateInstance);
-        String test = new UpdateRecordResultMarshaller().asXml(updateRecordResult);
-        System.out.println(test);
         assertThat(new UpdateRecordResultMarshaller().asXml(updateRecordResult), is(getExpectedUpdateRecordResultAsXml()));
     }
 

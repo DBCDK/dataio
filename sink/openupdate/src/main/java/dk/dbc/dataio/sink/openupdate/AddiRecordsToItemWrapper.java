@@ -135,9 +135,15 @@ public class AddiRecordsToItemWrapper {
         } catch (Throwable t) {
             crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
             crossAddiRecordsMessage.append(getStackTraceAsString(t));
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, getStackTraceAsString(t)));
+            diagnostics.add(buildDiagnosticForGenericUpdateRecordError(t));
             return AddiStatus.FAILED_STACKTRACE;
         }
+    }
+
+    private Diagnostic buildDiagnosticForGenericUpdateRecordError(Throwable t) {
+        final String diagnosticMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getCanonicalName()
+                + " occurred while calling openUpdateService";
+        return new Diagnostic(Diagnostic.Level.FATAL, diagnosticMessage, t);
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {

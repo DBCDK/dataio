@@ -42,6 +42,7 @@ public class UpdateRecordResultMarshaller {
     public UpdateRecordResultMarshaller() {
         try {
             marshaller = JAXBContext.newInstance(UpdateRecordResult.class).createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.toString());
             objectFactory = new ObjectFactory();
         } catch (JAXBException e) {
             throw new IllegalStateException(e);
@@ -57,7 +58,6 @@ public class UpdateRecordResultMarshaller {
     public String asXml(UpdateRecordResult updateRecordResult) throws JAXBException {
         JAXBElement<UpdateRecordResult> wrappedUpdateRecordResult = objectFactory.createUpdateRecordResult(updateRecordResult);
         StringWriter stringWriter = new StringWriter();
-        marshaller.setProperty(Marshaller.JAXB_ENCODING, StandardCharsets.UTF_8.toString());
         marshaller.marshal(wrappedUpdateRecordResult, stringWriter);
         return stringWriter.toString();
     }

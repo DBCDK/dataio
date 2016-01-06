@@ -24,16 +24,18 @@ package dk.dbc.dataio.commons.utils.lang;
 import org.apache.commons.codec.binary.Base64;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class StringUtil {
     public static final Charset STANDARD_CHARSET = StandardCharsets.UTF_8;
 
-    private StringUtil() {}
+    private StringUtil() {
+    }
 
     public static byte[] asBytes(String str) {
         return asBytes(str, STANDARD_CHARSET);
@@ -79,12 +81,12 @@ public class StringUtil {
         return new String(Base64.decodeBase64(str), encoding);
     }
 
-    public static String getStackTraceString(Throwable e, String indent) {
+    public static String getStackTraceString(Throwable t, String indent) {
         final StringBuilder sb = new StringBuilder();
-        sb.append(e.toString());
+        sb.append(t.toString());
         sb.append("\n");
 
-        final StackTraceElement[] stack = e.getStackTrace();
+        final StackTraceElement[] stack = t.getStackTrace();
         if (stack != null) {
             for (StackTraceElement stackTraceElement : stack) {
                 sb.append(indent);
@@ -94,7 +96,7 @@ public class StringUtil {
             }
         }
 
-        final Throwable[] suppressedExceptions = e.getSuppressed();
+        final Throwable[] suppressedExceptions = t.getSuppressed();
         // Print suppressed exceptions indented one level deeper.
         if (suppressedExceptions != null) {
             for (Throwable throwable : suppressedExceptions) {
@@ -104,7 +106,7 @@ public class StringUtil {
             }
         }
 
-        final Throwable cause = e.getCause();
+        final Throwable cause = t.getCause();
         if (cause != null) {
             sb.append(indent);
             sb.append("Caused by: ");
@@ -114,10 +116,15 @@ public class StringUtil {
         return sb.toString();
     }
 
-    public static String getStackTraceAsString(Throwable t) {
-        StringWriter stringWriter = new StringWriter();
-        PrintWriter printWriter = new PrintWriter(stringWriter);
-        t.printStackTrace(printWriter);
-        return stringWriter.toString();
+    public static String getStackTraceString(Throwable t) {
+        String failureMsg;
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
+            t.printStackTrace(ps);
+            failureMsg = baos.toString("UTF-8");
+        } catch (IOException e) {
+            failureMsg = e.getMessage();
+        }
+        return failureMsg;
     }
 }

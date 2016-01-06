@@ -48,6 +48,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ChunkProcessorBeanTest {
@@ -94,6 +95,8 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
     }
 
     @Test
@@ -110,15 +113,22 @@ public class ChunkProcessorBeanTest {
         final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 3);
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
+
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
+
         assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
         final ChunkItem processedItem1 = iterator.next();
         assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[1] diagnostic", processedItem1.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[1] diagnostic stacktrace", processedItem1.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+
         assertThat("Chunk has item[2]", iterator.hasNext(), is(true));
         final ChunkItem processedItem2 = iterator.next();
         assertThat("Chunk item[2] status", processedItem2.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("Chunk item[2] diagnostic", processedItem2.getDiagnostics(), is(nullValue()));
     }
 
     @Test
@@ -137,12 +147,18 @@ public class ChunkProcessorBeanTest {
         final ExternalChunk processedChunk = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
         assertProcessedChunk(processedChunk, jobId, chunk.getChunkId(), 2);
         final Iterator<ChunkItem> iterator = processedChunk.iterator();
+
         assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+
         assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
         final ChunkItem processedItem1 = iterator.next();
         assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[1] diagnostic", processedItem1.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[1] diagnostic stacktrace", processedItem1.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
     }
     
     @Test
@@ -165,6 +181,7 @@ public class ChunkProcessorBeanTest {
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] data", processedItem0.getData().length == 0, is(false));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -188,6 +205,8 @@ public class ChunkProcessorBeanTest {
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] data", processedItem0.getData().length == 0, is(false));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -237,6 +256,7 @@ public class ChunkProcessorBeanTest {
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -262,6 +282,8 @@ public class ChunkProcessorBeanTest {
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
+        assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -319,16 +341,19 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()),
                 is(String.format("%s%s%s", submitter, record.toUpperCase(), format)));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
 
         assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
         final ChunkItem processedItem1 = iterator.next();
         assertThat("Chunk item[1] data", processedItem1.getData().length == 0, is(false));
         assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("Chunk item[1] diagnostic", processedItem1.getDiagnostics(), is(nullValue()));
 
         assertThat("Chunk has item[2]", iterator.hasNext(), is(true));
         final ChunkItem processedItem2 = iterator.next();
         assertThat("Chunk item[2] data", processedItem2.getData().length == 0, is(false));
         assertThat("Chunk item[2] status", processedItem2.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("Chunk item[2] diagnostic", processedItem2.getDiagnostics(), is(nullValue()));
 
         assertThat("Chunk has item[3]", iterator.hasNext(), is(false));
     }

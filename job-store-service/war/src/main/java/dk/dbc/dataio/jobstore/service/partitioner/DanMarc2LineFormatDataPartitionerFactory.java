@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -172,7 +171,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
          * @return chunkItem
          */
         private ChunkItem buildChunkItem(long id, byte[] data, Status status, Type type, Charset encoding) {
-            return new ChunkItem(id, data, status, new ArrayList<>(Collections.singletonList(type)), encoding.name());
+            return new ChunkItem(id, data, status, Collections.singletonList(type), encoding.name());
         }
 
         /**

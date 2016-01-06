@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
@@ -39,9 +40,6 @@ import org.slf4j.MDC;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -89,10 +87,10 @@ public class ChunkProcessorBean {
                         next = processItems(chunk, supplementaryData, flowCacheEntry.next);
                     }
                     processedChunk.addAllItems(items, next);
-                } catch (Throwable ex) {
+                } catch (Throwable t) {
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     // with the Throwable.
-                    processedChunk.addAllItems(failItemsWithThrowable(chunk, ex));
+                    processedChunk.addAllItems(failItemsWithThrowable(chunk, t));
                 }
             }
             return processedChunk;
@@ -177,7 +175,7 @@ public class ChunkProcessorBean {
         return new ChunkItem(item.getId(),
                 StringUtil.asBytes(String.format("Ignored by job-processor since returned status was {%s}", item.getStatus())),
                 ChunkItem.Status.IGNORE,
-                new ArrayList<>(Collections.singletonList(ChunkItem.Type.STRING)),
+                Collections.singletonList(ChunkItem.Type.STRING),
                 StandardCharsets.UTF_8.name());
     }
 
@@ -195,39 +193,55 @@ public class ChunkProcessorBean {
                 }
             }
             if (data.isEmpty()) {
-                processedItem = new ChunkItem(item.getId(), StringUtil.asBytes("Ignored by job-processor since returned data was empty"), ChunkItem.Status.IGNORE);
+                processedItem = buildProcessedChunkItem(item.getId(), "Ignored by job-processor since returned data was empty", ChunkItem.Status.IGNORE);
             } else {
-                processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(data), ChunkItem.Status.SUCCESS);
+                processedItem = buildProcessedChunkItem(item.getId(), data, ChunkItem.Status.SUCCESS);
             }
-        } catch (IgnoreRecord ex) {
-            LOGGER.error("Record Ignored by JS with Message: {}", ex.getMessage());
-            processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(ex.getMessage()), ChunkItem.Status.IGNORE);
-        } catch (FailRecord ex) {
-            LOGGER.error("RecordProcessing Terminated by JS with Message: {}", ex.getMessage());
-            processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(ex.getMessage()), ChunkItem.Status.FAILURE);
-        } catch (Throwable ex) {
-            LOGGER.error("Exception caught during JavaScript processing", ex);
-            processedItem = new ChunkItem(item.getId(), StringUtil.asBytes(getFailureMessage(ex)), ChunkItem.Status.FAILURE);
+        } catch (IgnoreRecord e) {
+            LOGGER.error("Record Ignored by JS with Message: {}", e.getMessage());
+            processedItem = buildProcessedChunkItem(item.getId(), e.getMessage(), ChunkItem.Status.IGNORE);
+        } catch (FailRecord e) {
+            LOGGER.error("RecordProcessing Terminated by JS with Message: {}", e.getMessage());
+            processedItem = buildProcessedChunkItem(item.getId(), e.getMessage(), ChunkItem.Status.FAILURE);
+            processedItem.appendDiagnostics(buildDiagnostic(e.getMessage(), null));
+        } catch (Throwable t) {
+            LOGGER.error("Exception caught during JavaScript processing", t);
+            processedItem = buildProcessedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Status.FAILURE);
+            processedItem.appendDiagnostics(buildDiagnostic("Exception caught during JavaScript processing", t));
         }
         return processedItem;
+    }
+
+    /**
+     * Builds a new chunk item with given id, data and status.
+     * @param itemId of the item
+     * @param data of the item
+     * @param status of the item
+     * @return processed chunk item
+     */
+    private ChunkItem buildProcessedChunkItem(long itemId, String data, ChunkItem.Status status) {
+        return new ChunkItem(
+                itemId,
+                StringUtil.asBytes(data, StandardCharsets.UTF_8),
+                status,
+                Collections.singletonList(ChunkItem.Type.UNKNOWN),
+                StandardCharsets.UTF_8.name());
+    }
+
+    /**
+     * Builds a new fatal diagnostic with given message and stacktrace
+     * @param message of the diagnostic
+     * @param t stacktrace of the diagnostic
+     * @return diagnostic
+     */
+    private Diagnostic buildDiagnostic(String message, Throwable t) {
+        return new Diagnostic(Diagnostic.Level.FATAL, message, t);
     }
 
     private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) throws Throwable {
         LOGGER.info("Starting javascript [{}] with invocation method: [{}] and logging ID [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod(), trackingId.toString());
         final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
         return (String) result;
-    }
-
-    private String getFailureMessage(Throwable ex) {
-        String failureMsg;
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                PrintStream ps = new PrintStream(baos, true, "UTF-8")) {
-            ex.printStackTrace(ps);
-            failureMsg = baos.toString("UTF-8");
-        } catch (IOException e) {
-            failureMsg = e.getMessage();
-        }
-        return failureMsg;
     }
 
     private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws Throwable {
@@ -238,10 +252,12 @@ public class ChunkProcessorBean {
         return scriptWrapper.eval(jsonStr);
     }
 
-    private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable ex) {
-        List<ChunkItem> failedItems = new ArrayList<>();
+    private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable t) {
+        final List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
-            failedItems.add(new ChunkItem(item.getId(), StringUtil.asBytes(getFailureMessage(ex)), ChunkItem.Status.FAILURE));
+            final ChunkItem processedChunkItem = buildProcessedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Status.FAILURE);
+            processedChunkItem.appendDiagnostics(buildDiagnostic("Chunk item failed during processing", t));
+            failedItems.add(processedChunkItem);
         }
         return failedItems;
     }

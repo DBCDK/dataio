@@ -28,8 +28,8 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -72,7 +72,7 @@ public class ChunkItemTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        ArrayList<Type> types=new ArrayList<>(Arrays.asList(Type.UNKNOWN, Type.GENERICXML));
+        List<Type> types = Arrays.asList(Type.UNKNOWN, Type.GENERICXML);
         final ChunkItem instance = new ChunkItem(ID, DATA, STATUS, types, "UTF-8");
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getId(), is(ID));

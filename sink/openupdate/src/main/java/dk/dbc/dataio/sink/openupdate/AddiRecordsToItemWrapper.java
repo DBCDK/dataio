@@ -25,6 +25,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
@@ -37,7 +38,6 @@ import java.util.UUID;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.getStackTraceAsString;
 
 public class AddiRecordsToItemWrapper {
 
@@ -83,7 +83,7 @@ public class AddiRecordsToItemWrapper {
         } catch (Throwable t) {
             return new ChunkItem(
                     processedChunkItem.getId(),
-                    asBytes("Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + getStackTraceAsString(t)),
+                    asBytes("Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t)),
                     FAILURE );
         }
 
@@ -134,7 +134,7 @@ public class AddiRecordsToItemWrapper {
             }
         } catch (Throwable t) {
             crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
-            crossAddiRecordsMessage.append(getStackTraceAsString(t));
+            crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
             diagnostics.add(buildDiagnosticForGenericUpdateRecordError(t));
             return AddiStatus.FAILED_STACKTRACE;
         }

@@ -91,7 +91,6 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -134,7 +133,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private final long defaultByteSize = defaultXml.getBytes().length;
 
     /**
-     * Given: a jobstore with empty flowcache
+     * Given: a job store with empty flowcache
      * When : a flow is added
      * Then : the flow is inserted into the flowcache
      */
@@ -154,7 +153,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Given: a jobstore with non-empty flowcache
+     * Given: a job store with non-empty flowcache
      * When : a flow is added matching an already cached flow
      * Then : no new flow is inserted into the flowcache
      */
@@ -246,7 +245,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Given: a jobstore with empty sinkcache
+     * Given: a job store with empty sinkcache
      * When : a sink is added
      * Then : the sink is inserted into the sinkcache
      */
@@ -266,7 +265,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Given: a jobstore with non-empty sinkcache
+     * Given: a job store with non-empty sinkcache
      * When : a sink is added matching an already cached sink
      * Then : no new sink is inserted into the sinkcache
      */
@@ -292,16 +291,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Given: an empty jobstore
-     * When : calling addAndScheduleJob() with mocked returns from flow store where compareByteSize() returns the expected byte size
+     * Given: an empty job store
+     * When : adding a job
      * Then : a new job entity and the required number of chunk and item entities are created
-     * And  : a flow cache entity is created
-     * And  : a sink cache entity is created
-     * And  : no diagnostics were created while adding job
-     * And  : the returned JobInfoSnapshot holds the expected values
      */
     @Test
-    public void addAndScheduleJob_identicalByteSize_returnsJobInfoSnapShot() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
+    public void addAndScheduleJob() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -327,38 +322,24 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
         assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, Collections.singletonList(State.Phase.PARTITIONING));
 
-        // And...
-        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(notNullValue()));
-
-        // And...
-        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(notNullValue()));
-        assertThat("JobEntity: workflowNote", jobEntity.getWorkflowNote(), is(nullValue()));
-
-        // And...
-        assertThat("jobEntity.State : diagnostics", jobEntity.getState().getDiagnostics().size(), is(0));
-        assertThat("jobEntity.fatalError", jobEntity.hasFatalError(), is(false));
-
-        // And ..
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(0));
-        assertThat("JobInforSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(false));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
-        assertThat("JobInfoSnapshot submitter reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER), is(notNullValue()));
-        assertThat("JobInfoSnapshot flowbinder reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), is(notNullValue()));
-        assertThat("JobInfoSnapshot flow reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW), is(notNullValue()));
-        assertThat("JobInfoSnapshot sink reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK), is(notNullValue()));
-        assertThat("JobInforSnapshot workflowNote", jobInfoSnapshot.getWorkflowNote(), is(nullValue()));
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(false));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("JobEntity.getCachedFlow()", jobEntity.getCachedFlow(), is(notNullValue()));
+        assertThat("JobEntity.getCachedSink()", jobEntity.getCachedSink(), is(notNullValue()));
+        assertThat("JobEntity.getWorkflowNote()", jobEntity.getWorkflowNote(), is(nullValue()));
+        assertThat("JobEntity.getFlowStoreReferences()", jobEntity.getFlowStoreReferences(), is(notNullValue()));
     }
 
     /**
-     * Given: an empty jobstore
-     * When : calling addAndScheduleJob() with mocked returns from flow store where compareByteSize() returns an unexpected byte size
-     * Then : a JobStoreException is thrown
-     * And  : the jobStoreException contains the expected message
-     * And  : no entities are created
+     * Given: an empty job store
+     * When : numbers of bytes reported by the file store service differs from the number of bytes read
+     * Then : a new job entity is created without chunk and item entities
+     * And  : time of completion is set on the job entity.
+     * And  : a diagnostic with level FATAL is set on the state of the job entity
      */
     @Test
-    public void addAndScheduleJob_differentByteSize_fatalDiagnosticExists() throws SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, JobStoreException {
+    public void addJob_fileSizeInFileStoreDiffersFromActualNumberOfBytesRead_jobWithFatalErrorIsCreated()
+            throws SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException, JobStoreException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -378,100 +359,43 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // When...
         final EntityTransaction jobTransaction = entityManager.getTransaction();
         jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
+        final JobInfoSnapshot snapshot = pgJobStore.addJob(testableAddJobParam);
         jobTransaction.commit();
 
-        final JobInfoSnapshot jobInfoSnapshotAfterWait = waitForJobCompletion(jobInfoSnapshot.getJobId(), pgJobStore);
-        assertTrue(!jobInfoSnapshotAfterWait.getState().getDiagnostics().isEmpty());
-        final Diagnostic diagnostic = jobInfoSnapshotAfterWait.getState().getDiagnostics().get(0);
-        assertThat("Diagnostics level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("jobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
-
-        // And...
-        final String expectedStacktrace = "DataPartitioner.byteSize was: " + dataPartitionerByteSize + ". FileStore.byteSize was: " + fileStoreByteSize;
-        assertThat(expectedStacktrace, diagnostic.getStacktrace().contains("Error reading data file"), is(true));
-
-        // And...
-        assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
-    }
-
-    /**
-     * Given: an empty jobstore
-     * When : calling addAndScheduleJob() with mocked returns from flow store to secure that addJobParam.level.FATAL will is given as as input to addJob()
-     * Then : a new job entity is created but chunks and item entities are not created
-     * And  : a flow cache entity is not created
-     * And  : a sink cache entity is not created
-     * And  : time of completion is set on the job entity.
-     * And  : a diagnostic with level FATAL is set on the state of the job entity
-     * And  : The jobInfoSnapShot returned holds the expected values.
-     */
-    @Test
-    public void addAndScheduleJob_fatalDiagnosticExists_returnsJobInfoSnapShot() throws JobStoreException, SQLException, FileStoreServiceConnectorException, FlowStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final int expectedNumberOfJobs = 1;
-        final int expectedNumberOfChunks = 0;
-        final int expectedNumberOfItems = 0;
-
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-
-        // Setup mocks
-        when(mockedFlowStoreServiceConnector.getFlow(anyLong())).thenReturn(testableAddJobParam.getFlow());
-        when(mockedFlowStoreServiceConnector.getSink(anyLong())).thenThrow(new FlowStoreServiceConnectorException("error"));
-        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(anyLong())).thenReturn(testableAddJobParam.getSubmitter());
-        when(mockedFlowStoreServiceConnector.getFlowBinder(
-                anyString(),
-                anyString(),
-                anyString(),
-                anyLong(),
-                anyString())).
-                thenReturn(testableAddJobParam.getFlowBinder());
-
-        // When...
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
-        jobTransaction.commit();
+        waitForJobCompletion(snapshot.getJobId(), pgJobStore);
 
         // Then...
-        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, snapshot.getJobId());
+
+        // And...
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
+
+        // And...
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(true));
+        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
+        assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
+        assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
+                jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
+
+        // And...
+        final String expectedStacktrace = String.format("DataPartitioner.byteSize was: %s expected %s", dataPartitionerByteSize, fileStoreByteSize);
+        assertThat(expectedStacktrace, jobEntity.getState().getDiagnostics().get(0).getStacktrace().contains("Error reading data file"), is(true));
+
+        // And...
         assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
-        assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, new ArrayList<>());
-
-        // And...
-        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(nullValue()));
-
-        // And...
-        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(nullValue()));
-
-        // And ...
-        assertThat("jobEntity.State.Diagnostics contains FATAL diagnostic", jobEntity.getState().fatalDiagnosticExists(), is(true));
-        assertThat("jobEntity.fatalError", jobEntity.hasFatalError(), is(true));
-
-        // And ..
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
-        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
-        assertThat("JobInfoSnapshot submitter reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SUBMITTER), is(notNullValue()));
-        assertThat("JobInfoSnapshot flowbinder reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW_BINDER), is(notNullValue()));
-        assertThat("JobInfoSnapshot flow reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.FLOW), is(notNullValue()));
-        assertThat("JobInfoSnapshot sink reference", jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK), is(nullValue()));
     }
 
     /**
-     * Given: an empty jobstore
+     * Given: an empty job store
      * When : adding a job with addJobParam.level.FATAL as input
      * Then : a new job entity is created but chunks and item entities are not created
      * And  : a flow cache entity is not created
      * And  : a sink cache entity is not created
      * And  : time of completion is set on the job entity.
      * And  : a diagnostic with level FATAL is set on the state of the job entity
-     * And  : the returned JobInfoSnapshot holds the expected values
      */
     @Test
-    public void addJobFatalDiagnosticLocated() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
+    public void addJob_failsFastDueToAddJobParamFailures_jobWithFatalErrorIsCreated() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -491,31 +415,29 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, new ArrayList<>());
 
         // And...
-        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(nullValue()));
+        assertThat("JobEntity.getCachedFlow()", jobEntity.getCachedFlow(), is(nullValue()));
 
         // And...
-        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(nullValue()));
-
-        // And ...
-        assertThat("jobEntity.State.Diagnostics", jobEntity.getState().getDiagnostics().size(), is(1));
-        assertThat("jobEntity.State.Diagnostics contains FATAL diagnostic", jobEntity.getState().fatalDiagnosticExists(), is(true));
-        assertThat("jobEntity.fatalError", jobEntity.hasFatalError(), is(true));
+        assertThat("JobEntity.getCachedSink()", jobEntity.getCachedSink(), is(nullValue()));
 
         // And...
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
-        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
-        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
+
+        // And...
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(true));
+        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
+        assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
+        assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
+                jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
     }
 
     /**
-     * Given: an empty jobstore
+     * Given: an empty job store
      * When : adding a job which fails immediately during partitioning
      * Then : a new job entity with a fatal diagnostic is created
      */
     @Test
-    public void addJob_failFast() throws JobStoreException, FileStoreServiceConnectorException {
+    public void addJob_failsFastDuringCreation_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final String iso8859 =
@@ -533,20 +455,22 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         transaction.commit();
 
         // Then...
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
-        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
-        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(true));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
+        assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
+        assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
+                jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
     }
 
     /**
-     * Given: an empty jobstore
+     * Given: an empty job store
      * When : adding a job which fails eventually during partitioning
      * Then : a new job entity with a fatal diagnostic is created
      */
     @Test
-    public void addJob_failEventually() throws JobStoreException, FileStoreServiceConnectorException {
+    public void addJob_failsEventuallyDuringPartitioning_jobWithFatalErrorIsAdded() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
@@ -559,24 +483,23 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         transaction.commit();
 
         // Then...
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(true));
-        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
-        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(true));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(true));
+        assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
+        assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
+                jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.FATAL));
     }
 
     /**
-     * Given: an empty jobstore
-     * When : adding a job with addJobParam.level.WARNING as input, a job is added
+     * Given: an empty job store
+     * When : adding a job with addJobParam.level.WARNING as input
      * Then : a new job entity and the required number of chunk and item entities are created
-     * And  : a flow cache entity is created
-     * And  : a sink cache entity is created
      * And  : a diagnostic with level WARNING is set on the state of the job entity
-     * And  : the returned JobInfoSnapshot holds the expected values
      */
     @Test
-    public void addJobWarningDiagnosticLocated() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
+    public void addJob_withWarningDiagnostic_jobIsAdded() throws FileStoreServiceConnectorException, JobStoreException, SQLException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int expectedNumberOfJobs = 1;
@@ -597,26 +520,17 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertTableSizes(expectedNumberOfJobs, expectedNumberOfChunks, expectedNumberOfItems);
         assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, Collections.singletonList(State.Phase.PARTITIONING));
 
-        // And...
-        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(notNullValue()));
-
-        // And...
-        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(notNullValue()));
-
         // And ...
-        assertThat("jobEntity.State : diagnostics", jobEntity.getState().getDiagnostics().size(), is(1));
-        assertThat(jobEntity.getState().fatalDiagnosticExists(), is(false));
-
-        // And...
-        assertThat("JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.fatalError", jobInfoSnapshot.hasFatalError(), is(false));
-        assertThat("JobInfoSnapshot.State.Diagnostics.size", jobInfoSnapshot.getState().getDiagnostics().size(), is(1));
-        assertThat("JobInfoSnapshot.State.Diagnostics fatal diagnostic", jobInfoSnapshot.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.WARNING));
-        assertThat("JobInfoSnapshot.timeOfCompletion", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
+        assertThat("JobEntity.hasFatalError()", jobEntity.hasFatalError(), is(false));
+        assertThat("JobEntity.getTimeOfCompletion()", jobEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("JobEntity.hasFatalDiagnostics()", jobEntity.hasFatalDiagnostics(), is(false));
+        assertThat("JobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(1));
+        assertThat("JobEntity.getState().getDiagnostics().get(0).getLevel()",
+                jobEntity.getState().getDiagnostics().get(0).getLevel(), is(Diagnostic.Level.WARNING));
     }
 
     /**
-     * Given: an empty jobstore
+     * Given: an empty job store
      * When : adding a job
      * Then : a new job entity and the required number of chunk and item entities are created
      * And  : a flow cache entity is created
@@ -641,13 +555,13 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertEntities(jobEntity, expectedNumberOfChunks, expectedNumberOfItems, Collections.singletonList(State.Phase.PARTITIONING));
 
         // And...
-        assertThat("JobEntity: cached flow", jobEntity.getCachedFlow(), is(notNullValue()));
+        assertThat("JobEntity.getCachedFlow()", jobEntity.getCachedFlow(), is(notNullValue()));
 
         // And...
-        assertThat("JobEntity: cached sink", jobEntity.getCachedSink(), is(notNullValue()));
+        assertThat("JobEntity.getCachedSink()", jobEntity.getCachedSink(), is(notNullValue()));
 
         // And ...
-        assertThat("jobEntity.State : diagnostics", jobEntity.getState().getDiagnostics().size(), is(0));
+        assertThat("jobEntity.getState().getDiagnostics().size()", jobEntity.getState().getDiagnostics().size(), is(0));
     }
 
     /**
@@ -714,7 +628,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : the referenced entities are updated
      */
     @Test
-    public void addChunkWithNextData() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
+    public void addChunk_whenChunkHasNextEntry_chunkIsAdded() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
@@ -787,7 +701,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : job, chunk and item entities have not been updated after the second add.
      */
     @Test
-    public void addChunkMultipleTimesMultipleItems() throws JobStoreException, FileStoreServiceConnectorException {
+    public void addChunk_duplicateChunksAdded_throws() throws JobStoreException, FileStoreServiceConnectorException {
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                   // first chunk is used, hence the chunk id is 0.
         final int numberOfItems = 10;
@@ -913,97 +827,76 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given    : a job store containing a number of jobs, where one has failed during delivering
-     * When     : requesting a job listing with a criteria selecting only jobs failed in processing
-     * Then     : no snapshots are returned.
-     * And when : requesting a job listen with a criteria selecting only jobs failed in delivering
-     * Then     : one filtered snapshot is returned
+     * When     : requesting a job listing with a criteria selecting only jobs failed in delivering
+     * Then     : only jobs failed during delivery are returned.
      */
     @Test
-    public void listDeliveringFailedJobs() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withDeliveringFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringDelivery() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int chunkId = 0;
-        final short failedItemId = 3;
-
-        final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
-        final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
 
         setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
+        final List<JobInfoSnapshot> jobs = addJobs(3, pgJobStore);
 
-        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, snapshots.get(0).getJobId(), chunkId, failedItemId, 6, ExternalChunk.Type.DELIVERED);
+        final ExternalChunk chunkFailedDuringProcessing = buildExternalChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(0).getJobId(), 0, 0, 6, ExternalChunk.Type.PROCESSED);
+        final ExternalChunk chunkFailedDuringDelivery = buildExternalChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(1).getJobId(), 0, 0, 6, ExternalChunk.Type.DELIVERED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
+        pgJobStore.addChunk(chunkFailedDuringProcessing);
+        pgJobStore.addChunk(chunkFailedDuringDelivery);
         chunkTransaction.commit();
 
         // When...
-        final List<JobInfoSnapshot> returnedSnapshotsProcessingFailed = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaProcessingFailed);
+        final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
+        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaDeliveringFailed);
 
         // Then...
-        assertThat("Number of returned snapshots", returnedSnapshotsProcessingFailed.size(), is(0));
-
-        // And when...
-        final List<JobInfoSnapshot> returnedSnapshotsDeliveringFailed = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaDeliveringFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(1));
-        JobInfoSnapshot jobInfoSnapshot = returnedSnapshotsDeliveringFailed.get(0);
-        assertThat(jobInfoSnapshot.getJobId(), is(snapshots.get(0).getJobId()));
+        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
+        assertThat((long) returnedSnapshots.get(0).getJobId(), is(chunkFailedDuringDelivery.getJobId()));
     }
 
     /**
      * Given    : a job store containing a number of jobs, where one has failed during processing
      * When     : requesting a job listing with a criteria selecting only jobs failed in processing
-     * Then     : one filtered snapshot is returned.
-     * And when : requesting a job listen with a criteria selecting only jobs failed in delivering
-     * Then     : no snapshots are returned.
+     * Then     : only jobs failed during processing are returned.
      */
     @Test
-    public void listProcessingFailedJobs() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withProcessingFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringProcessing() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int chunkId = 0;
-        final short failedItemId = 3;
-
-        final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
-        final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
-
         setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> snapshots = addJobs(3, pgJobStore);
+        final List<JobInfoSnapshot> jobs = addJobs(3, pgJobStore);
 
-        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, snapshots.get(0).getJobId(), chunkId, failedItemId, 6, ExternalChunk.Type.PROCESSED);
+        final ExternalChunk chunkFailedDuringDelivery = buildExternalChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(0).getJobId(), 0, 0, 6, ExternalChunk.Type.DELIVERED);
+        final ExternalChunk chunkFailedDuringProcessing = buildExternalChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(1).getJobId(), 0, 0, 6, ExternalChunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
+        pgJobStore.addChunk(chunkFailedDuringDelivery);
+        pgJobStore.addChunk(chunkFailedDuringProcessing);
         chunkTransaction.commit();
 
         // When...
-        final List<JobInfoSnapshot> returnedSnapshotsProcessingFailed = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaProcessingFailed);
+        final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
+        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaProcessingFailed);
 
         // Then...
-        assertThat("Number of returned snapshots", returnedSnapshotsProcessingFailed.size(), is(1));
-        JobInfoSnapshot jobInfoSnapshot = returnedSnapshotsProcessingFailed.get(0);
-        assertThat(jobInfoSnapshot.getJobId(), is(snapshots.get(0).getJobId()));
-
-        // And when...
-        final List<JobInfoSnapshot> returnedSnapshotsDeliveringFailed = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaDeliveringFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshotsDeliveringFailed.size(), is(0));
+        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
+        assertThat((long) returnedSnapshots.get(0).getJobId(), is(chunkFailedDuringProcessing.getJobId()));
     }
 
     @Test
-    public void listJobsWithFatalError_fatalByJobCreation() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withFatalErrorCriteria_returnsJobInfoSnapshotsForJobsFailedDuringCreation() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
         // Adding job that fails in job creation
-        final JobInfoSnapshot jobFailedInJobCreation = addJobs(1, pgJobStore).get(0);
+        final JobInfoSnapshot jobFailedDuringCreation = addJobs(1, pgJobStore).get(0);
 
         // When...
         final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
@@ -1013,26 +906,23 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
 
         // And...
-        final JobInfoSnapshot returnedJobPartitioningFailedSnapshot = returnedSnapshots.get(0);
-        assertThat("ReturnedJobPartitioningFailedSnapshot.jobId", returnedJobPartitioningFailedSnapshot.getJobId(), is(jobFailedInJobCreation.getJobId()));
-        assertThat("ReturnedJobPartitioningFailedSnapshot.fatalError", returnedJobPartitioningFailedSnapshot.hasFatalError(), is(true));
-
+        final JobInfoSnapshot snapshot = returnedSnapshots.get(0);
+        assertThat("JobInfoSnapshot.jobId", snapshot.getJobId(), is(jobFailedDuringCreation.getJobId()));
     }
 
     @Test
-    public void listJobsWithFatalError_fatalByJobPartitioning() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withFatalErrorCriteria_returnsJobInfoSnapshotForJobsFailedDuringPartitioning() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(getInvalidXml().getBytes()));
 
-
-        // Adding job that fails in partitioning
+        // Adding job that fails during partitioning
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(getInvalidXml()).build();
         setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
         final EntityTransaction transaction = entityManager.getTransaction();
 
         transaction.begin();
-        final JobInfoSnapshot jobFailedInPartitioning = pgJobStore.addJob(testableAddJobParam);
+        final JobInfoSnapshot jobFailedDuringPartitioning = pgJobStore.addJob(testableAddJobParam);
         transaction.commit();
 
         // When...
@@ -1043,13 +933,12 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
 
         // And...
-        final JobInfoSnapshot returnedJobPartitioningFailedSnapshot = returnedSnapshots.get(0);
-        assertThat("ReturnedJobPartitioningFailedSnapshot.jobId", returnedJobPartitioningFailedSnapshot.getJobId(), is(jobFailedInPartitioning.getJobId()));
-        assertThat("ReturnedJobPartitioningFailedSnapshot.fatalError", returnedJobPartitioningFailedSnapshot.hasFatalError(), is(true));
+        final JobInfoSnapshot snapshot = returnedSnapshots.get(0);
+        assertThat("JobInfoSnapshot.jobId", snapshot.getJobId(), is(jobFailedDuringPartitioning.getJobId()));
     }
 
     @Test
-    public void listJobsWithFatalError_noFailure() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withFatalErrorCriteriaWhenNoDiagnosticsExists_returnsEmptyList() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         setupExpectationOnGetByteSize(defaultByteSize);
@@ -1066,7 +955,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     @Test
-    public void listJobsWithFatalError_warningNoMatch() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withFatalErrorCriteriaWhenOnlyWarningDiagnosticExists_returnsEmptyList() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
@@ -1117,7 +1006,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then : only one filtered snapshot is returned
      */
     @Test
-    public void listJobsForSpecificSink() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listJobs_withSinkIdCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
 
@@ -1163,7 +1052,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listFailedItemsForJob() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listItems_withFailedItemsCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
@@ -1198,7 +1087,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listIgnoredItemsForJob() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listItems_withIgnoredItemsCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
@@ -1234,7 +1123,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
      */
     @Test
-    public void listAllItemsForJob() throws JobStoreException, FileStoreServiceConnectorException {
+    public void listItems_withoutItemCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
@@ -1641,6 +1530,13 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("ItemInfoSnapshot.workflowNote", updatedItemInfoSnapshot.getWorkflowNote(), is(itemWorkflowNote));
     }
 
+    @Test
+    public void test() throws FileStoreServiceConnectorException, JobStoreException {
+        final PgJobStore pgJobStore = newPgJobStore();
+        setupExpectationOnGetByteSize(defaultByteSize);
+        final List<JobInfoSnapshot> jobs = addJobs(2, pgJobStore);
+    }
+
 
     /*
      * Private methods
@@ -1716,9 +1612,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         return pgJobStore;
     }
 
-    private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException {
+    private List<JobInfoSnapshot> addJobs(int numberOfJobs, PgJobStore pgJobStore) throws JobStoreException, FileStoreServiceConnectorException {
         List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
         for (int i = 0; i < numberOfJobs; i++) {
+            when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(defaultXml.getBytes(StandardCharsets.UTF_8)));
             JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, new TestableAddJobParamBuilder().build());
             snapshots.add(jobInfoSnapshot);
         }

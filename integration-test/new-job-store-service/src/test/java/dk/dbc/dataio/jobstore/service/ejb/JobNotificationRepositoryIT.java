@@ -27,7 +27,6 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
@@ -40,7 +39,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
-import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -69,11 +67,8 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         // When...
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        final NotificationEntity notification = jobNotificationRepository.addNotification(
-                JobNotification.Type.JOB_CREATED, jobEntity);
-        transaction.commit();
+        final NotificationEntity notification = persistenceContext.run(() ->
+                jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity));
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
@@ -97,12 +92,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobEntity job2 = newPersistedJobEntity();
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, job1);
-        jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, job2);
-        jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, job1);
-        transaction.commit();
+        persistenceContext.run(() -> {
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, job1);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, job2);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, job1);
+        });
 
         // When...
         final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(job1.getId());
@@ -128,16 +122,12 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         );
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        NotificationEntity notification = jobNotificationRepository.addNotification(
-                JobNotification.Type.JOB_CREATED, jobEntity);
-        transaction.commit();
+        final NotificationEntity notification = persistenceContext.run(() ->
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity));
 
         // When...
-        transaction.begin();
-        jobNotificationRepository.processNotification(notification);
-        transaction.commit();
+        persistenceContext.run(() ->
+            jobNotificationRepository.processNotification(notification));
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
@@ -195,15 +185,11 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
         // When...
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        NotificationEntity notification = jobNotificationRepository.addNotification(
-                JobNotification.Type.JOB_COMPLETED, jobEntity);
-        transaction.commit();
+        final NotificationEntity notification = persistenceContext.run(() ->
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity));
 
-        transaction.begin();
-        jobNotificationRepository.processNotification(notification);
-        transaction.commit();
+        persistenceContext.run(() ->
+            jobNotificationRepository.processNotification(notification));
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();
@@ -235,20 +221,16 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         );
         final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
 
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-        jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-        jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
-        final NotificationEntity notification =
-                jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity);
-        notification.setStatus(JobNotification.Status.COMPLETED);
-        transaction.commit();
+        persistenceContext.run(() -> {
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_CREATED, jobEntity);
+            jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity)
+                    .setStatus(JobNotification.Status.COMPLETED);
+        });
 
         // When...
-        transaction.begin();
-        jobNotificationRepository.flushNotifications();
-        transaction.commit();
+        persistenceContext.run(jobNotificationRepository::flushNotifications);
 
         // Then...
         final List<NotificationEntity> notifications = findAllNotifications();

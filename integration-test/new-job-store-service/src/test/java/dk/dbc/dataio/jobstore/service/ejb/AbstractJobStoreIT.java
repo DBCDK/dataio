@@ -27,6 +27,7 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -89,6 +90,7 @@ public class AbstractJobStoreIT {
     protected final SessionContext mockedSessionContext = mock(SessionContext.class);
 
     protected EntityManager entityManager;
+    protected TransactionScopedPersistenceContext persistenceContext;
 
     static {
         datasource = new PGSimpleDataSource();
@@ -117,6 +119,7 @@ public class AbstractJobStoreIT {
 
         final EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("jobstoreIT", properties);
         entityManager = entityManagerFactory.createEntityManager(properties);
+        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
     }
 
     @Before
@@ -156,10 +159,8 @@ public class AbstractJobStoreIT {
     }
 
     protected void persist(Object entity) {
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        entityManager.persist(entity);
-        transaction.commit();
+        persistenceContext.run(() ->
+            entityManager.persist(entity));
     }
 
     protected JobEntity newJobEntity() {

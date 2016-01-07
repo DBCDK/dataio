@@ -45,6 +45,7 @@ public class DanMarc2LineFormatReaderTest {
     private String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
     private String complexRecordInLineFormat = simpleRecordInLineFormat +
             "610 00 *0*aGoogle*2DBC\n" +
+            "620 00 *a\n" +
             "s10 00 *aDBC\n";
     private MarcRecord simpleRecord = getSimpleMarcRecord();
 
@@ -200,6 +201,7 @@ public class DanMarc2LineFormatReaderTest {
     }
 
     private MarcRecord getComplexRecord() {
+        // Numeric subfield codes
         final DataField dataField610 = new DataField()
                 .setTag("610")
                 .setInd1('0')
@@ -213,6 +215,15 @@ public class DanMarc2LineFormatReaderTest {
                .addSubfield(new SubField()
                         .setCode('2')
                         .setData("DBC"));
+        // Empty subfields
+        final DataField dataField620 = new DataField()
+                .setTag("620")
+                .setInd1('0')
+                .setInd2('0')
+                .addSubfield(new SubField()
+                        .setCode('a')
+                        .setData(""));
+        // Non-numeric tag names
         final DataField dataFields01 = new DataField()
                 .setTag("s01")
                 .setInd1('0')
@@ -223,6 +234,7 @@ public class DanMarc2LineFormatReaderTest {
 
         return getSimpleMarcRecord()
                 .addField(dataField610)
+                .addField(dataField620)
                 .addField(dataFields01);
     }
 }

@@ -57,7 +57,7 @@ public class DanMarc2LineFormatReader implements MarcReader {
 
     private final BufferedReader reader;
     private final Pattern validLinePattern =
-            Pattern.compile("(\\p{Alnum}{3}) (\\p{Alnum})(\\p{Alnum}) (\\*(?:[0,9]|\\p{IsLatin}).+$)");
+            Pattern.compile("(\\p{Alnum}{3}) (\\p{Alnum})(\\p{Alnum}) (\\*(?:[0,9]|\\p{IsLatin}).*$)");
 
     private boolean looksLikeLineFormat = false;
     private int currentLineNo = 0;

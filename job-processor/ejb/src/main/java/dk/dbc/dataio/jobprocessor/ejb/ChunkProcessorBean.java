@@ -193,39 +193,52 @@ public class ChunkProcessorBean {
                 }
             }
             if (data.isEmpty()) {
-                processedItem = buildProcessedChunkItem(item.getId(), "Ignored by job-processor since returned data was empty", ChunkItem.Status.IGNORE);
+                processedItem = buildIgnoredChunkItem(item.getId(), "Ignored by job-processor since returned data was empty");
             } else {
-                processedItem = buildProcessedChunkItem(item.getId(), data, ChunkItem.Status.SUCCESS);
+                processedItem = buildSuccessfulChunkItem(item.getId(), data);
             }
         } catch (IgnoreRecord e) {
             LOGGER.error("Record Ignored by JS with Message: {}", e.getMessage());
-            processedItem = buildProcessedChunkItem(item.getId(), e.getMessage(), ChunkItem.Status.IGNORE);
+            processedItem = buildIgnoredChunkItem(item.getId(), e.getMessage());
         } catch (FailRecord e) {
             LOGGER.error("RecordProcessing Terminated by JS with Message: {}", e.getMessage());
-            processedItem = buildProcessedChunkItem(item.getId(), e.getMessage(), ChunkItem.Status.FAILURE);
-            processedItem.appendDiagnostics(buildDiagnostic(e.getMessage(), null));
+            processedItem = buildFailedChunkItem(item.getId(), e.getMessage());
+            processedItem.appendDiagnostics(builFataldDiagnostic(e.getMessage(), null));
         } catch (Throwable t) {
             LOGGER.error("Exception caught during JavaScript processing", t);
-            processedItem = buildProcessedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Status.FAILURE);
-            processedItem.appendDiagnostics(buildDiagnostic("Exception caught during JavaScript processing", t));
+            processedItem = buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
+            processedItem.appendDiagnostics(builFataldDiagnostic("Exception caught during JavaScript processing", t));
         }
         return processedItem;
     }
 
     /**
-     * Builds a new chunk item with given id, data and status.
+     * Builds a new chunk item with given id, data, status and types.
      * @param itemId of the item
      * @param data of the item
      * @param status of the item
+     * @param types list of types
      * @return processed chunk item
      */
-    private ChunkItem buildProcessedChunkItem(long itemId, String data, ChunkItem.Status status) {
+    private ChunkItem buildProcessedChunkItem(long itemId, String data, ChunkItem.Status status, List<ChunkItem.Type> types) {
         return new ChunkItem(
                 itemId,
                 StringUtil.asBytes(data, StandardCharsets.UTF_8),
                 status,
-                Collections.singletonList(ChunkItem.Type.UNKNOWN),
+                types,
                 StandardCharsets.UTF_8.name());
+    }
+
+    private ChunkItem buildIgnoredChunkItem(long itemId, String data) {
+        return buildProcessedChunkItem(itemId, data, ChunkItem.Status.IGNORE, Collections.singletonList(ChunkItem.Type.STRING));
+    }
+
+    private ChunkItem buildFailedChunkItem(long itemId, String data) {
+        return buildProcessedChunkItem(itemId, data, ChunkItem.Status.FAILURE, Collections.singletonList(ChunkItem.Type.STRING));
+    }
+
+    private ChunkItem buildSuccessfulChunkItem(long itemId, String data) {
+        return buildProcessedChunkItem(itemId, data, ChunkItem.Status.SUCCESS, Collections.singletonList(ChunkItem.Type.UNKNOWN));
     }
 
     /**
@@ -234,7 +247,7 @@ public class ChunkProcessorBean {
      * @param t stacktrace of the diagnostic
      * @return diagnostic
      */
-    private Diagnostic buildDiagnostic(String message, Throwable t) {
+    private Diagnostic builFataldDiagnostic(String message, Throwable t) {
         return new Diagnostic(Diagnostic.Level.FATAL, message, t);
     }
 
@@ -255,8 +268,8 @@ public class ChunkProcessorBean {
     private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable t) {
         final List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
-            final ChunkItem processedChunkItem = buildProcessedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Status.FAILURE);
-            processedChunkItem.appendDiagnostics(buildDiagnostic("Chunk item failed during processing", t));
+            final ChunkItem processedChunkItem = buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
+            processedChunkItem.appendDiagnostics(builFataldDiagnostic("Chunk item failed during processing", t));
             failedItems.add(processedChunkItem);
         }
         return failedItems;

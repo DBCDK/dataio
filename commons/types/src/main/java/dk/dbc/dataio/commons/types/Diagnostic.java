@@ -33,10 +33,24 @@ public class Diagnostic {
     private final Level level;
     private final String message;
     private String stacktrace;
+    private String tag;
+    private String attribute;
 
-    public Diagnostic(Level level, String message) throws NullPointerException, IllegalArgumentException {
+    @JsonCreator
+    public Diagnostic(@JsonProperty("level") Level level,
+                       @JsonProperty("message") String message,
+                       @JsonProperty("stacktrace") String stacktrace,
+                       @JsonProperty("tag") String tag,
+                       @JsonProperty("attribute") String attribute) {
         this.level = InvariantUtil.checkNotNullOrThrow(level, "level");
         this.message = InvariantUtil.checkNotNullNotEmptyOrThrow(message, "message");
+        this.stacktrace = stacktrace;  // stacktrace is optional
+        this.tag = tag;  // tag is optional
+        this.attribute = attribute;  // attribute is optional
+    }
+
+    public Diagnostic(Level level, String message) throws NullPointerException, IllegalArgumentException {
+        this(level, message, null, null, null);
     }
 
     public Diagnostic(Level level, String message, Throwable cause) throws NullPointerException, IllegalArgumentException {
@@ -46,13 +60,10 @@ public class Diagnostic {
         }
     }
 
-    @JsonCreator
-    private Diagnostic(@JsonProperty("level") Level level,
-                       @JsonProperty("message") String message,
-                       @JsonProperty("stacktrace") String stacktrace) {
-        this(level, message);
-        this.stacktrace = stacktrace;
+    public Diagnostic(Level level, String message, String stacktrace) {
+        this(level, message, stacktrace, null, null);
     }
+
 
     public Level getLevel() {
         return level;
@@ -66,6 +77,14 @@ public class Diagnostic {
         return stacktrace;
     }
 
+    public String getTag() {
+        return tag;
+    }
+
+    public String getAttribute() {
+        return attribute;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -74,21 +93,31 @@ public class Diagnostic {
         Diagnostic that = (Diagnostic) o;
 
         if (level != that.level) return false;
-        if (!message.equals(that.message)) return false;
-        return !(stacktrace != null ? !stacktrace.equals(that.stacktrace) : that.stacktrace != null);
+        if (message != null ? !message.equals(that.message) : that.message != null) return false;
+        if (stacktrace != null ? !stacktrace.equals(that.stacktrace) : that.stacktrace != null) return false;
+        if (tag != null ? !tag.equals(that.tag) : that.tag != null) return false;
+        return attribute != null ? attribute.equals(that.attribute) : that.attribute == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = level.hashCode();
-        result = 31 * result + message.hashCode();
+        int result = level != null ? level.hashCode() : 0;
+        result = 31 * result + (message != null ? message.hashCode() : 0);
         result = 31 * result + (stacktrace != null ? stacktrace.hashCode() : 0);
+        result = 31 * result + (tag != null ? tag.hashCode() : 0);
+        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return " [level: '" + level + "', message: '" + message + "']";
+        return "Diagnostic{" +
+                "level=" + level +
+                ", message='" + message + '\'' +
+                ", stacktrace='" + stacktrace + '\'' +
+                ", tag='" + tag + '\'' +
+                ", attribute='" + attribute + '\'' +
+                '}';
     }
 }

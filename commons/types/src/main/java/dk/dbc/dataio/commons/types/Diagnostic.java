@@ -93,7 +93,7 @@ public class Diagnostic {
         Diagnostic that = (Diagnostic) o;
 
         if (level != that.level) return false;
-        if (message != null ? !message.equals(that.message) : that.message != null) return false;
+        if (!message.equals(that.message)) return false;
         if (stacktrace != null ? !stacktrace.equals(that.stacktrace) : that.stacktrace != null) return false;
         if (tag != null ? !tag.equals(that.tag) : that.tag != null) return false;
         return attribute != null ? attribute.equals(that.attribute) : that.attribute == null;
@@ -102,8 +102,8 @@ public class Diagnostic {
 
     @Override
     public int hashCode() {
-        int result = level != null ? level.hashCode() : 0;
-        result = 31 * result + (message != null ? message.hashCode() : 0);
+        int result = level.hashCode();
+        result = 31 * result + message.hashCode();
         result = 31 * result + (stacktrace != null ? stacktrace.hashCode() : 0);
         result = 31 * result + (tag != null ? tag.hashCode() : 0);
         result = 31 * result + (attribute != null ? attribute.hashCode() : 0);

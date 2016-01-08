@@ -212,11 +212,11 @@ public class ESTaskPackageUtil {
             LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList) throws NumberFormatException, SQLException {
 
         final int numberOfRecords = Integer.parseInt(StringUtil.asString(placeholderChunkItem.getData()));
-        int targetReference = taskSpecificUpdateEntity.getTargetreference();
-        StringBuilder sb = new StringBuilder(String.format("Task package: %d\n", targetReference));
-        List<TaskPackageRecordStructureEntity> recordStructureMap = taskSpecificUpdateEntity.getTaskpackageRecordStructures();
-
-        List<Diagnostic> chunkItemDiagnostics = new ArrayList<>();
+        final int targetReference = taskSpecificUpdateEntity.getTargetreference();
+        final StringBuilder sb = new StringBuilder(String.format("Task package: %d\n", targetReference));
+        final List<TaskPackageRecordStructureEntity> recordStructureMap = taskSpecificUpdateEntity.getTaskpackageRecordStructures();
+        final List<Diagnostic> chunkItemDiagnostics = new ArrayList<>();
+        
         for (int i = 1; i <= numberOfRecords; i++) {
             TaskPackageRecordStructureEntity recordData;
             try {

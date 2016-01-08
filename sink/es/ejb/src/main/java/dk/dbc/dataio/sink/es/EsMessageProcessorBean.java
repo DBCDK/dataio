@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -46,8 +47,7 @@ import javax.ejb.MessageDriven;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
+import java.util.stream.Collectors;
 
 @MessageDriven
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
@@ -137,22 +137,21 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         // in-flight database to store the number of Addi records from the
                         // original record - this information is used by the EsCleanupBean
                         // when creating the resulting sink chunk.
-                        incompleteDeliveredChunk.insertItem(new ChunkItem(
-                                chunkItem.getId(), asBytes(Integer.toString(addiRecordsFromItem.size())), ChunkItem.Status.SUCCESS));
+                        incompleteDeliveredChunk.insertItem(ObjectFactory.buildSuccessfulChunkItem(
+                                chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN));
                     } catch (RuntimeException | IOException e) {
-                        incompleteDeliveredChunk.insertItem(new ChunkItem(
-                                chunkItem.getId(), asBytes(e.getMessage()), ChunkItem.Status.FAILURE));
+                        ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), "Exception caught while retrieving addi records, t");
+                        processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
+                        incompleteDeliveredChunk.insertItem(processedItem);
                     } finally {
                         LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
                     }
                     break;
                 case FAILURE:
-                    incompleteDeliveredChunk.insertItem(new ChunkItem(
-                            chunkItem.getId(), asBytes("Failed by processor"), ChunkItem.Status.IGNORE));
+                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Failed by processor"));
                     break;
                 case IGNORE:
-                    incompleteDeliveredChunk.insertItem(new ChunkItem(
-                            chunkItem.getId(), asBytes("Ignored by processor"), ChunkItem.Status.IGNORE));
+                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Ignored by processor"));
                     break;
                 default:
                     throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
@@ -164,9 +163,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
         final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
         final List<AddiRecord> preprocessedAddiRecords = new ArrayList<>(addiRecords.size());
-        for (AddiRecord addiRecord : addiRecords) {
-            preprocessedAddiRecords.add(addiRecordPreprocessor.execute(addiRecord));
-        }
+        preprocessedAddiRecords.addAll(addiRecords.stream().map(addiRecord -> addiRecordPreprocessor.execute(addiRecord)).collect(Collectors.toList()));
         return preprocessedAddiRecords;
     }
 

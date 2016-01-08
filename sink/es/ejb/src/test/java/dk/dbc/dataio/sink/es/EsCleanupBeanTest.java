@@ -215,6 +215,7 @@ public class EsCleanupBeanTest {
         Iterator<ChunkItem> originalChunkItemIterator = originalExternalChunk.iterator();
         ChunkItem originalChunkItem = originalChunkItemIterator.next();
         assertThat("OriginalExternalChunk.ChunkItem.Status", originalChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("OriginalExternalChunk.ChunkItem.Diagnostics", originalChunkItem.getDiagnostics(), is(nullValue()));
 
         assertThat(lostExternalChunk.size(), is(originalExternalChunk.size()));
         Iterator<ChunkItem> modifiedChunkItemIterator = lostExternalChunk.iterator();
@@ -222,6 +223,8 @@ public class EsCleanupBeanTest {
         assertThat("ModifiedExternalChunk.ChunkItem.id, is OriginalExternalChunk.ChunkItem.id", modifiedChunkItem.getId(), is(originalChunkItem.getId()));
         assertThat("ModifiedExternalChunk.ChunkItem.data, is OriginalExternalChunk.ChunkItem.data", modifiedChunkItem.getData(), not(originalChunkItem.getData()));
         assertThat("ModifiedExternalChunk.ChunkItem.Status", modifiedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ModifiedExternalChunk.ChunkItem.Diagnostics", modifiedChunkItem.getDiagnostics().size(), is(1));
+        assertThat("ModifiedExternalChunk.ChunkItem.Diagnostics.Stacktrace", modifiedChunkItem.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
     }
 
     private EsCleanupBean getEsCleanupBean() {

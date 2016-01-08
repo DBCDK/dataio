@@ -85,10 +85,8 @@ public class AddiUnwrapper implements ChunkItemUnwrapper {
                         unwrappedType,
                         wrappedChunkItem.getEncoding()
                 );
-                if (diagnostics != null) {
-                    diagnostics.stream().forEach(unwrappedChunkItem::appendDiagnostics);
-                }
 
+                unwrappedChunkItem.appendDiagnostics(diagnostics);
                 unwrappedChunkItems.add(unwrappedChunkItem);
 
                 record = addiReader.getNextRecord();

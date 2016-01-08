@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Chunk item DTO class.
@@ -102,6 +103,23 @@ public class ChunkItem implements Serializable {
             diagnostics = new ArrayList<>();
         }
         diagnostics.add(diag);
+    }
+
+    /**
+     * If given list of diagnostics is not null or empty, set Status to FAILURE and append Diagnostics to describe the reasons
+     * for failing the item.
+     *
+     * @param diagnostics containing list of descriptions of the reasons for failure
+     */
+    public void appendDiagnostics(List<Diagnostic> diagnostics) {
+        if(diagnostics != null && !diagnostics.isEmpty()) {
+            this.status = Status.FAILURE;
+            if (this.diagnostics == null) {
+                this.diagnostics = new ArrayList<>(diagnostics);
+            } else {
+                this.diagnostics.addAll(diagnostics.stream().collect(Collectors.toList()));
+            }
+        }
     }
 
     public long getId() {

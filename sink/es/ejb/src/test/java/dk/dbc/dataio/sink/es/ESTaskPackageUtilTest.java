@@ -31,7 +31,6 @@ import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
 import dk.dbc.dataio.sink.es.entity.es.SuppliedRecordsEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
-import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity.UpdateAction;
 import dk.dbc.dataio.sink.util.AddiUtil;
 import org.junit.Test;
 
@@ -44,9 +43,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class ESTaskPackageUtilTest {
@@ -54,8 +54,6 @@ public class ESTaskPackageUtilTest {
     private static final long CHUNK_ID = 17L;
     private static final Charset ENCODING = Charset.defaultCharset();
     private static String ES_DATABASE_NAME = "dbname";
-    private static final int USER_ID = 2;
-    private static final UpdateAction ACTION = UpdateAction.INSERT;
     private static final String ADDI_OK = "1\na\n1\nb\n";
 
     @Test(expected = IllegalStateException.class)
@@ -213,25 +211,34 @@ public class ESTaskPackageUtilTest {
         final Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat("ChunkItem0.getDiagnostics", next.getDiagnostics(), is(nullValue()));
         next = iterator.next();
         assertThat("ChunkItem1.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1a"));
         assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1b"));
         assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1c"));
+        assertThat("ChunkItem1.getDiagnostics", next.getDiagnostics(), is(nullValue()));
         next = iterator.next();
         assertThat("ChunkItem2.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         next = iterator.next();
         assertThat("ChunkItem3.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem3 content", StringUtil.asString(next.getData()), containsString("queued"));
+        assertThat("ChunkItem3.getDiagnostics", next.getDiagnostics().size(), is(1));
+        assertThat("ChunkItem3.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
         next = iterator.next();
         assertThat("ChunkItem4.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem4 content", StringUtil.asString(next.getData()), containsString("in process"));
+        assertThat("ChunkItem4.getDiagnostics", next.getDiagnostics().size(), is(1));
+        assertThat("ChunkItem4.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
         next = iterator.next();
         assertThat("ChunkItem5.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem5 content", StringUtil.asString(next.getData()), containsString("failed"));
+        assertThat("ChunkItem5.getDiagnostics", next.getDiagnostics().size(), is(1));
+        assertThat("ChunkItem5.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
         next = iterator.next();
         assertThat("ChunkItem6.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("ChunkItem6 content", StringUtil.asString(next.getData()), containsString("pid:6"));
+        assertThat("ChunkItem6.getDiagnostics", next.getDiagnostics(), is(nullValue()));
     }
 
     @Test
@@ -250,8 +257,12 @@ public class ESTaskPackageUtilTest {
         final Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem0.getDiagnostics", next.getDiagnostics().size(), is(1));
+        assertThat("ChunkItem0.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
         next = iterator.next();
         assertThat("ChunkItem1.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem1.getDiagnostics", next.getDiagnostics().size(), is(1));
+        assertThat("ChunkItem1.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
     }
 
 

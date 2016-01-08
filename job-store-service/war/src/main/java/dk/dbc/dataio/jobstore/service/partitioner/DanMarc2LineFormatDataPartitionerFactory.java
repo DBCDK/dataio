@@ -23,7 +23,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
@@ -42,10 +42,8 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Iterator;
 
-import static dk.dbc.dataio.commons.types.ChunkItem.Status;
 import static dk.dbc.dataio.commons.types.ChunkItem.Type;
 
 public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitionerFactory {
@@ -117,8 +115,8 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
                     } catch (MarcReaderException e) {
                         LOGGER.error("Exception caught while creating MarcRecord", e);
                         if (e instanceof MarcReaderInvalidRecordException) {
-                            ChunkItem chunkItem = buildChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), Status.FAILURE, Type.STRING, encoding);
-                            chunkItem.appendDiagnostics(buildDiagnostic(e.getMessage()));
+                            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead());
+                            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
                             return chunkItem;
                         } else {
                             throw new InvalidDataException(e);
@@ -148,39 +146,16 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
             ChunkItem chunkItem;
             try {
                 if(marcRecord.getFields().isEmpty()) {
-                    chunkItem = buildChunkItem(0, "Empty Record".getBytes(encoding), Status.IGNORE, Type.STRING, encoding);
+                    chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
                 } else {
-                    byte[] marcRecordAsByteArray = marcWriter.write(marcRecord, encoding);
-                    chunkItem = buildChunkItem(0, marcRecordAsByteArray, Status.SUCCESS, Type.MARCXCHANGE, encoding);
+                    chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), Type.MARCXCHANGE);
                 }
             } catch (MarcWriterException e) {
                 LOGGER.error("Exception caught while writing MarcRecord", e);
-                chunkItem = buildChunkItem(0, marcRecord.toString().getBytes(encoding), Status.FAILURE, Type.STRING, encoding);
-                chunkItem.appendDiagnostics(buildDiagnostic(e.getMessage()));
+                chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());
+                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
             }
             return chunkItem;
-        }
-
-        /**
-         * Builds a new ChunkItem from the input values
-         * @param id of the ChunkItem
-         * @param data to set on the ChunkItem
-         * @param status of the ChunkItem
-         * @param type of the data
-         * @param encoding of the data
-         * @return chunkItem
-         */
-        private ChunkItem buildChunkItem(long id, byte[] data, Status status, Type type, Charset encoding) {
-            return new ChunkItem(id, data, status, Collections.singletonList(type), encoding.name());
-        }
-
-        /**
-         * Creates a new Diagnostic with Level FATAL and with input String as message
-         * @param message the input message
-         * @return diagnostic
-         */
-        private Diagnostic buildDiagnostic(String message) {
-            return new Diagnostic(Diagnostic.Level.FATAL, message);
         }
 
         /**

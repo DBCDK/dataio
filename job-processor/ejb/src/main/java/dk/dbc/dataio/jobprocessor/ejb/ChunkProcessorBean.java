@@ -23,9 +23,9 @@ package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
@@ -41,9 +41,7 @@ import org.slf4j.MDC;
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -172,11 +170,7 @@ public class ChunkProcessorBean {
      * Skips javascript processing of an item and sets status to ignore.
      */
     private ChunkItem skipItem(ChunkItem item) {
-        return new ChunkItem(item.getId(),
-                StringUtil.asBytes(String.format("Ignored by job-processor since returned status was {%s}", item.getStatus())),
-                ChunkItem.Status.IGNORE,
-                Collections.singletonList(ChunkItem.Type.STRING),
-                StandardCharsets.UTF_8.name());
+         return ObjectFactory.buildIgnoredChunkItem(item.getId(), String.format("Ignored by job-processor since returned status was {%s}", item.getStatus()));
     }
 
     /* Processes given item
@@ -193,62 +187,23 @@ public class ChunkProcessorBean {
                 }
             }
             if (data.isEmpty()) {
-                processedItem = buildIgnoredChunkItem(item.getId(), "Ignored by job-processor since returned data was empty");
+                processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), "Ignored by job-processor since returned data was empty");
             } else {
-                processedItem = buildSuccessfulChunkItem(item.getId(), data);
+                processedItem = ObjectFactory.buildSuccessfulChunkItem(item.getId(), data, ChunkItem.Type.UNKNOWN);
             }
         } catch (IgnoreRecord e) {
             LOGGER.error("Record Ignored by JS with Message: {}", e.getMessage());
-            processedItem = buildIgnoredChunkItem(item.getId(), e.getMessage());
+            processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), e.getMessage());
         } catch (FailRecord e) {
             LOGGER.error("RecordProcessing Terminated by JS with Message: {}", e.getMessage());
-            processedItem = buildFailedChunkItem(item.getId(), e.getMessage());
-            processedItem.appendDiagnostics(builFataldDiagnostic(e.getMessage(), null));
+            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage());
+            processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         } catch (Throwable t) {
             LOGGER.error("Exception caught during JavaScript processing", t);
-            processedItem = buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
-            processedItem.appendDiagnostics(builFataldDiagnostic("Exception caught during JavaScript processing", t));
+            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
+            processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught during JavaScript processing", t));
         }
         return processedItem;
-    }
-
-    /**
-     * Builds a new chunk item with given id, data, status and types.
-     * @param itemId of the item
-     * @param data of the item
-     * @param status of the item
-     * @param types list of types
-     * @return processed chunk item
-     */
-    private ChunkItem buildProcessedChunkItem(long itemId, String data, ChunkItem.Status status, List<ChunkItem.Type> types) {
-        return new ChunkItem(
-                itemId,
-                StringUtil.asBytes(data, StandardCharsets.UTF_8),
-                status,
-                types,
-                StandardCharsets.UTF_8.name());
-    }
-
-    private ChunkItem buildIgnoredChunkItem(long itemId, String data) {
-        return buildProcessedChunkItem(itemId, data, ChunkItem.Status.IGNORE, Collections.singletonList(ChunkItem.Type.STRING));
-    }
-
-    private ChunkItem buildFailedChunkItem(long itemId, String data) {
-        return buildProcessedChunkItem(itemId, data, ChunkItem.Status.FAILURE, Collections.singletonList(ChunkItem.Type.STRING));
-    }
-
-    private ChunkItem buildSuccessfulChunkItem(long itemId, String data) {
-        return buildProcessedChunkItem(itemId, data, ChunkItem.Status.SUCCESS, Collections.singletonList(ChunkItem.Type.UNKNOWN));
-    }
-
-    /**
-     * Builds a new fatal diagnostic with given message and stacktrace
-     * @param message of the diagnostic
-     * @param t stacktrace of the diagnostic
-     * @return diagnostic
-     */
-    private Diagnostic builFataldDiagnostic(String message, Throwable t) {
-        return new Diagnostic(Diagnostic.Level.FATAL, message, t);
     }
 
     private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) throws Throwable {
@@ -268,8 +223,8 @@ public class ChunkProcessorBean {
     private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable t) {
         final List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
-            final ChunkItem processedChunkItem = buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
-            processedChunkItem.appendDiagnostics(builFataldDiagnostic("Chunk item failed during processing", t));
+            final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
+            processedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Chunk item failed during processing", t));
             failedItems.add(processedChunkItem);
         }
         return failedItems;

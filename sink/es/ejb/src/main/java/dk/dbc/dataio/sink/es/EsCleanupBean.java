@@ -24,11 +24,11 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -51,6 +51,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @LocalBean
 @Singleton
@@ -202,7 +203,8 @@ public class EsCleanupBean {
         final ChunkItem lostChunkItem;
         if(chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
             final String data = "Item status set to failed due to taskpackage lost in ES";
-            lostChunkItem = new ChunkItem(chunkItem.getId(), StringUtil.asBytes(data), ChunkItem.Status.FAILURE);
+            lostChunkItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), data);
+            lostChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(data));
         } else {
             lostChunkItem = chunkItem;
         }
@@ -261,10 +263,6 @@ public class EsCleanupBean {
     }
 
     private List<EsInFlight> getEsInFlightsFromTargetReferences(Map<Integer, EsInFlight> esInFlightMap, List<Integer> finishedTargetReferences) {
-        List<EsInFlight> finishedEsInFlight = new ArrayList<>();
-        for (Integer targetReference : finishedTargetReferences) {
-            finishedEsInFlight.add(esInFlightMap.get(targetReference));
-        }
-        return finishedEsInFlight;
+        return finishedTargetReferences.stream().map(esInFlightMap::get).collect(Collectors.toList());
     }
 }

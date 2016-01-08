@@ -24,7 +24,9 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
@@ -53,6 +55,8 @@ public class ESTaskPackageUtil {
     private static final String ES_TASKPACKAGE_CREATOR_FIELD_PREFIX = "dataio: ";
     // non-private/non-final to overwrite during integration tests
     static int MAX_WHERE_IN_SIZE = 1000;
+    private static final String RECORD_HEADER = "Record %d: id=%s\n";
+    private static final String RECORD_RESULT = "\t%s\n";
 
     /**
      * Chops a list up into sublists of length sublistSize
@@ -174,13 +178,13 @@ public class ESTaskPackageUtil {
 
 
         List<SuppliedRecordsEntity> records=new ArrayList<>();
-        int i=0;
+        int i = 0;
         for( AddiRecord addi : esWorkload.getAddiRecords()) {
-            SuppliedRecordsEntity suppliedRecord=new SuppliedRecordsEntity();
+            SuppliedRecordsEntity suppliedRecord = new SuppliedRecordsEntity();
             suppliedRecord.metaData = new String(addi.getMetaData(), esWorkload.getDeliveredChunk().getEncoding());
             suppliedRecord.record = addi.getContentData();
             suppliedRecord.targetreference = taskPackage.getTargetreference();
-            suppliedRecord.lbnr=i;
+            suppliedRecord.lbnr = i;
             records.add( suppliedRecord );
             i++;
         }
@@ -207,83 +211,90 @@ public class ESTaskPackageUtil {
     private static ChunkItem getChunkItemFromTaskPackageRecordStructureData(TaskSpecificUpdateEntity taskSpecificUpdateEntity, ChunkItem placeholderChunkItem,
             LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList) throws NumberFormatException, SQLException {
 
-
         final int numberOfRecords = Integer.parseInt(StringUtil.asString(placeholderChunkItem.getData()));
-        ChunkItem.Status status = ChunkItem.Status.SUCCESS;
-        int targetReference=taskSpecificUpdateEntity.getTargetreference();
-        final StringBuilder itemData = new StringBuilder(String.format("Task package: %d\n",targetReference));
-        final String recordHeader = "Record %d: id=%s\n";
-        final String recordResult = "\t%s\n";
+        int targetReference = taskSpecificUpdateEntity.getTargetreference();
+        StringBuilder sb = new StringBuilder(String.format("Task package: %d\n", targetReference));
+        List<TaskPackageRecordStructureEntity> recordStructureMap = taskSpecificUpdateEntity.getTaskpackageRecordStructures();
 
-        List<TaskPackageRecordStructureEntity> recordStructureMap=taskSpecificUpdateEntity.getTaskpackageRecordStructures();
-
+        List<Diagnostic> chunkItemDiagnostics = new ArrayList<>();
         for (int i = 1; i <= numberOfRecords; i++) {
             TaskPackageRecordStructureEntity recordData;
             try {
                 recordData = taskPackageRecordStructureEntityList.remove();
             } catch (NoSuchElementException e) {
-                status = ChunkItem.Status.FAILURE;
-                itemData.append(String.format(recordHeader, i, null));
-                itemData.append(String.format(recordResult, "No record found in ES"));
+                sb.append(String.format(RECORD_HEADER, i, null));
+                sb.append(String.format(RECORD_RESULT, "No record found in ES"));
+                chunkItemDiagnostics.add(ObjectFactory.buildFatalDiagnostic("No record found in ES", e));
                 continue;
             }
 
             LOGGER.info("targetRef: {}  status: {} recordDiag: {}", targetReference, recordData.recordStatus.name(), recordData.diagnosticId);
 
-            itemData.append(String.format(recordHeader, i, recordData.record_id));
-            // A task package must only be completed if all its records have been completed.
-            // Therefore: if the status of a record is anything but success or failure,
-            // an error has occurred. The record will be accepted as failed, with a message
-            // in the chunk item telling that the record was not completed.
-            TaskPackageRecordStructureEntity recordStructure=recordStructureMap.get( recordData.lbnr );
-            switch ( recordStructure.recordStatus ) {
-                case SUCCESS:
-                    itemData.append(String.format(recordResult, "OK"));
-                    break;
-                case QUEUED:
-                    status = ChunkItem.Status.FAILURE;
-                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " is queued"));
-                    break;
-                case IN_PROCESS:
-                    status = ChunkItem.Status.FAILURE;
-                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " is in process"));
-                    break;
-                case FAILURE:
-                    status = ChunkItem.Status.FAILURE;
-                    itemData.append(String.format(recordResult, getFailureDiagnostic(recordStructure)));
-                    break;
-                default:
-                    status = ChunkItem.Status.FAILURE;
-                    itemData.append(String.format(recordResult, "lbnr " + recordData.lbnr + " has unknown completion status " + recordData.recordStatus.name()));
+            // Append record information to item data
+            sb.append(String.format(RECORD_HEADER, i, recordData.record_id));
+            sb.append(RECORD_RESULT);
+
+            // Build es diagnostics if any are present
+            final Diagnostic esDiagnostic = buildEsDiagnostic(recordStructureMap.get(recordData.lbnr), recordData);
+
+            // Add any es diagnostic created to the list of chunk item diagnostics and append to string builder
+            if(esDiagnostic != null) {
+                chunkItemDiagnostics.add(esDiagnostic);
+                sb.append(esDiagnostic.getMessage());
+            } else {
+                sb.append("OK");
             }
         }
-        return new ChunkItem(placeholderChunkItem.getId(), StringUtil.asBytes(itemData.toString()), status);
+
+        final ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(placeholderChunkItem.getId(), sb.toString(), ChunkItem.Type.STRING);
+        chunkItem.appendDiagnostics(chunkItemDiagnostics);
+        return chunkItem;
     }
 
+    /**
+     * Creates diagnostic for ES record status errors.
+     * @param recordStructure containing the record status
+     * @param recordData containing record information
+     * @return null, if record status was success, otherwise a diagnostic.
+     */
+    private static Diagnostic buildEsDiagnostic(TaskPackageRecordStructureEntity recordStructure, TaskPackageRecordStructureEntity recordData) {
+        // A task package must only be completed if all its records have been completed.
+        // Therefore: if the status of a record is anything but success or failure,
+        // an error has occurred. The record will be accepted as failed, with a message
+        // in the chunk item telling that the record was not completed.
+        switch (recordStructure.recordStatus) {
+            case SUCCESS:
+                return null;
+            case QUEUED:
+                return ObjectFactory.buildFatalDiagnostic("lbnr " + recordData.lbnr + " is queued");
+            case IN_PROCESS:
+                return ObjectFactory.buildFatalDiagnostic("lbnr " + recordData.lbnr + " is in process");
+            case FAILURE:
+                return wrapEsDiagnostic(recordStructure);
+            default:
+                return ObjectFactory.buildFatalDiagnostic("lbnr " + recordData.lbnr + " has unknown completion status " + recordData.recordStatus.name());
+        }
+    }
 
-
-    private static String getFailureDiagnostic(TaskPackageRecordStructureEntity recordStructure) throws SQLException {
-        List<DiagnosticsEntity> diags=recordStructure.getDiagnosticsEntities();
-        String diagnostic = "";
-        boolean first=true;
-        for(DiagnosticsEntity diag: diags) {
+    private static Diagnostic wrapEsDiagnostic(TaskPackageRecordStructureEntity recordStructure) {
+        List<DiagnosticsEntity> diagnosticsEntities = recordStructure.getDiagnosticsEntities();
+        Diagnostic esDiagnostic = null;
+        boolean first = true;
+        for(DiagnosticsEntity entity: diagnosticsEntities) {
             if( first) {
-                diagnostic = diag.additionalInformation;
+                esDiagnostic = ObjectFactory.buildFatalDiagnostic(entity.additionalInformation);
                 first = false;
             } else {
-                LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", recordStructure.diagnosticId, diag.additionalInformation);
+                LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", recordStructure.diagnosticId, entity.additionalInformation);
             }
-
         }
-        return diagnostic;
+        return esDiagnostic;
     }
 
     private static String createCreatorString(long jobId, long chunkId) {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(ES_TASKPACKAGE_CREATOR_FIELD_PREFIX);
-        sb.append("[ jobid: ").append(jobId);
-        sb.append(" , chunkId: ").append(chunkId).append(" ]");
-        return sb.toString();
+        return ES_TASKPACKAGE_CREATOR_FIELD_PREFIX +
+                "[ jobid: " + jobId +
+                " , chunkId: " + chunkId + " ]";
     }
 
     public static class TaskStatus {
@@ -314,10 +325,7 @@ public class ESTaskPackageUtil {
 
             TaskStatus that = (TaskStatus) o;
 
-            if (targetreference != that.targetreference) {
-                return false;
-            }
-            return taskStatus == that.taskStatus;
+            return targetreference == that.targetreference && taskStatus == that.taskStatus;
         }
 
         @Override

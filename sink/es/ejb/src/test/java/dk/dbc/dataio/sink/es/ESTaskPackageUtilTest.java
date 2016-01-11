@@ -265,9 +265,6 @@ public class ESTaskPackageUtilTest {
         assertThat("ChunkItem1.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
     }
 
-
-
-
     private static class TPCreator {
 
         private TaskSpecificUpdateEntity taskPackage=new TaskSpecificUpdateEntity();
@@ -288,7 +285,7 @@ public class ESTaskPackageUtilTest {
             int lbnr=records.size();
             createRecordStructure(lbnr, record_id, TaskPackageRecordStructureEntity.RecordStatus.SUCCESS);
 
-            createSuppliedRecord(lbnr, addi, record_id);
+            createSuppliedRecord(lbnr, addi);
 
             return this;
         }
@@ -301,7 +298,7 @@ public class ESTaskPackageUtilTest {
 
             int lbnr=records.size();
             createRecordStructure(lbnr, "", TaskPackageRecordStructureEntity.RecordStatus.QUEUED);
-            createSuppliedRecord(lbnr, addi, "");
+            createSuppliedRecord(lbnr, addi);
 
             return this;
         }
@@ -312,7 +309,7 @@ public class ESTaskPackageUtilTest {
             }
             int lbnr=records.size();
             createRecordStructure(lbnr, "", TaskPackageRecordStructureEntity.RecordStatus.IN_PROCESS);
-            createSuppliedRecord(lbnr, addi, "");
+            createSuppliedRecord(lbnr, addi);
 
             return this;
         }
@@ -323,7 +320,7 @@ public class ESTaskPackageUtilTest {
             }
             int lbnr=records.size();
             createRecordStructure_withDiag(lbnr, "", TaskPackageRecordStructureEntity.RecordStatus.FAILURE, message);
-            createSuppliedRecord(lbnr, addi, message);
+            createSuppliedRecord(lbnr, addi);
 
             // missing Set failoure diagnostics
 
@@ -337,7 +334,7 @@ public class ESTaskPackageUtilTest {
             return taskPackage;
         }
 
-        private void createSuppliedRecord(int lbnr, String addi, String record_id) {
+        private void createSuppliedRecord(int lbnr, String addi) {
             SuppliedRecordsEntity suppliedRecord=new SuppliedRecordsEntity();
             suppliedRecord.lbnr=lbnr;
             suppliedRecord.metaData = addi;
@@ -359,15 +356,13 @@ public class ESTaskPackageUtilTest {
             recordStructure.recordStatus= recordStatus;
             recordStructure.record_id = record_id;
             recordStructure.diagnosticId = 1;
-            List<DiagnosticsEntity> diags=new ArrayList<>();
+            List<DiagnosticsEntity> diags = new ArrayList<>();
             diags.add( new DiagnosticsEntity(0, message));
 
 
             recordStructure.setDiagnosticsEntities( diags );
             taskPackageRecordStructures.add( recordStructure);
         }
-
     }
-
 
 }

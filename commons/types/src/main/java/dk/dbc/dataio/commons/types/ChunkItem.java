@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Chunk item DTO class.
@@ -92,13 +91,16 @@ public class ChunkItem implements Serializable {
 
 
     /**
+     * If diagnostic level is different from WARNING:
      * Set Status to FAILURE and append Diagnostics to describe the reason
      * for failing the item.
      *
      * @param diag Description of the reason for the failure
      */
     public void appendDiagnostics(Diagnostic diag) {
-        this.status = Status.FAILURE;
+        if(diag.getLevel() != Diagnostic.Level.WARNING) {
+            this.status = Status.FAILURE;
+        }
         if (diagnostics == null) {
             diagnostics = new ArrayList<>();
         }
@@ -106,18 +108,21 @@ public class ChunkItem implements Serializable {
     }
 
     /**
-     * If given list of diagnostics is not null or empty, set Status to FAILURE and append Diagnostics to describe the reasons
-     * for failing the item.
+     * If given list of diagnostics is not null or empty:
+     *   - If diagnostic level is different from WARNING: Set Status to FAILURE.
+     *   - Append all input Diagnostics.
      *
      * @param diagnostics containing list of descriptions of the reasons for failure
      */
     public void appendDiagnostics(List<Diagnostic> diagnostics) {
         if(diagnostics != null && !diagnostics.isEmpty()) {
-            this.status = Status.FAILURE;
+            if(diagnostics.stream().anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING)) {
+                this.status = Status.FAILURE;
+            }
             if (this.diagnostics == null) {
                 this.diagnostics = new ArrayList<>(diagnostics);
             } else {
-                this.diagnostics.addAll(diagnostics.stream().collect(Collectors.toList()));
+                this.diagnostics.addAll(diagnostics);
             }
         }
     }

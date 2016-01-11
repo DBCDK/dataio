@@ -232,7 +232,6 @@ public class ESTaskPackageUtil {
 
             // Append record information to item data
             sb.append(String.format(RECORD_HEADER, i, recordData.record_id));
-            sb.append(RECORD_RESULT);
 
             // Build es diagnostics if any are present
             final Diagnostic esDiagnostic = buildEsDiagnostic(recordStructureMap.get(recordData.lbnr), recordData);
@@ -240,9 +239,9 @@ public class ESTaskPackageUtil {
             // Add any es diagnostic created to the list of chunk item diagnostics and append to string builder
             if(esDiagnostic != null) {
                 chunkItemDiagnostics.add(esDiagnostic);
-                sb.append(esDiagnostic.getMessage());
+                sb.append(String.format(RECORD_RESULT, esDiagnostic.getMessage()));
             } else {
-                sb.append("OK");
+                sb.append(String.format(RECORD_RESULT, "OK"));
             }
         }
 
@@ -278,17 +277,17 @@ public class ESTaskPackageUtil {
 
     private static Diagnostic wrapEsDiagnostic(TaskPackageRecordStructureEntity recordStructure) {
         List<DiagnosticsEntity> diagnosticsEntities = recordStructure.getDiagnosticsEntities();
-        Diagnostic esDiagnostic = null;
+        Diagnostic diagnostic = null;
         boolean first = true;
         for(DiagnosticsEntity entity: diagnosticsEntities) {
             if( first) {
-                esDiagnostic = ObjectFactory.buildFatalDiagnostic(entity.additionalInformation);
+                diagnostic = ObjectFactory.buildFatalDiagnostic(entity.additionalInformation);
                 first = false;
             } else {
                 LOGGER.warn("unexpected diagnostic returned: id: [{}]  diagnostic: [{}]", recordStructure.diagnosticId, entity.additionalInformation);
             }
         }
-        return esDiagnostic;
+        return diagnostic;
     }
 
     private static String createCreatorString(long jobId, long chunkId) {

@@ -95,16 +95,16 @@ public class ChunkItem implements Serializable {
      * Set Status to FAILURE and append Diagnostics to describe the reason
      * for failing the item.
      *
-     * @param diag Description of the reason for the failure
+     * @param diagnostic Description of the reason for the failure
      */
-    public void appendDiagnostics(Diagnostic diag) {
-        if(diag.getLevel() != Diagnostic.Level.WARNING) {
+    public void appendDiagnostics(Diagnostic diagnostic) {
+        if(diagnostic.getLevel() != Diagnostic.Level.WARNING) {
             this.status = Status.FAILURE;
         }
         if (diagnostics == null) {
             diagnostics = new ArrayList<>();
         }
-        diagnostics.add(diag);
+        diagnostics.add(diagnostic);
     }
 
     /**

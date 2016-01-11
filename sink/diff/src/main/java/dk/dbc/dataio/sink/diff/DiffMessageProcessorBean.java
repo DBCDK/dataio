@@ -26,6 +26,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -42,7 +43,6 @@ import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.MessageDriven;
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,17 +70,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-
-    private ExternalChunk failWithMissingNextItem(ExternalChunk processedChunk) {
-        final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
-
-        for (final ChunkItem item : processedChunk) {
-            deliveredChunk.insertItem(new ChunkItem(item.getId(), StringUtil.asBytes("Missing Next Items"), ChunkItem.Status.FAILURE));
-        }
-        return deliveredChunk;
-
-    }
-
     /**
      * <br/> All 'current' input ChunkItems have their status compared with the status of their 'next' input ChunkItem counterpart.
      * <br/> If status differs, a ChunkItem placeholder is created with status FAILURE in Delivered Chunk
@@ -100,31 +89,30 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      */
     ExternalChunk processPayload(ExternalChunk processedChunk) throws SinkException{
         if( !processedChunk.hasNextItems()) {
-            return failWithMissingNextItem( processedChunk );
+            return failWithMissingNextItem(processedChunk);
         }
 
         final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
         for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
-            if( item.current.getStatus() != item.next.getStatus() ) {
+            if(item.current.getStatus() != item.next.getStatus()) {
                 String message = String.format("Different status %s -> %s\n%s",
                         statusToString(item.current.getStatus()),
                         statusToString(item.next.getStatus()),
                         StringUtil.asString(item.next.getData())
                 );
-                deliveredChunk.insertItem(new ChunkItem(item.next.getId(), StringUtil.asBytes(message), ChunkItem.Status.FAILURE));
+                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.next.getId(), message);
+                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message));
+                deliveredChunk.insertItem(chunkItem);
             } else {
                 switch (item.current.getStatus()) {
                     case SUCCESS:
-                        deliveredChunk.insertItem(getChunkItemWithDiffResult(
-                                item, processedChunk.getEncoding()));
+                        deliveredChunk.insertItem(getChunkItemWithDiffResult(item));
                         break;
                     case FAILURE:
-                        deliveredChunk.insertItem(new ChunkItem(
-                                item.current.getId(), StringUtil.asBytes("Failed by diff processor"), ChunkItem.Status.IGNORE));
+                        deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Failed by diff processor"));
                         break;
                     case IGNORE:
-                        deliveredChunk.insertItem(new ChunkItem(
-                                item.current.getId(), StringUtil.asBytes("Ignored by diff processor"), ChunkItem.Status.IGNORE));
+                        deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Ignored by diff processor"));
                         break;
                     default:
                         throw new SinkException("Unknown chunk item state: " + item.current.getStatus().name());
@@ -135,11 +123,27 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     }
 
     /*
+     * Private methods
+     */
+
+    private ExternalChunk failWithMissingNextItem(ExternalChunk processedChunk) {
+        final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+
+        for (final ChunkItem item : processedChunk) {
+            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items");
+            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Missing Next Items"));
+            deliveredChunk.insertItem(chunkItem);
+        }
+        return deliveredChunk;
+
+    }
+
+    /*
      * This method creates a ChunkItem containing the diff result.
      * If the diff result is an empty String, the item is converted into a ChunkItem with status SUCCESS
      * If the diff result is NOT an empty String, the item is converted into a ChunkItem with status FAILURE
      */
-    private ChunkItem getChunkItemWithDiffResult(ChunkItemPair item, Charset encoding) {
+    private ChunkItem getChunkItemWithDiffResult(ChunkItemPair item) {
         String diff;
         ChunkItem chunkItem;
         try {
@@ -150,12 +154,14 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 diff = getXmlDiff(item.current.getData(), item.next.getData());
             }
             if (diff.isEmpty()) {
-                chunkItem = new ChunkItem(item.current.getId(), StringUtil.asBytes("Current and Next output were identical", encoding), ChunkItem.Status.SUCCESS);
+                chunkItem = ObjectFactory.buildSuccessfulChunkItem(item.current.getId(), "Current and Next output were identical", ChunkItem.Type.STRING);
             } else {
-                chunkItem = new ChunkItem(item.current.getId(), StringUtil.asBytes(diff, encoding), ChunkItem.Status.FAILURE);
+                chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), diff);
+                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Diff created: Current and Next output were not identical"));
             }
         } catch (DiffGeneratorException e) {
-            chunkItem = new ChunkItem(item.current.getId(), StringUtil.asBytes(StringUtil.getStackTraceString(e, "")), ChunkItem.Status.FAILURE);
+            chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), StringUtil.getStackTraceString(e, ""));
+            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception occurred while comparing addi records", e));
         }
         return chunkItem;
     }
@@ -195,15 +201,15 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         public ChunkItem next;
     }
 
-    List<ChunkItemPair> buildCurrentNextChunkList( ExternalChunk processed ) {
-        final List<ChunkItem> items=processed.getItems();
-        final List<ChunkItem> next=processed.getNext();
+    private List<ChunkItemPair> buildCurrentNextChunkList(ExternalChunk processed) {
+        final List<ChunkItem> items = processed.getItems();
+        final List<ChunkItem> next = processed.getNext();
         if( items.size() != next.size() ) {
             throw new IllegalArgumentException("Internal Error item and next length differ");
         }
-        final List<ChunkItemPair> result=new ArrayList<>();
+        final List<ChunkItemPair> result = new ArrayList<>();
         for( int i = 0 ; i < items.size() ; i++ ) {
-            result.add( new ChunkItemPair(items.get(i), next.get(i)));
+            result.add(new ChunkItemPair(items.get(i), next.get(i)));
         }
         return result;
     }

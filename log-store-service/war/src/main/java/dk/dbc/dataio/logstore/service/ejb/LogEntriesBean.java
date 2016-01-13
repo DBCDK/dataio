@@ -48,17 +48,6 @@ public class LogEntriesBean {
     LogStoreBean logStoreBean;
 
     /**
-     * This is a dummy service for TEST purposes.
-     * @return always OK
-     */
-    @GET
-    @Path("logentries/test")
-    @Produces(MediaType.TEXT_PLAIN)
-    @Stopwatch
-    public Response testThis() {
-        return Response.ok().entity(this.logStoreBean.testMe()).build();
-    }
-    /**
      * Retrieves log for given item in given chunk in given job
      * @param jobId ID of job
      * @param chunkId ID of chunk in job

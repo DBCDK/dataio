@@ -33,7 +33,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
-import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
@@ -58,18 +57,6 @@ public class FilesBean {
 
     @EJB
     FileStoreBean fileStore;
-
-    /**
-     * This is a dummy service for TEST purposes.
-     * @return always OK
-     */
-    @GET
-    @Path("files/test")
-    @Produces(MediaType.TEXT_PLAIN)
-    @Stopwatch
-    public Response testThis() {
-        return Response.ok().entity(this.fileStore.testMe()).build();
-    }
 
     /**
      * Creates new file in file-store containing data from the given data stream

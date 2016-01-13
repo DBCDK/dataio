@@ -27,7 +27,6 @@ public class JobStoreServiceConstants {
     public static final String ITEM_ID_VARIABLE = "itemId";
 
     public static final String JOB_COLLECTION                   = "jobs";
-    public static final String JOB_TEST                         = "jobs/test";
     public static final String JOB_COLLECTION_SEARCHES          = "jobs/searches";
     public static final String JOB_COLLECTION_SEARCHES_COUNT    = "jobs/searches/count";
     public static final String ITEM_COLLECTION_SEARCHES         = "jobs/chunks/items/searches";

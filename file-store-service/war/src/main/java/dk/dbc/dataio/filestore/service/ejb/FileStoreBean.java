@@ -56,11 +56,6 @@ public class FileStoreBean {
     @EJB
     BinaryFileStoreBean binaryFileStore;
 
-    @Stopwatch
-    public String testMe(){
-        return "Det gik jo fantastisk.";
-    }
-
     /**
      * Adds content of given input stream as file in store
      * @param dataSource input stream of bytes to be written

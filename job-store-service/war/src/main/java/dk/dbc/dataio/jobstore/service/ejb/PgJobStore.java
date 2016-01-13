@@ -83,11 +83,6 @@ public class PgJobStore {
 
     @Resource SessionContext sessionContext;
 
-    @Stopwatch
-    public String testMe() {
-        return "Det virker fantastisk.";
-    }
-
     /**
      * Adds new job in the underlying data store from given job input stream, after attempting to retrieve
      * required referenced objects through addJobParam.

@@ -91,18 +91,6 @@ public class JobsBean {
     SinkMessageProducerBean sinkMessageProducer;
 
     /**
-     * This is a dummy service for TEST purposes.
-     * @return always OK
-     */
-    @GET
-    @Path(JobStoreServiceConstants.JOB_TEST)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Stopwatch
-    public Response testThis() {
-        return Response.ok().entity(this.jobStore.testMe()).build();
-    }
-
-    /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
      *
      * @param uriInfo application and request URI information

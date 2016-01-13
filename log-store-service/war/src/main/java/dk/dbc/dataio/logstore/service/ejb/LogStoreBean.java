@@ -45,10 +45,6 @@ import java.util.List;
      @PersistenceContext
      EntityManager entityManager;
 
-     @Stopwatch
-     public String testMe() {
-         return "Det gik jo fantastisk.";
-     }
      /**
       * Retrieves log for given item in given chunk in given job
       * @param jobId ID of job

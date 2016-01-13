@@ -42,7 +42,6 @@
     <module>javascript</module>
     <module>lang</module>
     <module>log-store-service-connector</module>
-    <module>marc</module>
     <module>flow-store-service-connector</module>
     <module>job-store-service-connector</module>
     <module>io</module>

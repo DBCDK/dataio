@@ -74,11 +74,6 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-marc</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-types</artifactId>
       <version>${project.version}</version>
     </dependency>

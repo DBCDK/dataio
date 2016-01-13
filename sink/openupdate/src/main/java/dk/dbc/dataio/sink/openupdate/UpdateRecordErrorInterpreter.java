@@ -62,8 +62,8 @@ public class UpdateRecordErrorInterpreter {
                         dataField = getDataField(entry.getOrdinalPositionOfField().intValue() - 1, marcExchangeRecord);
                         field = getTag(dataField);
                         subField = getAttribute(entry.getOrdinalPositionOfSubField().intValue() - 1, dataField);
-                    } catch (Exception exception) {
-                        // If an exception is thrown (typically a null pointer exception), leave the field and/or subField values as null values
+                    } catch (NullPointerException exception) {
+                        // If a NullPointerException is thrown, leave the field and/or subField values as null values
                     }
                     diagnostics.add(new Diagnostic(getLevel(entry.getWarningOrError()), entry.getMessage(), NO_STACK_TRACE, field, subField));
                 }

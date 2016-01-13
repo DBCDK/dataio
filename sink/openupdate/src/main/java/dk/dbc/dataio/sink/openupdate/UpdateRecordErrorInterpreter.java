@@ -46,7 +46,7 @@ public class UpdateRecordErrorInterpreter {
      * @param updateRecordResult The input data to interpret
      * @param marcExchangeRecord The corresponding Marc record, to be used to fetch the field and subfield names
      * @return A list of Diagnostics
-     * @throws MarcReaderException
+     * @throws MarcReaderException on exception caught while creating parser
      */
     public List<Diagnostic> getDiagnostics(UpdateRecordResult updateRecordResult, byte[] marcExchangeRecord) throws MarcReaderException {
         final String NO_STACK_TRACE = null; // We don't need to supply a stacktrace, and since we don't have any right now, we will not do it
@@ -78,7 +78,7 @@ public class UpdateRecordErrorInterpreter {
      * @param fieldIndex The index of the field to fetch
      * @param marcExchangeRecord The MarcExchangeRecord byte array
      * @return The constructed DataField structure
-     * @throws MarcReaderException
+     * @throws MarcReaderException on exception caught while creating parser
      */
     DataField getDataField(Integer fieldIndex, byte[] marcExchangeRecord) throws MarcReaderException {
         return (DataField) getMarcRecord(marcExchangeRecord).getFields().get(fieldIndex);
@@ -89,7 +89,7 @@ public class UpdateRecordErrorInterpreter {
      * Gets a MarcRecord from the byte array, supplied as a parameter in the call to the method
      * @param marcExchangeRecord The byte array to read
      * @return The MarcRecord
-     * @throws MarcReaderException
+     * @throws MarcReaderException on exception caught while creating parser
      */
     MarcRecord getMarcRecord(byte[] marcExchangeRecord) throws MarcReaderException {
         BufferedInputStream stream = new BufferedInputStream(new ByteArrayInputStream(marcExchangeRecord));

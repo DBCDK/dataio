@@ -79,11 +79,9 @@ public class MarcRecordInfoBuilder {
             o       oprindeligt format (maskinkonverterede poster)
             t       nummersystem for id-nummer
          */
-        for (SubField subfield : datafield.getSubfields()) {
-            if (subfield.getCode() == 'a') {
-                parseResult.id = subfield.getData();
-                break;
-            }
+        final Optional<SubField> subfield = datafield.getSubfields().stream().filter(s -> s.getCode() == 'a').findFirst();
+        if (subfield.isPresent()) {
+            parseResult.id = subfield.get().getData();
         }
     }
 
@@ -93,14 +91,16 @@ public class MarcRecordInfoBuilder {
             r       kode for poststatus
             a       kode for bibliografisk posttype
          */
-        for (SubField subfield : datafield.getSubfields()) {
-            switch (subfield.getCode()) {
-                case 'a': parseResult.type = getRecordType(subfield.getData());
-                    break;
-                case 'r': parseResult.isDelete = "d".equals(subfield.getData());
-                    break;
-                default: break;  // shuts up findbugs
-            }
+        datafield.getSubfields().stream().forEach(s -> parse004Subfield(parseResult, s));
+    }
+
+    private void parse004Subfield(ParseResult parseResult, SubField subfield) {
+        switch (subfield.getCode()) {
+            case 'a': parseResult.type = getRecordType(subfield.getData());
+                break;
+            case 'r': parseResult.isDelete = "d".equals(subfield.getData());
+                break;
+            default: break;  // shuts up findbugs
         }
     }
 
@@ -126,11 +126,9 @@ public class MarcRecordInfoBuilder {
             a       id-nummer på post på højere niveau
             x       typekode
          */
-        for (SubField subfield : datafield.getSubfields()) {
-            if (subfield.getCode() == 'a') {
-                parseResult.parentRelation = subfield.getData();
-                break;
-            }
+        final Optional<SubField> subfield = datafield.getSubfields().stream().filter(s -> s.getCode() == 'a').findFirst();
+        if (subfield.isPresent()) {
+            parseResult.parentRelation = subfield.get().getData();
         }
     }
 

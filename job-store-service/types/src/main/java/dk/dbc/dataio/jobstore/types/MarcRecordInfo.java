@@ -32,7 +32,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 public class MarcRecordInfo extends RecordInfo {
     public enum RecordType {
-        HEAD, SECTION, VOLUME
+        STANDALONE, HEAD, SECTION, VOLUME
     }
 
     private final RecordType type;
@@ -86,6 +86,11 @@ public class MarcRecordInfo extends RecordInfo {
     @JsonIgnore
     public boolean isSection() {
         return type == RecordType.SECTION;
+    }
+
+    @JsonIgnore
+    public boolean isVolume() {
+        return type == RecordType.VOLUME;
     }
 
     public boolean hasParentRelation() {

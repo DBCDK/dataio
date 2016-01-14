@@ -32,7 +32,7 @@ import static org.junit.Assert.assertThat;
 public class MarcRecordInfoTest {
     private final String id = "42";
     private final String parentRelation = "headOf42";
-    private final MarcRecordInfo.RecordType type = MarcRecordInfo.RecordType.VOLUME;
+    private final MarcRecordInfo.RecordType type = MarcRecordInfo.RecordType.STANDALONE;
     private final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
 
     @Test
@@ -61,10 +61,21 @@ public class MarcRecordInfoTest {
     }
 
     @Test
+    public void constructor_typeArgIsStandalone() {
+        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);
+        assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
+        assertThat("isHead()", recordInfo.isHead(), is(false));
+        assertThat("isSection()", recordInfo.isSection(), is(false));
+        assertThat("isVolume()", recordInfo.isVolume(), is(false));
+    }
+
+    @Test
     public void constructor_typeArgIsVolume() {
+        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.VOLUME, false, parentRelation);
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.VOLUME));
         assertThat("isHead()", recordInfo.isHead(), is(false));
         assertThat("isSection()", recordInfo.isSection(), is(false));
+        assertThat("isVolume()", recordInfo.isVolume(), is(true));
     }
 
     @Test
@@ -73,6 +84,7 @@ public class MarcRecordInfoTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.HEAD));
         assertThat("isHead()", recordInfo.isHead(), is(true));
         assertThat("isSection()", recordInfo.isSection(), is(false));
+        assertThat("isVolume()", recordInfo.isVolume(), is(false));
     }
 
     @Test
@@ -81,6 +93,7 @@ public class MarcRecordInfoTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.SECTION));
         assertThat("isHead()", recordInfo.isHead(), is(false));
         assertThat("isSection()", recordInfo.isSection(), is(true));
+        assertThat("isVolume()", recordInfo.isVolume(), is(false));
     }
 
     @Test

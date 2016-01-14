@@ -29,41 +29,45 @@ import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
 import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This class interprets an UpdateRecordResult, and fetches the field and subfield positions
  */
 public class UpdateRecordErrorInterpreter {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UpdateRecordErrorInterpreter.class);
 
     /**
      * Interprets the UpdateRecordResult input data, and returns a list of Diagnostics, detected in the data
      * @param updateRecordResult The input data to interpret
      * @param marcExchangeRecord The corresponding Marc record, to be used to fetch the field and subfield names
      * @return A list of Diagnostics
-     * @throws MarcReaderException on exception caught while creating parser
      */
-    public List<Diagnostic> getDiagnostics(UpdateRecordResult updateRecordResult, byte[] marcExchangeRecord) throws MarcReaderException {
+    public List<Diagnostic> getDiagnostics(UpdateRecordResult updateRecordResult, byte[] marcExchangeRecord) {
         final String NO_STACK_TRACE = null; // We don't need to supply a stacktrace, and since we don't have any right now, we will not do it
         List<Diagnostic> diagnostics = new ArrayList<>();
         if (updateRecordResult != null && updateRecordResult.getValidateInstance() != null) {
             List<ValidateEntry> validateEntries = updateRecordResult.getValidateInstance().getValidateEntry();
             if (!validateEntries.isEmpty()) {
                 for (ValidateEntry entry: validateEntries) {
-                    DataField dataField;
                     String field = null;
                     String subField = null;
                     try {
-                        dataField = getDataField(entry.getOrdinalPositionOfField().intValue() - 1, marcExchangeRecord);
-                        field = getTag(dataField);
-                        subField = getAttribute(entry.getOrdinalPositionOfSubField().intValue() - 1, dataField);
-                    } catch (NullPointerException exception) { //NOPMD - suppress Empty Catch Block warning
-                        // If a NullPointerException is thrown, leave the field and/or subField values as null values
+                        Optional<DataField> dataField = getDataField(entry, marcExchangeRecord);
+                        if (dataField.isPresent()) {
+                            field = getTag(dataField);
+                            subField = getAttribute(entry, dataField);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Error detected during extraction of Tag and/or Attribute", e);
                     }
                     diagnostics.add(new Diagnostic(getLevel(entry.getWarningOrError()), entry.getMessage(), NO_STACK_TRACE, field, subField));
                 }
@@ -73,15 +77,16 @@ public class UpdateRecordErrorInterpreter {
     }
 
     /**
-     * Given an index to the a Marc field and a byte array, containing the MarcExchangeRecord, this method constructs the
+     * Given a Marc field and a byte array, containing a MarcExchangeRecord, this method constructs the
      * corresponding DataField record for the given Marc field
-     * @param fieldIndex The index of the field to fetch
+     * @param entry The ValidateEntry containing the field to fetch
      * @param marcExchangeRecord The MarcExchangeRecord byte array
      * @return The constructed DataField structure
      * @throws MarcReaderException on exception caught while creating parser
      */
-    DataField getDataField(Integer fieldIndex, byte[] marcExchangeRecord) throws MarcReaderException {
-        return (DataField) getMarcRecord(marcExchangeRecord).getFields().get(fieldIndex);
+    Optional<DataField> getDataField(ValidateEntry entry, byte[] marcExchangeRecord) throws MarcReaderException {
+        Integer fieldIndex = entry.getOrdinalPositionOfField().intValue() - 1;
+        return Optional.of((DataField) getMarcRecord(marcExchangeRecord).getFields().get(fieldIndex));
     }
 
 
@@ -113,22 +118,23 @@ public class UpdateRecordErrorInterpreter {
     }
 
     /**
-     * Gets a specific Tag (Field) from a MarcRecord. The tagIndex points out the Tag to fetch
+     * Gets a specific Tag (Field) from a MarcRecord.
      * @param dataField The DataField, where the Tag lives
      * @return The Tag (Field) given as a String
      */
-    String getTag(DataField dataField) {
-        return dataField.getTag();
+    String getTag(Optional<DataField> dataField) {
+        return dataField.get().getTag();
     }
 
     /**
      * Gets a specific Attribute (SubField) from a MarcRecord. The attributeIndex points out the Attribute to fetch
-     * @param attributeIndex The index of the Attribute
+     * @param entry The ValidateEntry containing the field to fetch
      * @param dataField The DataField, where the Attribute lives
      * @return The Attribute (SubField) given as a String
      */
-    String getAttribute(Integer attributeIndex, DataField dataField) {
-        return dataField.getSubfields().get(attributeIndex).getCode().toString();
+    String getAttribute(ValidateEntry entry, Optional<DataField> dataField) {
+        Integer attributeIndex = entry.getOrdinalPositionOfSubField().intValue() - 1;
+        return dataField.get().getSubfields().get(attributeIndex).getCode().toString();
     }
 
 }

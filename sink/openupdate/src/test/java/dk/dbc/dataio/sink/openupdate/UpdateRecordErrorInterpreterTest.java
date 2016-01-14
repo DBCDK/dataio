@@ -37,6 +37,7 @@ import org.junit.Test;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -59,7 +60,7 @@ public class UpdateRecordErrorInterpreterTest {
                     "    </marcx:record>").getBytes(StandardCharsets.UTF_8);
 
 
-    @Test(expected = MarcReaderException.class)
+    @Test(expected = NullPointerException.class)
     public void getDataField_nullFieldIndex_MarcReaderException() throws MarcReaderException {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
@@ -70,28 +71,35 @@ public class UpdateRecordErrorInterpreterTest {
     public void getDataField_nullMarcExchangeRecord_NullPointerException() throws MarcReaderException {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        interpreter.getDataField(new Integer(33), null);
+        interpreter.getDataField(createValidateEntry(33, null), null);
     }
 
     @Test(expected = MarcReaderException.class)
     public void getDataField_emptyMarcExchangeRecord_MarcReaderException() throws MarcReaderException {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        interpreter.getDataField(new Integer(33), emptyMarcExchangeRecord);
+        interpreter.getDataField(createValidateEntry(33, null), emptyMarcExchangeRecord);
+    }
+
+    @Test(expected = ArrayIndexOutOfBoundsException.class)
+    public void getDataField_simpleOneElementMarcExchangeRecordFetchBeforeFirstRecord_notOk() throws MarcReaderException {
+        // Subject under test
+        UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
+        interpreter.getDataField(createValidateEntry(0, null), simpleValidMarcExchangeRecord);
     }
 
     @Test
     public void getDataField_simpleOneElementMarcExchangeRecordFetchFirstRecord_ok() throws MarcReaderException {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        interpreter.getDataField(new Integer(0), simpleValidMarcExchangeRecord);
+        interpreter.getDataField(createValidateEntry(1, null), simpleValidMarcExchangeRecord);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
     public void getDataField_simpleOneElementMarcExchangeRecordFetchSecondRecord_notOk() throws MarcReaderException {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        interpreter.getDataField(new Integer(1), simpleValidMarcExchangeRecord);
+        interpreter.getDataField(createValidateEntry(2, null), simpleValidMarcExchangeRecord);
     }
 
     @Test(expected = NullPointerException.class)
@@ -128,7 +136,7 @@ public class UpdateRecordErrorInterpreterTest {
 
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        String attribute = interpreter.getAttribute(0, dataField);
+        String attribute = interpreter.getAttribute(createValidateEntry(null, 1), Optional.of(dataField));
 
         // Verify test
         assertThat(attribute, is("s"));
@@ -141,7 +149,7 @@ public class UpdateRecordErrorInterpreterTest {
 
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        String attribute = interpreter.getAttribute(1, dataField);
+        String attribute = interpreter.getAttribute(createValidateEntry(null, 2), Optional.of(dataField));
     }
 
     @Test(expected = NullPointerException.class)
@@ -640,6 +648,17 @@ public class UpdateRecordErrorInterpreterTest {
         subField.setData("subdata");
         dataField.addSubfield(subField);
         return dataField;
+    }
+
+    private ValidateEntry createValidateEntry(Integer field, Integer subField) {
+        ValidateEntry entry = new ValidateEntry();
+        if (field != null) {
+            entry.setOrdinalPositionOfField(BigInteger.valueOf(field));
+        }
+        if (subField != null) {
+            entry.setOrdinalPositionOfSubField(BigInteger.valueOf(subField));
+        }
+        return entry;
     }
 
 }

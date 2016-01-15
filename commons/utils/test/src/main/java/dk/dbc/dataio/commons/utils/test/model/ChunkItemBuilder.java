@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.utils.test.model;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +34,7 @@ public class ChunkItemBuilder {
     private byte[] data = "data".getBytes();
     private ChunkItem.Status status = ChunkItem.Status.SUCCESS;
     private List<ChunkItem.Type> type = Collections.singletonList(ChunkItem.Type.UNKNOWN);
-    private String encoding = "UTF-8";
+    private Charset encoding = StandardCharsets.UTF_8;
 
     public ChunkItemBuilder setId(long id) {
         this.id = id;
@@ -65,7 +66,7 @@ public class ChunkItemBuilder {
         return this;
     }
 
-    public ChunkItemBuilder setEncoding(String encoding) {
+    public ChunkItemBuilder setEncoding(Charset encoding) {
         this.encoding = encoding;
         return this;
     }

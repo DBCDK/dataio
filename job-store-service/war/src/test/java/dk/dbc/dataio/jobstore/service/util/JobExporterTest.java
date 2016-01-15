@@ -23,8 +23,8 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -188,11 +188,10 @@ public class JobExporterTest {
     }
 
     private void setItemEntityDataForPhase(ItemEntity itemEntity, State.Phase phase, String data) {
-        final ItemData itemData = new ItemData(StringUtil.base64encode(data), StandardCharsets.UTF_8);
         switch (phase) {
-            case PARTITIONING: itemEntity.setPartitioningOutcome(itemData); break;
-            case PROCESSING:   itemEntity.setProcessingOutcome(itemData); break;
-            case DELIVERING:   itemEntity.setDeliveringOutcome(itemData); break;
+            case PARTITIONING: itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData(data).build()); break;
+            case PROCESSING:   itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData(data).build()); break;
+            case DELIVERING:   itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData(data).build()); break;
             default: throw new IllegalStateException("Unknown phase " + phase);
         }
     }

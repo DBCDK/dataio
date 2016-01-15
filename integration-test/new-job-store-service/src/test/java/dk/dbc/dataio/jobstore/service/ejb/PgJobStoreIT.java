@@ -52,7 +52,6 @@ import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -1284,11 +1283,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
 
         // When...
-        ItemData itemData = pgJobStore.jobStoreRepository.getItemData(itemKey.getJobId(), itemKey.getChunkId(), itemKey.getId(), State.Phase.PARTITIONING);
+        ChunkItem chunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(itemKey.getJobId(), itemKey.getChunkId(), itemKey.getId(), State.Phase.PARTITIONING);
 
         // Then...
-        assertThat("itemData", itemData, not(nullValue()));
-        assertThat("itemData.data", itemData.getData(), is(itemEntity.getPartitioningOutcome().getData()));
+        assertThat("chunkItem", chunkItem, not(nullValue()));
+        assertThat("chunkItem.data", chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
     }
 
     /**
@@ -1330,29 +1329,29 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // When...
         final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, failedItemId);
         final ItemEntity failedItemEntity = entityManager.find(ItemEntity.class, failedItemKey);
-        ItemData failedItemData = pgJobStore.jobStoreRepository.getItemData(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.PROCESSING);
+        ChunkItem failedChunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.PROCESSING);
 
         // Then...
-        assertThat("itemData", failedItemData, not(nullValue()));
-        assertThat("itemData.data", failedItemData.getData(), is(failedItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem", failedChunkItem, not(nullValue()));
+        assertThat("chunkItem.data", failedChunkItem.getData(), is(failedItemEntity.getProcessingOutcome().getData()));
 
         // And when...
         final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, successfulItemId);
         final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
-        ItemData successfulItemData = pgJobStore.jobStoreRepository.getItemData(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.PROCESSING);
+        ChunkItem successfulChunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.PROCESSING);
 
         // Then...
-        assertThat("itemData", successfulItemEntity, not(nullValue()));
-        assertThat("itemData.data", successfulItemData.getData(), is(successfulItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem", successfulItemEntity, not(nullValue()));
+        assertThat("chunkItem.data", successfulChunkItem.getData(), is(successfulItemEntity.getProcessingOutcome().getData()));
 
         // And when...
         final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, ignoredItemId);
         final ItemEntity ignoredItemEntity = entityManager.find(ItemEntity.class, ignoredItemKey);
-        ItemData ignoredItemData = pgJobStore.jobStoreRepository.getItemData(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.PROCESSING);
+        ChunkItem ignoredChunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.PROCESSING);
 
         // Then...
-        assertThat("itemData", ignoredItemEntity, not(nullValue()));
-        assertThat("itemData.data", ignoredItemData.getData(), is(ignoredItemEntity.getProcessingOutcome().getData()));
+        assertThat("chunkItem", ignoredItemEntity, not(nullValue()));
+        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(ignoredItemEntity.getProcessingOutcome().getData()));
     }
 
     /**
@@ -1401,29 +1400,29 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // When...
         final ItemEntity.Key failedItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, failedItemId);
         final ItemEntity failedItemEntity = entityManager.find(ItemEntity.class, failedItemKey);
-        ItemData failedItemData = pgJobStore.jobStoreRepository.getItemData(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.DELIVERING);
+        ChunkItem failedChunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(failedItemKey.getJobId(), failedItemKey.getChunkId(), failedItemKey.getId(), State.Phase.DELIVERING);
 
         // Then...
-        assertThat("itemData", failedItemData, not(nullValue()));
-        assertThat("itemData.data", failedItemData.getData(), is(failedItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem", failedChunkItem, not(nullValue()));
+        assertThat("chunkItem.data", failedChunkItem.getData(), is(failedItemEntity.getDeliveringOutcome().getData()));
 
         // When...
         final ItemEntity.Key successfulItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, successfulItemId);
         final ItemEntity successfulItemEntity = entityManager.find(ItemEntity.class, successfulItemKey);
-        ItemData successfulItemData = pgJobStore.jobStoreRepository.getItemData(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.DELIVERING);
+        ChunkItem successfulChunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(successfulItemKey.getJobId(), successfulItemKey.getChunkId(), successfulItemKey.getId(), State.Phase.DELIVERING);
 
         // Then...
-        assertThat("itemData", successfulItemData, not(nullValue()));
-        assertThat("itemData.data", successfulItemData.getData(), is(successfulItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem", successfulChunkItem, not(nullValue()));
+        assertThat("chunkItem.data", successfulChunkItem.getData(), is(successfulItemEntity.getDeliveringOutcome().getData()));
 
         // When...
         final ItemEntity.Key ignoredItemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, ignoredItemId);
         final ItemEntity ignoredItemEntity = entityManager.find(ItemEntity.class, ignoredItemKey);
-        ItemData ignoredItemData = pgJobStore.jobStoreRepository.getItemData(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.DELIVERING);
+        ChunkItem ignoredChunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(ignoredItemKey.getJobId(), ignoredItemKey.getChunkId(), ignoredItemKey.getId(), State.Phase.DELIVERING);
 
         // Then...
-        assertThat("itemData", ignoredItemData, not(nullValue()));
-        assertThat("itemData.data", ignoredItemData.getData(), is(ignoredItemEntity.getDeliveringOutcome().getData()));
+        assertThat("chunkItem", ignoredChunkItem, not(nullValue()));
+        assertThat("chunkItem.data", ignoredChunkItem.getData(), is(ignoredItemEntity.getDeliveringOutcome().getData()));
     }
 
     /**
@@ -1456,7 +1455,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Then...
         assertThat("chunkItem", chunkItem, not(nullValue()));
-        assertThat("chunkItem.data", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(successfulItemEntity.getNextProcessingOutcome().getData())));
+        assertThat("chunkItem.data", chunkItem.getData(), is(successfulItemEntity.getNextProcessingOutcome().getData()));
     }
 
     /**
@@ -1526,14 +1525,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("ItemInfoSnapshot not null", updatedItemInfoSnapshot, is(notNullValue()));
         assertThat("ItemInfoSnapshot.workflowNote", updatedItemInfoSnapshot.getWorkflowNote(), is(itemWorkflowNote));
     }
-
-    @Test
-    public void test() throws FileStoreServiceConnectorException, JobStoreException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> jobs = addJobs(2, pgJobStore);
-    }
-
 
     /*
      * Private methods
@@ -1729,7 +1720,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private ExternalChunk buildExternalChunk(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         for(long i = 0; i < numberOfItems; i++) {
-            items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(status).build());
+            items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
@@ -1740,8 +1731,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         List<ChunkItem> nextItems = new ArrayList<>();
 
         for(long i = 0; i < numberOfItems; i++) {
-            items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(status).build());
-            nextItems.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes("next:" + getData(type))).setStatus(status).build());
+            items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
+            nextItems.add(new ChunkItemBuilder().setId(i).setData("next:" + getData(type)).setStatus(status).build());
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).setNextItems(nextItems).build();
     }
@@ -1750,11 +1741,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         List<ChunkItem> items = new ArrayList<>(numberOfItems);
         for(int i = 0; i < numberOfItems; i++) {
             if(i == failedItemId) {
-                items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(ChunkItem.Status.FAILURE).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.FAILURE).build());
             } else if( i == ignoredItemId) {
-                items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(ChunkItem.Status.IGNORE).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.IGNORE).build());
             } else {
-                items.add(new ChunkItemBuilder().setId(i).setData(StringUtil.asBytes(getData(type))).setStatus(ChunkItem.Status.SUCCESS).build());
+                items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.SUCCESS).build());
             }
         }
         return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
@@ -1787,7 +1778,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat(itemState.getPhase(phase).getSucceeded(), is(succeeded));
         assertThat(itemState.phaseIsDone(phase), is(isPhaseDone));
         if(isPhaseDone) {
-            assertThat(itemEntity.getProcessingOutcome().getData(), is(StringUtil.base64encode(getData(ExternalChunk.Type.PROCESSED))));
+            assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is (getData(ExternalChunk.Type.PROCESSED)));
         }
         return itemState;
     }

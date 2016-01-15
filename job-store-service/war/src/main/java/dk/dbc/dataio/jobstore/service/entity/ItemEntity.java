@@ -22,9 +22,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -35,7 +32,6 @@ import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
 import java.util.Optional;
 
@@ -59,27 +55,21 @@ public class ItemEntity {
     @Column(insertable = false, updatable = false)
     private Timestamp timeOfLastModification;
 
-    @Column(columnDefinition = "json", nullable = false)
     @Convert(converter = StateConverter.class)
     private State state;
 
-    @Column(columnDefinition = "json")
-    @Convert(converter = ItemDataConverter.class)
-    private ItemData partitioningOutcome;
+    @Convert(converter = ChunkItemConverter.class)
+    private ChunkItem partitioningOutcome;
 
-    @Column(columnDefinition = "json")
-    @Convert(converter = ItemDataConverter.class)
-    private ItemData processingOutcome;
+    @Convert(converter = ChunkItemConverter.class)
+    private ChunkItem processingOutcome;
 
-    @Column(columnDefinition = "json")
     @Convert(converter = ChunkItemConverter.class)
     private ChunkItem nextProcessingOutcome;
 
-    @Column(columnDefinition = "json")
-    @Convert(converter = ItemDataConverter.class)
-    private ItemData deliveringOutcome;
+    @Convert(converter = ChunkItemConverter.class)
+    private ChunkItem deliveringOutcome;
 
-    @Column(columnDefinition = "json")
     @Convert(converter = WorkflowNoteConverter.class)
     private WorkflowNote workflowNote;
 
@@ -115,19 +105,19 @@ public class ItemEntity {
         this.state = state;
     }
 
-    public ItemData getPartitioningOutcome() {
+    public ChunkItem getPartitioningOutcome() {
         return partitioningOutcome;
     }
 
-    public void setPartitioningOutcome(ItemData partitioningOutcome) {
+    public void setPartitioningOutcome(ChunkItem partitioningOutcome) {
         this.partitioningOutcome = partitioningOutcome;
     }
 
-    public ItemData getProcessingOutcome() {
+    public ChunkItem getProcessingOutcome() {
         return processingOutcome;
     }
 
-    public void setProcessingOutcome(ItemData processingOutcome) {
+    public void setProcessingOutcome(ChunkItem processingOutcome) {
         this.processingOutcome = processingOutcome;
     }
 
@@ -139,11 +129,11 @@ public class ItemEntity {
         this.nextProcessingOutcome = nextProcessingOutcome;
     }
 
-    public ItemData getDeliveringOutcome() {
+    public ChunkItem getDeliveringOutcome() {
         return deliveringOutcome;
     }
 
-    public void setDeliveringOutcome(ItemData deliveringOutcome) {
+    public void setDeliveringOutcome(ChunkItem deliveringOutcome) {
         this.deliveringOutcome = deliveringOutcome;
     }
 
@@ -219,34 +209,6 @@ public class ItemEntity {
         }
     }
 
-    /**
-     * @param phase phase
-     * @return ChunkItem representation of item data for specified phase
-     * @throws NullPointerException if called with null-valued phase, if
-     * item contains no data for phase or if item contains no state info
-     * for phase.
-     */
-    public ChunkItem toChunkItem(State.Phase phase) throws NullPointerException {
-        InvariantUtil.checkNotNullOrThrow(phase, "phase");
-        final ItemData itemData = getItemDataForPhase(phase);
-        return new ChunkItem(key.getId(), StringUtil.asBytes(
-                StringUtil.base64decode(itemData.getData(), itemData.getEncoding()), itemData.getEncoding()),
-                getChunkItemStatusForPhase(phase));
-    }
-
-    /**
-     * @param phase phase
-     * @return encoding of item data for specified phase or null
-     * if no item data is set
-     */
-    public Charset getEncodingForPhase(State.Phase phase) {
-        final ItemData itemData = getItemDataForPhase(phase);
-        if (itemData != null) {
-            return itemData.getEncoding();
-        }
-        return null;
-    }
-
     public Optional<State.Phase> getFailedPhase() {
         for (State.Phase phase : State.Phase.values()) {
             if (getChunkItemStatusForPhase(phase) == ChunkItem.Status.FAILURE) {
@@ -256,7 +218,7 @@ public class ItemEntity {
         return Optional.empty();
     }
 
-    private ItemData getItemDataForPhase(State.Phase phase) {
+    public ChunkItem getChunkItemForPhase(State.Phase phase) {
         switch (phase) {
             case PARTITIONING: return getPartitioningOutcome();
             case PROCESSING: return getProcessingOutcome();

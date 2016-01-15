@@ -24,8 +24,7 @@ import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
 import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 
 /**
- * Created by ja7 on 05-10-15.
- * Utills for creating test entity Manager
+ * Utils for creating test entity Manager
  */
 public class JPATestUtils {
 
@@ -73,7 +72,7 @@ public class JPATestUtils {
         return EmfLoad.createEntityManager(properties);
     }
 
-    public static Connection getEsConnection(  ) throws ClassNotFoundException, SQLException {
+    public static Connection getConnection(  ) throws ClassNotFoundException, SQLException {
         Class.forName("org.postgresql.Driver");
         GetTestConnectInfo getTestConnectInfo = new GetTestConnectInfo().invoke();
         return DriverManager.getConnection(getTestConnectInfo.getJdbc(), getTestConnectInfo.getLogin(), getTestConnectInfo.getPassword());
@@ -84,13 +83,13 @@ public class JPATestUtils {
             // Hack
             dataBaseName = System.getenv("USER");
         }
-        PGSimpleDataSource ES_INFLIGHT_DATASOURCE = new PGSimpleDataSource();
-        ES_INFLIGHT_DATASOURCE.setDatabaseName(dataBaseName);
-        ES_INFLIGHT_DATASOURCE.setServerName("localhost");
-        ES_INFLIGHT_DATASOURCE.setPortNumber(Integer.parseInt(System.getProperty(POSTGRESQL_PORT, "5432")));
-        ES_INFLIGHT_DATASOURCE.setUser(System.getProperty("user.name"));
-        ES_INFLIGHT_DATASOURCE.setPassword(System.getProperty("user.name"));
-        return ES_INFLIGHT_DATASOURCE;
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setDatabaseName(dataBaseName);
+        dataSource.setServerName("localhost");
+        dataSource.setPortNumber(Integer.parseInt(System.getProperty(POSTGRESQL_PORT, "5432")));
+        dataSource.setUser(System.getProperty("user.name"));
+        dataSource.setPassword(System.getProperty("user.name"));
+        return dataSource;
     }
 
     /**
@@ -118,14 +117,14 @@ public class JPATestUtils {
      *
      */
     public static void runSqlFromResource(EntityManager manager, Object testClass, String resouceName) throws IOException, URISyntaxException {
-        String sql= readResouce(testClass, resouceName);
+        String sql= readResource(testClass, resouceName);
         manager.getTransaction().begin();
         Query q = manager.createNativeQuery(sql);
         q.executeUpdate();
         manager.getTransaction().commit();
     }
 
-    static String readResouce(Object testClass, String resourceName) throws IOException, URISyntaxException {
+    static String readResource(Object testClass, String resourceName) throws IOException, URISyntaxException {
         final StringBuilder buffer = new StringBuilder();
         final int buffSize=1024;
         final char[] buff=new char[buffSize];

@@ -21,14 +21,13 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 
-import java.nio.charset.Charset;
 import java.sql.Timestamp;
 
 import static org.hamcrest.CoreMatchers.not;
@@ -58,9 +57,9 @@ public class ItemInfoSnapshotConverterTest {
         ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(new ItemEntity.Key(1, 2, (short) 3));
         itemEntity.setState(new State());
-        itemEntity.setPartitioningOutcome(new ItemData("PartitioningData", Charset.defaultCharset()));
-        itemEntity.setProcessingOutcome(new ItemData("ProcessingData", Charset.defaultCharset()));
-        itemEntity.setDeliveringOutcome(new ItemData("DeliveringData", Charset.defaultCharset()));
+        itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData("PartitioningData").build());
+        itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData("ProcessingData").build());
+        itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData("DeliveringData").build());
         itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         itemEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
         return itemEntity;

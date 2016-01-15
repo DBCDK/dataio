@@ -73,13 +73,13 @@ public class ChunkItemTest {
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
         List<Type> types = Arrays.asList(Type.UNKNOWN, Type.GENERICXML);
-        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS, types, "UTF-8");
+        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS, types, StandardCharsets.UTF_8);
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getId(), is(ID));
         assertThat(instance.getData(), is(DATA));
         assertThat(instance.getStatus(), is(STATUS));
         assertThat(instance.getType(), is( Arrays.asList(Type.UNKNOWN, Type.GENERICXML)));
-        assertThat(instance.getEncoding(), is("UTF-8"));
+        assertThat(instance.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
     @Test
@@ -100,13 +100,24 @@ public class ChunkItemTest {
     }
 
     @Test
-    public void unmarshalling() throws JSONBException {
+    public void unmarshallingChunkItem() throws JSONBException {
         final String json = "{\"id\":0,\"data\":\"MQ==\",\"status\":\"SUCCESS\"}";
+        final JSONBContext jsonbContext = new JSONBContext();
+        jsonbContext.unmarshall(json, ChunkItem.class);
+    }
+
+    @Test
+    public void unmarshallingChunkItemWithTypeAndEncoding() throws JSONBException {
+        final String json = "{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"STRING\",\"UNKNOWN\"],\"encoding\":\"UTF-8\"}";
         final JSONBContext jsonbContext = new JSONBContext();
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
 
     public static ChunkItem newChunkItemInstance() {
         return new ChunkItem(ID, DATA, STATUS);
+    }
+
+    public static ChunkItem newChunkItemInstanceWithTypeAndEncoding() {
+        return new ChunkItem(ID, DATA, STATUS, Arrays.asList(Type.STRING, Type.UNKNOWN), StandardCharsets.UTF_8);
     }
 }

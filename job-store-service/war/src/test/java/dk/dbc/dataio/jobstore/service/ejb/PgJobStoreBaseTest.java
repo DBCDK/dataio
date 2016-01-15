@@ -60,7 +60,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
@@ -74,17 +73,17 @@ public abstract class PgJobStoreBaseTest {
     protected static final FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
     protected static final FileStoreUrn FILE_STORE_URN;
     protected static final List<String> EXPECTED_DATA_ENTRIES = Arrays.asList(
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>third</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fourth</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fifth</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>sixth</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>seventh</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eighth</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>ninth</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>tenth</record></records>"),
-            base64encode("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>third</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fourth</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>fifth</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>sixth</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>seventh</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eighth</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>ninth</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>tenth</record></records>"),
+            ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
     protected static final int EXPECTED_NUMBER_OF_ITEMS = EXPECTED_DATA_ENTRIES.size();
     protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     protected final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);

@@ -158,4 +158,10 @@ public class JsonMarshallingTest {
         final String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstance());
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
+
+    @Test
+    public void verify_jsonMarshallingForChunkItemWithTypeAndEncoding() throws Exception {
+        final String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstanceWithTypeAndEncoding());
+        jsonbContext.unmarshall(json, ChunkItem.class);
+    }
 }

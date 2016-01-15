@@ -11,7 +11,6 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ChunkListQuery;
@@ -29,7 +28,6 @@ import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -38,7 +36,6 @@ import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -364,19 +361,19 @@ public class PgJobStoreRepository extends RepositoryBase {
             for (ItemEntity itemEntity : itemEntities) {
                 if (PROCESSED == type) {
                     // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                    chunk.insertItem(itemEntity.toChunkItem(phase), itemEntity.getNextProcessingOutcome());
+                    chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
                 } else {
-                    chunk.insertItem(itemEntity.toChunkItem(phase));
+                    chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
                 }
             }
-            chunk.setEncoding(itemEntities.get(0).getEncodingForPhase(phase));
+            chunk.setEncoding(StandardCharsets.UTF_8); // TODO: 15/01/16 This is a temporary solution that should be removed once encoding is removed from ExternalChunk
             return chunk;
         }
         return null;
     }
 
     @Stopwatch
-    public ItemData getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws InvalidInputException {
+    public ChunkItem getChunkItemForPhase(int jobId, int chunkId, short itemId, State.Phase phase) throws InvalidInputException {
         ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
         if (itemEntity == null) {
@@ -440,17 +437,12 @@ public class PgJobStoreRepository extends RepositoryBase {
 
             chunkItemEntities.entities.add(itemEntity);
 
-            final ItemData itemData = new ItemData(
-                    StringUtil.base64encode(
-                            StringUtil.asString(chunkItem.getData(), chunk.getEncoding()),
-                            chunk.getEncoding()), chunk.getEncoding());
-
             final StateChange itemStateChange = new StateChange()
                     .setPhase(phase)
                     .setBeginDate(nextItemBegin)                                            // ToDo: ExternalChunk type must contain beginDate
                     .setEndDate(new Date());                                                // ToDo: ExternalChunk type must contain endDate
 
-            setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, itemData);
+            setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, chunkItem);
             if (nextIterator.hasNext()) {
                 itemEntity.setNextProcessingOutcome(nextIterator.next());
             }
@@ -598,7 +590,6 @@ public class PgJobStoreRepository extends RepositoryBase {
             for (ChunkItem chunkItem : dataPartitioner) {
                 String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 
-                final ItemData itemData = new ItemData(StringUtil.base64encode(recordFromPartitionerAsString), dataPartitioner.getEncoding());
                 StateChange stateChange = new StateChange()
                         .setPhase(State.Phase.PARTITIONING)
                         .setBeginDate(nextItemBegin)
@@ -609,7 +600,8 @@ public class PgJobStoreRepository extends RepositoryBase {
                 final State itemState = new State();
                 itemState.updateState(stateChange);
 
-                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, itemData));
+                chunkItem.setId(itemCounter);
+                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem));
                 chunkItemEntities.records.add(recordFromPartitionerAsString);
 
                 if (itemCounter == maxChunkSize) {
@@ -644,15 +636,15 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param chunkId id of chunk for which items are to be created
      * @param itemId id of item
      * @param state initial state of item
-     * @param data result of the partitioning phase
+     * @param chunkItem result of the partitioning phase
      * @return created item entity (managed)
      */
     @Stopwatch
-    private ItemEntity persistItemInDatabase(int jobId, int chunkId, short itemId, State state, ItemData data) {
+    private ItemEntity persistItemInDatabase(int jobId, int chunkId, short itemId, State state, ChunkItem chunkItem) {
         final ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(new ItemEntity.Key(jobId, chunkId, itemId));
         itemEntity.setState(state);
-        itemEntity.setPartitioningOutcome(data);
+        itemEntity.setPartitioningOutcome(chunkItem);
         entityManager.persist(itemEntity);
         return itemEntity;
     }
@@ -692,11 +684,11 @@ public class PgJobStoreRepository extends RepositoryBase {
         itemEntity.setState(itemState);
         return itemState;
     }
-    private void setOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ItemData itemData) throws InvalidInputException {
+    private void setOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ChunkItem chunkItem) throws InvalidInputException {
         switch (phase) {
-            case PROCESSING: itemEntity.setProcessingOutcome(itemData);
+            case PROCESSING: itemEntity.setProcessingOutcome(chunkItem);
                 break;
-            case DELIVERING: itemEntity.setDeliveringOutcome(itemData);
+            case DELIVERING: itemEntity.setDeliveringOutcome(chunkItem);
                 break;
             case PARTITIONING:
                 throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);

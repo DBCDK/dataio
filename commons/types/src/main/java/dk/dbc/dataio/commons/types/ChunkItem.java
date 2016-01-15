@@ -26,6 +26,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +56,7 @@ public class ChunkItem implements Serializable {
     private Status status;
     @JsonProperty("type") private List<Type> type;
     @JsonProperty("diagnostics") private ArrayList<Diagnostic> diagnostics = null;
-    @JsonProperty("encoding") private final String encoding;
+    @JsonProperty("encoding") private final Charset encoding;
 
 
     /**
@@ -75,18 +76,18 @@ public class ChunkItem implements Serializable {
             @JsonProperty("data") byte[] data,
             @JsonProperty("status") Status status,
             @JsonProperty("type") List<Type> type,
-            @JsonProperty("encoding") String encoding) {
+            @JsonProperty("encoding") Charset encoding) {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
         this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
         // ToDo: type and encoding must have invariant checks after a transition period
-        this.type = type == null ? type : new ArrayList<>(type);
+        this.type = type == null ? null : new ArrayList<>(type);
         this.encoding = encoding;
     }
 
 
     public ChunkItem(long id, byte[] data, Status status) {
-        this(id, data, status, Collections.singletonList(Type.UNKNOWN), StandardCharsets.UTF_8.name());
+        this(id, data, status, Collections.singletonList(Type.UNKNOWN), StandardCharsets.UTF_8);
     }
 
 
@@ -131,6 +132,11 @@ public class ChunkItem implements Serializable {
         return id;
     }
 
+    // TODO: 13/01/16 Consider remaking partitioner to add correct itemId, thereby avoiding mutation
+    public void setId(long id) {
+        this.id = id;
+    }
+
     public byte[] getData() {
         return data;
     }
@@ -147,7 +153,7 @@ public class ChunkItem implements Serializable {
         return diagnostics;
     }
 
-    public String getEncoding() { return encoding; }
+    public Charset getEncoding() { return encoding; }
 
     @Override
     public boolean equals(Object o) {

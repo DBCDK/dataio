@@ -44,7 +44,6 @@ import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -70,7 +69,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -452,30 +450,30 @@ public class JobsBeanTest {
         assertThat("JobError not null", jobErrorReturned, is(notNullValue()));
     }
 
-    // ************************************* getItemData() tests ***********************************************************
+    // ************************************* getChunkItemForPhase() tests ***********************************************************
 
     @Test
-    public void getItemData_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
-        ItemData itemData = new ItemData("data", Charset.defaultCharset());
+    public void getChunkItemForPhase_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
+        ChunkItem chunkItem = new ChunkItem(1, StringUtil.asBytes("Item data"), ChunkItem.Status.SUCCESS);
 
-        when(jobsBean.jobStoreRepository.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(itemData);
+        when(jobsBean.jobStoreRepository.getChunkItemForPhase(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
 
-        final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+        final Response response = jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
         assertThat("Response not null", response, not(nullValue()));
         assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat("Response entity", response.hasEntity(), is(true));
-        assertThat("base64decodedDataString not null", response.getEntity().toString(), not(nullValue()));
+        assertThat("DataString not null", response.getEntity().toString(), not(nullValue()));
     }
 
 
     @Test
-    public void getItemData_itemEntityNotFound_returnsStatusNotFoundResponse() throws Exception {
+    public void getChunkItemForPhase_itemEntityNotFound_returnsStatusNotFoundResponse() throws Exception {
         JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "job not found", null);
         InvalidInputException invalidInputException = new InvalidInputException("msg", jobError);
 
-        when(jobsBean.jobStoreRepository.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
+        when(jobsBean.jobStoreRepository.getChunkItemForPhase(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
 
-        final Response response = jobsBean.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
+        final Response response = jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
         assertThat("Response not null", response, not(nullValue()));
         assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat("Response entity", response.hasEntity(), is(false));

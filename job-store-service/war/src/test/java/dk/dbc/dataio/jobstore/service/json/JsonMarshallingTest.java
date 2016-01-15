@@ -35,7 +35,6 @@ import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -49,7 +48,6 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -88,12 +86,6 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForState() throws Exception {
         final String json = jsonbContext.marshall(new State());
         jsonbContext.unmarshall(json, State.class);
-    }
-
-    @Test
-    public void verify_jsonMarshallingForItemData() throws Exception {
-        final String json = jsonbContext.marshall(new ItemData("data", StandardCharsets.UTF_8));
-        jsonbContext.unmarshall(json, ItemData.class);
     }
 
     @Test

@@ -34,7 +34,7 @@ public class ChunkItemConverter implements AttributeConverter<ChunkItem, PGobjec
     @Override
     public PGobject convertToDatabaseColumn(ChunkItem chunkItem) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
-        pgObject.setType("json");
+        pgObject.setType("jsonb");
         try {
             pgObject.setValue(ConverterJSONBContext.getInstance().marshall(chunkItem));
         } catch (SQLException | JSONBException e) {

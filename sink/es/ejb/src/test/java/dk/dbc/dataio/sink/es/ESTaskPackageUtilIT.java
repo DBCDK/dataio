@@ -131,7 +131,7 @@ public class ESTaskPackageUtilIT {
         em.getTransaction().commit();
 
         final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
-                ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getEsConnection(), targetReferences);
+                ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getConnection(), targetReferences);
 
         assertThat(completionStatusForTaskpackages, is(notNullValue()));
         assertThat(completionStatusForTaskpackages.size(), is(0));
@@ -151,7 +151,7 @@ public class ESTaskPackageUtilIT {
           }
 
           final Map<Integer, ESTaskPackageUtil.TaskStatus> completionStatusForTaskpackages =
-                  ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getEsConnection(), targetReferences);
+                  ESTaskPackageUtil.findCompletionStatusForTaskpackages(JPATestUtils.getConnection(), targetReferences);
 
           assertThat(completionStatusForTaskpackages, is(notNullValue()));
           assertThat(completionStatusForTaskpackages.size(), is(targetReferences.size()));

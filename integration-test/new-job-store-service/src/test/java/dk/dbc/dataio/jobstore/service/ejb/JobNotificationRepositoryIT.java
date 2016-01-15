@@ -21,13 +21,12 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -171,13 +170,13 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
                 .updateState(new StateChange()
                     .setPhase(State.Phase.PROCESSING)
                     .incFailed(1));
-        itemFailedDuringProcessing.setPartitioningOutcome(getItemDataFor(asAddi(getMarcXchange("recordFromPartitioning"))));
+        itemFailedDuringProcessing.setPartitioningOutcome(new ChunkItemBuilder().setData(asAddi(getMarcXchange("recordFromPartitioning"))).build());
         final ItemEntity itemFailedDuringDelivering = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 1, (short) 0));
         itemFailedDuringDelivering.getState()
                 .updateState(new StateChange()
                     .setPhase(State.Phase.DELIVERING)
                     .incFailed(1));
-        itemFailedDuringDelivering.setProcessingOutcome(getItemDataFor(asAddi(getMarcXchange("recordFromProcessing"))));
+        itemFailedDuringDelivering.setProcessingOutcome(new ChunkItemBuilder().setData(asAddi(getMarcXchange("recordFromProcessing"))).build());
 
         persist(itemFailedDuringProcessing);
         persist(itemFailedDuringDelivering);
@@ -274,9 +273,5 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private String asAddi(String content) {
         return String.format("19\n<es:referencedata/>\n%d\n%s\n",
                     content.getBytes(StandardCharsets.UTF_8).length, content);
-    }
-
-    private ItemData getItemDataFor(String data) {
-        return new ItemData(StringUtil.base64encode(data), StandardCharsets.UTF_8);
     }
 }

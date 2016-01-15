@@ -44,7 +44,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
     public byte[] convert(ChunkItem chunkItem, Charset encodedAs) throws JobStoreException {
         final MarcRecord record;
         try {
-            record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), getChunkItemEncoding(chunkItem)).read();
+            record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), chunkItem.getEncoding()).read();
         } catch (MarcReaderException e) {
             throw new JobStoreException("Error reading chunk item data as MarcXchange", e);
         }
@@ -60,14 +60,6 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
 
     private BufferedInputStream getChunkItemInputStream(ChunkItem chunkItem) {
         return new BufferedInputStream(new ByteArrayInputStream(chunkItem.getData()));
-    }
-
-    private Charset getChunkItemEncoding(ChunkItem chunkItem) throws JobStoreException {
-        try {
-            return Charset.forName(chunkItem.getEncoding());
-        } catch (Exception e) {
-            throw new JobStoreException("Illegal encoding", e);
-        }
     }
 
     private void addDiagnosticsToMarcRecord(List<Diagnostic> diagnostics, MarcRecord record) {

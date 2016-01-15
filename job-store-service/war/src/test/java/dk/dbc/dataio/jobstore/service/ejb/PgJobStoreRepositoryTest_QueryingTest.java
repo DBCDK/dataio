@@ -23,12 +23,11 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ExternalChunk;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -41,14 +40,12 @@ import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 
 import javax.persistence.Query;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
 import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -232,7 +229,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void getChunk_queryReturnsItemEntityWithoutData_throws() {
+    public void getChunk_queryReturnsItemEntityWithoutChunkItem_throws() {
         final Query query = whenCreateNativeQueryThenReturn();
         when(query.getResultList()).thenReturn(Collections.singletonList(new ItemEntity()));
 
@@ -240,26 +237,26 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         try {
             pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
             fail("No exception thrown");
-        } catch (NullPointerException e) {
+        } catch (IllegalArgumentException e) {
         }
     }
 
     @Test
-    public void getChunk_queryReturnsItemEntityWithData_returnsChunk() {
-        final ItemData data1 = new ItemData(base64encode("data1"), StandardCharsets.UTF_8);
+    public void getChunk_queryReturnsItemEntityWithChunkItems_returnsChunk() {
+        final ChunkItem chunkItem1 = new ChunkItemBuilder().setId(0).setData("data1").build();
         final State state1 = new State();
         state1.getPhase(State.Phase.PARTITIONING).setSucceeded(1);
         final ItemEntity entity1 = new ItemEntity();
-        entity1.setKey(new ItemEntity.Key(2, 1, (short) 0));
-        entity1.setPartitioningOutcome(data1);
+        entity1.setKey(new ItemEntity.Key(2, 1, (short) chunkItem1.getId()));
+        entity1.setPartitioningOutcome(chunkItem1);
         entity1.setState(state1);
 
-        final ItemData data2 = new ItemData(base64encode("data2"), StandardCharsets.ISO_8859_1);
+        final ChunkItem chunkItem2 = new ChunkItemBuilder().setId(1).setData("data2").setEncoding(StandardCharsets.ISO_8859_1).build();
         final State state2 = new State();
         state2.getPhase(State.Phase.PARTITIONING).setFailed(1);
         final ItemEntity entity2 = new ItemEntity();
-        entity2.setKey(new ItemEntity.Key(2, 1, (short) 1));
-        entity2.setPartitioningOutcome(data2);
+        entity2.setKey(new ItemEntity.Key(2, 1, (short) chunkItem2.getId()));
+        entity2.setPartitioningOutcome(chunkItem2);
         entity2.setState(state2);
 
         final Query query = whenCreateNativeQueryThenReturn();
@@ -267,74 +264,77 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         final ExternalChunk chunk = pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+
         assertThat("chunk", chunk, is(notNullValue()));
         assertThat("chunk.size()", chunk.size(), is(2));
-        assertThat("chunk.getEncoding()", chunk.getEncoding(), is(data1.getEncoding()));
+        assertThat("chunk.getEncoding()", chunk.getEncoding(), is(chunkItem1.getEncoding()));
         final Iterator<ChunkItem> iterator = chunk.iterator();
         final ChunkItem firstChunkItem = iterator.next();
+        assertThat("chunk[0]", firstChunkItem, is(chunkItem1));
         assertThat("chunk[0].getId()", firstChunkItem.getId(), is((long) entity1.getKey().getId()));
-        assertThat("chunk[0].getData()", StringUtil.asString(firstChunkItem.getData()), is(StringUtil.base64decode(data1.getData())));
+
         final ChunkItem secondChunkItem = iterator.next();
+        assertThat("chunk[1]", secondChunkItem, is(chunkItem2));
         assertThat("chunk[1].getId()", secondChunkItem.getId(), is((long) entity2.getKey().getId()));
-        assertThat("chunk[1].getData()", StringUtil.asString(secondChunkItem.getData()), is(StringUtil.base64decode(data2.getData())));
     }
 
     @Test
-    public void getItemData_itemEntityNotFound_throws() throws JobStoreException {
+    public void getChunkItemForPhase_itemEntityNotFound_throws() throws JobStoreException {
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
         try {
-            pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
+            pgJobStoreRepository.getChunkItemForPhase(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
             fail("No exception thrown");
         } catch (JobStoreException e) {}
     }
 
     @Test
-    public void getItemData_phasePartitioning_returnsItemData() throws JobStoreException{
+    public void getChunkItemForPhase_phasePartitioning_returnsChunkItem() throws JobStoreException{
         final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final ItemData itemData = pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
-        assertThat("itemData not null", itemData, not(nullValue()));
-        assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getPartitioningOutcome().getData()),
-                itemData.getData(), is(itemEntity.getPartitioningOutcome().getData()));
-    }
-
-
-    @Test
-    public void getItemData_phaseProcessing_returnsItemData() throws JobStoreException{
-        final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
-        when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
-
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final ItemData itemData = pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
-        assertThat("itemData not null", itemData, not(nullValue()));
-        assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getProcessingOutcome().getData()),
-                itemData.getData(), is(itemEntity.getProcessingOutcome().getData()));
+        final ChunkItem chunkItem = pgJobStoreRepository.getChunkItemForPhase(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PARTITIONING);
+        assertThat("chunkItem not null", chunkItem, not(nullValue()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}",
+                Arrays.toString(chunkItem.getData()), Arrays.toString(itemEntity.getPartitioningOutcome().getData())),
+                chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
     }
 
     @Test
-    public void getItemData_phaseDelivering_returnsItemData() throws JobStoreException{
+    public void getChunkItemForPhase_phaseProcessing_returnsChunkItem() throws JobStoreException{
         final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final ItemData itemData = pgJobStoreRepository.getItemData(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
-        assertThat("itemData not null", itemData, not(nullValue()));
-        assertThat(String.format("itemData.data: {%s} expected to match: {%s}", itemData.getData(), itemEntity.getDeliveringOutcome().getData()),
-                itemData.getData(), is(itemEntity.getDeliveringOutcome().getData()));
+        final ChunkItem chunkItem = pgJobStoreRepository.getChunkItemForPhase(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.PROCESSING);
+        assertThat("chunkItem not null", chunkItem, not(nullValue()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}",
+                Arrays.toString(chunkItem.getData()), Arrays.toString(itemEntity.getProcessingOutcome().getData())),
+                chunkItem.getData(), is(itemEntity.getProcessingOutcome().getData()));
     }
 
-    // Private methods
+    @Test
+    public void getChunkItemForPhase_phaseDelivering_returnsChunkItem() throws JobStoreException{
+        final ItemEntity itemEntity = getItemEntity(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID);
+        when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(itemEntity);
+
+        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
+        final ChunkItem chunkItem = pgJobStoreRepository.getChunkItemForPhase(DEFAULT_JOB_ID, DEFAULT_CHUNK_ID, DEFAULT_ITEM_ID, State.Phase.DELIVERING);
+        assertThat("chunkItem not null", chunkItem, not(nullValue()));
+        assertThat(String.format("chunkItem.data: {%s} expected to match: {%s}",
+                Arrays.toString(chunkItem.getData()), Arrays.toString(itemEntity.getDeliveringOutcome().getData())),
+                chunkItem.getData(), is(itemEntity.getDeliveringOutcome().getData()));
+    }
+
     private ItemEntity getItemEntity(int jobId, int chunkId, short itemId) {
         final ItemEntity.Key itemKey = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(itemKey);
         itemEntity.setState(new State());
-        itemEntity.setPartitioningOutcome(new ItemData("Partitioning data", Charset.defaultCharset()));
-        itemEntity.setProcessingOutcome(new ItemData("processing data", Charset.defaultCharset()));
-        itemEntity.setDeliveringOutcome(new ItemData("delivering data", Charset.defaultCharset()));
+        itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData("Partitioning data").build());
+        itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData("processing data").build());
+        itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData("delivering data").build());
         return itemEntity;
     }
 

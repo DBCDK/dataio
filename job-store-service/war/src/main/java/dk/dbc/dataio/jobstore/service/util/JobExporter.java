@@ -127,9 +127,9 @@ public class JobExporter {
 
     ChunkItem getExportableChunkItemForFailedPhase(ItemEntity entity, State.Phase failedPhase) {
         switch (failedPhase) {
-            case PARTITIONING: return entity.toChunkItem(State.Phase.PARTITIONING);
-            case PROCESSING:   return entity.toChunkItem(State.Phase.PARTITIONING);
-            case DELIVERING:   return entity.toChunkItem(State.Phase.PROCESSING);
+            case PARTITIONING: return entity.getPartitioningOutcome();
+            case PROCESSING:   return entity.getPartitioningOutcome();
+            case DELIVERING:   return entity.getProcessingOutcome();
             default: throw new IllegalStateException("Unknown phase " + failedPhase);
         }
     }

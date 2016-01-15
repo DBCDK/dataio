@@ -122,6 +122,6 @@ public class ObjectFactory {
      * @return processed chunk item
      */
     private static ChunkItem buildChunkItem(long itemId, byte[] data, ChunkItem.Status status, List<ChunkItem.Type> types) {
-        return new ChunkItem(itemId, data, status, types, StandardCharsets.UTF_8.name());
+        return new ChunkItem(itemId, data, status, types, StandardCharsets.UTF_8);
     }
 }

@@ -25,7 +25,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.sink.openupdate.AddiRecordPreprocessor;
-import dk.dbc.dataio.sink.openupdate.AddiRecordPreprocessorTest;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdateServices;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
@@ -350,7 +349,7 @@ public class OpenUpdateServiceConnectorIT {
     }
 
     private static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
-        final URL url = AddiRecordPreprocessorTest.class.getResource(resourceName);
+        final URL url = OpenUpdateServiceConnectorIT.class.getResource(resourceName);
         final Path resPath;
         resPath = Paths.get(url.toURI());
         return Files.readAllBytes(resPath);

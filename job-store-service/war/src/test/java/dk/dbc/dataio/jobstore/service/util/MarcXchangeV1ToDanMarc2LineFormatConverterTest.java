@@ -38,8 +38,6 @@ import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -68,18 +66,6 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
             fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
             assertThat(e.getCause() instanceof MarcReaderException, is(true));
-        }
-    }
-
-    @Test
-    public void convert_illegalEncoding_throws() {
-        final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE, "unsupported");
-        final MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
-        try {
-            converter.convert(chunkItem, StandardCharsets.UTF_8);
-            fail("No JobStoreException thrown");
-        } catch (JobStoreException e) {
-            assertThat(e.getCause() instanceof UnsupportedCharsetException, is(true));
         }
     }
 
@@ -127,16 +113,6 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
         return new ChunkItemBuilder().setId(0).setData(data.getBytes()).setStatus(status).build();
     }
 
-    private ChunkItem buildChunkItem(String data, ChunkItem.Status status, String encoding) {
-        return new ChunkItemBuilder()
-                .setId(0)
-                .setData(data.getBytes())
-                .setStatus(status)
-                .setType(new ArrayList<>(Collections.singletonList(ChunkItem.Type.UNKNOWN)))
-                .setEncoding(encoding)
-                .build();
-    }
-
     private MarcRecord getMarcRecord() {
         final DataField dataField245 = new DataField()
                 .setTag("245")
@@ -166,7 +142,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
                 .setData("01471cjm a2200349 a 4500");
         final MarcRecord marcRecord = new MarcRecord()
                 .setLeader(leader);
-        marcRecord.getFields().addAll(Arrays.asList(f001));
+        marcRecord.getFields().addAll(Collections.singletonList(f001));
         return marcRecord;
     }
 

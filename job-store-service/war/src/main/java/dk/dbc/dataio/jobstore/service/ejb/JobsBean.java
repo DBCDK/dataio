@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -77,7 +76,7 @@ public class JobsBean {
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    /* This is ont private so it is accessible from automatic test */
+    /* This is not private so it is accessible from automatic test */
     @EJB
     PgJobStore jobStore;
 
@@ -414,12 +413,12 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves partitioned item data, base64 decoded as String
+     * Retrieves data from partitioned chunk item as String
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with base64 decoded data as String,
+     * @return a HTTP 200 OK response with data from partitioned chunk item as String,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -434,16 +433,16 @@ public class JobsBean {
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
-        return getItemData(jobId, chunkId, itemId, State.Phase.PARTITIONING);
+        return getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.PARTITIONING);
     }
 
     /**
-     * Retrieves processed item data, base64 decoded as String
+     * Retrieves data from processed chunk item as String
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with base64 decoded data as String,
+     * @return a HTTP 200 OK response with data from processed chunk item as String,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -458,16 +457,16 @@ public class JobsBean {
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
-        return getItemData(jobId, chunkId, itemId, State.Phase.PROCESSING);
+        return getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.PROCESSING);
     }
 
     /**
-     * Retrieves delivered item data, base64 decoded as String
+     * Retrieves data from delivered chunk item as String
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with base64 decoded data as String,
+     * @return a HTTP 200 OK response with data from delivered chunk item as String,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -482,7 +481,7 @@ public class JobsBean {
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) int chunkId,
         @PathParam(JobStoreServiceConstants.ITEM_ID_VARIABLE) short itemId) throws JSONBException, JobStoreException {
 
-        return getItemData(jobId, chunkId, itemId, State.Phase.DELIVERING);
+        return getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.DELIVERING);
     }
 
     /**
@@ -490,16 +489,16 @@ public class JobsBean {
      * @param chunkId the chunk id
      * @param itemId the item id
      * @param phase the phase of the item (PARTITIONING, PROCESSING, DELIVERING)
-     * @return a HTTP 200 OK response with base64 decoded data as String,
+     * @return a HTTP 200 OK response with data from chunk item as String,
      *         a HTTP 404 NOT_FOUND response on failure to retrieve item
      *
      * @throws JobStoreException on failure to retrieve job
      * @throws JSONBException on marshalling failure
      */
-    Response getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
+    Response getChunkItemForPhase(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
-            ItemData itemData = jobStoreRepository.getItemData(jobId, chunkId, itemId, phase);
-            return  Response.ok().entity(StringUtil.base64decode(itemData.getData())).build();
+            ChunkItem chunkItem = jobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, phase);
+            return  Response.ok().entity(StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding())).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
         }

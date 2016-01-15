@@ -203,13 +203,12 @@ CREATE TABLE item (
     partitioningoutcome json,
     processingoutcome json,
     deliveringoutcome json,
-    nextprocessingoutcome json,
-    workflownote jsonb
+    nextprocessingoutcome json
 );
 
 
 --
--- Name: job; Type: TABLE; Schema: public; Owner: jobstore; Tablespace: 
+-- Name: job; Type: TABLE; Schema: public; Owner: jobstore; Tablespace:
 --
 
 CREATE TABLE job (
@@ -226,8 +225,7 @@ CREATE TABLE job (
     cachedflow integer,
     cachedsink integer,
     flowstorereferences json NOT NULL,
-    fatalerror boolean DEFAULT false NOT NULL,
-    workflownote jsonb
+    fatalerror boolean DEFAULT false NOT NULL
 );
 
 

@@ -41,7 +41,6 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
-import dk.dbc.dataio.jobstore.types.ItemData;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -72,7 +71,6 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.types.ExternalChunk.Type.DELIVERED;
 import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PARTITIONED;
 import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
 import static dk.dbc.dataio.jobstore.types.State.Phase.DELIVERING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PARTITIONING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PROCESSING;
@@ -440,9 +438,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     @Test
     public void updateChunkItemEntities_itemsForProcessingPhase() throws JobStoreException {
         final List<String> expectedItemData = Arrays.asList(
-                base64encode(chunkData.get(0)),
-                base64encode(chunkData.get(1)),
-                base64encode(chunkData.get(2)));
+                (chunkData.get(0)),
+                (chunkData.get(1)),
+                (chunkData.get(2)));
         final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
@@ -475,9 +473,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     @Test
     public void updateChunkItemEntities_itemsForDeliveringPhase() throws JobStoreException {
         final List<String> expectedItemData = Arrays.asList(
-                base64encode(chunkData.get(0)),
-                base64encode(chunkData.get(1)),
-                base64encode(chunkData.get(2)));
+                (chunkData.get(0)),
+                (chunkData.get(1)),
+                (chunkData.get(2)));
         final ExternalChunk chunk = getExternalChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
@@ -569,14 +567,14 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             assertThat(String.format("%s %s phase beginDate set", itemEntityKey, phase), itemEntity.getState().getPhase(phase).getEndDate(), is(notNullValue()));
             assertThat(String.format("%s %s phase endDate set", itemEntityKey, phase), itemEntity.getState().getPhase(phase).getEndDate(), is(notNullValue()));
 
-            ItemData itemData = null;
+            ChunkItem chunkItem = null;
             switch (phase) {
-                case PARTITIONING: itemData = itemEntity.getPartitioningOutcome(); break;
-                case PROCESSING: itemData = itemEntity.getProcessingOutcome(); break;
-                case DELIVERING: itemData = itemEntity.getDeliveringOutcome(); break;
+                case PARTITIONING:  chunkItem = itemEntity.getPartitioningOutcome(); break;
+                case PROCESSING:    chunkItem = itemEntity.getProcessingOutcome();   break;
+                case DELIVERING:    chunkItem = itemEntity.getDeliveringOutcome();   break;
             }
-            assertThat(String.format("%s %s phase data", itemEntityKey, phase), itemData.getData(), is(expectedData.pop()));
-            assertThat(String.format("%s %s phase data encoding", itemEntityKey, phase), itemData.getEncoding(), is(dataEncoding));
+            assertThat(String.format("%s %s phase data encoding", itemEntityKey, phase), chunkItem.getEncoding(), is(dataEncoding));
+            assertThat(String.format("%s %s phase data", itemEntityKey, phase), StringUtil.asString(chunkItem.getData(), dataEncoding), is(expectedData.pop()));
         }
     }
 
@@ -646,7 +644,6 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             chunkState.updateState(chunkStateChange);
         }
         chunkEntity.setSequenceAnalysisData(new SequenceAnalysisData(Collections.<String>emptySet()));
-
         chunkEntity.setState(chunkState);
         return chunkEntity;
     }

@@ -82,7 +82,7 @@ public class ChunkItem implements Serializable {
         this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
         // ToDo: type and encoding must have invariant checks after a transition period
         this.type = type == null ? null : new ArrayList<>(type);
-        this.encoding = encoding;
+        this.encoding = encoding == null ? StandardCharsets.UTF_8 : encoding;
     }
 
 

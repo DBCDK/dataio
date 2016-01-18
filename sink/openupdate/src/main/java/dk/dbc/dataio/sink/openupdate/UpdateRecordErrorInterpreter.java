@@ -85,6 +85,9 @@ public class UpdateRecordErrorInterpreter {
      * @throws MarcReaderException on exception caught while creating parser
      */
     Optional<DataField> getDataField(ValidateEntry entry, byte[] marcExchangeRecord) throws MarcReaderException {
+        if (entry.getOrdinalPositionOfField() == null) {
+            return Optional.empty();
+        }
         Integer fieldIndex = entry.getOrdinalPositionOfField().intValue() - 1;
         return Optional.of((DataField) getMarcRecord(marcExchangeRecord).getFields().get(fieldIndex));
     }
@@ -133,6 +136,9 @@ public class UpdateRecordErrorInterpreter {
      * @return The Attribute (SubField) given as a String
      */
     String getAttribute(ValidateEntry entry, Optional<DataField> dataField) {
+        if (entry.getOrdinalPositionOfSubField() == null) {
+            return null;
+        }
         Integer attributeIndex = entry.getOrdinalPositionOfSubField().intValue() - 1;
         return dataField.get().getSubfields().get(attributeIndex).getCode().toString();
     }

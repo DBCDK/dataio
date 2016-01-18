@@ -42,6 +42,7 @@ import java.util.Optional;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNot.not;
 
 public class UpdateRecordErrorInterpreterTest {
 
@@ -92,7 +93,26 @@ public class UpdateRecordErrorInterpreterTest {
     public void getDataField_simpleOneElementMarcExchangeRecordFetchFirstRecord_ok() throws MarcReaderException {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        interpreter.getDataField(createValidateEntry(1, null), simpleValidMarcExchangeRecord);
+        Optional<DataField> result = interpreter.getDataField(createValidateEntry(1, null), simpleValidMarcExchangeRecord);
+
+        // Verify Test
+        assertThat(result, is(not(nullValue())));
+        assertThat(result.isPresent(), is(true));
+        DataField dataField = result.get();
+        assertThat(dataField.getTag(), is("001"));
+        assertThat(dataField.getInd1(), is('0'));
+        assertThat(dataField.getInd2(), is('0'));
+        assertThat(dataField.getInd3(), is(nullValue()));
+        List<SubField> subFields = dataField.getSubfields();
+        assertThat(subFields.size(), is(4));
+        assertThat(subFields.get(0).getCode(), is('a'));
+        assertThat(subFields.get(0).getData(), is("x7845232"));
+        assertThat(subFields.get(1).getCode(), is('d'));
+        assertThat(subFields.get(1).getData(), is("19900326"));
+        assertThat(subFields.get(2).getCode(), is('f'));
+        assertThat(subFields.get(2).getData(), is("a"));
+        assertThat(subFields.get(3).getCode(), is('o'));
+        assertThat(subFields.get(3).getData(), is("d"));
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
@@ -100,6 +120,16 @@ public class UpdateRecordErrorInterpreterTest {
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
         interpreter.getDataField(createValidateEntry(2, null), simpleValidMarcExchangeRecord);
+    }
+
+    @Test
+    public void getDataField_noOrdinalPositionOfField_returnsOptionalEmpty() throws MarcReaderException {
+        // Subject under test
+        UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
+        Optional<DataField> result = interpreter.getDataField(new ValidateEntry(), simpleValidMarcExchangeRecord);
+
+        // Verify test
+        assertThat(result, is(Optional.empty()));
     }
 
     @Test(expected = NullPointerException.class)
@@ -130,6 +160,19 @@ public class UpdateRecordErrorInterpreterTest {
     }
 
     @Test
+    public void getAttribute_noOrdinalPositionOfField_returnsNull() {
+        // Prepare test
+        DataField dataField = createSimpleDataField();
+
+        // Subject under test
+        UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
+        String attribute = interpreter.getAttribute(createValidateEntry(null, null), Optional.of(dataField));
+
+        // Verify test
+        assertThat(attribute, is(nullValue()));
+    }
+
+    @Test
     public void getAttribute_validInput_validOutput() {
         // Prepare test
         DataField dataField = createSimpleDataField();
@@ -149,28 +192,28 @@ public class UpdateRecordErrorInterpreterTest {
 
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        String attribute = interpreter.getAttribute(createValidateEntry(null, 2), Optional.of(dataField));
+        interpreter.getAttribute(createValidateEntry(null, 2), Optional.of(dataField));
     }
 
     @Test(expected = NullPointerException.class)
     public void getMarcRecord_nullInput_exception() throws MarcReaderException {
         // Test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        MarcRecord marcRecord = interpreter.getMarcRecord(null);
+        interpreter.getMarcRecord(null);
     }
 
     @Test(expected = MarcReaderException.class)
     public void getMarcRecord_emptyInput_exception() throws MarcReaderException {
         // Test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        MarcRecord marcRecord = interpreter.getMarcRecord(emptyMarcExchangeRecord);
+        interpreter.getMarcRecord(emptyMarcExchangeRecord);
     }
 
     @Test(expected = MarcReaderException.class)
     public void getMarcRecord_rubbishInput_exception() throws MarcReaderException {
         // Test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        MarcRecord marcRecord = interpreter.getMarcRecord(rubbishMarcExchangeRecord);
+        interpreter.getMarcRecord(rubbishMarcExchangeRecord);
     }
 
     @Test

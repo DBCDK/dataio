@@ -64,7 +64,7 @@ public class UpdateRecordErrorInterpreter {
                         Optional<DataField> dataField = getDataField(entry, marcExchangeRecord);
                         if (dataField.isPresent()) {
                             field = getTag(dataField);
-                            subField = getAttribute(entry, dataField);
+                            subField = getAttribute(entry, dataField.get());
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error detected during extraction of Tag and/or Attribute", e);
@@ -135,12 +135,12 @@ public class UpdateRecordErrorInterpreter {
      * @param dataField The DataField, where the Attribute lives
      * @return The Attribute (SubField) given as a String
      */
-    String getAttribute(ValidateEntry entry, Optional<DataField> dataField) {
+    String getAttribute(ValidateEntry entry, DataField dataField) {
         if (entry.getOrdinalPositionOfSubField() == null) {
             return null;
         }
         Integer attributeIndex = entry.getOrdinalPositionOfSubField().intValue() - 1;
-        return dataField.get().getSubfields().get(attributeIndex).getCode().toString();
+        return dataField.getSubfields().get(attributeIndex).getCode().toString();
     }
 
 }

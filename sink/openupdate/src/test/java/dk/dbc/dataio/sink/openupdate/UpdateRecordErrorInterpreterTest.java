@@ -166,7 +166,7 @@ public class UpdateRecordErrorInterpreterTest {
 
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        String attribute = interpreter.getAttribute(createValidateEntry(null, null), Optional.of(dataField));
+        String attribute = interpreter.getAttribute(createValidateEntry(null, null), dataField);
 
         // Verify test
         assertThat(attribute, is(nullValue()));
@@ -179,7 +179,7 @@ public class UpdateRecordErrorInterpreterTest {
 
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        String attribute = interpreter.getAttribute(createValidateEntry(null, 1), Optional.of(dataField));
+        String attribute = interpreter.getAttribute(createValidateEntry(null, 1), dataField);
 
         // Verify test
         assertThat(attribute, is("s"));
@@ -192,7 +192,7 @@ public class UpdateRecordErrorInterpreterTest {
 
         // Subject under test
         UpdateRecordErrorInterpreter interpreter = new UpdateRecordErrorInterpreter();
-        interpreter.getAttribute(createValidateEntry(null, 2), Optional.of(dataField));
+        interpreter.getAttribute(createValidateEntry(null, 2), dataField);
     }
 
     @Test(expected = NullPointerException.class)

@@ -67,6 +67,12 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
             for (Diagnostic diagnostic : diagnostics) {
                 SubField subField = new SubField().setCode('a').setData(diagnostic.getMessage());
                 DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0').addSubfield(subField);
+                if (diagnostic.getTag() != null) {
+                    dataField.addSubfield(new SubField().setCode('b').setData(diagnostic.getTag()));
+                }
+                if (diagnostic.getAttribute() != null) {
+                    dataField.addSubfield(new SubField().setCode('c').setData(diagnostic.getAttribute()));
+                }
                 record.addField(dataField);
             }
         }

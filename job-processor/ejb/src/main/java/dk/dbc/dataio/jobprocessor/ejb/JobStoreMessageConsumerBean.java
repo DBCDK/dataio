@@ -22,8 +22,8 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -65,9 +65,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
      */
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws JobProcessorException, InvalidMessageException {
         try {
-            final ExternalChunk chunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            final Chunk chunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), Chunk.class);
             LOGGER.info("Received chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
-            confirmLegalChunkTypeOrThrow(chunk, ExternalChunk.Type.PARTITIONED);
+            confirmLegalChunkTypeOrThrow(chunk, Chunk.Type.PARTITIONED);
             process(chunk);
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type %s",
@@ -75,9 +75,9 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         }
     }
 
-    private void process(ExternalChunk chunk) throws JobProcessorException {
+    private void process(Chunk chunk) throws JobProcessorException {
         final ResourceBundle resourceBundle = getResourceBundle(chunk);
-        final ExternalChunk processedChunk = chunkProcessor.process(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
+        final Chunk processedChunk = chunkProcessor.process(chunk, resourceBundle.getFlow(), resourceBundle.getSupplementaryProcessData());
         try {
             jobStoreServiceConnector.getConnector().addChunkIgnoreDuplicates(processedChunk, processedChunk.getJobId(), processedChunk.getChunkId());
         } catch(JobStoreServiceConnectorException e) {
@@ -91,7 +91,7 @@ public class JobStoreMessageConsumerBean extends AbstractMessageConsumerBean {
         }
     }
 
-    private ResourceBundle getResourceBundle(ExternalChunk chunk) throws JobProcessorException {
+    private ResourceBundle getResourceBundle(Chunk chunk) throws JobProcessorException {
         final StopWatch stopWatch = new StopWatch();
         try {
             return jobStoreServiceConnector.getConnector().getResourceBundle((int) chunk.getJobId());

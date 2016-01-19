@@ -23,7 +23,7 @@ package dk.dbc.dataio.sink.dummy;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -31,7 +31,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -64,12 +64,12 @@ public class DummyMessageProcessorBeanTest {
     @Test
     public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JSONBException, JobStoreServiceConnectorException {
         final String messageId = "id";
-        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
         final String payload = new JSONBContext().marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, headers, payload);
         getDummyMessageProcessorBean().handleConsumedMessage(consumedMessage);
 
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -79,11 +79,11 @@ public class DummyMessageProcessorBeanTest {
                 new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).build()
         );
-        final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
                 .build();
 
-        final ExternalChunk deliveredChunk = getDummyMessageProcessorBean().processPayload(chunkResult);
+        final Chunk deliveredChunk = getDummyMessageProcessorBean().processPayload(chunkResult);
         assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));

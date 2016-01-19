@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -60,7 +60,7 @@ public class JobProcessorMessageProducerBean {
      * @throws JobStoreException when unable to send given chunk to destination
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void send(ExternalChunk chunk) throws NullPointerException, JobStoreException {
+    public void send(Chunk chunk) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {
             final TextMessage message = createMessage(context, chunk);
@@ -83,7 +83,7 @@ public class JobProcessorMessageProducerBean {
      * @throws JSONBException when unable to marshall chunk instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, ExternalChunk chunk) throws JMSException, JSONBException {
+    public TextMessage createMessage(JMSContext context, Chunk chunk) throws JMSException, JSONBException {
         final TextMessage message = context.createTextMessage(jsonbContext.marshall(chunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);

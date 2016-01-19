@@ -22,7 +22,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -225,7 +225,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        assertThat(pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1), is(nullValue()));
+        assertThat(pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, 2, 1), is(nullValue()));
     }
 
     @Test
@@ -235,7 +235,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
         try {
-            pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+            pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, 2, 1);
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
@@ -263,7 +263,7 @@ public class PgJobStoreRepositoryTest_QueryingTest extends PgJobStoreBaseTest {
         when(query.getResultList()).thenReturn(Arrays.asList(entity1, entity2));
 
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreReposity();
-        final ExternalChunk chunk = pgJobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, 2, 1);
+        final Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, 2, 1);
 
         assertThat("chunk", chunk, is(notNullValue()));
         assertThat("chunk.size()", chunk.size(), is(2));

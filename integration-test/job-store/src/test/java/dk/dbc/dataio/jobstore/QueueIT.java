@@ -21,14 +21,14 @@
 
 package dk.dbc.dataio.jobstore;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -110,14 +110,14 @@ public class QueueIT extends AbstractJobStoreTest {
                 new ChunkItemBuilder().setId(8).build(),
                 new ChunkItemBuilder().setId(9).build());
 
-        ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
+        Chunk deliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(0L)
                 .setItems(chunkItems)
                 .build();
         jobStoreServiceConnector.addChunk(deliveredChunk, jobInfoSnapshot.getJobId(), 0);
 
-        ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(0L)
                 .setItems(chunkItems)
@@ -134,13 +134,13 @@ public class QueueIT extends AbstractJobStoreTest {
         assertThat("Delivering phase complete", jobInfoSnapshot.getState().phaseIsDone(State.Phase.DELIVERING), is(false));
         assertThat("Delivering phase succeeded", jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getSucceeded(), is(deliveredChunk.size()));
 
-        processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(1L)
                 .build();
         jobStoreServiceConnector.addChunk(processedChunk, jobInfoSnapshot.getJobId(), 1);
 
-        deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED)
+        deliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(1L)
                 .build();

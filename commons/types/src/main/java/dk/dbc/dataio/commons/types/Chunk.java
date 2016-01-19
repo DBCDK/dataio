@@ -47,7 +47,7 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Status.IGNORE;
  * Extraction is through an iterator, since it is assumed that no one ever needs
  * to access items directly inside this class, but always consecutively.
  */
-public class ExternalChunk implements Iterable<ChunkItem> {
+public class Chunk implements Iterable<ChunkItem> {
     public enum Type {
         PARTITIONED,
         PROCESSED,
@@ -69,7 +69,7 @@ public class ExternalChunk implements Iterable<ChunkItem> {
      * @param chunkId cannot be negative.
      * @param type of job (PARTITIONED, PROCESSED, DELIVERED)
      */
-    public ExternalChunk(long jobId, long chunkId, Type type) {
+    public Chunk(long jobId, long chunkId, Type type) {
         if (jobId < 0 || chunkId < 0) {
             throw new IllegalArgumentException(String.format("Neither job ID nor chunk ID can be negative: [%d/%d]",
                     jobId, chunkId));
@@ -85,11 +85,11 @@ public class ExternalChunk implements Iterable<ChunkItem> {
     // Private constructor for JsonUtil.fromJson().
     // This constructor uses insertItem to ensure that the invariant for the object is upheld.
     @JsonCreator
-    private ExternalChunk(@JsonProperty("jobId") long jobId,
-            @JsonProperty("chunkId") long chunkId,
-            @JsonProperty("type") Type type,
-            @JsonProperty("items") List<ChunkItem> items,
-            @JsonProperty("next") List<ChunkItem> next) {
+    private Chunk(@JsonProperty("jobId") long jobId,
+                  @JsonProperty("chunkId") long chunkId,
+                  @JsonProperty("type") Type type,
+                  @JsonProperty("items") List<ChunkItem> items,
+                  @JsonProperty("next") List<ChunkItem> next) {
         this(jobId, chunkId, type);
         // ensure to uphold invariant
         addAllItems(items, next);

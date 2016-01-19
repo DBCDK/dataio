@@ -22,8 +22,8 @@
 package dk.dbc.dataio.sink.fbs.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -53,10 +53,10 @@ public class FbsPusherBean {
      * WebServiceException or if service responds with
      * UPDATE_FAILED_PLEASE_RESEND_LATER status.
      */
-    public ExternalChunk push(ExternalChunk processedChunk) throws WebServiceException {
+    public Chunk push(Chunk processedChunk) throws WebServiceException {
         final StopWatch stopWatch = new StopWatch();
         LOGGER.info("Examining chunk {} for job {}", processedChunk.getChunkId(), processedChunk.getJobId());
-        final ExternalChunk chunkForDelivery = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        final Chunk chunkForDelivery = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
         chunkForDelivery.setEncoding(processedChunk.getEncoding());
         
         int numberOfItemsPushed = 0;
@@ -73,7 +73,7 @@ public class FbsPusherBean {
         return chunkForDelivery;
     }
 
-    private void executeUpdateOperation(ChunkItem processedChunkItem, ExternalChunk chunkForDelivery) throws WebServiceException {
+    private void executeUpdateOperation(ChunkItem processedChunkItem, Chunk chunkForDelivery) throws WebServiceException {
         final String trackingId = String.format("%d-%d-%d", chunkForDelivery.getJobId(), chunkForDelivery.getChunkId(), processedChunkItem.getId());
         final FbsUpdateConnector connector = fbsUpdateConnector.getConnector();
         try {

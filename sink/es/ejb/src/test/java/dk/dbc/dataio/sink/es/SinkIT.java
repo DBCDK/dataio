@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
@@ -166,7 +166,7 @@ public abstract class SinkIT {
         return esInFlightBean;
     }
 
-    protected MockedJmsTextMessage getSinkMessage(ExternalChunk chunk) throws JMSException, JSONBException {
+    protected MockedJmsTextMessage getSinkMessage(Chunk chunk) throws JMSException, JSONBException {
         final Sink sink = new SinkBuilder().build();
 
         final TextMessage basicMessage = jmsContext.createTextMessage(jsonbContext.marshall(chunk));

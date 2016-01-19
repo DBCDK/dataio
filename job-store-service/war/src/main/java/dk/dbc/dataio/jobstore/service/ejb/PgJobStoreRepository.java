@@ -1,8 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
@@ -63,7 +63,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 
 /**
  * Created by ThomasBerg @LundOgBendsen on 02/09/15.
@@ -348,7 +348,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * underlying item entities contains no data for the corresponding phase
      */
     @Stopwatch
-    public ExternalChunk getChunk(ExternalChunk.Type type, int jobId, int chunkId) throws NullPointerException {
+    public Chunk getChunk(Chunk.Type type, int jobId, int chunkId) throws NullPointerException {
         final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
         final ItemListCriteria criteria = new ItemListCriteria()
                 .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
@@ -357,7 +357,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
         final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
         if (itemEntities.size() > 0) {
-            final ExternalChunk chunk = new ExternalChunk(jobId, chunkId, type);
+            final Chunk chunk = new Chunk(jobId, chunkId, type);
             for (ItemEntity itemEntity : itemEntities) {
                 if (PROCESSED == type) {
                     // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
@@ -366,7 +366,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
                 }
             }
-            chunk.setEncoding(StandardCharsets.UTF_8); // TODO: 15/01/16 This is a temporary solution that should be removed once encoding is removed from ExternalChunk
+            chunk.setEncoding(StandardCharsets.UTF_8); // TODO: 15/01/16 This is a temporary solution that should be removed once encoding is removed from Chunk
             return chunk;
         }
         return null;
@@ -407,15 +407,15 @@ public class PgJobStoreRepository extends RepositoryBase {
 
     /**
      * Updates item entities for given chunk
-     * @param chunk external chunk
+     * @param chunk chunk
      * @return item entities compound object
      * @throws DuplicateChunkException if attempting to update already existing chunk
-     * @throws InvalidInputException if unable to find referenced items or if external chunk belongs to PARTITIONING
+     * @throws InvalidInputException if unable to find referenced items or if chunk belongs to PARTITIONING
      * phase
      * @throws JobStoreException Job Store Exception
      */
     @Stopwatch
-    public ChunkItemEntities updateChunkItemEntities(ExternalChunk chunk) throws JobStoreException {
+    public ChunkItemEntities updateChunkItemEntities(Chunk chunk) throws JobStoreException {
 
         Date nextItemBegin = new Date();
 
@@ -439,8 +439,8 @@ public class PgJobStoreRepository extends RepositoryBase {
 
             final StateChange itemStateChange = new StateChange()
                     .setPhase(phase)
-                    .setBeginDate(nextItemBegin)                                            // ToDo: ExternalChunk type must contain beginDate
-                    .setEndDate(new Date());                                                // ToDo: ExternalChunk type must contain endDate
+                    .setBeginDate(nextItemBegin)                                            // ToDo: Chunk type must contain beginDate
+                    .setEndDate(new Date());                                                // ToDo: Chunk type must contain endDate
 
             setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, chunkItem);
             if (nextIterator.hasNext()) {
@@ -684,7 +684,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         itemEntity.setState(itemState);
         return itemState;
     }
-    private void setOutcomeOnItemEntityFromPhase(ExternalChunk chunk, State.Phase phase, ItemEntity itemEntity, ChunkItem chunkItem) throws InvalidInputException {
+    private void setOutcomeOnItemEntityFromPhase(Chunk chunk, State.Phase phase, ItemEntity itemEntity, ChunkItem chunkItem) throws InvalidInputException {
         switch (phase) {
             case PROCESSING: itemEntity.setProcessingOutcome(chunkItem);
                 break;
@@ -715,7 +715,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         throw new InvalidInputException(errMsg, jobError);
     }
 
-    private State.Phase chunkTypeToStatePhase(ExternalChunk.Type chunkType) {
+    private State.Phase chunkTypeToStatePhase(Chunk.Type chunkType) {
         switch (chunkType) {
             case PARTITIONED: return State.Phase.PARTITIONING;
             case PROCESSED:   return State.Phase.PROCESSING;

@@ -21,10 +21,10 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -77,10 +77,10 @@ public class JobProcessorMessageProducerBeanTest {
     @Test
     public void send_createMessageThrowsJsonException_throws() throws JobStoreException, JSONBException {
         final JSONBContext mockedJSONBContext = mock(JSONBContext.class);
-        when(mockedJSONBContext.marshall(any(ExternalChunk.class))).thenThrow(new JSONBException("DIED"));
+        when(mockedJSONBContext.marshall(any(Chunk.class))).thenThrow(new JSONBException("DIED"));
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
         jobProcessorMessageProducerBean.jsonbContext = mockedJSONBContext;
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
 
         try {
             jobProcessorMessageProducerBean.send(chunk);
@@ -93,7 +93,7 @@ public class JobProcessorMessageProducerBeanTest {
     public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JSONBException, JMSException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final JobProcessorMessageProducerBean jobProcessorMessageProducerBean = getInitializedBean();
-        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build());
+        final TextMessage message = jobProcessorMessageProducerBean.createMessage(jmsContext, new ChunkBuilder(Chunk.Type.PARTITIONED).build());
         assertThat(message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.JOB_STORE_SOURCE_VALUE));
         assertThat(message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
     }

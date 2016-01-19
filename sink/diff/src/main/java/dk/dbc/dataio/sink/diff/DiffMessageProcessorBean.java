@@ -23,9 +23,9 @@ package dk.dbc.dataio.sink.diff;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
@@ -55,8 +55,8 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
-        final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
-        final ExternalChunk deliveredChunk = processPayload(processedChunk);
+        final Chunk processedChunk = unmarshallPayload(consumedMessage);
+        final Chunk deliveredChunk = processPayload(processedChunk);
         try {
             jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
         } catch (JobStoreServiceConnectorException e) {
@@ -87,12 +87,12 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      * @return processPayload
      * @throws SinkException on unhandled ChunkItem status
      */
-    ExternalChunk processPayload(ExternalChunk processedChunk) throws SinkException{
+    Chunk processPayload(Chunk processedChunk) throws SinkException{
         if( !processedChunk.hasNextItems()) {
             return failWithMissingNextItem(processedChunk);
         }
 
-        final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
         for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
             if(item.current.getStatus() != item.next.getStatus()) {
                 String message = String.format("Different status %s -> %s\n%s",
@@ -126,8 +126,8 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      * Private methods
      */
 
-    private ExternalChunk failWithMissingNextItem(ExternalChunk processedChunk) {
-        final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+    private Chunk failWithMissingNextItem(Chunk processedChunk) {
+        final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
 
         for (final ChunkItem item : processedChunk) {
             ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items");
@@ -201,7 +201,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         public ChunkItem next;
     }
 
-    private List<ChunkItemPair> buildCurrentNextChunkList(ExternalChunk processed) {
+    private List<ChunkItemPair> buildCurrentNextChunkList(Chunk processed) {
         final List<ChunkItem> items = processed.getItems();
         final List<ChunkItem> next = processed.getNext();
         if( items.size() != next.size() ) {

@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.utils.jobstore;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -164,28 +164,28 @@ public class JobStoreServiceConnectorTest {
     // ******************************************* add chunk tests *******************************************
 
     @Test(expected = NullPointerException.class)
-    public void addChunk_externalChunkArgIsNull_throws() throws JobStoreServiceConnectorException {
+    public void addChunk_chunkArgIsNull_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(null, JOB_ID, CHUNK_ID);
     }
 
     @Test(expected = NullPointerException.class)
     public void addChunk_chunkTypeIsNull_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(null).build();
+        final Chunk chunk = new ChunkBuilder(null).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addChunk_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
     }
 
     @Test
     public void addChunk_chunkTypeProcessed_chunkIsAdded() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(chunk, Response.Status.CREATED,
                 new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
 
@@ -195,7 +195,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_chunkTypeDelivering_chunkIsAdded() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkWithMockedHttpResponse(chunk, Response.Status.CREATED,
                 new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
 
@@ -205,7 +205,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
         try {
             callAddChunkWithMockedHttpResponse(chunk, Response.Status.BAD_REQUEST, jobError);
@@ -218,7 +218,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunk_acceptedRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         try {
             callAddChunkWithMockedHttpResponse(chunk, Response.Status.ACCEPTED, null);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
@@ -228,14 +228,14 @@ public class JobStoreServiceConnectorTest {
 
     @Test(expected = JobStoreServiceConnectorException.class)
     public void addChunk_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
         callAddChunkWithMockedHttpResponse(chunk, Response.Status.INTERNAL_SERVER_ERROR, null);
     }
 
     // ************************************* add chunk ignore duplicates tests **************************************
 
     @Test
-    public void addChunkIgnoreDuplicates_externalChunkArgIsNull_throws() throws JobStoreServiceConnectorException {
+    public void addChunkIgnoreDuplicates_chunkArgIsNull_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         try {
             jobStoreServiceConnector.addChunkIgnoreDuplicates(null, JOB_ID, CHUNK_ID);
@@ -245,7 +245,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_chunkTypeIsNull_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(null).build();
+        final Chunk chunk = new ChunkBuilder(null).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         try {
             jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, JOB_ID, CHUNK_ID);
@@ -255,7 +255,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_chunkTypePartitioned_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         try {
             jobStoreServiceConnector.addChunk(chunk, JOB_ID, CHUNK_ID);
@@ -265,7 +265,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_acceptedRequestResponse_lookupJobInfoSnapshot() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(chunk,
                 Response.Status.ACCEPTED, new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
 
@@ -275,7 +275,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_badRequestResponse_throws() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final JobError jobError = new JobError(JobError.Code.INVALID_CHUNK_IDENTIFIER, "description", null);
         try {
             callAddChunkIgnoreDuplicatesWithMockedHttpResponse(chunk, Response.Status.BAD_REQUEST, jobError);
@@ -288,7 +288,7 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void addChunkIgnoreDuplicates_noneDuplicateChunk_chunkIsAdded() throws JobStoreServiceConnectorException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final JobInfoSnapshot jobInfoSnapshot = callAddChunkIgnoreDuplicatesWithMockedHttpResponse(chunk,
                 Response.Status.CREATED, new JobInfoSnapshotBuilder().setJobId(JOB_ID).build());
 
@@ -749,7 +749,7 @@ public class JobStoreServiceConnectorTest {
         return instance.addJob(jobInputStream);
     }
 
-    private JobInfoSnapshot callAddChunkWithMockedHttpResponse(ExternalChunk chunk, Response.Status statusCode, Object returnValue)
+    private JobInfoSnapshot callAddChunkWithMockedHttpResponse(Chunk chunk, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
         final String basePath = getAddChunkBasePath(chunk);
         when(HttpClient.doPostWithJson(CLIENT, chunk, JOB_STORE_URL, buildAddChunkPath(chunk.getJobId(), chunk.getChunkId(), basePath)))
@@ -758,7 +758,7 @@ public class JobStoreServiceConnectorTest {
         return instance.addChunk(chunk, chunk.getJobId(), chunk.getChunkId());
     }
 
-   private JobInfoSnapshot callAddChunkIgnoreDuplicatesWithMockedHttpResponse(ExternalChunk chunk, Response.Status statusCode, Object returnValue)
+   private JobInfoSnapshot callAddChunkIgnoreDuplicatesWithMockedHttpResponse(Chunk chunk, Response.Status statusCode, Object returnValue)
            throws JobStoreServiceConnectorException {
         final String basePath = getAddChunkBasePath(chunk);
         when(HttpClient.doPostWithJson(CLIENT, chunk, JOB_STORE_URL, buildAddChunkPath(chunk.getJobId(), chunk.getChunkId(), basePath)))
@@ -864,7 +864,7 @@ public class JobStoreServiceConnectorTest {
         return instance.setWorkflowNote(workflowNote, jobId, chunkId, itemId);
     }
 
-    private String getAddChunkBasePath(ExternalChunk chunk) {
+    private String getAddChunkBasePath(Chunk chunk) {
         final String basePath;
         switch (chunk.getType()) {
             case PROCESSED: basePath = JobStoreServiceConstants.JOB_CHUNK_PROCESSED;

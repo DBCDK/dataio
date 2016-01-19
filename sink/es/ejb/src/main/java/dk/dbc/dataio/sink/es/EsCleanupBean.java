@@ -22,8 +22,8 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -101,12 +101,12 @@ public class EsCleanupBean {
             }
             Map<Integer, TaskStatus> taskStatusMap = getTaskStatusForESTaskpackages(esInFlightMap);
 
-            final List<ExternalChunk> lostChunks = findLostChunks(esInFlightMap, taskStatusMap);
+            final List<Chunk> lostChunks = findLostChunks(esInFlightMap, taskStatusMap);
             if(!lostChunks.isEmpty()) {
                 addChunks(lostChunks);
             }
 
-            final List<ExternalChunk> deliveredChunks = findDeliveredChunks(esInFlightMap, taskStatusMap);
+            final List<Chunk> deliveredChunks = findDeliveredChunks(esInFlightMap, taskStatusMap);
             if(!deliveredChunks.isEmpty()) {
                 addChunks(deliveredChunks);
             }
@@ -118,9 +118,9 @@ public class EsCleanupBean {
         }
     }
 
-    private void addChunks(List<ExternalChunk> externalChunks) {
+    private void addChunks(List<Chunk> chunks) {
         JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
-        for(ExternalChunk chunk : externalChunks) {
+        for(Chunk chunk : chunks) {
             try {
                 jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
             } catch (JobStoreServiceConnectorException e) {
@@ -156,17 +156,17 @@ public class EsCleanupBean {
         return esConnector.getCompletionStatusForESTaskpackages(new ArrayList<>(esInFlightMap.keySet()));
     }
 
-    private List<ExternalChunk> findLostChunks(Map<Integer, EsInFlight> esInFlightMap, Map<Integer, TaskStatus> taskStatusMap) throws SinkException {
+    private List<Chunk> findLostChunks(Map<Integer, EsInFlight> esInFlightMap, Map<Integer, TaskStatus> taskStatusMap) throws SinkException {
         final StopWatch stopWatch = new StopWatch();
         try {
-            List<ExternalChunk> lostExternalChunks = new ArrayList<>();
+            List<Chunk> lostChunks = new ArrayList<>();
             List<EsInFlight> lostEsInFlight = new ArrayList<>();
             LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatusMap.size(), esInFlightMap.size());
 
             for (Map.Entry<Integer, EsInFlight> esInFlightEntry : esInFlightMap.entrySet()) {
                 if (!taskStatusMap.containsKey(esInFlightEntry.getKey())) {
                     // The entry did not have a target reference -> create lost chunk and add it to the list
-                    lostExternalChunks.add(createLostChunk(esInFlightEntry.getValue()));
+                    lostChunks.add(createLostChunk(esInFlightEntry.getValue()));
                     lostEsInFlight.add(esInFlightEntry.getValue());
                 }
             }
@@ -174,29 +174,29 @@ public class EsCleanupBean {
                 LOGGER.info("Number of lost taskpackages in ES : {}.", esInFlightMap.size());
                 removeEsInFlights(lostEsInFlight);
             }
-            return lostExternalChunks;
+            return lostChunks;
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
-    ExternalChunk createLostChunk(EsInFlight esInFlight) throws SinkException {
+    Chunk createLostChunk(EsInFlight esInFlight) throws SinkException {
         LOGGER.info("Finishing lost chunk for tp: {}", esInFlight.getTargetReference());
-        final ExternalChunk externalChunk;
+        final Chunk chunk;
         try {
-            externalChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), ExternalChunk.class);
+            chunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), Chunk.class);
         } catch (JSONBException e) {
             throw new SinkException(String.format("Unable to marshall lost chunk for tp: %d", esInFlight.getTargetReference()), e);
         }
 
-        // Create a new external chunk representing the lost target reference
-        final ExternalChunk lostExternalChunk = new ExternalChunk(externalChunk.getJobId(), externalChunk.getChunkId(), externalChunk.getType());
-        lostExternalChunk.setEncoding(externalChunk.getEncoding());
+        // Create a new chunk representing the lost target reference
+        final Chunk lostChunk = new Chunk(chunk.getJobId(), chunk.getChunkId(), chunk.getType());
+        lostChunk.setEncoding(chunk.getEncoding());
 
-        for (ChunkItem chunkItem : externalChunk) {
-            lostExternalChunk.insertItem(createLostChunkItem(chunkItem));
+        for (ChunkItem chunkItem : chunk) {
+            lostChunk.insertItem(createLostChunkItem(chunkItem));
         }
-        return lostExternalChunk;
+        return lostChunk;
     }
 
     private ChunkItem createLostChunkItem(ChunkItem chunkItem) {
@@ -211,9 +211,9 @@ public class EsCleanupBean {
         return lostChunkItem;
     }
 
-    private List<ExternalChunk> findDeliveredChunks(Map<Integer, EsInFlight> esInFlightMap, Map<Integer, TaskStatus> taskStatusMap) {
+    private List<Chunk> findDeliveredChunks(Map<Integer, EsInFlight> esInFlightMap, Map<Integer, TaskStatus> taskStatusMap) {
         final StopWatch stopWatch = new StopWatch();
-        List<ExternalChunk> deliveredChunks = new ArrayList<>();
+        List<Chunk> deliveredChunks = new ArrayList<>();
         try {
             final List<Integer> finishedTargetReferences = findTargetReferencesForCompletedTaskpackagesFromTaskStatus(taskStatusMap);
             if (finishedTargetReferences.isEmpty()) {
@@ -234,19 +234,19 @@ public class EsCleanupBean {
 
     }
 
-    private List<ExternalChunk> createDeliveredChunks(List<EsInFlight> finishedEsInFlight) throws SinkException {
-        List<ExternalChunk> deliveredChunks = new ArrayList<>(finishedEsInFlight.size());
+    private List<Chunk> createDeliveredChunks(List<EsInFlight> finishedEsInFlight) throws SinkException {
+        List<Chunk> deliveredChunks = new ArrayList<>(finishedEsInFlight.size());
         for (EsInFlight esInFlight : finishedEsInFlight) {
             deliveredChunks.add(createDeliveredChunk(esInFlight));
         }
         return deliveredChunks;
     }
 
-    ExternalChunk createDeliveredChunk(EsInFlight esInFlight) throws SinkException {
+    Chunk createDeliveredChunk(EsInFlight esInFlight) throws SinkException {
         LOGGER.info("Finishing delivered chunk for tp: {}", esInFlight.getTargetReference());
-        final ExternalChunk incompleteDeliveredChunk;
+        final Chunk incompleteDeliveredChunk;
         try {
-            incompleteDeliveredChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), ExternalChunk.class);
+            incompleteDeliveredChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), Chunk.class);
         } catch (JSONBException e) {
             throw new SinkException(String.format("Unable to marshall delivered chunk for tp: %d", esInFlight.getTargetReference()), e);
         }

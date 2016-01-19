@@ -21,14 +21,14 @@
 
 package dk.dbc.dataio.sink.fbs.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -59,7 +59,7 @@ public class JobProcessorMessageConsumerBeanTest {
 
     @Before
     public void setup() throws JSONBException {
-        PAYLOAD = new JSONBContext().marshall(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+        PAYLOAD = new JSONBContext().marshall(new ChunkBuilder(Chunk.Type.PROCESSED).build());
         headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
     }
 
@@ -77,7 +77,7 @@ public class JobProcessorMessageConsumerBeanTest {
     @Test
     public void handleConsumedMessage_pusherThrowsWebServiceException_throws() throws InvalidMessageException, SinkException {
         final WebServiceException webServiceException = new WebServiceException("died");
-        when(fbsPusherBean.push(any(ExternalChunk.class))).thenThrow(webServiceException);
+        when(fbsPusherBean.push(any(Chunk.class))).thenThrow(webServiceException);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         try {
             getInitializedBean().handleConsumedMessage(consumedMessage);
@@ -90,8 +90,8 @@ public class JobProcessorMessageConsumerBeanTest {
     @Test
     public void handleConsumedMessage_addChunkIgnoreDuplicatesJobStoreServiceConnectorException_throwsEJBException() throws InvalidMessageException, JobStoreServiceConnectorException {
         JobStoreServiceConnectorException jobStoreServiceConnectorException = new JobStoreServiceConnectorException("DIED");
-        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
-        when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(deliveredChunk);
+        final Chunk deliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
+        when(fbsPusherBean.push(any(Chunk.class))).thenReturn(deliveredChunk);
         doThrow(jobStoreServiceConnectorException).when(jobStoreServiceConnector).addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         try {
@@ -104,8 +104,8 @@ public class JobProcessorMessageConsumerBeanTest {
 
     @Test
     public void handleConsumedMessage_addChunkIgnoreDuplicates_ok() throws InvalidMessageException, JobStoreServiceConnectorException {
-        final ExternalChunk deliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build();
-        when(fbsPusherBean.push(any(ExternalChunk.class))).thenReturn(deliveredChunk);
+        final Chunk deliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED).build();
+        when(fbsPusherBean.push(any(Chunk.class))).thenReturn(deliveredChunk);
         when(jobStoreServiceConnector.addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId())).thenReturn(null);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
         getInitializedBean().handleConsumedMessage(consumedMessage);

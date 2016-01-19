@@ -21,13 +21,13 @@
 
 package dk.dbc.dataio.sink.fbs.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -43,7 +43,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class SinkIT {
-    private final ExternalChunk testProcessedChunk = getProcessedChunk();
+    private final Chunk testProcessedChunk = getProcessedChunk();
 
     @BeforeClass
     public static void setup() {
@@ -69,7 +69,7 @@ public class SinkIT {
         // When...
         InMemoryInitialContextFactory.bind(JndiConstants.URL_RESOURCE_FBS_WS, System.getProperty("fbs.update.ws.endpoint"));
         final FbsPusherBean fbsPusherBean = getFbsPusherBean();
-        final ExternalChunk deliveredChunk = fbsPusherBean.push(testProcessedChunk);
+        final Chunk deliveredChunk = fbsPusherBean.push(testProcessedChunk);
 
         // Then...
         assertThat(deliveredChunk.size(), is(2));
@@ -104,8 +104,8 @@ public class SinkIT {
         return fbsUpdateConnectorBean;
     }
 
-    private ExternalChunk getProcessedChunk() {
-        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
+    private Chunk getProcessedChunk() {
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
         processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(
                 "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
                         "<marcx:record format=\"danMARC2\">" +

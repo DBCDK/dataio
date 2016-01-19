@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -34,7 +34,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
 import dk.dbc.dataio.jobprocessor.exception.JobProcessorException;
@@ -105,7 +105,7 @@ public class JobStoreMessageConsumerBeanTest {
     public void handleConsumedMessage_messageChunkIsOfIncorrectType_throws() throws JobProcessorException, InvalidMessageException, JMSException, JSONBException {
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
         // The Chunk-type 'processed' is not allowed in the JobProcessor, only 'partitioned' is allowed.
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
@@ -129,7 +129,7 @@ public class JobStoreMessageConsumerBeanTest {
         when(jobStoreServiceConnector.getResourceBundle(anyInt())).thenReturn(resourceBundle);
 
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).setItems(Collections.singletonList(item)).build();
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED).setItems(Collections.singletonList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final JobStoreMessageConsumerBean jobStoreMessageConsumerBean = getInitializedBean();
@@ -137,7 +137,7 @@ public class JobStoreMessageConsumerBeanTest {
         jobStoreMessageConsumerBean.handleConsumedMessage(message);
 
         // This is called when the processor has processed the data.
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     private TestableJobStoreMessageConsumerBean getInitializedBean() {

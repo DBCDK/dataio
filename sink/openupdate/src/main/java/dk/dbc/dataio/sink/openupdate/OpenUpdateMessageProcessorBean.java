@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -54,10 +54,10 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
-        final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("External Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
+        final Chunk processedChunk = unmarshallPayload(consumedMessage);
+        LOGGER.info("Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
 
-        final ExternalChunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
+        final Chunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
         for (ChunkItem processedChunkItem : processedChunk) {
             final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
             final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
@@ -80,7 +80,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         addChunkInJobStore(chunkForDelivery);
     }
 
-    private void addChunkInJobStore(ExternalChunk chunkForDelivery) throws SinkException {
+    private void addChunkInJobStore(Chunk chunkForDelivery) throws SinkException {
         try {
             jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(chunkForDelivery, chunkForDelivery.getJobId(), chunkForDelivery.getChunkId());
         } catch (JobStoreServiceConnectorException e) {
@@ -99,8 +99,8 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         }
     }
 
-    private ExternalChunk buildBasicChunkForDeliveryFromProcessedChunk(ExternalChunk processedChunk) {
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+    private Chunk buildBasicChunkForDeliveryFromProcessedChunk(Chunk processedChunk) {
+        final Chunk incompleteDeliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         return incompleteDeliveredChunk;
     }

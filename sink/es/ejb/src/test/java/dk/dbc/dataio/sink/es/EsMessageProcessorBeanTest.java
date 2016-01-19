@@ -22,8 +22,8 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -31,7 +31,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
@@ -98,12 +98,12 @@ public class EsMessageProcessorBeanTest {
     @Test
     public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkAdded() throws JMSException, SinkException, JSONBException, JobStoreServiceConnectorException {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
-        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final String processedChunkJson = jsonbContext.marshall(processedChunk);
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson);
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -208,7 +208,7 @@ public class EsMessageProcessorBeanTest {
                 .setStatus(ChunkItem.Status.SUCCESS)
                 .build());
 
-        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(chunkItems)
                 .build();
 
@@ -300,7 +300,7 @@ public class EsMessageProcessorBeanTest {
             final ChunkItem item = new ChunkItemBuilder()
                     .setData(StringUtil.asBytes(getResourceAsString(resourceName)))
                     .build();
-            return jsonbContext.marshall(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+            return jsonbContext.marshall(new ChunkBuilder(Chunk.Type.PROCESSED)
                     .setItems(Collections.singletonList(item))
                     .build());
         } catch (JSONBException e) {

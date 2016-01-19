@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -206,8 +206,8 @@ public class JobSchedulerBean {
         for (final CollisionDetectionElement element : elements) {
             final ChunkIdentifier identifier = (ChunkIdentifier) element.getIdentifier();
             try {
-                final ExternalChunk chunk = jobStoreRepository.getChunk(
-                        ExternalChunk.Type.PARTITIONED,
+                final Chunk chunk = jobStoreRepository.getChunk(
+                        Chunk.Type.PARTITIONED,
                         (int) identifier.getJobId(),
                         (int) identifier.getChunkId());
 

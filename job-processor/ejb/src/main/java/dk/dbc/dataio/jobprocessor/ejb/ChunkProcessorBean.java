@@ -22,8 +22,8 @@
 package dk.dbc.dataio.jobprocessor.ejb;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
@@ -67,13 +67,13 @@ public class ChunkProcessorBean {
      * @param supplementaryProcessData supplementary process data
      * @return result of processing
      */
-    public ExternalChunk process(ExternalChunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
+    public Chunk process(Chunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
         final StopWatch stopWatchForChunk = new StopWatch();
         try {
             MDC.put(FLOW_NAME_MDC_KEY, flow.getContent().getName());
             MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
             LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
-            final ExternalChunk processedChunk = new ExternalChunk(chunk.getJobId(), chunk.getChunkId(), ExternalChunk.Type.PROCESSED);
+            final Chunk processedChunk = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
             processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
             if (chunk.size() > 0) {
                 try {
@@ -120,7 +120,7 @@ public class ChunkProcessorBean {
 
     /* Processes each item in given chunk in sequence
      */
-    private List<ChunkItem> processItems(ExternalChunk chunk, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
+    private List<ChunkItem> processItems(Chunk chunk, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
         List<ChunkItem> processedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
             final StopWatch stopWatchForItem = new StopWatch();
@@ -220,7 +220,7 @@ public class ChunkProcessorBean {
         return scriptWrapper.eval(jsonStr);
     }
 
-    private List<ChunkItem> failItemsWithThrowable(ExternalChunk chunk, Throwable t) {
+    private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable t) {
         final List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
             final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));

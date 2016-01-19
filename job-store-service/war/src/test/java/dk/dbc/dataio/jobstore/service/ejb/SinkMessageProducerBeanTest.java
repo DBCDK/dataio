@@ -21,11 +21,11 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -50,7 +50,7 @@ public class SinkMessageProducerBeanTest {
     private ConnectionFactory jmsConnectionFactory;
     private JMSContext jmsContext;
     private JMSProducer jmsProducer;
-    private ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+    private Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
     private Sink sink = new SinkBuilder().build();
 
     @Before

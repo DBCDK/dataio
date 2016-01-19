@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.sink.dummy;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -48,8 +48,8 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws ServiceException, InvalidMessageException {
-        final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
-        final ExternalChunk deliveredChunk = processPayload(processedChunk);
+        final Chunk processedChunk = unmarshallPayload(consumedMessage);
+        final Chunk deliveredChunk = processPayload(processedChunk);
         try {
             jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(deliveredChunk, deliveredChunk.getJobId(), deliveredChunk.getChunkId());
         } catch (JobStoreServiceConnectorException e) {
@@ -63,8 +63,8 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    ExternalChunk processPayload(ExternalChunk processedChunk) {
-        final ExternalChunk deliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+    Chunk processPayload(Chunk processedChunk) {
+        final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
         for (final ChunkItem item : processedChunk) {
             // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
             ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;

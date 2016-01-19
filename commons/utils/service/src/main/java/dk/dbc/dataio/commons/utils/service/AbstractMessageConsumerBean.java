@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.commons.utils.service;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -135,7 +135,7 @@ public abstract class AbstractMessageConsumerBean {
      */
     public abstract void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException;
 
-    public void confirmLegalChunkTypeOrThrow(ExternalChunk chunk, ExternalChunk.Type legalChunkType) throws InvalidMessageException {
+    public void confirmLegalChunkTypeOrThrow(Chunk chunk, Chunk.Type legalChunkType) throws InvalidMessageException {
         if(chunk.getType() != legalChunkType) {
             String errMsg = String.format(
                     "The chunk with id (jobId/chunkId) : [%d/%d] is of illegal type [%s] when [%s] was expected.",

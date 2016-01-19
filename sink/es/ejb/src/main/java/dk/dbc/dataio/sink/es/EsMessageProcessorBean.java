@@ -23,10 +23,10 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
@@ -83,9 +83,9 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
-        final ExternalChunk processedChunk = unmarshallPayload(consumedMessage);
+        final Chunk processedChunk = unmarshallPayload(consumedMessage);
         final EsWorkload workload = getEsWorkloadFromChunkResult(processedChunk);
-        final ExternalChunk deliveredChunk = workload.getDeliveredChunk();
+        final Chunk deliveredChunk = workload.getDeliveredChunk();
 
         try {
             if (workload.getAddiRecords().isEmpty()) {
@@ -120,10 +120,10 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      * @return ES workload
      * @throws SinkException on unhandled ChunkItem status
      */
-    EsWorkload getEsWorkloadFromChunkResult(ExternalChunk processedChunk) throws SinkException {
+    EsWorkload getEsWorkloadFromChunkResult(Chunk processedChunk) throws SinkException {
         final int numberOfItems = processedChunk.size();
         final List<AddiRecord> addiRecords = new ArrayList<>(numberOfItems);
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunk(processedChunk.getJobId(), processedChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+        final Chunk incompleteDeliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         final StopWatch stopWatch = new StopWatch();
 
@@ -167,7 +167,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         return preprocessedAddiRecords;
     }
 
-    private EsInFlight buildEsInFlight(ExternalChunk deliveredChunk, int targetReference, int iRecordsSize) throws JSONBException {
+    private EsInFlight buildEsInFlight(Chunk deliveredChunk, int targetReference, int iRecordsSize) throws JSONBException {
 
         final EsInFlight esInFlight = new EsInFlight();
         esInFlight.setResourceName(configuration.getEsResourceName());

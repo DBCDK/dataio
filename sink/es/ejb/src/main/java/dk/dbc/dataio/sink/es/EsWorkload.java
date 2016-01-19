@@ -22,19 +22,19 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 
 import java.util.List;
 
 public class EsWorkload {
-    final ExternalChunk deliveredChunk;
+    final Chunk deliveredChunk;
     final List<AddiRecord> addiRecords;
     final int userId;
     final TaskSpecificUpdateEntity.UpdateAction action;
 
-    public EsWorkload(ExternalChunk deliveredChunk, List<AddiRecord> addiRecords,
+    public EsWorkload(Chunk deliveredChunk, List<AddiRecord> addiRecords,
                       int userId, TaskSpecificUpdateEntity.UpdateAction action) {
         this.deliveredChunk = InvariantUtil.checkNotNullOrThrow(deliveredChunk, "deliveredChunk");
         this.addiRecords = InvariantUtil.checkNotNullOrThrow(addiRecords, "addiRecords");
@@ -46,7 +46,7 @@ public class EsWorkload {
         return addiRecords;
     }
 
-    public ExternalChunk getDeliveredChunk() {
+    public Chunk getDeliveredChunk() {
         return deliveredChunk;
     }
 

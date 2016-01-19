@@ -31,7 +31,7 @@ public class JmsConstants {
     public static final String SINK_ID_PROPERTY_NAME      = "id";
     public static final String SINK_VERSION_PROPERTY_NAME = "version";
 
-    public static final String CHUNK_PAYLOAD_TYPE         = "ExternalChunk";
+    public static final String CHUNK_PAYLOAD_TYPE         = "Chunk";
 
     public static final String JOB_STORE_SOURCE_VALUE     = "jobstore";
     public static final String PROCESSOR_SOURCE_VALUE     = "processor";

@@ -23,7 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -260,16 +260,16 @@ public class PgJobStore {
 
     /**
      * Adds chunk by updating existing items, chunk and job entities in the underlying data store.
-     * @param chunk external chunk
+     * @param chunk chunk
      * @return information snapshot of updated job
      * @throws NullPointerException if given null-valued chunk argument
      * @throws DuplicateChunkException if attempting to update already existing chunk
-     * @throws InvalidInputException if unable to find referenced items, if external chunk belongs to PARTITIONING phase
-     * or if external chunk contains a number of items not matching that of the internal chunk entity
+     * @throws InvalidInputException if unable to find referenced items, if chunk belongs to PARTITIONING phase
+     * or if chunk contains a number of items not matching that of the internal chunk entity
      * @throws JobStoreException if unable to find referenced chunk or job entities
      */
     @Stopwatch
-    public JobInfoSnapshot addChunk(ExternalChunk chunk) throws NullPointerException, JobStoreException {
+    public JobInfoSnapshot addChunk(Chunk chunk) throws NullPointerException, JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         LOGGER.info("Adding chunk[{},{}]", chunk.getJobId(), chunk.getChunkId());
 

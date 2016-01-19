@@ -21,8 +21,8 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -200,10 +200,10 @@ public class JobsBean {
     }
 
     /**
-     * Adds chunk with type: PROCESSED (updates existing job by adding external chunk)
+     * Adds chunk with type: PROCESSED (updates existing job by adding chunk)
      *
      * @param uriInfo application and request URI information
-     * @param externalChunkData chunk data as json
+     * @param chunkData chunk data as json
      * @param jobId job id
      * @param chunkId chunk id
      *
@@ -224,18 +224,18 @@ public class JobsBean {
     @Stopwatch
     public Response addChunkProcessed(
         @Context UriInfo uriInfo,
-        String externalChunkData,
+        String chunkData,
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
-        final ExternalChunk processedChunk;
+        final Chunk processedChunk;
         try {
-            processedChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
+            processedChunk = jsonbContext.unmarshall(chunkData, Chunk.class);
         } catch (JSONBException e) {
             return buildBadRequestResponse(e);
         }
 
-        final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.PROCESSED, processedChunk);
+        final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
 
         sendChunkAsMessageToSink(jobId, processedChunk);
 
@@ -243,10 +243,10 @@ public class JobsBean {
     }
 
     /**
-     * Adds chunk with type: DELIVERED (updates existing job by adding external chunk)
+     * Adds chunk with type: DELIVERED (updates existing job by adding chunk)
      *
      * @param uriInfo application and request URI information
-     * @param externalChunkData chunk data as json
+     * @param chunkData chunk data as json
      * @param jobId job id
      * @param chunkId chunk id
      *
@@ -267,18 +267,18 @@ public class JobsBean {
     @Stopwatch
     public Response addChunkDelivered(
         @Context UriInfo uriInfo,
-        String externalChunkData,
+        String chunkData,
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
         @PathParam(JobStoreServiceConstants.CHUNK_ID_VARIABLE) long chunkId) throws JSONBException, JobStoreException {
 
-        final ExternalChunk deliveredChunk;
+        final Chunk deliveredChunk;
         try {
-            deliveredChunk = jsonbContext.unmarshall(externalChunkData, ExternalChunk.class);
+            deliveredChunk = jsonbContext.unmarshall(chunkData, Chunk.class);
         } catch (JSONBException e) {
             return buildBadRequestResponse(e);
         }
 
-        return addChunk(uriInfo, jobId, chunkId, ExternalChunk.Type.DELIVERED, deliveredChunk);
+        return addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
     }
 
     /**
@@ -553,7 +553,7 @@ public class JobsBean {
      * @param uriInfo application and request URI information
      * @param jobId job id
      * @param chunkId chunk id
-     * @param type external chunk type (PARTITIONED, PROCESSED, DELIVERED)
+     * @param type chunk type (PARTITIONED, PROCESSED, DELIVERED)
      * @param chunk chunk data
      *
      * @return HTTP 201 CREATED response on success, HTTP 400 BAD_REQUEST response on failure to update job
@@ -564,8 +564,8 @@ public class JobsBean {
         UriInfo uriInfo,
         long jobId,
         long chunkId,
-        ExternalChunk.Type type,
-        ExternalChunk chunk) throws JobStoreException, JSONBException {
+        Chunk.Type type,
+        Chunk chunk) throws JobStoreException, JSONBException {
 
         try {
             JobError jobError = getChunkInputDataError(jobId, chunkId, chunk, type);
@@ -589,26 +589,26 @@ public class JobsBean {
      *
      * @param jobId job id
      * @param chunkId chunk id
-     * @param chunk external chunk
-     * @param type external chunk type
+     * @param chunk chunk
+     * @param type chunk type
      * @return jobError containing the relevant error message, null if input data is valid
      */
-    private JobError getChunkInputDataError(long jobId, long chunkId, ExternalChunk chunk, ExternalChunk.Type type) {
+    private JobError getChunkInputDataError(long jobId, long chunkId, Chunk chunk, Chunk.Type type) {
         JobError jobError = null;
         if(jobId != chunk.getJobId()) {
             jobError = new JobError(
                     JobError.Code.INVALID_JOB_IDENTIFIER,
-                    String.format("jobId: %s did not match ExternalChunk.jobId: %s", jobId, chunk.getJobId()),
+                    String.format("jobId: %s did not match Chunk.jobId: %s", jobId, chunk.getJobId()),
                     JobError.NO_STACKTRACE);
         } else if(chunkId != chunk.getChunkId()) {
             jobError = new JobError(
                     JobError.Code.INVALID_CHUNK_IDENTIFIER,
-                    String.format("chunkId: %s did not match ExternalChunk.chunkId: %s", chunkId, chunk.getChunkId()),
+                    String.format("chunkId: %s did not match Chunk.chunkId: %s", chunkId, chunk.getChunkId()),
                     JobError.NO_STACKTRACE);
         } else if(type != chunk.getType()) {
             jobError = new JobError(
                     JobError.Code.INVALID_CHUNK_TYPE,
-                    String.format("type: %s did not match ExternalChunk.type: %s", type, chunk.getType()),
+                    String.format("type: %s did not match Chunk.type: %s", type, chunk.getType()),
                     JobError.NO_STACKTRACE);
         }
         return jobError;
@@ -620,7 +620,7 @@ public class JobsBean {
                 .build();
     }
 
-    private void sendChunkAsMessageToSink(long jobId, ExternalChunk processedChunk) throws JobStoreException {
+    private void sendChunkAsMessageToSink(long jobId, Chunk processedChunk) throws JobStoreException {
         sinkMessageProducer.send(processedChunk, jobStoreRepository.getSinkByJobId(jobId));
     }
 

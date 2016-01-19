@@ -21,16 +21,16 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -70,11 +70,11 @@ public class OpenUpdateMessageProcessorBeanTest {
     public void handleConsumedMessage_jobStoreCommunicationFails_throws()
             throws InvalidMessageException, SinkException, JobStoreServiceConnectorException {
         final JobStoreServiceConnectorException jobStoreServiceConnectorException = new JobStoreServiceConnectorException("Exception from job-store");
-        when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong()))
+        when(jobStoreServiceConnector.addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong()))
                 .thenThrow(jobStoreServiceConnectorException);
 
         // A single ignored chunk triggers job-store communication
-        final ExternalChunk chunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(Collections.singletonList(
                         new ChunkItemBuilder()
                                 .setStatus(ChunkItem.Status.IGNORE).build()))
@@ -88,7 +88,7 @@ public class OpenUpdateMessageProcessorBeanTest {
         }
     }
 
-    private ConsumedMessage getConsumedMessageForChunk(ExternalChunk chunk) {
+    private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {
         try {
             return new ConsumedMessage("42",
                     Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE),

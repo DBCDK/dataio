@@ -23,9 +23,9 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity.UpdateAction;
@@ -101,7 +101,7 @@ public class ESTaskPackageUtilIT {
     }
 
     private EsWorkload newEsWorkload(String record) throws IOException {
-        return new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build(),
+        return new EsWorkload(new ChunkBuilder(Chunk.Type.DELIVERED).build(),
                 Collections.singletonList(newAddiRecordFromString(record)), USER_ID, ACTION);
     }
 
@@ -169,7 +169,7 @@ public class ESTaskPackageUtilIT {
         List<Integer> targetRefences=new ArrayList<>();
 
         for( int i=0; i<10 ; ++i) {
-            final EsWorkload esWorkload = new EsWorkload(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setJobId(i).build(),
+            final EsWorkload esWorkload = new EsWorkload(new ChunkBuilder(Chunk.Type.DELIVERED).setJobId(i).build(),
                     Collections.singletonList(newAddiRecordFromString(simpleAddiString)), USER_ID, ACTION);
 
 

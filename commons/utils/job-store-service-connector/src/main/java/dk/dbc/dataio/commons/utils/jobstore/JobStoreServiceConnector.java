@@ -22,7 +22,7 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -109,15 +109,15 @@ public class JobStoreServiceConnector {
     /**
      * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
      * If attempting to re-add a previously added chunk, the method locates and returns the stored job information without updating.
-     * @param chunk external chunk
+     * @param chunk chunk
      * @param jobId job id
      * @param chunkId chunk id
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException if given null-valued external chunk argument
+     * @throws NullPointerException if given null-valued chunk argument
      * @throws JobStoreServiceConnectorException on general failure to update job
-     * @throws IllegalArgumentException on invalid external chunk type
+     * @throws IllegalArgumentException on invalid chunk type
      */
-    public JobInfoSnapshot addChunkIgnoreDuplicates(ExternalChunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+    public JobInfoSnapshot addChunkIgnoreDuplicates(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: addChunkIgnoreDuplicates({}, {});", jobId, chunkId);
         final StopWatch stopWatch = new StopWatch();
         JobInfoSnapshot jobInfoSnapshot;
@@ -140,15 +140,15 @@ public class JobStoreServiceConnector {
 
     /**
      * Adds chunk and updates existing job by updating existing items, chunk and job entities in the underlying data store.
-     * @param chunk external chunk
+     * @param chunk chunk
      * @param jobId job id
      * @param chunkId chunk id
      * @return JobInfoSnapshot displaying job information from one exact moment in time.
-     * @throws NullPointerException if given null-valued external chunk argument
+     * @throws NullPointerException if given null-valued chunk argument
      * @throws JobStoreServiceConnectorException on general failure to update job
-     * @throws IllegalArgumentException on invalid external chunk type
+     * @throws IllegalArgumentException on invalid chunk type
      */
-    public JobInfoSnapshot addChunk(ExternalChunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
+    public JobInfoSnapshot addChunk(Chunk chunk, long jobId, long chunkId) throws NullPointerException, IllegalArgumentException, JobStoreServiceConnectorException {
         log.trace("JobStoreServiceConnector: addChunk({}, {});", jobId, chunkId);
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -496,12 +496,12 @@ public class JobStoreServiceConnector {
         return entity;
     }
 
-    private String chunkTypeToJobStorePath(ExternalChunk.Type chunkType) throws IllegalArgumentException {
+    private String chunkTypeToJobStorePath(Chunk.Type chunkType) throws IllegalArgumentException {
         switch (chunkType) {
             case PROCESSED:   return JobStoreServiceConstants.JOB_CHUNK_PROCESSED;
             case DELIVERED:   return JobStoreServiceConstants.JOB_CHUNK_DELIVERED;
             case PARTITIONED: throw new IllegalArgumentException("PARTITIONED is not a valid type");
-            default:          throw new IllegalArgumentException("ExternalChunk.Type could not be identified");
+            default:          throw new IllegalArgumentException("Chunk.Type could not be identified");
         }
     }
 

@@ -21,13 +21,13 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
@@ -78,7 +78,7 @@ public class EsCleanupBeanTest {
     @Before
     public void setup() throws JSONBException {
 
-        final ExternalChunk incompleteDeliveredChunk = new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).setItems(
+        final Chunk incompleteDeliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED).setItems(
                 Collections.singletonList(new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build())).build();
         String incompleteDeliveredChunkJson = new JSONBContext().marshall(incompleteDeliveredChunk);
                 
@@ -156,14 +156,14 @@ public class EsCleanupBeanTest {
         taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
         taskStatusMap.put(taskStatus_125.getTargetReference(), taskStatus_125);
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(taskStatusMap);
-        when(esConnector.getChunkForTaskPackage(anyInt(), any(ExternalChunk.class)))
-                .thenReturn(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
+        when(esConnector.getChunkForTaskPackage(anyInt(), any(Chunk.class)))
+                .thenReturn(new ChunkBuilder(Chunk.Type.DELIVERED).build());
 
         getEsCleanupBean().cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
-        verify(jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector, times(2)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -176,7 +176,7 @@ public class EsCleanupBeanTest {
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
-        verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
@@ -188,43 +188,43 @@ public class EsCleanupBeanTest {
         taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
                 .thenReturn(taskStatusMap);
-        when(esConnector.getChunkForTaskPackage(anyInt(), any(ExternalChunk.class)))
-                .thenReturn(new ExternalChunkBuilder(ExternalChunk.Type.DELIVERED).build());
+        when(esConnector.getChunkForTaskPackage(anyInt(), any(Chunk.class)))
+                .thenReturn(new ChunkBuilder(Chunk.Type.DELIVERED).build());
 
         getEsCleanupBean().cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight42_1));
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
         verify(esConnector).deleteESTaskpackages(anyListOf(Integer.class));
-        verify(jobStoreServiceConnector, times(3)).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector, times(3)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
     public void createLostChunk_fillsOutValuesCorrectly() throws JSONBException, SinkException {
         String originalChunkString = esInFlight43_1.getIncompleteDeliveredChunk();
-        ExternalChunk originalExternalChunk = new JSONBContext().unmarshall(originalChunkString, ExternalChunk.class);
+        Chunk originalChunk = new JSONBContext().unmarshall(originalChunkString, Chunk.class);
 
-        ExternalChunk lostExternalChunk = getEsCleanupBean().createLostChunk(esInFlight43_1);
-        assertThat("ModifiedExternalChunk not null", lostExternalChunk, not(nullValue()));
-        assertThat("ModifiedExternalChunk.jobId, is OriginalExternalChunk.jobId", lostExternalChunk.getJobId(), is(originalExternalChunk.getJobId()));
-        assertThat("ModifiedExternalChunk.chunkId, is OriginalExternalChunk.chunkId", lostExternalChunk.getChunkId(), is(originalExternalChunk.getChunkId()));
-        assertThat("ModifiedExternalChunk.type, is OriginalExternalChunk.type", lostExternalChunk.getType(), is(originalExternalChunk.getType()));
-        assertThat("ModifiedExternalChunk.encoding, is OriginalExternalChunk.encoding", lostExternalChunk.getEncoding(), is(originalExternalChunk.getEncoding()));
+        Chunk lostChunk = getEsCleanupBean().createLostChunk(esInFlight43_1);
+        assertThat("ModifiedChunk not null", lostChunk, not(nullValue()));
+        assertThat("ModifiedChunk.jobId, is OriginalChunk.jobId", lostChunk.getJobId(), is(originalChunk.getJobId()));
+        assertThat("ModifiedChunk.chunkId, is OriginalChunk.chunkId", lostChunk.getChunkId(), is(originalChunk.getChunkId()));
+        assertThat("ModifiedChunk.type, is OriginalChunk.type", lostChunk.getType(), is(originalChunk.getType()));
+        assertThat("ModifiedChunk.encoding, is OriginalChunk.encoding", lostChunk.getEncoding(), is(originalChunk.getEncoding()));
 
-        assertThat("OriginalExternalChunk.chunkItems.size", originalExternalChunk.size(), is(1));
-        Iterator<ChunkItem> originalChunkItemIterator = originalExternalChunk.iterator();
+        assertThat("OriginalChunk.chunkItems.size", originalChunk.size(), is(1));
+        Iterator<ChunkItem> originalChunkItemIterator = originalChunk.iterator();
         ChunkItem originalChunkItem = originalChunkItemIterator.next();
-        assertThat("OriginalExternalChunk.ChunkItem.Status", originalChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("OriginalExternalChunk.ChunkItem.Diagnostics", originalChunkItem.getDiagnostics(), is(nullValue()));
+        assertThat("OriginalChunk.ChunkItem.Status", originalChunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("OriginalChunk.ChunkItem.Diagnostics", originalChunkItem.getDiagnostics(), is(nullValue()));
 
-        assertThat(lostExternalChunk.size(), is(originalExternalChunk.size()));
-        Iterator<ChunkItem> modifiedChunkItemIterator = lostExternalChunk.iterator();
+        assertThat(lostChunk.size(), is(originalChunk.size()));
+        Iterator<ChunkItem> modifiedChunkItemIterator = lostChunk.iterator();
         ChunkItem modifiedChunkItem = modifiedChunkItemIterator.next();
-        assertThat("ModifiedExternalChunk.ChunkItem.id, is OriginalExternalChunk.ChunkItem.id", modifiedChunkItem.getId(), is(originalChunkItem.getId()));
-        assertThat("ModifiedExternalChunk.ChunkItem.data, is OriginalExternalChunk.ChunkItem.data", modifiedChunkItem.getData(), not(originalChunkItem.getData()));
-        assertThat("ModifiedExternalChunk.ChunkItem.Status", modifiedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
-        assertThat("ModifiedExternalChunk.ChunkItem.Diagnostics", modifiedChunkItem.getDiagnostics().size(), is(1));
-        assertThat("ModifiedExternalChunk.ChunkItem.Diagnostics.Stacktrace", modifiedChunkItem.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ModifiedChunk.ChunkItem.id, is OriginalChunk.ChunkItem.id", modifiedChunkItem.getId(), is(originalChunkItem.getId()));
+        assertThat("ModifiedChunk.ChunkItem.data, is OriginalChunk.ChunkItem.data", modifiedChunkItem.getData(), not(originalChunkItem.getData()));
+        assertThat("ModifiedChunk.ChunkItem.Status", modifiedChunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ModifiedChunk.ChunkItem.Diagnostics", modifiedChunkItem.getDiagnostics().size(), is(1));
+        assertThat("ModifiedChunk.ChunkItem.Diagnostics.Stacktrace", modifiedChunkItem.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
     }
 
     private EsCleanupBean getEsCleanupBean() {

@@ -37,32 +37,32 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-public class ExternalChunkTest {
+public class ChunkTest {
     private static final ChunkItem CHUNK_ITEM = new ChunkItem(0L, "data".getBytes(), ChunkItem.Status.SUCCESS);
-    private ExternalChunk chunk;
+    private Chunk chunk;
     private final JSONBContext jsonbContext = new JSONBContext();
 
     @Before
     public void newChunk() {
-        chunk = new ExternalChunk(1L, 1L, ExternalChunk.Type.PARTITIONED);
+        chunk = new Chunk(1L, 1L, Chunk.Type.PARTITIONED);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_negativeJobId_throws() {
-        new ExternalChunk(-1L, 1L, ExternalChunk.Type.PARTITIONED);
+        new Chunk(-1L, 1L, Chunk.Type.PARTITIONED);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_negativeChunkId_throws() {
-        new ExternalChunk(1L, -1L, ExternalChunk.Type.PARTITIONED);
+        new Chunk(1L, -1L, Chunk.Type.PARTITIONED);
     }
 
     @Test
     public void constructor_lowestLegalArguments_success() {
-        ExternalChunk chunk = new ExternalChunk(0L, 0L, ExternalChunk.Type.PARTITIONED);
+        Chunk chunk = new Chunk(0L, 0L, Chunk.Type.PARTITIONED);
         assertThat("job id", chunk.getJobId(), is(0L));
         assertThat("chunk id", chunk.getChunkId(), is(0L));
-        assertThat("type", chunk.getType(), is(ExternalChunk.Type.PARTITIONED));
+        assertThat("type", chunk.getType(), is(Chunk.Type.PARTITIONED));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -170,7 +170,7 @@ public class ExternalChunkTest {
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
 
-        final ExternalChunk unmarshalledChunk = jsonbContext.unmarshall(jsonbContext.marshall(chunk), ExternalChunk.class);
+        final Chunk unmarshalledChunk = jsonbContext.unmarshall(jsonbContext.marshall(chunk), Chunk.class);
         final Iterator<ChunkItem> it = unmarshalledChunk.iterator();
         assertThat("chunk has first item", it.hasNext(), is(true));
         assertThat("first item", it.next(), is(firstItem));
@@ -184,13 +184,13 @@ public class ExternalChunkTest {
     @Test(expected = JSONBException.class)
     public void unmarshallFromJsonWhichDoNotUpholdInvariant() throws JSONBException {
         final String illegalJson = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":1,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\"},{\"id\":0,\"data\":\"Second\",\"status\":\"SUCCESS\"}]}";
-        jsonbContext.unmarshall(illegalJson, ExternalChunk.class);
+        jsonbContext.unmarshall(illegalJson, Chunk.class);
     }
 
     @Test
     public void unmarshallFromJsonWithoutNext() throws JSONBException {
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\", \"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        final ExternalChunk chunk = jsonbContext.unmarshall(json, ExternalChunk.class);
+        final Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
         assertThat(chunk, is(notNullValue()));
     }
 
@@ -199,14 +199,14 @@ public class ExternalChunkTest {
 
         // Preconditions
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
-        assertThat(externalChunk, is(notNullValue()));
-        assertTrue(externalChunk.size() == 1);
+        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
+        assertThat(chunk, is(notNullValue()));
+        assertTrue(chunk.size() == 1);
 
         // Subject Under Test
-        externalChunk.addItemWithStatusSuccess(1l, new byte[0]);
-        assertTrue(externalChunk.size() == 2);
-        assertStatus(externalChunk, 1l, ChunkItem.Status.SUCCESS);
+        chunk.addItemWithStatusSuccess(1l, new byte[0]);
+        assertTrue(chunk.size() == 2);
+        assertStatus(chunk, 1l, ChunkItem.Status.SUCCESS);
     }
 
     @Test
@@ -214,14 +214,14 @@ public class ExternalChunkTest {
 
         // Preconditions
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
-        assertThat(externalChunk, is(notNullValue()));
-        assertTrue(externalChunk.size() == 1);
+        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
+        assertThat(chunk, is(notNullValue()));
+        assertTrue(chunk.size() == 1);
 
         // Subject Under Test
-        externalChunk.addItemWithStatusIgnored(1l, new byte[0]);
-        assertTrue(externalChunk.size() == 2);
-        assertStatus(externalChunk, 1l, ChunkItem.Status.IGNORE);
+        chunk.addItemWithStatusIgnored(1l, new byte[0]);
+        assertTrue(chunk.size() == 2);
+        assertStatus(chunk, 1l, ChunkItem.Status.IGNORE);
     }
 
     @Test
@@ -229,20 +229,20 @@ public class ExternalChunkTest {
 
         // Preconditions
         final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        ExternalChunk externalChunk = jsonbContext.unmarshall(json, ExternalChunk.class);
-        assertThat(externalChunk, is(notNullValue()));
-        assertTrue(externalChunk.size() == 1);
+        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
+        assertThat(chunk, is(notNullValue()));
+        assertTrue(chunk.size() == 1);
 
         // Subject Under Test
-        externalChunk.addItemWithStatusFailed(1l, new byte[0]);
-        assertTrue(externalChunk.size() == 2);
-        assertStatus(externalChunk, 1l, ChunkItem.Status.FAILURE);
+        chunk.addItemWithStatusFailed(1l, new byte[0]);
+        assertTrue(chunk.size() == 2);
+        assertStatus(chunk, 1l, ChunkItem.Status.FAILURE);
     }
 
-    private void assertStatus(ExternalChunk externalChunk, long itemIdToStatusMatch, ChunkItem.Status expectedStatus) {
+    private void assertStatus(Chunk chunk, long itemIdToStatusMatch, ChunkItem.Status expectedStatus) {
         final ChunkItem ITEM_NOT_FOUND = null;
         ChunkItem itemToMatch = ITEM_NOT_FOUND;
-        for (ChunkItem item : externalChunk) {
+        for (ChunkItem item : chunk) {
             if(item.getId() == itemIdToStatusMatch) {
                 itemToMatch = item;
             }

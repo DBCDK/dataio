@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractMessageConsumerBean;
@@ -54,14 +54,14 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, JobStoreException {
         try {
-            final ExternalChunk chunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            final Chunk chunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), Chunk.class);
             LOGGER.info("Received dead message for chunk {} of type {} in job {}",
                     chunk.getChunkId(), chunk.getType(), chunk.getJobId());
-            if (chunk.getType() == ExternalChunk.Type.PARTITIONED) {
-                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.PROCESSED, chunk, ChunkItem.Status.FAILURE));
-                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.DELIVERED, chunk, ChunkItem.Status.IGNORE));
+            if (chunk.getType() == Chunk.Type.PARTITIONED) {
+                jobStoreBean.addChunk(createDeadChunk(Chunk.Type.PROCESSED, chunk, ChunkItem.Status.FAILURE));
+                jobStoreBean.addChunk(createDeadChunk(Chunk.Type.DELIVERED, chunk, ChunkItem.Status.IGNORE));
             } else {
-                jobStoreBean.addChunk(createDeadChunk(ExternalChunk.Type.DELIVERED, chunk, ChunkItem.Status.FAILURE));
+                jobStoreBean.addChunk(createDeadChunk(Chunk.Type.DELIVERED, chunk, ChunkItem.Status.FAILURE));
             }
         } catch (JSONBException e) {
             throw new InvalidMessageException(String.format("Message<%s> payload was not valid %s type",
@@ -69,8 +69,8 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         }
     }
 
-    private ExternalChunk createDeadChunk(ExternalChunk.Type chunkType, ExternalChunk originatingChunk, ChunkItem.Status status) {
-        final ExternalChunk deadChunk = new ExternalChunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
+    private Chunk createDeadChunk(Chunk.Type chunkType, Chunk originatingChunk, ChunkItem.Status status) {
+        final Chunk deadChunk = new Chunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
         deadChunk.setEncoding(StandardCharsets.UTF_8);
         for (ChunkItem chunkItem : originatingChunk) {
             deadChunk.insertItem(new ChunkItem(chunkItem.getId(), getDeadChunkData(originatingChunk, status), status));
@@ -78,7 +78,7 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         return deadChunk;
     }
 
-    public byte[] getDeadChunkData(ExternalChunk originatingChunk, ChunkItem.Status status) {
+    public byte[] getDeadChunkData(Chunk originatingChunk, ChunkItem.Status status) {
         StringBuilder stringBuilder = new StringBuilder("Item was ");
         stringBuilder.append(status == ChunkItem.Status.FAILURE ? "failed" : "ignored");
         stringBuilder.append(String.format(

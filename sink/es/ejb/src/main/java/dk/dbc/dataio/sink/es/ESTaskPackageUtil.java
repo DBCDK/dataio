@@ -23,9 +23,9 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -193,9 +193,9 @@ public class ESTaskPackageUtil {
         return taskPackage.getTargetreference();
     }
 
-    public static ExternalChunk getChunkForTaskPackage( TaskSpecificUpdateEntity taskSpecificUpdateEntity, ExternalChunk placeholderChunk) throws SQLException {
-        final ExternalChunk chunk = new ExternalChunk(placeholderChunk.getJobId(),
-                placeholderChunk.getChunkId(), ExternalChunk.Type.DELIVERED);
+    public static Chunk getChunkForTaskPackage(TaskSpecificUpdateEntity taskSpecificUpdateEntity, Chunk placeholderChunk) throws SQLException {
+        final Chunk chunk = new Chunk(placeholderChunk.getJobId(),
+                placeholderChunk.getChunkId(), Chunk.Type.DELIVERED);
         chunk.setEncoding(placeholderChunk.getEncoding());
         final LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList =
                 new LinkedList<>(taskSpecificUpdateEntity.getTaskpackageRecordStructures());

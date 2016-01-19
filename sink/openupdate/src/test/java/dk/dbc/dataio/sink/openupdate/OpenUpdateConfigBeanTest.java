@@ -26,11 +26,11 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.OpenUpdateSinkConfigBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
@@ -70,7 +70,7 @@ public class OpenUpdateConfigBeanTest {
                 .build();
 
         sink    = new SinkBuilder().setContent(sinkContent).build();
-        PAYLOAD = new JSONBContext().marshall(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+        PAYLOAD = new JSONBContext().marshall(new ChunkBuilder(Chunk.Type.PROCESSED).build());
     }
 
     @Test

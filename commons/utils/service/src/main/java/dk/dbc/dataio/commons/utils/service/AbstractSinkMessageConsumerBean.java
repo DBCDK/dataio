@@ -22,7 +22,7 @@
 package dk.dbc.dataio.commons.utils.service;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -36,27 +36,27 @@ public abstract class AbstractSinkMessageConsumerBean extends AbstractMessageCon
      * @param consumedMessage consumed message
      * @return consumed message payload as ChunkResult
      * @throws NullPointerException if given null-valued consumedMessage
-     * @throws InvalidMessageException if message payload type differs from ExternalChunk,
+     * @throws InvalidMessageException if message payload type differs from Chunk,
      * if message payload can not be unmarshalled, or if resulting chunk contains no items.
      */
-    protected ExternalChunk unmarshallPayload(ConsumedMessage consumedMessage) throws NullPointerException, InvalidMessageException {
+    protected Chunk unmarshallPayload(ConsumedMessage consumedMessage) throws NullPointerException, InvalidMessageException {
         String payloadType = consumedMessage.getHeaderValue(JmsConstants.PAYLOAD_PROPERTY_NAME, String.class);
         if (!JmsConstants.CHUNK_PAYLOAD_TYPE.equals(payloadType)) {
             throw new InvalidMessageException(String.format("Message.headers<%s> payload type %s != %s",
                     consumedMessage.getMessageId(), payloadType, JmsConstants.CHUNK_PAYLOAD_TYPE));
         }
-        ExternalChunk processedChunk;
+        Chunk processedChunk;
         try {
-            processedChunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), ExternalChunk.class);
+            processedChunk = jsonbContext.unmarshall(consumedMessage.getMessagePayload(), Chunk.class);
         } catch (JSONBException e) {
-            throw new InvalidMessageException(String.format("Message<%s> payload was not valid ExternalChunk type",
+            throw new InvalidMessageException(String.format("Message<%s> payload was not valid Chunk type",
                     consumedMessage.getMessageId()), e);
         }
         if (processedChunk.isEmpty()) {
             throw new InvalidMessageException(String.format("Message<%s> processed chunk payload contains no results",
                     consumedMessage.getMessageId()));
         }
-        confirmLegalChunkTypeOrThrow(processedChunk, ExternalChunk.Type.PROCESSED);
+        confirmLegalChunkTypeOrThrow(processedChunk, Chunk.Type.PROCESSED);
         return processedChunk;
     }
 }

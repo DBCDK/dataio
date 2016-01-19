@@ -22,12 +22,12 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -68,9 +68,9 @@ import java.util.List;
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.IGNORE;
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
-import static dk.dbc.dataio.commons.types.ExternalChunk.Type.DELIVERED;
-import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PARTITIONED;
-import static dk.dbc.dataio.commons.types.ExternalChunk.Type.PROCESSED;
+import static dk.dbc.dataio.commons.types.Chunk.Type.DELIVERED;
+import static dk.dbc.dataio.commons.types.Chunk.Type.PARTITIONED;
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import static dk.dbc.dataio.jobstore.types.State.Phase.DELIVERING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PARTITIONING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PROCESSING;
@@ -209,7 +209,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     @Test
     public void addChunk_chunkEntityCanNotBeFound_throws() throws JobStoreException {
 
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
 
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
@@ -225,7 +225,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_jobEntityCanNotBeFound_throws() throws JobStoreException {
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING)));
@@ -240,8 +240,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void addChunk_numberOfExternalChunkItemsDiffersFromInternal_throws() throws JobStoreException {
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+    public void addChunk_numberOfChunkItemsDiffersFromInternal_throws() throws JobStoreException {
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         when(entityManager.find(eq(ChunkEntity.class), any(ChunkEntity.Key.class))).thenReturn(getChunkEntity(chunk.size() + 42, Collections.singletonList(PARTITIONING)));
@@ -257,9 +257,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     @Test
     public void addChunk_attemptToOverwriteExistingChunk_throws() throws JobStoreException {
         PgJobStore pgJobStore = null;
-        ExternalChunk chunk = null;
+        Chunk chunk = null;
         try {
-            chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+            chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
             setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
             final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
@@ -284,7 +284,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_chunkAdded_chunkEntityPhaseComplete() throws JobStoreException {
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
@@ -312,7 +312,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_finalChunkAdded_jobEntityPhaseComplete() throws JobStoreException {
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
@@ -346,7 +346,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_nonFinalChunkAdded_jobEntityPhaseIncomplete() throws JobStoreException {
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Collections.singletonList(PARTITIONING));
@@ -376,7 +376,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void addChunk_allPhasesComplete_timeOfCompletionIsSet() throws JobStoreException {
-        final ExternalChunk chunk = getExternalChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, SUCCESS, SUCCESS));
+        final Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, SUCCESS, SUCCESS));
         setItemEntityExpectations(chunk, Arrays.asList(PARTITIONING, PROCESSING));
 
         final ChunkEntity chunkEntity = getChunkEntity(chunk.size(), Arrays.asList(PARTITIONING, PROCESSING));
@@ -403,7 +403,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_itemsCanNotBeFound_throws() throws JobStoreException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(PROCESSED).build();
+        final Chunk chunk = new ChunkBuilder(PROCESSED).build();
 
         when(entityManager.find(eq(ItemEntity.class), any(ItemEntity.Key.class))).thenReturn(null);
 
@@ -419,7 +419,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
     @Test
     public void updateChunkItemEntities_itemsForPartitioningPhase_throws() throws JobStoreException {
-        final ExternalChunk chunk = new ExternalChunkBuilder(PARTITIONED).build();
+        final Chunk chunk = new ChunkBuilder(PARTITIONED).build();
         final ItemEntity itemEntity = new ItemEntity();
         itemEntity.setState(new State());
 
@@ -441,7 +441,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
                 (chunkData.get(0)),
                 (chunkData.get(1)),
                 (chunkData.get(2)));
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
@@ -476,7 +476,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
                 (chunkData.get(0)),
                 (chunkData.get(1)),
                 (chunkData.get(2)));
-        final ExternalChunk chunk = getExternalChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
+        final Chunk chunk = getChunk(DELIVERED, chunkData, Arrays.asList(SUCCESS, FAILURE, IGNORE));
         final List<ItemEntity> entities = setItemEntityExpectations(chunk, Collections.singletonList(State.Phase.PARTITIONING));
 
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
@@ -507,9 +507,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     @Test
     public void updateChunkItemEntities_attemptToOverwriteAlreadyAddedChunk_throws() throws JobStoreException {
         final List<String> chunkData = Collections.singletonList("itemData0");
-        final ExternalChunk chunk = getExternalChunk(PROCESSED, chunkData, Collections.singletonList(SUCCESS));
+        final Chunk chunk = getChunk(PROCESSED, chunkData, Collections.singletonList(SUCCESS));
         final List<String> chunkDataOverwrite = Collections.singletonList("itemData0-overwrite");
-        final ExternalChunk chunkOverwrite = getExternalChunk(PROCESSED, chunkDataOverwrite, Collections.singletonList(FAILURE));
+        final Chunk chunkOverwrite = getChunk(PROCESSED, chunkDataOverwrite, Collections.singletonList(FAILURE));
 
         setItemEntityExpectations(chunk, Collections.singletonList(PARTITIONING));
 
@@ -578,21 +578,21 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         }
     }
 
-    private ExternalChunk getExternalChunk(ExternalChunk.Type type, List<String> data, List<ChunkItem.Status> statuses) {
+    private Chunk getChunk(Chunk.Type type, List<String> data, List<ChunkItem.Status> statuses) {
         final List<ChunkItem> chunkItems = new ArrayList<>(data.size());
         final LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
         short itemId = 0;
         for (String itemData : data) {
             chunkItems.add(new ChunkItem(itemId++, StringUtil.asBytes(itemData), statusStack.pop()));
         }
-        return new ExternalChunkBuilder(type)
+        return new ChunkBuilder(type)
                 .setJobId(1)
                 .setChunkId(0)
                 .setItems(chunkItems)
                 .build();
     }
 
-    private List<ItemEntity> setItemEntityExpectations(ExternalChunk chunk, List<State.Phase> phasesDone) {
+    private List<ItemEntity> setItemEntityExpectations(Chunk chunk, List<State.Phase> phasesDone) {
         final List<ItemEntity> entities = new ArrayList<>(chunk.size());
         for (ChunkItem chunkItem : chunk) {
             final ItemEntity itemEntity = getItemEntity((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId(), phasesDone);

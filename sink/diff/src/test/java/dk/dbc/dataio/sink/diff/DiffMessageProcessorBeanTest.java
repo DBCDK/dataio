@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
@@ -31,7 +31,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -69,13 +69,13 @@ public class DiffMessageProcessorBeanTest {
     public void handleConsumedMessage_onValidInputMessage_newOutputMessageEnqueued() throws ServiceException, InvalidMessageException, JobStoreServiceConnectorException, JSONBException {
         final String messageId = "id";
         final Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
-        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setJobId(0L).setChunkId(0L).build();
         final String payload = jsonbContext.marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(messageId, headers, payload);
 
         getDiffMessageProcessorBean().handleConsumedMessage(consumedMessage);
 
-        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(ExternalChunk.class), anyLong(), anyLong());
+        verify(jobStoreServiceConnector).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
 
@@ -86,10 +86,10 @@ public class DiffMessageProcessorBeanTest {
                 new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).build()
         );
-        final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
                 .build();
-        final ExternalChunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
+        final Chunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
         assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
@@ -127,12 +127,12 @@ public class DiffMessageProcessorBeanTest {
                 new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build(),
                 new ChunkItemBuilder().setId(3L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build());
 
-        final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
                 .setNextItems(processedChunkNextItems)
                 .build();
 
-        final ExternalChunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
+        final Chunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
         assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
@@ -181,12 +181,12 @@ public class DiffMessageProcessorBeanTest {
                 new ChunkItemBuilder().setId(3L).setData(addi4).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(4L).setData(addi5).setStatus(ChunkItem.Status.SUCCESS).build());
 
-        final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
                 .setNextItems(processedChunkNextItems)
                 .build();
 
-        final ExternalChunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
+        final Chunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
         assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
@@ -232,12 +232,12 @@ public class DiffMessageProcessorBeanTest {
                 new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(2L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build());
 
-        final ExternalChunk chunkResult = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED)
+        final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
                 .setNextItems(processedChunkNextItems)
                 .build();
 
-        final ExternalChunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
+        final Chunk deliveredChunk = getDiffMessageProcessorBean().processPayload(chunkResult);
         assertThat(deliveredChunk.size(), is(processedChunkItems.size()));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));

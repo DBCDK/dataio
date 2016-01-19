@@ -2,8 +2,8 @@ package dk.dbc.dataio.sink.util;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class AddiUtil {
      * @throws NumberFormatException if any contained records are not
      * addi-format or not base64 encoded.
      */
-    public static List<AddiRecord> getAddiRecordsFromChunk(ExternalChunk chunk) throws IllegalStateException, NumberFormatException, IOException {
+    public static List<AddiRecord> getAddiRecordsFromChunk(Chunk chunk) throws IllegalStateException, NumberFormatException, IOException {
         final List<AddiRecord> addiRecords = new ArrayList<>();
         for (ChunkItem chunkItem : chunk) {
             final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));

@@ -23,9 +23,9 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
@@ -33,7 +33,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -562,7 +562,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store where a job is added
-     * When : an external chunk is added
+     * When : a chunk is added
      * Then : the job info snapshot is updated
      * And  : the referenced entities are updated
      */
@@ -587,10 +587,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Validate that nothing has been processed on item level
         assertAndReturnItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
 
-        ExternalChunk chunk = buildExternalChunk(
+        Chunk chunk = buildChunk(
                 jobInfoSnapshotNewJob.getJobId(),
                 chunkId, 1,
-                ExternalChunk.Type.PROCESSED,
+                Chunk.Type.PROCESSED,
                 ChunkItem.Status.SUCCESS);
 
         // When...
@@ -602,24 +602,24 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Then...
         assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
 
-        // Validate that one external chunk has been processed on job level
+        // Validate that one chunk has been processed on job level
         assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(PROCESSING).getSucceeded(), is(1));
         LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshotNewJob.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
         assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
 
         // And...
 
-        // Validate that one external chunk has been processed on chunk level
+        // Validate that one chunk has been processed on chunk level
         assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
 
-        // Validate that one external chunk has been processed on item level
+        // Validate that one chunk has been processed on item level
         assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
     }
 
 
     /**
      * Given: a job store where a job is added
-     * When : an external chunk with Next processing Data is added
+     * When : an chunk with Next processing Data is added
      * Then : the job info snapshot is updated
      * And  : the referenced entities are updated
      */
@@ -644,10 +644,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Validate that nothing has been processed on item level
         assertAndReturnItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
 
-        ExternalChunk chunk = buildExternalChunkWithNextItems(
+        Chunk chunk = buildChunkWithNextItems(
                 jobInfoSnapshotNewJob.getJobId(),
                 chunkId, 1,
-                ExternalChunk.Type.PROCESSED,
+                Chunk.Type.PROCESSED,
                 ChunkItem.Status.SUCCESS);
 
         // When...
@@ -659,22 +659,22 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Then...
         assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
 
-        // Validate that one external chunk has been processed on job level
+        // Validate that one chunk has been processed on job level
         assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(PROCESSING).getSucceeded(), is(1));
         LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshotNewJob.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
         assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
 
         // And...
 
-        // Validate that one external chunk has been processed on chunk level
+        // Validate that one chunk has been processed on chunk level
         assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
 
-        // Validate that one external chunk has been processed on item level
+        // Validate that one chunk has been processed on item level
         assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
 
         clearEntityManagerCache();
 
-        ExternalChunk fromDB = pgJobStore.jobStoreRepository.getChunk(ExternalChunk.Type.PROCESSED, jobInfoSnapshotNewJob.getJobId(), chunkId);
+        Chunk fromDB = pgJobStore.jobStoreRepository.getChunk(Chunk.Type.PROCESSED, jobInfoSnapshotNewJob.getJobId(), chunkId);
         assertThat(fromDB.hasNextItems(), is(true));
 
         // extra checks for next items.
@@ -691,7 +691,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store where a job is added
-     * When : the same external chunk is added twice
+     * When : the same chunk is added twice
      * Then : a DuplicateChunkException is thrown
      * And  : the DuplicateChunkException contains a JobError with Code.ILLEGAL_CHUNK
      * And  : job, chunk and item entities have not been updated after the second add.
@@ -705,11 +705,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunk(
+        Chunk chunk = buildChunk(
                 jobInfoSnapshot.getJobId(),
                 chunkId,
                 numberOfItems,
-                ExternalChunk.Type.PROCESSED,
+                Chunk.Type.PROCESSED,
                 ChunkItem.Status.SUCCESS);
 
         // When...
@@ -834,10 +834,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> jobs = addJobs(3, pgJobStore);
 
-        final ExternalChunk chunkFailedDuringProcessing = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(0).getJobId(), 0, 0, 6, ExternalChunk.Type.PROCESSED);
-        final ExternalChunk chunkFailedDuringDelivery = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(1).getJobId(), 0, 0, 6, ExternalChunk.Type.DELIVERED);
+        final Chunk chunkFailedDuringProcessing = buildChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(0).getJobId(), 0, 0, 6, Chunk.Type.PROCESSED);
+        final Chunk chunkFailedDuringDelivery = buildChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(1).getJobId(), 0, 0, 6, Chunk.Type.DELIVERED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -866,10 +866,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final List<JobInfoSnapshot> jobs = addJobs(3, pgJobStore);
 
-        final ExternalChunk chunkFailedDuringDelivery = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(0).getJobId(), 0, 0, 6, ExternalChunk.Type.DELIVERED);
-        final ExternalChunk chunkFailedDuringProcessing = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(1).getJobId(), 0, 0, 6, ExternalChunk.Type.PROCESSED);
+        final Chunk chunkFailedDuringDelivery = buildChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(0).getJobId(), 0, 0, 6, Chunk.Type.DELIVERED);
+        final Chunk chunkFailedDuringProcessing = buildChunkContainingFailedAndIgnoredItem(
+                10, jobs.get(1).getJobId(), 0, 0, 6, Chunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1057,8 +1057,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, 6, ExternalChunk.Type.PROCESSED);
+        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, 6, Chunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1093,8 +1093,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.PROCESSED);
+        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, Chunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1129,8 +1129,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.PROCESSED);
+        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, Chunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1253,10 +1253,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         transaction.commit();
 
         // Then...
-        final ExternalChunk chunk0 = pgJobStore.jobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 0);
+        final Chunk chunk0 = pgJobStore.jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 0);
         assertThat("chunk0", chunk0, is(notNullValue()));
         assertThat("chunk0.size()", chunk0.size(), is(10));
-        final ExternalChunk chunk1 = pgJobStore.jobStoreRepository.getChunk(ExternalChunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 1);
+        final Chunk chunk1 = pgJobStore.jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 1);
         assertThat("chunk1", chunk1, is(notNullValue()));
         assertThat("chunk1.size()", chunk1.size(), is(1));
     }
@@ -1318,8 +1318,8 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.PROCESSED);
+        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, Chunk.Type.PROCESSED);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1383,15 +1383,15 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk processedChunk = buildExternalChunk(jobInfoSnapshot.getJobId(), chunkId, 10, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
+        Chunk processedChunk = buildChunk(jobInfoSnapshot.getJobId(), chunkId, 10, Chunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
         pgJobStore.addChunk(processedChunk);
         chunkTransaction.commit();
 
-        ExternalChunk deliveredChunk = buildExternalChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, ExternalChunk.Type.DELIVERED);
+        Chunk deliveredChunk = buildChunkContainingFailedAndIgnoredItem(
+                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, Chunk.Type.DELIVERED);
 
         chunkTransaction.begin();
         pgJobStore.addChunk(deliveredChunk);
@@ -1441,7 +1441,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
 
-        ExternalChunk chunk = buildExternalChunkWithNextItems(jobInfoSnapshot.getJobId(), chunkId, 1, ExternalChunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
+        Chunk chunk = buildChunkWithNextItems(jobInfoSnapshot.getJobId(), chunkId, 1, Chunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
 
         final EntityTransaction chunkTransaction = entityManager.getTransaction();
         chunkTransaction.begin();
@@ -1717,16 +1717,16 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                 .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
     }
 
-    private ExternalChunk buildExternalChunk(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
+    private Chunk buildChunk(long jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         for(long i = 0; i < numberOfItems; i++) {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
         }
-        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
+        return new ChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
 
 
-    private ExternalChunk buildExternalChunkWithNextItems(long jobId, long chunkId, int numberOfItems, ExternalChunk.Type type, ChunkItem.Status status) {
+    private Chunk buildChunkWithNextItems(long jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {
         List<ChunkItem> items = new ArrayList<>();
         List<ChunkItem> nextItems = new ArrayList<>();
 
@@ -1734,10 +1734,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(status).build());
             nextItems.add(new ChunkItemBuilder().setId(i).setData("next:" + getData(type)).setStatus(status).build());
         }
-        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).setNextItems(nextItems).build();
+        return new ChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).setNextItems(nextItems).build();
     }
 
-    private ExternalChunk buildExternalChunkContainingFailedAndIgnoredItem(int numberOfItems, long jobId, long chunkId, long failedItemId, long ignoredItemId, ExternalChunk.Type type) {
+    private Chunk buildChunkContainingFailedAndIgnoredItem(int numberOfItems, long jobId, long chunkId, long failedItemId, long ignoredItemId, Chunk.Type type) {
         List<ChunkItem> items = new ArrayList<>(numberOfItems);
         for(int i = 0; i < numberOfItems; i++) {
             if(i == failedItemId) {
@@ -1748,10 +1748,10 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                 items.add(new ChunkItemBuilder().setId(i).setData(getData(type)).setStatus(ChunkItem.Status.SUCCESS).build());
             }
         }
-        return new ExternalChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
+        return new ChunkBuilder(type).setJobId(jobId).setChunkId(chunkId).setItems(items).build();
     }
 
-    private String getData(ExternalChunk.Type type) {
+    private String getData(Chunk.Type type) {
         switch (type) {
             case PARTITIONED:
                 return "partitioned test data";
@@ -1778,7 +1778,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat(itemState.getPhase(phase).getSucceeded(), is(succeeded));
         assertThat(itemState.phaseIsDone(phase), is(isPhaseDone));
         if(isPhaseDone) {
-            assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is (getData(ExternalChunk.Type.PROCESSED)));
+            assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is (getData(Chunk.Type.PROCESSED)));
         }
         return itemState;
     }

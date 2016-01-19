@@ -148,7 +148,7 @@ Mulige returværdier:
 
     POST jobs/{jobId}/chunks/{chunkId}/processed
 
-Tilføjer chunk med resultat af processeringsfasen given en **ExternalChunk** som **application/json**
+Tilføjer chunk med resultat af processeringsfasen given en **Chunk** som **application/json**
 
 Mulige returværdier:
 
@@ -156,7 +156,7 @@ Mulige returværdier:
 
     **HTTP 202 ACCEPTED** hvis chunk'en allerede eksisterer
 
-    **HTTP 400 BAD_REQUEST** i tilfælde af at input ikke er gyldig **ExternalChunk**
+    **HTTP 400 BAD_REQUEST** i tilfælde af at input ikke er gyldig **Chunk**
 
     **HTTP 400 BAD_REQUEST** i tilfælde af at items for de foregående faser ikke kunne findes
 
@@ -166,7 +166,7 @@ Mulige returværdier:
 
     POST jobs/{jobId}/chunks/{chunkId}/delivered
 
-Tilføjer chunk med resultat af afleveringssfasen given en **ExternalChunk** som **application/json**
+Tilføjer chunk med resultat af afleveringssfasen given en **Chunk** som **application/json**
 
 Mulige returværdier:
 
@@ -174,7 +174,7 @@ Mulige returværdier:
 
     **HTTP 202 ACCEPTED** hvis chunk'en allerede eksisterer
 
-    **HTTP 400 BAD_REQUEST** i tilfælde af at input ikke er gyldig **ExternalChunk**
+    **HTTP 400 BAD_REQUEST** i tilfælde af at input ikke er gyldig **Chunk**
 
     **HTTP 400 BAD_REQUEST** i tilfælde af at items for de foregående faser ikke kunne findes
 

@@ -22,12 +22,12 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -64,7 +64,7 @@ public class DmqMessageConsumerBeanTest {
         textMessage.setText("{'invalid': 'instance'}");
         dmqMessageConsumerBean.onMessage(textMessage);
         assertThat(dmqMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
-        verify(dmqMessageConsumerBean.jobStoreBean, times(0)).addChunk(any(ExternalChunk.class));
+        verify(dmqMessageConsumerBean.jobStoreBean, times(0)).addChunk(any(Chunk.class));
     }
 
     @Test(expected = InvalidMessageException.class)
@@ -81,7 +81,7 @@ public class DmqMessageConsumerBeanTest {
 
     @Test
     public void onMessage_deadPartitionedChunk_twoChunksAdded() throws JMSException, JobStoreException, JSONBException {
-        final ExternalChunk originalChunk = new ExternalChunkBuilder(ExternalChunk.Type.PARTITIONED).build();
+        final Chunk originalChunk = new ChunkBuilder(Chunk.Type.PARTITIONED).build();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
@@ -89,18 +89,18 @@ public class DmqMessageConsumerBeanTest {
         dmqMessageConsumerBean.onMessage(textMessage);
         assertThat(dmqMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
 
-        final ArgumentCaptor<ExternalChunk> chunkCaptor = ArgumentCaptor.forClass(ExternalChunk.class);
+        final ArgumentCaptor<Chunk> chunkCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(dmqMessageConsumerBean.jobStoreBean, times(2)).addChunk(chunkCaptor.capture());
-        final List<ExternalChunk> capturedChunks = chunkCaptor.getAllValues();
+        final List<Chunk> capturedChunks = chunkCaptor.getAllValues();
         assertThat("1st dead chunk size", capturedChunks.get(0).size(), is(originalChunk.size()));
-        assertThat("1st dead chunk type", capturedChunks.get(0).getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat("1st dead chunk type", capturedChunks.get(0).getType(), is(Chunk.Type.PROCESSED));
         assertThat("2nd dead chunk size", capturedChunks.get(1).size(), is(originalChunk.size()));
-        assertThat("2nd dead chunk type", capturedChunks.get(1).getType(), is(ExternalChunk.Type.DELIVERED));
+        assertThat("2nd dead chunk type", capturedChunks.get(1).getType(), is(Chunk.Type.DELIVERED));
     }
 
     @Test
     public void onMessage_deadProcessedChunk_singleChunkAdded() throws JMSException, JobStoreException, JSONBException {
-        final ExternalChunk originalChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        final Chunk originalChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.JOB_STORE_SOURCE_VALUE);
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
@@ -108,11 +108,11 @@ public class DmqMessageConsumerBeanTest {
         dmqMessageConsumerBean.onMessage(textMessage);
         assertThat(dmqMessageConsumerBean.getMessageDrivenContext().getRollbackOnly(), is(false));
 
-        final ArgumentCaptor<ExternalChunk> chunkCaptor = ArgumentCaptor.forClass(ExternalChunk.class);
+        final ArgumentCaptor<Chunk> chunkCaptor = ArgumentCaptor.forClass(Chunk.class);
         verify(dmqMessageConsumerBean.jobStoreBean, times(1)).addChunk(chunkCaptor.capture());
-        final List<ExternalChunk> capturedChunks = chunkCaptor.getAllValues();
+        final List<Chunk> capturedChunks = chunkCaptor.getAllValues();
         assertThat("dead chunk size", capturedChunks.get(0).size(), is(originalChunk.size()));
-        assertThat("dead chunk type", capturedChunks.get(0).getType(), is(ExternalChunk.Type.DELIVERED));
+        assertThat("dead chunk type", capturedChunks.get(0).getType(), is(Chunk.Type.DELIVERED));
     }
 
     private static class TestableDmqMessageConsumerBean extends DmqMessageConsumerBean {

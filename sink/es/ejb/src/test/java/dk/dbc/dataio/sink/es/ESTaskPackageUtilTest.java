@@ -22,11 +22,11 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.sink.es.entity.es.DiagnosticsEntity;
 import dk.dbc.dataio.sink.es.entity.es.SuppliedRecordsEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
@@ -59,21 +59,21 @@ public class ESTaskPackageUtilTest {
     @Test(expected = IllegalStateException.class)
     public void getAddiRecordsFromChunk_twoAddiInOneRecord_throws() throws Exception {
         final String addiWithTwoRecords = "1\na\n1\nb\n1\nc\n1\nd\n";
-        final ExternalChunk processedChunk = newProcessedChunk(addiWithTwoRecords);
+        final Chunk processedChunk = newProcessedChunk(addiWithTwoRecords);
         AddiUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test(expected = NumberFormatException.class)
     public void getAddiRecordsFromChunk_notAddi_throws() throws Exception {
         final String notAddi = "string";
-        final ExternalChunk processedChunk = newProcessedChunk(notAddi);
+        final Chunk processedChunk = newProcessedChunk(notAddi);
         AddiUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
     @Test
     public void getAddiRecordsFromChunk_singleSimpleRecordInChunk_happyPath() throws Exception {
         final String simpleAddiString = "1\na\n1\nb\n";
-        final ExternalChunk processedChunk = newProcessedChunk(simpleAddiString);
+        final Chunk processedChunk = newProcessedChunk(simpleAddiString);
 
         final List<AddiRecord> addiRecordsFromChunk = AddiUtil.getAddiRecordsFromChunk(processedChunk);
         assertThat(addiRecordsFromChunk.size(), is(1));
@@ -175,8 +175,8 @@ public class ESTaskPackageUtilTest {
                 .build();
     }
 
-    private ExternalChunk newProcessedChunk(String record) {
-        ExternalChunk processedChunk = new ExternalChunk(JOB_ID, CHUNK_ID, ExternalChunk.Type.PROCESSED);
+    private Chunk newProcessedChunk(String record) {
+        Chunk processedChunk = new Chunk(JOB_ID, CHUNK_ID, Chunk.Type.PROCESSED);
         processedChunk.insertItem(newChunkItem(record));
         processedChunk.setEncoding(ENCODING);
         return processedChunk;
@@ -195,7 +195,7 @@ public class ESTaskPackageUtilTest {
         items.add(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // in process
         items.add(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // failed with diagnostic
         items.add(new ChunkItemBuilder().setId(6).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // OK single
-        final ExternalChunk placeholderChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+        final Chunk placeholderChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
 
         TaskSpecificUpdateEntity taskPackage = new TPCreator(ES_DATABASE_NAME)
                 .addAddiRecordWithSuccess(ADDI_OK, "pid:1a")
@@ -207,7 +207,7 @@ public class ESTaskPackageUtilTest {
                 .addAddiRecordWithSuccess(ADDI_OK, "pid:6")
                 .createTaskpackageEntity();
 
-        final ExternalChunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
+        final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
         final Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.IGNORE));
@@ -246,14 +246,14 @@ public class ESTaskPackageUtilTest {
         final List<ChunkItem> items = new ArrayList<>(2);
         items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).build());
         items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());
-        final ExternalChunk placeholderChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+        final Chunk placeholderChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
 
         TaskSpecificUpdateEntity taskPackage = new TPCreator(ES_DATABASE_NAME)
                 .addAddiRecordWithSuccess(ADDI_OK, "pid:0a")
                 .addAddiRecordWithSuccess(ADDI_OK, "pid:0b")
                 .createTaskpackageEntity();
 
-        final ExternalChunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
+        final Chunk chunk = ESTaskPackageUtil.getChunkForTaskPackage( taskPackage, placeholderChunk);
         final Iterator<ChunkItem> iterator = chunk.iterator();
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));

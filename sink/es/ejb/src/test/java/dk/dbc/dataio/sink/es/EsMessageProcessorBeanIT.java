@@ -21,12 +21,12 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
@@ -58,7 +58,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         for(long i=1; i<itemsInChunk; i++) {
             items.add(new ChunkItemBuilder().setId(i).setStatus(ChunkItem.Status.FAILURE).build());
         }
-        final ExternalChunk processorChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+        final Chunk processorChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
         final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk);
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
@@ -68,7 +68,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         assertThat("Number of ES task packages in-flight", listEsInFlight().size(), is(0));
 
         // Assert that sink chunk corresponds to processor chunk and that all items are ignored:
-        final ExternalChunk sinkChunk = jobStoreServiceConnector.chunks.remove();
+        final Chunk sinkChunk = jobStoreServiceConnector.chunks.remove();
         assertThat("chunk.getJobId()", sinkChunk.getJobId(), is(processorChunk.getJobId()));
         assertThat("chunk.getChunkkId()", sinkChunk.getChunkId(), is(processorChunk.getChunkId()));
         assertThat("chunk.size()", sinkChunk.size(), is(itemsInChunk));
@@ -85,7 +85,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(getValidAddi()).build());
         items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.FAILURE).build());
         items.add(new ChunkItemBuilder().setId(3).setStatus(ChunkItem.Status.SUCCESS).setData(getValidAddiWithProcessingTrue()).build());
-        final ExternalChunk processorChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+        final Chunk processorChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
         final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk);
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
@@ -106,7 +106,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         assertThat("Number of record slots occupied by task package", esInFlight.getRecordSlots(), is(2));
 
         // Assert in-flight placeholder chunk content
-        final ExternalChunk placeholderChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), ExternalChunk.class);
+        final Chunk placeholderChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), Chunk.class);
         ChunkItem next;
         final Iterator<ChunkItem> iterator = placeholderChunk.iterator();
         iterator.next();   // IGNORE item
@@ -129,7 +129,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(getValidAddiWithMultipleRecords(3)).build());
         items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.FAILURE).build());
         items.add(new ChunkItemBuilder().setId(3).setStatus(ChunkItem.Status.SUCCESS).setData(getValidAddiWithMultipleRecordsWithProcessingTrue(2)).build());
-        final ExternalChunk processorChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(items).build();
+        final Chunk processorChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
         final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk);
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
@@ -150,7 +150,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         assertThat("Number of record slots occupied by task package", esInFlight.getRecordSlots(), is(5));
 
         // Assert in-flight placeholder chunk content
-        final ExternalChunk placeholderChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), ExternalChunk.class);
+        final Chunk placeholderChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), Chunk.class);
         ChunkItem next;
         final Iterator<ChunkItem> iterator = placeholderChunk.iterator();
         iterator.next();   // IGNORE item

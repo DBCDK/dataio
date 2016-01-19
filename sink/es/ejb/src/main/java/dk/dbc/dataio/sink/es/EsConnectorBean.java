@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.sink.es;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
@@ -97,7 +97,7 @@ public class EsConnectorBean {
         }
     }
 
-    public ExternalChunk getChunkForTaskPackage(int targetReference, ExternalChunk placeholderChunk) throws SinkException {
+    public Chunk getChunkForTaskPackage(int targetReference, Chunk placeholderChunk) throws SinkException {
 
         TaskSpecificUpdateEntity tpu = entityManager.find(TaskSpecificUpdateEntity.class, targetReference);
         entityManager.refresh( tpu ); // Force Reload of Task package from DB after changes from TPWorkers

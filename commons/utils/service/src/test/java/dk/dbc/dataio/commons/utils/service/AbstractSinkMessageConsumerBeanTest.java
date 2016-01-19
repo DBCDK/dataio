@@ -21,14 +21,14 @@
 
 package dk.dbc.dataio.commons.utils.service;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsMessageDrivenContext;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -50,7 +50,7 @@ public class AbstractSinkMessageConsumerBeanTest {
     
     @Before
     public void setup() throws JSONBException {
-        ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build();
+        Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         PAYLOAD = jsonbContext.marshall(processedChunk);
     }
 
@@ -75,7 +75,7 @@ public class AbstractSinkMessageConsumerBeanTest {
 
     @Test(expected = InvalidMessageException.class)
     public void unmarshallPayload_consumedMessageArgPayloadIsEmptyProcessedChunk_throws() throws InvalidMessageException, JSONBException {
-        ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
+        Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.<ChunkItem>emptyList()).build();
         final String emptyProcessedChunkJson = jsonbContext.marshall(processedChunk);
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, emptyProcessedChunkJson);
         getInitializedBean().unmarshallPayload(consumedMessage);
@@ -84,9 +84,9 @@ public class AbstractSinkMessageConsumerBeanTest {
     @Test
     public void unmarshallPayload_consumedMessageArgIsValid_returnsProcessedChunkInstance() throws InvalidMessageException {
         final ConsumedMessage consumedMessage = new ConsumedMessage(MESSAGE_ID, headers, PAYLOAD);
-        final ExternalChunk processedChunk = getInitializedBean().unmarshallPayload(consumedMessage);
+        final Chunk processedChunk = getInitializedBean().unmarshallPayload(consumedMessage);
         assertThat(processedChunk, is(notNullValue()));
-        assertThat(processedChunk.getType(), is(ExternalChunk.Type.PROCESSED));
+        assertThat(processedChunk.getType(), is(Chunk.Type.PROCESSED));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

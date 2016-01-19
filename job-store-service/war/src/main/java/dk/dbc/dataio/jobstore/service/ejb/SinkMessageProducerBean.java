@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -65,7 +65,7 @@ public class SinkMessageProducerBean {
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send given processor result to destination
      */
-    public void send(ExternalChunk processedChunk, Sink destination) throws NullPointerException, JobStoreException {
+    public void send(Chunk processedChunk, Sink destination) throws NullPointerException, JobStoreException {
 
         LOGGER.info("Sending processor for chunk {} in job {} to sink {}",
                 processedChunk.getChunkId(),
@@ -109,7 +109,7 @@ public class SinkMessageProducerBean {
      * @throws JSONBException when unable to marshall processor result instance to JSON
      * @throws JMSException when unable to create JMS message
      */
-    public TextMessage createMessage(JMSContext context, ExternalChunk processedChunk, Sink destination) throws JMSException, JSONBException {
+    public TextMessage createMessage(JMSContext context, Chunk processedChunk, Sink destination) throws JMSException, JSONBException {
         final TextMessage message = context.createTextMessage(jsonbContext.marshall(processedChunk));
         message.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         message.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);

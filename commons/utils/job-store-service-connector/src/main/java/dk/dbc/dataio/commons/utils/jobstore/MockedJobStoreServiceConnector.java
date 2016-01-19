@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.commons.utils.jobstore;
 
-import dk.dbc.dataio.commons.types.ExternalChunk;
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -37,7 +37,7 @@ import java.util.Queue;
 public class MockedJobStoreServiceConnector extends JobStoreServiceConnector {
     public Queue<JobInputStream> jobInputStreams;
     public Queue<JobInfoSnapshot> jobInfoSnapshots;
-    public Queue<ExternalChunk> chunks;
+    public Queue<Chunk> chunks;
 
     public MockedJobStoreServiceConnector() throws NullPointerException, IllegalArgumentException {
         super(HttpClient.newClient(), "baseurl");
@@ -53,7 +53,7 @@ public class MockedJobStoreServiceConnector extends JobStoreServiceConnector {
     }
 
     @Override
-    public JobInfoSnapshot addChunk(ExternalChunk chunk, long jobId, long chunkId) {
+    public JobInfoSnapshot addChunk(Chunk chunk, long jobId, long chunkId) {
         chunks.add(chunk);
         return jobInfoSnapshots.remove();
     }

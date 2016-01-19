@@ -21,11 +21,11 @@
 
 package dk.dbc.dataio.sink.fbs.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ExternalChunk;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ExternalChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.dataio.sink.fbs.types.FbsUpdateConnectorException;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -59,7 +59,7 @@ public class FbsPusherBeanTest {
         final String inData1 = "one";
         final String inData2 = "two";
         final String inData3 = "three";
-        final ExternalChunk processedChunk = new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).setItems(new ArrayList<ChunkItem>()).build();
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(new ArrayList<ChunkItem>()).build();
         processedChunk.insertItem(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(inData0)).build());
         processedChunk.insertItem(new ChunkItemBuilder().setId(1).setData(StringUtil.asBytes(inData1)).build());
         processedChunk.insertItem(new ChunkItemBuilder().setId(2).setData(StringUtil.asBytes(inData2)).build());
@@ -83,8 +83,8 @@ public class FbsPusherBeanTest {
         when(fbsUpdateConnector.updateMarcExchange(eq(inData2), anyString())).thenThrow(new IllegalStateException());
         when(fbsUpdateConnector.updateMarcExchange(eq(inData3), anyString())).thenReturn(updateMarcXchangeResultFailed);
 
-        final ExternalChunk deliveredChunk = fbsPusherBean.push(processedChunk);
-        assertThat(deliveredChunk.getType(), is(ExternalChunk.Type.DELIVERED));
+        final Chunk deliveredChunk = fbsPusherBean.push(processedChunk);
+        assertThat(deliveredChunk.getType(), is(Chunk.Type.DELIVERED));
         assertThat(deliveredChunk.size(), is(6));
         Iterator<ChunkItem> iterator = deliveredChunk.iterator();
         assertThat(iterator.hasNext(), is(true));
@@ -114,7 +114,7 @@ public class FbsPusherBeanTest {
     public void push_connectorThrowsWebServiceException_throws() throws FbsUpdateConnectorException {
         when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
         when(fbsUpdateConnector.updateMarcExchange(anyString(), anyString())).thenThrow(new WebServiceException("died"));
-        fbsPusherBean.push(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+        fbsPusherBean.push(new ChunkBuilder(Chunk.Type.PROCESSED).build());
     }
 
     @Test(expected = WebServiceException.class)
@@ -123,7 +123,7 @@ public class FbsPusherBeanTest {
         updateMarcXchangeResultResendLater.setUpdateMarcXchangeStatus(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER);
         when(fbsUpdateConnectorBean.getConnector()).thenReturn(fbsUpdateConnector);
         when(fbsUpdateConnector.updateMarcExchange(anyString(), anyString())).thenReturn(updateMarcXchangeResultResendLater);
-        fbsPusherBean.push(new ExternalChunkBuilder(ExternalChunk.Type.PROCESSED).build());
+        fbsPusherBean.push(new ChunkBuilder(Chunk.Type.PROCESSED).build());
     }
 
     private FbsPusherBean getInitializedBean() {

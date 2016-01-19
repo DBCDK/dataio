@@ -58,11 +58,6 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
             "e01 00 *aThis is the third diagnostic FATAL message\n";
 
     @Test
-    public void tjekLigeOmJegManglerNogetTestHer() {
-        assertThat(true, is(false));
-    }
-
-    @Test
     public void convert_invalidMarc_throws() throws MarcReaderException, JobStoreException {
         final ChunkItem chunkItem = buildChunkItem("invalid", ChunkItem.Status.FAILURE);
         final MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();

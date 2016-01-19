@@ -96,9 +96,7 @@ public class AddiRecordsToItemWrapper {
                 .findFirst();
 
         ChunkItem chunkItem = new ChunkItem(processedChunkItem.getId(),
-                asBytes(this.getItemContentCrossAddiRecords()),
-                failed.isPresent() ? ChunkItem.Status.FAILURE : ChunkItem.Status.SUCCESS);
-        //TODO => once slf's get diagnostics method has been implemented, this can simply be set to ChunkItem.Status.SUCCESS
+                asBytes(this.getItemContentCrossAddiRecords()), ChunkItem.Status.SUCCESS);
 
         if(failed.isPresent()) {
             diagnostics.stream().forEach(chunkItem::appendDiagnostics);
@@ -129,7 +127,11 @@ public class AddiRecordsToItemWrapper {
            else {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
                 crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));
-                //TODO => call slf's get diagnostics method from here and append to diagnostics
+
+                UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
+                List<Diagnostic> errorDiagnostics = updateRecordErrorInterpreter.getDiagnostics(webserviceResult, addiRecord.getContentData());
+                diagnostics.addAll(errorDiagnostics);
+
                 return AddiStatus.FAILED_VALIDATION;
             }
         } catch (Throwable t) {

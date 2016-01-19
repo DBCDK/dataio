@@ -37,6 +37,7 @@ import java.util.UUID;
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
@@ -116,7 +117,8 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
         assertTrue(chunkItemDataAsString.contains("message"));
         assertTrue(StringUtils.countMatches(chunkItemDataAsString, "<message>") == 3);
-        assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue())); //TODO => once slf's get diagnostics method has been implemented, this should no longer apply
+        assertThat(chunkItemForDelivery.getDiagnostics(), is(notNullValue()));
+        assertThat(chunkItemForDelivery.getDiagnostics().size(), is(3));
     }
 
     @Test

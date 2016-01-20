@@ -41,15 +41,15 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
     final DanMarc2LineFormatWriter writer = new DanMarc2LineFormatWriter();
 
     @Override
-    public byte[] convert(ChunkItem chunkItem, Charset encodedAs) throws JobStoreException {
-        final MarcRecord record;
+    public byte[] convert(ChunkItem chunkItem, Charset encodedAs, List<Diagnostic> diagnostics) throws JobStoreException {
+       final MarcRecord record;
         try {
             record = new MarcXchangeV1Reader(getChunkItemInputStream(chunkItem), chunkItem.getEncoding()).read();
         } catch (MarcReaderException e) {
             throw new JobStoreException("Error reading chunk item data as MarcXchange", e);
         }
 
-        addDiagnosticsToMarcRecord(chunkItem.getDiagnostics(), record);
+        addDiagnosticsToMarcRecord(diagnostics, record);
 
         try {
             return writer.write(record, encodedAs);
@@ -63,7 +63,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverter implements ChunkItemConv
     }
 
     private void addDiagnosticsToMarcRecord(List<Diagnostic> diagnostics, MarcRecord record) {
-        if(diagnostics != null) {
+        if (diagnostics != null) {
             for (Diagnostic diagnostic : diagnostics) {
                 SubField subField = new SubField().setCode('a').setData(diagnostic.getMessage());
                 DataField dataField = new DataField().setTag("e01").setInd1('0').setInd2('0').addSubfield(subField);

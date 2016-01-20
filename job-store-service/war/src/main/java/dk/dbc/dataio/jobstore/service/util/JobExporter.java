@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemListQuery;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -36,6 +37,7 @@ import javax.persistence.EntityManager;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -106,9 +108,10 @@ public class JobExporter {
 
     byte[] exportFailedItem(ItemEntity item, ChunkItem.Type asType, Charset encodedAs) {
         final State.Phase failedPhase = item.getFailedPhase().get();
-        final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(item, item.getFailedPhase().get());
+        final ChunkItem chunkItem = getExportableChunkItemForFailedPhase(item, failedPhase);
+        final List<Diagnostic> diagnostics = getDiagnosticsForFailedPhase(item, failedPhase);
         try {
-            return chunkItemExporter.export(chunkItem, asType, encodedAs);
+            return chunkItemExporter.export(chunkItem, asType, encodedAs, diagnostics);
         } catch (JobStoreException e) {
             LOGGER.error(String.format("Export unsuccessful for item %s failed in phase %s",
                     item.getKey(), failedPhase), e);
@@ -132,5 +135,13 @@ public class JobExporter {
             case DELIVERING:   return entity.getProcessingOutcome();
             default: throw new IllegalStateException("Unknown phase " + failedPhase);
         }
+    }
+
+    List<Diagnostic> getDiagnosticsForFailedPhase(ItemEntity entity, State.Phase failedPhase) {
+        final ChunkItem chunkItem = entity.getChunkItemForPhase(failedPhase);
+        if (chunkItem == null) {
+            return Collections.emptyList();
+        }
+        return chunkItem.getDiagnostics();
     }
 }

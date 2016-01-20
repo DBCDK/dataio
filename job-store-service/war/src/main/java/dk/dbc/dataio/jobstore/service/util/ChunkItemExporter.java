@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 
@@ -59,15 +60,18 @@ public class ChunkItemExporter {
      * @param chunkItem chunk item to be exported
      * @param asType type of export
      * @param encodedAs export encoding
+     * @param diagnostics diagnostics to include in exported item if supported by conversion
      * @return export as bytes
      * @throws NullPointerException if given null-valued argument
      * @throws JobStoreException on unwrap error, on illegal type conversion, on failure to read input data
      * or on failure to write output data
      */
-    public byte[] export(ChunkItem chunkItem, ChunkItem.Type asType, Charset encodedAs) throws NullPointerException, JobStoreException {
+    public byte[] export(ChunkItem chunkItem, ChunkItem.Type asType, Charset encodedAs, List<Diagnostic> diagnostics)
+            throws NullPointerException, JobStoreException {
         InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         InvariantUtil.checkNotNullOrThrow(asType, "asType");
         InvariantUtil.checkNotNullOrThrow(encodedAs, "encodedAs");
+        InvariantUtil.checkNotNullOrThrow(diagnostics, "diagnostics");
 
         final List<ChunkItem> chunkItems = unwrap(chunkItem);
         final Conversion conversion = new Conversion(chunkItems.get(0).getType().get(0), asType);
@@ -77,7 +81,7 @@ public class ChunkItemExporter {
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         for (ChunkItem item : chunkItems) {
             try {
-                byteArrayOutputStream.write(conversions.get(conversion).convert(item, encodedAs));
+                byteArrayOutputStream.write(conversions.get(conversion).convert(item, encodedAs, diagnostics));
             } catch (IOException e) {
                 throw new JobStoreException("Exception caught while writing output bytes", e);
             }

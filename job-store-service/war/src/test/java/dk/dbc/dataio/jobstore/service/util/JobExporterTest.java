@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -38,11 +39,13 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -111,8 +114,26 @@ public class JobExporterTest {
     }
 
     @Test
+    public void getDiagnosticsForFailedPhase_entityHasNoFailedPhase_returnsEmptyList() {
+        final ItemEntity itemEntity = createItemEntity();
+        final List<Diagnostic> diagnostics = jobExporter.getDiagnosticsForFailedPhase(itemEntity, State.Phase.PARTITIONING);
+        assertThat(diagnostics, is(Collections.emptyList()));
+    }
+
+    @Test
+    public void getDiagnosticsForFailedPhase_entityHasFailedPhase_returnsDiagnosticsForPhase() {
+        final ItemEntity itemEntity = createItemEntity();
+        setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, "data");
+        final ChunkItem chunkItem = itemEntity.getChunkItemForPhase(State.Phase.PARTITIONING);
+        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "message"));
+
+        final List<Diagnostic> diagnostics = jobExporter.getDiagnosticsForFailedPhase(itemEntity, State.Phase.PARTITIONING);
+        assertThat(diagnostics, is(chunkItem.getDiagnostics()));
+    }
+
+    @Test
     public void exportFailedItem() throws JobStoreException {
-        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8)))
+        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyListOf(Diagnostic.class)))
                 .thenAnswer(invocation -> {
                     final Object[] args = invocation.getArguments();
                     final ChunkItem chunkItem = (ChunkItem) args[0];
@@ -130,7 +151,7 @@ public class JobExporterTest {
 
     @Test
     public void exportFailedItem_chunkItemExporterThrows_returnsEmptyByteArray() throws JobStoreException {
-        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8)))
+        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyListOf(Diagnostic.class)))
                 .thenThrow(new JobStoreException("Died"));
 
         final ItemEntity itemEntity = createItemEntity();
@@ -147,7 +168,7 @@ public class JobExporterTest {
 
         // Force the first ChunkItemExporter.export() to throw to verify
         // that loop iteration continues.
-        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8)))
+        when(chunkItemExporter.export(any(ChunkItem.class), eq(ChunkItem.Type.STRING), eq(StandardCharsets.UTF_8), anyListOf(Diagnostic.class)))
                 .thenThrow(new JobStoreException("Died"))
                 .thenAnswer(invocation -> {
                     final Object[] args = invocation.getArguments();

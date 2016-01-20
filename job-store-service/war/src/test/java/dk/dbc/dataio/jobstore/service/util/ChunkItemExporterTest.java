@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -39,6 +40,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -47,6 +49,7 @@ import static org.junit.Assert.fail;
 public class ChunkItemExporterTest {
     private final Charset encoding = StandardCharsets.UTF_8;
     private final MarcRecord marcRecord = getMarcRecord();
+    private final List<Diagnostic> diagnostics = Collections.emptyList();
     private final byte[] marcXchange = getMarcRecordAsMarcXchange(marcRecord);
     private final byte[] danMarc2LineFormat = getMarcRecordAsDanMarc2LineFormat(marcRecord);
     private final ChunkItemExporter chunkItemExporter = new ChunkItemExporter();
@@ -58,7 +61,7 @@ public class ChunkItemExporterTest {
     @Test
     public void export_chunkItemArgIsNull_throws() throws JobStoreException {
         try {
-            chunkItemExporter.export(null, ChunkItem.Type.DANMARC2LINEFORMAT, encoding);
+            chunkItemExporter.export(null, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, diagnostics);
             fail("No NullPointerException thrown");
         } catch (NullPointerException e) {
         }
@@ -67,7 +70,7 @@ public class ChunkItemExporterTest {
     @Test
     public void export_asTypeArgIsNull_throws() throws JobStoreException {
         try {
-            chunkItemExporter.export(chunkItem, null, encoding);
+            chunkItemExporter.export(chunkItem, null, encoding, diagnostics);
             fail("No NullPointerException thrown");
         } catch (NullPointerException e) {
         }
@@ -76,7 +79,16 @@ public class ChunkItemExporterTest {
     @Test
     public void export_encodedAsArgIsNull_throws() throws JobStoreException {
         try {
-            chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, null);
+            chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, null, diagnostics);
+            fail("No NullPointerException thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void export_diagnosticsArgIsNull_throws() throws JobStoreException {
+        try {
+            chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, null);
             fail("No NullPointerException thrown");
         } catch (NullPointerException e) {
         }
@@ -85,7 +97,7 @@ public class ChunkItemExporterTest {
     @Test
     public void export_illegalConversion_throws() throws JobStoreException {
         try {
-            chunkItemExporter.export(chunkItem, ChunkItem.Type.ADDI, encoding);
+            chunkItemExporter.export(chunkItem, ChunkItem.Type.ADDI, encoding, diagnostics);
             fail("No JobStoreException thrown");
         } catch (JobStoreException e) {
         }
@@ -93,7 +105,7 @@ public class ChunkItemExporterTest {
 
     @Test
     public void export_chunkItemWithMarcXchange_canBeExportedAsDanMarc2LineFormat() throws JobStoreException {
-        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding);
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, diagnostics);
         assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat)));
     }
 
@@ -103,7 +115,7 @@ public class ChunkItemExporterTest {
                 .setType(ChunkItem.Type.UNKNOWN)
                 .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange)))
                 .build();
-        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding);
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, diagnostics);
         assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat)));
     }
 
@@ -113,7 +125,7 @@ public class ChunkItemExporterTest {
                 .setType(Arrays.asList(ChunkItem.Type.ADDI, ChunkItem.Type.MARCXCHANGE))
                 .setData(AddiUnwrapperTest.getValidAddi(StringUtil.asString(marcXchange), StringUtil.asString(marcXchange)))
                 .build();
-        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding);
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.DANMARC2LINEFORMAT, encoding, diagnostics);
         assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat) + StringUtil.asString(danMarc2LineFormat)));
     }
 

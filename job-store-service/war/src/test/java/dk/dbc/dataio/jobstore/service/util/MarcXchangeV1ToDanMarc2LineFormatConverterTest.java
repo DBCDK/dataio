@@ -116,7 +116,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     @Test
     public void convert_chunkItemWithDiagnosticsAndATagField_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
-        chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "", "Tag Field", ""));
+        chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "Tag Field", ""));
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
@@ -129,7 +129,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     @Test
     public void convert_chunkItemWithDiagnosticsAndAnAttributeField_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
-        chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "", "", "Att Field"));
+        chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "", "Att Field"));
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
@@ -142,7 +142,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     @Test
     public void convert_chunkItemWithDiagnosticsAndBothTagAndAttributeFields_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
-        chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "", "Tag Field", "Att Field"));
+        chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "Tag Field", "Att Field"));
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);

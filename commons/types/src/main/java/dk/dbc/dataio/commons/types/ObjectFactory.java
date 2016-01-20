@@ -91,15 +91,14 @@ public class ObjectFactory {
     }
 
     /**
-     * Builds a new fatal diagnostic with given message, stacktrace, tag and attribute
+     * Builds a new fatal diagnostic with given message, tag and attribute
      * @param message of the diagnostic
-     * @param stacktrace of the diagnostic
      * @param tag of the diagnostic
      * @param attribute of the diagnostic
      * @return diagnostic
      */
-    public static Diagnostic buildFatalDiagnostic(String message, String stacktrace, String tag, String attribute) {
-        return new Diagnostic(Diagnostic.Level.FATAL, message, stacktrace, tag, attribute);
+    public static Diagnostic buildFatalDiagnostic(String message, String tag, String attribute) {
+        return new Diagnostic(Diagnostic.Level.FATAL, message, null, tag, attribute);
     }
 
     /**

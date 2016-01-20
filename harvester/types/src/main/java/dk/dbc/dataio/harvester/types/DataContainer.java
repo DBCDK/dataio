@@ -56,6 +56,7 @@ public class DataContainer implements HarvesterXmlRecord {
     private String creationDate = null;
     private String enrichmentTrail = null;
     private Element data;
+    private String trackingId;
 
     /**
      * Class constructor
@@ -140,6 +141,10 @@ public class DataContainer implements HarvesterXmlRecord {
         this.data = data;
     }
 
+    public void setTrackingId(String trackingId) {
+        this.trackingId = trackingId;
+    }
+
     private void appendDataSupplementary(Document dataContainer) {
         final Element dataSupplementaryElement = dataContainer.createElement(DATA_SUPPLEMENTARY_ELEMENT_NAME);
         if (creationDate != null) {
@@ -151,6 +156,11 @@ public class DataContainer implements HarvesterXmlRecord {
             final Element enrichmentTrailElement = dataContainer.createElement("enrichmentTrail");
             enrichmentTrailElement.setTextContent(this.enrichmentTrail);
             dataSupplementaryElement.appendChild(enrichmentTrailElement);
+        }
+        if(trackingId != null) {
+            final Element trackingIdElement = dataContainer.createElement("trackingId");
+            trackingIdElement.setTextContent(this.trackingId);
+            dataSupplementaryElement.appendChild(trackingIdElement);
         }
         dataContainer.getDocumentElement().appendChild(dataSupplementaryElement);
     }

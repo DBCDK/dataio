@@ -61,6 +61,9 @@ public class DataContainerTest {
               "</marcx:record>" +
             "</marcx:collection>";
 
+    private final String enrichmentTrail = "trail";
+    private final String trackingId = "DBCTrackingId";
+
     @Test(expected = NullPointerException.class)
     public void constructor_documentBuilderArgIsNull_throws() {
         new DataContainer(null, getTransformer());
@@ -118,6 +121,12 @@ public class DataContainerTest {
     }
 
     @Test
+    public void setTrackingId_trackingIdArgIsNull_returns() throws HarvesterException {
+        final DataContainer dataContainer = getDataContainer();
+        dataContainer.setTrackingId(null);
+    }
+
+    @Test
     public void asDocument_dataContainerHasSupplementaryData_documentRepresentationHasNonEmptySupplementaryData()
             throws HarvesterException, IOException, TransformerException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(getDocumentBuilder(), getTransformer());
@@ -125,13 +134,15 @@ public class DataContainerTest {
 
         Map<String, String> expectedSupplementaryData = new HashMap<>();
         final Date expectedDate = new Date();
-        final String expectedEnrichmentTrail = "trail";
+
         expectedSupplementaryData.put("creationDate", new SimpleDateFormat("YYYYMMdd").format(expectedDate));
-        expectedSupplementaryData.put("enrichmentTrail", expectedEnrichmentTrail);
+        expectedSupplementaryData.put("enrichmentTrail", enrichmentTrail);
+        expectedSupplementaryData.put("trackingId", trackingId);
 
         final DataContainer dataContainer = getDataContainer();
         dataContainer.setCreationDate(expectedDate);
-        dataContainer.setEnrichmentTrail(expectedEnrichmentTrail);
+        dataContainer.setEnrichmentTrail(enrichmentTrail);
+        dataContainer.setTrackingId(trackingId);
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
         assertDataContainerDocument(dataContainer.asDocument(), expectedSupplementaryData);
@@ -146,7 +157,7 @@ public class DataContainerTest {
         final DataContainer dataContainer = getDataContainer();
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
-        assertDataContainerDocument(dataContainer.asDocument(), new HashMap<String, String>(0));
+        assertDataContainerDocument(dataContainer.asDocument(), new HashMap<>(0));
     }
 
     @Test
@@ -157,13 +168,14 @@ public class DataContainerTest {
 
         Map<String, String> expectedSupplementaryData = new HashMap<>();
         final Date expectedDate = new Date();
-        final String expectedEnrichmentTrail = "trail";
         expectedSupplementaryData.put("creationDate", new SimpleDateFormat("YYYYMMdd").format(expectedDate));
-        expectedSupplementaryData.put("enrichmentTrail", expectedEnrichmentTrail);
+        expectedSupplementaryData.put("enrichmentTrail", enrichmentTrail);
+        expectedSupplementaryData.put("trackingId", trackingId);
 
         final DataContainer dataContainer = getDataContainer();
         dataContainer.setCreationDate(expectedDate);
-        dataContainer.setEnrichmentTrail(expectedEnrichmentTrail);
+        dataContainer.setEnrichmentTrail(enrichmentTrail);
+        dataContainer.setTrackingId(trackingId);
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
         assertDataContainerDocument(asDocument(dataContainer.asBytes()), expectedSupplementaryData);
@@ -178,8 +190,12 @@ public class DataContainerTest {
         final DataContainer dataContainer = getDataContainer();
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
-        assertDataContainerDocument(asDocument(dataContainer.asBytes()), new HashMap<String, String>(0));
+        assertDataContainerDocument(asDocument(dataContainer.asBytes()), new HashMap<>(0));
     }
+
+    /*
+     * Private methods
+     */
 
     private void assertDataContainerDocument(Document dataContainerDocument, Map<String, String> expectedSupplementaryData)
             throws HarvesterInvalidRecordException, IOException, TransformerException {

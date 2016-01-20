@@ -24,8 +24,6 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 
-import java.util.Optional;
-
 /**
  * This class encapsulates a data partitioner result containing the actual chunk item as
  * well as record meta data
@@ -39,11 +37,40 @@ public class DataPartitionerResult {
         this.recordInfo = recordInfo;
     }
 
-    public Optional<ChunkItem> getChunkItem() {
-        return chunkItem != null ? Optional.of(chunkItem) : Optional.empty();
+    public ChunkItem getChunkItem() {
+        return chunkItem;
     }
 
-    public Optional<RecordInfo> getRecordInfo() {
-        return recordInfo != null ? Optional.of(recordInfo) : Optional.empty();
+    public RecordInfo getRecordInfo() {
+        return recordInfo;
+    }
+
+    public boolean isEmpty() {
+        return chunkItem == null && recordInfo == null;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DataPartitionerResult that = (DataPartitionerResult) o;
+
+        if (chunkItem != null ? !chunkItem.equals(that.chunkItem) : that.chunkItem != null) {
+            return false;
+        }
+        return recordInfo != null ? recordInfo.equals(that.recordInfo) : that.recordInfo == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = chunkItem != null ? chunkItem.hashCode() : 0;
+        result = 31 * result + (recordInfo != null ? recordInfo.hashCode() : 0);
+        return result;
     }
 }

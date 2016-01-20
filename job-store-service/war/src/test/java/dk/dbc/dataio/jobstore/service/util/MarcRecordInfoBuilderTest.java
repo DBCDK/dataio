@@ -138,12 +138,12 @@ public class MarcRecordInfoBuilderTest {
         assertThat("isDelete()", recordInfo.isDelete(), is(true));
     }
 
-    private MarcRecord getMarcRecord(DataField... dataFields) {
+    public static MarcRecord getMarcRecord(DataField... dataFields) {
         return new MarcRecord()
                 .addAllFields(Arrays.asList(dataFields));
     }
 
-    private DataField get001(String a) {
+    public static DataField get001(String a) {
         return new DataField()
                 .setTag("001")
                 .addSubfield(
@@ -156,7 +156,7 @@ public class MarcRecordInfoBuilderTest {
                         .setData(a));
     }
 
-    private DataField get004(String a, String r) {
+    public static DataField get004(String a, String r) {
         return new DataField()
                 .setTag("004")
                 .addSubfield(
@@ -169,7 +169,7 @@ public class MarcRecordInfoBuilderTest {
                         .setData(r));
     }
 
-    private DataField get014(String a) {
+    public static DataField get014(String a) {
         return new DataField()
                 .setTag("014")
                 .addSubfield(

@@ -34,6 +34,7 @@ public class MockedRecord implements Record {
     private Date modified;
     private String mimeType;
     private String enrichmentTrail;
+    private String trackingId;
 
     public MockedRecord(RecordId recordId, boolean isOriginal) {
         this.recordId = recordId;
@@ -42,6 +43,7 @@ public class MockedRecord implements Record {
         this.isEnriched = false;
         this.mimeType = "mimeType";
         enrichmentTrail = null;
+        trackingId = null;
         content = null;
         created = modified = new Date();
     }
@@ -137,12 +139,12 @@ public class MockedRecord implements Record {
 
     @Override
     public String getTrackingId() {
-        return null;
+        return trackingId;
     }
 
     @Override
-    public void setTrackingId(String s) {
-
+    public void setTrackingId(String trackingId) {
+        this.trackingId = trackingId;
     }
 
     @Override

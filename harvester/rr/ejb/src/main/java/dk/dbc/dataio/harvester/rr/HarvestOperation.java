@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.types.DataContainer;
@@ -40,6 +41,7 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -156,27 +158,35 @@ public class HarvestOperation {
        and record creation date as supplementary data.
      */
     private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
-        final Map<String, Record> records;
         try {
-            records = rawRepoConnector.fetchRecordCollection(recordId);
-        } catch (SQLException | RawRepoException | MarcXMergerException e) {
-            throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
-        }
-        LOGGER.debug("Fetched rawrepo collection<{}> for {}", records.values(), recordId);
-        if (records.isEmpty()) {
-            throw new HarvesterInvalidRecordException("Empty rawrepo collection returned for " + recordId.toString());
-        }
-        if (!records.containsKey(recordId.getBibliographicRecordId())) {
-            throw new HarvesterInvalidRecordException(String.format(
-                    "Record %s was not found in returned collection", recordId.toString()));
-        }
+            final Map<String, Record> records;
+            final String trackingId;
+            try {
+                records = rawRepoConnector.fetchRecordCollection(recordId);
+                trackingId = getTrackingId(recordId, records);
+                MDC.put(Constants.DBC_TRACKING_ID, trackingId);
+            } catch (SQLException | RawRepoException | MarcXMergerException e) {
+                throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
+            }
+            LOGGER.debug("Fetched rawrepo collection<{}> for {}", records.values(), recordId);
+            if (records.isEmpty()) {
+                throw new HarvesterInvalidRecordException("Empty rawrepo collection returned for " + recordId.toString());
+            }
+            if (!records.containsKey(recordId.getBibliographicRecordId())) {
+                throw new HarvesterInvalidRecordException(String.format(
+                        "Record %s was not found in returned collection", recordId.toString()));
+            }
 
-        final MarcExchangeCollection marcExchangeCollection = getMarcExchangeCollection(recordId, records);
-        final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
-        dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
-        dataContainer.setEnrichmentTrail(getRecordEnrichmentTrail(recordId, records));
-        dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
-        return dataContainer;
+            final MarcExchangeCollection marcExchangeCollection = getMarcExchangeCollection(recordId, records);
+            final DataContainer dataContainer = new DataContainer(documentBuilder, transformer);
+            dataContainer.setCreationDate(getRecordCreationDate(recordId, records));
+            dataContainer.setEnrichmentTrail(getRecordEnrichmentTrail(recordId, records));
+            dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
+            dataContainer.setTrackingId(trackingId);
+            return dataContainer;
+        } finally {
+            MDC.remove(Constants.DBC_TRACKING_ID);
+        }
     }
 
     private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records)
@@ -221,7 +231,16 @@ public class HarvestOperation {
         }
     }
 
-    private String getRecordEnrichmentTrail(RecordId recordId, Map<String, Record> records) throws HarvesterInvalidRecordException {
+    private String getTrackingId(RecordId recordId, Map<String, Record> records) {
+        if (records.containsKey(recordId.getBibliographicRecordId())) {
+            return records.get(recordId.getBibliographicRecordId()).getTrackingId();
+        } else {
+            LOGGER.info("Record {} was not found in returned collection. Tracking id could not be extracted", recordId.toString());
+            return null;
+        }
+    }
+
+    private String getRecordEnrichmentTrail(RecordId recordId, Map<String, Record> records) {
         return records.get(recordId.getBibliographicRecordId()).getEnrichmentTrail();
     }
 

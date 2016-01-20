@@ -94,7 +94,9 @@ public class HarvestOperation_2fbs_Test {
     static {
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setEnrichmentTrail("trail");
+        FIRST_RECORD.setTrackingId("tracking id");
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
+        SECOND_RECORD.setTrackingId(null);
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -161,6 +163,7 @@ public class HarvestOperation_2fbs_Test {
         dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
         dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
+        dataContainerExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
         harvesterDataFileExpectations.add(dataContainerExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -209,6 +212,7 @@ public class HarvestOperation_2fbs_Test {
         dataContainerExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
         dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
+        dataContainerExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
         harvesterDataFileExpectations.add(dataContainerExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();

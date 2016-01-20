@@ -89,7 +89,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
 
     @Test
     public void convert_chunkItemWithDiagnostics_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.FAILURE);
+        ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the first diagnostic FATAL message"));
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.WARNING, "This is the second diagnostic WARNING message"));
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the third diagnostic FATAL message"));
@@ -102,49 +102,40 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
 
     @Test
     public void convert_chunkItemWithDiagnosticsAndATagField_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.FAILURE);
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the first diagnostic FATAL message"));
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.WARNING, "This is the second diagnostic WARNING message"));
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the third diagnostic FATAL message"));
+        ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the fourth diagnostic FATAL message", "", "Tag Field", ""));
 
         MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
 
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
-        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticSubfieldsAsLineFormat + expectedDiagnosticTagFieldAsLineFormat + endTag));
+        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticTagFieldAsLineFormat + endTag));
     }
 
     @Test
     public void convert_chunkItemWithDiagnosticsAndAnAttributeField_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.FAILURE);
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the first diagnostic FATAL message"));
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.WARNING, "This is the second diagnostic WARNING message"));
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the third diagnostic FATAL message"));
+        ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the fourth diagnostic FATAL message", "", "", "Att Field"));
 
         MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
 
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
-        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticSubfieldsAsLineFormat + expectedDiagnosticAttributeFieldAsLineFormat + endTag));
+        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticAttributeFieldAsLineFormat + endTag));
     }
 
     @Test
     public void convert_chunkItemWithDiagnosticsAndBothTagAndAttributeFields_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.FAILURE);
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the first diagnostic FATAL message"));
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.WARNING, "This is the second diagnostic WARNING message"));
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the third diagnostic FATAL message"));
+        ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "This is the fourth diagnostic FATAL message", "", "Tag Field", "Att Field"));
 
         MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
 
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8);
-        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticSubfieldsAsLineFormat + expectedDiagnosticTagAndAttributeFieldAsLineFormat + endTag));
+        assertThat(StringUtil.asString(danmarc2LineFormat), is(expectedRecordAsLineFormat + expectedDiagnosticTagAndAttributeFieldAsLineFormat + endTag));
     }
 
     @Test
     public void convert_chunkItemWithoutDiagnostics_returnsDanmarc2LineFormatWithoutDiagnosticMessagesInSubfields() throws MarcReaderException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(0, asMarcXchange(getMarcRecord()).getBytes(), ChunkItem.Status.SUCCESS);
+        ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.SUCCESS);
 
         MarcXchangeV1ToDanMarc2LineFormatConverter converter = new MarcXchangeV1ToDanMarc2LineFormatConverter();
 

@@ -22,9 +22,9 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
-import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
@@ -52,48 +52,47 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
+
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
-
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
-    private final ChunkItem NO_PROCESSED_ITEM = null;
-
-    private final ChunkItem processedChunkItemValid = new ChunkItem(
-            1, getAddi(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING), SUCCESS);
-
-    private final ChunkItem processedChunkItemValidWithMultipleAddiRecords = new ChunkItem(
-            1, getAddi(buildListOfAddRecords()), SUCCESS);
-
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
+    private final ChunkItem chunkItemWithValidAddiRecords = buildChunkItemWithMultipleValidAddiRecords();
 
-    private List<AddiRecordWrapper> buildListOfAddRecords() {
-        List<AddiRecordWrapper> addiRecordWrappers = new ArrayList<>();
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), OpenUpdateSinkTestData.MARCX_VALID_FROM_PROCESSING));
-        return addiRecordWrappers;
-    }
+    private final ChunkItem processedChunkItemValid = new ChunkItemBuilder()
+            .setData(getAddi(getMetaXml(), getMarcExchangeValidatedOkByWebservice()))
+            .setStatus(SUCCESS).build();
 
-    private final OpenUpdateServiceConnector NO_OPENUPDATE_SERVICE_CONNECTOR = null;
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordsForItemArgIsNull_throws() {
-        new AddiRecordsToItemWrapper(NO_PROCESSED_ITEM, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+        new AddiRecordsToItemWrapper(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_addiRecordPreprocessorArgIsNull_throws() {
+        new AddiRecordsToItemWrapper(processedChunkItemValid, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_openUpdateServiceConnectorArgIsNull_throws() {
-        new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, NO_OPENUPDATE_SERVICE_CONNECTOR, updateRecordResultMarshaller);
+        new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, null, updateRecordResultMarshaller);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_updateRecordResultMarshallerArgIsNull_throws() {
+        new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null);
     }
 
     @Test
     public void callOpenUpdateWebServiceForEachAddiRecord_OK() throws JAXBException {
-
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class))).thenReturn(OpenUpdateSinkTestData.getWebserviceResultOK());
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class)))
+                .thenReturn(getWebserviceResultValidatedOk());
 
         // Subject Under Test
-        AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
-        final ChunkItem chunkItemForDelivery = itemWrapper.callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+
+        // Verification
         assertNotNull(chunkItemForDelivery);
         assertEquals("Expected status OK", chunkItemForDelivery.getStatus(), ChunkItem.Status.SUCCESS);
         assertFalse(asString(chunkItemForDelivery.getData()).contains("errorMessages"));
@@ -103,15 +102,14 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void callOpenUpdateWebServiceForEachAddiRecord_validationError() throws JAXBException {
-
         // Expectations
-        UpdateRecordResult updateRecordResult = OpenUpdateSinkTestData.webserviceResultWithValidationErrors();
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class))).thenReturn(updateRecordResult);
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class)))
+                .thenReturn(getWebserviceResultWithValidationErrors());
 
         // Subject Under Test
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
 
-        AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
-        final ChunkItem chunkItemForDelivery = itemWrapper.callOpenUpdateWebServiceForEachAddiRecord();
+        // Verification
         String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
         assertNotNull(chunkItemForDelivery);
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
@@ -122,15 +120,15 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void callOpenUpdateWebServiceForEachAddiRecord_stackTrace() throws JAXBException {
-
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class))).thenThrow(WebServiceException.class);
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class)))
+                .thenThrow(new WebServiceException());
 
         // Subject Under Test
-        AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
-        final ChunkItem chunkItemForDelivery = itemWrapper.callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+
+        // Verification
         assertNotNull(chunkItemForDelivery);
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
         assertTrue(asString(chunkItemForDelivery.getData()).contains("FAILED_STACKTRACE"));
@@ -139,18 +137,43 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void callOpenUpdateWebServiceForEachAddiRecordWithMultipleAddiRecords_OK() throws JAXBException {
-
         // Expectations
-        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class))).thenReturn(OpenUpdateSinkTestData.getWebserviceResultOK());
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class)))
+                .thenReturn(getWebserviceResultValidatedOk());
 
         // Subject Under Test
-        AddiRecordsToItemWrapper itemWrapper = new AddiRecordsToItemWrapper(processedChunkItemValidWithMultipleAddiRecords, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
-        final ChunkItem chunkItemForDelivery = itemWrapper.callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+
+        // Verification
         assertNotNull(chunkItemForDelivery);
         assertEquals("Expected status OK", chunkItemForDelivery.getStatus(), ChunkItem.Status.SUCCESS);
         assertFalse(asString(chunkItemForDelivery.getData()).contains("errorMessages"));
         assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
         verify(mockedOpenUpdateServiceConnector, times(3)).updateRecord(anyString(), anyString(), any(BibliographicRecord.class), any(UUID.class));
+    }
+
+    /*
+     * Private methods
+     */
+
+    private AddiRecordsToItemWrapper newAddiRecordsToItemWrapper() {
+        return new AddiRecordsToItemWrapper(
+                chunkItemWithValidAddiRecords,
+                addiRecordPreprocessor,
+                mockedOpenUpdateServiceConnector,
+                updateRecordResultMarshaller);
+    }
+
+    private ChunkItem buildChunkItemWithMultipleValidAddiRecords() {
+        return new ChunkItemBuilder().setData(getAddi(buildListOfAddRecords())).setStatus(SUCCESS).build();
+    }
+
+    private List<AddiRecordWrapper> buildListOfAddRecords() {
+        List<AddiRecordWrapper> addiRecordWrappers = new ArrayList<>();
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), getMarcExchangeValidatedOkByWebservice()));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), getMarcExchangeValidatedOkByWebservice()));
+        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), getMarcExchangeValidatedOkByWebservice()));
+        return addiRecordWrappers;
     }
 }

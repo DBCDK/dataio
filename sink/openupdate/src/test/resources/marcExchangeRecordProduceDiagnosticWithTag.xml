@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<marcx:record xmlns:marcx="info:lc/xmlns/marcxchange-v1">
+  <marcx:leader>00000cape 22000003 4500</marcx:leader>
+  <marcx:datafield ind1="0" ind2="0" tag="001">
+    <marcx:subfield code="a">x7845232</marcx:subfield>
+    <marcx:subfield code="d">19900326</marcx:subfield>
+    <marcx:subfield code="f">a</marcx:subfield>
+    <marcx:subfield code="o">d</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="004">
+    <marcx:subfield code="r">c</marcx:subfield>
+    <marcx:subfield code="a">e</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="008">
+    <marcx:subfield code="t">p</marcx:subfield>
+    <marcx:subfield code="b">dk</marcx:subfield>
+    <marcx:subfield code="v">3</marcx:subfield>
+    <marcx:subfield code="l">dan</marcx:subfield>
+    <marcx:subfield code="&amp;">3</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="009">
+    <marcx:subfield code="a">a</marcx:subfield>
+    <marcx:subfield code="g">xx</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="022">
+    <marcx:subfield code="a">0903-0077</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="088">
+    <marcx:subfield code="a">352(489)</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="096">
+    <marcx:subfield code="b">s Kom</marcx:subfield>
+    <marcx:subfield code="d">p103277027</marcx:subfield>
+    <marcx:subfield code="u">Udlånes ikke</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="245">
+    <marcx:subfield code="a">Kommunen</marcx:subfield>
+    <marcx:subfield code="ø">ny sondring</marcx:subfield>
+    <marcx:subfield code="ø">Ulovligt dubleret(BDM)</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="260">
+    <marcx:subfield code="a">København</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="590">
+    <marcx:subfield code="a">20070501</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="590">
+    <marcx:subfield code="a">ret911210</marcx:subfield>
+    <marcx:subfield code="a">kat910222</marcx:subfield>
+    <marcx:subfield code="a">sam</marcx:subfield>
+    <marcx:subfield code="f">sg</marcx:subfield>
+    <marcx:subfield code="g">NB</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="980">
+    <marcx:subfield code="b">15-</marcx:subfield>
+    <marcx:subfield code="d">1972-</marcx:subfield>
+    <marcx:subfield code="g">1</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="980">
+    <marcx:subfield code="m">Mangler: nr.1-5,7,17(1972);nr.10(1973);nr.12(1987); nr.15,16(1988); nr. 9(2014); nr.8+16-17+19-21(2015)</marcx:subfield>
+  </marcx:datafield>
+</marcx:record>

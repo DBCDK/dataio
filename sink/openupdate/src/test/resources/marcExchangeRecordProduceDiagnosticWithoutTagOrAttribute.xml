@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<marcx:record xmlns:marcx="info:lc/xmlns/marcxchange-v1">
+  <marcx:leader>00000cape 22000003 4500</marcx:leader>
+  <marcx:datafield ind1="0" ind2="0" tag="001">
+    <marcx:subfield code="a">0348484x</marcx:subfield>
+    <marcx:subfield code="d">19880615</marcx:subfield>
+    <marcx:subfield code="f">a</marcx:subfield>
+    <marcx:subfield code="o">d</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="004">
+    <marcx:subfield code="r">c</marcx:subfield>
+    <marcx:subfield code="a">e</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="008">
+    <marcx:subfield code="t">p</marcx:subfield>
+    <marcx:subfield code="v">3</marcx:subfield>
+    <marcx:subfield code="l">swe</marcx:subfield>
+    <marcx:subfield code="&amp;">3</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="009">
+    <marcx:subfield code="a">a</marcx:subfield>
+    <marcx:subfield code="g">xx</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="022">
+    <marcx:subfield code="a">0348-484x</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="088">
+    <marcx:subfield code="a">800</marcx:subfield>
+    <marcx:subfield code="a">(485)</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="096">
+    <marcx:subfield code="b">h Pra</marcx:subfield>
+    <marcx:subfield code="d">p103840775</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="245">
+    <marcx:subfield code="a">Praktisk lingvistik/ Institutionen för lingvistik, Lunds universitet. - Lund</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="260">
+    <marcx:subfield code="a">Sted</marcx:subfield>
+    <marcx:subfield code="c">år2015</marcx:subfield>
+    <marcx:subfield code="B">åbenrå</marcx:subfield>
+    <marcx:subfield code="b">Aabenraa</marcx:subfield>
+    <marcx:subfield code="K">mangler lille distribution(BDM)</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="565">
+    <marcx:subfield code="a">nogle nr. kan søges som bøger</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="590">
+    <marcx:subfield code="a">20070501</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="590">
+    <marcx:subfield code="a">kat</marcx:subfield>
+    <marcx:subfield code="a">ret911114</marcx:subfield>
+    <marcx:subfield code="a">hum</marcx:subfield>
+    <marcx:subfield code="a">afsl</marcx:subfield>
+    <marcx:subfield code="g">HN</marcx:subfield>
+    <marcx:subfield code="a">ops000906</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="710">
+    <marcx:subfield code="a">Lunds universitet. Institutionen för lingvistik</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="710">
+    <marcx:subfield code="a">Institutionen för lingvistik</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="980">
+    <marcx:subfield code="b">3-</marcx:subfield>
+    <marcx:subfield code="c">16</marcx:subfield>
+    <marcx:subfield code="d">1979-</marcx:subfield>
+    <marcx:subfield code="e">1998</marcx:subfield>
+    <marcx:subfield code="s">opsagt</marcx:subfield>
+  </marcx:datafield>
+</marcx:record>

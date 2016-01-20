@@ -22,8 +22,9 @@
 package dk.dbc.dataio.sink.openupdate.connector;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.sink.openupdate.AbstractOpenUpdateSinkTestBase;
 import dk.dbc.dataio.sink.openupdate.AddiRecordPreprocessor;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdateServices;
@@ -35,14 +36,9 @@ import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,14 +47,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.fail;
 
-public class OpenUpdateServiceConnectorIT {
+public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase{
     private static final String GROUP_ID = "010100";
     private static final String INVALID_SCHEMA =  "fisk";
     private static final String EXPECTED_TRACKING_ID = "efd0db60-87db-40c8-8b0f-2c164ce49dfc";
     private static final String SCHEMA_NAME = "dbc";
     private static final String FAILED_UPDATE_MARC = "/870970.failedUpdateInternalError.xml";
-    private static final String VALIDATION_ERROR_MARC = "/820040.validationError.xml";
-    private static final String VALIDATION_OK_MARC = "/870970.ok.xml";
     private static final String SYSTEM_PROPERTY = System.getProperty("wiremock.port", "8998");
     private static final String USER_ID = "userTestId";
     private static final String PASSWORD = "testPassword";
@@ -231,7 +225,10 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithInvalidSchema_validationFailedWithInvalidSchema() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(INVALID_SCHEMA), readTestRecord(FAILED_UPDATE_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(
+                getAddi(getMeta(INVALID_SCHEMA),
+                        StringUtil.asString(readTestRecord(FAILED_UPDATE_MARC), StandardCharsets.UTF_8)));
+
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
@@ -247,7 +244,7 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithInvalidMarc_validationFailedWithValidationError() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(VALIDATION_ERROR_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), getMarcExchangeCausingWebserviceValidationErrors()));
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
@@ -272,7 +269,10 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithInsufficientRights_validationFailedWithFailedUpdateInternalError() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(FAILED_UPDATE_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(
+                getMeta(SCHEMA_NAME),
+                StringUtil.asString(readTestRecord(FAILED_UPDATE_MARC), StandardCharsets.UTF_8)));
+
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
@@ -296,7 +296,7 @@ public class OpenUpdateServiceConnectorIT {
 
     @Test
     public void updateRecord_callsServiceWithAllArgsAreValid_validationOk() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), readTestRecord(VALIDATION_OK_MARC)));
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), getMarcExchangeValidatedOkByWebservice()));
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord);
         final OpenUpdateServiceConnector connector = getConnector();
 
@@ -313,21 +313,13 @@ public class OpenUpdateServiceConnectorIT {
     /*
      * Private methods
      */
-    private UpdateRecordResult callUpdateRecordOnConnector(OpenUpdateServiceConnector connector, String groupId, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
+    private UpdateRecordResult callUpdateRecordOnConnector(
+            OpenUpdateServiceConnector connector, String groupId, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
         return connector.updateRecord(groupId, template, bibliographicRecord, UUID.fromString(EXPECTED_TRACKING_ID));
     }
 
     private OpenUpdateServiceConnector getConnector() {
         return new OpenUpdateServiceConnector(new CatalogingUpdateServices(), wireMockEndpoint, USER_ID, PASSWORD);
-    }
-
-    private AddiRecord toAddiRecord(byte[] data) {
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(data));
-        try {
-            return addiReader.getNextRecord();
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
     }
 
     public String getMeta(String nodeValue) {
@@ -336,22 +328,5 @@ public class OpenUpdateServiceConnectorIT {
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"" +
                 " updateTemplate=\"" + nodeValue + "\" charset=\"danmarc2\"/>" +
                 "</es:referencedata>";
-    }
-
-    private byte[] getAddi(String metaXml, byte[] contentXml) {
-        return (metaXml.trim().getBytes().length +
-                System.lineSeparator() +
-                metaXml +
-                System.lineSeparator() +
-                contentXml.length +
-                System.lineSeparator() +
-                new String(contentXml, StandardCharsets.UTF_8)).getBytes();
-    }
-
-    private static byte[] readTestRecord(String resourceName) throws IOException, URISyntaxException {
-        final URL url = OpenUpdateServiceConnectorIT.class.getResource(resourceName);
-        final Path resPath;
-        resPath = Paths.get(url.toURI());
-        return Files.readAllBytes(resPath);
     }
 }

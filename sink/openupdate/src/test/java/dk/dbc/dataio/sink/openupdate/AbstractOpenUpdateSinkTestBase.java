@@ -22,23 +22,34 @@ package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResponse;
+import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import org.xmlunit.matchers.CompareMatcher;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
 
 public class AbstractOpenUpdateSinkTestBase {
+    private static final String UPDATE_RECORD_RESULT_WITH_VALIDATION_ERROR = "/updateRecordResult.validationError.xml";
+    private static final String UPDATE_RECORD_RESULT_OK = "/updateRecordResult.ok.xml";
+    private static final String MARC_EXCHANGE_WEBSERVICE_OK = "/870970.ok.xml";
+    private static final String MARC_EXCHANGE_WEBSERVICE_VALIDATION_ERRORS = "/820040.validationError.xml";
     public static final String ES_INFO_SUBMITTER_ATTRIBUTE_VALUE = "870970";
     public static final String UPDATE_TEMPLATE_ATTRIBUTE_VALUE = "bog";
-
-    private static final String META_XML =
-        "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-            "<es:info format=\"basis\" language=\"dan\" submitter=\"" + ES_INFO_SUBMITTER_ATTRIBUTE_VALUE + "\"/>" +
-            "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" updateTemplate=\"" + UPDATE_TEMPLATE_ATTRIBUTE_VALUE + "\"/>" +
-        "</es:referencedata>";
 
     protected static CompareMatcher isEquivalentTo(Object control) {
         return CompareMatcher.isSimilarTo(control)
@@ -48,7 +59,10 @@ public class AbstractOpenUpdateSinkTestBase {
     }
 
     protected String getMetaXml() {
-        return  META_XML;
+        return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
+                "<es:info format=\"basis\" language=\"dan\" submitter=\"" + ES_INFO_SUBMITTER_ATTRIBUTE_VALUE + "\"/>" +
+                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" updateTemplate=\"" + UPDATE_TEMPLATE_ATTRIBUTE_VALUE + "\"/>" +
+                "</es:referencedata>";
     }
 
     protected String getInvalidMetaXml(String referenceDataChildren) {
@@ -65,6 +79,19 @@ public class AbstractOpenUpdateSinkTestBase {
                 "</marcx:datafield></marcx:record></marcx:collection>";
     }
 
+    protected String getSimpleMarcExchangeRecord() {
+        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+                "    <marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">\n" +
+                "        <marcx:leader>00000cape 22000003 4500</marcx:leader>\n" +
+                "        <marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">\n" +
+                "            <marcx:subfield code=\"a\">x7845232</marcx:subfield>\n" +
+                "            <marcx:subfield code=\"d\">19900326</marcx:subfield>\n" +
+                "            <marcx:subfield code=\"f\">a</marcx:subfield>\n" +
+                "            <marcx:subfield code=\"o\">d</marcx:subfield>\n" +
+                "        </marcx:datafield>\n" +
+                "    </marcx:record>";
+    }
+
     protected AddiRecord toAddiRecord(byte[] data) {
         final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(data));
         try {
@@ -78,9 +105,50 @@ public class AbstractOpenUpdateSinkTestBase {
         return new AddiRecordWrapper(metaXml, contentXml).getAddiRecordAsString().getBytes();
     }
     protected byte[] getAddi(List<AddiRecordWrapper> addiRecords) {
-
-        return addiRecords.stream().map(AddiRecordWrapper::getAddiRecordAsString).collect(Collectors.joining(System.lineSeparator())).getBytes();
+        return addiRecords.stream().map(AddiRecordWrapper::getAddiRecordAsString)
+                .collect(Collectors.joining(System.lineSeparator())).getBytes();
     }
+
+    protected UpdateRecordResult getWebserviceResultValidatedOk() throws JAXBException {
+        return unmarshalUpdateRecordResponse(readTestRecord(UPDATE_RECORD_RESULT_OK)).getUpdateRecordResult();
+    }
+
+    protected UpdateRecordResult getWebserviceResultWithValidationErrors() throws JAXBException {
+        return unmarshalUpdateRecordResponse(readTestRecord(UPDATE_RECORD_RESULT_WITH_VALIDATION_ERROR)).getUpdateRecordResult();
+    }
+
+    protected String getMarcExchangeValidatedOkByWebservice() {
+        return StringUtil.asString(readTestRecord(MARC_EXCHANGE_WEBSERVICE_OK), StandardCharsets.UTF_8);
+    }
+
+    protected String getMarcExchangeCausingWebserviceValidationErrors() {
+        return StringUtil.asString(readTestRecord(MARC_EXCHANGE_WEBSERVICE_VALIDATION_ERRORS), StandardCharsets.UTF_8);
+    }
+
+    protected byte[] readTestRecord(String resourceName) {
+        try {
+            final URL url = AbstractOpenUpdateSinkTestBase.class.getResource(resourceName);
+            final Path resPath;
+            resPath = Paths.get(url.toURI());
+            return Files.readAllBytes(resPath);
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    /*
+     * Private methods
+     */
+
+    private static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
+        final Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
+        StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
+        return (UpdateRecordResponse) unmarshaller.unmarshal(reader);
+    }
+
+    /*
+     * Protected classes
+     */
 
     protected class AddiRecordWrapper {
         private String metaXml;

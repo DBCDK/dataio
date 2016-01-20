@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<marcx:record xmlns:marcx="info:lc/xmlns/marcxchange-v1">
+  <marcx:leader>00000came 22000000 4500</marcx:leader>n
+  <marcx:datafield ind1="0" ind2="0" tag="001">
+    <marcx:subfield code="a">9781843922735</marcx:subfield>
+    <marcx:subfield code="b">820040</marcx:subfield>
+    <marcx:subfield code="d">20151120</marcx:subfield>
+    <marcx:subfield code="f">a</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="004">
+    <marcx:subfield code="r">c</marcx:subfield>
+    <marcx:subfield code="a">e</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="008">
+    <marcx:subfield code="t">m</marcx:subfield>
+    <marcx:subfield code="a">2013</marcx:subfield>
+    <marcx:subfield code="b">gb</marcx:subfield>
+    <marcx:subfield code="d">y</marcx:subfield>
+    <marcx:subfield code="l">eng</marcx:subfield>
+    <marcx:subfield code="v">0</marcx:subfield>
+    <marcx:subfield code="&amp;">2</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="009">
+    <marcx:subfield code="a">a</marcx:subfield>
+    <marcx:subfield code="g">xx</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="021">
+    <marcx:subfield code="e">9781843922735</marcx:subfield>
+    <marcx:subfield code="e">9780415625951</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="082">
+    <marcx:subfield code="a">364.68</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="088">
+    <marcx:subfield code="a">343.8</marcx:subfield>
+    <marcx:subfield code="a">301.173</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="096">
+    <marcx:subfield code="b">343.8Ele</marcx:subfield>
+    <marcx:subfield code="c">b</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="245">
+    <marcx:subfield code="a">Electronically monitored punishment</marcx:subfield>
+    <marcx:subfield code="c">international and critical perspectives</marcx:subfield>
+    <marcx:subfield code="e">ed. by Mike Nellis, Kristel Beynes and Dan Kaminski</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="260">
+    <marcx:subfield code="a">Routlegde</marcx:subfield>
+    <marcx:subfield code="b">London</marcx:subfield>
+    <marcx:subfield code="c">2013</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="300">
+    <marcx:subfield code="a">xi, 279 s.</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="504">
+    <marcx:subfield code="a">Summary: Electronic monitoring (EM) is a way of supervising offenders in the community whilst they are on bail, serving a community sentence or after release from prison. Various technologies can be used, including voice verification, GPS satellite tracking and ' most commonly - the use of radio frequency to monitor house arrest. It originated in the USA in the 1980s and has spread to over 30 countries since then. This book explores the development of EM in a number of countries to give some indication of the diverse ways it has been utilized and of..</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="530">
+    <marcx:subfield code="a">Introduction: making sense of electronic monitoring, Mike Nellis, Kristel Beyens and Dan Kaminski, Part I, National experiences; 1. The limits of techno-utopianism: electronic monitoring in the United States of America, J. Robert Lilly and Mike Nellis, 2. The evolution of electronic monitoring in Canada: from corrections to sentencing and beyond, Suzanne Wallace-Capretta and Julian Roberts, 3. 'Parallel tracks': probation and electronic monitoring in England and Wales and Scotland, George Mair and Mike Nellis, 4. Extending the electronic net in Australia and New Zealand: developments in electronic monitoring down-under, Russell G. Smith and Anita Gibbs, 5. From voice verification to GPS tracking: the development of electronic monitoring in South Korea, Younoh Cho and Byung Bae Kim, 6. High level support and high level control: an efficient Swedish model of electronic monitoring? Inka Wennerberg, 7. From tagging to tracking: beginnings and devleopment of electronic monitoring in</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="590">
+    <marcx:subfield code="a">kat151203</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="590">
+    <marcx:subfield code="g">MAI</marcx:subfield>
+    <marcx:subfield code="f">BSD</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="592">
+    <marcx:subfield code="d">0001</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="594">
+    <marcx:subfield code="a">15111811002735</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="630">
+    <marcx:subfield code="a">socialisering</marcx:subfield>
+    <marcx:subfield code="a">frihedsstraf</marcx:subfield>
+    <marcx:subfield code="a">kriminalpolitik</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="700">
+    <marcx:subfield code="a">Nellis</marcx:subfield>
+    <marcx:subfield code="H">Mike</marcx:subfield>
+    <marcx:subfield code="4">edt</marcx:subfield>
+    <marcx:subfield code="h">(BDM)</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="700">
+    <marcx:subfield code="a">Beynes</marcx:subfield>
+    <marcx:subfield code="h">Kristel</marcx:subfield>
+    <marcx:subfield code="4">edt</marcx:subfield>
+  </marcx:datafield>
+  <marcx:datafield ind1="0" ind2="0" tag="700">
+    <marcx:subfield code="a">Kaminski</marcx:subfield>
+    <marcx:subfield code="H">Dan</marcx:subfield>
+    <marcx:subfield code="4">edt(BDM)</marcx:subfield>
+  </marcx:datafield>
+</marcx:record>

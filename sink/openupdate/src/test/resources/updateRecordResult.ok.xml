@@ -1,0 +1,5 @@
+<updateRecordResponse xmlns="http://oss.dbc.dk/ns/catalogingUpdate">
+  <updateRecordResult>
+    <updateStatus>ok</updateStatus>
+  </updateRecordResult>
+</updateRecordResponse>

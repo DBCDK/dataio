@@ -131,7 +131,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
         return new DefaultXmlDataPartitioner(inputStream, encoding);
     }
 
-    private static class DefaultXmlDataPartitioner implements DataPartitioner {
+    protected static class DefaultXmlDataPartitioner implements DataPartitioner {
         private static final Logger LOGGER = LoggerFactory.getLogger(DefaultXmlDataPartitioner.class);
 
         private final XMLEventFactory xmlEventFactory;
@@ -209,9 +209,6 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                             // of DefaultXMLRecordSplitter, and at each iteration call baos.reset();
                             // I'm not sure if the XMLEventWriter is reusable - look into it
                             // if you want to optimize.
-                            //
-                            // Another optimization point may be writing directly to the XMLEventWriter
-                            // instead of storing the XMLEVents in a List for later writing.
                             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                             final Writer writer = new BufferedWriter(new OutputStreamWriter(baos, encoding));
                             final XMLEventWriter xmlWriter = xmlOutputFactory.createXMLEventWriter(writer);
@@ -220,15 +217,12 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                                 xmlWriter.add(e);
                             }
 
-                            final List<XMLEvent> recordEvents = findRecordEvents();
-                            for (XMLEvent e : recordEvents) {
-                                xmlWriter.add(e);
-                            }
+                            findRecordEvents(xmlWriter);
                             xmlWriter.add(xmlEventFactory.createEndElement("", null, rootTag));
                             xmlWriter.add(xmlEventFactory.createEndDocument());
                             xmlWriter.close();
 
-                            return new ChunkItem(0,baos.toByteArray(), ChunkItem.Status.SUCCESS);
+                            return nextChunkIem(baos, ChunkItem.Status.SUCCESS);
                         } catch (XMLStreamException | UnsupportedEncodingException e) {
                             LOGGER.error("Exception caught", e);
                             throw new InvalidDataException(e);
@@ -245,6 +239,14 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
             }
             return iterator;
         }
+
+        protected ChunkItem nextChunkIem(ByteArrayOutputStream baos, ChunkItem.Status status) {
+            return new ChunkItem(0, baos.toByteArray(), status);
+        }
+
+        /*
+         * Private methods
+         */
 
         private void validateEncoding() throws InvalidEncodingException {
             getEncoding();
@@ -291,8 +293,7 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
             throw new InvalidDataException("Unable to find a root element in the xml stream");
         }
 
-        private List<XMLEvent> findRecordEvents() throws XMLStreamException {
-            final List<XMLEvent> recordEvents = new ArrayList<>(1000);
+        private void findRecordEvents(XMLEventWriter xmlWriter) throws XMLStreamException {
             int depth = 0;
 
             XMLEvent e;
@@ -304,10 +305,8 @@ public class DefaultXmlDataPartitionerFactory implements DataPartitionerFactory 
                 if (e.isEndElement()) {
                     depth--;
                 }
-                recordEvents.add(e);
+                xmlWriter.add(e);
             } while (depth > 0 || isNextEventDifferentFromStartElementAndEndElement());
-
-            return recordEvents;
         }
 
         private boolean hasNextRecord() throws XMLStreamException {

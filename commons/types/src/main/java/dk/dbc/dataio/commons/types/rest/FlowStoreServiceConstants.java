@@ -56,5 +56,7 @@ public class FlowStoreServiceConstants {
     public static final String SUBMITTER_SEARCHES_NUMBER = "submitters/searches/number/{number}";
     public static final String SUBMITTER_NUMBER_VARIABLE = "number";
 
+    public static final String HARVESTERS_RR_CONFIG = "harvesters/rr/config";
+
     private FlowStoreServiceConstants() { }
 }

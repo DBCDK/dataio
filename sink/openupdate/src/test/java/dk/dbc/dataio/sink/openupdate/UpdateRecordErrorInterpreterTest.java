@@ -233,7 +233,7 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostic.getMessage(), is(subFieldØMessage));
         assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("245"));
+        assertThat(diagnostic.getTag(), is("felt 245"));
         assertThat(diagnostic.getAttribute(), is(nullValue()));
     }
 
@@ -295,8 +295,8 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostic.getMessage(), is(message));
         assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("008"));
-        assertThat(diagnostic.getAttribute(), is("t"));
+        assertThat(diagnostic.getTag(), is("felt 008"));
+        assertThat(diagnostic.getAttribute(), is("delfelt t"));
     }
 
     @Test
@@ -349,28 +349,28 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostic.getMessage(), is(subFieldEMessage));
         assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("021"));
+        assertThat(diagnostic.getTag(), is("felt 021"));
         assertThat(diagnostic.getAttribute(), is(nullValue()));
 
         diagnostic = diagnostics.get(1);
         assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostic.getMessage(), is(SUB_FIELD_H_MESSAGE));
         assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("700"));
+        assertThat(diagnostic.getTag(), is("felt 700"));
         assertThat(diagnostic.getAttribute(), is(nullValue()));
 
         diagnostic = diagnostics.get(2);
         assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostic.getMessage(), is(EDT_BDM_VALUE));
         assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("700"));
-        assertThat(diagnostic.getAttribute(), is("4"));
+        assertThat(diagnostic.getTag(), is("felt 700"));
+        assertThat(diagnostic.getAttribute(), is("delfelt 4"));
 
         diagnostic = diagnostics.get(3);
         assertThat(diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostic.getMessage(), is(SUB_FIELD_H_MESSAGE));
         assertThat(diagnostic.getStacktrace(), is(nullValue()));
-        assertThat(diagnostic.getTag(), is("700"));
+        assertThat(diagnostic.getTag(), is("felt 700"));
         assertThat(diagnostic.getAttribute(), is(nullValue()));
     }
 

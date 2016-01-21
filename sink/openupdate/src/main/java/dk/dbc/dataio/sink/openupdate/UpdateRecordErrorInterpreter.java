@@ -44,6 +44,8 @@ import java.util.Optional;
  */
 public class UpdateRecordErrorInterpreter {
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateRecordErrorInterpreter.class);
+    private static final String FIELD_PREPEND = "felt ";
+    private static final String SUBFIELD_PREPEND = "delfelt ";
 
     /**
      * Interprets the UpdateRecordResult input data, and returns a list of Diagnostics, detected in the data
@@ -69,7 +71,7 @@ public class UpdateRecordErrorInterpreter {
                     } catch (Exception e) {
                         LOGGER.error("Error detected during extraction of Tag and/or Attribute", e);
                     }
-                    diagnostics.add(new Diagnostic(getLevel(entry.getWarningOrError()), entry.getMessage(), NO_STACK_TRACE, field, subField));
+                    diagnostics.add(new Diagnostic(getLevel(entry.getWarningOrError()), entry.getMessage(), NO_STACK_TRACE, prepend(FIELD_PREPEND, field), prepend(SUBFIELD_PREPEND, subField)));
                 }
             }
         }
@@ -92,7 +94,6 @@ public class UpdateRecordErrorInterpreter {
         return Optional.of((DataField) getMarcRecord(marcExchangeRecord).getFields().get(fieldIndex));
     }
 
-
     /**
      * Gets a MarcRecord from the byte array, supplied as a parameter in the call to the method
      * @param marcExchangeRecord The byte array to read
@@ -103,6 +104,7 @@ public class UpdateRecordErrorInterpreter {
         BufferedInputStream stream = new BufferedInputStream(new ByteArrayInputStream(marcExchangeRecord));
         return new MarcXchangeV1Reader(stream, StandardCharsets.UTF_8).read();
     }
+
 
     /**
      * Converts a Diagnostic.Level from a ValidateWarningOrErrorEnum
@@ -141,6 +143,19 @@ public class UpdateRecordErrorInterpreter {
         }
         Integer attributeIndex = entry.getOrdinalPositionOfSubField().intValue() - 1;
         return dataField.getSubfields().get(attributeIndex).getCode().toString();
+    }
+
+    /**
+     * Prepend a string with a leading text. If the text is a null pointer, nothing is prepended.
+     * @param lead The leading text
+     * @param text The text, to which a leading text is prepended
+     * @return The text prepended by the leading text.
+     */
+    private String prepend(String lead, String text) {
+        if (text != null) {
+            text = lead + text;
+        }
+        return text;
     }
 
 }

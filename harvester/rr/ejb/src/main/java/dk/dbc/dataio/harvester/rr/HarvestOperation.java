@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.types.DataContainer;
@@ -33,6 +32,7 @@ import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.QueueJob;
@@ -41,7 +41,6 @@ import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -164,7 +163,7 @@ public class HarvestOperation {
             try {
                 records = rawRepoConnector.fetchRecordCollection(recordId);
                 trackingId = getTrackingId(recordId, records);
-                MDC.put(Constants.DBC_TRACKING_ID, trackingId);
+                DBCTrackedLogContext.setTrackingId(trackingId);
             } catch (SQLException | RawRepoException | MarcXMergerException e) {
                 throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
             }
@@ -185,7 +184,7 @@ public class HarvestOperation {
             dataContainer.setTrackingId(trackingId);
             return dataContainer;
         } finally {
-            MDC.remove(Constants.DBC_TRACKING_ID);
+            DBCTrackedLogContext.remove();
         }
     }
 

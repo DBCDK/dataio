@@ -102,6 +102,7 @@ public class HarvesterBean_2datawell_Test {
         FIRST_RECORD_SECTION.setContent(FIRST_RECORD_SECTION_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setEnrichmentTrail("trail");
+        FIRST_RECORD.setTrackingId("tracking id");
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
@@ -177,6 +178,7 @@ public class HarvesterBean_2datawell_Test {
         communityExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
         communityExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
+        communityExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();

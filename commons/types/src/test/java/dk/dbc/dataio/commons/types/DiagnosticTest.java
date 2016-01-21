@@ -79,7 +79,7 @@ public class DiagnosticTest {
 
     @Test
     public void constructorWith3ArgCause_causeArgIsNull_returnsNewInstance() {
-        final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL, "message", (Throwable) null);
+        final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL, "message", null);
         assertThat("diagnostic", diagnostic, is(notNullValue()));
         assertThat("diagnostic.level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("diagnostic.message", diagnostic.getMessage(), is("message"));
@@ -91,45 +91,6 @@ public class DiagnosticTest {
     @Test
     public void constructorWith3ArgCause_allArgsAreValid_returnsNewInstance() {
         final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL, "message", new IllegalStateException());
-        assertThat("diagnostic", diagnostic, is(notNullValue()));
-        assertThat("diagnostic.level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("diagnostic.message", diagnostic.getMessage(), is("message"));
-        assertThat("diagnostic.stacktrace", diagnostic.getStacktrace(), is(notNullValue()));
-        assertThat("diagnostic.tag", diagnostic.getTag(), is(nullValue()));
-        assertThat("diagnostic.attribute", diagnostic.getAttribute(), is(nullValue()));
-    }
-
-    // 3 arguments constructor with a stacktrace argument
-
-    @Test(expected = NullPointerException.class)
-    public void constructorWith3ArgStackTrace_levelArgIsNull_throws() {
-        new Diagnostic(null, "message", "stacktrace");
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructorWith3ArgStackTrace_messageArgIsNull_throws() {
-        new Diagnostic(Diagnostic.Level.FATAL, null, "stacktrace");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructorWith3ArgStackTrace_messageArgIsEmpty_throws() {
-        new Diagnostic(Diagnostic.Level.FATAL, " ", "stacktrace");
-    }
-
-    @Test
-    public void constructorWith3ArgStackTrace_stackTraceArgIsNull_returnsNewInstance() {
-        final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL, "message", (String) null);
-        assertThat("diagnostic", diagnostic, is(notNullValue()));
-        assertThat("diagnostic.level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("diagnostic.message", diagnostic.getMessage(), is("message"));
-        assertThat("diagnostic.stacktrace", diagnostic.getStacktrace(), is(nullValue()));
-        assertThat("diagnostic.tag", diagnostic.getTag(), is(nullValue()));
-        assertThat("diagnostic.attribute", diagnostic.getAttribute(), is(nullValue()));
-    }
-
-    @Test
-    public void constructorWith3ArgStackTrace_allArgsAreValid_returnsNewInstance() {
-        final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL, "message", "stacktrace");
         assertThat("diagnostic", diagnostic, is(notNullValue()));
         assertThat("diagnostic.level", diagnostic.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("diagnostic.message", diagnostic.getMessage(), is("message"));
@@ -203,20 +164,6 @@ public class DiagnosticTest {
         assertThat("unmarshalled.level", unmarshalled.getLevel(), is(Diagnostic.Level.FATAL));
         assertThat("unmarshalled.message", unmarshalled.getMessage(), is("message"));
         assertThat("unmarshalled.stacktrace", unmarshalled.getStacktrace(), is(notNullValue()));
-        assertThat("unmarshalled.tag", unmarshalled.getTag(), is(nullValue()));
-        assertThat("unmarshalled.attribute", unmarshalled.getAttribute(), is(nullValue()));
-    }
-
-    @Test
-    public void constructorWith3ArgStackTrace_instance_canBeMarshalledUnmarshalled() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
-        final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL, "message", "stacktrace");
-        final String marshalled = jsonbContext.marshall(diagnostic);
-        final Diagnostic unmarshalled = jsonbContext.unmarshall(marshalled, Diagnostic.class);
-        assertThat("unmarshalled", unmarshalled, is(notNullValue()));
-        assertThat("unmarshalled.level", unmarshalled.getLevel(), is(Diagnostic.Level.FATAL));
-        assertThat("unmarshalled.message", unmarshalled.getMessage(), is("message"));
-        assertThat("unmarshalled.stacktrace", unmarshalled.getStacktrace(), is("stacktrace"));
         assertThat("unmarshalled.tag", unmarshalled.getTag(), is(nullValue()));
         assertThat("unmarshalled.attribute", unmarshalled.getAttribute(), is(nullValue()));
     }

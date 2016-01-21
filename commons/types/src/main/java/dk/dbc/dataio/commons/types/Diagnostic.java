@@ -60,11 +60,6 @@ public class Diagnostic {
         }
     }
 
-    public Diagnostic(Level level, String message, String stacktrace) {
-        this(level, message, stacktrace, null, null);
-    }
-
-
     public Level getLevel() {
         return level;
     }

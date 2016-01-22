@@ -52,10 +52,10 @@ public class DanMarc2LineFormatReorderingDataPartitioner extends DanMarc2LineFor
                 try {
                     reorderedResult = reorderer.next(result);
                 } catch (RuntimeException e) {
-                    final String message = String.format(
+                    /*final String message = String.format(
                             "Something unexpected happened during re-ordering of job %s", reorderer.getJobId());
-                    LOGGER.error(message, e);
-                    throw new InvalidDataException(message, e);
+                    LOGGER.error(message, e);*/
+                    throw new InvalidDataException(e);
                 }
             } while (reorderedResult.isPresent() && reorderedResult.get().isEmpty());
             result = reorderedResult.orElse(DataPartitionerResult.EMPTY);

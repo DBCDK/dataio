@@ -36,7 +36,7 @@ import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -65,12 +65,12 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
-import static dk.dbc.dataio.commons.types.ChunkItem.Status.IGNORE;
-import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.types.Chunk.Type.DELIVERED;
 import static dk.dbc.dataio.commons.types.Chunk.Type.PARTITIONED;
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.IGNORE;
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.jobstore.types.State.Phase.DELIVERING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PARTITIONING;
 import static dk.dbc.dataio.jobstore.types.State.Phase.PROCESSING;
@@ -122,8 +122,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
                         + "<record>second"
                         + "</records>";
 
-        params.dataPartitioner =  new DefaultXmlDataPartitionerFactory().createDataPartitioner(
-                new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)),
+        params.dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)),
                 StandardCharsets.UTF_8.name());
 
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
@@ -542,7 +541,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
 
         public Params() {
             jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
-            dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
+            dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();

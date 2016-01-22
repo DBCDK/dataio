@@ -7,7 +7,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -50,7 +50,7 @@ public class TestablePartitioningParamBuilder {
     private List<Diagnostic> diagnostics = new ArrayList<>();
     private InputStream dataFileInputStream = new ByteArrayInputStream(records.getBytes(StandardCharsets.UTF_8));
     private RecordSplitterConstants.RecordSplitter recordSplitter = RecordSplitterConstants.RecordSplitter.XML;
-    private DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory().createDataPartitioner(dataFileInputStream, StandardCharsets.UTF_8.name());
+    private DataPartitioner dataPartitioner = DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name());
 
     public TestablePartitioningParamBuilder setJobEntity(JobEntity jobEntity) {
         this.jobEntity = jobEntity;

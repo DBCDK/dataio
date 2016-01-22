@@ -152,12 +152,8 @@ public class MarcRecordInfoBuilder {
             return false;
         }
 
-        MarcRecordInfo toMarcRecordInfo() throws IllegalStateException {
-            try {
-                return new MarcRecordInfo(id, type, isDelete, parentRelation);
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
+        MarcRecordInfo toMarcRecordInfo() {
+            return new MarcRecordInfo(id, type, isDelete, parentRelation);
         }
     }
 }

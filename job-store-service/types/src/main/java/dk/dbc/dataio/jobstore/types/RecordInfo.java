@@ -23,7 +23,6 @@ package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 /**
  * This class contains information about a bibliographic record.
@@ -33,8 +32,8 @@ public class RecordInfo {
     protected final String id;
 
     @JsonCreator
-    public RecordInfo(@JsonProperty("id") String id) throws NullPointerException, IllegalArgumentException {
-        this.id = InvariantUtil.checkNotNullNotEmptyOrThrow(id, "id");
+    public RecordInfo(@JsonProperty("id") String id) {
+        this.id = id;
     }
 
     public String getId() {
@@ -52,12 +51,12 @@ public class RecordInfo {
 
         RecordInfo that = (RecordInfo) o;
 
-        return id.equals(that.id);
+        return id != null ? id.equals(that.id) : that.id == null;
 
     }
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return id != null ? id.hashCode() : 0;
     }
 }

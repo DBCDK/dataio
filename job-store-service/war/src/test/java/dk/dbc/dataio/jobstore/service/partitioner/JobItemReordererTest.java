@@ -158,7 +158,7 @@ public class JobItemReordererTest {
 
     @Test
     public void next_dataPartitionerResultArgIsEmptyAndNoItemsRemainsToBeReordered_returnsEmptyOptional() {
-        final Optional<DataPartitionerResult> next = reorderer.next(JobItemReorderer.EMPTY_DATA_PARTITIONER_RESULT);
+        final Optional<DataPartitionerResult> next = reorderer.next(DataPartitionerResult.EMPTY);
         assertThat(next.isPresent(), is(false));
 
         verify(entityManager, times(0)).persist(any(ReorderedItemEntity.class));
@@ -181,7 +181,7 @@ public class JobItemReordererTest {
         reorderer.next(reorderedResult);
         assertThat("Reorderer has result to be reordered", reorderer.hasNext(), is(true));
 
-        final Optional<DataPartitionerResult> next = reorderer.next(JobItemReorderer.EMPTY_DATA_PARTITIONER_RESULT);
+        final Optional<DataPartitionerResult> next = reorderer.next(DataPartitionerResult.EMPTY);
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is reordered", next.get(), is(reorderedResult));
 

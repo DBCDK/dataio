@@ -47,6 +47,7 @@ public class ChunkItem implements Serializable {
         ADDI,
         DANMARC2LINEFORMAT,
         GENERICXML,
+        DATACONTAINER,
         MARCXCHANGE,
         STRING,
     }
@@ -84,7 +85,6 @@ public class ChunkItem implements Serializable {
         this.type = type == null ? null : new ArrayList<>(type);
         this.encoding = encoding == null ? StandardCharsets.UTF_8 : encoding;
     }
-
 
     public ChunkItem(long id, byte[] data, Status status) {
         this(id, data, status, Collections.singletonList(Type.UNKNOWN), StandardCharsets.UTF_8);

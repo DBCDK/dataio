@@ -55,11 +55,6 @@ public class MarcRecordInfoTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_typeArgIsNull_throws() {
-        new MarcRecordInfo(id, null, false, parentRelation);
-    }
-
     @Test
     public void constructor_typeArgIsStandalone() {
         final MarcRecordInfo recordInfo = new MarcRecordInfo(id, MarcRecordInfo.RecordType.STANDALONE, false, parentRelation);

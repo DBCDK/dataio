@@ -26,8 +26,11 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
+import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.DanMarc2LineFormatReader;
 import dk.dbc.marc.reader.MarcReaderException;
@@ -35,7 +38,6 @@ import dk.dbc.marc.reader.MarcReaderInvalidRecordException;
 import dk.dbc.marc.writer.MarcWriter;
 import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
-import dk.dbc.marc.DanMarc2Charset;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,7 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.Optional;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Type;
 
@@ -64,16 +67,17 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
         return new DanMarc2LineFormatDataPartitioner(inputStream, specifiedEncoding);
     }
 
-    private static class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
+    public static class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         private static final Logger LOGGER = LoggerFactory.getLogger(DanMarc2LineFormatDataPartitioner.class);
+
+        protected final DanMarc2LineFormatReader marcReader;
 
         private final ByteCountingInputStream inputStream;
         private final MarcXchangeV1Writer marcWriter;
-        private final DanMarc2LineFormatReader marcReader;
+        private final MarcRecordInfoBuilder marcRecordInfoBuilder;
+
         private String specifiedEncoding;
         private Charset encoding;
-
-        private Iterator<ChunkItem> iterator;
         private DanMarc2Charset danMarc2Charset;
 
         public DanMarc2LineFormatDataPartitioner(InputStream inputStream, String specifiedEncoding) {
@@ -84,6 +88,7 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
             validateSpecifiedEncoding();
             marcWriter = new MarcXchangeV1Writer();
             marcReader = new DanMarc2LineFormatReader(this.inputStream, danMarc2Charset);
+            marcRecordInfoBuilder = new MarcRecordInfoBuilder();
         }
 
         @Override
@@ -98,64 +103,74 @@ public class DanMarc2LineFormatDataPartitionerFactory implements DataPartitioner
 
         @Override
         public Iterator<ChunkItem> iterator() {
-            iterator = new Iterator<ChunkItem>() {
+            return new Iterator<ChunkItem>() {
                 @Override
                 public boolean hasNext() {
-                    try {
-                        return marcReader.hasNext();
-                    } catch (MarcReaderException e) {
-                        throw new InvalidDataException(e);
-                    }
+                    return hasNextDataPartitionerResult();
                 }
 
                 @Override
                 public ChunkItem next() {
-                    try {
-                        return processMarcReaderReadResult(marcReader.read(), marcWriter);
-                    } catch (MarcReaderException e) {
-                        LOGGER.error("Exception caught while creating MarcRecord", e);
-                        if (e instanceof MarcReaderInvalidRecordException) {
-                            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead());
-                            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-                            return chunkItem;
-                        } else {
-                            throw new InvalidDataException(e);
-                        }
-                    }
+                    return nextDataPartitionerResult().getChunkItem();
                 }
             };
-            return iterator;
         }
 
+        protected boolean hasNextDataPartitionerResult() throws InvalidDataException {
+            try {
+                return marcReader.hasNext();
+            } catch (MarcReaderException e) {
+                throw new InvalidDataException(e);
+            }
+        }
 
-        /*
-         * Private methods
-         */
-
+        protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
+            DataPartitionerResult result;
+            try {
+                final MarcRecord marcRecord = marcReader.read();
+                if (marcRecord == null) {
+                    result = DataPartitionerResult.EMPTY;
+                } else {
+                    result = processMarcRecord(marcRecord, marcWriter);
+                }
+            } catch (MarcReaderException e) {
+                LOGGER.error("Exception caught while creating MarcRecord", e);
+                if (e instanceof MarcReaderInvalidRecordException) {
+                    ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead());
+                    chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+                    result = new DataPartitionerResult(chunkItem, null);
+                } else {
+                    throw new InvalidDataException(e);
+                }
+            }
+            return result;
+        }
 
         /**
-         * Process the result of the marcReader.read() method.
-         * If the marcRecord contains no fields (special case), a new chunk item with status IGNORE is returned
-         * If the marcRecord can be written, a new chunk item with status SUCCESS is returned
-         * If an error occours while writing the record, a new chunk item with status FAILURE is returned
-         * @param marcRecord the marcRecord result from the marcReader.read() method
-         * @param marcWriter the marcWriter used to write the marcRecord
-         * @return chunkItem
+         * Process the MarcRecord obtained from the input stream
+         * If the marcRecord contains no fields (special case), a result with a chunk item with status IGNORE is returned
+         * If the marcRecord can be written, a result containing chunk item with status SUCCESS and record info is returned
+         * If an error occurs while writing the record, a result with a chunk item with status FAILURE is returned
+         * @param marcRecord the MarcRecord result from the marcReader.read() method
+         * @param marcWriter the MarcWriter implementation used to write the marc record
+         * @return data partitioner result
          */
-        private ChunkItem processMarcReaderReadResult(MarcRecord marcRecord, MarcWriter marcWriter) {
+        private DataPartitionerResult processMarcRecord(MarcRecord marcRecord, MarcWriter marcWriter) {
             ChunkItem chunkItem;
+            Optional<MarcRecordInfo> recordInfo = Optional.empty();
             try {
-                if(marcRecord.getFields().isEmpty()) {
+                if (marcRecord.getFields().isEmpty()) {
                     chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
                 } else {
                     chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), Type.MARCXCHANGE);
+                    recordInfo = marcRecordInfoBuilder.parse(marcRecord);
                 }
-            } catch (MarcWriterException e) {
-                LOGGER.error("Exception caught while writing MarcRecord", e);
+            } catch (MarcWriterException | IllegalStateException e) {
+                LOGGER.error("Exception caught while processing MarcRecord", e);
                 chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
             }
-            return chunkItem;
+            return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
         }
 
         /**

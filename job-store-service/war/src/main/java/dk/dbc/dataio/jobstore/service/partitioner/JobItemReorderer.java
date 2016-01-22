@@ -55,8 +55,6 @@ public class JobItemReorderer {
         }
     }
 
-    static final DataPartitionerResult EMPTY_DATA_PARTITIONER_RESULT = new DataPartitionerResult(null, null);
-
     private final int jobId;
     private final EntityManager entityManager;
 
@@ -130,7 +128,7 @@ public class JobItemReorderer {
         reorderedItemEntity.setRecordInfo(recordInfo);
         reorderedItemEntity.setSortOrder(getReorderedItemSortOrder(recordInfo));
         entityManager.persist(reorderedItemEntity);
-        return EMPTY_DATA_PARTITIONER_RESULT;
+        return DataPartitionerResult.EMPTY;
     }
 
     /* Retrieves next DataPartitionerResult in line from internal list */
@@ -145,7 +143,7 @@ public class JobItemReorderer {
             partitionerResult = new DataPartitionerResult(reorderedItemEntity.getChunkItem(), reorderedItemEntity.getRecordInfo());
             entityManager.remove(reorderedItemEntity);
         } else {
-            partitionerResult = EMPTY_DATA_PARTITIONER_RESULT;
+            partitionerResult = DataPartitionerResult.EMPTY;
         }
         itemsToBeReordered--;
         return partitionerResult;

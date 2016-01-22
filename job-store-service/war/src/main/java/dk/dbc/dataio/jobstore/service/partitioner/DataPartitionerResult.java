@@ -29,6 +29,7 @@ import dk.dbc.dataio.jobstore.types.RecordInfo;
  * well as record meta data
  */
 public class DataPartitionerResult {
+    public static final DataPartitionerResult EMPTY = new DataPartitionerResult(null, null);
     private final ChunkItem chunkItem;
     private final RecordInfo recordInfo;
 

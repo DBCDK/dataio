@@ -46,11 +46,6 @@ public class MarcRecordInfoBuilderTest {
         assertThat(recordInfoBuilder.parse(null).isPresent(), is(false));
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void parse_marcRecordArgIsInvalid_throws() {
-        recordInfoBuilder.parse(getMarcRecord());
-    }
-
     @Test
     public void parse_without014() {
         final MarcRecord marcRecord = getMarcRecord(f001, f004);

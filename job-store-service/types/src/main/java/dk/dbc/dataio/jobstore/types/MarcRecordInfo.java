@@ -28,7 +28,6 @@ package dk.dbc.dataio.jobstore.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 public class MarcRecordInfo extends RecordInfo {
     public enum RecordType {
@@ -45,17 +44,15 @@ public class MarcRecordInfo extends RecordInfo {
      * @param type type of marc record
      * @param isDelete flag indicating if marc record is delete marked
      * @param parentRelation identifier of marc record parent, can be null or empty
-     * @throws NullPointerException if given null-valued id or type argument
-     * @throws IllegalArgumentException if given empty-valued id argument
      */
     @JsonCreator
     public MarcRecordInfo(
             @JsonProperty("id") String id,
             @JsonProperty("type") RecordType type,
             @JsonProperty("delete") boolean isDelete,
-            @JsonProperty("parentRelation") String parentRelation) throws NullPointerException, IllegalArgumentException {
+            @JsonProperty("parentRelation") String parentRelation) {
         super(id);
-        this.type = InvariantUtil.checkNotNullOrThrow(type, "type");
+        this.type = type;
         this.delete = isDelete;
         if (parentRelation != null) {
             parentRelation = parentRelation.trim();
@@ -124,7 +121,7 @@ public class MarcRecordInfo extends RecordInfo {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + type.hashCode();
+        result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (delete ? 1 : 0);
         result = 31 * result + (parentRelation != null ? parentRelation.hashCode() : 0);
         return result;

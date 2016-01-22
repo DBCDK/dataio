@@ -34,8 +34,8 @@ import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -532,7 +532,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     private class Params {
         final String xml = getXml();
         public JobInputStream jobInputStream;
-        public DataPartitionerFactory.DataPartitioner dataPartitioner;
+        public DataPartitioner dataPartitioner;
         public SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator;
         public Flow flow;
         public Sink sink;
@@ -652,9 +652,8 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Params params = new Params();
 
-        params.dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(
-                new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)),
-                "latin1");
+        params.dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), "latin1");
 
         return pgJobStore.jobStoreRepository.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
     }

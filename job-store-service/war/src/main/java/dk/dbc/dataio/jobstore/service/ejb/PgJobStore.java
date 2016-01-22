@@ -35,7 +35,7 @@ import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
@@ -374,7 +374,7 @@ public class PgJobStore {
      * @throws IOException if the byte size differs
      * @throws JobStoreException if the byte size could not be retrieved, InvalidInputException if the file store service URI was invalid
      */
-    void compareByteSize(String fileId, DataPartitionerFactory.DataPartitioner dataPartitioner) throws IOException, JobStoreException {
+    void compareByteSize(String fileId, DataPartitioner dataPartitioner) throws IOException, JobStoreException {
         long fileByteSize = getByteSizeOrThrow(fileId);
         long jobByteSize = dataPartitioner.getBytesRead();
 

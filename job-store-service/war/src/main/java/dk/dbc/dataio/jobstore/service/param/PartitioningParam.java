@@ -6,7 +6,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitionerFactory;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -26,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter;
-import static dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory.DataPartitioner;
 
 /**
  * This class is a parameter abstraction for the PgJobStore.addJob() method.
@@ -139,7 +139,7 @@ public class PartitioningParam {
                 case ISO2709:
                     return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DANMARC2_LINE_FORMAT:
-                    return new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
                     diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitterType));
             }

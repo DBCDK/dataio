@@ -5,7 +5,7 @@ import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 
 import java.io.InputStream;
 import java.util.List;
@@ -17,7 +17,7 @@ public class TestablePartitioningParam extends PartitioningParam {
                                      List<Diagnostic> diagnostics,
                                      RecordSplitterConstants.RecordSplitter recordSplitter,
                                      InputStream dataFileInputStream,
-                                     DataPartitionerFactory.DataPartitioner dataPartitioner) {
+                                     DataPartitioner dataPartitioner) {
 
         super(jobEntity, fileStoreServiceConnector, doSequenceAnalysis, recordSplitter);
         this.diagnostics = diagnostics;

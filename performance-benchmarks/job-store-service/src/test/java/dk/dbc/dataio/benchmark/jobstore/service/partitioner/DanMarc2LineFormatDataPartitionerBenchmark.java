@@ -22,8 +22,8 @@
 package dk.dbc.dataio.benchmark.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitionerFactory;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import org.junit.Test;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -88,18 +88,18 @@ public class DanMarc2LineFormatDataPartitionerBenchmark {
         static String resource;
         static String encoding;
 
-        DataPartitionerFactory.DataPartitioner dataPartitioner;
+        DataPartitioner dataPartitioner;
 
         @Setup(Level.Invocation)
         public void setDataPartitioner() {
-            dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(getClass().getResourceAsStream(resource), encoding);
+            dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                    getClass().getResourceAsStream(resource), encoding);
         }
     }
 
     @Benchmark
     public void benchmark_74_records(BenchmarkState state) {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = state.dataPartitioner;
+        final DataPartitioner dataPartitioner = state.dataPartitioner;
         for (Iterator<ChunkItem> iterator = dataPartitioner.iterator(); iterator.hasNext(); ) {
             iterator.next();
         }

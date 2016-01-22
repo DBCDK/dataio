@@ -23,7 +23,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -217,7 +217,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             int jobId,
             int chunkId,
             short maxChunkSize,
-            DataPartitionerFactory.DataPartitioner dataPartitioner,
+            DataPartitioner dataPartitioner,
             SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator,
             String dataFileId)
             throws JobStoreException {
@@ -576,7 +576,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      */
     @Stopwatch
     ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize,
-            DataPartitionerFactory.DataPartitioner dataPartitioner) {
+            DataPartitioner dataPartitioner) {
 
         Date nextItemBegin = new Date();
         short itemCounter = 0;

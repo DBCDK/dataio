@@ -45,15 +45,14 @@ public class DanMarc2LineFormatDataPartitionerTest {
     @Test
     public void specifiedEncodingDiffersFromActualEncoding_throws() {
         try {
-            new DanMarc2LineFormatDataPartitionerFactory().createDataPartitioner(INPUT_STREAM, StandardCharsets.UTF_8.name());
+            DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, StandardCharsets.UTF_8.name());
             fail("No exception thrown");
         } catch (InvalidEncodingException ignored) { }
     }
 
     @Test
     public void specifiedEncodingIdenticalToActualEncoding_ok() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-        createDataPartitioner(INPUT_STREAM, SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, SPECIFIED_ENCODING);
         try {
             dataPartitioner.iterator();
         } catch (InvalidEncodingException e) {
@@ -63,8 +62,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void specifiedEncodingIdenticalToActualEncodingInLowerCase_ok() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(INPUT_STREAM, "LATIN1");
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "LATIN1");
         try {
             dataPartitioner.iterator();
         } catch (InvalidEncodingException e) {
@@ -74,8 +72,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void specifiedEncodingIdenticalToActualEncodingAfterTrim_ok() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(INPUT_STREAM, " latin1 ");
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, " latin1 ");
         try {
             dataPartitioner.iterator();
         } catch (InvalidEncodingException e) {
@@ -85,8 +82,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void specifiedEncodingIdenticalToActualEncodingAfterDashReplace_ok() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(INPUT_STREAM, "latin-1");
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "latin-1");
         try {
             dataPartitioner.iterator();
         } catch (InvalidEncodingException e) {
@@ -96,15 +92,14 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void getEncoding_expectedEncodingReturned() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(INPUT_STREAM, SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, SPECIFIED_ENCODING);
         assertThat("Encoding", dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
     @Test
     public void dm2LineFormatDataPartitioner_inputStreamContainsOnlyEndMark_returnsChunkItemWithStatusIgnore()  {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(StringUtil.asInputStream("$\n", StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                StringUtil.asInputStream("$\n", StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat("Empty input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
@@ -116,8 +111,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
     @Test
     public void dm2LineFormatDataPartitioner_readValidRecord_returnsChunkItemWithMarcRecordAsMarcXchangeAndStatusSuccess() {
         final String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(StringUtil.asInputStream(simpleRecordInLineFormat, StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                StringUtil.asInputStream(simpleRecordInLineFormat, StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat("Valid input => hasNext() expected to be true", iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
@@ -129,8 +124,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
     @Test
     public void dm2LineFormatDataPartitioner_readInvalidRecord_returnsChunkItemWithFaultyRecordsAsDataAndStatusFailure() {
         final String faultyRecordInLineFormat = "245 00 *aA @*programmer is *\n";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(StringUtil.asInputStream(faultyRecordInLineFormat, StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                StringUtil.asInputStream(faultyRecordInLineFormat, StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         ChunkItem chunkItem = iterator.next();
@@ -143,8 +138,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
     @Test
     public void dm2LineFormatDataPartitioner_readInvalidRecordNotRecognisedAsLineFormat_throwsInvalidDataException() {
         final String faultyRecord = "*aA @*programmer is born";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(StringUtil.asInputStream(faultyRecord, new DanMarc2Charset()), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                StringUtil.asInputStream(faultyRecord, new DanMarc2Charset()), SPECIFIED_ENCODING);
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
@@ -155,8 +150,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
 
     @Test
     public void dm2LineFormatDataPartitioner_multipleIterations() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DanMarc2LineFormatDataPartitionerFactory().
-                createDataPartitioner(getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
+        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
+                getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
         int chunkItemNo = 0;
         for (ChunkItem chunkItem : dataPartitioner) {
             chunkItemNo++;
@@ -164,5 +159,37 @@ public class DanMarc2LineFormatDataPartitionerTest {
         }
         assertThat("Number of chunk item created", chunkItemNo, is(74));
         assertThat("Number of bytes read", dataPartitioner.getBytesRead(), is(71516L));
+    }
+
+    @Test
+    public void newInstance_inputStreamArgIsNull_throws() {
+        try {
+            DanMarc2LineFormatDataPartitioner.newInstance(null, SPECIFIED_ENCODING);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void newInstance_encodingArgIsNull_throws() {
+        try {
+            DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, null);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void newInstance_encodingArgIsEmpty_throws() {
+        try {
+            DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, "");
+            fail("No exception thrown");
+        } catch (IllegalArgumentException e) {
+        }
+    }
+
+    @Test
+    public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
+        assertThat(DanMarc2LineFormatDataPartitioner.newInstance(INPUT_STREAM, SPECIFIED_ENCODING), is(notNullValue()));
     }
 }

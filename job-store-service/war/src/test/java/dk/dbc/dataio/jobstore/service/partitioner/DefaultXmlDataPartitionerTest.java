@@ -42,7 +42,7 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void emptyRootElement_returnsNoXMLStrings() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel></topLevel>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
@@ -52,7 +52,7 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void emptyCollapsedRootElement_returnsNoXMLStrings() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel/>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         assertThat(dataPartitioner.iterator().hasNext(), is(false));
@@ -63,7 +63,7 @@ public class DefaultXmlDataPartitionerTest {
     public void singleXMLChild_givesOneStringWithXML() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
         final ChunkItem expectedResult=new ChunkItemBuilder().setData(xml).build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -84,7 +84,7 @@ public class DefaultXmlDataPartitionerTest {
         final ChunkItem expectedResult2 = new ChunkItemBuilder().setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
                 + "<child><grandChild>Pirate so brave on the seven seas</grandChild></child>"
                 + "</topLevel>").build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -102,7 +102,7 @@ public class DefaultXmlDataPartitionerTest {
         final ChunkItem expectedResult = new ChunkItemBuilder()
                 .setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>")
                 .build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -116,7 +116,7 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void errornousXMLContainingOnlyRootStartElement_throws() {
         final String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -129,7 +129,7 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void errornousXMLContainingUnfinishedFirstChild_throws() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grand";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -145,7 +145,7 @@ public class DefaultXmlDataPartitionerTest {
     @Test
     public void errornousXMLWrongNesting_throws() {
         final String xml = "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</child></grandChild></topLevel>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -166,7 +166,7 @@ public class DefaultXmlDataPartitionerTest {
         final ChunkItem expectedResult = new ChunkItemBuilder().setData("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>"
                 + "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>"
                 + "</topLevel>").build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -186,7 +186,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test xmlns=\"default\" xmlns:prefix=\"http://uri\">"
                 + "<child1 id=\"1\">default ns</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expceted=new ChunkItemBuilder().setData(xml).build();
 
@@ -203,7 +203,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>æøå</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml, StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -221,7 +221,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<ns:test xmlns:ns=\"http://uri\">"
                 + "<child1>æøå</child1>"
                 + "</ns:test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final ChunkItem expected=new ChunkItemBuilder().setData(xml) .build();
@@ -238,7 +238,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>This is a single Ampersand: & which is not legal</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -256,7 +256,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>This is a Less Than sign: < which is not legal</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -280,7 +280,7 @@ public class DefaultXmlDataPartitionerTest {
                         + "<child1>This is a Larger Than sign: &gt; which is legal</child1>"
                         + "</test>")
                 .build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -296,7 +296,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>This is a Quotation Mark: \" which is legal</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
@@ -313,7 +313,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>This is an Aprostroph: ' which is legal</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
@@ -330,7 +330,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<:test>"
                 + "<child1>child text</child1>"
                 + "</:test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
@@ -347,7 +347,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<_test>"
                 + "<child1>child text</child1>"
                 + "</_test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expceted=new ChunkItemBuilder().setData(xml).build();
 
@@ -364,7 +364,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<_-.9>"
                 + "<child1>child text</child1>"
                 + "</_-.9>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
@@ -381,7 +381,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test is good>"
                 + "<child1>This is a good test</child1>"
                 + "</test is good>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -410,7 +410,7 @@ public class DefaultXmlDataPartitionerTest {
                         + "<!-- comment in sub level -->"
                         + "</test>")  // The trailing comment is removed
                 .build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -427,7 +427,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<child1>child text</child1>"
                 + "<!-- Dash Dash -- is not legal -->"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -446,7 +446,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<child1>child text</child1>"
                 + "<!-- Dash Dash Larger Than used as a comment end is not legal: --->"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -464,7 +464,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"2\">What is the size here?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
@@ -487,7 +487,7 @@ public class DefaultXmlDataPartitionerTest {
                         + "<child1 size=\"2\">What is the size here?</child1>"
                         + "</test>")
                 .build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -503,7 +503,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=2>What is the size here?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -519,7 +519,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=2\">What is the size here?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -535,7 +535,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"2>What is the size here?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -551,7 +551,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 2size=\"2\">What is the size here?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -567,7 +567,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"Ampersand: & \">What is this?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -583,7 +583,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"Less than: < \">What is this?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -605,7 +605,7 @@ public class DefaultXmlDataPartitionerTest {
                         + "<child1 size=\"Larger than: &gt; \">What is this?</child1>"
                         + "</test>")
                 .build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -621,7 +621,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"Quotation Mark: \" \">What is this?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -637,7 +637,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"Apostroph: ' \">What is this?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
         final  ChunkItem expected=new ChunkItemBuilder().setData(xml).build();
 
@@ -658,7 +658,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size=\"Quotation Mark: &quot; \">What is this?</child1>"
                 + "</test>").build();
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
@@ -674,7 +674,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1 size='Apostroph: ' '>What is this?</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.UTF_8.name());
 
         try {
@@ -690,7 +690,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>data</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
 
         try {
@@ -706,7 +706,7 @@ public class DefaultXmlDataPartitionerTest {
                 + "<test>"
                 + "<child1>data</child1>"
                 + "</test>";
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream(xml), StandardCharsets.ISO_8859_1.name());
 
         try {
@@ -718,14 +718,14 @@ public class DefaultXmlDataPartitionerTest {
 
     @Test
     public void getEncoding_returnsCanonicalEncoding() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream("<test/>"), "utf8");
         assertThat(dataPartitioner.getEncoding(), is(StandardCharsets.UTF_8));
     }
 
     @Test
     public void getEncoding_illegalCharsetNameException_throws() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream("<test/>"), "[ILLEGAL_CHARSET_NAME]");
         try {
             dataPartitioner.getEncoding();
@@ -736,7 +736,7 @@ public class DefaultXmlDataPartitionerTest {
 
     @Test
     public void getEncoding_UnsupportedCharsetException_throws() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream("<test/>"), "UNKNOWN_CHARSET_NAME");
         try {
             dataPartitioner.getEncoding();
@@ -747,7 +747,7 @@ public class DefaultXmlDataPartitionerTest {
 
     @Test
     public void iterator_illegalCharsetNameException_throws() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream("<test/>"), "[ILLEGAL_CHARSET_NAME]");
         try {
             dataPartitioner.iterator();
@@ -758,7 +758,7 @@ public class DefaultXmlDataPartitionerTest {
 
     @Test
     public void iterator_UnsupportedCharsetException_throws() {
-        final DataPartitionerFactory.DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
+        final DataPartitioner dataPartitioner = new DefaultXmlDataPartitionerFactory()
                 .createDataPartitioner(asInputStream("<test/>"), "UNKNOWN_CHARSET_NAME");
         try {
             dataPartitioner.iterator();

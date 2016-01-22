@@ -50,8 +50,12 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A factory for simple partitioner of XML data read from an {@link InputStream} able to iterate over and extract
@@ -126,6 +130,9 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     private String rootTag;
     private XMLEventReader xmlReader;
     private List<XMLEvent> preRecordEvents;
+    protected Set<String> extractedKeys;
+    protected Map<String, String> extractedValues;
+
     private Charset canonicalEncoding;
     private Iterator<ChunkItem> iterator;
 
@@ -143,12 +150,15 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         return new DefaultXmlDataPartitioner(inputStream, encoding);
     }
 
-    private DefaultXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
+    protected DefaultXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
+
         this.inputStream = new ByteCountingInputStream(inputStream);
         this.expectedEncoding = expectedEncoding;
         encoding = StandardCharsets.UTF_8.name();
         xmlEventFactory = XMLEventFactory.newInstance();
         xmlOutputFactory = XMLOutputFactory.newInstance();
+        extractedKeys = new HashSet<>();
+        extractedValues = new HashMap<>();
     }
 
     @Override
@@ -218,7 +228,9 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         xmlWriter.add(xmlEventFactory.createEndElement("", null, rootTag));
                         xmlWriter.add(xmlEventFactory.createEndDocument());
                         xmlWriter.close();
-                        return nextChunkItem(baos, ChunkItem.Status.SUCCESS);
+                        ChunkItem chunkItem = nextChunkItem(baos, ChunkItem.Status.SUCCESS);
+                        extractedValues.clear();
+                        return chunkItem;
                     } catch (XMLStreamException | UnsupportedEncodingException e) {
                         LOGGER.error("Exception caught", e);
                         throw new InvalidDataException(e);
@@ -296,11 +308,21 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
 
     private void findRecordEvents(XMLEventWriter xmlWriter) throws XMLStreamException {
         int depth = 0;
+        String extractedName = null;
         XMLEvent e;
         do {
             e = xmlReader.nextEvent();
             if (e.isStartElement()) {
+                if(extractedKeys.contains(e.toString())) {
+                    extractedName = e.toString();
+                }
                 depth++;
+            }
+            if(extractedName != null) {
+                if(e.isCharacters()) {
+                    extractedValues.put(extractedName, e.toString());
+                    extractedName = null;
+                }
             }
             if (e.isEndElement()) {
                 depth--;

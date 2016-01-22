@@ -113,6 +113,10 @@ public class JobItemReorderer {
         return next;
     }
 
+    public int getJobId() {
+        return jobId;
+    }
+
     private boolean mustBeReordered(DataPartitionerResult partitionerResult) {
         final MarcRecordInfo recordInfo = (MarcRecordInfo) partitionerResult.getRecordInfo();
         return recordInfo.isHead() || recordInfo.isSection() || recordInfo.isVolume();

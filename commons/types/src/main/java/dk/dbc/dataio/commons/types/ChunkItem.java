@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Chunk item DTO class.
@@ -55,9 +54,10 @@ public class ChunkItem implements Serializable {
     private long id;
     private final byte[] data;
     private Status status;
-    @JsonProperty("type") private List<Type> type;
-    @JsonProperty("diagnostics") private ArrayList<Diagnostic> diagnostics = null;
-    @JsonProperty("encoding") private final Charset encoding;
+    private List<Type> type;
+    private ArrayList<Diagnostic> diagnostics = null;
+    private final Charset encoding;
+    private String trackingId = null;
 
 
     /**
@@ -89,7 +89,6 @@ public class ChunkItem implements Serializable {
     public ChunkItem(long id, byte[] data, Status status) {
         this(id, data, status, Collections.singletonList(Type.UNKNOWN), StandardCharsets.UTF_8);
     }
-
 
     /**
      * If diagnostic level is different from WARNING:
@@ -137,6 +136,13 @@ public class ChunkItem implements Serializable {
         this.id = id;
     }
 
+    public String getTrackingId() {
+        return trackingId;
+    }
+    public void setTrackingId(String trackingId) {
+        this.trackingId = trackingId;
+    }
+
     public byte[] getData() {
         return data;
     }
@@ -155,6 +161,7 @@ public class ChunkItem implements Serializable {
 
     public Charset getEncoding() { return encoding; }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -163,14 +170,23 @@ public class ChunkItem implements Serializable {
         return id == chunkItem.id &&
                 Arrays.equals(data, chunkItem.data) &&
                 status == chunkItem.status &&
-                Objects.equals(type, chunkItem.type) &&
-                Objects.equals(diagnostics, chunkItem.diagnostics) &&
-                Objects.equals(encoding, chunkItem.encoding);
+                (type != null ? type.equals(chunkItem.type) : chunkItem.type == null &&
+                        (diagnostics != null ? diagnostics.equals(chunkItem.diagnostics) : chunkItem.diagnostics == null &&
+                                (encoding != null ? encoding.equals(chunkItem.encoding) : chunkItem.encoding == null &&
+                                        (trackingId != null ? trackingId.equals(chunkItem.trackingId) : chunkItem.trackingId == null))));
+
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, data, status, type, diagnostics, encoding);
+        int result = (int) (id ^ (id >>> 32));
+        result = 31 * result + Arrays.hashCode(data);
+        result = 31 * result + status.hashCode();
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (diagnostics != null ? diagnostics.hashCode() : 0);
+        result = 31 * result + (encoding != null ? encoding.hashCode() : 0);
+        result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
+        return result;
     }
 
     @Override

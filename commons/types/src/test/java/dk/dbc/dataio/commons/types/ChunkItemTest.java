@@ -29,7 +29,6 @@ import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -62,8 +61,8 @@ public class ChunkItemTest {
     }
 
     @Test
-    public void constructor_combatallArgsAreValid_returnsNewInstance() {
-        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS);
+    public void constructor_combatAllArgsAreValid_returnsNewInstance() {
+        final ChunkItem instance = newChunkItemInstance();
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getId(), is(ID));
         assertThat(instance.getData(), is(DATA));
@@ -72,8 +71,7 @@ public class ChunkItemTest {
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        List<Type> types = Arrays.asList(Type.UNKNOWN, Type.GENERICXML);
-        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS, types, StandardCharsets.UTF_8);
+        final ChunkItem instance = newChunkItemInstanceWithTypeAndEncoding();
         assertThat(instance, is(notNullValue()));
         assertThat(instance.getId(), is(ID));
         assertThat(instance.getData(), is(DATA));
@@ -83,20 +81,35 @@ public class ChunkItemTest {
     }
 
     @Test
-    public void appenddiagnostics_setsStatusToFaiolure() throws Exception {
-        final ChunkItem instance = new ChunkItem(ID, DATA, STATUS);
+    public void appendDiagnostics_setsStatusToFailure() throws Exception {
+        final ChunkItem instance = newChunkItemInstance();
         assertThat(instance.getDiagnostics(), is(nullValue()));
         assertThat(instance.getStatus(), is( STATUS ));
 
-        instance.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "Test Fatal"));
+        instance.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal"));
         assertThat(instance.getDiagnostics(), notNullValue());
         assertThat(instance.getDiagnostics().size(),is(1));
         assertThat(instance.getStatus(), is(ChunkItem.Status.FAILURE ));
-        instance.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "Test Fatal2"));
+        instance.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Test Fatal2"));
 
         assertThat(instance.getDiagnostics(), notNullValue());
         assertThat(instance.getDiagnostics().size(),is(2));
+    }
 
+    @Test
+    public void setId_setsId() {
+        final long newItemId = 42;
+        final ChunkItem instance = newChunkItemInstance();
+        instance.setId(newItemId);
+        assertThat(instance.getId(), is(newItemId));
+    }
+
+    @Test
+    public void setTrackingId_setsTrackingId() {
+        final String trackingId = "trackingId";
+        final ChunkItem instance = newChunkItemInstance();
+        instance.setTrackingId(trackingId);
+        assertThat(instance.getTrackingId(), is(trackingId));
     }
 
     @Test
@@ -118,6 +131,6 @@ public class ChunkItemTest {
     }
 
     public static ChunkItem newChunkItemInstanceWithTypeAndEncoding() {
-        return new ChunkItem(ID, DATA, STATUS, Arrays.asList(Type.STRING, Type.UNKNOWN), StandardCharsets.UTF_8);
+        return new ChunkItem(ID, DATA, STATUS, Arrays.asList(Type.UNKNOWN, Type.GENERICXML), StandardCharsets.UTF_8);
     }
 }

@@ -318,11 +318,9 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                 }
                 depth++;
             }
-            if(extractedName != null) {
-                if(e.isCharacters()) {
-                    extractedValues.put(extractedName, e.toString());
-                    extractedName = null;
-                }
+            if(extractedName != null && e.isCharacters()) {
+                extractedValues.put(extractedName, e.toString());
+                extractedName = null;
             }
             if (e.isEndElement()) {
                 depth--;

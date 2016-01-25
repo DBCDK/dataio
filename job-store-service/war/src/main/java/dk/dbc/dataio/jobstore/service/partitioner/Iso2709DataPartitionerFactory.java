@@ -23,12 +23,15 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.marc.DanMarc2Charset;
+import dk.dbc.marc.Iso2709Iterator;
+import dk.dbc.marc.Iso2709IteratorReadError;
 import dk.dbc.marc.Iso2709Unpacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,7 +75,7 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
     private static class Iso2709DataPartitioner implements DataPartitioner {
         private static final Logger LOGGER = LoggerFactory.getLogger(Iso2709DataPartitioner.class);
 
-        private final ByteCountingInputStream inputStream;
+        private final Iso2709Iterator inputStream;
         private Charset encoding;
         private String specifiedEncoding;
 
@@ -81,14 +84,13 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
         private BufferedInputStream bufferedInputStream;
         private DocumentBuilderFactory documentBuilderFactory;
 
-
         public Iso2709DataPartitioner(InputStream inputStream, String specifiedEncoding) {
-            this.inputStream = new ByteCountingInputStream(inputStream);
+            this.bufferedInputStream = getInputStreamAsBufferedInputStream(inputStream);
+            this.inputStream = new Iso2709Iterator(bufferedInputStream);
             this.encoding = StandardCharsets.UTF_8;
             this.specifiedEncoding = specifiedEncoding;
             validateSpecifiedEncoding();
             danMarc2Charset = new DanMarc2Charset();
-            bufferedInputStream = new BufferedInputStream(this.inputStream);
             documentBuilderFactory = DocumentBuilderFactory.newInstance();
         }
 
@@ -99,36 +101,43 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
 
         @Override
         public long getBytesRead() {
-            return inputStream.getBytesRead();
+            return inputStream.getTotalBytesRead();
         }
 
         @Override
         public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
             iterator = new Iterator<ChunkItem>() {
-                private Document document = null;
 
                 @Override
                 public boolean hasNext() {
-                    try {
-                        document = Iso2709Unpacker.createMarcXChangeRecord(bufferedInputStream, danMarc2Charset, documentBuilderFactory);
-                    } catch (IOException | ParserConfigurationException e) {
-                        LOGGER.error("Exception caught while creating MarcXChange Record", e);
-                        throw new InvalidDataException(e);
-                    }
-                    return document != null;
+                    return inputStream.hasNext();
                 }
 
                 @Override
                 public ChunkItem next() {
-                    if(document != null) {
-                        try {
-                            return new ChunkItem(0, domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
-                        } catch (TransformerException e) {
-                            LOGGER.error("Unrecoverable error occurred during transformation", e);
-                            throw new InvalidDataException(e);
+                    byte[] recordAsBytes = inputStream.next();
+
+                    try {
+                        Document document = Iso2709Unpacker.createMarcXChangeRecord(recordAsBytes, danMarc2Charset, documentBuilderFactory);
+                        if (document == null) {
+                            return null;
                         }
+                        return new ChunkItem(0, domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
+                    } catch (ParserConfigurationException e) {
+                        LOGGER.error("Exception caught while creating MarcXChange Record", e);
+                        throw new InvalidDataException(e);
+                    } catch (TransformerException e) {
+                        LOGGER.error("Unrecoverable error occurred during transformation", e);
+                        throw new InvalidDataException(e);
+                    } catch( Iso2709IteratorReadError e) {
+                        return null;
+                    } catch (Exception e) {
+                        LOGGER.error("Exception caught while decoding 2709", e);
+                        ChunkItem result=new ChunkItem(0, recordAsBytes, ChunkItem.Status.FAILURE);
+                        result.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,"Exception caught while decoding 2709", e ));
+                        return result;
                     }
-                    return null;
+
                 }
             };
             return iterator;
@@ -164,5 +173,10 @@ public class Iso2709DataPartitionerFactory implements DataPartitionerFactory {
             transformer.transform(domSource, result);
             return result.getWriter().toString();
         }
+    }
+
+    private static BufferedInputStream getInputStreamAsBufferedInputStream(InputStream inputStream) {
+        if( inputStream instanceof BufferedInputStream ) return (BufferedInputStream) inputStream;
+        return new BufferedInputStream(inputStream);
     }
 }

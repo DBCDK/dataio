@@ -21,9 +21,11 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.marc.Iso2709IteratorReadError;
 import org.junit.Test;
 import org.xmlunit.matchers.CompareMatcher;
 
@@ -37,7 +39,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -141,12 +145,12 @@ public class Iso2709DataPartitionerTest {
         assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
         assertThat("Second record => hasNext() expected to be true", iterator.hasNext(), is(true));
         assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getTestInputStream(OUTPUT_RECORD_1_MARCXCHANGE))));
-
+        assertThat("next matches Failed Record ",iterator.hasNext(), is(true) );
         try {
-            iterator.hasNext();
+            iterator.next();
             fail("Expected error not thrown");
-        } catch (InvalidDataException e) {
-            assertThat("Expected throwable leading to InvalidDataException", e.getCause() instanceof IOException, is(true));
+        } catch (Iso2709IteratorReadError e) {
+            assertThat("Expected throwable leading to InvalidDataException", e.getMessage(), is("Cannot read 1239 got:  1222"));
         }
     }
 
@@ -162,6 +166,24 @@ public class Iso2709DataPartitionerTest {
         }
         assertThat("Number of iterations", numberOfIterations, is(4));
         assertThat("dataPartitioner.getBytesRead()", dataPartitioner.getBytesRead(), is((long) isoRecords.length));
+    }
+
+    @Test
+    public void testRecordsWithErrors() throws Exception {
+        final DataPartitioner dataPartitioner = new Iso2709DataPartitionerFactory()
+                .createDataPartitioner(getTestInputStream("/test-records-4-error-in-record2.iso"), SPECIFIED_ENCODING);
+
+        int numberOfIterations = 0;
+        List<ChunkItem>  results=new ArrayList<>();
+        for (ChunkItem ci : dataPartitioner) {
+            numberOfIterations++;
+            results.add(ci);
+        }
+
+        assertThat("Record 2 is a error",results.get(1).getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("Record 2 is a error",results.get(1).getDiagnostics().size(), is(1));
+
+        assertThat("Number of iterations", numberOfIterations, is(4));
     }
 
     /*

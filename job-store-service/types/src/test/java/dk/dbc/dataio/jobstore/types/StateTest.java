@@ -60,7 +60,7 @@ public class StateTest {
     public void deepCopyConstructor_stateArg_returnsNewInstanceWithCopiedValues() {
         StateChange stateChange = getStateChangeWithStartAndEndDate(PARTITIONING);
         State state = new State();
-        state.getDiagnostics().add(new DiagnosticBuilder().setLevel(Diagnostic.Level.FATAL).build());
+        state.getDiagnostics().add(new DiagnosticBuilder().build());
         state.updateState(stateChange);
 
         // Assert that State has been updated correctly

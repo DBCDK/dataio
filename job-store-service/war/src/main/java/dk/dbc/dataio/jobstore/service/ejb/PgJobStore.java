@@ -65,8 +65,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static dk.dbc.dataio.commons.types.Diagnostic.Level.FATAL;
-
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
  */

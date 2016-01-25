@@ -23,6 +23,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
+import dk.dbc.dataio.jobstore.service.partitioner.DataContainerXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
@@ -46,6 +47,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -424,36 +426,41 @@ public class PgJobStoreRepository extends RepositoryBase {
         chunkItemEntities.chunkStateChange.setPhase(phase);
 
         final Iterator<ChunkItem> nextIterator = chunk.nextIterator();
-        for (ChunkItem chunkItem : chunk) {
-            final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
-            final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
-            if (itemEntity == null) {
-                throwInvalidInputException(String.format("ItemEntity.%s could not be found", itemKey), JobError.Code.INVALID_ITEM_IDENTIFIER);
+        try {
+            for (ChunkItem chunkItem : chunk) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
+                final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
+                if (itemEntity == null) {
+                    throwInvalidInputException(String.format("ItemEntity.%s could not be found", itemKey), JobError.Code.INVALID_ITEM_IDENTIFIER);
+                }
+
+                if (itemEntity.getState().phaseIsDone(phase)) {
+                    throwDuplicateChunkException(String.format("Aborted attempt to add item %s to already finished %s phase", itemEntity.getKey(), phase), JobError.Code.ILLEGAL_CHUNK);
+                }
+
+                chunkItemEntities.entities.add(itemEntity);
+
+                final StateChange itemStateChange = new StateChange()
+                        .setPhase(phase)
+                        .setBeginDate(nextItemBegin)                                            // ToDo: Chunk type must contain beginDate
+                        .setEndDate(new Date());                                                // ToDo: Chunk type must contain endDate
+
+                setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, chunkItem);
+                if (nextIterator.hasNext()) {
+                    itemEntity.setNextProcessingOutcome(nextIterator.next());
+                }
+
+                setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, itemStateChange);
+
+                final State itemState = updateItemEntityState(itemEntity, itemStateChange);
+                if (itemState.allPhasesAreDone()) {
+                    itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+                }
+                nextItemBegin = new Date();
             }
-
-            if (itemEntity.getState().phaseIsDone(phase)) {
-                throwDuplicateChunkException(String.format("Aborted attempt to add item %s to already finished %s phase", itemEntity.getKey(), phase), JobError.Code.ILLEGAL_CHUNK);
-            }
-
-            chunkItemEntities.entities.add(itemEntity);
-
-            final StateChange itemStateChange = new StateChange()
-                    .setPhase(phase)
-                    .setBeginDate(nextItemBegin)                                            // ToDo: Chunk type must contain beginDate
-                    .setEndDate(new Date());                                                // ToDo: Chunk type must contain endDate
-
-            setOutcomeOnItemEntityFromPhase(chunk, phase, itemEntity, chunkItem);
-            if (nextIterator.hasNext()) {
-                itemEntity.setNextProcessingOutcome(nextIterator.next());
-            }
-
-            setItemStateOnChunkItemFromStatus(chunkItemEntities, chunkItem, itemStateChange);
-
-            final State itemState = updateItemEntityState(itemEntity, itemStateChange);
-            if(itemState.allPhasesAreDone()) {
-                itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-            }
-            nextItemBegin = new Date();
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return chunkItemEntities;
     }
@@ -575,9 +582,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return item entities compound object
      */
     @Stopwatch
-    ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize,
-            DataPartitioner dataPartitioner) {
-
+    ChunkItemEntities createChunkItemEntities(int jobId, int chunkId, short maxChunkSize, DataPartitioner dataPartitioner) {
         Date nextItemBegin = new Date();
         short itemCounter = 0;
         final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
@@ -588,6 +593,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                is still created but with a serialized JobError as payload instead.
              */
             for (ChunkItem chunkItem : dataPartitioner) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 
                 StateChange stateChange = new StateChange()
@@ -626,6 +632,8 @@ public class PgJobStoreRepository extends RepositoryBase {
 
             chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter, itemState, null));
             chunkItemEntities.chunkStateChange.incFailed(1);
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return chunkItemEntities;
     }

@@ -139,6 +139,7 @@ public class JobItemReorderer {
     private DataPartitionerResult getReorderedItem() {
         final ReorderedItemEntity reorderedItemEntity = entityManager
                 .createNamedQuery(ReorderedItemEntity.NAMED_QUERY_GET_REORDERED_ITEM, ReorderedItemEntity.class)
+                .setParameter("jobId", jobId)
                 .setMaxResults(1)
                 .getSingleResult();
 

@@ -174,6 +174,7 @@ public class JobItemReordererTest {
 
         final TypedQuery<ReorderedItemEntity> typedQuery = mockTypedQuery();
         when(typedQuery.setMaxResults(1)).thenReturn(typedQuery);
+        when(typedQuery.setParameter("jobId", reorderer.getJobId())).thenReturn(typedQuery);
         when(typedQuery.getSingleResult()).thenReturn(entity);
         when(entityManager.createNamedQuery(ReorderedItemEntity.NAMED_QUERY_GET_REORDERED_ITEM, ReorderedItemEntity.class))
                 .thenReturn(typedQuery);

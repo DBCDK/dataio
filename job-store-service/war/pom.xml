@@ -253,7 +253,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-failsafe-plugin</artifactId>
             <configuration>
-                <!--                    <redirectTestOutputToFile>true</redirectTestOutputToFile> -->
+                <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 <systemPropertyVariables>
                     <postgresql.port>${jobstore.postgresql.port}</postgresql.port>
                 </systemPropertyVariables>

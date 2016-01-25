@@ -30,8 +30,8 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -60,6 +60,7 @@ public class ChunkProcessorBeanTest {
     static final String javaScriptReturnNoResult = "returnNoResult";
     static final String javaScriptReturnConcatenation = "returnConcatenation";
     static final String javaScriptThrowException = "throwException";
+    static final String trackingId = "trackingId_";
 
     private final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(submitter, format);
 
@@ -97,6 +98,7 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
         assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
     }
 
     @Test
@@ -118,17 +120,20 @@ public class ChunkProcessorBeanTest {
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
 
         assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
         final ChunkItem processedItem1 = iterator.next();
         assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk item[1] diagnostic", processedItem1.getDiagnostics().size(), is(1));
         assertThat("Chunk item[1] diagnostic stacktrace", processedItem1.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("Chunk item[1] trackingId", processedItem1.getTrackingId(), is(trackingId + 2));
 
         assertThat("Chunk has item[2]", iterator.hasNext(), is(true));
         final ChunkItem processedItem2 = iterator.next();
         assertThat("Chunk item[2] status", processedItem2.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("Chunk item[2] diagnostic", processedItem2.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[2] trackingId", processedItem2.getTrackingId(), is(trackingId + 3));
     }
 
     @Test
@@ -153,12 +158,14 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
         assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
 
         assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
         final ChunkItem processedItem1 = iterator.next();
         assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk item[1] diagnostic", processedItem1.getDiagnostics().size(), is(1));
         assertThat("Chunk item[1] diagnostic stacktrace", processedItem1.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("Chunk item[1] trackingId", processedItem1.getTrackingId(), is(trackingId + 2));
     }
     
     @Test
@@ -182,6 +189,7 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] data", processedItem0.getData().length == 0, is(false));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -207,6 +215,7 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
         assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -231,6 +240,7 @@ public class ChunkProcessorBeanTest {
         final ChunkItem processedItem0 = iterator.next();
         assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()),
                 is(String.format("%s%s%s", submitter, record.toUpperCase(), format)));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -257,6 +267,7 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] data", StringUtil.asString(processedItem0.getData()), is("errorMessage"));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -284,6 +295,7 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics().size(), is(1));
         assertThat("Chunk item[0] diagnostic stacktrace", processedItem0.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
         assertThat("Chunk has item[1]", iterator.hasNext(), is(false));
     }
 
@@ -322,9 +334,9 @@ public class ChunkProcessorBeanTest {
         final Flow flow = getFlow(scriptWrapper1, scriptWrapper2);
 
         final List<ChunkItem> items = new ArrayList<>();
-        items.add(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(record)).build());
-        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.FAILURE).build());
-        items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.IGNORE).build());
+        items.add(new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(record)).setTrackingId(trackingId + 1).build());
+        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.FAILURE).setTrackingId(trackingId + 2).build());
+        items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.IGNORE).setTrackingId(trackingId + 3).build());
 
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
                 .setJobId(jobId)
@@ -342,18 +354,21 @@ public class ChunkProcessorBeanTest {
                 is(String.format("%s%s%s", submitter, record.toUpperCase(), format)));
         assertThat("Chunk item[0] status", processedItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("Chunk item[0] diagnostic", processedItem0.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[0] trackingId", processedItem0.getTrackingId(), is(trackingId + 1));
 
         assertThat("Chunk has item[1]", iterator.hasNext(), is(true));
         final ChunkItem processedItem1 = iterator.next();
         assertThat("Chunk item[1] data", processedItem1.getData().length == 0, is(false));
         assertThat("Chunk item[1] status", processedItem1.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("Chunk item[1] diagnostic", processedItem1.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[1] trackingId", processedItem1.getTrackingId(), is(trackingId + 2));
 
         assertThat("Chunk has item[2]", iterator.hasNext(), is(true));
         final ChunkItem processedItem2 = iterator.next();
         assertThat("Chunk item[2] data", processedItem2.getData().length == 0, is(false));
         assertThat("Chunk item[2] status", processedItem2.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("Chunk item[2] diagnostic", processedItem2.getDiagnostics(), is(nullValue()));
+        assertThat("Chunk item[2] trackingId", processedItem2.getTrackingId(), is(trackingId + 3));
 
         assertThat("Chunk has item[3]", iterator.hasNext(), is(false));
     }
@@ -378,6 +393,7 @@ public class ChunkProcessorBeanTest {
             items.add(new ChunkItemBuilder()
                     .setId(chunkId++)
                     .setData(StringUtil.asBytes(itemData))
+                    .setTrackingId(trackingId + chunkId)
                     .build());
         }
         return items;

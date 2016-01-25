@@ -74,7 +74,7 @@ public class ChunkProcessorBean {
             MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
             LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
             final Chunk processedChunk = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
-            processedChunk.setEncoding(Charset.defaultCharset());// todo: Change Chunk to get actual Charset
+            processedChunk.setEncoding(Charset.defaultCharset());// todo: Remove once Chunk gets encoding from ChunkItem
             if (chunk.size() > 0) {
                 try {
                     final FlowCache.FlowCacheEntry flowCacheEntry = cacheFlow(flow);
@@ -125,7 +125,7 @@ public class ChunkProcessorBean {
         for (ChunkItem item : chunk) {
             final StopWatch stopWatchForItem = new StopWatch();
 
-            if(item.getStatus() != ChunkItem.Status.SUCCESS) {
+            if (item.getStatus() != ChunkItem.Status.SUCCESS) {
                 processedItems.add(skipItem(item));
                 LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
                         chunk.getJobId(), chunk.getChunkId(), item.getId(), item.getStatus());
@@ -170,7 +170,7 @@ public class ChunkProcessorBean {
      * Skips javascript processing of an item and sets status to ignore.
      */
     private ChunkItem skipItem(ChunkItem item) {
-         return ObjectFactory.buildIgnoredChunkItem(item.getId(), String.format("Ignored by job-processor since returned status was {%s}", item.getStatus()));
+         return ObjectFactory.buildIgnoredChunkItem(item.getId(), String.format("Ignored by job-processor since returned status was {%s}", item.getStatus()), item.getTrackingId());
     }
 
     /* Processes given item
@@ -187,20 +187,20 @@ public class ChunkProcessorBean {
                 }
             }
             if (data.isEmpty()) {
-                processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), "Ignored by job-processor since returned data was empty");
+                processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), "Ignored by job-processor since returned data was empty", item.getTrackingId());
             } else {
-                processedItem = ObjectFactory.buildSuccessfulChunkItem(item.getId(), data, ChunkItem.Type.UNKNOWN);
+                processedItem = ObjectFactory.buildSuccessfulChunkItem(item.getId(), data, ChunkItem.Type.UNKNOWN, item.getTrackingId());
             }
         } catch (IgnoreRecord e) {
             LOGGER.error("Record Ignored by JS with Message: {}", e.getMessage());
-            processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), e.getMessage());
+            processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), e.getMessage(), item.getTrackingId());
         } catch (FailRecord e) {
             LOGGER.error("RecordProcessing Terminated by JS with Message: {}", e.getMessage());
-            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage());
+            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage(), item.getTrackingId());
             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         } catch (Throwable t) {
             LOGGER.error("Exception caught during JavaScript processing", t);
-            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
+            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), item.getTrackingId());
             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught during JavaScript processing", t));
         }
         return processedItem;
@@ -223,7 +223,7 @@ public class ChunkProcessorBean {
     private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable t) {
         final List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
-            final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t));
+            final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), item.getTrackingId());
             processedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Chunk item failed during processing", t));
             failedItems.add(processedChunkItem);
         }

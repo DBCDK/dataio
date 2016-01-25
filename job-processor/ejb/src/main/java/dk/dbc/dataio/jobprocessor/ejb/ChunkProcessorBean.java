@@ -34,6 +34,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
 import dk.dbc.javascript.recordprocessing.FailRecord;
 import dk.dbc.javascript.recordprocessing.IgnoreRecord;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -122,25 +123,30 @@ public class ChunkProcessorBean {
      */
     private List<ChunkItem> processItems(Chunk chunk, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
         List<ChunkItem> processedItems = new ArrayList<>();
-        for (ChunkItem item : chunk) {
-            final StopWatch stopWatchForItem = new StopWatch();
+        try {
+            for (ChunkItem item : chunk) {
+                DBCTrackedLogContext.setTrackingId(item.getTrackingId());
+                final StopWatch stopWatchForItem = new StopWatch();
 
-            if (item.getStatus() != ChunkItem.Status.SUCCESS) {
-                processedItems.add(skipItem(item));
-                LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
-                        chunk.getJobId(), chunk.getChunkId(), item.getId(), item.getStatus());
-            } else {
-                try {
-                    final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
-                            String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId());
-                    final ChunkItem processedItem = processItemWithLogStoreTracking(item, logStoreTrackingId,
-                            supplementaryData, jsWrappers);
-                    processedItems.add(processedItem);
-                } finally {
-                    LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
-                            chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+                if (item.getStatus() != ChunkItem.Status.SUCCESS) {
+                    processedItems.add(skipItem(item));
+                    LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
+                            chunk.getJobId(), chunk.getChunkId(), item.getId(), item.getStatus());
+                } else {
+                    try {
+                        final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
+                                String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId());
+                        final ChunkItem processedItem = processItemWithLogStoreTracking(item, logStoreTrackingId,
+                                supplementaryData, jsWrappers);
+                        processedItems.add(processedItem);
+                    } finally {
+                        LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+                                chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
+                    }
                 }
             }
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return processedItems;
     }

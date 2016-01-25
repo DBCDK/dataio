@@ -22,8 +22,8 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -238,7 +238,7 @@ public class MailNotificationTest {
     public void send_appliesJobCreatedFailTemplate() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_CREATED, getJobEntity());
-        notification.getJob().getState().getDiagnostics().add(new Diagnostic(Diagnostic.Level.FATAL, "Job dannelse fejlet"));
+        notification.getJob().getState().getDiagnostics().add(new DiagnosticBuilder().setMessage("Job dannelse fejlet").build());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();

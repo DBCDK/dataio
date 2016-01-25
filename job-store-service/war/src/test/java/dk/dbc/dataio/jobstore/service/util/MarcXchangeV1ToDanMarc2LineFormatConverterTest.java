@@ -23,9 +23,9 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.marc.binding.ControlField;
 import dk.dbc.marc.binding.DataField;
@@ -101,9 +101,9 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
 
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         final List<Diagnostic> diagnostics = Arrays.asList(
-                ObjectFactory.buildFatalDiagnostic(firstDiagnosticMessage),
-                ObjectFactory.buildWarningDiagnostic(secondDiagnosticMessage),
-                ObjectFactory.buildFatalDiagnostic(thirdDiagnosticMessage));
+                new DiagnosticBuilder().setMessage(firstDiagnosticMessage).build(),
+                new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).setMessage(secondDiagnosticMessage).build(),
+                new DiagnosticBuilder().setMessage(thirdDiagnosticMessage).build());
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);
@@ -121,7 +121,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     public void convert_chunkItemWithDiagnosticsAndATagField_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws JobStoreException {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         final List<Diagnostic> diagnostics = Collections.singletonList(
-                ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "Tag Field", ""));
+                new DiagnosticBuilder().setMessage(diagnosticMessage).setTag("Tag Field").setAttribute("").build());
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);
@@ -135,7 +135,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     public void convert_chunkItemWithDiagnosticsAndAnAttributeField_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws JobStoreException {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         final List<Diagnostic> diagnostics = Collections.singletonList(
-                ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "", "Att Field"));
+                new DiagnosticBuilder().setMessage(diagnosticMessage).setTag("").setAttribute("Att Field").build());
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);
@@ -149,7 +149,7 @@ public class MarcXchangeV1ToDanMarc2LineFormatConverterTest {
     public void convert_chunkItemWithDiagnosticsAndBothTagAndAttributeFields_returnsDanmarc2LineFormatWithDiagnosticMessagesInSubfields() throws JobStoreException {
         final ChunkItem chunkItem = buildChunkItem(asMarcXchange(getMarcRecord()), ChunkItem.Status.FAILURE);
         final List<Diagnostic> diagnostics = Collections.singletonList(
-                ObjectFactory.buildFatalDiagnostic(diagnosticMessage, "Tag Field", "Att Field"));
+                new DiagnosticBuilder().setMessage(diagnosticMessage).setTag("Tag Field").setAttribute("Att Field").build());
 
         // Subject under test
         byte[] danmarc2LineFormat = converter.convert(chunkItem, StandardCharsets.UTF_8, diagnostics);

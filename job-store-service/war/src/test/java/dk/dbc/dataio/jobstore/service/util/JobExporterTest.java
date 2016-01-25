@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
@@ -125,7 +126,7 @@ public class JobExporterTest {
         final ItemEntity itemEntity = createItemEntity();
         setItemEntityDataForPhase(itemEntity, State.Phase.PARTITIONING, "data");
         final ChunkItem chunkItem = itemEntity.getChunkItemForPhase(State.Phase.PARTITIONING);
-        chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "message"));
+        chunkItem.appendDiagnostics(new DiagnosticBuilder().build());
 
         final List<Diagnostic> diagnostics = jobExporter.getDiagnosticsForFailedPhase(itemEntity, State.Phase.PARTITIONING);
         assertThat(diagnostics, is(chunkItem.getDiagnostics()));

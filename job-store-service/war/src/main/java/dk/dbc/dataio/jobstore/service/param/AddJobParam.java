@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -117,7 +118,7 @@ public class AddJobParam {
         }
 
         if(!isJobSpecificationValid) {
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message));
+            diagnostics.add(ObjectFactory.buildFatalDiagnostic(message));
         }
         return isJobSpecificationValid;
     }
@@ -139,7 +140,7 @@ public class AddJobParam {
                     message = exception.getFlowStoreError().getDescription();
                 }
             }
-            diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+            diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
         }
         return null;
     }
@@ -151,7 +152,7 @@ public class AddJobParam {
         } catch(FlowStoreServiceConnectorException | ProcessingException e) {
             if(flowBinder != null) { // No diagnostic created when retrieving flow binder
                 final String message = String.format("Could not retrieve Submitter with submitter number: %d", submitterNumber);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+                diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
         }
         return null;
@@ -164,7 +165,7 @@ public class AddJobParam {
                 return flowStoreServiceConnector.getFlow(flowId);
             } catch(FlowStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not retrieve Flow with ID: %d", flowId);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+                diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
         }
         return null;
@@ -177,7 +178,7 @@ public class AddJobParam {
                 return flowStoreServiceConnector.getSink(sinkId);
             } catch(FlowStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not retrieve Sink with ID: %d", sinkId);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+                diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
         }
         return null;

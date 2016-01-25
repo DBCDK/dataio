@@ -22,10 +22,11 @@
 package dk.dbc.dataio.jobstore.types;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
@@ -59,11 +60,11 @@ public class StateTest {
     public void deepCopyConstructor_stateArg_returnsNewInstanceWithCopiedValues() {
         StateChange stateChange = getStateChangeWithStartAndEndDate(PARTITIONING);
         State state = new State();
-        state.getDiagnostics().add(new Diagnostic(Diagnostic.Level.FATAL, "FATAL msg"));
+        state.getDiagnostics().add(new DiagnosticBuilder().setLevel(Diagnostic.Level.FATAL).build());
         state.updateState(stateChange);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChange));
+        assertStateAfterChange(state.getPhase(PARTITIONING), Collections.singletonList(stateChange));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
@@ -100,8 +101,8 @@ public class StateTest {
     @Test
     public void fatalDiagnosticExists_fatalDiagnosticFound_returns() {
         State state = new State();
-        final Diagnostic warningDiagnostic = new Diagnostic(Diagnostic.Level.WARNING, "WARNING msg");
-        final Diagnostic fatalDiagnostic = new Diagnostic(Diagnostic.Level.FATAL, "FATAL msg");
+        final Diagnostic warningDiagnostic = new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build();
+        final Diagnostic fatalDiagnostic = new DiagnosticBuilder().build();
 
         state.getDiagnostics().add(warningDiagnostic);
         assertThat(state.fatalDiagnosticExists(), is(false));
@@ -120,7 +121,7 @@ public class StateTest {
         state.updateState(stateChange);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChange));
+        assertStateAfterChange(state.getPhase(PARTITIONING), Collections.singletonList(stateChange));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
@@ -141,7 +142,7 @@ public class StateTest {
         state.updateState(stateChange);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChange));
+        assertStateAfterChange(state.getPhase(PARTITIONING), Collections.singletonList(stateChange));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));
@@ -235,7 +236,7 @@ public class StateTest {
         state.updateState(stateChangeProcessing);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(PROCESSING), Collections.singletonList(stateChangeProcessing));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
@@ -258,7 +259,7 @@ public class StateTest {
         state.updateState(stateChangeProcessing);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(PROCESSING), Collections.singletonList(stateChangeProcessing));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
@@ -281,7 +282,7 @@ public class StateTest {
         state.updateState(stateChangeProcessing);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(PROCESSING), Collections.singletonList(stateChangeProcessing));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(PROCESSING).getBeginDate(), not(nullValue()));
@@ -381,7 +382,7 @@ public class StateTest {
         state.updateState(stateChangeDelivering);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(DELIVERING), Arrays.asList(stateChangeDelivering));
+        assertStateAfterChange(state.getPhase(DELIVERING), Collections.singletonList(stateChangeDelivering));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(DELIVERING).getBeginDate(), not(nullValue()));
@@ -421,7 +422,7 @@ public class StateTest {
         state.updateState(stateChangeDelivering);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(DELIVERING), Arrays.asList(stateChangeDelivering));
+        assertStateAfterChange(state.getPhase(DELIVERING), Collections.singletonList(stateChangeDelivering));
 
         // Assert that the begin date has been set
         assertThat(state.getPhase(DELIVERING).getBeginDate(), not(nullValue()));
@@ -446,9 +447,9 @@ public class StateTest {
         state.updateState(stateChangeDelivering);
 
         // Assert that State has been updated correctly
-        assertStateAfterChange(state.getPhase(PARTITIONING), Arrays.asList(stateChangePartitioning));
-        assertStateAfterChange(state.getPhase(PROCESSING), Arrays.asList(stateChangeProcessing));
-        assertStateAfterChange(state.getPhase(DELIVERING), Arrays.asList(stateChangeDelivering));
+        assertStateAfterChange(state.getPhase(PARTITIONING), Collections.singletonList(stateChangePartitioning));
+        assertStateAfterChange(state.getPhase(PROCESSING), Collections.singletonList(stateChangeProcessing));
+        assertStateAfterChange(state.getPhase(DELIVERING), Collections.singletonList(stateChangeDelivering));
 
         // Assert all begin dates have been set
         assertThat(state.getPhase(PARTITIONING).getBeginDate(), not(nullValue()));

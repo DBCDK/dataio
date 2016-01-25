@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -125,7 +126,7 @@ public class PartitioningParam {
                 return fileStoreServiceConnector.getFile(dataFileId);
             } catch (FileStoreServiceConnectorException | ProcessingException e) {
                 final String message = String.format("Could not get input stream for data file: %s", jobEntity.getSpecification().getDataFile());
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+                diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
         }
         return null;
@@ -141,7 +142,7 @@ public class PartitioningParam {
                 case DANMARC2_LINE_FORMAT:
                     return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
-                    diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, "unknown record splitter: " + recordSplitterType));
+                    diagnostics.add(ObjectFactory.buildFatalDiagnostic("unknown record splitter: " + recordSplitterType));
             }
         }
         return null;
@@ -154,7 +155,7 @@ public class PartitioningParam {
                 return new FileStoreUrn(dataFileURN).getFileId();
             } catch (URISyntaxException e) {
                 final String message = String.format("Invalid file-store service URN: %s", dataFileURN);
-                diagnostics.add(new Diagnostic(Diagnostic.Level.FATAL, message, e));
+                diagnostics.add(ObjectFactory.buildFatalDiagnostic(message, e));
             }
         }
         return null;

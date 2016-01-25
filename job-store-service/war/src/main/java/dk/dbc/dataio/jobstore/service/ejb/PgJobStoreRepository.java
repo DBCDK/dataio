@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
@@ -617,7 +618,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
         } catch (RuntimeException e) {
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
-            final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,
+            final Diagnostic diagnostic = ObjectFactory.buildFatalDiagnostic(
                     String.format("Unable to complete partitioning at chunk %d item %d: %s",
                             chunkId, itemCounter, e.getMessage()), e);
 

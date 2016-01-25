@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.openupdate;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -145,7 +146,7 @@ public class AddiRecordsToItemWrapper {
     private Diagnostic buildDiagnosticForGenericUpdateRecordError(Throwable t) {
         final String diagnosticMessage = t.getMessage() != null ? t.getMessage() : t.getClass().getCanonicalName()
                 + " occurred while calling openUpdateService";
-        return new Diagnostic(Diagnostic.Level.FATAL, diagnosticMessage, t);
+        return ObjectFactory.buildFatalDiagnostic(diagnosticMessage, t);
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {

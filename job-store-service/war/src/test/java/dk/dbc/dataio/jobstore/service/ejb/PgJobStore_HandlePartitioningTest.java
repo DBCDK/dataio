@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
@@ -66,7 +67,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
-    private static final String ERROR_MESSAGE = "Error Message";
     private static final int EXPECTED_NUMBER_OF_CHUNKS = 2;
 
     @Test
@@ -133,7 +133,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
 
         final MockedAddJobParam mockedAddJobParam = new MockedAddJobParam();
-        mockedAddJobParam.setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, ERROR_MESSAGE)));
+        mockedAddJobParam.setDiagnostics(Collections.singletonList(new DiagnosticBuilder().build()));
         final JobEntity jobEntity = pgJobStore.jobStoreRepository.createJobEntity(mockedAddJobParam);
 
         final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().setJobEntity(jobEntity).build();

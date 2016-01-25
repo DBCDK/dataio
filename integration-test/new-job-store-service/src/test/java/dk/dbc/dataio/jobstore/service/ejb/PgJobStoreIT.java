@@ -34,6 +34,7 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
@@ -100,8 +101,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     private static final long SLEEP_INTERVAL_IN_MS = 1000;
     private static final long MAX_WAIT_IN_MS = 10000;
-
-    private static final String ERROR_MESSAGE = "Referenced entity not found";
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
     private static final FileStoreUrn FILE_STORE_URN;
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
@@ -404,7 +403,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // When...
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.FATAL, ERROR_MESSAGE)))
+                .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().build()))
                 .build();
 
         final JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, testableAddJobParam);
@@ -506,7 +505,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         setupExpectationOnGetByteSize(defaultByteSize);
 
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)))
+                .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build()))
                 .build();
 
         final JobInfoSnapshot jobInfoSnapshot = commitJob(pgJobStore, testableAddJobParam);
@@ -957,7 +956,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Adding job with diagnostic with level WARNING
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                .setDiagnostics(Collections.singletonList(new Diagnostic(Diagnostic.Level.WARNING, ERROR_MESSAGE)))
+                .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build()))
                 .build();
 
         setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);

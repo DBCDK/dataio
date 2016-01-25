@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.json;
 
 
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -78,7 +79,7 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForDiagnostic() throws Exception {
-        final String json = jsonbContext.marshall(new Diagnostic(Diagnostic.Level.FATAL, "msg"));
+        final String json = jsonbContext.marshall(new DiagnosticBuilder().build());
         jsonbContext.unmarshall(json, Diagnostic.class);
     }
 

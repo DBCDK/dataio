@@ -91,17 +91,6 @@ public class ObjectFactory {
     }
 
     /**
-     * Builds a new fatal diagnostic with given message, tag and attribute
-     * @param message of the diagnostic
-     * @param tag of the diagnostic
-     * @param attribute of the diagnostic
-     * @return diagnostic
-     */
-    public static Diagnostic buildFatalDiagnostic(String message, String tag, String attribute) {
-        return new Diagnostic(Diagnostic.Level.FATAL, message, null, tag, attribute);
-    }
-
-    /**
      * Builds a new fatal diagnostic with given message and stacktrace
      * @param message of the diagnostic
      * @param t stacktrace of the diagnostic
@@ -118,15 +107,6 @@ public class ObjectFactory {
      */
     public static Diagnostic buildFatalDiagnostic(String message) {
         return new Diagnostic(Diagnostic.Level.FATAL, message);
-    }
-
-    /**
-     * Builds a new warning diagnostic with given message
-     * @param message of the diagnostic
-     * @return diagnostic
-     */
-    public static Diagnostic buildWarningDiagnostic(String message) {
-        return new Diagnostic(Diagnostic.Level.WARNING, message);
     }
 
     /*

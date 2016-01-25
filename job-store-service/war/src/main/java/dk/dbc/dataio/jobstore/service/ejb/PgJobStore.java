@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -245,7 +246,7 @@ public class PgJobStore {
             try {
                 compareByteSize(partitioningParam.getDataFileId(), partitioningParam.getDataPartitioner());
             } catch (Exception exception) {
-                final Diagnostic diagnostic = new Diagnostic(FATAL, String.format(
+                final Diagnostic diagnostic = ObjectFactory.buildFatalDiagnostic(String.format(
                         "Partitioning succeeded but validation 'compareByteSize' failed: %s", exception.getMessage()),
                         exception);
 

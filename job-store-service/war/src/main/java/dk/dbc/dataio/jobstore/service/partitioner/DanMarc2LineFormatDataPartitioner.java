@@ -159,7 +159,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
                 chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), ChunkItem.Type.MARCXCHANGE);
                 recordInfo = marcRecordInfoBuilder.parse(marcRecord);
             }
-        } catch (MarcWriterException | IllegalStateException e) {
+        } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);
             chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));

@@ -454,7 +454,7 @@ public class JobsBeanTest {
 
     @Test
     public void getChunkItemForPhase_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(1, StringUtil.asBytes("Item data"), ChunkItem.Status.SUCCESS);
+        ChunkItem chunkItem = new ChunkItemBuilder().setData("Item data").build();
 
         when(jobsBean.jobStoreRepository.getChunkItemForPhase(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
 
@@ -483,7 +483,7 @@ public class JobsBeanTest {
 
     @Test
     public void getProcessedNextResult_itemEntityLocated_returnsStatusOkResponseWithDataAsString() throws JSONBException, JobStoreException {
-        ChunkItem chunkItem = new ChunkItem(1, StringUtil.asBytes("Next data"), ChunkItem.Status.SUCCESS);
+        ChunkItem chunkItem = new ChunkItemBuilder().setData("Next data").build();
 
         when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
 

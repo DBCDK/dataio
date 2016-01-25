@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -582,7 +583,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         final LinkedList<ChunkItem.Status> statusStack = new LinkedList<>(statuses);
         short itemId = 0;
         for (String itemData : data) {
-            chunkItems.add(new ChunkItem(itemId++, StringUtil.asBytes(itemData), statusStack.pop()));
+            chunkItems.add(new ChunkItemBuilder().setId(itemId++).setData(itemData).setStatus(statusStack.pop()).build());
         }
         return new ChunkBuilder(type)
                 .setJobId(1)

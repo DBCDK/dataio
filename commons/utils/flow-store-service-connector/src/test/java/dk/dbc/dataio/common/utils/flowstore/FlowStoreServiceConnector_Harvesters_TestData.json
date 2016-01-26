@@ -1,0 +1,156 @@
+{
+    "entries": [
+        {
+            "id": "broend-sync",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo",
+            "batchSize": 10000,
+            "includeRelations": true,
+            "format": "katalog",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "testbroend-i01",
+            "consumerId": "broend-sync",
+            "type": "TEST"
+
+        },
+        {
+            "id": "broend-sync-loadtest",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo-loadtest",
+            "batchSize": 10000,
+            "includeRelations": true,
+            "format": "katalog",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "broend3-loadtest",
+            "consumerId": "broend-sync",
+        "type": "TEST"
+        },
+        {
+            "id": "basis-decentral",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo",
+            "batchSize": 10000,
+            "includeRelations": true,
+            "format": "basis",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "testbasis-i01",            
+            "consumerId": "basis-decentral",
+            "type": "TEST"
+
+        },
+        {
+            "id": "testbasis-sync-boble",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo-boblebad",
+            "batchSize": 10000,
+            "includeRelations": true,            
+            "format": "basis",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "testbasis-boblebad",
+            "consumerId": "basis-decentral",
+        "type": "TEST"
+        },
+        {
+            "id": "broend-sync-boble",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo-boblebad",
+            "batchSize": 10000,
+            "includeRelations": true,
+            "format": "katalog",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "broend-boblebad",
+            "consumerId": "broend-sync"
+        },
+        {
+            "id": "fbs-sync",
+            "formatOverrides": {},
+            "resource": "jdbc/dataio/rawrepo",
+            "batchSize": 10000,
+            "includeRelations": false,            
+            "format": "katalog",
+            "destination": "fbs-i01",
+            "consumerId": "fbs-sync",
+            "type": "TEST",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            }
+
+        },
+        {
+            "id": "cicero-sync",
+            "formatOverrides": {},            
+            "resource": "jdbc/dataio/rawrepo-boblebad",
+            "batchSize": 10000,            
+            "includeRelations": false,            
+            "format": "katalog",
+            "destination": "cicero-boblebad",
+            "consumerId": "fbs-sync",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            } 
+        },
+        {
+            "id": "broend-sync-cisterne",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo-cisterne",
+            "batchSize": 10000,
+            "includeRelations": true,
+            "format": "katalog",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "broend-cisterne",
+            "consumerId": "broend-sync"
+        },
+        {
+            "id": "fbs-sync-cisterne",
+            "formatOverrides": {},
+            "resource": "jdbc/dataio/rawrepo-cisterne",
+            "batchSize": 10000,
+            "includeRelations": false,
+            "format": "katalog",
+            "destination": "cicero-cisterne",
+            "consumerId": "broend-sync-forkert",
+             "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            }
+        },
+        {
+            "id": "basis-sync-cisterne",
+            "formatOverrides": {
+                "870970": "basis"
+            },
+            "resource": "jdbc/dataio/rawrepo-cisterne",
+            "batchSize": 10000,
+            "includeRelations": true,            
+            "format": "basis",
+            "openAgencyTarget": {
+                "url": "http://openagency.addi.dk/2.20/"
+            },
+            "destination": "basis-cisterne",
+            "consumerId": "basis-decentral"
+        }
+    ]
+}

@@ -38,6 +38,9 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +72,7 @@ public class FlowStoreServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreServiceConnector.class);
     private final Client httpClient;
     private final String baseUrl;
+    JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Class constructor
@@ -832,6 +836,32 @@ public class FlowStoreServiceConnector {
             log.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
+
+
+    // ************************************************** RR Harvester Configs *****************************************
+
+    /**
+     * Retrieves all RR harvester configs
+     *
+     * @return a list containing the RR harvester configs found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the RR harvester configs
+     */
+    public RawRepoHarvesterConfig getHarvesterRrConfigs() throws FlowStoreServiceConnectorException, JSONBException {
+        log.trace("FlowStoreServiceConnector: getHarvesterRrConfigs();");
+        final StopWatch stopWatch = new StopWatch();
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.HARVESTERS_RR_CONFIG);
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            String jsonResponse = readResponseGenericTypeEntity(response, new GenericType<String >() {
+            });
+            return jsonbContext.unmarshall(jsonResponse, RawRepoHarvesterConfig.class);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: getHarvesterRrConfigs took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
 
     // ******************************************** Private helper methods ********************************************
 

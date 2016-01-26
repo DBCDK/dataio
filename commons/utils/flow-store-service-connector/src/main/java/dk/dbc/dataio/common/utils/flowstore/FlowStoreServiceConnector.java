@@ -846,6 +846,7 @@ public class FlowStoreServiceConnector {
      * @return a list containing the RR harvester configs found
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the RR harvester configs
+     * @throws JSONBException upon error in unmarshall
      */
     public RawRepoHarvesterConfig getHarvesterRrConfigs() throws FlowStoreServiceConnectorException, JSONBException {
         log.trace("FlowStoreServiceConnector: getHarvesterRrConfigs();");

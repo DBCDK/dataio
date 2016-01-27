@@ -138,9 +138,9 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                         // original record - this information is used by the EsCleanupBean
                         // when creating the resulting sink chunk.
                         incompleteDeliveredChunk.insertItem(ObjectFactory.buildSuccessfulChunkItem(
-                                chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN));
+                                chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN, chunkItem.getTrackingId()));
                     } catch (RuntimeException | IOException e) {
-                        ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), "Exception caught while retrieving addi records, t");
+                        ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), "Exception caught while retrieving addi records, t", chunkItem.getTrackingId());
                         processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
                         incompleteDeliveredChunk.insertItem(processedItem);
                     } finally {
@@ -148,10 +148,10 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                     }
                     break;
                 case FAILURE:
-                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Failed by processor"));
+                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId()));
                     break;
                 case IGNORE:
-                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Ignored by processor"));
+                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId()));
                     break;
                 default:
                     throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());

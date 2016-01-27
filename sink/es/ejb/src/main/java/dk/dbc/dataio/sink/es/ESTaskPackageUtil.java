@@ -245,7 +245,7 @@ public class ESTaskPackageUtil {
             }
         }
 
-        final ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(placeholderChunkItem.getId(), sb.toString(), ChunkItem.Type.STRING);
+        final ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(placeholderChunkItem.getId(), sb.toString(), ChunkItem.Type.STRING, placeholderChunkItem.getTrackingId());
         chunkItem.appendDiagnostics(chunkItemDiagnostics);
         return chunkItem;
     }

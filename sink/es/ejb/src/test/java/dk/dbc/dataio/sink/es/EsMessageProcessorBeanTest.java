@@ -37,6 +37,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -83,6 +84,7 @@ public class EsMessageProcessorBeanTest {
     private EsInFlightBean esInFlightAdmin;
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     private JobStoreServiceConnector jobStoreServiceConnector;
+    private final String trackingId = "rr:1234io:5353";
 
 
     @Before
@@ -168,19 +170,23 @@ public class EsMessageProcessorBeanTest {
                 .setId(0)
                 .setData(validAddiWithoutProcessing)
                 .setStatus(ChunkItem.Status.SUCCESS)
+                .setTrackingId(trackingId)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // ignored by processor
                 .setId(1)
                 .setStatus(ChunkItem.Status.IGNORE)
+                .setTrackingId(trackingId)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // failed by processor
                 .setId(2)
                 .setStatus(ChunkItem.Status.FAILURE)
+                .setTrackingId(trackingId)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processor produces invalid addi
                 .setId(3)
                 .setData(StringUtil.asBytes("invalid"))
                 .setStatus(ChunkItem.Status.SUCCESS)
+                .setTrackingId(trackingId)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // processed successfully
                 .setId(4)
@@ -191,6 +197,7 @@ public class EsMessageProcessorBeanTest {
                 .setId(5)
                 .setData(StringUtil.asBytes(""))
                 .setStatus(ChunkItem.Status.SUCCESS)
+                .setTrackingId(trackingId)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               // sink processing removed from meta data and processed successfully
                 .setId(6)
@@ -225,60 +232,73 @@ public class EsMessageProcessorBeanTest {
         assertThat("chunkItem 0 status", item0.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 0 data", asString(item0.getData()), is("1"));
         assertThat("chunkItem 0 diagnostics", item0.getDiagnostics(), is(nullValue()));
+        assertThat("chunkItem 0 trackingId", item0.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat("chunkItem 1 ID", item1.getId(), is(1L));
         assertThat("chunkItem 1 status", item1.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("chunkItem 1 diagnostics", item1.getDiagnostics(), is(nullValue()));
+        assertThat("chunkItem 1 trackingId", item1.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item2 = iterator.next();
         assertThat("chunkItem 2 ID", item2.getId(), is(2L));
         assertThat("chunkItem 2 status", item2.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("chunkItem 2 diagnostics", item2.getDiagnostics(), is(nullValue()));
+        assertThat("chunkItem 2 trackingId", item2.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item3 = iterator.next();
         assertThat("chunkItem 3 ID", item3.getId(), is(3L));
         assertThat("chunkItem 3 status", item3.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunkItem 3 diagnostics", item3.getDiagnostics().size(), is(1));
         assertThat("chunkItem 3 diagnostics.stacktrace", item3.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("chunkItem 3 trackingId", item3.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item4 = iterator.next();
         assertThat("chunkItem 4 ID", item4.getId(), is(4L));
         assertThat("chunkItem 4 status", item4.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 4 data", asString(item4.getData()), is("1"));
         assertThat("chunkItem 4 diagnostics", item4.getDiagnostics(), is(nullValue()));
+        assertThat("chunkItem 4 trackingId", item4.getTrackingId(), is(nullValue()));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item5 = iterator.next();
         assertThat("chunkItem 5 ID", item5.getId(), is(5L));
         assertThat("chunkItem 5 status", item5.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunkItem 5 diagnostics", item5.getDiagnostics().size(), is(1));
         assertThat("chunkItem 5 diagnostics.stacktrace", item5.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("chunkItem 5 trackingId", item5.getTrackingId(), is(trackingId));
         ChunkItem item6 = iterator.next();
         assertThat("chunkItem 6 ID", item6.getId(), is(6L));
         assertThat("chunkItem 6 status", item6.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 6 diagnostics", item6.getDiagnostics(), is(nullValue()));
         assertThat("chunkItem 6 data", asString(item6.getData()), is("1"));
+        assertThat("chunkItem 6 trackingId", item6.getTrackingId(), is(nullValue()));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item7 = iterator.next();
         assertThat("chunkItem 7 ID", item7.getId(), is(7L));
         assertThat("chunkItem 7 status", item7.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 7 diagnostics", item7.getDiagnostics(), is(nullValue()));
         assertThat("chunkItem 7 data", asString(item7.getData()), is("1"));
+        assertThat("chunkItem 7 trackingId", item7.getTrackingId(), is(nullValue()));
         ChunkItem item8 = iterator.next();
         assertThat("chunkItem 8 ID", item8.getId(), is(8L));
         assertThat("chunkItem 8 status", item8.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("chunkItem 8 diagnostics", item8.getDiagnostics().size(), is(1));
         assertThat("chunkItem 8 diagnostics.stacktrace", item8.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("chunkItem 8 trackingId", item8.getTrackingId(), is(nullValue()));
 
         // assert that the processing tag has been removed from the meta data for the 2 items
         // that successfully have been processed.
         AddiRecord addiRecord3 = esWorkloadFromChunkResult.getAddiRecords().get(2);
-        byte[] metadata = addiRecord3.getMetaData();
-        assertThat(new String(metadata, StandardCharsets.UTF_8).contains(PROCESSING_TAG), is(false));
+        String addiRecord3Metadata = StringUtil.asString(addiRecord3.getMetaData());
+        assertThat("processing tag removed", addiRecord3Metadata.contains(PROCESSING_TAG), is(false));
+        // assert that the tracking id attribute has been added.
+        assertThat("tracking id added", addiRecord3Metadata.contains(DBCTrackedLogContext.DBC_TRACKING_ID_KEY), is(true));
 
         AddiRecord addiRecord4 = esWorkloadFromChunkResult.getAddiRecords().get(3);
-        byte[] metadata2 = addiRecord4.getMetaData();
-        assertThat(new String(metadata2, StandardCharsets.UTF_8).contains(PROCESSING_TAG), is(false));
+        String addiRecord4Metadata = StringUtil.asString(addiRecord4.getMetaData());
+        assertThat("processing tag removed", addiRecord4Metadata.contains(PROCESSING_TAG), is(false));
+        // assert that the tracking id attribute has been added.
+        assertThat("tracking id added", addiRecord4Metadata.contains(DBCTrackedLogContext.DBC_TRACKING_ID_KEY), is(true));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

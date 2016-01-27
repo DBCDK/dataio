@@ -55,6 +55,7 @@ public class ESTaskPackageUtilTest {
     private static final Charset ENCODING = Charset.defaultCharset();
     private static String ES_DATABASE_NAME = "dbname";
     private static final String ADDI_OK = "1\na\n1\nb\n";
+    private static final String TRACKING_ID = "rr:1234io:5353";
 
     @Test(expected = IllegalStateException.class)
     public void getAddiRecordsFromChunk_twoAddiInOneRecord_throws() throws Exception {
@@ -188,13 +189,13 @@ public class ESTaskPackageUtilTest {
     @Test
     public void getChunkForTaskPackage() throws SQLException, ClassNotFoundException, IOException {
         final List<ChunkItem> items = new ArrayList<>(7);
-        items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.IGNORE).build());
-        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).build());  // OK multiple
-        items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.FAILURE).build());
-        items.add(new ChunkItemBuilder().setId(3).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // queued
-        items.add(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // in process
-        items.add(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // failed with diagnostic
-        items.add(new ChunkItemBuilder().setId(6).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());  // OK single
+        items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.IGNORE).setTrackingId(TRACKING_ID).build());
+        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).setTrackingId(TRACKING_ID).build());  // OK multiple
+        items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.FAILURE).setTrackingId(TRACKING_ID).build());
+        items.add(new ChunkItemBuilder().setId(3).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // queued
+        items.add(new ChunkItemBuilder().setId(4).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // in process
+        items.add(new ChunkItemBuilder().setId(5).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // failed with diagnostic
+        items.add(new ChunkItemBuilder().setId(6).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());  // OK single
         final Chunk placeholderChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
 
         TaskSpecificUpdateEntity taskPackage = new TPCreator(ES_DATABASE_NAME)
@@ -212,40 +213,47 @@ public class ESTaskPackageUtilTest {
         ChunkItem next = iterator.next();
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("ChunkItem0.getDiagnostics", next.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem0.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem1.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1a"));
         assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1b"));
         assertThat("ChunkItem1 content", StringUtil.asString(next.getData()), containsString("pid:1c"));
         assertThat("ChunkItem1.getDiagnostics", next.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem1.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem2.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("ChunkItem2.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem3.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem3 content", StringUtil.asString(next.getData()), containsString("queued"));
         assertThat("ChunkItem3.getDiagnostics", next.getDiagnostics().size(), is(1));
         assertThat("ChunkItem3.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem3.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem4.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem4 content", StringUtil.asString(next.getData()), containsString("in process"));
         assertThat("ChunkItem4.getDiagnostics", next.getDiagnostics().size(), is(1));
         assertThat("ChunkItem4.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem4.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem5.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem5 content", StringUtil.asString(next.getData()), containsString("failed"));
         assertThat("ChunkItem5.getDiagnostics", next.getDiagnostics().size(), is(1));
         assertThat("ChunkItem5.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem5.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem6.getStatus()", next.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("ChunkItem6 content", StringUtil.asString(next.getData()), containsString("pid:6"));
         assertThat("ChunkItem6.getDiagnostics", next.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem6.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
     }
 
     @Test
     public void getChunkForTaskPackage_expectedItemContentIsMissingInEs_failsItem() throws SQLException, ClassNotFoundException, IOException {
         final List<ChunkItem> items = new ArrayList<>(2);
-        items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).build());
-        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).build());
+        items.add(new ChunkItemBuilder().setId(0).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("3")).setTrackingId(TRACKING_ID).build());
+        items.add(new ChunkItemBuilder().setId(1).setStatus(ChunkItem.Status.SUCCESS).setData(StringUtil.asBytes("1")).setTrackingId(TRACKING_ID).build());
         final Chunk placeholderChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
 
         TaskSpecificUpdateEntity taskPackage = new TPCreator(ES_DATABASE_NAME)
@@ -259,10 +267,12 @@ public class ESTaskPackageUtilTest {
         assertThat("ChunkItem0.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem0.getDiagnostics", next.getDiagnostics().size(), is(1));
         assertThat("ChunkItem0.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("ChunkItem0.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
         next = iterator.next();
         assertThat("ChunkItem1.getStatus()", next.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem1.getDiagnostics", next.getDiagnostics().size(), is(1));
         assertThat("ChunkItem1.getDiagnostics.stacktrace", next.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("ChunkItem1.TRACKING_ID", next.getTrackingId(), is(TRACKING_ID));
     }
 
     private static class TPCreator {

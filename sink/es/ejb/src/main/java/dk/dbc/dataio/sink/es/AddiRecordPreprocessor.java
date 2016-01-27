@@ -51,7 +51,7 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
      * If processing tag is found with attribute encodeAs2709 value TRUE, the tag is removed from the meta data
      * and the content data is converted to iso2709.
      *
-     * if info tag is found in meta data, DBCTrackingId is added as attribute with given value
+     * DBCTrackingId is added as attribute with given value on info element
      *
      * @param addiRecord Addi record to pre-process
      * @param trackingId of chunk item

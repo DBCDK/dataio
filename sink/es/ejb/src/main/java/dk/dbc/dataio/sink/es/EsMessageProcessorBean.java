@@ -25,8 +25,8 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
@@ -163,7 +163,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
         final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
         final List<AddiRecord> preprocessedAddiRecords = new ArrayList<>(addiRecords.size());
-        preprocessedAddiRecords.addAll(addiRecords.stream().map(addiRecord -> addiRecordPreprocessor.execute(addiRecord)).collect(Collectors.toList()));
+        preprocessedAddiRecords.addAll(addiRecords.stream().map(addiRecord -> addiRecordPreprocessor.execute(addiRecord, chunkItem.getTrackingId())).collect(Collectors.toList()));
         return preprocessedAddiRecords;
     }
 

@@ -23,6 +23,7 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
+import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.w3c.dom.Document;
@@ -35,46 +36,49 @@ import javax.xml.transform.TransformerException;
 import java.io.IOException;
 
 public class AddiRecordPreprocessor extends DocumentTransformer {
-    static final String NAMESPACE_URI            = "dk.dbc.dataio.processing";
-    static final String ELEMENT                  = "sink-processing";
-    static final String ENCODE_AS_2709_ATTRIBUTE = "encodeAs2709";
+    static final String NAMESPACE_URI_PROCESSING  = "dk.dbc.dataio.processing";
+    static final String PROCESSING_ELEMENT        = "sink-processing";
+    static final String ENCODE_AS_2709_ATTRIBUTE  = "encodeAs2709";
+
+    static final String NAMESPACE_URI_ES          = "http://oss.dbc.dk/ns/es";
+    static final String INFO_ELEMENT              = "info";
 
     /**
      * This method pre-processes an addi record according to the following rules:
-     *
-     * If the processing tag is not found within the meta data,
-     * the Addi record is returned unchanged
      *
      * If processing tag is found with attribute encodeAs2709 value FALSE, the tag is removed from the meta data.
      *
      * If processing tag is found with attribute encodeAs2709 value TRUE, the tag is removed from the meta data
      * and the content data is converted to iso2709.
      *
+     * DBCTrackingId is added as attribute with given value on info element
+     *
      * @param addiRecord Addi record to pre-process
      * @return the pre-processed Addi record
      * @throws IllegalArgumentException on invalid metadata or content
      */
-    public AddiRecord execute(AddiRecord addiRecord) throws IllegalArgumentException {
+    public AddiRecord execute(AddiRecord addiRecord, String trackingId) throws IllegalArgumentException {
         try {
             final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            final NodeList nodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI, ELEMENT);
+            final NodeList processingNodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI_PROCESSING, PROCESSING_ELEMENT);
+            byte[] content = addiRecord.getContentData();
 
-            if (nodeList.getLength() > 0) { // The specific tag has been located
-                byte[] content = addiRecord.getContentData();
-                final Node processingNode = nodeList.item(0);
+            if (processingNodeList.getLength() > 0) { // The processing tag has been located
+                final Node processingNode = processingNodeList.item(0);
 
                 if (Boolean.valueOf(((Element) processingNode).getAttribute(ENCODE_AS_2709_ATTRIBUTE))) {
                     final Document contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
                     content = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
                 }
-
-                removeFromDom(nodeList);
-                return new AddiRecord(documentToByteArray(metaDataDocument), content);
+                removeFromDom(processingNodeList);
             }
-            return addiRecord;
+            final NodeList infoNodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI_ES, INFO_ELEMENT);
+            final Element infoElement = (Element) infoNodeList.item(0);
+            infoElement.setAttribute(DBCTrackedLogContext.DBC_TRACKING_ID_KEY, trackingId);
+            return new AddiRecord(documentToByteArray(metaDataDocument), content);
+
         } catch (IOException | SAXException | TransformerException e) {
             throw new IllegalArgumentException(e);
         }
     }
-
 }

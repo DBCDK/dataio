@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
+import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
 import org.junit.Test;
@@ -35,19 +36,22 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class AddiRecordPreprocessorTest {
 
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
+    private final String trackingId = "rr:73639io:736362";
 
     @Test
-    public void execute_noProcessingTag_returnsUnchangedMetadataWithUnchangedContent() {
+    public void execute_noProcessingTag_returnsUpdatedMetadataWithUnchangedContent() throws IOException, SAXException {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
         final AddiRecord addiRecord = toAddiRecord(getValidAddiWithoutProcessing());
-        final AddiRecord preprocessed = preprocessor.execute(addiRecord);
-        assertThat("AddiRecord.metadata is unchanged", preprocessed.getMetaData(), is(addiRecord.getMetaData()));
+        final AddiRecord preprocessed = preprocessor.execute(addiRecord, trackingId);
+        assertThat("AddiRecord.metadata is changed", preprocessed.getMetaData(), not(addiRecord.getMetaData()));
+        assertThat("AddiRecord.metadata has trackingId attribute", getTrackingId(preprocessed), is(trackingId));
         assertThat("AddiRecord.content is unchanged", preprocessed.getContentData(), is(addiRecord.getContentData()));
     }
 
@@ -55,8 +59,10 @@ public class AddiRecordPreprocessorTest {
     public void execute_processingTagWithEncodeAs2709SetToFalse_returnsUpdatedMetadataWithUnchangedContent() {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
         final AddiRecord addiRecord = toAddiRecord(getValidAddiWithProcessingFalse());
-        final AddiRecord preprocessed = preprocessor.execute(addiRecord);
+        final AddiRecord preprocessed = preprocessor.execute(addiRecord, trackingId);
+        assertThat("AddiRecord.metadata is changed", preprocessed.getMetaData(), not(addiRecord.getMetaData()));
         assertThat("AddiRecord.metadata has processing tag", hasSinkProcessingElement(preprocessor, preprocessed), is(false));
+        assertThat("AddiRecord.metadata has trackingId attribute", getTrackingId(preprocessed), is(trackingId));
         assertThat("AddiRecord.content is unchanged", preprocessed.getContentData(), is(addiRecord.getContentData()));
     }
 
@@ -64,8 +70,10 @@ public class AddiRecordPreprocessorTest {
     public void execute_processingTagWithEncodeAs2709SetToTrue_returnsUpdatedMetadataWithUpdatedContent() {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
         final AddiRecord addiRecord = toAddiRecord(getValidAddiWithProcessingTrueAndValidMarcXContentData());
-        final AddiRecord preprocessed = preprocessor.execute(addiRecord);
+        final AddiRecord preprocessed = preprocessor.execute(addiRecord, trackingId);
+        assertThat("AddiRecord.metadata is changed", preprocessed.getMetaData(), not(addiRecord.getMetaData()));
         assertThat("AddiRecord.metadata has processing tag", hasSinkProcessingElement(preprocessor, preprocessed), is(false));
+        assertThat("AddiRecord.metadata has trackingId attribute", getTrackingId(preprocessed), is(trackingId));
         assertThat("AddiRecord.content is 2709 encoded", preprocessed.getContentData(), is(to2709(addiRecord.getContentData())));
     }
 
@@ -74,10 +82,19 @@ public class AddiRecordPreprocessorTest {
         final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
         final AddiRecord addiRecord = toAddiRecord(getValidAddiWithProcessingTrueAndInvalidMarcXContentData());
         try {
-            preprocessor.execute(addiRecord);
+            preprocessor.execute(addiRecord, null);
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
+    }
+
+    @Test
+    public void execute_trackingIdIsNull_returnsUpdatedMetadataWithTrackingIdAttributeSetWithEmptyValue() throws IOException, SAXException {
+        final AddiRecordPreprocessor preprocessor = new AddiRecordPreprocessor();
+        final AddiRecord addiRecord = toAddiRecord(getValidAddiWithoutProcessing());
+        final AddiRecord preprocessed = preprocessor.execute(addiRecord, null);
+        assertThat("AddiRecord.metadata is changed", preprocessed.getMetaData(), not(addiRecord.getMetaData()));
+        assertThat("AddiRecord.metadata has trackingId attribute", getTrackingId(preprocessed), is(""));
     }
 
     private boolean hasSinkProcessingElement(AddiRecordPreprocessor preprocessor, AddiRecord addiRecord) {
@@ -87,7 +104,16 @@ public class AddiRecordPreprocessorTest {
         } catch (IOException | SAXException e) {
             throw new IllegalStateException(e);
         }
-        return metadata.getElementsByTagNameNS(AddiRecordPreprocessor.NAMESPACE_URI, AddiRecordPreprocessor.ELEMENT).getLength() > 0;
+        return metadata.getElementsByTagNameNS(AddiRecordPreprocessor.NAMESPACE_URI_PROCESSING, AddiRecordPreprocessor.PROCESSING_ELEMENT).getLength() > 0;
+    }
+
+    private String getTrackingId(AddiRecord addiRecord) {
+        final Document metadata = getDocument(addiRecord.getMetaData());
+        return documentTransformer.extractAttributeValue(
+                metadata,
+                AddiRecordPreprocessor.NAMESPACE_URI_ES,
+                AddiRecordPreprocessor.INFO_ELEMENT,
+                DBCTrackedLogContext.DBC_TRACKING_ID_KEY);
     }
 
     private byte[] to2709(byte[] bytes) {

@@ -35,6 +35,7 @@ import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageRecordStructureEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskStatusConverter;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.ext.XLogger;
 import org.slf4j.ext.XLoggerFactory;
 
@@ -199,11 +200,16 @@ public class ESTaskPackageUtil {
         chunk.setEncoding(placeholderChunk.getEncoding());
         final LinkedList<TaskPackageRecordStructureEntity> taskPackageRecordStructureEntityList =
                 new LinkedList<>(taskSpecificUpdateEntity.getTaskpackageRecordStructures());
-        for (ChunkItem chunkItem : placeholderChunk) {
-            if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
-                chunkItem = getChunkItemFromTaskPackageRecordStructureData(taskSpecificUpdateEntity, chunkItem, taskPackageRecordStructureEntityList);
+        try {
+            for (ChunkItem chunkItem : placeholderChunk) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+                    chunkItem = getChunkItemFromTaskPackageRecordStructureData(taskSpecificUpdateEntity, chunkItem, taskPackageRecordStructureEntityList);
+                }
+                chunk.insertItem(chunkItem);
             }
-            chunk.insertItem(chunkItem);
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return chunk;
     }

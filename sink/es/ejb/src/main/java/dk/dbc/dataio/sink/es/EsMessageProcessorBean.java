@@ -38,6 +38,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.util.AddiUtil;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,35 +128,41 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         final StopWatch stopWatch = new StopWatch();
 
-        for(ChunkItem chunkItem : processedChunk) {
-            switch (chunkItem.getStatus()) {
-                case SUCCESS:
-                    try {
-                        final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
-                        addiRecords.addAll(addiRecordsFromItem);
-                        // We use the data property of the ChunkItem placeholder kept in the ES
-                        // in-flight database to store the number of Addi records from the
-                        // original record - this information is used by the EsCleanupBean
-                        // when creating the resulting sink chunk.
-                        incompleteDeliveredChunk.insertItem(ObjectFactory.buildSuccessfulChunkItem(
-                                chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN, chunkItem.getTrackingId()));
-                    } catch (RuntimeException | IOException e) {
-                        ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), "Exception caught while retrieving addi records, t", chunkItem.getTrackingId());
-                        processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
-                        incompleteDeliveredChunk.insertItem(processedItem);
-                    } finally {
-                        LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
-                    }
-                    break;
-                case FAILURE:
-                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId()));
-                    break;
-                case IGNORE:
-                    incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId()));
-                    break;
-                default:
-                    throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
+        try {
+            for (ChunkItem chunkItem : processedChunk) {
+                final String trackingId = chunkItem.getTrackingId();
+                DBCTrackedLogContext.setTrackingId(trackingId);
+                switch (chunkItem.getStatus()) {
+                    case SUCCESS:
+                        try {
+                            final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
+                            addiRecords.addAll(addiRecordsFromItem);
+                            // We use the data property of the ChunkItem placeholder kept in the ES
+                            // in-flight database to store the number of Addi records from the
+                            // original record - this information is used by the EsCleanupBean
+                            // when creating the resulting sink chunk.
+                            incompleteDeliveredChunk.insertItem(ObjectFactory.buildSuccessfulChunkItem(
+                                    chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN, trackingId));
+                        } catch (RuntimeException | IOException e) {
+                            ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), "Exception caught while retrieving addi records, t", trackingId);
+                            processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
+                            incompleteDeliveredChunk.insertItem(processedItem);
+                        } finally {
+                            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+                        }
+                        break;
+                    case FAILURE:
+                        incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Failed by processor", trackingId));
+                        break;
+                    case IGNORE:
+                        incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Ignored by processor", trackingId));
+                        break;
+                    default:
+                        throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
+                }
             }
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return new EsWorkload(incompleteDeliveredChunk, addiRecords, configuration.getEsUserId(), configuration.getEsAction());
     }

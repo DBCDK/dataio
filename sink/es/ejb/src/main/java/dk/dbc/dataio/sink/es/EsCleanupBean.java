@@ -36,6 +36,7 @@ import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
 import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,8 +194,13 @@ public class EsCleanupBean {
         final Chunk lostChunk = new Chunk(chunk.getJobId(), chunk.getChunkId(), chunk.getType());
         lostChunk.setEncoding(chunk.getEncoding());
 
-        for (ChunkItem chunkItem : chunk) {
-            lostChunk.insertItem(createLostChunkItem(chunkItem));
+        try {
+            for (ChunkItem chunkItem : chunk) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                lostChunk.insertItem(createLostChunkItem(chunkItem));
+            }
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return lostChunk;
     }

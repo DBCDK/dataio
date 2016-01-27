@@ -33,25 +33,25 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Type.DATACONTAINER;
 import static dk.dbc.dataio.commons.types.ChunkItem.Type.MARCXCHANGE;
 
 
-public class DataContainerXmlDataPartitioner extends DefaultXmlDataPartitioner {
+public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
 
     private final static String TRACKING_ID = "<trackingId>";
 
     /**
-     * Creates new instance of data container XML DataPartitioner
+     * Creates new instance of rawRepoMarcXmlDataPartitioner
      * @param inputStream stream from which XML data to be partitioned can be read
      * @param encoding encoding of XML data to be partitioned
-     * @return new instance of data container XML DataPartitioner
+     * @return new instance of rawRepoMarcXmlDataPartitioner
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument
      */
-    public static DataContainerXmlDataPartitioner newInstance(InputStream inputStream, String encoding) throws NullPointerException, IllegalArgumentException {
+    public static RawRepoMarcXmlDataPartitioner newInstance(InputStream inputStream, String encoding) throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
         InvariantUtil.checkNotNullNotEmptyOrThrow(encoding, "encoding");
-        return new DataContainerXmlDataPartitioner(inputStream, encoding);
+        return new RawRepoMarcXmlDataPartitioner(inputStream, encoding);
     }
 
-    private DataContainerXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
+    private RawRepoMarcXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
         super(inputStream, expectedEncoding);
         extractedKeys.add(TRACKING_ID);
     }

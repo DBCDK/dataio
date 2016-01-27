@@ -31,12 +31,12 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
-public class DataContainerXmlPartitionerTest extends AbstractPartitionerTestBase {
+public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBase {
 
     @Test
     public void newInstance_inputStreamArgIsNull_throws() {
         try {
-            DataContainerXmlDataPartitioner.newInstance(null, getUft8Encoding());
+            RawRepoMarcXmlDataPartitioner.newInstance(null, getUft8Encoding());
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -45,7 +45,7 @@ public class DataContainerXmlPartitionerTest extends AbstractPartitionerTestBase
     @Test
     public void newInstance_encodingArgIsNull_throws() {
         try {
-            DataContainerXmlDataPartitioner.newInstance(getEmptyInputStream(), null);
+            RawRepoMarcXmlDataPartitioner.newInstance(getEmptyInputStream(), null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -54,7 +54,7 @@ public class DataContainerXmlPartitionerTest extends AbstractPartitionerTestBase
     @Test
     public void newInstance_encodingArgIsEmpty_throws() {
         try {
-            DataContainerXmlDataPartitioner.newInstance(getEmptyInputStream(), "");
+            RawRepoMarcXmlDataPartitioner.newInstance(getEmptyInputStream(), "");
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {
         }
@@ -62,7 +62,7 @@ public class DataContainerXmlPartitionerTest extends AbstractPartitionerTestBase
 
     @Test
     public void newInstance_allArgsAreValid_returnsNewDataPartitioner() {
-        assertThat(DataContainerXmlDataPartitioner.newInstance(getEmptyInputStream(), getUft8Encoding()), is(notNullValue()));
+        assertThat(RawRepoMarcXmlDataPartitioner.newInstance(getEmptyInputStream(), getUft8Encoding()), is(notNullValue()));
     }
 
     @Test
@@ -85,7 +85,7 @@ public class DataContainerXmlPartitionerTest extends AbstractPartitionerTestBase
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {
-        return DataContainerXmlDataPartitioner.newInstance(asInputStream(xml), getUft8Encoding());
+        return RawRepoMarcXmlDataPartitioner.newInstance(asInputStream(xml), getUft8Encoding());
     }
 
 }

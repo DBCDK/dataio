@@ -8,6 +8,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
@@ -141,6 +142,8 @@ public class PartitioningParam {
                     return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DANMARC2_LINE_FORMAT:
                     return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case RR_MARC_XML:
+                    return RawRepoMarcXmlDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
                     diagnostics.add(ObjectFactory.buildFatalDiagnostic("unknown record splitter: " + recordSplitterType));
             }

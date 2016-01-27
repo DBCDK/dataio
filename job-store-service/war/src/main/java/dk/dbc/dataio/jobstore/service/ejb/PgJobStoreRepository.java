@@ -24,7 +24,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobListQuery;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
-import dk.dbc.dataio.jobstore.service.partitioner.DataContainerXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;

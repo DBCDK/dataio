@@ -51,9 +51,10 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
      * If processing tag is found with attribute encodeAs2709 value TRUE, the tag is removed from the meta data
      * and the content data is converted to iso2709.
      *
-     * DBCTrackingId is added as attribute with given value on info element
+     * if info tag is found in meta data, DBCTrackingId is added as attribute with given value
      *
      * @param addiRecord Addi record to pre-process
+     * @param trackingId of chunk item
      * @return the pre-processed Addi record
      * @throws IllegalArgumentException on invalid metadata or content
      */
@@ -75,8 +76,8 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
             final NodeList infoNodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI_ES, INFO_ELEMENT);
             final Element infoElement = (Element) infoNodeList.item(0);
             infoElement.setAttribute(DBCTrackedLogContext.DBC_TRACKING_ID_KEY, trackingId);
-            return new AddiRecord(documentToByteArray(metaDataDocument), content);
 
+            return new AddiRecord(documentToByteArray(metaDataDocument), content);
         } catch (IOException | SAXException | TransformerException e) {
             throw new IllegalArgumentException(e);
         }

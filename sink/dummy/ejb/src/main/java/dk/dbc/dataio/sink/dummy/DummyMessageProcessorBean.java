@@ -32,6 +32,7 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,10 +66,18 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     Chunk processPayload(Chunk processedChunk) {
         final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
-        for (final ChunkItem item : processedChunk) {
-            // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
-            ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
-            deliveredChunk.insertItem(new ChunkItem(item.getId(), StringUtil.asBytes("Set by DummySink"), status));
+        try {
+            for (final ChunkItem item : processedChunk) {
+                final String trackingId = item.getTrackingId();
+                DBCTrackedLogContext.setTrackingId(trackingId);
+                // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
+                ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
+                ChunkItem chunkItem = new ChunkItem(item.getId(), StringUtil.asBytes("Set by DummySink"), status);
+                chunkItem.setTrackingId(trackingId);
+                deliveredChunk.insertItem(chunkItem);
+            }
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return deliveredChunk;
     }

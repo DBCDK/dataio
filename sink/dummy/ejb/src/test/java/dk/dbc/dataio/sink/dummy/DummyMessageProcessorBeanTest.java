@@ -55,6 +55,7 @@ public class DummyMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private Map<String, Object> headers = Collections.singletonMap(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
+    private final String trackingId = "rr:1223io:12534";
 
     @Before
     public void setupMocks() {
@@ -75,9 +76,9 @@ public class DummyMessageProcessorBeanTest {
     @Test
     public void processPayload_chunkResultArgIsNonEmpty_returnsNonEmptyDeliveredChunk() {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).build()
+                new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).setTrackingId(trackingId).build(),
+                new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).setTrackingId(trackingId).build(),
+                new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).setTrackingId(trackingId).build()
         );
         final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
@@ -89,12 +90,15 @@ public class DummyMessageProcessorBeanTest {
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item0 = iterator.next();
         assertThat(item0.getStatus(), is(ChunkItem.Status.IGNORE));
+        assertThat(item0.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item1 = iterator.next();
         assertThat(item1.getStatus(), is(processedChunkItems.get(1).getStatus()));
+        assertThat(item1.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item2 = iterator.next();
         assertThat(item2.getStatus(), is(processedChunkItems.get(2).getStatus()));
+        assertThat(item2.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(false));
     }
 

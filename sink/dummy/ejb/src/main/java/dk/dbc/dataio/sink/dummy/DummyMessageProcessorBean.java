@@ -75,6 +75,8 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 ChunkItem chunkItem = new ChunkItem(item.getId(), StringUtil.asBytes("Set by DummySink"), status);
                 chunkItem.setTrackingId(trackingId);
                 deliveredChunk.insertItem(chunkItem);
+                LOGGER.debug("Handled chunk item {} for chunk {} in job {}",
+                        chunkItem.getId(), processedChunk.getChunkId(),processedChunk.getJobId());
             }
         } finally {
             DBCTrackedLogContext.remove();

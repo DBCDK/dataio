@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 /** @file UnitTest and documentation for Record, Field and Subfield */
 // This is not actually the MarcClasses (Record, Field, Subfield), 
 // but rather the unittests for them, and the documentation of them.
@@ -174,7 +153,8 @@ UnitTest.addFixture( "marc.MarcClasses module", function( ) {
         Assert.equal( "F: Value of subfield c", '__ut.field.subfield( "c"  ).value;', "123456" );
 
         // Seems we need a toString test here
-        Assert.equal( "F: toString test", '__ut.field.toString( )', "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$`'~@*^%&/()=? *c 123456 " );
+        Assert.equal( "F: toString test", '__ut.field.toString( )', 
+        (typeof(Java) !== "undefined" ? "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$@0300'~@*@0302%&/()=? *c 123456 " : "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$`'~@*^%&/()=? *c 123456 " ));
 
         __ut.field.append( new Subfield( "d", "gedeost" ) );
         Assert.equal( "F: Counting subfield with one subfield", '__ut.field.count( )', 5 );
@@ -200,7 +180,6 @@ UnitTest.addFixture( "marc.MarcClasses module", function( ) {
         Assert.equal( "F: Testing name of subfield (3 )", '__ut.field.subfield( 3 ).name;', "c" );
         Assert.equal( "F: Testing name of subfield (4 )", '__ut.field.subfield( 4 ).name;', "d" );
         Assert.equal( "F: Testing name of subfield (5 )", '__ut.field.subfield( 5 ).name;', "c" );
-
 
         // Get value, set Value
         Assert.equal( "F: Get value of first a field, ( )",
@@ -309,7 +288,27 @@ UnitTest.addFixture( "marc.MarcClasses module", function( ) {
             "" );
         Assert.equal( "F: Get value of b field, ( )",
             '__ut.field.subfield( "b" ).value;', "" );
+
         // insert
+        __ut.field = new Field( "009", "00" );
+        __ut.field.insert( 0, "a", "av" );
+        Assert.equalValue( "I: Into empty field. Field.size", __ut.field.count(), 1 );
+        Assert.equalValue( "I: Into empty field. SF0: Name", __ut.field.subfield(0).name, "a" );
+        Assert.equalValue( "I: Into empty field. SF0: Value", __ut.field.subfield(0).value, "av" );
+        __ut.field.insert( 0, "b", "bv" );
+        Assert.equalValue( "I: Into begin of non-empty field. Field.size", __ut.field.count(), 2 );
+        Assert.equalValue( "I: Into begin of non-empty field. SF0: Name", __ut.field.subfield(0).name, "b" );
+        Assert.equalValue( "I: Into begin of non-empty field. SF0: Value", __ut.field.subfield(0).value, "bv" );
+        Assert.equalValue( "I: Into begin of non-empty field. SF1: Name", __ut.field.subfield(1).name, "a" );
+        Assert.equalValue( "I: Into begin of non-empty field. SF1: Value", __ut.field.subfield(1).value, "av" );
+        __ut.field.insert( 1, "c", "cv" );
+        Assert.equalValue( "I: Into middle of non-empty field. Field.size", __ut.field.count(), 3 );
+        Assert.equalValue( "I: Into middle of non-empty field. SF0: Name", __ut.field.subfield(0).name, "b" );
+        Assert.equalValue( "I: Into middle of non-empty field. SF0: Value", __ut.field.subfield(0).value, "bv" );
+        Assert.equalValue( "I: Into middle of non-empty field. SF1: Name", __ut.field.subfield(1).name, "c" );
+        Assert.equalValue( "I: Into middle of non-empty field. SF1: Value", __ut.field.subfield(1).value, "cv" );
+        Assert.equalValue( "I: Into middle of non-empty field. SF2: Name", __ut.field.subfield(2).name, "a" );
+        Assert.equalValue( "I: Into middle of non-empty field. SF2: Value", __ut.field.subfield(2).value, "av" );
 
         ////////////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////////////
@@ -328,6 +327,7 @@ UnitTest.addFixture( "marc.MarcClasses module", function( ) {
         Assert.exception( "CF: Assigning to indicator must throw", '__ut.controlField.indicator = "02"' );
         Assert.exception( "CF: Reading from indicator must throw", '__ut.controlField.indicator' );
         Assert.exception( "CF: Append must throw", '__ut.controlField.append( new Subfield( "a", "123 456 789" ) )' );
+        Assert.exception( "CF: Insert must throw", '__ut.controlField.insert( 0, "a", "av" )' );
         Assert.exception( "CF: Calling count must throw", '__ut.controlField.count()' );
         Assert.exception( "CF: Calling remove must throw", '__ut.controlField.remove( "a" )' );
         Assert.exception( "CF: Calling subfield must throw", '__ut.controlField.subfield( "a" )' );
@@ -784,6 +784,190 @@ for ( i = 0; i < end; i++ ) { \
 }; \
 total;', 24 );
 
+        ////////////////////////////////////////////////////////////
+        // Test fromString on record
+        // These tests have been duplicated from the C++ implementation tests
+        __ut.fromstringpost = new Record();
+        Assert.exception( "R: FromString with incomplete record 1", '__ut.fromstringpost.fromString("100")' );
+        Assert.exception( "R: FromString with incomplete record 2", '__ut.fromstringpost.fromString("100 7")' );
+        Assert.exception( "R: FromString with incomplete record 3", '__ut.fromstringpost.fromString("100  7")' );
+        Assert.exception( "R: FromString with incomplete record 4", '__ut.fromstringpost.fromString("100 79 *")' );
+        Assert.exception( "R: FromString with incomplete record 5", '__ut.fromstringpost.fromString("100 00 *aa*bb\\n200 10")' );
+        // TODO: Shouldn't this fail, that is, not be accepted?
+        // Assert.exception( "R: FromString with incomplete record 11", '__ut.fromstringpost.fromString("100 00 hej *aa*bb")' );
+
+        __ut.fromstringpost.fromString("100    *aa*bb");
+        Assert.equal( "R: FromString with indicator: Record 1", '__ut.fromstringpost.field(0).indicator', "  " );
+
+        __ut.fromstringpost.fromString("100 0  *aa*bb");
+        Assert.equal( "R: FromString with indicator: Record 2", '__ut.fromstringpost.field(0).indicator', "0 " );
+
+        __ut.fromstringpost.fromString("100  8 *aa*bb");
+        Assert.equal( "R: FromString with indicator: Record 3", '__ut.fromstringpost.field(0).indicator', " 8" );
+
+        __ut.fromstringpost.fromString("100 00 *aa*bb\n200  8 *aa*bb");
+        Assert.equal( "R: FromString with indicator: Record 4", '__ut.fromstringpost.field(1).indicator', " 8" );
+
+        __ut.fromstringpost.fromString("100 00 *aa*bb\n200  8 *aa*bb\n300 00 *aa*bb\n400 00 *aa*bb");
+        Assert.equal( "R: FromString with indicator: Record 5", '__ut.fromstringpost.field(1).indicator', " 8" );
+
+        __ut.fromstringpost.fromString( "100 27 *ab*cd" );
+        Assert.equal( "R: FromString 1: Num fields", '__ut.fromstringpost.numberOfFields()', 1);
+        Assert.equal( "R: FromString 1: Field 0 name", '__ut.fromstringpost.field(0).name', "100" );
+        Assert.equal( "R: FromString 1: Field 0 indicator", '__ut.fromstringpost.field(0).indicator', "27" );
+        Assert.equal( "R: FromString 1: Field 0 # subfields", '__ut.fromstringpost.field(0).count()', 2 );
+        Assert.equal( "R: FromString 1: Field 0 subfield 0 name", '__ut.fromstringpost.field(0).subfield(0).name', "a" );
+        Assert.equal( "R: FromString 1: Field 0 subfield 0 value", '__ut.fromstringpost.field(0).subfield(0).value', "b" );
+        Assert.equal( "R: FromString 1: Field 0 subfield 1 name", '__ut.fromstringpost.field(0).subfield(1).name', "c" );
+        Assert.equal( "R: FromString 1: Field 0 subfield 1 value", '__ut.fromstringpost.field(0).subfield(1).value', "d" );
+
+        __ut.fromstringpost.fromString( "100 27 *ab*cd\n100 00 *ef*gh" );
+        Assert.equal( "R: FromString 2: Num fields", '__ut.fromstringpost.numberOfFields()', 2);
+        Assert.equal( "R: FromString 2: Field 0 name", '__ut.fromstringpost.field(0).name', "100" );
+        Assert.equal( "R: FromString 2: Field 0 indicator", '__ut.fromstringpost.field(0).indicator', "27" );
+        Assert.equal( "R: FromString 2: Field 0 # subfields", '__ut.fromstringpost.field(0).count()', 2 );
+        Assert.equal( "R: FromString 2: Field 0 subfield 0 name", '__ut.fromstringpost.field(0).subfield(0).name', "a" );
+        Assert.equal( "R: FromString 2: Field 0 subfield 0 value", '__ut.fromstringpost.field(0).subfield(0).value', "b" );
+        Assert.equal( "R: FromString 2: Field 0 subfield 1 name", '__ut.fromstringpost.field(0).subfield(1).name', "c" );
+        Assert.equal( "R: FromString 2: Field 0 subfield 1 value", '__ut.fromstringpost.field(0).subfield(1).value', "d" );
+        Assert.equal( "R: FromString 2: Field 1 name", '__ut.fromstringpost.field(1).name', "100" );
+        Assert.equal( "R: FromString 2: Field 1 indicator", '__ut.fromstringpost.field(1).indicator', "00" );
+        Assert.equal( "R: FromString 2: Field 1 # subfields", '__ut.fromstringpost.field(1).count()', 2 );
+        Assert.equal( "R: FromString 2: Field 1 subfield 0 name", '__ut.fromstringpost.field(1).subfield(0).name', "e" );
+        Assert.equal( "R: FromString 2: Field 1 subfield 0 value", '__ut.fromstringpost.field(1).subfield(0).value', "f" );
+        Assert.equal( "R: FromString 2: Field 1 subfield 1 name", '__ut.fromstringpost.field(1).subfield(1).name', "g" );
+        Assert.equal( "R: FromString 2: Field 1 subfield 1 value", '__ut.fromstringpost.field(1).subfield(1).value', "h" );
+
+        // Note, that a field with no subfields, must not give a field...
+        __ut.fromstringpost.fromString( "100 00 *ab*cd*ef*gh" );
+        Assert.equal( "R: FromString 3: Num fields", '__ut.fromstringpost.numberOfFields()', 1);
+        Assert.equal( "R: FromString 3: Field 0 name", '__ut.fromstringpost.field(0).name', "100" );
+        Assert.equal( "R: FromString 3: Field 0 indicator", '__ut.fromstringpost.field(0).indicator', "00" );
+        Assert.equal( "R: FromString 3: Field 0 # subfields", '__ut.fromstringpost.field(0).count()', 4 );
+        Assert.equal( "R: FromString 3: Field 0 subfield 0 name", '__ut.fromstringpost.field(0).subfield(0).name', "a" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 0 value", '__ut.fromstringpost.field(0).subfield(0).value', "b" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 1 name", '__ut.fromstringpost.field(0).subfield(1).name', "c" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 1 value", '__ut.fromstringpost.field(0).subfield(1).value', "d" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 2 name", '__ut.fromstringpost.field(0).subfield(2).name', "e" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 2 value", '__ut.fromstringpost.field(0).subfield(2).value', "f" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 3 name", '__ut.fromstringpost.field(0).subfield(3).name', "g" );
+        Assert.equal( "R: FromString 3: Field 0 subfield 3 value", '__ut.fromstringpost.field(0).subfield(3).value', "h" );
+
+        __ut.fromstringpost.fromString( "100 00 *\u00E6\u00C6*\u00F8\u00D8*\u00E5\u00C5*gh" );
+        Assert.equal( "R: FromString 4: Num fields", '__ut.fromstringpost.numberOfFields()', 1);
+        Assert.equal( "R: FromString 4: Field 0 name", '__ut.fromstringpost.field(0).name', "100" );
+        Assert.equal( "R: FromString 4: Field 0 indicator", '__ut.fromstringpost.field(0).indicator', "00" );
+        Assert.equal( "R: FromString 4: Field 0 # subfields", '__ut.fromstringpost.field(0).count()', 4 );
+        Assert.equal( "R: FromString 4: Field 0 subfield 0 name", '__ut.fromstringpost.field(0).subfield(0).name', "\u00E6" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 0 value", '__ut.fromstringpost.field(0).subfield(0).value', "\u00C6" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 1 name", '__ut.fromstringpost.field(0).subfield(1).name', "\u00F8" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 1 value", '__ut.fromstringpost.field(0).subfield(1).value', "\u00D8" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 2 name", '__ut.fromstringpost.field(0).subfield(2).name', "\u00E5" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 2 value", '__ut.fromstringpost.field(0).subfield(2).value', "\u00C5" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 3 name", '__ut.fromstringpost.field(0).subfield(3).name', "g" );
+        Assert.equal( "R: FromString 4: Field 0 subfield 3 value", '__ut.fromstringpost.field(0).subfield(3).value', "h" );
+
+        // Some stuff needs to be specially treated, @@ => @, @* => *
+        // 
+        // Test defined as BAD by MB/JA7 2016-01-14
+        // 
+//        __ut.fromstringpost.fromString( "100 00 *a Another a subfield @@#\xA4$`'~@*^%&/()=? *c 123456" );
+//        Assert.equal( "R: FromString 5: Num fields", '__ut.fromstringpost.numberOfFields()', 1);
+//        Assert.equal( "R: FromString 5: Field 0 name", '__ut.fromstringpost.field(0).name', "100" );
+//        Assert.equal( "R: FromString 5: Field 0 indicator", '__ut.fromstringpost.field(0).indicator', "00" );
+//        Assert.equal( "R: FromString 5: Field 0 # subfields", '__ut.fromstringpost.field(0).count()', 2 );
+//        Assert.equal( "R: FromString 5: Field 0 subfield 0 name", '__ut.fromstringpost.field(0).subfield(0).name', "a" );
+//        Assert.equal( "R: FromString 5: Field 0 subfield 0 value", '__ut.fromstringpost.field(0).subfield(0).value', "Another a subfield @#\xA4$`'~*^%&/()=?" );
+//        Assert.equal( "R: FromString 5: Field 0 subfield 1 name", '__ut.fromstringpost.field(0).subfield(1).name', "c" );
+//        Assert.equal( "R: FromString 5: Field 0 subfield 1 value", '__ut.fromstringpost.field(0).subfield(1).value', "123456" );
+        
+        // Records can continue across several lines. Lets check ...
+        // TODO: You can't split on spaces???
+        __ut.fromstringpost.fromString( "100 42 *a Meget lang l\n    inie her e\r\n    nder @* den" );
+        Assert.equal( "R: FromString 7: Num fields", '__ut.fromstringpost.numberOfFields()', 1);
+        Assert.equal( "R: FromString 7: Field 0 name", '__ut.fromstringpost.field(0).name', "100" );
+        Assert.equal( "R: FromString 7: Field 0 indicator", '__ut.fromstringpost.field(0).indicator', "42" );
+        Assert.equal( "R: FromString 7: Field 0 # subfields", '__ut.fromstringpost.field(0).count()', 1 );
+        Assert.equal( "R: FromString 7: Field 0 subfield 0 name", '__ut.fromstringpost.field(0).subfield(0).name', "a" );
+        Assert.equal( "R: FromString 7: Field 0 subfield 0 value", '__ut.fromstringpost.field(0).subfield(0).value', "Meget lang linie her ender * den" );
+
+        // TODO: Controlfields are not supported.
+        // Assert.that( "Test OK with control field", '__ut.fromstringpost.fromString( "010 hej med dig" );true;' );
+        
+
+        
+        // Test we are OK with \n at the end of a line
+        Assert.that( "Test OK with newline at end of line", '__ut.fromstringpost.fromString( "100 42 *a b\\n" );true;' );
+
+        // TODO: C++ fails for this. Should we?
+        // Assert.that( "Test OK with newline at end of line and spaces...", '__ut.fromstringpost.fromString( "100 42 *a b\\n   " );true;' );
+
+
+        // Reuse ISO post tests, sort of.
+        __ut.fromstringpost = createIsoPost( );
+        __ut.isopost.fromString( __ut.fromstringpost.toString() );
+        
+        // number of fields
+        Assert.equal( "RI2: Number of fields", "__ut.isopost.numberOfFields( )", 30 );
+
+        // Counts
+        Assert.equal( "RI2: Count of field 001", '__ut.isopost.count( "001" )', 1 );
+        Assert.equal( "RI2: Count of field 666", '__ut.isopost.count( "666" )', 1 );
+        Assert.equal( "RI2: Count of field 795", '__ut.isopost.count( "795" )', 2 );
+        Assert.equal( "RI2: Count of field 700", '__ut.isopost.count( "700" )', 8 );
+
+        Assert.equal( "RI2: Name of field 001", '__ut.isopost.field( "001" ).name', "001" );
+        Assert.equal( "RI2: Name of field 666", '__ut.isopost.field( "666" ).name', "666" );
+        Assert.equal( "RI2: Name of (first ) field 700", '__ut.isopost.field( "700" ).name', "700" );
+        Assert.equal( "RI2: Alternative name of (first ) field 700", '__ut.isopost.field( "700", 0 ).name', "700" );
+        Assert.equal( "RI2: Alternative name of (second ) field 700", '__ut.isopost.field( "700", 1 ).name', "700" );
+
+        // Indicators
+        Assert.equal( "RI2: Indicator from field 001",
+            '__ut.isopost.field( "001" ).indicator', "00" );
+        Assert.equal( "RI2: Indicator from field 538",
+            '__ut.isopost.field( "538" ).indicator', "00" );
+        Assert.equal( "RI2: Indicator from last field 795",
+            '__ut.isopost.field( "795", 1 ).indicator', "00" );
+
+        // Not existing name
+        Assert.equal( "RI2: Name of field 042 (not present )", '__ut.isopost.field( "042" ).name', "" );
+        Assert.equal( "RI2: Count of field 042 (not present )", '__ut.isopost.count( "042" )', 0 );
+
+        // Modify/Set name
+        __ut.isopost.field( "001" ).name = "042";
+        Assert.equal( "RI2: Name of field 001 after rename", '__ut.isopost.field( "001" ).name', "" );
+        Assert.equal( "RI2: Name of field 042 after rename", '__ut.isopost.field( "042" ).name', "042" );
+        Assert.equal( "RI2: Count of field 001", '__ut.isopost.count( "001" )', 0 );
+        Assert.equal( "RI2: Count of field 042", '__ut.isopost.count( "042" )', 1 );
+
+        // Modify back
+        __ut.isopost.field( "042" ).name = "001";
+        Assert.equal( "RI2: Name of field 001 after second rename", '__ut.isopost.field( "001" ).name', "001" );
+        Assert.equal( "RI2: Name of field 042 after second rename", '__ut.isopost.field( "042" ).name', "" );
+        Assert.equal( "RI2: Count of field 001", '__ut.isopost.count( "001" )', 1 );
+        Assert.equal( "RI2: Count of field 042", '__ut.isopost.count( "042" )', 0 );
+
+        ////////////////////////////////////////////////////////////
+        // Sub field operations
+
+        Assert.equal( "RI2: Count of 001 subfields", '__ut.isopost.field( "001" ).count()', 6 );
+        Assert.equal( "RI2: Count of 004 subfields", '__ut.isopost.field( "004" ).count()', 2 );
+        Assert.equal( "RI2: Count of first 700 subfields", '__ut.isopost.field( "700" ).count()', 3 );
+        Assert.equal( "RI2: Alternative count of first 700 subfields", '__ut.isopost.field( "700", 0 ).count()', 3 );
+        Assert.equal( "RI2: Count of second 700 subfields", '__ut.isopost.field( "700", 1 ).count()', 3 );
+        Assert.equal( "RI2: Count of all field 700 subfields",
+            '\
+var total = 0;\
+var i; \
+var end = __ut.isopost.count( "700" ); \
+for ( i = 0; i < end; i++ ) { \
+    total += __ut.isopost.field( "700", i ).count(); \
+}; \
+total;', 24 );
+
+        ////////////////////////////////////////////////////////////
+        // MVS test of illegal return value
         var hest = function( ) {
             var rec = new Record( );
             rec.implementationCodes = 'sse ';
@@ -794,7 +978,7 @@ total;', 24 );
             rec.append( f );
             f = new Field( '009', '00' );
             f.append( 'a', 'a' );
-            f.append( 'g', 'xx' )
+            f.append( 'g', 'xx' );
             rec.append( f );
             f = new Field( '021', '00' );
             f.append( 'a', '87-11-15086-6' );
@@ -804,8 +988,6 @@ total;', 24 );
             return rec;
         };
 
-        ////////////////////////////////////////////////////////////
-        // MVS test of illegal return value
         __ut.hestpost = hest( );
         Assert.equal( "RI: test of illegal return value", '__ut.hestpost.field("008").subfield("l").value', "" );
 
@@ -1105,8 +1287,15 @@ Record.recordStatus = new String( );
  * first string is then the name of the field, the second the field
  * indicator.
  *
- * Note, that references to existing Fields on the record objects, is
- * invalidated by the append operation.
+ * **Note:** For the C++ implementation: Any reference to existing
+ * fields on this record may be invalidated by append a field. This
+ * has a number of potential bad consequences, most of which leads to
+ * crashes or unpredictable behaviour. It is easy to fall into the
+ * trap of e.g. iterating all fields in a record, and append some
+ * while iterating. This is almost certain to make your application
+ * crash. Instead, collect the new fields you wish to append, then
+ * append them after your main iteration.
+ *
  * @example 
 // Append an existing field to a record (field will be copied)
 aRecord.append( field );
@@ -1165,8 +1354,8 @@ Record.count = new String( );
  * If given a matcher, an array of sorter objects and a handler, then the matched 
  * fields are sorted before the handler is called for each field. 
  * 
- * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * @param {RegExp|String|Object} matcher An RegExp or string that matches the field name
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * @param {Array} sorter An array of objects that has a function: sort( a, b ). a and 
  * 		  b are fields and the function should return -1 (a < b), 0 ( a == b) or 1 (a > b).
@@ -1187,7 +1376,7 @@ record.eachField( /795/, [ new SortBySubFields( /å/ ) ], function( field ) { pr
 
 // How to use a custom matcher function with eachField
 // The function matches all field "700" with a sub field "a".
-record.eachField( { matchField: function( field ) {
+record.eachField( { matchField: function( record, field ) {
 									return field.name === "700" && field.exists( /a/ )
 								} 
 				  }, 
@@ -1206,6 +1395,75 @@ record.eachField( { matchField: function( field ) {
  * @name Record#eachField */
 Record.eachField = new String();
 
+/** Iterates over the fields and lookup handlers in a map.
+ *
+ * This method is usefull when you want to handles multiple fields in a record with different functions
+ *
+ * It is more efficient than making multiple eachField calls, since it only loops through fields once and
+ * uses map string lookup in stead of regular expressions.
+ * But it can only match on exact field names, because of the map lookup
+ *
+ * @param {MatchMap} map An object containing mapping between fieldname strings and functions to call
+ *
+ * @example
+var map = new MatchMap();
+map.put( "700", function( field ) {
+    // handle field 700
+});
+map.put( "795", function( field ) {
+    // handle field 795
+});
+map.put( "100", "101", function( field ) {
+    // handle field 100 and 101
+});
+record.eachFieldMap(map);
+ *
+ * @method
+ * @name Record.eachFieldMap
+ * @name Record#eachFieldMap */
+Record.eachFieldMap = new String();
+
+
+/** Iterates over the fields and lookup handlers in a map.
+ *
+ * This method is useful when you want to handles multiple fields in a record with different functions and nonspecified
+ * fields with a default function. So all fields that are added to the map use a specific function and the remaining fields
+ * are called with the default function
+ *
+ * It is more efficient than making multiple eachField calls, since it only loops through fields once and
+ * uses map string lookup in stead of regular expressions.
+ * But it can only match on exact field names, because of the map lookup
+ *
+ * @param {MatchMap} map An object containing mapping between field name strings and functions to call
+ * @param {defaultFunction} defaultFunction to call for fields not i MatchMap
+ * @param {extraData} Object given to all functions called as second parameter
+ *
+ *
+ * @example
+ var map = new MatchMap();
+
+ map.put("001", function( f, resultData) {resultData.push("001 called "+f.name);} );
+ map.put("002", function( f, resData) {resData.push("002 called "+f.name);} );
+
+ var defaultFunction = function ( f, resultData ) { resultData.push( "default called " + f.name ); };
+
+ var resultData=[];
+
+ record.eachFieldMapWithDefault( map, defaultFunction, resultData );
+
+ // if record is
+ // 001 00 *a
+ // 002 00 *a
+ // 245 00 *a
+ // 300 00 *a
+ //result data is now [ "001 called 001", "002 called 002", "default called 245", "default called 300" ]
+
+ *
+ * @method
+ * @name Record.eachFieldMapWithDefault
+ * @name Record#eachFieldMapWithDefault */
+Record.eachFieldMapWithDefault = new String();
+
 /** Iterates over the fields and calls an handler on each field as a sequence.
  *
  * A sequence is an array of matchers that is used to extract fields. The handler is then 
@@ -1223,7 +1481,7 @@ Record.eachField = new String();
  * fields are sorted before the handler is called for each field. 
  * 
  * @param {Array} matchers An Array of RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * @param {Array} sorter An array of objects that has a function: sort( a, b ). a and 
  * 		  b are fields and the function should return -1 (a < b), 0 ( a == b) or 1 (a > b).
@@ -1240,7 +1498,7 @@ Record.eachField = new String();
 record.eachFieldSequence( [ /770/, /795/ ], function( field ) { print( field.toString() + "\n" ); } );
 
 // Sequence with a custom matcher.
-record.eachFieldSequence( [ { matchField: function( field ) { return field.name === "652" && field.exists( /0/ ) } 
+record.eachFieldSequence( [ { matchField: function( record, field ) { return field.name === "652" && field.exists( /0/ ) }
 						    }, /770/, /795/ ], function( field ) { print( field.toString() + "\n" ); } );
 
  * @method
@@ -1269,7 +1527,7 @@ Record.empty = new String( );
 /** Checks if this record contains at least one field, that matches a criteria.
  *
  * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * 
  * @return {boolean} True if a field matches the matcher argument, False otherwise.
@@ -1373,8 +1631,8 @@ Record.field = new String( );
  * If given a matcher, an array of sorter objects and a handler, then the matched 
  * fields are sorted before the handler is called for each field. 
  * 
- * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * @param {RegExp|String|Object} matcher An RegExp or string that matches the field name
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * @param {Array} sorter An array of objects that has a function: sort( a, b ). a and 
  * 		  b are fields and the function should return -1 (a < b), 0 ( a == b) or 1 (a > b).
@@ -1390,7 +1648,7 @@ Record.field = new String( );
 var personName = record.firstField( /795/, function( field ) { field.getValue( /a/ ) } );
 
 // And with a custom matcher
-var personName = record.firstField( { matchField: function( field ) { return field.name === "795" } }, function( field ) { field.getValue( /a/ ) } );
+var personName = record.firstField( { matchField: function( record, field ) { return field.name === "795" } }, function( field ) { field.getValue( /a/ ) } );
 
 // Gets the first name of "795" after the fields have been sorted by sub field "å"
 var personName = record.firstField( /795/, [ new SortBySubFields( /å/, Sorter.ASC ) ], function( field ) { field.getValue( /a/ ) } );
@@ -1419,10 +1677,10 @@ Record.getFirstFieldAsField = new String();
 
 /** Returns the first sub field value in the record.
  * 
- * @param {RegExp|Object} fieldMatcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * @param {RegExp|String|Object} fieldMatcher An RegExp or string that matches the field name
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
- * @param {RegExp|Object} subFieldMatcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} subFieldMatcher An RegExp or String that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * 
@@ -1440,10 +1698,10 @@ Record.getFirstValue = new String();
 
 /** Iterates over the fields and returns the values of any sub field that matches a criteria.
  *
- * @param {RegExp|Object} fieldMatcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * @param {RegExp|String|Object} fieldMatcher An RegExp or stringthat matches the field name
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
- * @param {RegExp|Object} subFieldMatcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} subFieldMatcher An RegExp or string that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * @param {String} sep A separator to insert between the values, if more than one is found.
@@ -1470,7 +1728,7 @@ Record.getValue = new String();
 /** Checks if a matcher only match one field.
  * 
  * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * 
  * @return {boolean} True if only one field matches matcher, False otherwise.
@@ -1481,10 +1739,10 @@ Record.isUnique = new String();
 
 /** Iterates over the fields and checks if any of the sub fields has a given value.
  *
- * @param {RegExp|Object} fieldMatcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * @param {RegExp|String|Object} fieldMatcher An RegExp or string that matches the field name
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
- * @param {RegExp|Object} subFieldMatcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} subFieldMatcher An RegExp or string that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * @param {RegExp} valueRegExp The value that you want to match.
@@ -1536,6 +1794,15 @@ Record.numberOfFields = new String( );
  *
  * If no field matches the parameters, nothing happens.
  *
+ * **Note:** For the C++ implementation: Any reference to existing
+ * fields on this record may be invalidated by removing a field. This
+ * has a number of potential bad consequences, most of which leads to
+ * crashes or unpredictable behaviour. It is easy to fall into the
+ * trap of e.g. iterating all fields in a record, and remove some of
+ * them. This is almost certain to make your application
+ * crash. Instead, collect the names or indexes of the fields you wish
+ * to remove, then remove them after your main iteration.
+ *
  * @param {number|string} fieldIndexOrFieldName Index of field to remove, zero-based, or name of a field to remove
  * @param {number} [fieldNameIndex] Index of named field to remove, zero-based. *Only allowed if first argument is a fieldName.*
  * @example 
@@ -1558,7 +1825,7 @@ Record.remove = new String( );
  * @param {string} fieldName Name of field to remove
  * @example 
 // Remove all 545 fields
-aRecord.remove( "545" );
+aRecord.removeAll( "545" );
  * @method
  * @memberOf Record
  * @name Record.removeAll
@@ -1568,7 +1835,7 @@ Record.removeAll = new String( );
 /** Removes any field in the record, that matches a given criteria.
  *
  * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * 
  * @return Nothing. 
@@ -1585,8 +1852,8 @@ Record.removeWithMatcher = new String();
 
 /** Iterates over the fields and returns an array of the selected fields
  * 
- * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * @param {RegExp|String|Object} matcher An RegExp that matches the field name
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * @param {Array} sorter An array of objects that has a function: sort( a, b ). a and 
  * 		  b are fields and the function should return -1 (a < b), 0 ( a == b) or 1 (a > b).
@@ -1611,7 +1878,7 @@ Record.selectFields = new String();
  * fields is used.
  * 
  * @param {RegExp|Object} matcher An RegExp that matches the field name 
- * 		  or an object with a function of the norm: function matchField( field ). 
+ * 		  or an object with a function of the norm: function matchField( record, field ).
  *        The function should return a boolean value.
  * @param {Array} sorter An array of objects that has a function: sort( a, b ). a and 
  * 		  b are fields and the function should return -1 (a < b), 0 ( a == b) or 1 (a > b).
@@ -1650,12 +1917,34 @@ Record.size = new String();
  * constructed by calling the toString method of all the fields the
  * record contains.
  *
+ * Any values of @ or * in fields/subfields, will be written as 
+ * @@ and @* respectively.
+ *
  * @return {string} A string representation of the record
  * @method
  * @memberOf Record
  * @name Record.toString
  * @name Record#toString */
 Record.toString = new String( );
+
+/** Create a record from a string.
+ *
+ * This method changes the record to represent the input in the string.
+ * 
+ * Existing content of the record is cleared. The input is parsed to
+ * build a new record in place. The parser honors two "standard" Marc
+ * record escape codes: @@ and @\*, which are translated to @ and \*
+ * respectively. Other @ codes are not interprented, but are carried
+ * through unchanged.
+ *
+ * **NOTE:** controlFields are *not supported* by this method.
+ *
+ * @param {String} string A Marc record in line format.
+ * @method
+ * @memberOf Record
+ * @name Record.fromString
+ * @name Record#fromString */
+Record.fromString = new String( );
 
 
 //////////////////////////////////////////////////////////////////////
@@ -1762,8 +2051,15 @@ Field.value = new String( );
  * The append operation can only be called on normal fields, not
  * control fields.
  *
- * Note, that references to existing Subfields on the Field objects, is
- * invalidated by the append operation.
+ * **Note:** For the C++ implementation: Any reference to existing
+ * subfields on this record may be invalidated by append a
+ * subfield. This has a number of potential bad consequences, most of
+ * which leads to crashes or unpredictable behaviour. It is easy to
+ * fall into the trap of e.g. iterating all subfields in a field, and
+ * append some while iterating. This is almost certain to make your
+ * application crash. Instead, collect the new subfields you wish to
+ * append, then append them after your main iteration.
+ *
  * @example
 // Append an existing feld
 aField.append( subfield );
@@ -1817,7 +2113,7 @@ Field.count = new String( );
 
 /** Iterates over the sub fields and calls an handler on each sub field.
  *
- * @param {RegExp|Object} matcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} matcher An RegExp or string that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * @param {Handler|Function} handler The handler to call for each sub field found 
@@ -1868,6 +2164,8 @@ field.eachSubField( [ /a/, /i/ ], function( field, subField ) { print( subField.
  * @name Field#eachSubFieldSequence */
 Field.eachSubFieldSequence = new String( );
 
+Field.eachSubFieldMap = new String();
+
 /** Checks if the field is empty, that it has zero sub fields.
  *
  * @return {boolean} True if the field is empty, false otherwise. 
@@ -1908,7 +2206,7 @@ Field.exists = new String( );
 
 /** Iterates over the sub fields and returns the value of the first sub field that matches a criteria.
  *
- * @param {RegExp|Object} matcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} matcher An RegExp or string that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * @param {Handler|Function} handler The handler to call for each sub field found 
@@ -1931,7 +2229,7 @@ Field.firstSubField = new String( );
 
 /** Returns the value of the first sub field that matches a matcher.
  * 
- * @param {RegExp|Object} matcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} matcher An RegExp or string that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * 
@@ -1972,7 +2270,7 @@ Field.getValueAsArray = new String();
 
 /** Iterates over the sub fields and returns the values of any sub field that matches a criteria.
  *
- * @param {RegExp|Object} matcher An RegExp that matches the sub field name 
+ * @param {RegExp|String|Object} matcher An RegExp or string that matches the sub field name
  * 		  or an object with a function of the norm: function matchSubField( field, subfield ). 
  *        The function should return a boolean value.
  * @param {String} sep A separator to insert between the values, if more than one is found.
@@ -2036,8 +2334,11 @@ Field.matchValue = new String();
 
 /** Remove a subfield from a field.
  *
- * Given a subfieldName, or a subfieldName and an
- * index, removes the subfield from the field.
+ * The method exists in three versions, depending on the
+ * number and type of arguments given.
+ *
+ * If given a numerical index, it removes the subfield at that position
+ * in the fields internal representation of subfields.
  *
  * If given a name, it removes the first subfield found, that matches the
  * given name.
@@ -2046,6 +2347,15 @@ Field.matchValue = new String();
  * the given name.
  *
  * If no subfield matches the parameters, nothing happens.
+ *
+ * **Note:** For the C++ implementation: Any reference to existing
+ * subfields on this record may be invalidated by removing a subfield. This
+ * has a number of potential bad consequences, most of which leads to
+ * crashes or unpredictable behaviour. It is easy to fall into the
+ * trap of e.g. iterating all subfields in a field, and remove some of
+ * them. This is almost certain to make your application
+ * crash. Instead, collect the names or indexes of the subfields you wish
+ * to remove, then remove them after your main iteration.
  *
  * @param {string} subfieldName Name of a subfield to remove
  * @param {number} [subfieldNameIndex] Index of named subfield to remove, zero-based.

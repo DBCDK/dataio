@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 /** @file Module to do unit tests and report them. */
 
 use( "Util" );
@@ -29,13 +8,13 @@ EXPORTED_SYMBOLS = [ 'Assert', 'UnitTest' ];
 // Global Assert object. As this module can only be use'd once pr. program, this is safe:
 /**
  * Assert object that provides unit test methods.
- * 
+ *
  * An instance of this object reflects a test fixture/group, and you can
- * create your individual testcases by using the functions on this object. 
+ * create your individual testcases by using the functions on this object.
  *
  * @see UnitTest
  * @name Assert
- * @namespace 
+ * @namespace
  */
 var Assert = undefined;
 
@@ -43,7 +22,7 @@ var Assert = undefined;
 // The main namespace to control test fixtures.
 /**
  * Controls the overall UnitTest system.
- * 
+ *
  * This object is used to control the use of the UnitTest system, that is
  * adding and managing test fixtures. Actual tests are done by the Assert
  * object. The main method to use is the addFixture method. (See the example).
@@ -51,20 +30,20 @@ var Assert = undefined;
  * When using the UnitTest module like in the example, you may run the unittests for a module by "loading" the file, usually by specifying it to the environment as the file you wish to execute. The tests will be run, and a report emitted using the Print module. When the module is use'd the unit tests will not be performed, nor reported.
  *
  * If the Log module is loaded, some high level logging will take place, when the UnitTest are run. This can help debugging tests that fails, or during implementatio.
- * 
+ *
  * @example
 // This is an example of the preffered way to use the UnitTest module:
-use( "UnitTest" ); 
+use( "UnitTest" );
 // Add a fixture for the module.
-UnitTest.addFixture( "Test Module modulename", function() { 
+UnitTest.addFixture( "Test Module modulename", function() {
     // Add all the tests
-    Assert.exception( "readFile on non existant file", 'readFile("nothere")' ); 
+    Assert.exception( "readFile on non existant file", 'readFile("nothere")' );
     Assert.that( "comment", 'expression evaluating to true' );
     Assert.not( "This should always be false", 'expression evaluating to false' );
     Assert.equal( "test0, output", 'test0()', "UserParam was 0" );
-    Assert.equal( "test1, array output", 'test1().sort()', [1,2,3,4] );   
+    Assert.equal( "test1, array output", 'test1().sort()', [1,2,3,4] );
 });
- * 
+ *
  *
  * @name UnitTest
  * @namespace
@@ -82,6 +61,18 @@ var UnitTest = function( ) {
         }
     }
 
+    function utLogDebug( string ) {
+        if ( ( typeof Log === "object" ) && Log.debug && ( typeof Log.debug === "function" ) ) {
+            Log.debug( "UnitTest: " + string );
+        }
+    }
+
+    function utLog_fatal( string ) {
+        if ( ( typeof Log === "object" ) && Log.fatal && ( typeof Log.fatal === "function" ) ) {
+            Log.fatal( "UnitTest: " + string );
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////
     // Create an Assert object, eg. every time we create a Fixture, an Assert object is created.
 
@@ -96,14 +87,14 @@ var UnitTest = function( ) {
 
         that.ActivateAssertObject = function( ) {
             m_lastEnd = Date.now( );
-        }
+        };
         that.ActivateAssertObject( );
 
         // A single testcase object
 
         function CreateTestcaseObject( object ) {
             // Object must contain:
-            // { number: testnum, passed: passed, fixture:this.name, description:description, report: printbuffer, expression:expr_str, expected:expected, typeofexpected:typeofexpected, result:res, typeofresult:typeofres } );
+            // { number: testnum, passed: passed, fixture:this.name, description:description, report: printbuffer, expression:expr_str, expected:expected, typeofexpected:typeofexpected, result:res, typeofresult:typeofres, url:url } );
             var that = object;
 
             // Adjust time
@@ -124,14 +115,15 @@ var UnitTest = function( ) {
                 var res = "Expected and actual differs at position " + i + ":\n";
                 res += "Expected: " + prefix + expected.slice( begin, begin + maxwidth ).replace( "\n", "\\n" ).replace( "\t", "\\t" ) + suffixe + "\n";
                 res += "Actual  : " + prefix + actual.slice( begin, begin + maxwidth ).replace( "\n", "\\n" ).replace( "\t", "\\t" ) + suffixa + "\n";
-                res += ( "          " + prefix + actual.slice( begin, i ).replace( "\n", "\\n" ).replace( "\t", "\\t" ) ).replace( /[\s\S]/g, " " )
+                res += ( "          " + prefix + actual.slice( begin, i ).replace( "\n", "\\n" ).replace( "\t", "\\t" ) ).replace( /[\s\S]/g, " " );
                 res += "^";
                 return res;
-            }
+            };
 
             that.toString = function( ) {
                 var res = ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> equal <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
                 res += "Test number : " + ( this.number ) + "\n";
+                res += "URL         : " + ( this.url ) + "\n";
                 res += "Description : " + ( this.description ) + "\n";
                 res += "Evaluated   : " + ( this.expression ) + "\n";
                 res += "Time        : " + ( ( this.time / 1000.0 ).toFixed( 3 ) ) + "\n";
@@ -159,11 +151,11 @@ var UnitTest = function( ) {
                     } )( ) + "\n";
                 res += ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
                 return res;
-            }
+            };
             that.escapeXml = function( arg ) {
-                return arg.replace( "&", "&amp;", "g" ).replace( "<", "&lt;", "g" ).replace( ">", "&gt;", "g" ).replace( "'", "&apos;", "g" )
-                    .replace( '"', "&quot;", "g" );
-            }
+                return arg.replace( /&/g, "&amp;" ).replace( /\</g, "&lt;" ).replace( /\>/g, "&gt;" ).replace( /'/g, "&apos;" )
+                    .replace( /"/g, "&quot;" );
+            };
             that.toJUnitXml = function( ) {
                 var res = "";
                 res += "<testcase classname='" + this.escapeXml( this.fixture ) + "' time='" + ( ( this.time / 1000.0 ).toFixed( 3 ) ) + "' name='" + this.escapeXml( this.description ) + "'";
@@ -173,6 +165,7 @@ var UnitTest = function( ) {
                     // Dropped indent of failure because it gets to be part of the text
                     res += ">\n<failure type='CompareError'>\n" +
                         this.escapeXml( "Fixture     : " + this.fixture + "\n" +
+                        "URL         : " + ( this.escapeXml( this.url ) ) + "\n" +
                         "Description : " + this.description + "\n" +
                         "Evaluated   : " + this.expression + "\n" +
                         "Expected    : " + this.expected + " (" + this.typeofexpected + ")\n" +
@@ -192,7 +185,7 @@ var UnitTest = function( ) {
                     res += "</testcase>\n";
                 }
                 return res;
-            }
+            };
             return that;
         }
 
@@ -201,8 +194,8 @@ var UnitTest = function( ) {
 
         /**
          * The number of passed tests in this fixture.
-         * 
-         * 
+         *
+         *
          * @syntax Assert.totalPassed()
          * @return {number} The number of passed tests in this fixture
          * @name Assert.totalPassed
@@ -214,12 +207,12 @@ var UnitTest = function( ) {
 
         /**
          * Returns the number of currently failed tests.
-         * 
+         *
          * This is mostly used by scripts that defines a number of modules to
          * unittest. If you end such a script with a call to this function, it
          * will return that value to the calling shell, and it can be used to
-         * detect any failures. 
-         * 
+         * detect any failures.
+         *
          * @type {method}
          * @syntax UnitTest.totalFailed()
          * @return The number of failed test so far.
@@ -230,8 +223,8 @@ var UnitTest = function( ) {
          */
         /**
          * The number of failed tests in this fixture.
-         * 
-         * 
+         *
+         *
          * @type {property}
          * @syntax Assert.totalFailed()
          * @return {number} The number of failed tests in this fixture
@@ -246,8 +239,8 @@ var UnitTest = function( ) {
 
         /**
          * The name of this fixture.
-         * 
-         * 
+         *
+         *
          * @type {property}
          * @name Assert.name
          * @method
@@ -256,11 +249,11 @@ var UnitTest = function( ) {
 
         /**
          * Build a report of all test fixtures and all test cases in either string or Xml format.
-         * 
+         *
          * This builds a report of all executed test fixtures, with all test
          * cases. The report is formatted in Xml format or string format,
-         * depending on the value of the UnitTest.outputXml variable 
-         * 
+         * depending on the value of the UnitTest.outputXml variable
+         *
          * @type {method}
          * @syntax UnitTest.report()
          * @return A string with a test report, suitable for printing
@@ -271,11 +264,11 @@ var UnitTest = function( ) {
          */
         /**
          * Return a report for the fixture.
-         * 
+         *
          * This method returns a string, that contains a list with details about
          * each testcase. By default only failed testcases are reported, but if
-         * verbose is true, passed testcases are included too. 
-         * 
+         * verbose is true, passed testcases are included too.
+         *
          * @type {method}
          * @syntax Assert.report( verbose );
          * @param verbose If true, include passed tests in report, otherwise only failed tests
@@ -288,6 +281,9 @@ var UnitTest = function( ) {
             var res = "";
             for ( var reporti in m_reports ) {
                 var report = m_reports[ reporti ];
+                if( report.allready_printed ) continue;
+                report.allready_printed = true;
+
                 if ( verbose || report.passed === false ) {
                     res += report.toString( );
                 }
@@ -300,10 +296,10 @@ var UnitTest = function( ) {
 
         /**
          * Build a report of all test fixtures and all test cases in JUnit Xml format.
-         * 
+         *
          * This builds a report of all executed test fixtures, with all test
-         * cases. The report is formatted in Xml format, compatible with JUnit 
-         * 
+         * cases. The report is formatted in Xml format, compatible with JUnit
+         *
          * @type {method}
          * @syntax UnitTest.report()
          * @return A string with a test report, suitable for printing
@@ -316,13 +312,13 @@ var UnitTest = function( ) {
                 res += m_reports[ reporti ].toJUnitXml( );
             }
             return res;
-        }
+        };
 
         /**
          * Return an array of numbers for the failed testcases.
-         * 
-         * This method returns an array containing numbers of the failed testcases 
-         * 
+         *
+         * This method returns an array containing numbers of the failed testcases
+         *
          * @type {method}
          * @syntax Assert.failed()
          * @return Array with numbers of failed testcases
@@ -347,14 +343,14 @@ var UnitTest = function( ) {
         // Assertfunction for values rather than eval'ed strings.
         /**
          * Test that two values are the same.
-         * 
+         *
          * Similar to Assert.equal, except that the parameter is a value, and not
-         * a string to be evaluated. 
-         * 
+         * a string to be evaluated.
+         *
          * @syntax Assert.equalValue( description, value, expected );
-         * @param description Used for feedback in case of errors
-         * @param value The value to compare.
-         * @param expected The expected result.
+         * @param desc Used for feedback in case of errors
+         * @param a The value to compare.
+         * @param b The expected result.
          * @return true if the test passed, false otherwise
          * @example Assert.equalValue( "2 + 2 is 5", 2+2, 5)
          * @name Assert.equalValue
@@ -366,16 +362,84 @@ var UnitTest = function( ) {
             } else {
                 return that.equal( desc, uneval( a ), b );
             }
-        }
+        };
+
+
+        // Assertfunction for xml values rather than eval'ed strings.
+        /**
+         * Test that two values are the same.
+         *
+         * Similar to Assert.equalValue, except that the XML is Serialised
+         * Before test for equal, prepared for a later upgrade to for more specialized
+         * xml handling.
+         *
+         * Note: If given 2 Arrays of XML objects the function loops the elements
+         * and checks each element.
+         *
+         * @syntax Assert.equalValue( description, value, expected );
+         * @param description Used for feedback in case of errors
+         * @param actual The value to compare.
+         * @param expected The expected result.
+         * @return true if the test passed, false otherwise
+         *
+         * @example var expected=XmlUtil.fromString('<noget:xml><elementer>data</elementer></noget:xml>');
+         *       Assert.equalXml( "test xml", functionReturningXml(), excepted );
+         *
+         *       var expectedArray = [
+         *             XmlUtil.fromString('<noget:xml><elementer>data</elementer></noget:xml>'),
+         *             XmlUtil.fromString('<noget:xml>data</noget:xml>')
+         *             ];
+         *       Assert.equalXml( "test array of XML", functionReturningXml(), exceptedArray );
+         *
+         * @name Assert.equalXml
+         * @method
+         */
+
+        that.equalXml = function( description, actual, expected ) {
+            use('XmlUtil');
+
+            function serialize( xml ) {
+                if( xml===undefined) return "";
+                if( typeof(xml) === 'string') xml=XmlUtil.fromString(xml);
+                if( Util.getType(xml) === 'String') xml=XmlUtil.fromString(xml);
+                return XmlUtil.normalizeXml(xml).toString();
+            }
+
+            function do_one_equal( adesc, aValue, aExpected ) {
+                var valueSerialized = serialize( aValue );
+                var expectedSerialized = serialize( aExpected );
+                return that.equalValue( adesc, valueSerialized, expectedSerialized );
+            }
+
+            function toArray( v ) {
+                if ( Util.getType( v ) === 'Array' )
+                    return v;
+                return [v];
+            }
+
+            actual = toArray( actual );
+            expected = toArray( expected );
+
+            if ( actual.length === 1  && expected.length===1) {
+                // special Case for only one element
+                do_one_equal( description, actual[0], expected[0] );
+            } else {
+                that.equal( description + ".length", actual.length, expected.length );
+                for ( var i = 0; i < actual.length; ++i ) {
+                    if( i > expected.length ) return;
+                    do_one_equal( description + " element " + i +" in Array of Xml", actual[i] , expected[i]  );
+                }
+            }
+        };
 
         /**
          * Tests if two values are different..
-         * 
-         * Similar to Assert.equal, but tests for not equal. 
-         * 
+         *
+         * Similar to Assert.equal, but tests for not equal.
+         *
          * @syntax Assert.notEqual( description, value, expected );
-         * @param description Used for feedback in case of errors
-         * @param value The value to compare.
+         * @param desc Used for feedback in case of errors
+         * @param result The value to compare.
          * @param expected The expected result.
          * @return true if the test passed, false otherwise
          * @name Assert.notEqual
@@ -385,7 +449,7 @@ var UnitTest = function( ) {
             if ( arguments.length !== 3 ) {
                 throw "notEqual needs description, result, and expected value";
             }
-            // The current implementation is just a quick hack, 
+            // The current implementation is just a quick hack,
             // as it will be reimplemted when the
             // unit test system is due for some refactoring,
             // see bug 10323.
@@ -396,8 +460,20 @@ var UnitTest = function( ) {
             } else {
                 return that.equal( desc, uneval( resultString ), "not " + expectedString );
             }
-        }
+        };
 
+        // What is url for the currently loading module or a string saying "unavailable"
+        var getUrlForLoadingModule = function() {
+            try {
+                var module = __ModulesInfo.getModule( __ModulesInfo.currentLoadingModule() );
+                if ( module.url ) {
+                    return module.url;
+                }
+            } catch (e) {
+                // eat the exception silently.
+            }
+            return "<unable to obtain>";
+        };
 
 
         ////////////////////////////////////////////////////////////////////////
@@ -405,7 +481,7 @@ var UnitTest = function( ) {
         // Note, the result of expr may be printed, so it only works with printable results
         /**
          * Test that two expressions are equal.
-         * 
+         *
          * This method is the core of the testing system. It takes an expression
          * that it evaluates, and compares the result to the expected value. If
          * the results are equal, a success is reported. If the results are not
@@ -416,11 +492,11 @@ var UnitTest = function( ) {
          * need to occur in the same order, so [1,2] !== [2,1]. Use sort if you
          * need set-like comparision. You can also pass objects to this method.
          * Objects are compared as arrays, except for the length property. For
-         * both, only ownProperties are compared. 
-         * 
+         * both, only ownProperties are compared.
+         *
          * @syntax Assert.equal( [description, ], expression, expected );
          * @param description Optional parameter, used for feedback in case of errors
-         * @param expression The expression to evaluate. This must be a string that can be evaluated or the method will not work as expected.
+         * @param expr The expression to evaluate. This must be a string that can be evaluated or the method will not work as expected.
          * @param expected The expected value from the evaluated expression. Note, that this is not evaluated.
          * @return true if the test passed, false otherwise
          * @note The last parameter to this function is not evaluated. This means that e.g. Assert.equal( 'true', 'true' ) will fail, as the last argument is a string, which is different from the result of eval( 'true' ).
@@ -447,15 +523,46 @@ var UnitTest = function( ) {
                     res = eval( expr );
                     expr_str = expr;
                 } catch ( error ) {
-                    res = "Received exception: " + error.toSource( );
+                    utLog( "Caught exception " + error);
+                    res = "Received exception: " + __formatValue( error );
                     // If it has a stack, and it is in SpiderMonkey format, try making it more readable.
                     if ( error.stack && ( typeof error.stack == "string" ) ) {
                         stack = error.stack.replace( /(@[^:\[]*:)/g, "\n$1" );
                     }
                     // Maybe there will sometimes be a Rhino stack there here. We hope...
                     // It needs to be change from a java.lang.String into a JavaScript string.
+                    // TODO Remove when finished migrating to Nashorn
                     if ( error.rhinoException ) {
-                        stack = String( error.rhinoException.getScriptStackTrace( ) );
+                        if (error.rhinoException.getScriptStack().length > 1) {
+                            stack = String( error.rhinoException.getScriptStackTrace( ) );
+                        } else {
+                            var elements = error.rhinoException.getStackTrace();
+
+                            stack = "";
+                            for (var a in elements) {
+                                var stelement = elements[a];
+                                var fileName = stelement.getFileName();
+                                var methodName = stelement.getMethodName();
+                                var lineNumber = stelement.getLineNumber();
+                                if (fileName !== null && fileName.endsWith(".js")) {
+                                    stack += "\tat " + fileName + ":" + lineNumber + "(" + methodName + ")\n";
+                                }
+                            }
+                        }
+                    }
+                    // Plain Java exception ( e.g. in Nashorn )
+                    if ( error.getStackTrace ) {
+                        elements = error.getStackTrace();
+                        stack = "";
+                        for (var a = 0 ; a < elements.length ; a++) {
+                            var stelement = elements[a];
+                            var fileName = stelement.getFileName();
+                            var methodName = stelement.getMethodName();
+                            var lineNumber = stelement.getLineNumber();
+                            if (fileName !== null && fileName.endsWith(".js")) {
+                                stack += "\tat " + fileName + ":" + lineNumber + "(" + methodName + ")\n";
+                            }
+                        }
                     }
                     errorstring = error;
                     uncaught = true;
@@ -479,6 +586,27 @@ var UnitTest = function( ) {
 
             try {
                 passed = ( res === expected ) || ( uneval( Util.keySortedObject( res ) ) === uneval( Util.keySortedObject( expected ) ) );
+                // Bug 17884 - XML needs a special case
+                // To be removed when all E4X support is removed
+                if ( ! passed && typeofres == "xml" && typeofexpected == "xml" ) {
+                    passed = ( res == expected );
+                    // Still not equal. Lets serialize and try again.
+                    if ( !passed ) {
+                        var xres = new XML( res.toXMLString() );
+                        var xexpected = new XML( expected.toXMLString() );
+                        passed = ( xres == xexpected );
+                    }
+                }
+
+                if ( ! passed && typeofres == "Document" && typeofexpected == "Document" ) {
+                    passed = ( res == expected );
+                    // Still not equal. Lets serialize and try again.
+                    if ( !passed ) {
+                        var xres = res.toString();
+                        var xexpected = expected.toString() ;
+                        passed = ( xres == xexpected );
+                    }
+                }
             } catch ( e ) {
                 passed = false;
                 uncaught = true;
@@ -519,7 +647,7 @@ var UnitTest = function( ) {
 
             if ( passed ) {
                 m_totalPassed++;
-                // println( "Result       : PASSED" ); 
+                // println( "Result       : PASSED" );
             } else {
                 if ( uncaught ) {
                     println( "WARNING!!!!!!! UNCAUGHT EXCEPTION: '" + errorstring + "'" );
@@ -527,7 +655,7 @@ var UnitTest = function( ) {
                 println( "Expecting    : '" + expected + "' (" + typeofexpected + ")" );
                 println( "Evaluated to : '" + res + "' (" + typeofres + ")" );
                 // println( "Result       : FAILED" );
-                // println( singleLineError ); 
+                // println( singleLineError );
                 m_totalFailed++;
             }
             // println( "</testcase>\n" );
@@ -545,7 +673,8 @@ var UnitTest = function( ) {
                         result: res,
                         typeofresult: typeofres,
                         stack: stack,
-                        time: time
+                        time: time,
+                        url: getUrlForLoadingModule()
                     } ) );
             this.ActivateAssertObject( );
             utLog( "Assert leaving equal, desc: " + description );
@@ -554,12 +683,12 @@ var UnitTest = function( ) {
 
         /**
          * Test that an expression evalutes to true.
-         * 
-         * As equal, but assumes that the result must evaluate to true 
-         * 
+         *
+         * As equal, but assumes that the result must evaluate to true
+         *
          * @syntax Assert.that( [description, ], expression );
          * @param description Optional parameter, used for feedback in case of errors
-         * @param expression The expression to evaluate. This must be a string that can be eval, or the feedback will be less useful
+         * @param expr The expression to evaluate. This must be a string that can be eval, or the feedback will be less useful
          * @return true if the test passed, false otherwise
          * @name Assert.that
          * @method
@@ -574,12 +703,12 @@ var UnitTest = function( ) {
 
         /**
          * Test that an expression evalutes to false.
-         * 
-         * As equal, but assumes that the result must evaluate to false 
-         * 
+         *
+         * As equal, but assumes that the result must evaluate to false
+         *
          * @syntax Assert.not( [description, ], expression );
          * @param description Optional parameter, used for feedback in case of errors
-         * @param expression The expression to evaluate. This must be a string that can be eval, or the feedback will be less useful
+         * @param expr The expression to evaluate. This must be a string that can be eval, or the feedback will be less useful
          * @return true if the test passed, false otherwise
          * @name Assert.not
          * @method
@@ -598,12 +727,12 @@ var UnitTest = function( ) {
         // If exception is expected, call with 'true' for last argument, 'false' else
         /**
          * Test that an expression throws an exception when evaluated.
-         * 
-         * This test checks that evaluating the expression raises an exception. 
-         * 
+         *
+         * This test checks that evaluating the expression raises an exception.
+         *
          * @syntax Assert.exception( [description, ], expression );
          * @param description Optional parameter, used for feedback in case of errors.
-         * @param expression The expression to evaluate. This must be a string that can be eval, or the feedback will be less useful
+         * @param expr The expression to evaluate. This must be a string that can be eval, or the feedback will be less useful
          * @return true if the test passed, false otherwise
          * @name Assert.exception
          * @method
@@ -643,10 +772,10 @@ var UnitTest = function( ) {
 
     /**
      * Should clients actually perform tests.
-     * 
+     *
      * Clients can call this method prior to performing tests, although if
-     * using addFixture, this is handled automatically. 
-     * 
+     * using addFixture, this is handled automatically.
+     *
      * @type {method}
      * @syntax UnitTest.doTests()
      * @return true if clients should perform tests, false otherwise.
@@ -659,10 +788,10 @@ var UnitTest = function( ) {
 
     /**
      * Should clients emit a report.
-     * 
+     *
      * Clients can call this method prior to emitting a test report. This is
-     * handled automatically if using addFixture. 
-     * 
+     * handled automatically if using addFixture.
+     *
      * @type {method}
      * @syntax UnitTest.emitReport()
      * @return true if clients should emit a report, false otherwise
@@ -686,13 +815,13 @@ var UnitTest = function( ) {
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////
     /**
      * Begin a new test fixture.
-     * 
+     *
      * Begin a new text fixture, that is, a set of testcases that logically
      * belongs together. Note, that you can "nest" fixtures. If you have not
      * explicitely created a test fixture, you will be using the default
      * "global" test fixture. It is recommended to use addFixture to manage
-     * your test fixtures. 
-     * 
+     * your test fixtures.
+     *
      * @type {method}
      * @syntax UnitTest.beginFixture( name )
      * @param name The name of the test fixture
@@ -711,10 +840,10 @@ var UnitTest = function( ) {
 
     /**
      * End the current test fixture.
-     * 
+     *
      * Ends the current test fixture, and returns to the previously active
-     * test fixture. You do not need to call this method, if using addFixture. 
-     * 
+     * test fixture. You do not need to call this method, if using addFixture.
+     *
      * @type {method}
      * @syntax UnitTest.endFixture()
      * @name UnitTest.endFixture
@@ -730,24 +859,24 @@ var UnitTest = function( ) {
 
     /**
      * Create a new fixture and optionally run it.
-     * 
+     *
      * This is the main method to use to create a test fixture and have it
-     * automatically run and report as needed. 
-     * 
+     * automatically run and report as needed.
+     *
      * @type {method}
      * @syntax UnitTest.addFixture( name, func )
      * @param name The name of the testfixture. Use something that identifies the module or set of tests
      * @param func A function that has the actual tests (Asserts) in it
      * @return The number of failed tests, if any was run, 0 otherwise (also 0 if no tests failed).
      * @example Use it like this:
-     *   UnitTest.addFixture( "Test Module modulename", function() { 
-     * 
-     *     Assert.exception( "readFile on non existant file", 'readFile("nothere")' ); 
+     *   UnitTest.addFixture( "Test Module modulename", function() {
+     *
+     *     Assert.exception( "readFile on non existant file", 'readFile("nothere")' );
      *     Assert.that( "comment", 'expression evaluating to true' );
      *     Assert.not( "This should always be false", 'expression evaluating to false' );
      *     Assert.equal( "test0, output", 'test0()', "UserParam was 0" );
      *     Assert.equal( "test1, array output", 'test1().sort()', [1,2,3,4] );
-     *     
+     *
      *   });
      * @name UnitTest.addFixture
      * @method
@@ -761,8 +890,8 @@ var UnitTest = function( ) {
             } catch ( e ) {
                 // Ups, leaked expection, stuff it into the unittest system
                 __UnitTest__ut_e = e;
-                Assert.equal( "Fixture does not leak exceptions", "throw __UnitTest__ut_e;", "No exceptions" );
-                delete __UnitTest__ut_e;
+                Assert.equal( "The test fixture threw an unexpected and unhandled exception outside an Assert.", "throw __UnitTest__ut_e;", "Expected no exceptions to be thrown." );
+                delete this.__UnitTest__ut_e;
             }
             res = Assert.totalFailed( );
             this.endFixture( );
@@ -786,13 +915,13 @@ var UnitTest = function( ) {
 
     /**
      * Build a report of all test fixtures and all test cases..
-     * 
+     *
      * This builds a report of all executed test fixtures, with all test
      * cases. The report is a string, suitable for outputting to a console or
      * similar. By default, you get a summary and a report for each failed
      * test. You can control the level of verbosity with the variable verbose;
-     * if set to true, also non-failed tests are output. 
-     * 
+     * if set to true, also non-failed tests are output.
+     *
      * @type {method}
      * @syntax UnitTest.report()
      * @return A string with a test report, suitable for printing
@@ -874,7 +1003,7 @@ var UnitTest = function( ) {
         } else {
             return this.reportString( );
         }
-    }
+    };
 
 
 
@@ -885,6 +1014,68 @@ var UnitTest = function( ) {
         }
         return res;
     };
+
+
+    /**
+     * readFile for unittests.. testData relative to The Module url.
+     * @param filename
+     * @returns {*} bytes from System.readFile(...)
+     * @name UnitTest.readRelativeFile
+     */
+    that.readRelativeFile = function (filename) {
+        use("ReadFile");
+
+        // If filename is absolute dont use relative load
+        if( filename[0]==='/') {
+            return System.readFile(filename);
+        }
+        var path="./";
+        if(__ModulesInfo.isLoadingModule()) {
+            var moduleName=__ModulesInfo.currentLoadingModule() ;
+
+            var url=ModulesInfo.getModuleUrl(moduleName);
+            if( url.slice(0,7) !== 'file://' ) {
+                throw new Error("Unable to load files from none file:// url : ", url)
+            }
+            var path=url.slice(7, url.lastIndexOf('/')+1);
+        }
+        return System.readFile(path+filename);
+    };
+
+    function __formatValue( value ) {
+        utLog( "Enter - UnitTest.__formatValue( value )" );
+
+        try {
+            utLogDebug( "value: ", value );
+            utLogDebug( "Value type: ", typeof value );
+
+            if (value === undefined) {
+                return "(undefined)";
+            }
+
+            if (value === null) {
+                return "(null)";
+            }
+
+            if (value instanceof Date) {
+                return value.toISOString();
+            }
+
+            if (typeof( value ) === "object") {
+                utLogDebug( "value.toSource: ", value.toSource );
+                if ( typeof value.toSource === "function" ) {
+                    return value.toSource();
+                } else {
+                    return value.toString();
+                }
+            }
+
+            return value;
+        }
+        finally {
+            utLog( "Exit - UnitTest.__formatValue( value )" );
+        }
+    }
 
     return that;
 }( );

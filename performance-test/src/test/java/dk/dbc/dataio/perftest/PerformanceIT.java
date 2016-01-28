@@ -338,7 +338,7 @@ public class PerformanceIT {
         // This method must return a list of javascripts where the first javascript has a function called
         // invocationfunction for use as entrance to the javascripts.
 
-        JavaScript js = new JavaScript(Base64.encodeBase64String(("use(\"MarcXchange\")\n\n"
+        JavaScript js = new JavaScript(Base64.encodeBase64String(("use(\"MarcClasses\")\n\n"
                 + "function invocationFunction(record, supplementaryData) {\n"
                 + "  var instance = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
                 + "  instance.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
@@ -357,24 +357,16 @@ public class PerformanceIT {
         // The purpose of these scripts are just to add bulk/volume to the chunk, and to ensure that a belivable
         // amount of javascript is read into the javascripts-environment during the test.
         List<String> testJSDependecies
-                = Arrays.asList("Log",
+                = Arrays.asList(
+                        "Log",
                         "LogCore",
                         "Global",
-                        "Marc",
                         "MarcClasses",
                         "MarcClassesCore",
-                        "MarcMatchers",
-                        "MarcXchange",
-                        "Print",
-                        "PrintCore",
-                        "StringUtil",
                         "System",
                         "Underscore",
                         "UnitTest",
-                        "Util",
-                        "ValueCheck",
-                        "XmlNamespaces",
-                        "XmlUtil");
+                        "Util");
 
         List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(js, jsUse, jsModulesInfo));
         for (String jsDependency : testJSDependecies) {

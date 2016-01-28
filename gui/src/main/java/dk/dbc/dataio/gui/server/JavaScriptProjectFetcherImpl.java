@@ -32,8 +32,6 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
-import org.mozilla.javascript.EcmaError;
-import org.mozilla.javascript.EvaluatorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
@@ -184,18 +182,15 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             final String fileUrl = removeTrailingDelimiter(join(URL_DELIMITER, projectUrl, trimmedJavaScriptFileName));
             SvnConnector.export(fileUrl, revision, exportFolder);
             methodNames = getJavaScriptFunctionsSortedByPathNameFromFile(exportFolder, trimmedJavaScriptFileName);
-        } catch (EcmaError e) {
-            log.error(errorMessage, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR, e);
-        } catch (EvaluatorException e) {
-            log.error(errorMessage, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR, e);
         } catch (SVNException e) {
             log.error(errorMessage, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
             log.error(errorMessage, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+        } catch (Exception e) {
+            log.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR, e);
         }  finally {
             deleteFolder(exportFolder);
             log.debug("JavaScriptProjectFetcher: fetchJavaScriptInvocationMethods took {} milliseconds", stopWatch.getElapsedTime());
@@ -255,7 +250,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         } catch (URISyntaxException e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR, e);
         } finally {

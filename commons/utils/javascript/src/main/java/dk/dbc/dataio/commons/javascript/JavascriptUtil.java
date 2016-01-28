@@ -25,9 +25,7 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.ModuleHandler;
 import dk.dbc.jslib.SchemeURI;
-import org.mozilla.javascript.EcmaError;
-import org.mozilla.javascript.EvaluatorException;
-import org.mozilla.javascript.ScriptableObject;
+import jdk.nashorn.api.scripting.JSObject;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -66,8 +64,8 @@ public class JavascriptUtil {
      * function names from the javascript in unspecified order.
      * @throws IOException if the <code>Reader</code> containing the javascript
      * can not be read.
-     * @throws EvaluatorException if the javascript could not be evaluated
-     * @throws EcmaError if an error in the evaluated javascript is found
+     * @throws Exception if the javascript could not be evaluated
+     * @throws Exception if an error in the evaluated javascript is found
      */
     public static List<String> getAllToplevelFunctionsInJavascript(Reader reader, String sourceName) throws Throwable {
         Environment jsEnvironment = new Environment();
@@ -142,7 +140,7 @@ public class JavascriptUtil {
      * }(); }
      * </pre> then the function
      * getAllToplevelFunctionsInJavascriptWithFakeUseFunction(...) will throw an
-     * {@link EcmaError} containing a
+     * {@link Exception} containing a
      * <code>ReferenceError</code> to the line containing the code
      * {@code var s = Something.somefunc();}
      *
@@ -152,8 +150,8 @@ public class JavascriptUtil {
      * function names from the javascript.
      * @throws IOException if the <code>Reader</code> containing the javascript
      * can not be read.
-     * @throws EvaluatorException if the javascript could not be evaluated
-     * @throws EcmaError if an error in the evaluated javascript is found
+     * @throws Exception if the javascript could not be evaluated
+     * @throws Exception if an error in the evaluated javascript is found
      */
     public static List<String> getAllToplevelFunctionsInJavascriptWithFakeUseFunction(Reader reader, String sourceName) throws Throwable {
         Environment jsEnvironment = new Environment();
@@ -173,7 +171,7 @@ public class JavascriptUtil {
                 continue;
             }
             String property = (String) propertyObj;
-            if (isPropertyAFunctionName(jsEnvironment, property)) {
+            if (isPropertyAFunctionName(jsEnvironment, property) && !"uneval".equals(property)) {
                 functionNames.add(property);
             }
         }
@@ -181,11 +179,10 @@ public class JavascriptUtil {
     }
 
     private static boolean isPropertyAFunctionName(Environment jsEnvironment, String property) {
-        final String FUNCTION_IDENTIFIER = "function";
-        Object propObj = jsEnvironment.get(property);
-        if (propObj instanceof ScriptableObject) {
-            ScriptableObject so = (ScriptableObject) propObj;
-            return so.getTypeOf().equals(FUNCTION_IDENTIFIER);
+        final Object propObj = jsEnvironment.get(property);
+        if (propObj instanceof JSObject) {
+            JSObject jso = (JSObject) propObj;
+            return jso.isFunction();
         }
         return false;
     }
@@ -209,7 +206,8 @@ public class JavascriptUtil {
             this.requireCache = requireCache;
         }
     }
-    public static getAllDependentJavascriptsResult getAllDependentJavascripts(Path root, Path javascript) throws IOException {
+
+    public static getAllDependentJavascriptsResult getAllDependentJavascripts(Path root, Path javascript) throws Exception {
         DirectoriesContainingJavascriptFinder javascriptDirFinder = new DirectoriesContainingJavascriptFinder();
         Files.walkFileTree(root, javascriptDirFinder);
         List<Path> javascriptDirs = javascriptDirFinder.getJavascriptDirectories();
@@ -217,7 +215,7 @@ public class JavascriptUtil {
         ModuleHandler mh = new ModuleHandler();
         SpecializedFileSchemeHandler sfsh = new SpecializedFileSchemeHandler(root.toAbsolutePath().toString());
         mh.registerHandler("file", sfsh);
-        for(Path path : javascriptDirs) {
+        for (Path path : javascriptDirs) {
             mh.addSearchPath(new SchemeURI("file", path.toString()));
         }
 
@@ -226,17 +224,14 @@ public class JavascriptUtil {
             jsEnvironment.registerUseFunction(mh);
             jsEnvironment.evalFile(javascript.toString());
 
-            Object res = jsEnvironment.eval("if( hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
-
-            String resAsString=(String)res;
-            String requireCache=null;
-            if( resAsString!=null && resAsString.length()>1 ) {
-                requireCache = resAsString;
+            String requireCache = (String) jsEnvironment.eval("if( this.hasOwnProperty('Require') ) { JSON.stringify(Require.getCache()); } else { ''; };");
+            if(requireCache != null && requireCache.isEmpty()) {
+                requireCache = null;
             }
 
             return new getAllDependentJavascriptsResult( sfsh.getJavascripts(), requireCache );
         } catch (Throwable e) {
-            throw new IOException("Unknown Error Trying to eval load Depenedncies", e);
+            throw new IOException("Unknown error trying to eval load-dependencies", e);
         }
     }
 }

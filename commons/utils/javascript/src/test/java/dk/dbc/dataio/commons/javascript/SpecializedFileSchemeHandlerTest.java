@@ -21,16 +21,13 @@
 
 package dk.dbc.dataio.commons.javascript;
 
+import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.SchemeURI;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.ScriptableObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -41,21 +38,15 @@ public class SpecializedFileSchemeHandlerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    static {
-        org.apache.log4j.BasicConfigurator.configure();
-    }
-
     @Test
-    public void testSingleJavascriptLoaded_javascriptAndFilenameCanBeRetrieved() throws RhinoException, IOException {
+    public void testSingleJavascriptLoaded_javascriptAndFilenameCanBeRetrieved() throws Exception {
         String javascript = "function f(x) { x.toUpperCase(); }";
         File jsFile = folder.newFile("test.use.js");
         Files.write(jsFile.toPath(), javascript.getBytes("UTF-8"));
 
+        final Environment env = new Environment();
         SpecializedFileSchemeHandler schemeHandler = new SpecializedFileSchemeHandler(folder.getRoot().getAbsolutePath());
-        Context context = Context.enter();
-        ScriptableObject scope = context.initStandardObjects(null, true);
-        schemeHandler.load(new SchemeURI("file", jsFile.getAbsolutePath()), context, scope);
-        Context.exit();
+        schemeHandler.load(new SchemeURI("file", jsFile.getAbsolutePath()), env);
 
         List<SpecializedFileSchemeHandler.JS> javascripts = schemeHandler.getJavascripts();
         assertThat(javascripts.size(), is(1));
@@ -64,7 +55,7 @@ public class SpecializedFileSchemeHandlerTest {
     }
 
     @Test
-    public void testTwoJavascriptsLoaded_javascriptsAndFilenamesCanBeRetrieved() throws RhinoException, IOException {
+    public void testTwoJavascriptsLoaded_javascriptsAndFilenamesCanBeRetrieved() throws Exception {
         String javascriptUpper = "function f(x) { x.toUpperCase(); }";
         String javascriptLower = "function f(x) { x.toLowerCase(); }";
         File jsFileUpper = folder.newFile("upper.use.js");
@@ -72,12 +63,10 @@ public class SpecializedFileSchemeHandlerTest {
         Files.write(jsFileUpper.toPath(), javascriptUpper.getBytes("UTF-8"));
         Files.write(jsFileLower.toPath(), javascriptLower.getBytes("UTF-8"));
 
+        final Environment env = new Environment();
         SpecializedFileSchemeHandler schemeHandler = new SpecializedFileSchemeHandler(folder.getRoot().getAbsolutePath());
-        Context context = Context.enter();
-        ScriptableObject scope = context.initStandardObjects(null, true);
-        schemeHandler.load(new SchemeURI("file", jsFileUpper.getAbsolutePath()), context, scope);
-        schemeHandler.load(new SchemeURI("file", jsFileLower.getAbsolutePath()), context, scope);
-        Context.exit();
+        schemeHandler.load(new SchemeURI("file", jsFileUpper.getAbsolutePath()), env);
+        schemeHandler.load(new SchemeURI("file", jsFileLower.getAbsolutePath()), env);
 
         List<SpecializedFileSchemeHandler.JS> javascripts = schemeHandler.getJavascripts();
         assertThat(javascripts.size(), is(2));

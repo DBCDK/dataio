@@ -1,30 +1,11 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 // Pure JavaScript implementation of Record, Field and Subfield classes.
 // Placed in javacore for now, to avoid clashes with the C++ implementation.
 
 // Note, the documentation of these classes is the MarcClasses.use.js
 // module, such that it can be shared between the Java and C++
 // implementations.
+
+use("Log");
 
 EXPORTED_SYMBOLS = [ "Record", "Field", "Subfield" ];
 
@@ -33,53 +14,62 @@ EXPORTED_SYMBOLS = [ "Record", "Field", "Subfield" ];
 // true constructor that we wish for, which can be called multiple
 // times.
 
-var Subfield = function( namearg, valuearg ) {
-
-    // checking that we are called with exactly two arguments, if not throw exception
-    if ( arguments.length != 2 ) {
-        throw Error( "subfield must be initialized with exactly 2 arguments" );
-        /* Commented out, pending exception module implementation.  08-06-12- Mvs
-		 * {
-        name: 'initializationError',
-                  message:'subfield must be initialized with exactly 2 arguments'
-                  };	
-        */
-    }
-
-    // Encapsulate object
-    var that = Object.create( Subfield.prototype );
-
-    // Private value of name and value
-    var name = namearg;
-    var value = valuearg;
-
-    that.__defineGetter__( "name", function( ) {
-        return name;
-
-    } );
-    that.__defineSetter__( "name", function( val ) {
-        name = val;
-    } );
-
-    that.__defineGetter__( "value", function( ) {
-        return value;
-
-    } );
-    that.__defineSetter__( "value", function( val ) {
-        value = val;
-    } );
-
-    // Function that returns either name or name and value.
-    // If value is undefined or empty when the function is called, only name is returned.
-    that.toString = function( ) {
-        if ( typeof value === "undefined" || value === "" ) {
-            return "*" + name;
-        } else {
-            return "*" + name + " " + value.replace( "@", "@@" ).replace( "*", "@*" );
-        }
+var Subfield = (function () {
+    var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
+    var String = Java.type("java.lang.String");
+    var DanMarc2Charset = Java.type("dk.dbc.marc.DanMarc2Charset");
+    var danMarc2Charset = new DanMarc2Charset();
+    var toDm2 = function (s) {
+        return "" + new String(new String(s).getBytes(danMarc2Charset), StandardCharsets.ISO_8859_1);
     };
-    return that;
-};
+
+    return function (namearg, valuearg) {
+        // checking that we are called with exactly two arguments, if not throw exception
+        if (arguments.length != 2) {
+            throw Error("subfield must be initialized with exactly 2 arguments");
+            /* Commented out, pending exception module implementation.  08-06-12- Mvs
+             * {
+             *     name: 'initializationError',   
+             *     message:'subfield must be initialized with exactly 2 arguments'
+             * };	
+             */
+        }
+
+        // Encapsulate object
+        var that = Object.create(Subfield.prototype);
+
+        // Private value of name and value
+        var name = namearg;
+        var value = valuearg;
+
+        that.__defineGetter__("name", function ( ) {
+            return name;
+
+        });
+        that.__defineSetter__("name", function (val) {
+            name = val;
+        });
+
+        that.__defineGetter__("value", function ( ) {
+            return value;
+
+        });
+        that.__defineSetter__("value", function (val) {
+            value = val;
+        });
+
+        // Function that returns either name or name and value.
+        // If value is undefined or empty when the function is called, only name is returned.
+        that.toString = function ( ) {
+            if (typeof value === "undefined" || value === "") {
+                return "*" + toDm2(name);
+            } else {
+                return "*" + toDm2(name) + " " + toDm2(value);
+            }
+        };
+        return that;
+    };
+})();
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +83,7 @@ var Field = function( namearg, indicatorarg ) {
         throw Error( "Field must be initialized with exactly 0 or 2 arguments" );
 
         /* Commented out, pending exception module implementation.  08-06-12- Mvs
-		{	
+		{
         name: 'initializationError',
                   message:'Field must be initialized with exactly 0 or 2 arguments'
                   };*/
@@ -228,6 +218,27 @@ var Field = function( namearg, indicatorarg ) {
         }
     };
 
+    // Field.insert
+    // Function that insert a subfield at a given position i. The subfield is created from name and
+    // value.
+    that.insert = function( i, name, value ) {
+        if ( isControlFieldBool ) {
+            throw Error( "Illegal operation on control field: calling insert method is not allowed" );
+        }
+
+        var subfield = Subfield( name, value );
+        if( i === 0 ) {
+            subfieldArray.unshift( subfield );
+        }
+        else {
+            subfieldArray.push( undefined );
+            for( var j = i; j < subfieldArray.length - 1; j++ ) {
+                subfieldArray[ j + 1 ] = subfieldArray[ j ];
+            }
+            subfieldArray[ i ] = subfield;
+        }
+    };
+
     // Field.remove
     // Function that removes a subfield from the arrays of subfield. Can be called with either one or two arguments
     // nameArg = name of subfield
@@ -237,11 +248,16 @@ var Field = function( namearg, indicatorarg ) {
             throw Error( "Illegal operation on control field: calling remove method is not allowed" );
         }
 
-        if ( arguments.length == 1 ) { //name of subfield
-            for ( var i = 0; i < subfieldArray.length; i++ ) {
-                if ( subfieldArray[ i ].name == nameArg ) {
-                    removeIndexOfSubfieldArray( i );
-                    break;
+        if ( arguments.length == 1 ) { //name of index of subfield
+            if ( typeof nameArg == "number" ) {
+                removeIndexOfSubfieldArray( nameArg );
+            } else
+            if ( typeof nameArg == "string" ) {
+                for ( var i = 0; i < subfieldArray.length; i++ ) {
+                    if ( subfieldArray[ i ].name == nameArg ) {
+                        removeIndexOfSubfieldArray( i );
+                        break;
+                    }
                 }
             }
         } else if ( arguments.length == 2 ) {
@@ -351,9 +367,9 @@ var Field = function( namearg, indicatorarg ) {
     // Function that returns the contents of field as a string.
     that.toString = function( ) {
         if ( isControlFieldBool ) {
-            return name + " " + value.replace( "@", "@@" ).replace( "*", "@*" );;
+            return name + " " + value.replace( /@/g, "@@" ).replace( /\*/g, "@*" );
         } else {
-            // Traverses the subfields and return each as a string	
+            // Traverses the subfields and return each as a string
             var subfieldString = " ";
             for ( var i = 0; i < subfieldArray.length; i++ ) {
                 subfieldString = subfieldString + subfieldArray[ i ].toString( ) + " ";
@@ -380,8 +396,8 @@ var Field = function( namearg, indicatorarg ) {
         }
         return res;
     };
-    
-    // Function used for creating a subfield in the subfield array 
+
+    // Function used for creating a subfield in the subfield array
     function createAndStoreSubfield( name, val ) {
         subfieldArray[ subfieldArray.length ] = Subfield( name, val );
     };
@@ -435,13 +451,21 @@ var Record = function( filenameArg ) {
     // Encapsulate object
     var that = Object.create( Record.prototype );
     var fieldArray = [ ];
-    var filename;
 
     // These are fields from the iso 2709 header.
     // Private value of implementationCodes and recordStatus
-    var implementationCodes = "    ";
+    var implementationCodes;
     var recordStatus = "c";
     var forUserSystems = "   ";
+
+    // Helper function, allow us to clear other places.
+    var __clear = function() {
+        fieldArray = [];
+        implementationCodes = "    ";
+        recordStatus = "c";
+        forUserSystems = "   ";
+    }
+    __clear();
 
     that.__defineGetter__( "implementationCodes", function( ) {
         return implementationCodes;
@@ -553,16 +577,11 @@ var Record = function( filenameArg ) {
 
             case 1:
                 if ( arguments.length == 1 && typeof nameArg == "number" ) {
-                    for ( var i = 0; i < fieldArray.length; i++ ) {
-                        if ( fieldArray[ i ].indicator == nameArg ) {
-                            removeIndexOfFieldArray( i );
-                            break;
-                        }
-                    }
+                    removeIndexOfFieldArray( nameArg );
                 } else
                 if ( arguments.length == 1 && typeof nameArg == "string" ) {
                     for ( var y = 0; y < fieldArray.length; y++ ) {
-                        if ( fieldArray[ i ].name == nameArg ) {
+                        if ( fieldArray[ y ].name == nameArg ) {
                             removeIndexOfFieldArray( y );
                             break;
                         }
@@ -655,6 +674,81 @@ var Record = function( filenameArg ) {
         return fieldString;
     };
 
+
+    // Record:fromString
+    that.fromString = function (string) {
+        var ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
+        var DanMarc2LineFormatReader = Java.type("dk.dbc.marc.reader.DanMarc2LineFormatReader");
+        var DanMarc2Charset = Java.type("dk.dbc.marc.DanMarc2Charset");
+        var danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
+        var DataField = Java.type("dk.dbc.marc.binding.DataField");
+        var String = Java.type("java.lang.String");
+        var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
+
+        __clear();
+        
+        var is = new ByteArrayInputStream(new String(string).getBytes(StandardCharsets.ISO_8859_1));
+        var reader = new DanMarc2LineFormatReader(is, danMarc2Charset);
+        var marcRecord = reader.read();
+        var fields = marcRecord.getFields().iterator();
+        while (fields.hasNext()) {
+            var field = fields.next();
+            if (field instanceof DataField) {
+                var line = new Field();
+                line.name = "" + field.getTag();
+                line.indicator = "" + field.getInd1() + field.getInd2();
+                var subfields = field.getSubfields().iterator();
+                while(subfields.hasNext()) {
+                    var subfield = subfields.next();
+                    line.append(new Subfield("" + subfield.getCode(), "" + subfield.getData()));
+                }
+                this.append(line);
+            }
+        }
+    };
+
+    that.decode = function ( binary ) {
+        var Iso2709Unpacker =  Java.type("dk.dbc.marc.Iso2709Unpacker")
+        var Node = Java.type("org.w3c.dom.Node");
+        var DanMarc2Charset = Java.type("dk.dbc.marc.DanMarc2Charset");
+        var danMarc2Charset = new DanMarc2Charset();
+        var marcx = Iso2709Unpacker.createMarcXChangeRecord(binary.toOutputBytes(), danMarc2Charset);
+
+        __clear();
+	
+        var chld = marcx.getDocumentElement().getFirstChild();
+        while (chld !== null) {
+            if (chld.getNodeType() === Node.ELEMENT_NODE) {
+                var name = chld.getLocalName().toLowerCase();
+                if(name === 'leader') {
+                } else if(name === 'controlfield') {
+                    var field = new Field();
+                    field.name = "" + chld.getAttribute('tag');
+                    field.value = "" + chld.getTextContent();
+                    this.append(field);
+                } else if (name === 'datafield') {
+                    var field = new Field();
+                    field.name = "" + chld.getAttribute('tag');
+                    field.indicator = "" + chld.getAttribute('ind1') + chld.getAttribute('ind2');
+                    var sub = chld.getFirstChild();
+                    while (sub !== null) {
+                        if (sub.getNodeType() === Node.ELEMENT_NODE) {
+                            var name = sub.getLocalName().toLowerCase();
+                            if (name === 'subfield') {
+                                var subField = new Subfield("" + sub.getAttribute('code'), "" + sub.getTextContent());
+                                field.append(subField);
+                            }
+                        }
+                        sub = sub.getNextSibling();
+                    }
+                    this.append(field);
+                } else {
+                    Log.warn("Unknown element type in record: " + name);
+                }
+            }
+            chld = chld.getNextSibling();
+        }
+    };
 
     // private helper function
     // Function is used for removing a field from the fieldarray.

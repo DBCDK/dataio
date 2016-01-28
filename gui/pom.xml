@@ -104,6 +104,12 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-javascript</artifactId>
       <version>${project.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>dk.dbc</groupId>
+          <artifactId>dbc-jslib</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>javax.json</groupId>
@@ -224,6 +230,11 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-jslib</artifactId>
+      <version>${dbc-jslib.version}</version>
     </dependency>
 
   </dependencies>

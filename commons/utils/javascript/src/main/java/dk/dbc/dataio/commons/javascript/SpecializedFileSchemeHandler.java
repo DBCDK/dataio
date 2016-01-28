@@ -21,7 +21,11 @@
 
 package dk.dbc.dataio.commons.javascript;
 
+import dk.dbc.jslib.Environment;
 import dk.dbc.jslib.FileSchemeHandler;
+import org.slf4j.ext.XLogger;
+import org.slf4j.ext.XLoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -29,11 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.ScriptableObject;
-import org.slf4j.ext.XLoggerFactory;
-import org.slf4j.ext.XLogger;
 
 public class SpecializedFileSchemeHandler extends FileSchemeHandler {
 
@@ -50,16 +49,14 @@ public class SpecializedFileSchemeHandler extends FileSchemeHandler {
     }
 
     @Override
-    protected void load(File file, Context context, ScriptableObject scope) throws RhinoException, IOException {
-        log.entry(file, context, scope);
+    protected void load(File file, Environment env) throws Exception {
+        log.entry(file, env);
         try {
             String filename = file.getName();
             log.debug("load file: {}", filename);
             String javascript = readJavascriptFileToUTF8String(file.toPath());
-            log.debug("Javascript: [{}]", javascript);
             storeJavascript(javascript, file.getAbsolutePath());
-            context.setOptimizationLevel(-1);
-            context.evaluateString(scope, javascript, filename, 1, null);
+            env.eval(javascript);
         } finally {
             log.exit();
         }

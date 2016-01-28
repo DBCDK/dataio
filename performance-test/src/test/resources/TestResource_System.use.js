@@ -1,24 +1,3 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 /** @file System module. Provides System class, that can be populated by other modules. */
 EXPORTED_SYMBOLS = [ 'System' ];
 
@@ -72,6 +51,50 @@ print( System.scriptname + "\n" );
      * @type {String}
      * @property */
     that.scriptname = "";
+
+    /** Property to define the Rhino platform.
+     * @name System.platform_rhino
+     * @type {String}
+     * @property */
+    that.platform_rhino = "Rhino";
+
+    /** Property to define the SpiderMonkey platform.
+     * @name System.platform_spidermonkey
+     * @type {String}
+     * @property */
+    that.platform_spidermonkey = "SpiderMonkey";
+
+    /**
+     * Get the name of the platform we are currently running under.
+     *
+     * This returns the name of our platform, one of "Rhino" or "SpiderMonkey".
+     * This method is meant for the very rare situations where we have to do
+     * something slightly different depending on platform, in order to 
+     * work around differences.
+     *
+     * Use the properties platform_rhino and platform_spidermonkey to
+     * check against this property.
+     *
+     * **Note:** More platforms may be added in the future. Always
+     * check explicitly for a specific platform.
+
+     * **Note:** ONLY USE THIS METHOD AS A LAST RESORT. The platforms behave almost 
+     * exactly the same, and the code should not be sprinkled with "if platform then".
+     * It is suspected this is only needed for E4X code that is broken anyway.
+     * If you use this function, at least wrap it in a library/module such that
+     * you can change the implementation later, without breaking the interface.
+     *  
+     * @name System.platform
+     * @type {String}
+     * @property */
+    that.platform  = function() {
+        if ( ( typeof Packages === "object" ) && ( typeof Packages.java === "object" ) ) {
+            return "Rhino";
+        } else {
+            return "SpiderMonkey";
+        }
+    }(); // Note, not a function, a value.
+
 
     return that;
 }( );

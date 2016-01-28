@@ -22,8 +22,6 @@
 package dk.dbc.dataio.commons.javascript;
 
 import org.junit.Test;
-import org.mozilla.javascript.EcmaError;
-import org.mozilla.javascript.EvaluatorException;
 
 import java.io.StringReader;
 import java.util.List;
@@ -32,11 +30,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class JavascriptUtilTest {
-
-    static {
-        org.apache.log4j.BasicConfigurator.configure();
-    }
-
     @Test(expected = NullPointerException.class)
     public void testGetAllToplevelFunctionsInJavascript_nullReaderArgument_throws() throws Throwable {
         JavascriptUtil.getAllToplevelFunctionsInJavascript(null, "<inlinetest>");
@@ -67,7 +60,7 @@ public class JavascriptUtilTest {
         assertThat(functionNames.get(0), is("myfunc"));
     }
 
-    @Test(expected = EcmaError.class) // ReferenceError
+    @Test(expected = Exception.class)
     public void testGetAllToplevelFunctionsInJavascript_javascriptContainingUse_throws() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
@@ -127,14 +120,14 @@ public class JavascriptUtilTest {
         assertThat(functionNames.get(0), is("f"));
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = Exception.class)
     public void testGetAllToplevelFunctionsInJavascript_illegalJavascript_throws() throws Throwable {
         String javascript = ""
                 + "function myfunc(x) {";
         JavascriptUtil.getAllToplevelFunctionsInJavascript(new StringReader(javascript), "<inlinetest>");
     }
 
-    @Test(expected = EvaluatorException.class)
+    @Test(expected = Exception.class)
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_illegalJavascript_throws() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"
@@ -161,7 +154,7 @@ public class JavascriptUtilTest {
      * If the evaluated javascript contains an object which tries to reference another
      * object which is the target of the use-function, then an exception is thrown.
      */
-    @Test(expected = EcmaError.class) // ReferenceError
+    @Test(expected = Exception.class) // ReferenceError
     public void testGetAllToplevelFunctionsInJavascriptWithFakeUseFunction_javascriptWithObjectReferencingUseModule() throws Throwable {
         String javascript = ""
                 + "use(\"Something\");\n"

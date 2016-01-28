@@ -50,6 +50,7 @@ public class AbstractOpenUpdateSinkTestBase {
     private static final String MARC_EXCHANGE_WEBSERVICE_VALIDATION_ERRORS = "/820040.validationError.xml";
     public static final String ES_INFO_SUBMITTER_ATTRIBUTE_VALUE = "870970";
     public static final String UPDATE_TEMPLATE_ATTRIBUTE_VALUE = "bog";
+    public static final String DBC_TRACKING_ID_VALUE = "dataio-tracking-id";
 
     protected static CompareMatcher isEquivalentTo(Object control) {
         return CompareMatcher.isSimilarTo(control)
@@ -60,7 +61,7 @@ public class AbstractOpenUpdateSinkTestBase {
 
     protected String getMetaXml() {
         return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" submitter=\"" + ES_INFO_SUBMITTER_ATTRIBUTE_VALUE + "\"/>" +
+                "<es:info format=\"basis\" language=\"dan\" DBCTrackingId=\"" + DBC_TRACKING_ID_VALUE + "\" submitter=\"" + ES_INFO_SUBMITTER_ATTRIBUTE_VALUE + "\"/>" +
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" updateTemplate=\"" + UPDATE_TEMPLATE_ATTRIBUTE_VALUE + "\"/>" +
                 "</es:referencedata>";
     }

@@ -35,10 +35,6 @@ import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
-
-import static dk.dbc.dataio.commons.types.ChunkItem.Status.FAILURE;
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 
 public class AddiRecordsToItemWrapper {
 
@@ -51,7 +47,7 @@ public class AddiRecordsToItemWrapper {
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
-    private UUID trackingId;
+    private String trackingId;
     private List<Diagnostic> diagnostics = new ArrayList<>();
 
     /**
@@ -82,10 +78,9 @@ public class AddiRecordsToItemWrapper {
             addiRecordsForItem = AddiUtil.getAddiRecordsFromChunkItem(processedChunkItem);
             totalNumberOfAddiRecords = addiRecordsForItem.size();
         } catch (Throwable t) {
-            return new ChunkItem(
+            return ObjectFactory.buildFailedChunkItem(
                     processedChunkItem.getId(),
-                    asBytes("Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t)),
-                    FAILURE );
+                    "Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t));
         }
 
         final Optional<AddiStatus> failed = addiRecordsForItem.stream()
@@ -96,8 +91,8 @@ public class AddiRecordsToItemWrapper {
                 // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
                 .findFirst();
 
-        ChunkItem chunkItem = new ChunkItem(processedChunkItem.getId(),
-                asBytes(this.getItemContentCrossAddiRecords()), ChunkItem.Status.SUCCESS);
+        ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(processedChunkItem.getId(),
+                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING);
 
         if(failed.isPresent()) {
             diagnostics.stream().forEach(chunkItem::appendDiagnostics);
@@ -111,9 +106,9 @@ public class AddiRecordsToItemWrapper {
 
     private AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex) {
         this.addiRecordIndex = addiRecordIndex + 1;
-        trackingId = UUID.randomUUID();
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord);
+            trackingId = preprocessorResult.getTrackingId();
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     preprocessorResult.getSubmitter(),
@@ -122,7 +117,7 @@ public class AddiRecordsToItemWrapper {
                     trackingId);
 
             if(webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
-                crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.OK) );
+                crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
                 return AddiStatus.OK;
             }
            else {
@@ -136,7 +131,7 @@ public class AddiRecordsToItemWrapper {
                 return AddiStatus.FAILED_VALIDATION;
             }
         } catch (Throwable t) {
-            crossAddiRecordsMessage.append( getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
+            crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
             crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
             diagnostics.add(buildDiagnosticForGenericUpdateRecordError(t));
             return AddiStatus.FAILED_STACKTRACE;

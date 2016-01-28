@@ -39,7 +39,6 @@ import org.junit.Test;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.UUID;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -315,7 +314,7 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
      */
     private UpdateRecordResult callUpdateRecordOnConnector(
             OpenUpdateServiceConnector connector, String groupId, String template, BibliographicRecord bibliographicRecord) throws NullPointerException, IllegalArgumentException {
-        return connector.updateRecord(groupId, template, bibliographicRecord, UUID.fromString(EXPECTED_TRACKING_ID));
+        return connector.updateRecord(groupId, template, bibliographicRecord, EXPECTED_TRACKING_ID);
     }
 
     private OpenUpdateServiceConnector getConnector() {

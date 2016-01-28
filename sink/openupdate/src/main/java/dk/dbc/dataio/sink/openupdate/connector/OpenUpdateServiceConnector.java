@@ -30,7 +30,6 @@ import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 
 import javax.xml.ws.BindingProvider;
-import java.util.UUID;
 
 /**
  * Open Update web service connector
@@ -89,13 +88,11 @@ public class OpenUpdateServiceConnector {
      * @throws NullPointerException if passed any null valued {@code template} or {@code bibliographicRecord} argument
      * @throws IllegalArgumentException if passed empty valued {@code template}
      */
-    public UpdateRecordResult updateRecord(String groupId, String schemaName, BibliographicRecord bibliographicRecord, final UUID trackingId)
+    public UpdateRecordResult updateRecord(String groupId, String schemaName, BibliographicRecord bibliographicRecord, String trackingId)
             throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(groupId, "groupId");
         InvariantUtil.checkNotNullNotEmptyOrThrow(schemaName, "schemaName");
         InvariantUtil.checkNotNullOrThrow(bibliographicRecord, "bibliographicRecord");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(trackingId.toString(), "trackingid");
-
         final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(groupId, schemaName, bibliographicRecord, trackingId);
         return getProxy().updateRecord(updateRecordRequest);
     }
@@ -112,7 +109,7 @@ public class OpenUpdateServiceConnector {
      * @param trackingId unique ID for each OpenUpdate request
      * @return a new updateRecordRequest containing schemeName and bibliographicRecord
      */
-    private UpdateRecordRequest buildUpdateRecordRequest(String groupId, String schemaName, BibliographicRecord bibliographicRecord, UUID trackingId) {
+    private UpdateRecordRequest buildUpdateRecordRequest(String groupId, String schemaName, BibliographicRecord bibliographicRecord, String trackingId) {
         UpdateRecordRequest updateRecordRequest = new UpdateRecordRequest();
         Authentication authentication = new Authentication();
         authentication.setGroupIdAut(groupId);
@@ -121,7 +118,7 @@ public class OpenUpdateServiceConnector {
         updateRecordRequest.setAuthentication(authentication);
         updateRecordRequest.setSchemaName(schemaName);
         updateRecordRequest.setBibliographicRecord(bibliographicRecord);
-        updateRecordRequest.setTrackingId(trackingId.toString());
+        updateRecordRequest.setTrackingId(trackingId);
         return updateRecordRequest;
     }
 

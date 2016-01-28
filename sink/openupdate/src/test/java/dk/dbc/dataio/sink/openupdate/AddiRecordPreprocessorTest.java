@@ -102,6 +102,17 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
+    public void preprocess_esInfoDbcTrackingIdAttributeFound_setsTemplateToAttributeValue() {
+        final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
+
+        // Subject under test
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+
+        // Verify
+        assertThat("tracking id value", result.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
+    }
+
+    @Test
     public void preprocess_esInfoSubmitterAttributeNotFound_setsSubmitterToEmptyString() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info/>" +

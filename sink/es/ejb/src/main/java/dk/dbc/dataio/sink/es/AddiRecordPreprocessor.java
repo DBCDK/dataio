@@ -36,12 +36,8 @@ import javax.xml.transform.TransformerException;
 import java.io.IOException;
 
 public class AddiRecordPreprocessor extends DocumentTransformer {
-    static final String NAMESPACE_URI_PROCESSING  = "dk.dbc.dataio.processing";
-    static final String PROCESSING_ELEMENT        = "sink-processing";
-    static final String ENCODE_AS_2709_ATTRIBUTE  = "encodeAs2709";
 
-    static final String NAMESPACE_URI_ES          = "http://oss.dbc.dk/ns/es";
-    static final String INFO_ELEMENT              = "info";
+    static final String ENCODE_AS_2709_ATTRIBUTE  = "encodeAs2709";
 
     /**
      * This method pre-processes an addi record according to the following rules:
@@ -61,7 +57,7 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
     public AddiRecord execute(AddiRecord addiRecord, String trackingId) throws IllegalArgumentException {
         try {
             final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            final NodeList processingNodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI_PROCESSING, PROCESSING_ELEMENT);
+            final NodeList processingNodeList = metaDataDocument.getElementsByTagNameNS(DATAIO_PROCESSING_NAMESPACE_URI, DATAIO_PROCESSING_ELEMENT);
             byte[] content = addiRecord.getContentData();
 
             if (processingNodeList.getLength() > 0) { // The processing tag has been located
@@ -73,7 +69,7 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
                 }
                 removeFromDom(processingNodeList);
             }
-            final NodeList infoNodeList = metaDataDocument.getElementsByTagNameNS(NAMESPACE_URI_ES, INFO_ELEMENT);
+            final NodeList infoNodeList = metaDataDocument.getElementsByTagNameNS(ES_NAMESPACE_URI, ES_INFO_ELEMENT);
             final Element infoElement = (Element) infoNodeList.item(0);
             infoElement.setAttribute(DBCTrackedLogContext.DBC_TRACKING_ID_KEY, trackingId);
 

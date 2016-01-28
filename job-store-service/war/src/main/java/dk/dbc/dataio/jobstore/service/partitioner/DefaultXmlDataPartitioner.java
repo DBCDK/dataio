@@ -319,11 +319,16 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                 depth++;
             }
             if(extractedName != null && e.isCharacters()) {
-                extractedValues.put(extractedName, e.toString());
-                extractedName = null;
+                final String extractedValue = extractedValues.get(extractedName);
+                if(extractedValue == null) {
+                    extractedValues.put(extractedName, e.toString());
+                } else {
+                    extractedValues.put(extractedName, extractedValue + e.toString());
+                }
             }
             if (e.isEndElement()) {
                 depth--;
+                extractedName = null;
             }
             xmlWriter.add(e);
         } while (depth > 0 || isNextEventDifferentFromStartElementAndEndElement());

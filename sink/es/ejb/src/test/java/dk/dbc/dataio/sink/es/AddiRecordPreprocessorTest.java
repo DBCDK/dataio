@@ -35,6 +35,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import static dk.dbc.dataio.sink.util.DocumentTransformer.DATAIO_PROCESSING_ELEMENT;
+import static dk.dbc.dataio.sink.util.DocumentTransformer.DATAIO_PROCESSING_NAMESPACE_URI;
+import static dk.dbc.dataio.sink.util.DocumentTransformer.ES_INFO_ELEMENT;
+import static dk.dbc.dataio.sink.util.DocumentTransformer.ES_NAMESPACE_URI;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
@@ -43,7 +47,7 @@ import static org.junit.Assert.fail;
 public class AddiRecordPreprocessorTest {
 
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
-    private final String trackingId = "rr:73639io:736362";
+    private final String trackingId = "<rr:73639io:736362&'\"";
 
     @Test
     public void execute_noProcessingTag_returnsUpdatedMetadataWithUnchangedContent() throws IOException, SAXException {
@@ -104,15 +108,15 @@ public class AddiRecordPreprocessorTest {
         } catch (IOException | SAXException e) {
             throw new IllegalStateException(e);
         }
-        return metadata.getElementsByTagNameNS(AddiRecordPreprocessor.NAMESPACE_URI_PROCESSING, AddiRecordPreprocessor.PROCESSING_ELEMENT).getLength() > 0;
+        return metadata.getElementsByTagNameNS(DATAIO_PROCESSING_NAMESPACE_URI, DATAIO_PROCESSING_ELEMENT).getLength() > 0;
     }
 
     private String getTrackingId(AddiRecord addiRecord) {
         final Document metadata = getDocument(addiRecord.getMetaData());
         return documentTransformer.extractAttributeValue(
                 metadata,
-                AddiRecordPreprocessor.NAMESPACE_URI_ES,
-                AddiRecordPreprocessor.INFO_ELEMENT,
+                ES_NAMESPACE_URI,
+                ES_INFO_ELEMENT,
                 DBCTrackedLogContext.DBC_TRACKING_ID_KEY);
     }
 

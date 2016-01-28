@@ -24,7 +24,7 @@
     <data-supplementary>
       <creationDate>20140805</creationDate>
       <enrichmentTrail>191919,758000</enrichmentTrail>
-      <trackingId>trackingid-dataio-1</trackingId>
+      <trackingId>&lt;trackingid-&amp;dataio-1&gt;</trackingId>
     </data-supplementary>
     <data>
       <collection xmlns="info:lc/xmlns/marcxchange-v1">
@@ -44,7 +44,7 @@
     <data-supplementary>
       <creationDate>20140805</creationDate>
       <enrichmentTrail>191919,758000</enrichmentTrail>
-      <trackingId>trackingid-dataio-2</trackingId>
+      <trackingId>&quot;&amp;trackingid-dataio-2&quot;</trackingId>
     </data-supplementary>
     <data>
       <collection xmlns="info:lc/xmlns/marcxchange-v1">
@@ -64,7 +64,7 @@
     <data-supplementary>
       <creationDate>20140805</creationDate>
       <enrichmentTrail>191919,758000</enrichmentTrail>
-      <trackingId>trackingid-dataio-3</trackingId>
+      <trackingId>&#39;trackingid-&#39;dataio-3&amp;</trackingId>
     </data-supplementary>
     <data>
       <collection xmlns="info:lc/xmlns/marcxchange-v1">

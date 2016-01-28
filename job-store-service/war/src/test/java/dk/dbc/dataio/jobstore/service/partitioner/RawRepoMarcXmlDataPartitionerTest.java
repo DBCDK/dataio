@@ -66,21 +66,21 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
     }
 
     @Test
-    public void iterator_next_returnsThreeChunkItemsWithTrackingIdSet() {
+    public void iterator_next_returnsThreeChunkItemsWithUnescapedTrackingIdSet() {
         final DataPartitioner dataPartitioner = newPartitionerInstance(getDataContainerXmlWithMarcExchangeAndTrackingIds());
         final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem chunkItem0 = iterator.next();
-        assertThat("chunkItem0.trackingId", chunkItem0.getTrackingId(), is("trackingid-dataio-1"));
+        assertThat("chunkItem0.trackingId", chunkItem0.getTrackingId(), is("<trackingid-&dataio-1>"));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem chunkItem1 = iterator.next();
-        assertThat("chunkItem1.trackingId", chunkItem1.getTrackingId(), is("trackingid-dataio-2"));
+        assertThat("chunkItem1.trackingId", chunkItem1.getTrackingId(), is("\"&trackingid-dataio-2\""));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem chunkItem2 = iterator.next();
-        assertThat("chunkItem1.trackingId", chunkItem2.getTrackingId(), is("trackingid-dataio-3"));
+        assertThat("chunkItem1.trackingId", chunkItem2.getTrackingId(), is("'trackingid-'dataio-3&"));
         assertThat(iterator.hasNext(), is(false));
     }
 

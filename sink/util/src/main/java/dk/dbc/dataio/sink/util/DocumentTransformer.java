@@ -44,6 +44,12 @@ import java.io.IOException;
 
 public class DocumentTransformer {
 
+    public static final String DATAIO_PROCESSING_NAMESPACE_URI = "dk.dbc.dataio.processing";
+    public static final String DATAIO_PROCESSING_ELEMENT       = "sink-processing";
+
+    public static final String ES_NAMESPACE_URI                = "http://oss.dbc.dk/ns/es";
+    public static final String ES_INFO_ELEMENT                 = "info";
+
     private DocumentBuilder documentBuilder;
     private Transformer transformer;
 

@@ -9,6 +9,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 
+import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URISyntaxException;
@@ -30,6 +31,7 @@ public class TestablePartitioningParamBuilder {
 
     private JobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(new JobSpecificationBuilder().setDataFile(fileStoreUrn.toString()).build()).build();
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private EntityManager entityManager = mock(EntityManager.class);
     private boolean doSequenceAnalysis = false;
     private String records =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
@@ -88,7 +90,7 @@ public class TestablePartitioningParamBuilder {
     }
 
     public TestablePartitioningParam build() {
-        return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, doSequenceAnalysis, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
+        return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysis, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
     }
 
 }

@@ -7,9 +7,14 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.types.State;
+import org.junit.Before;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.io.InputStream;
 import java.util.List;
 
@@ -23,22 +28,53 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PartitioningParamTest extends ParamBaseTest {
+    private final InputStream inputStream = mock(InputStream.class);
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private final EntityManager entityManager = mock(EntityManager.class);
     private final RecordSplitterConstants.RecordSplitter dataPartitionerType = RecordSplitterConstants.RecordSplitter.XML;
     private final boolean doSequenceAnalysisFlag = false;
+
+    @Before
+    public void setFileStoreServiceConnectorExpectations() throws FileStoreServiceConnectorException {
+        when(fileStoreServiceConnector.getFile(anyString())).thenReturn(inputStream);
+    }
+
+    @Before
+    public void setupJobSpecification() {
+        jobSpecificationBuilder.setCharset("latin1");
+    }
 
     @Test
     public void constructor_jobEntityArgIsNull_throws() {
         try {
-            new PartitioningParam(null, fileStoreServiceConnector, doSequenceAnalysisFlag, dataPartitionerType);
+            new PartitioningParam(null, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
     }
+
     @Test
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
         try {
-            new PartitioningParam(new JobEntity(), null, doSequenceAnalysisFlag, dataPartitionerType);
+            new PartitioningParam(new JobEntity(), null, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void constructor_entityManagerArgIsNull_throws() {
+        try {
+            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, null, doSequenceAnalysisFlag, dataPartitionerType);
+            fail("No exception thrown");
+        } catch (NullPointerException e) {
+        }
+    }
+
+    @Test
+    public void constructor_dataPartitionerTypeArgIsNull_throws() {
+        try {
+            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -106,8 +142,32 @@ public class PartitioningParamTest extends ParamBaseTest {
         assertThat(partitioningParam.getDataFileId(), is(DATA_FILE_ID));
     }
 
+    @Test
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isDanMarc2LineFormatDataPartitioner() {
+        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(null).build());
+        final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
+        final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
+        assertThat("Class", dataPartitioner instanceof DanMarc2LineFormatDataPartitioner, is(true));
+        assertThat("Reordering variant", dataPartitioner instanceof DanMarc2LineFormatReorderingDataPartitioner, is(false));
+    }
+
+    @Test
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isDanMarc2LineFormatReorderingDataPartitioner() {
+        final JobSpecification.Ancestry ancestry = new JobSpecificationBuilder.AncestryBuilder().setTransfile("file").build();
+        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(ancestry).build());
+        final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
+        final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
+        assertThat("Class", dataPartitioner instanceof DanMarc2LineFormatDataPartitioner, is(true));
+        assertThat("Reordering variant", dataPartitioner instanceof DanMarc2LineFormatReorderingDataPartitioner, is(true));
+    }
+
     private PartitioningParam newPartitioningParam(JobEntity jobEntity) {
-        return new PartitioningParam(jobEntity, fileStoreServiceConnector, doSequenceAnalysisFlag, dataPartitionerType);
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
+    }
+
+    private PartitioningParam newPartitioningParamForDanMarc2LineFormat(JobEntity jobEntity) {
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag,
+                RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
     }
 
     private JobEntity getJobEntity(JobSpecification jobSpecification) {

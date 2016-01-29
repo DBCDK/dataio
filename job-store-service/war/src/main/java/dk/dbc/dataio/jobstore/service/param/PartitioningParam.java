@@ -2,16 +2,19 @@ package dk.dbc.dataio.jobstore.service.param;
 
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
@@ -19,6 +22,7 @@ import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenera
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.ws.rs.ProcessingException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +46,7 @@ public class PartitioningParam {
     private static final Logger LOGGER = LoggerFactory.getLogger(PartitioningParam.class);
 
     private final FileStoreServiceConnector fileStoreServiceConnector;
+    private EntityManager entityManager;
     protected List<Diagnostic> diagnostics = new ArrayList<>();
     private boolean doSequenceAnalysis = Boolean.FALSE;
     private JobEntity jobEntity;
@@ -54,13 +59,15 @@ public class PartitioningParam {
     public PartitioningParam(
             JobEntity jobEntity,
             FileStoreServiceConnector fileStoreServiceConnector,
+            EntityManager entityManager,
             boolean doSequenceAnalysis,
             RecordSplitter recordSplitterType) throws NullPointerException {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobEntity = InvariantUtil.checkNotNullOrThrow(jobEntity, "jobEntity");
         if (!this.jobEntity.hasFatalError()) {
+            this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
             this.doSequenceAnalysis = doSequenceAnalysis;
-            this.recordSplitterType = recordSplitterType;
+            this.recordSplitterType = InvariantUtil.checkNotNullOrThrow(recordSplitterType, "recordSplitterType");
             this.sequenceAnalyserKeyGenerator = newSequenceAnalyserKeyGenerator();
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
@@ -141,11 +148,11 @@ public class PartitioningParam {
                 case ISO2709:
                     return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DANMARC2_LINE_FORMAT:
-                    return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return getDanMarc2LineFormatPartitioner();
                 case RR_MARC_XML:
                     return RawRepoMarcXmlDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
-                    diagnostics.add(ObjectFactory.buildFatalDiagnostic("unknown record splitter: " + recordSplitterType));
+                    diagnostics.add(ObjectFactory.buildFatalDiagnostic("unknown data partitioner: " + recordSplitterType));
             }
         }
         return null;
@@ -162,5 +169,16 @@ public class PartitioningParam {
             }
         }
         return null;
+    }
+
+    private DataPartitioner getDanMarc2LineFormatPartitioner() {
+        final JobSpecification.Ancestry ancestry = jobEntity.getSpecification().getAncestry();
+        final String encoding = jobEntity.getSpecification().getCharset();
+        if (ancestry != null && ancestry.getTransfile() != null) {
+            // Items originating from FTP server must undergo potential re-ordering
+            final JobItemReorderer reorderer = new JobItemReorderer(jobEntity.getId(), entityManager);
+            return DanMarc2LineFormatReorderingDataPartitioner.newInstance(dataFileInputStream, encoding, reorderer);
+        }
+        return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, encoding);
     }
 }

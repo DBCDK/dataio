@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,11 +77,9 @@ public class JobQueueWatcher {
         final JobQueueEntity jobQueueEntity = this.jobQueueRepository.getJobQueueEntityByJob(jobToStart);
         try{
             jobStore.handlePartitioningAsynchronously(
-                    new PartitioningParam(
                             jobToStart,
-                            fileStoreServiceConnectorBean.getConnector(),
                             jobQueueEntity.isSequenceAnalysis(),
-                            jobQueueEntity.getRecordSplitterType()));
+                            jobQueueEntity.getRecordSplitterType());
         } catch (JobStoreException jse) {
             LOGGER.info(
                     "this job received an error and is rolled back hence stays in the queue!. Queue ID: {}, Job ID: {}, Sink ID: {}",

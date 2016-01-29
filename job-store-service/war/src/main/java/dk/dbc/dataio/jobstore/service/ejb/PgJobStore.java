@@ -22,8 +22,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
+import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -59,6 +60,8 @@ import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -79,6 +82,10 @@ public class PgJobStore {
     @EJB PgJobStoreRepository jobStoreRepository;
     @EJB JobQueueRepository jobQueueRepository;
     @EJB JobNotificationRepository jobNotificationRepository;
+
+    @Inject
+    @JobstoreDB
+    EntityManager entityManager;
 
     @Resource SessionContext sessionContext;
 
@@ -114,12 +121,9 @@ public class PgJobStore {
         addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
 
         if(!jobEntity.hasFatalError()) {
-            getProxyToSelf().handlePartitioningAsynchronously(
-                    new PartitioningParam(
-                            jobEntity,
-                            fileStoreServiceConnectorBean.getConnector(),
+            getProxyToSelf().handlePartitioningAsynchronously(jobEntity,
                             addJobParam.getFlowBinder().getContent().getSequenceAnalysis(),
-                            addJobParam.getFlowBinder().getContent().getRecordSplitter()));
+                            addJobParam.getFlowBinder().getContent().getRecordSplitter());
         }
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
@@ -131,12 +135,16 @@ public class PgJobStore {
 
     /**
      * This method is a wrapper of the handlePartitioning method to support asynchronous behavior
-     * @param partitioningParam containing the state required to partition a new job
+     * @param jobEntity job to partition
+     * @param doSequenceAnalysis sequence analysis flag (soon to be deprecated)
+     * @param dataPartitionerType type of data partitioner
      * @throws JobStoreException on failure to partition job
      */
     @Asynchronous
-    public void handlePartitioningAsynchronously(PartitioningParam partitioningParam) throws JobStoreException {
-        handlePartitioning(partitioningParam);
+    public void handlePartitioningAsynchronously(JobEntity jobEntity, boolean doSequenceAnalysis,
+            RecordSplitterConstants.RecordSplitter dataPartitionerType) throws JobStoreException {
+        handlePartitioning(new PartitioningParam(jobEntity, fileStoreServiceConnectorBean.getConnector(),
+                entityManager, doSequenceAnalysis, dataPartitionerType));
     }
 
     /**
@@ -148,7 +156,6 @@ public class PgJobStore {
      */
     public JobInfoSnapshot handlePartitioning(PartitioningParam partitioningParam) throws JobStoreException {
         try {  // This try has a 'finally' block ensuring that the input stream is closed even if an unhandled exception is thrown
-
             // We have to merge the job entity since this method is called asynchronously
             // and therefore in a different persistence context from the one used when
             // the partitioning parameter was created.

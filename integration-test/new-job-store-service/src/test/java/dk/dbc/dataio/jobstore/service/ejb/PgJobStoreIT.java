@@ -1575,6 +1575,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Subjects Under Test -> hence no mocks!
         final PgJobStore pgJobStore = new PgJobStore();
+        pgJobStore.entityManager = entityManager;
 
         pgJobStore.jobStoreRepository = new PgJobStoreRepository();
         pgJobStore.jobStoreRepository.entityManager = entityManager;

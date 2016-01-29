@@ -153,6 +153,7 @@ public abstract class PgJobStoreBaseTest {
 
     protected PgJobStore newPgJobStore() {
         final PgJobStore pgJobStore = new PgJobStore();
+        pgJobStore.entityManager = entityManager;
         pgJobStore.jobStoreRepository = mockedJobStoreRepository;
         pgJobStore.jobQueueRepository = mockedJobQueueReposity;
         pgJobStore.jobNotificationRepository = mockedJobNotificationRepository;
@@ -171,6 +172,7 @@ public abstract class PgJobStoreBaseTest {
 
     protected PgJobStore newPgJobStore(PgJobStoreRepository jobStoreRepository) {
         final PgJobStore pgJobStore = newPgJobStore();
+        pgJobStore.entityManager = entityManager;
         pgJobStore.jobStoreRepository = jobStoreRepository;
 
         return pgJobStore;

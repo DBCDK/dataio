@@ -1,12 +1,12 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.FileStoreUrn;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import org.junit.Test;
 
@@ -23,11 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-/**
- * Created by ThomasBerg on 18/09/15.
- */
 public class JobQueueWatcherTest {
-
     private final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     private final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final JobQueueRepository mockedJobQueueRepository = mock(JobQueueRepository.class);
@@ -81,7 +77,7 @@ public class JobQueueWatcherTest {
         jobQueueWatcher.doWatch();
 
         // Verifications
-        verify(mockedJobStore, times(1)).handlePartitioningAsynchronously(any(PartitioningParam.class));
+        verify(mockedJobStore, times(1)).handlePartitioningAsynchronously(any(JobEntity.class), any(Boolean.class), any(RecordSplitterConstants.RecordSplitter.class));
     }
 
     @Test
@@ -120,7 +116,7 @@ public class JobQueueWatcherTest {
         jobQueueWatcher.doWatch();
 
         // Verifications
-        verify(mockedJobStore, times(2)).handlePartitioningAsynchronously(any(PartitioningParam.class));
+        verify(mockedJobStore, times(2)).handlePartitioningAsynchronously(any(JobEntity.class), any(Boolean.class), any(RecordSplitterConstants.RecordSplitter.class));
     }
 
     @Test

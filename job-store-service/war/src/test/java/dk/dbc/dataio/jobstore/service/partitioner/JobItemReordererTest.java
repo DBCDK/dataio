@@ -26,10 +26,8 @@ import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.Optional;
 
 import static dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilderTest.get001;
@@ -38,6 +36,8 @@ import static dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilderTest.getM
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -69,9 +69,7 @@ public class JobItemReordererTest {
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
 
-        final ArgumentCaptor<ReorderedItemEntity> argument = ArgumentCaptor.forClass(ReorderedItemEntity.class);
-        verify(entityManager).persist(argument.capture());
-        assertThat("Entity sort order", argument.getValue().getSortOrder(), is(JobItemReorderer.SortOrder.HEAD.getSortOrder()));
+        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
@@ -83,9 +81,7 @@ public class JobItemReordererTest {
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
 
-        final ArgumentCaptor<ReorderedItemEntity> argument = ArgumentCaptor.forClass(ReorderedItemEntity.class);
-        verify(entityManager).persist(argument.capture());
-        assertThat("Entity sort order", argument.getValue().getSortOrder(), is(JobItemReorderer.SortOrder.HEAD_DELETE.getSortOrder()));
+        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
@@ -97,9 +93,7 @@ public class JobItemReordererTest {
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
 
-        final ArgumentCaptor<ReorderedItemEntity> argument = ArgumentCaptor.forClass(ReorderedItemEntity.class);
-        verify(entityManager).persist(argument.capture());
-        assertThat("Entity sort order", argument.getValue().getSortOrder(), is(JobItemReorderer.SortOrder.SECTION.getSortOrder()));
+        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
@@ -111,9 +105,7 @@ public class JobItemReordererTest {
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
 
-        final ArgumentCaptor<ReorderedItemEntity> argument = ArgumentCaptor.forClass(ReorderedItemEntity.class);
-        verify(entityManager).persist(argument.capture());
-        assertThat("Entity sort order", argument.getValue().getSortOrder(), is(JobItemReorderer.SortOrder.SECTION_DELETE.getSortOrder()));
+        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
@@ -125,9 +117,7 @@ public class JobItemReordererTest {
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
 
-        final ArgumentCaptor<ReorderedItemEntity> argument = ArgumentCaptor.forClass(ReorderedItemEntity.class);
-        verify(entityManager).persist(argument.capture());
-        assertThat("Entity sort order", argument.getValue().getSortOrder(), is(JobItemReorderer.SortOrder.VOLUME.getSortOrder()));
+        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
@@ -139,9 +129,7 @@ public class JobItemReordererTest {
         assertThat("DataPartitionerResult is present", next.isPresent(), is(true));
         assertThat("DataPartitionerResult is empty", next.get().isEmpty(), is(true));
 
-        final ArgumentCaptor<ReorderedItemEntity> argument = ArgumentCaptor.forClass(ReorderedItemEntity.class);
-        verify(entityManager).persist(argument.capture());
-        assertThat("Entity sort order", argument.getValue().getSortOrder(), is(JobItemReorderer.SortOrder.VOLUME_DELETE.getSortOrder()));
+        verify(entityManager).persist(any(ReorderedItemEntity.class));
     }
 
     @Test
@@ -172,12 +160,7 @@ public class JobItemReordererTest {
         final ReorderedItemEntity entity = new ReorderedItemEntity();
         entity.setRecordInfo((MarcRecordInfo) reorderedResult.getRecordInfo());
 
-        final TypedQuery<ReorderedItemEntity> typedQuery = mockTypedQuery();
-        when(typedQuery.setMaxResults(1)).thenReturn(typedQuery);
-        when(typedQuery.setParameter("jobId", reorderer.getJobId())).thenReturn(typedQuery);
-        when(typedQuery.getSingleResult()).thenReturn(entity);
-        when(entityManager.createNamedQuery(ReorderedItemEntity.NAMED_QUERY_GET_REORDERED_ITEM, ReorderedItemEntity.class))
-                .thenReturn(typedQuery);
+        when(entityManager.find(eq(ReorderedItemEntity.class), anyInt())).thenReturn(entity);
 
         reorderer.next(reorderedResult);
         assertThat("Reorderer has result to be reordered", reorderer.hasNext(), is(true));
@@ -192,19 +175,14 @@ public class JobItemReordererTest {
     @Test
     public void sortOrders() {
         assertThat("Head comes before section",
-                JobItemReorderer.SortOrder.HEAD.getSortOrder() < JobItemReorderer.SortOrder.SECTION.getSortOrder(), is(true));
+                JobItemReorderer.SortOrder.HEAD.getIntValue() < JobItemReorderer.SortOrder.SECTION.getIntValue(), is(true));
         assertThat("Section comes before volume",
-                JobItemReorderer.SortOrder.SECTION.getSortOrder() < JobItemReorderer.SortOrder.VOLUME.getSortOrder(), is(true));
+                JobItemReorderer.SortOrder.SECTION.getIntValue() < JobItemReorderer.SortOrder.VOLUME.getIntValue(), is(true));
         assertThat("Volume comes before deleted volume",
-                JobItemReorderer.SortOrder.VOLUME.getSortOrder() < JobItemReorderer.SortOrder.VOLUME_DELETE.getSortOrder(), is(true));
+                JobItemReorderer.SortOrder.VOLUME.getIntValue() < JobItemReorderer.SortOrder.VOLUME_DELETE.getIntValue(), is(true));
         assertThat("Deleted volume comes before deleted section",
-                JobItemReorderer.SortOrder.VOLUME_DELETE.getSortOrder() < JobItemReorderer.SortOrder.SECTION_DELETE.getSortOrder(), is(true));
+                JobItemReorderer.SortOrder.VOLUME_DELETE.getIntValue() < JobItemReorderer.SortOrder.SECTION_DELETE.getIntValue(), is(true));
         assertThat("Deleted section comes before deleted head",
-                JobItemReorderer.SortOrder.SECTION_DELETE.getSortOrder() < JobItemReorderer.SortOrder.HEAD_DELETE.getSortOrder(), is(true));
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> TypedQuery<T> mockTypedQuery() {
-        return mock(TypedQuery.class);
+                JobItemReorderer.SortOrder.SECTION_DELETE.getIntValue() < JobItemReorderer.SortOrder.HEAD_DELETE.getIntValue(), is(true));
     }
 }

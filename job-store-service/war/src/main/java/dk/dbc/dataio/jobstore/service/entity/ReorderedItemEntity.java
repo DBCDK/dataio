@@ -29,24 +29,16 @@ import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "reordereditem")
-@NamedQueries({
-        @NamedQuery(name = ReorderedItemEntity.NAMED_QUERY_GET_REORDERED_ITEM, query =
-            "SELECT rie FROM ReorderedItemEntity rie WHERE rie.key.jobId = :jobId ORDER BY rie.sortOrder ASC")
-})
 public class ReorderedItemEntity {
      /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
        database update. The only way to achieve an update is to replace
        the field value with a new instance (long live copy constructors).
      */
-
-    public static final String NAMED_QUERY_GET_REORDERED_ITEM = "ReorderedItemEntity.get";
 
     @EmbeddedId
     private Key key;
@@ -56,9 +48,6 @@ public class ReorderedItemEntity {
 
     @Convert(converter = RecordInfoConverter.class)
     private MarcRecordInfo recordInfo;
-
-    @Column(name = "sortorder")
-    private int sortOrder;
 
     public Key getKey() {
         return key;
@@ -82,14 +71,6 @@ public class ReorderedItemEntity {
 
     public void setRecordInfo(MarcRecordInfo recordInfo) {
         this.recordInfo = recordInfo;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(int sortOrder) {
-        this.sortOrder = sortOrder;
     }
 
     @Embeddable

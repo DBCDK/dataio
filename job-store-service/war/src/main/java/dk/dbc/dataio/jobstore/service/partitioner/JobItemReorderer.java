@@ -25,7 +25,10 @@ import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 
 import javax.persistence.EntityManager;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 
 /**
  * The responsibility of this class is to ensure the correct ordering of records taking part
@@ -50,26 +53,27 @@ public class JobItemReorderer {
             this.sortOrder = sortOrder;
         }
 
-        public int getSortOrder() {
+        public int getIntValue() {
             return sortOrder;
         }
     }
 
     private final int jobId;
     private final EntityManager entityManager;
-
-    private int itemsToBeReordered = 0;
+    private final ItemSequence itemSequence;
+    private int seqNo = 0;
 
     public JobItemReorderer(int jobId, EntityManager entityManager) {
         this.jobId = jobId;
         this.entityManager = entityManager;
+        itemSequence = new ItemSequence();
     }
 
     /**
      * @return true if this Reorderer instance still contains items to be re-ordered, otherwise false
      */
     public boolean hasNext() {
-        return itemsToBeReordered != 0;
+        return itemSequence.size() != 0;
     }
 
     /**
@@ -90,7 +94,7 @@ public class JobItemReorderer {
      *         the result is stored in internal list and an empty placeholder result is returned
      *       else
      *         the result is returned as-is (passthrough)
-     *
+     6*
      * @param partitionerResult current DataPartitionerResult to be examined
      *
      * @return the next DataPartitionerResult
@@ -127,50 +131,83 @@ public class JobItemReorderer {
     private DataPartitionerResult setReorderedItem(DataPartitionerResult partitionerResult) {
         final MarcRecordInfo recordInfo = (MarcRecordInfo) partitionerResult.getRecordInfo();
         final ReorderedItemEntity reorderedItemEntity = new ReorderedItemEntity();
-        reorderedItemEntity.setKey(new ReorderedItemEntity.Key(jobId, itemsToBeReordered++));
+        reorderedItemEntity.setKey(new ReorderedItemEntity.Key(jobId, seqNo));
         reorderedItemEntity.setChunkItem(partitionerResult.getChunkItem());
         reorderedItemEntity.setRecordInfo(recordInfo);
-        reorderedItemEntity.setSortOrder(getReorderedItemSortOrder(recordInfo));
         entityManager.persist(reorderedItemEntity);
+        itemSequence.add(getReorderedItemSortOrder(recordInfo), seqNo);
+        seqNo++;
         return DataPartitionerResult.EMPTY;
     }
 
     /* Retrieves next DataPartitionerResult in line from internal list */
     private DataPartitionerResult getReorderedItem() {
-        final ReorderedItemEntity reorderedItemEntity = entityManager
-                .createNamedQuery(ReorderedItemEntity.NAMED_QUERY_GET_REORDERED_ITEM, ReorderedItemEntity.class)
-                .setParameter("jobId", jobId)
-                .setMaxResults(1)
-                .getSingleResult();
-
         final DataPartitionerResult partitionerResult;
+        final int sequenceNumberOfNextItem = itemSequence.removeFirst();
+
+        final ReorderedItemEntity reorderedItemEntity = entityManager.find(ReorderedItemEntity.class,
+                new ReorderedItemEntity.Key(jobId, sequenceNumberOfNextItem));
         if (reorderedItemEntity != null) {
             partitionerResult = new DataPartitionerResult(reorderedItemEntity.getChunkItem(), reorderedItemEntity.getRecordInfo());
             entityManager.remove(reorderedItemEntity);
         } else {
             partitionerResult = DataPartitionerResult.EMPTY;
         }
-        itemsToBeReordered--;
         return partitionerResult;
     }
 
-    private int getReorderedItemSortOrder(MarcRecordInfo recordInfo) {
+    private SortOrder getReorderedItemSortOrder(MarcRecordInfo recordInfo) {
         switch (recordInfo.getType()) {
             case VOLUME:
                 if (recordInfo.isDelete()) {
-                    return SortOrder.VOLUME_DELETE.getSortOrder();
+                    return SortOrder.VOLUME_DELETE;
                 }
-                return SortOrder.VOLUME.getSortOrder();
+                return SortOrder.VOLUME;
             case SECTION:
                 if (recordInfo.isDelete()) {
-                    return SortOrder.SECTION_DELETE.getSortOrder();
+                    return SortOrder.SECTION_DELETE;
                 }
-                return SortOrder.SECTION.getSortOrder();
+                return SortOrder.SECTION;
             default:
                 if (recordInfo.isDelete()) {
-                    return SortOrder.HEAD_DELETE.getSortOrder();
+                    return SortOrder.HEAD_DELETE;
                 }
-                return SortOrder.HEAD.getSortOrder();
+                return SortOrder.HEAD;
+        }
+    }
+
+    /**
+     * Abstraction over a collection of sequence numbers for re-ordered items
+     */
+    private static class ItemSequence {
+        // The TreeMap ensures that the keys are returned in their natural order
+        private final Map<Integer, LinkedList<Integer>> itemSequence = new TreeMap<>();
+        private int numberOfItemsInSequence = 0;
+
+        public ItemSequence() {
+            for (SortOrder sortOrder : SortOrder.values()) {
+                itemSequence.put(sortOrder.getIntValue(), new LinkedList<>());
+            }
+        }
+
+        public void add(SortOrder sortOrder, int seqNo) {
+            itemSequence.get(sortOrder.getIntValue()).add(seqNo);
+            numberOfItemsInSequence++;
+        }
+
+        public int removeFirst() {
+            for (LinkedList<Integer> list : itemSequence.values()) {
+                if (list.isEmpty()) {
+                    continue;
+                }
+                numberOfItemsInSequence--;
+                return list.removeFirst();
+            }
+            return -1;
+        }
+
+        public int size() {
+            return numberOfItemsInSequence;
         }
     }
 }

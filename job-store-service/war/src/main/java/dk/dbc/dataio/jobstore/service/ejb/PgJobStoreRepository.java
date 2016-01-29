@@ -532,6 +532,16 @@ public class PgJobStoreRepository extends RepositoryBase {
         return deleteQuery.executeUpdate();
     }
 
+    /**
+     * Deletes all entries from the reordered items scratchpad
+     * @return number of entries deleted
+     */
+    @Stopwatch
+    public int purgeReorderedItems() {
+        final Query deleteQuery = entityManager.createQuery("DELETE FROM ReorderedItemEntity e");
+        return deleteQuery.executeUpdate();
+    }
+
     // ***** PRIVATE METHODS *****
     /**
      * private method made with package scope for testing purposes.

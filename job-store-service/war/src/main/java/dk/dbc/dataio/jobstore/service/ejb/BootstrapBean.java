@@ -73,6 +73,7 @@ public class BootstrapBean {
     @Stopwatch
     public void initialize() {
         try {
+            jobStoreRepository.purgeReorderedItems();
             resetJobsInterruptedDuringPartitioning();
             restoreSystemState();
             jobSchedulerBean.jumpStart();

@@ -21,15 +21,18 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import org.junit.Test;
 
-import javax.persistence.EntityTransaction;
+import javax.persistence.TypedQuery;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -60,23 +63,20 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         newPersistedItemEntity(new ItemEntity.Key(job2.getId(), 0, (short)0));
         newPersistedItemEntity(new ItemEntity.Key(job3.getId(), 0, (short)0));
 
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        job1.setCachedFlow(cachedFlow);
-        job2.setCachedFlow(cachedFlow);
-        job3.setCachedFlow(cachedFlow);
-        job1.setCachedSink(cachedSink);
-        job2.setCachedSink(cachedSink);
-        job3.setCachedSink(cachedSink);
-        job1QueueEntry.setState(JobQueueEntity.State.IN_PROGRESS);
-        job2QueueEntry.setState(JobQueueEntity.State.IN_PROGRESS);
-        transaction.commit();
+        persistenceContext.run(() -> {
+            job1.setCachedFlow(cachedFlow);
+            job2.setCachedFlow(cachedFlow);
+            job3.setCachedFlow(cachedFlow);
+            job1.setCachedSink(cachedSink);
+            job2.setCachedSink(cachedSink);
+            job3.setCachedSink(cachedSink);
+            job1QueueEntry.setState(JobQueueEntity.State.IN_PROGRESS);
+            job2QueueEntry.setState(JobQueueEntity.State.IN_PROGRESS);
+        });
 
         // When...
         final BootstrapBean bootstrapBean = newBootstrapBean();
-        transaction.begin();
-        bootstrapBean.initialize();
-        transaction.commit();
+        persistenceContext.run(bootstrapBean::initialize);
 
         // Then...
         final List<ChunkEntity> remainingChunks = findAllChunks();
@@ -92,11 +92,34 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
                 bootstrapBean.jobQueueRepository.getInProgress().size(), is(0));
     }
 
+    @Test
+    public void initialize_purgesTemporaryReorderedItems() {
+        final ReorderedItemEntity entity = new ReorderedItemEntity();
+        entity.setKey(new ReorderedItemEntity.Key(1, 0));
+        entity.setChunkItem(new ChunkItemBuilder().build());
+        entity.setRecordInfo(new MarcRecordInfo("id", MarcRecordInfo.RecordType.STANDALONE, false, null));
+
+        persist(entity);
+
+        persistenceContext.run(() -> {
+            final BootstrapBean bootstrapBean = newBootstrapBean();
+            bootstrapBean.initialize();
+        });
+
+        assertThat("Number of reordered items in database", findAllReorderedItems().size(), is(0));
+    }
+
     private BootstrapBean newBootstrapBean() {
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobStoreRepository = newPgJobStoreRepository();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = mock(JobSchedulerBean.class);
         return bootstrapBean;
+    }
+
+    protected List<ReorderedItemEntity> findAllReorderedItems() {
+        final TypedQuery<ReorderedItemEntity> query = entityManager
+                .createQuery("SELECT e FROM ReorderedItemEntity e", ReorderedItemEntity.class);
+        return query.getResultList();
     }
 }

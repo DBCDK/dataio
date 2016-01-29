@@ -197,11 +197,10 @@ public class JobItemReorderer {
 
         public int removeFirst() {
             for (LinkedList<Integer> list : itemSequence.values()) {
-                if (list.isEmpty()) {
-                    continue;
+                if (!list.isEmpty()) {
+                    numberOfItemsInSequence--;
+                    return list.removeFirst();
                 }
-                numberOfItemsInSequence--;
-                return list.removeFirst();
             }
             return -1;
         }

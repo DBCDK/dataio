@@ -25,6 +25,7 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.*;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
@@ -192,6 +193,16 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public SinkModel getSink(Long id) throws ProxyException {
         return flowStoreProxy.getSink(id);
+    }
+
+
+    /*
+     * Harvesters
+     */
+
+    @Override
+    public RawRepoHarvesterConfig getHarvesterRrConfigs() throws ProxyException {
+        return flowStoreProxy.getHarvesterRrConfigs();
     }
 
 

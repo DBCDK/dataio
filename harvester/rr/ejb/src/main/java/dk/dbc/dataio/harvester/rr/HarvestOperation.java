@@ -261,14 +261,14 @@ public class HarvestOperation {
         }
         final OpenAgencyServiceFromURL openAgencyService;
         if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
-            openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl().toString());
+            openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl());
         } else {
             openAgencyService = OpenAgencyServiceFromURL.builder()
                                     .authentication(
                                             openAgencyTarget.getUser(),
                                             openAgencyTarget.getGroup(),
                                             openAgencyTarget.getPassword())
-                                    .build(openAgencyTarget.getUrl().toString());
+                                    .build(openAgencyTarget.getUrl());
         }
         return new RawRepoConnector(config.getResource(), openAgencyService);
     }

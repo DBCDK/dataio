@@ -99,7 +99,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("katalog"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("testbroend-i01"));
                     assertThat(entry.getConsumerId(), is("broend-sync"));
                     assertThat(entry.getType(), is(JobSpecification.Type.TEST));
@@ -110,7 +110,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("katalog"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("broend3-loadtest"));
                     assertThat(entry.getConsumerId(), is("broend-sync"));
                     assertThat(entry.getType(), is(JobSpecification.Type.TEST));
@@ -121,7 +121,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("basis"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("testbasis-i01"));
                     assertThat(entry.getConsumerId(), is("basis-decentral"));
                     assertThat(entry.getType(), is(JobSpecification.Type.TEST));
@@ -132,7 +132,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("basis"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("testbasis-boblebad"));
                     assertThat(entry.getConsumerId(), is("basis-decentral"));
                     assertThat(entry.getType(), is(JobSpecification.Type.TEST));
@@ -143,7 +143,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("katalog"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("broend-boblebad"));
                     assertThat(entry.getConsumerId(), is("broend-sync"));
                     break;
@@ -155,7 +155,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getDestination(), is("fbs-i01"));
                     assertThat(entry.getConsumerId(), is("fbs-sync"));
                     assertThat(entry.getType(), is(JobSpecification.Type.TEST));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     break;
                 case "cicero-sync":
                     assertThat(entry.getResource(), is("jdbc/dataio/rawrepo-boblebad"));
@@ -164,7 +164,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getFormat(), is("katalog"));
                     assertThat(entry.getDestination(), is("cicero-boblebad"));
                     assertThat(entry.getConsumerId(), is("fbs-sync"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     break;
                 case "broend-sync-cisterne":
                     assertThat(entry.getFormat(870970), is("basis"));
@@ -172,7 +172,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("katalog"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("broend-cisterne"));
                     assertThat(entry.getConsumerId(), is("broend-sync"));
                     break;
@@ -183,7 +183,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getFormat(), is("katalog"));
                     assertThat(entry.getDestination(), is("cicero-cisterne"));
                     assertThat(entry.getConsumerId(), is("broend-sync-forkert"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     break;
                 case "basis-sync-cisterne":
                     assertThat(entry.getFormat(870970), is("basis"));
@@ -191,7 +191,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                     assertThat(entry.getBatchSize(), is(10000));
                     assertThat(entry.includeRelations(), is(true));
                     assertThat(entry.getFormat(), is("basis"));
-                    assertThat(entry.getOpenAgencyTarget().getUrl().toString(), is("http://openagency.addi.dk/2.20/"));
+                    assertThat(entry.getOpenAgencyTarget().getUrl(), is("http://openagency.addi.dk/2.20/"));
                     assertThat(entry.getDestination(), is("basis-cisterne"));
                     assertThat(entry.getConsumerId(), is("basis-decentral"));
                     break;

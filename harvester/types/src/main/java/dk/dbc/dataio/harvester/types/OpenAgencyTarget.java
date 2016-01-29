@@ -21,22 +21,21 @@
 
 package dk.dbc.dataio.harvester.types;
 
-import java.net.URL;
 
 /**
  * Configuration for an OpenAgency target
  */
 public class OpenAgencyTarget {
-    private URL url;
+    private String url;
     private String group;
     private String user;
     private String password;
 
-    public URL getUrl() {
+    public String getUrl() {
         return url;
     }
 
-    public void setUrl(URL url) {
+    public void setUrl(String url) {
         this.url = url;
     }
 

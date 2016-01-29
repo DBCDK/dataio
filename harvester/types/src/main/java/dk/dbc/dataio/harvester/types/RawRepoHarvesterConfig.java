@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,8 +38,10 @@ import java.util.Set;
  * an independent harvest operation.
  * </p>
  */
-public class RawRepoHarvesterConfig {
-    final private Set<Entry> entries;
+public class RawRepoHarvesterConfig implements Serializable {
+    private static final long serialVersionUID = 8380293486069807815L;
+
+    final private HashSet<Entry> entries;
 
     public RawRepoHarvesterConfig() {
         entries = new HashSet<>();

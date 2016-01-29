@@ -42,7 +42,6 @@ import org.junit.Test;
 import javax.naming.Context;
 import javax.sql.DataSource;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -356,7 +355,7 @@ public class HarvestOperationTest {
     public void getRawRepoConnector_openAgencyTargetIsConfigured_configuresOpenAgencyServiceFromUrl() throws MalformedURLException {
         try {
             final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
-            openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
+            openAgencyTarget.setUrl("http://test.dbc.dk/oa");
 
             final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
             config.setOpenAgencyTarget(openAgencyTarget);

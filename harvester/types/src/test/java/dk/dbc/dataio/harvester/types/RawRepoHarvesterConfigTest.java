@@ -26,9 +26,6 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
@@ -208,11 +205,11 @@ public class RawRepoHarvesterConfigTest {
     }
 
     @Test
-    public void nonEmptyConfigWithOpenAgencyTargetCanBeMarshalledAndUnmarshalled() throws JSONBException, MalformedURLException {
+    public void nonEmptyConfigWithOpenAgencyTargetCanBeMarshalledAndUnmarshalled() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
 
         final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
-        openAgencyTarget.setUrl(new URL("http://test.dbc.dk/oa"));
+        openAgencyTarget.setUrl("http://test.dbc.dk/oa");
         openAgencyTarget.setGroup("groupId");
         openAgencyTarget.setUser("userId");
         openAgencyTarget.setPassword("passw0rd");

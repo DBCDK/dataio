@@ -48,6 +48,7 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
+import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -295,7 +296,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", model.getId(), model.getVersion());
         try {
             flowBinder = flowStoreServiceConnector.updateFlowBinder(FlowBinderModelMapper.toFlowBinderContent(model), model.getId(), model.getVersion());
-            submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
+            submitterModels = new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
             for(Long submitterId : flowBinder.getContent().getSubmitterIds()) {
                 submitterModels.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(submitterId)));
             }
@@ -322,13 +323,13 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public List<FlowBinderModel> findAllFlowBinders() throws ProxyException {
         final String callerMethodName = "findAllFlowBinders";
         List<FlowBinder> flowBinders;
-        final List<FlowBinderModel> flowBinderModels = new ArrayList<FlowBinderModel>();
+        final List<FlowBinderModel> flowBinderModels = new ArrayList<>();
         List<SubmitterModel> submitterModels;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
             flowBinders = flowStoreServiceConnector.findAllFlowBinders();
             for (FlowBinder flowBinder: flowBinders) {
-                submitterModels = new ArrayList<SubmitterModel>(flowBinder.getContent().getSubmitterIds().size());
+                submitterModels = new ArrayList<>(flowBinder.getContent().getSubmitterIds().size());
                 for (long submitterId: flowBinder.getContent().getSubmitterIds()) {
                     submitterModels.add(getSubmitter(submitterId));
                 }
@@ -352,7 +353,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final String callerMethodName = "getFlowBinder";
         FlowBinder flowBinder = null;
         FlowModel flowModel = null;
-        final List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>();
+        final List<SubmitterModel> submitterModels = new ArrayList<>();
         SinkModel sinkModel = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "({});", id);
         try {
@@ -494,13 +495,30 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public SinkModel getSink(Long id) throws ProxyException {
         final String callerMethodName = "getSink";
         Sink sink = null;
-        log.trace("FlowStoreProxy: getSink({});", id);
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             sink = flowStoreServiceConnector.getSink(id);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return SinkModelMapper.toModel(sink);
+    }
+
+    /*
+     * Harvesters
+     */
+
+    @Override
+    public RawRepoHarvesterConfig getHarvesterRrConfigs() throws ProxyException {
+        final String callerMethodName = "getHarvesterRrConfigs";
+        RawRepoHarvesterConfig rawRepoHarvesterConfig = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            rawRepoHarvesterConfig = flowStoreServiceConnector.getHarvesterRrConfigs();
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return rawRepoHarvesterConfig;
     }
 
 
@@ -553,7 +571,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @return The latest versions of the Submitter Models
      */
     private List<SubmitterModel> getSubmitterModelsLatestVersion(List<SubmitterModel> submitterModels) throws FlowStoreServiceConnectorException {
-        List<SubmitterModel> models = new ArrayList<SubmitterModel>();
+        List<SubmitterModel> models = new ArrayList<>();
         for (SubmitterModel model: submitterModels) {
             models.add(SubmitterModelMapper.toModel(flowStoreServiceConnector.getSubmitter(model.getId())));
         }
@@ -588,7 +606,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @throws FlowStoreServiceConnectorException
      */
     private List<FlowComponent> getFlowComponentsLatestVersion (List<FlowComponentModel> flowComponentModels) throws FlowStoreServiceConnectorException {
-        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>(flowComponentModels.size());
+        List<FlowComponent> flowComponents = new ArrayList<>(flowComponentModels.size());
         for(FlowComponentModel flowComponentModel : flowComponentModels) {
             FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(flowComponentModel.getId());
             flowComponents.add(flowComponent);
@@ -616,7 +634,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @throws FlowStoreServiceConnectorException
      */
     private List<FlowComponent> getFlowComponents (Flow flow, List<FlowComponentModel> model) throws FlowStoreServiceConnectorException {
-        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>(model.size());
+        List<FlowComponent> flowComponents = new ArrayList<>(model.size());
         for (FlowComponentModel flowComponentModel : model) {
             int counter = 0;
             boolean isNewFlowComponent = true;

@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void getHarvesterRrConfigs_noEntries_emptyListReturned() throws FlowStoreServiceConnectorException, JSONBException {
-        RawRepoHarvesterConfig resultList = getHarvesterRrConfigs_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), "{\"entries\": []}");
+        RawRepoHarvesterConfig resultList = getHarvesterRrConfigs_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), new RawRepoHarvesterConfig());
         assertThat(resultList, is(notNullValue()));
         assertThat(resultList.getEntries().size(), is(0));
     }
@@ -83,11 +84,15 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
     @Test
     public void getHarvesterRrConfigs_realJsonConfigsRetrieved_returnsCorrectConfigs() throws IOException, FlowStoreServiceConnectorException, JSONBException {
+        // Prepare test
         final String relativePath = "src/test/java/dk/dbc/dataio/common/utils/flowstore/FlowStoreServiceConnector_Harvesters_TestData.json";
         String jsonConfig = new String(Files.readAllBytes(Paths.get(relativePath)));
+        final RawRepoHarvesterConfig testConfig = new JSONBContext().unmarshall(jsonConfig, RawRepoHarvesterConfig.class);
 
-        final RawRepoHarvesterConfig resultRRConfig = getHarvesterRrConfigs_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), jsonConfig);
+        // Test
+        final RawRepoHarvesterConfig resultRRConfig = getHarvesterRrConfigs_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), testConfig);
 
+        // Verify Test
         Set<RawRepoHarvesterConfig.Entry> entries = resultRRConfig.getEntries();
         assertThat(entries.size(), is(10));
 

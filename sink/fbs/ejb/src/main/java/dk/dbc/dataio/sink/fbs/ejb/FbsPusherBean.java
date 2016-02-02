@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.fbs.ejb;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.sink.fbs.connector.FbsUpdateConnector;
 import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeResult;
@@ -34,7 +35,6 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.xml.ws.WebServiceException;
 
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 
 @Stateless
@@ -65,7 +65,7 @@ public class FbsPusherBean {
                 executeUpdateOperation(processedChunkItem, chunkForDelivery);
                 numberOfItemsPushed++;
             } else {
-                chunkForDelivery.addItemWithStatusIgnored( processedChunkItem.getId(), asBytes(String.format("Processor item status was: %s", processedChunkItem.getStatus())) );
+                chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(processedChunkItem.getId(), String.format("Processor item status was: %s", processedChunkItem.getStatus())));
             }
         }
 
@@ -80,20 +80,19 @@ public class FbsPusherBean {
             final UpdateMarcXchangeResult updateMarcXchangeResult = connector.updateMarcExchange(asString(processedChunkItem.getData()), trackingId);
             switch(updateMarcXchangeResult.getUpdateMarcXchangeStatus()) {
                 case OK:
-                    chunkForDelivery.addItemWithStatusSuccess(processedChunkItem.getId(), asBytes(updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                    chunkForDelivery.insertItem(ObjectFactory.buildSuccessfulChunkItem(processedChunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage(), ChunkItem.Type.STRING));
                     break;
                 case UPDATE_FAILED_PLEASE_RESEND_LATER:
                     throw new WebServiceException("Service responded with 'please resend later' message");
                 default:
-                    chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                    chunkForDelivery.insertItem(ObjectFactory.buildFailedChunkItem(processedChunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
             }
         } catch (WebServiceException e) {
             LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}", processedChunkItem.getId(), chunkForDelivery.getChunkId(), chunkForDelivery.getJobId(), e);
             throw e;
         } catch (Exception e) {
             LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception", processedChunkItem.getId(), chunkForDelivery.getChunkId(), chunkForDelivery.getJobId(), e);
-            chunkForDelivery.addItemWithStatusFailed(processedChunkItem.getId(), asBytes(ServiceUtil.stackTraceToString(e)));
-
+            chunkForDelivery.insertItem(ObjectFactory.buildFailedChunkItem(processedChunkItem.getId(), ServiceUtil.stackTraceToString(e)));
         }
     }
 }

@@ -92,7 +92,7 @@ public class AddiRecordsToItemWrapper {
                 .findFirst();
 
         ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(processedChunkItem.getId(),
-                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING);
+                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING, trackingId);
 
         if(failed.isPresent()) {
             diagnostics.stream().forEach(chunkItem::appendDiagnostics);

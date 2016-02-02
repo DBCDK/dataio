@@ -194,51 +194,6 @@ public class ChunkTest {
         assertThat(chunk, is(notNullValue()));
     }
 
-    @Test
-    public void addItemWithStatusSuccess() throws JSONBException {
-
-        // Preconditions
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
-        assertThat(chunk, is(notNullValue()));
-        assertTrue(chunk.size() == 1);
-
-        // Subject Under Test
-        chunk.addItemWithStatusSuccess(1l, new byte[0]);
-        assertTrue(chunk.size() == 2);
-        assertStatus(chunk, 1l, ChunkItem.Status.SUCCESS);
-    }
-
-    @Test
-    public void addItemWithStatusIgnored() throws JSONBException {
-
-        // Preconditions
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
-        assertThat(chunk, is(notNullValue()));
-        assertTrue(chunk.size() == 1);
-
-        // Subject Under Test
-        chunk.addItemWithStatusIgnored(1l, new byte[0]);
-        assertTrue(chunk.size() == 2);
-        assertStatus(chunk, 1l, ChunkItem.Status.IGNORE);
-    }
-
-    @Test
-    public void addItemWithStatusFailed() throws JSONBException {
-
-        // Preconditions
-        final String json = "{\"jobId\":1,\"chunkId\":1,\"type\":\"PROCESSED\",\"items\":[{\"id\":0,\"data\":\"ZGF0YQ==\",\"status\":\"SUCCESS\",\"type\":[\"UNKNOWN\"],\"encoding\":\"UTF-8\"}]}";
-        Chunk chunk = jsonbContext.unmarshall(json, Chunk.class);
-        assertThat(chunk, is(notNullValue()));
-        assertTrue(chunk.size() == 1);
-
-        // Subject Under Test
-        chunk.addItemWithStatusFailed(1l, new byte[0]);
-        assertTrue(chunk.size() == 2);
-        assertStatus(chunk, 1l, ChunkItem.Status.FAILURE);
-    }
-
     private void assertStatus(Chunk chunk, long itemIdToStatusMatch, ChunkItem.Status expectedStatus) {
         final ChunkItem ITEM_NOT_FOUND = null;
         ChunkItem itemToMatch = ITEM_NOT_FOUND;

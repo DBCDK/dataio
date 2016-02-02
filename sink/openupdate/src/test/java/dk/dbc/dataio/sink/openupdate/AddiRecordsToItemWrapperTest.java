@@ -50,7 +50,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
+public class
+AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
 
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
@@ -97,6 +98,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertFalse(asString(chunkItemForDelivery.getData()).contains("errorMessages"));
         assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
     }
 
     @Test
@@ -116,6 +118,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertTrue(StringUtils.countMatches(chunkItemDataAsString, "<message>") == 3);
         assertThat(chunkItemForDelivery.getDiagnostics(), is(notNullValue()));
         assertThat(chunkItemForDelivery.getDiagnostics().size(), is(3));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
     }
 
     @Test
@@ -132,6 +135,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
         assertTrue(asString(chunkItemForDelivery.getData()).contains("FAILED_STACKTRACE"));
         assertThat(chunkItemForDelivery.getDiagnostics().size(), is(1));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
     }
 
     @Test
@@ -150,6 +154,7 @@ public class AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase
         assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
         verify(mockedOpenUpdateServiceConnector, times(3)).updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString());
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
     }
 
     /*

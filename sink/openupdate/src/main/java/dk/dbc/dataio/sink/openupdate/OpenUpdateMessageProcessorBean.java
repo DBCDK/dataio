@@ -24,6 +24,7 @@ package dk.dbc.dataio.sink.openupdate;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -67,10 +68,12 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                 case SUCCESS: chunkForDelivery.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
                     break;
 
-                case FAILURE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Failed by processor"));
+                case FAILURE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
+                        processedChunkItem.getId(), "Failed by processor", processedChunkItem.getTrackingId()));
                     break;
 
-                case IGNORE: chunkForDelivery.addItemWithStatusIgnored(processedChunkItem.getId(), asBytes("Ignored by processor"));
+                case IGNORE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
+                        processedChunkItem.getId(), "Ignored by processor", processedChunkItem.getTrackingId()));
                     break;
 
                 default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());

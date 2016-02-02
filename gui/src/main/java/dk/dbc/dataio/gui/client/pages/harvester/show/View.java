@@ -28,8 +28,6 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
-import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig.Entry;
 
@@ -46,56 +44,6 @@ public class View extends ViewWidget {
     public View() {
         super("");
         setupColumns();
-        
-        // Preliminary data setup until Presenter is here
-        RawRepoHarvesterConfig config = new RawRepoHarvesterConfig();
-
-        Entry entry1 = new Entry();
-        entry1.setId("broend-sync(id)");
-        entry1.setResource("jdbc/dataio/rawrepo");
-        OpenAgencyTarget openAgencyTarget1 = new OpenAgencyTarget();
-        openAgencyTarget1.setUrl("http://openagency.dbc.dk/noget");
-        entry1.setOpenAgencyTarget(openAgencyTarget1);
-        entry1.setConsumerId("broend-sync(consumerid)");
-        entry1.setBatchSize(10000);
-        entry1.setFormatOverride(870970, "basis");
-        entry1.setIncludeRelations(true);
-        entry1.setDestination("testbroend-i01");
-        entry1.setFormat("katalog");
-        entry1.setType(JobSpecification.Type.TEST);
-        config.addEntry(entry1);
-
-        Entry entry2 = new Entry();
-        entry2.setId("broend-sync(id)2");
-        entry2.setResource("jdbc/dataio/rawrepo2");
-        OpenAgencyTarget openAgencyTarget2 = new OpenAgencyTarget();
-        openAgencyTarget2.setUrl("http://openagency.dbc.dk/noget2");
-        entry2.setOpenAgencyTarget(openAgencyTarget2);
-        entry2.setConsumerId("broend-sync(consumerid)2");
-        entry2.setBatchSize(10001);
-        entry2.setFormatOverride(870970, "basis2");
-        entry2.setIncludeRelations(false);
-        entry2.setDestination("testbroend-i02");
-        entry2.setFormat("katalog2");
-        entry2.setType(JobSpecification.Type.TRANSIENT);
-        config.addEntry(entry2);
-
-        Entry entry3 = new Entry();
-        entry3.setId("broend-sync(id)3");
-        entry3.setResource("jdbc/dataio/rawrepo3");
-        OpenAgencyTarget openAgencyTarget3 = new OpenAgencyTarget();
-        openAgencyTarget3.setUrl("http://openagency.dbc.dk/noget3");
-        entry3.setOpenAgencyTarget(openAgencyTarget3);
-        entry3.setConsumerId("broend-sync(consumerid)3");
-        entry3.setBatchSize(10003);
-        entry3.setFormatOverride(870970, "basis3");
-        entry3.setIncludeRelations(false);
-        entry3.setDestination("testbroend-i03");
-        entry3.setFormat("katalog3");
-        entry3.setType(JobSpecification.Type.TRANSIENT);
-        config.addEntry(entry3);
-
-        setHarvesters(config);
     }
 
     /**

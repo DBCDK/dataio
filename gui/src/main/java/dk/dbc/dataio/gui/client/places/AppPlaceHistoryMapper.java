@@ -48,7 +48,8 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.job.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.item.show.Place.Tokenizer.class,
-        dk.dbc.dataio.gui.client.pages.ftp.show.Place.Tokenizer.class
+        dk.dbc.dataio.gui.client.pages.ftp.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.harvester.show.Place.Tokenizer.class
 })
 
 public interface AppPlaceHistoryMapper extends PlaceHistoryMapper {

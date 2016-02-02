@@ -50,6 +50,7 @@ public class NavigationPanel extends FlowPanel {
     @UiField TreeItem flowBinders;
     @UiField TreeItem sinks;
     @UiField TreeItem ftp;
+    @UiField TreeItem harvesters;
 
 
     /**
@@ -63,10 +64,11 @@ public class NavigationPanel extends FlowPanel {
         add(uiBinder.createAndBindUi(this));
         jobs.setUserObject(new ShowJobsPlace());
         testJobs.setUserObject(new ShowTestJobsPlace());
-        submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
+        flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
         flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());
-        flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
+        harvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.show.Place());
+        submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
         sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
         ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
     }

@@ -31,9 +31,6 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.gui.client.proxies.LogStoreProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
 
-/**
- * Created by ThomasBerg on 09/11/15.
- */
 @GinModules(CommonModule.class)
 public interface CommonGinjector extends Ginjector {
     Texts getMenuTexts();

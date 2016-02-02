@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.navigation;
+package dk.dbc.dataio.gui.client.pages.harvester.show;
 
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
@@ -27,67 +27,74 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 public interface Texts extends Constants {
 
-    // Menu texts
+    // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowCreation();
+    String columnHeader_Name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowEdit();
+    String columnHeader_Resource();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Flows();
+    String columnHeader_Target();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowBinderCreation();
+    String columnHeader_Id();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowBinderEdit();
+    String columnHeader_Size();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowBinders();
-
-    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowComponentCreation();
+    String columnHeader_FormatOverrides();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowComponentEdit();
+    String columnHeader_Relations();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowComponents();
+    String columnHeader_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Jobs();
+    String columnHeader_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_TestJobs();
+    String columnHeader_Type();
+
+
+    // Help texts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SinkCreation();
+    String help_Resource();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SinkEdit();
+    String help_Target();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Sinks();
+    String help_Id();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SubmitterCreation();
+    String help_Size();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SubmitterEdit();
+    String help_FormatOverrides();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Submitters();
+    String help_Relations();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_JobEdit();
+    String help_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Items();
+    String help_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Ftp();
+    String help_Type();
+
+
+    // Include Relation values
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String includeRelationsTrue();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Harvesters();
+    String includeRelationsFalse();
 }

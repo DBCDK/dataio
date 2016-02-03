@@ -59,6 +59,7 @@ public class DiffMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final static String DBC_TRACKING_ID = "dataio_";
 
     @Before
     public void setupMocks() {
@@ -82,9 +83,9 @@ public class DiffMessageProcessorBeanTest {
     @Test
     public void failOnMissingNextItems() throws Exception {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setStatus(ChunkItem.Status.IGNORE).build()
+                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setTrackingId(DBC_TRACKING_ID + 2).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setTrackingId(DBC_TRACKING_ID + 3).setStatus(ChunkItem.Status.IGNORE).build()
         );
         final Chunk chunkResult = new ChunkBuilder(Chunk.Type.PROCESSED)
                 .setItems(processedChunkItems)
@@ -98,29 +99,31 @@ public class DiffMessageProcessorBeanTest {
         assertThat("ChunkItem0.getStatus()", item0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem0.getDiagnostics", item0.getDiagnostics().size(), is(1));
         assertThat("ChunkItem0.getDiagnostics.stacktrace", item0.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem0.trackingId", item0.getTrackingId(), is(DBC_TRACKING_ID+ 1));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item1 = iterator.next();
         assertThat("ChunkItem1.getStatus()", item1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem1.getDiagnostics", item1.getDiagnostics().size(), is(1));
         assertThat("ChunkItem1.getDiagnostics.stacktrace", item1.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem1.trackingId", item1.getTrackingId(), is(DBC_TRACKING_ID + 2));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item2 = iterator.next();
         assertThat("ChunkItem2.getStatus()", item2.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem2.getDiagnostics", item2.getDiagnostics().size(), is(1));
         assertThat("ChunkItem2.getDiagnostics.stacktrace", item2.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem2.trackingId", item2.getTrackingId(), is(DBC_TRACKING_ID + 3));
         assertThat(iterator.hasNext(), is(false));
-
     }
 
     @Test
     public void processPayload_FailDifferentContent() throws SinkException {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build(),
-                new ChunkItemBuilder().setId(3L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build());
+                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setTrackingId(DBC_TRACKING_ID + 2).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setTrackingId(DBC_TRACKING_ID + 3).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build(),
+                new ChunkItemBuilder().setId(3L).setTrackingId(DBC_TRACKING_ID + 4).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build());
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(getXmlNext()).setStatus(ChunkItem.Status.FAILURE).build(),
                 new ChunkItemBuilder().setId(1L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build(),
@@ -139,23 +142,27 @@ public class DiffMessageProcessorBeanTest {
 
         ChunkItem item0 = iterator.next();
         assertThat("ChunkItem0.getStatus()", item0.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat("ChunkItem2.getDiagnostics", item0.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem0.getDiagnostics", item0.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem0.getTrackingId()", item0.getTrackingId(), is(DBC_TRACKING_ID + 1));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item1 = iterator.next();
         assertThat("ChunkItem1.getStatus()", item1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem1.getDiagnostics", item1.getDiagnostics().size(), is(1));
         assertThat("ChunkItem1.getDiagnostics.stacktrace", item1.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem1.getTrackingId()", item1.getTrackingId(), is(DBC_TRACKING_ID + 2));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item2 = iterator.next();
         assertThat("ChunkItem2.getStatus()", item2.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("ChunkItem2.getDiagnostics", item2.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem2.getTrackingId()", item2.getTrackingId(), is(DBC_TRACKING_ID + 3));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item3 = iterator.next();
         assertThat("ChunkItem3.getStatus()", item3.getStatus(), is(ChunkItem.Status.SUCCESS));
-        assertThat("ChunkItem2.getDiagnostics", item3.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem3.getDiagnostics", item3.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem3.getTrackingId()", item3.getTrackingId(), is(DBC_TRACKING_ID + 4));
         assertThat(iterator.hasNext(), is(false));
     }
 
@@ -168,11 +175,11 @@ public class DiffMessageProcessorBeanTest {
         final byte[] addi5 = getAddi(getMeta("current"), getInvalidContent());
 
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(1L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(3L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(4L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build());
+                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(1L).setTrackingId(DBC_TRACKING_ID + 2).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setTrackingId(DBC_TRACKING_ID + 3).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(3L).setTrackingId(DBC_TRACKING_ID + 4).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(4L).setTrackingId(DBC_TRACKING_ID + 5).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build());
 
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(addi1).setStatus(ChunkItem.Status.SUCCESS).build(),
@@ -194,39 +201,44 @@ public class DiffMessageProcessorBeanTest {
         ChunkItem item0 = iterator.next();
         assertThat("ChunkItem0.getStatus()", item0.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("ChunkItem0.getDiagnostics", item0.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem0.getTrackingId()", item0.getTrackingId(), is(DBC_TRACKING_ID + 1));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item1 = iterator.next();
         assertThat("ChunkItem1.getStatus()", item1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem1.getDiagnostics", item1.getDiagnostics().size(), is(1));
         assertThat("ChunkItem1.getDiagnostics.stacktrace", item1.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem1.getTrackingId()", item1.getTrackingId(), is(DBC_TRACKING_ID + 2));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item2 = iterator.next();
         assertThat("ChunkItem2.getStatus()", item2.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem2.getDiagnostics", item2.getDiagnostics().size(), is(1));
         assertThat("ChunkItem2.getDiagnostics.stacktrace", item2.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem2.getTrackingId()", item2.getTrackingId(), is(DBC_TRACKING_ID + 3));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item3 = iterator.next();
         assertThat("ChunkItem3.getStatus()", item3.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem3.getDiagnostics", item3.getDiagnostics().size(), is(1));
         assertThat("ChunkItem3.getDiagnostics.stacktrace", item3.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem3.getTrackingId()", item3.getTrackingId(), is(DBC_TRACKING_ID + 4));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item4 = iterator.next();
         assertThat("ChunkItem4.getStatus()", item4.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem4.getDiagnostics", item4.getDiagnostics().size(), is(1));
         assertThat("ChunkItem4.getDiagnostics.stacktrace", item4.getDiagnostics().get(0).getStacktrace(), is(notNullValue()));
+        assertThat("ChunkItem4.getTrackingId()", item4.getTrackingId(), is(DBC_TRACKING_ID + 5));
         assertThat(iterator.hasNext(), is(false));
     }
 
     @Test
     public void processPayload_FailDifferentStatus() throws SinkException {
         final List<ChunkItem> processedChunkItems = Arrays.asList(
-                new ChunkItemBuilder().setId(0L).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
-                new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
-                new ChunkItemBuilder().setId(2L).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
+                new ChunkItemBuilder().setId(0L).setTrackingId(DBC_TRACKING_ID + 1).setData(getXml()).setStatus(ChunkItem.Status.FAILURE).build(),
+                new ChunkItemBuilder().setId(1L).setTrackingId(DBC_TRACKING_ID + 2).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
+                new ChunkItemBuilder().setId(2L).setTrackingId(DBC_TRACKING_ID + 3).setData(getXml()).setStatus(ChunkItem.Status.IGNORE).build());
         final List<ChunkItem> processedChunkNextItems = Arrays.asList(
                 new ChunkItemBuilder().setId(0L).setData(getXmlNext()).setStatus(ChunkItem.Status.SUCCESS).build(),
                 new ChunkItemBuilder().setId(1L).setData(getXml()).setStatus(ChunkItem.Status.SUCCESS).build(),
@@ -246,17 +258,20 @@ public class DiffMessageProcessorBeanTest {
         assertThat("ChunkItem0.getStatus()", item0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem0.getDiagnostics", item0.getDiagnostics().size(), is(1));
         assertThat("ChunkItem0.getDiagnostics.stacktrace", item0.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem0.getTrackingId()", item0.getTrackingId(), is(DBC_TRACKING_ID + 1));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item1 = iterator.next();
         assertThat("ChunkItem1.getStatus()", item1.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("ChunkItem1.getDiagnostics", item1.getDiagnostics(), is(nullValue()));
+        assertThat("ChunkItem1.getTrackingId()", item1.getTrackingId(), is(DBC_TRACKING_ID + 2));
         assertThat(iterator.hasNext(), is(true));
 
         ChunkItem item2 = iterator.next();
         assertThat("ChunkItem2.getStatus()", item2.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("ChunkItem2.getDiagnostics", item2.getDiagnostics().size(), is(1));
         assertThat("ChunkItem2.getDiagnostics.stacktrace", item2.getDiagnostics().get(0).getStacktrace(), is(nullValue()));
+        assertThat("ChunkItem2.getTrackingId()", item2.getTrackingId(), is(DBC_TRACKING_ID + 3));
         assertThat(iterator.hasNext(), is(false));
     }
 

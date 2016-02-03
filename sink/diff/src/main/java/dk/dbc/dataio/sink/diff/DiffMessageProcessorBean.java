@@ -36,6 +36,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,31 +94,37 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         }
 
         final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
-        for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
-            if(item.current.getStatus() != item.next.getStatus()) {
-                String message = String.format("Different status %s -> %s\n%s",
-                        statusToString(item.current.getStatus()),
-                        statusToString(item.next.getStatus()),
-                        StringUtil.asString(item.next.getData())
-                );
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.next.getId(), message);
-                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message));
-                deliveredChunk.insertItem(chunkItem);
-            } else {
-                switch (item.current.getStatus()) {
-                    case SUCCESS:
-                        deliveredChunk.insertItem(getChunkItemWithDiffResult(item));
-                        break;
-                    case FAILURE:
-                        deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Failed by diff processor"));
-                        break;
-                    case IGNORE:
-                        deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Ignored by diff processor"));
-                        break;
-                    default:
-                        throw new SinkException("Unknown chunk item state: " + item.current.getStatus().name());
+        try {
+            for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
+                // TODO: 03/02/16 How does this and other "re-run job operations" influence on traceability?
+                DBCTrackedLogContext.setTrackingId(item.current.getTrackingId());
+                if (item.current.getStatus() != item.next.getStatus()) {
+                    String message = String.format("Different status %s -> %s\n%s",
+                            statusToString(item.current.getStatus()),
+                            statusToString(item.next.getStatus()),
+                            StringUtil.asString(item.next.getData())
+                    );
+                    ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), message, item.current.getTrackingId());
+                    chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message));
+                    deliveredChunk.insertItem(chunkItem);
+                } else {
+                    switch (item.current.getStatus()) {
+                        case SUCCESS:
+                            deliveredChunk.insertItem(getChunkItemWithDiffResult(item));
+                            break;
+                        case FAILURE:
+                            deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Failed by diff processor", item.current.getTrackingId()));
+                            break;
+                        case IGNORE:
+                            deliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(item.current.getId(), "Ignored by diff processor", item.current.getTrackingId()));
+                            break;
+                        default:
+                            throw new SinkException("Unknown chunk item state: " + item.current.getStatus().name());
+                    }
                 }
             }
+        } finally {
+            DBCTrackedLogContext.remove();
         }
         return deliveredChunk;
     }
@@ -130,7 +137,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
 
         for (final ChunkItem item : processedChunk) {
-            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items");
+            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items", item.getTrackingId());
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Missing Next Items"));
             deliveredChunk.insertItem(chunkItem);
         }
@@ -154,13 +161,13 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 diff = getXmlDiff(item.current.getData(), item.next.getData());
             }
             if (diff.isEmpty()) {
-                chunkItem = ObjectFactory.buildSuccessfulChunkItem(item.current.getId(), "Current and Next output were identical", ChunkItem.Type.STRING);
+                chunkItem = ObjectFactory.buildSuccessfulChunkItem(item.current.getId(), "Current and Next output were identical", ChunkItem.Type.STRING, item.current.getTrackingId());
             } else {
-                chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), diff);
+                chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), diff, item.current.getTrackingId());
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Diff created: Current and Next output were not identical"));
             }
         } catch (DiffGeneratorException e) {
-            chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), StringUtil.getStackTraceString(e, ""));
+            chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), StringUtil.getStackTraceString(e, ""), item.current.getTrackingId());
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception occurred while comparing addi records", e));
         }
         return chunkItem;

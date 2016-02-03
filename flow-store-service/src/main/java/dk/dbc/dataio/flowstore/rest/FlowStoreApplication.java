@@ -24,6 +24,7 @@ package dk.dbc.dataio.flowstore.rest;
 import dk.dbc.dataio.flowstore.ejb.FlowBindersBean;
 import dk.dbc.dataio.flowstore.ejb.FlowComponentsBean;
 import dk.dbc.dataio.flowstore.ejb.FlowsBean;
+import dk.dbc.dataio.flowstore.ejb.HarvestersBean;
 import dk.dbc.dataio.flowstore.ejb.SinksBean;
 import dk.dbc.dataio.flowstore.ejb.SubmittersBean;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class FlowStoreApplication extends Application {
         classes.add(FlowComponentsBean.class);
         classes.add(SinksBean.class);
         classes.add(SubmittersBean.class);
+        classes.add(HarvestersBean.class);
         classes.add(JsonExceptionMapper.class);
         classes.add(PersistenceExceptionMapper.class);
         classes.add(ReferencedEntityNotFoundExceptionMapper.class);

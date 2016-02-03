@@ -23,15 +23,31 @@ package dk.dbc.dataio.harvester.test.types;
 
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RawRepoHarvesterConfigEntryBuilder {
     private String id = "id";
     private String resource = "resource";
     private String consumerId = "consumerId";
-    private String format = "format";
     private String destination = "destination";
     private JobSpecification.Type type = JobSpecification.Type.TRANSIENT;
+    private String format = "format";
+    private final Map<Integer, String> formatOverrides = new HashMap<>();
+    private boolean includeRelations = true;
+    private int batchSize = 10000;
+    private OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+
+    public RawRepoHarvesterConfigEntryBuilder() {
+        openAgencyTarget.setUrl("url");
+        openAgencyTarget.setGroup("group");
+        openAgencyTarget.setUrl("user");
+        openAgencyTarget.setPassword("password");
+    }
+
 
     public RawRepoHarvesterConfigEntryBuilder setId(String id) {
         this.id = id;
@@ -53,23 +69,53 @@ public class RawRepoHarvesterConfigEntryBuilder {
         return this;
     }
 
-    public RawRepoHarvesterConfigEntryBuilder setFormat(String format) {
-        this.format = format;
-        return this;
-    }
-
     public RawRepoHarvesterConfigEntryBuilder setType(JobSpecification.Type type) {
         this.type = type;
         return this;
     }
 
+    public RawRepoHarvesterConfigEntryBuilder setFormat(String format) {
+        this.format = format;
+        return this;
+    }
+
+    public RawRepoHarvesterConfigEntryBuilder setFormatOverrides(Integer agencyId, String format) {
+        this.formatOverrides.put(agencyId, format);
+        return this;
+    }
+
+    public RawRepoHarvesterConfigEntryBuilder setIncludeRelations(Boolean includeRelations) {
+        this.includeRelations = includeRelations;
+        return this;
+    }
+
+    public RawRepoHarvesterConfigEntryBuilder setBatchSize(int batchSize) {
+        this.batchSize = batchSize;
+        return this;
+    }
+
+    public RawRepoHarvesterConfigEntryBuilder setOpenAgencyTarget(OpenAgencyTarget openAgencyTarget) {
+        this.openAgencyTarget = openAgencyTarget;
+        return this;
+    }
+
     public RawRepoHarvesterConfig.Entry build() {
-        return new RawRepoHarvesterConfig.Entry()
+        RawRepoHarvesterConfig.Entry entry = new RawRepoHarvesterConfig.Entry()
                 .setId(id)
                 .setResource(resource)
                 .setConsumerId(consumerId)
-                .setFormat(format)
                 .setDestination(destination)
-                .setType(type);
+                .setType(type)
+                .setFormat(format)
+                .setIncludeRelations(includeRelations)
+                .setBatchSize(batchSize)
+                .setOpenAgencyTarget(openAgencyTarget);
+        if (!formatOverrides.isEmpty()) {
+            for (Map.Entry<Integer, String> formatOverride : formatOverrides.entrySet()) {
+                entry.setFormatOverride(formatOverride.getKey(), formatOverride.getValue());
+            }
+        }
+        return entry;
     }
+
 }

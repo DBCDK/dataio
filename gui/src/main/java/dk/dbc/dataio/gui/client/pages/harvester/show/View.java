@@ -79,7 +79,7 @@ public class View extends ViewWidget {
         harvestersTable.addColumn(constructNameColumn(), textWithToolTip(getTexts().columnHeader_Name(), getTexts().help_Name()));
         harvestersTable.addColumn(constructResourceColumn(), textWithToolTip(getTexts().columnHeader_Resource(), getTexts().help_Resource()));
         harvestersTable.addColumn(constructTargetColumn(), textWithToolTip(getTexts().columnHeader_Target(), getTexts().help_Target()));
-        harvestersTable.addColumn(constructIdColumn(), textWithToolTip(getTexts().columnHeader_Id(), getTexts().help_Id()));
+        harvestersTable.addColumn(constructConsumerIdColumn(), textWithToolTip(getTexts().columnHeader_Id(), getTexts().help_Id()));
         harvestersTable.addColumn(constructSizeColumn(), textWithToolTip(getTexts().columnHeader_Size(), getTexts().help_Size()));
         harvestersTable.addColumn(constructFormatOverridesColumn(), textWithToolTip(getTexts().columnHeader_FormatOverrides(), getTexts().help_FormatOverrides()));
         harvestersTable.addColumn(constructRelationsColumn(), textWithToolTip(getTexts().columnHeader_Relations(), getTexts().help_Relations()));
@@ -136,12 +136,12 @@ public class View extends ViewWidget {
     }
 
     /**
-     * This method constructs the Id column
+     * This method constructs the ConsumerId column
      * Should have been private, but is package-private to enable unit test
      *
-     * @return the constructed Id column
+     * @return the constructed ConsumerId column
      */
-    Column constructIdColumn() {
+    Column constructConsumerIdColumn() {
         return new TextColumn<Entry>() {
             @Override
             public String getValue(Entry harvester) {

@@ -211,8 +211,9 @@ public class RawRepoHarvesterConfig implements Serializable {
             return openAgencyTarget;
         }
 
-        public void setOpenAgencyTarget(OpenAgencyTarget openAgencyTarget) {
+        public Entry setOpenAgencyTarget(OpenAgencyTarget openAgencyTarget) {
             this.openAgencyTarget = openAgencyTarget;
+            return this;
         }
 
         @Override

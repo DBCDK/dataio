@@ -22,10 +22,12 @@
 package dk.dbc.dataio.harvester.types;
 
 
+import java.io.Serializable;
+
 /**
  * Configuration for an OpenAgency target
  */
-public class OpenAgencyTarget {
+public class OpenAgencyTarget implements Serializable {
     private String url;
     private String group;
     private String user;

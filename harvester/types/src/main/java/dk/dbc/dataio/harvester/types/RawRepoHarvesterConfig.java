@@ -88,7 +88,7 @@ public class RawRepoHarvesterConfig implements Serializable {
     /**
      * Class representing a harvest operation.
      */
-    public static class Entry {
+    public static class Entry implements Serializable {
         /** ID of harvest operation */
         private String id;
 

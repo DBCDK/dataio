@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -69,7 +68,7 @@ public interface FlowStoreProxyAsync {
     void getSink(Long id, AsyncCallback<SinkModel> async);
 
     // Harvesters
-    void getHarvesterRrConfigs(AsyncCallback<RawRepoHarvesterConfig> async) throws ProxyException;
+    void getHarvesterRrConfigs(AsyncCallback<RawRepoHarvesterConfig> async);
 
     // Other
     void close(AsyncCallback<Void> async);

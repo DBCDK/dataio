@@ -97,7 +97,8 @@ public class FlowCache {
         return cacheEntry;
     }
 
-    private JSWrapperSingleScript createWrappedScript(FlowComponentContent componentContent) throws Throwable {
+    /* This method is synchronized to hopefully overcome some the experienced nashorn concurrency issues */
+    private static synchronized JSWrapperSingleScript createWrappedScript(FlowComponentContent componentContent) throws Throwable {
         final List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
         final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
         for (JavaScript javascriptBase64 : javaScriptsBase64) {

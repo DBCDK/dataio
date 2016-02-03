@@ -170,7 +170,7 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     private ChunkItem buildChunkItemWithMultipleValidAddiRecords() {
-        return new ChunkItemBuilder().setData(getAddi(buildListOfAddRecords())).setStatus(SUCCESS).build();
+        return new ChunkItemBuilder().setData(getAddi(buildListOfAddRecords())).setTrackingId(DBC_TRACKING_ID_VALUE).setStatus(SUCCESS).build();
     }
 
     private List<AddiRecordWrapper> buildListOfAddRecords() {

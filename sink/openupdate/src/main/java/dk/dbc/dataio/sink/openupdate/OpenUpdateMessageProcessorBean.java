@@ -34,6 +34,7 @@ import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,27 +60,31 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         LOGGER.info("Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
 
         final Chunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
-        for (ChunkItem processedChunkItem : processedChunk) {
-            final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
-            final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
-                    processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
+        try {
+            for (ChunkItem processedChunkItem : processedChunk) {
+                DBCTrackedLogContext.setTrackingId(processedChunkItem.getTrackingId());
+                final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
+                final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
+                        processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
 
-            switch (processedChunkItem.getStatus()) {
-                case SUCCESS: chunkForDelivery.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
-                    break;
+                switch (processedChunkItem.getStatus()) {
+                    case SUCCESS: chunkForDelivery.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
+                        break;
 
-                case FAILURE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
-                        processedChunkItem.getId(), "Failed by processor", processedChunkItem.getTrackingId()));
-                    break;
+                    case FAILURE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
+                            processedChunkItem.getId(), "Failed by processor", processedChunkItem.getTrackingId()));
+                        break;
 
-                case IGNORE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
-                        processedChunkItem.getId(), "Ignored by processor", processedChunkItem.getTrackingId()));
-                    break;
+                    case IGNORE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
+                            processedChunkItem.getId(), "Ignored by processor", processedChunkItem.getTrackingId()));
+                        break;
 
-                default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
+                    default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
+                }
             }
+        } finally {
+            DBCTrackedLogContext.remove();
         }
-
         addChunkInJobStore(chunkForDelivery);
     }
 

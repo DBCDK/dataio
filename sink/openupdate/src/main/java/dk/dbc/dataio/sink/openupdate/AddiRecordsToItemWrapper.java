@@ -47,7 +47,6 @@ public class AddiRecordsToItemWrapper {
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
-    private String trackingId;
     private List<Diagnostic> diagnostics = new ArrayList<>();
 
     /**
@@ -73,14 +72,15 @@ public class AddiRecordsToItemWrapper {
      */
     public ChunkItem callOpenUpdateWebServiceForEachAddiRecord() {
         addiRecordIndex = 1;
-        List<AddiRecord> addiRecordsForItem;
+        final List<AddiRecord> addiRecordsForItem;
         try {
             addiRecordsForItem = AddiUtil.getAddiRecordsFromChunkItem(processedChunkItem);
             totalNumberOfAddiRecords = addiRecordsForItem.size();
         } catch (Throwable t) {
             return ObjectFactory.buildFailedChunkItem(
                     processedChunkItem.getId(),
-                    "Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t));
+                    "Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t),
+                    processedChunkItem.getTrackingId());
         }
 
         final Optional<AddiStatus> failed = addiRecordsForItem.stream()
@@ -92,7 +92,7 @@ public class AddiRecordsToItemWrapper {
                 .findFirst();
 
         ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(processedChunkItem.getId(),
-                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING, trackingId);
+                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING, processedChunkItem.getTrackingId());
 
         if(failed.isPresent()) {
             diagnostics.stream().forEach(chunkItem::appendDiagnostics);
@@ -108,13 +108,12 @@ public class AddiRecordsToItemWrapper {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord);
-            trackingId = preprocessorResult.getTrackingId();
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     preprocessorResult.getSubmitter(),
                     preprocessorResult.getTemplate(),
                     preprocessorResult.getBibliographicRecord(),
-                    trackingId);
+                    processedChunkItem.getTrackingId());
 
             if(webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
@@ -145,8 +144,8 @@ public class AddiRecordsToItemWrapper {
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {
-        final String itemResultTemplate = "Addi record with OpenUpdate trackingID %s : %s out of %s -> %s \\n";
-        return String.format(itemResultTemplate, trackingId, addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
+        final String itemResultTemplate = "Addi record with trackingID %s : %s out of %s -> %s \\n";
+        return String.format(itemResultTemplate, processedChunkItem.getTrackingId(), addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
     }
 
     private String getItemContentCrossAddiRecords() {

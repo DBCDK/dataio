@@ -24,7 +24,6 @@ package dk.dbc.dataio.sink.openupdate;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
-import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.ExtraRecordData;
 import dk.dbc.oss.ns.catalogingupdate.RecordData;
@@ -41,11 +40,10 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
         InvariantUtil.checkNotNullOrThrow(addiRecord, "addiRecord");
         try {
             final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            final String trackingId = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, DBCTrackedLogContext.DBC_TRACKING_ID_KEY);
             final String submitter = extractAttributeValue(metaDataDocument, ES_NAMESPACE_URI, ES_INFO_ELEMENT, "submitter");
             final String template = extractAttributeValue(metaDataDocument, DATAIO_PROCESSING_NAMESPACE_URI, UPDATE_TEMPLATE_ELEMENT, "updateTemplate");
             final BibliographicRecord bibliographicRecord = getMarcXChangeRecord(byteArrayToDocument(addiRecord.getContentData()));
-            return new Result(trackingId, submitter, template, bibliographicRecord);
+            return new Result(submitter, template, bibliographicRecord);
         } catch (IOException | SAXException e) {
             throw new IllegalArgumentException(e);
         }
@@ -67,19 +65,14 @@ public class AddiRecordPreprocessor extends DocumentTransformer {
     }
 
     public static class Result {
-        private final String trackingId;
         private final String submitter;
         private final String template;
         private final BibliographicRecord bibliographicRecord;
 
-        public Result(String trackingId, String submitter, String template, BibliographicRecord bibliographicRecord) {
-            this.trackingId = trackingId;
+        public Result(String submitter, String template, BibliographicRecord bibliographicRecord) {
             this.submitter = submitter;
             this.template = template;
             this.bibliographicRecord = bibliographicRecord;
-        }
-        public String getTrackingId() {
-            return trackingId;
         }
 
         public String getSubmitter() {

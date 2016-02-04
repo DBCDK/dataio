@@ -603,6 +603,10 @@ public class PgJobStoreRepository extends RepositoryBase {
                is still created but with a serialized JobError as payload instead.
              */
             for (ChunkItem chunkItem : dataPartitioner) {
+                if (chunkItem == null) {
+                    continue;
+                }
+
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 

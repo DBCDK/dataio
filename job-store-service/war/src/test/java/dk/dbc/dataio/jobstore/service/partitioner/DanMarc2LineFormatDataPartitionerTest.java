@@ -97,18 +97,6 @@ public class DanMarc2LineFormatDataPartitionerTest {
     }
 
     @Test
-    public void dm2LineFormatDataPartitioner_inputStreamContainsOnlyEndMark_returnsChunkItemWithStatusIgnore()  {
-        final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
-                StringUtil.asInputStream("$\n", StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
-        assertThat("Empty input => hasNext() expected to be true", iterator.hasNext(), is(true));
-        ChunkItem chunkItem = iterator.next();
-        assertThat(chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
-        assertThat(chunkItem.getDiagnostics(), is(nullValue()));
-        assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
-    }
-
-    @Test
     public void dm2LineFormatDataPartitioner_readValidRecord_returnsChunkItemWithMarcRecordAsMarcXchangeAndStatusSuccess() {
         final String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
         final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(

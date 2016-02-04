@@ -149,18 +149,6 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void createChunkItemEntities_dataPartitionerReceivesEmptyRecord_ignoredItemIsCreated() throws JobStoreException {
-        final String emptyRecord = "$\n";
-        PgJobStoreRepository.ChunkItemEntities chunkItemEntities = createChunkItemEntitiesForDanMarc2Partitioning(emptyRecord);
-
-        assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
-        assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 1));
-        assertThat("Chunk: number of ignored items", chunkItemEntities.chunkStateChange.getIgnored(), is(1));
-        assertThat("First item: ignored", chunkItemEntities.entities.get(0).getState().getPhase(PARTITIONING).getIgnored(), is(1));
-        assertThat("First item: has fatal diagnostic", chunkItemEntities.entities.get(0).getState().fatalDiagnosticExists(), is(false));
-    }
-
-    @Test
     public void createChunkEntity() throws JobStoreException {
         final Params params = new Params();
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());

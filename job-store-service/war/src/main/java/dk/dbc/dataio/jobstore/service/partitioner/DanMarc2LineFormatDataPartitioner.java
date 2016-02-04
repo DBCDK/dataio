@@ -142,7 +142,6 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
 
     /**
      * Process the MarcRecord obtained from the input stream
-     * If the marcRecord contains no fields (special case), a result with a chunk item with status IGNORE is returned
      * If the marcRecord can be written, a result containing chunk item with status SUCCESS and record info is returned
      * If an error occurs while writing the record, a result with a chunk item with status FAILURE is returned
      * @param marcRecord the MarcRecord result from the marcReader.read() method
@@ -153,12 +152,8 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         ChunkItem chunkItem;
         Optional<MarcRecordInfo> recordInfo = Optional.empty();
         try {
-            if (marcRecord.getFields().isEmpty()) {
-                chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
-            } else {
-                chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), ChunkItem.Type.MARCXCHANGE);
-                recordInfo = marcRecordInfoBuilder.parse(marcRecord);
-            }
+            chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), ChunkItem.Type.MARCXCHANGE);
+            recordInfo = marcRecordInfoBuilder.parse(marcRecord);
         } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);
             chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());

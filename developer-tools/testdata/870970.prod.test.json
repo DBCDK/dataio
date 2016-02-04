@@ -1,0 +1,12 @@
+{
+         "charset": "utf8",
+         "destination": "testbroend",
+         "format": "basis",
+         "mailForNotificationAboutProcessing": "kwc@dbc.dk",
+         "mailForNotificationAboutVerification": "",
+         "resultmailInitials": "KWC",
+         "packaging": "xml",
+         "submitterId": 870970,
+         "type": "TEST"
+}
+

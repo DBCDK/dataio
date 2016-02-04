@@ -74,8 +74,8 @@ public class ViewTest {
             setDestination("Destination1").
             setType(JobSpecification.Type.TRANSIENT).
             setFormat("Format1").
-            setFormatOverrides(123456, "FormatOverride1").
             setFormatOverrides(234567, "FormatOverride2").
+            setFormatOverrides(123456, "FormatOverride1").
             setIncludeRelations(true).
             setBatchSize(321).
             setOpenAgencyTarget(testOpenAgencyTarget).
@@ -295,7 +295,7 @@ public class ViewTest {
         Column column = view.constructFormatOverridesColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat(column.getValue(testHarvesterConfigEntry1), is("870970 - Format1 ???"));
+        assertThat(column.getValue(testHarvesterConfigEntry1), is("123456 - FormatOverride1, 234567 - FormatOverride2"));
     }
 
     @Test

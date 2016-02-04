@@ -28,11 +28,15 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig.Entry;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class is the View class for the Harvesters Show View
@@ -175,7 +179,12 @@ public class View extends ViewWidget {
         return new TextColumn<Entry>() {
             @Override
             public String getValue(Entry harvester) {
-                return "870970 - " + harvester.getFormat(870970) +  " ???";
+                List<String> formats = new ArrayList<>();
+                for (Map.Entry<Integer, String> entry : harvester.getFormatOverrides().entrySet()) {
+                    formats.add(entry.getKey().toString() + " - " + entry.getValue());
+                }
+                Collections.sort(formats);
+                return Format.commaSeparate(formats);
             }
         };
     }

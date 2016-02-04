@@ -89,6 +89,8 @@ public class RawRepoHarvesterConfig implements Serializable {
      * Class representing a harvest operation.
      */
     public static class Entry implements Serializable {
+        private static final long serialVersionUID = 1351171822608996512L;
+
         /** ID of harvest operation */
         private String id;
 
@@ -191,6 +193,10 @@ public class RawRepoHarvesterConfig implements Serializable {
         public String getFormat(int agencyId) {
             final String formatOverride = formatOverrides.get(agencyId);
             return formatOverride != null ? formatOverride : format;
+        }
+
+        public Map<Integer, String> getFormatOverrides() {
+            return formatOverrides;
         }
 
         public Entry setFormatOverride(int agencyId, String format) {

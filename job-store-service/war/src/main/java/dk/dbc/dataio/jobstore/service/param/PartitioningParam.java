@@ -13,7 +13,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDa
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitionerFactory;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
@@ -146,7 +146,7 @@ public class PartitioningParam {
                 case XML:
                     return DefaultXmlDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ISO2709:
-                    return new Iso2709DataPartitionerFactory().createDataPartitioner(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return Iso2709DataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case DANMARC2_LINE_FORMAT:
                     return getDanMarc2LineFormatPartitioner();
                 case RR_MARC_XML:

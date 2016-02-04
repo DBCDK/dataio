@@ -61,6 +61,14 @@ public abstract class AbstractPartitionerTestBase {
         return new ByteArrayInputStream(xml.getBytes(encoding));
     }
 
+    static InputStream getResourceAsStream(String resourceName) {
+        return AbstractPartitionerTestBase.class.getResourceAsStream(resourceName);
+    }
+
+    static byte[] getResourceAsByteArray(String resourceName) {
+        return readTestRecord(resourceName);
+    }
+
     private static String readTestRecordAsString(String resourceName) {
         return StringUtil.asString(readTestRecord(resourceName), UTF_8);
     }

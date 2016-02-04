@@ -123,7 +123,7 @@
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-jslib</artifactId>
-      <version>${dbc-jslib.version}</version>
+      <version>1.0-SNAPSHOT</version>
     </dependency>
   </dependencies>
 

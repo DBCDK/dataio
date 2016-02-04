@@ -15,9 +15,9 @@ EXPORTED_SYMBOLS = [ "Record", "Field", "Subfield" ];
 // times.
 
 var Subfield = (function () {
-    var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
-    var String = Java.type("java.lang.String");
-    var DanMarc2Charset = Java.type("dk.dbc.marc.DanMarc2Charset");
+    var StandardCharsets = Packages.java.nio.charset.StandardCharsets;
+    var String = Packages.java.lang.String;
+    var DanMarc2Charset = Packages.dk.dbc.marc.DanMarc2Charset;
     var danMarc2Charset = new DanMarc2Charset();
     var toDm2 = function (s) {
         return "" + new String(new String(s).getBytes(danMarc2Charset), StandardCharsets.ISO_8859_1);
@@ -677,13 +677,13 @@ var Record = function( filenameArg ) {
 
     // Record:fromString
     that.fromString = function (string) {
-        var ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
-        var DanMarc2LineFormatReader = Java.type("dk.dbc.marc.reader.DanMarc2LineFormatReader");
-        var DanMarc2Charset = Java.type("dk.dbc.marc.DanMarc2Charset");
+        var ByteArrayInputStream = Packages.java.io.ByteArrayInputStream;
+        var DanMarc2LineFormatReader = Packages.dk.dbc.marc.reader.DanMarc2LineFormatReader;
+        var DanMarc2Charset = Packages.dk.dbc.marc.DanMarc2Charset;
         var danMarc2Charset = new DanMarc2Charset(DanMarc2Charset.Variant.LINE_FORMAT);
-        var DataField = Java.type("dk.dbc.marc.binding.DataField");
-        var String = Java.type("java.lang.String");
-        var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
+        var DataField = Packages.dk.dbc.marc.binding.DataField;
+        var String = Packages.java.lang.String;
+        var StandardCharsets = Packages.java.nio.charset.StandardCharsets;
 
         __clear();
         
@@ -708,9 +708,9 @@ var Record = function( filenameArg ) {
     };
 
     that.decode = function ( binary ) {
-        var Iso2709Unpacker =  Java.type("dk.dbc.marc.Iso2709Unpacker")
-        var Node = Java.type("org.w3c.dom.Node");
-        var DanMarc2Charset = Java.type("dk.dbc.marc.DanMarc2Charset");
+        var Iso2709Unpacker =  Packages.dk.dbc.marc.Iso2709Unpacker;
+        var Node = Packages.org.w3c.dom.Node;
+        var DanMarc2Charset = Packages.dk.dbc.marc.DanMarc2Charset;
         var danMarc2Charset = new DanMarc2Charset();
         var marcx = Iso2709Unpacker.createMarcXChangeRecord(binary.toOutputBytes(), danMarc2Charset);
 

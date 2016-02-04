@@ -154,7 +154,7 @@ UnitTest.addFixture( "marc.MarcClasses module", function( ) {
 
         // Seems we need a toString test here
         Assert.equal( "F: toString test", '__ut.field.toString( )', 
-        (typeof(Java) !== "undefined" ? "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$@0300'~@*@0302%&/()=? *c 123456 " : "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$`'~@*^%&/()=? *c 123456 " ));
+        (typeof(Packages) !== "undefined" ? "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$@0300'~@*@0302%&/()=? *c 123456 " : "045 02 *a 987 654 321 *b This is subfield b *a Another a subfield @@#\xA4$`'~@*^%&/()=? *c 123456 " ));
 
         __ut.field.append( new Subfield( "d", "gedeost" ) );
         Assert.equal( "F: Counting subfield with one subfield", '__ut.field.count( )', 5 );

@@ -23,7 +23,11 @@ package dk.dbc.dataio.gui.client.pages.sink.show;
 
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.DomEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.view.client.RangeChangeEvent;
+import com.google.gwt.view.client.SelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
@@ -37,9 +41,11 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -56,7 +62,6 @@ public class ViewTest {
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
     @Mock static ClickEvent mockedClickEvent;
     @Mock private ViewGinjector mockedViewGinjector;
-    private final String header = "Header Text";
 
 
     // Test Data
@@ -72,9 +77,15 @@ public class ViewTest {
     @Mock static Texts mockedTexts;
     final static String MOCKED_LABEL_SINKS = "Mocked Text: label_Sinks";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: button_Edit";
+    final static String MOCKED_COLUMNHEADER_TYPE = "Mocked Text: columnHeader_Type";
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: columnHeader_Name";
+    final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: columnHeader_Description";
     final static String MOCKED_COLUMNHEADER_RESOURCENAME = "Mocked Text: columnHeader_ResourceName";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
+    final static String MOCKED_ESSINK = "Mocked Text: MOCKED_ESSINK";
+    final static String MOCKED_UPDATESINK = "Mocked Text: MOCKED_UPDATESINK";
+    final static String MOCKED_DUMMYSINK = "Mocked Text: MOCKED_DUMMYSINK";
+    final static String MOCKED_FBSWEBSERVICESINK = "Mocked Text: MOCKED_FBSWEBSERVICESINK";
 
     class ViewConcrete extends View {
         public ViewConcrete() {
@@ -92,9 +103,15 @@ public class ViewTest {
         when(mockedMenuTexts.menu_Sinks()).thenReturn("Header Text");
         when(mockedTexts.label_Sinks()).thenReturn(MOCKED_LABEL_SINKS);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
+        when(mockedTexts.columnHeader_Type()).thenReturn(MOCKED_COLUMNHEADER_TYPE);
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
+        when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);
         when(mockedTexts.columnHeader_ResourceName()).thenReturn(MOCKED_COLUMNHEADER_RESOURCENAME);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
+        when(mockedTexts.selection_ESSink()).thenReturn(MOCKED_ESSINK);
+        when(mockedTexts.selection_UpdateSink()).thenReturn(MOCKED_UPDATESINK);
+        when(mockedTexts.selection_DummySink()).thenReturn(MOCKED_DUMMYSINK);
+        when(mockedTexts.selection_FBSWebserviceSink()).thenReturn(MOCKED_FBSWEBSERVICESINK);
     }
 
 
@@ -110,9 +127,16 @@ public class ViewTest {
         view.injector = mockedViewGinjector;
 
         // Verify invocations
+        verify(view.sinksTable).addRangeChangeHandler(any(RangeChangeEvent.Handler.class));
+        verify(view.sinksTable).setRowCount(0,true);
+        verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TYPE));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
+        verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_RESOURCENAME));
         verify(view.sinksTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
+        verify(view.sinksTable).setSelectionModel(any(SelectionModel.class));
+        verify(view.sinksTable).addDomHandler(any(DoubleClickHandler.class), any(DomEvent.Type.class));
+        verifyNoMoreInteractions(view.sinksTable);
     }
 
     @Test
@@ -135,6 +159,20 @@ public class ViewTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void constructSinkTypeColumn_call_correctlySetup() {
+
+        // Setup
+        view = new ViewConcrete();
+
+        // Subject Under Test
+        Column column = view.constructTypeColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(MOCKED_ESSINK));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void constructSinkNameColumn_call_correctlySetup() {
 
         // Setup
@@ -144,7 +182,20 @@ public class ViewTest {
         Column column = view.constructNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getSinkName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getSinkName()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructDescriptionColumn_call_correctlySetup() {
+        // Setup
+        view = new View();
+
+        // Subject Under Test
+        Column column = view.constructDescriptionColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(testModel1), is(testModel1.getDescription()));
     }
 
     @Test
@@ -157,7 +208,7 @@ public class ViewTest {
         Column column = view.constructResourceNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(testModel1.getResourceName()));
+        assertThat(column.getValue(testModel1), is(testModel1.getResourceName()));
     }
 
     @Test
@@ -171,7 +222,7 @@ public class ViewTest {
         Column column = view.constructActionColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(testModel1), is(mockedTexts.button_Edit()));
+        assertThat(column.getValue(testModel1), is(mockedTexts.button_Edit()));
 
         // Test that the right action is activated upon click
         view.setPresenter(mockedPresenter);

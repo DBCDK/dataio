@@ -33,6 +33,8 @@ import dk.dbc.dataio.gui.client.pages.sink.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.sink.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -111,6 +113,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method deciphers if a sink has been added, updated or deleted.
      * The view and selection model are updated accordingly
      *
+     * @param dataProviderSet The set of data already stored in the view
      * @param models the list of sinks returned from flow store proxy
      */
     private void setSinksAndDecipherSelection(Set<SinkModel> dataProviderSet, List<SinkModel> models) {
@@ -143,12 +146,32 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
         @Override
         public void onSuccess(List<SinkModel> models) {
-            setSinksAndDecipherSelection(new HashSet<SinkModel>(getView().dataProvider.getList()), models);
+            sortAccordingToNames(models);
+            sortAccordingToTypes(models);
+            setSinksAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
         }
     }
 
     View getView() {
         return viewInjector.getView();
+    }
+
+    private void sortAccordingToNames(List<SinkModel> models) {
+        Collections.sort(models, new Comparator<SinkModel>() {
+            @Override
+            public int compare(SinkModel o1, SinkModel o2) {
+                return o1.getSinkName().toLowerCase().compareTo(o2.getSinkName().toLowerCase());
+            }
+        });
+    }
+
+    private void sortAccordingToTypes(List<SinkModel> models) {
+        Collections.sort(models, new Comparator<SinkModel>() {
+            @Override
+            public int compare(SinkModel o1, SinkModel o2) {
+                return o1.getSinkType().compareTo(o2.getSinkType());
+            }
+        });
     }
 
 }

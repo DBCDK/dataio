@@ -30,6 +30,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
 import java.util.List;
@@ -39,7 +40,7 @@ import java.util.List;
  */
 public class View extends ViewWidget {
     ListDataProvider<SinkModel> dataProvider;
-    SingleSelectionModel<SinkModel> selectionModel = new SingleSelectionModel<SinkModel>();
+    SingleSelectionModel<SinkModel> selectionModel = new SingleSelectionModel<>();
 
     /**
      * Default constructor
@@ -72,15 +73,31 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<SinkModel>();
+        dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(sinksTable);
 
+        sinksTable.addColumn(constructTypeColumn(), getTexts().columnHeader_Type());
         sinksTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
         sinksTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
         sinksTable.addColumn(constructResourceNameColumn(), getTexts().columnHeader_ResourceName());
         sinksTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         sinksTable.setSelectionModel(selectionModel);
         sinksTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
+    }
+
+    /**
+     * This method constructs the Type column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Type column
+     */
+    Column constructTypeColumn() {
+        return new TextColumn<SinkModel>() {
+            @Override
+            public String getValue(SinkModel model) {
+                return formatSinkType(model.getSinkType());
+            }
+        };
     }
 
     /**
@@ -159,7 +176,7 @@ public class View extends ViewWidget {
      * @return the double click handler
      */
     private DoubleClickHandler getDoubleClickHandler(){
-        DoubleClickHandler handler = new DoubleClickHandler() {
+        return new DoubleClickHandler() {
             @Override
             public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
                 SinkModel selected = selectionModel.getSelectedObject();
@@ -168,7 +185,16 @@ public class View extends ViewWidget {
                 }
             }
         };
-        return handler;
+    }
+
+    private String formatSinkType(SinkContent.SinkType sinkType) {
+        switch (sinkType) {
+            case DUMMY: return getTexts().selection_DummySink();
+            case ES: return getTexts().selection_ESSink();
+            case FBS: return getTexts().selection_FBSWebserviceSink();
+            case OPENUPDATE: return getTexts().selection_UpdateSink();
+            default: return "";
+        }
     }
 
 }

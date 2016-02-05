@@ -26,13 +26,22 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
+import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Iterator;
 import dk.dbc.marc.Iso2709IteratorReadError;
 import dk.dbc.marc.Iso2709Unpacker;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcReaderInvalidRecordException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import dk.dbc.marc.writer.MarcWriter;
+import dk.dbc.marc.writer.MarcWriterException;
+import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -45,22 +54,25 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.Optional;
 
 public class Iso2709DataPartitioner implements DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(Iso2709DataPartitioner.class);
 
     private final Iso2709Iterator inputStream;
+    private final MarcXchangeV1Writer marcWriter;
+    private final MarcRecordInfoBuilder marcRecordInfoBuilder;
+
     private Charset encoding;
     private String specifiedEncoding;
 
-    private Iterator<ChunkItem> iterator;
     private DanMarc2Charset danMarc2Charset;
-    private BufferedInputStream bufferedInputStream;
     private DocumentBuilderFactory documentBuilderFactory;
 
     /**
@@ -78,13 +90,16 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     protected Iso2709DataPartitioner(InputStream inputStream, String specifiedEncoding) {
-        this.bufferedInputStream = getInputStreamAsBufferedInputStream(inputStream);
+        BufferedInputStream bufferedInputStream = getInputStreamAsBufferedInputStream(inputStream);
         this.inputStream = new Iso2709Iterator(bufferedInputStream);
         this.encoding = StandardCharsets.UTF_8;
         this.specifiedEncoding = specifiedEncoding;
         validateSpecifiedEncoding();
         danMarc2Charset = new DanMarc2Charset();
         documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        marcWriter = new MarcXchangeV1Writer();
+        marcRecordInfoBuilder = new MarcRecordInfoBuilder();
+
     }
 
     @Override
@@ -99,45 +114,65 @@ public class Iso2709DataPartitioner implements DataPartitioner {
 
     @Override
     public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
-        iterator = new Iterator<ChunkItem>() {
-
+        return new Iterator<ChunkItem>() {
             @Override
             public boolean hasNext() {
-                return inputStream.hasNext();
+                return hasNextDataPartitionerResult();
             }
 
             @Override
             public ChunkItem next() {
-                byte[] recordAsBytes = inputStream.next();
-
-                try {
-                    Document document = Iso2709Unpacker.createMarcXChangeRecord(recordAsBytes, danMarc2Charset, documentBuilderFactory);
-                    if (document == null) {
-                        return null;
-                    }
-                    return new ChunkItem(0, domToString(document).getBytes(StandardCharsets.UTF_8), ChunkItem.Status.SUCCESS );
-                } catch (ParserConfigurationException e) {
-                    LOGGER.error("Exception caught while creating MarcXChange Record", e);
-                    throw new InvalidDataException(e);
-                } catch (TransformerException e) {
-                    LOGGER.error("Unrecoverable error occurred during transformation", e);
-                    throw new InvalidDataException(e);
-                } catch( Iso2709IteratorReadError e) {
-                    return null;
-                } catch (Exception e) {
-                    LOGGER.error("Exception caught while decoding 2709", e);
-                    ChunkItem result = ObjectFactory.buildFailedChunkItem(0, recordAsBytes);
-                    result.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,"Exception caught while decoding 2709", e ));
-                    return result;
-                }
+                return nextDataPartitionerResult().getChunkItem();
             }
         };
-        return iterator;
+    }
+
+    /*
+     * Protected methods
+     */
+
+    protected boolean hasNextDataPartitionerResult() {
+        return inputStream.hasNext();
+    }
+
+    protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
+        DataPartitionerResult result;
+        final byte[] recordAsBytes = inputStream.next();
+        try {
+            final MarcRecord marcRecord = getMarcRecord(recordAsBytes);
+            if (marcRecord == null) {
+                result = DataPartitionerResult.EMPTY;
+            } else {
+                result = processMarcRecord(marcRecord, marcWriter);
+            }
+        } catch (MarcReaderException e) {
+            LOGGER.error("Exception caught while creating MarcRecord", e);
+            if (e instanceof MarcReaderInvalidRecordException) {
+                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead());
+                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+                return new DataPartitionerResult(chunkItem, null);
+            } else {
+                throw new InvalidDataException(e);
+            }
+        } catch(Iso2709IteratorReadError e) {
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("Exception caught while decoding 2709", e);
+            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes);
+            chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,"Exception caught while decoding 2709", e ));
+            result = new DataPartitionerResult(chunkItem, null);
+            return result;
+        }
+        return result;
     }
 
     /*
      * Private methods
-    */
+     */
+
+    private BufferedInputStream getInputStream(byte[] data) {
+        return new BufferedInputStream(new ByteArrayInputStream(data));
+    }
 
     /**
      * This method verifies if the specified encoding is latin1
@@ -150,6 +185,59 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     /**
+     * Process the MarcRecord obtained from the input stream
+     * If the marcRecord contains no fields (special case), a result with a chunk item with status IGNORE is returned
+     * If the marcRecord can be written, a result containing chunk item with status SUCCESS and record info is returned
+     * If an error occurs while writing the record, a result with a chunk item with status FAILURE is returned
+     * @param marcRecord the MarcRecord result from the marcReader.read() method
+     * @param marcWriter the MarcWriter implementation used to write the marc record
+     * @return data partitioner result
+     */
+    private DataPartitionerResult processMarcRecord(MarcRecord marcRecord, MarcWriter marcWriter) {
+        ChunkItem chunkItem;
+        Optional<MarcRecordInfo> recordInfo = Optional.empty();
+        try {
+            if (marcRecord.getFields().isEmpty()) {
+                chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
+            } else {
+                chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, marcWriter.write(marcRecord, encoding), ChunkItem.Type.MARCXCHANGE);
+                recordInfo = marcRecordInfoBuilder.parse(marcRecord);
+            }
+        } catch (MarcWriterException e) {
+            LOGGER.error("Exception caught while processing MarcRecord", e);
+            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());
+            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+        }
+        return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+    }
+
+    /**
+     * This method converts a byte array representation of the record into a document representation of the record into a marc record.
+     * @param recordAsBytes byte array representation of the record
+     * @return marc record or null if no document could be created
+     * @throws MarcReaderException if an error occurs while creating parser
+     * @throws InvalidDataException if:
+     * A documentBuilder cannot be created which satisfies the configuration requested.
+     * It was not possible to create a Transformer instance or if an unrecoverable error occurs during the course of the transformation.
+     */
+    private MarcRecord getMarcRecord(byte[] recordAsBytes) throws MarcReaderException, InvalidDataException {
+        try {
+            Document marcXChangeRecordAsDocument = Iso2709Unpacker.createMarcXChangeRecord(recordAsBytes, danMarc2Charset, documentBuilderFactory);
+            if (marcXChangeRecordAsDocument != null) {
+                MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(documentToString(marcXChangeRecordAsDocument).getBytes(encoding)), encoding);
+                return marcReader.read();
+            }
+            return null;
+        } catch (ParserConfigurationException e) {
+            LOGGER.error("Exception caught while creating MarcXChange Record", e);
+            throw new InvalidDataException(e);
+        } catch (TransformerException e) {
+            LOGGER.error("Unrecoverable error occurred during transformation", e);
+            throw new InvalidDataException(e);
+        }
+    }
+
+    /**
      *
      * This method converts a document to a String
      * @param document the document to convert
@@ -158,7 +246,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * @throws TransformerException if it was not possible to create a Transformer instance or
      *         if an unrecoverable error occurs during the course of the transformation.
      */
-    private String domToString(Document document) throws TransformerException {
+    private String documentToString(Document document) throws TransformerException {
         DOMSource domSource = new DOMSource(document);
         StreamResult result = new StreamResult(new StringWriter());
         Transformer transformer = TransformerFactory.newInstance().newTransformer();

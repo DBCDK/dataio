@@ -13,8 +13,10 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Matchers;
 
 import javax.persistence.EntityManager;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -23,6 +25,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,6 +40,11 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Before
     public void setFileStoreServiceConnectorExpectations() throws FileStoreServiceConnectorException {
         when(fileStoreServiceConnector.getFile(anyString())).thenReturn(inputStream);
+    }
+
+    @Before
+    public void setInputStreamExpectations() throws IOException {
+        when(inputStream.read(Matchers.<byte[]>any(), anyInt(), anyInt())).thenReturn(32);  // Return space
     }
 
     @Before

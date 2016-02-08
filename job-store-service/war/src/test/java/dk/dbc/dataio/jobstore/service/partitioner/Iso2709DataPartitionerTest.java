@@ -22,8 +22,8 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
-import dk.dbc.marc.Iso2709IteratorReadError;
 import org.junit.Test;
 import org.xmlunit.matchers.CompareMatcher;
 
@@ -156,8 +156,8 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         try {
             iterator.next();
             fail("Expected error not thrown");
-        } catch (Iso2709IteratorReadError e) {
-            assertThat("Expected throwable leading to InvalidDataException", e.getMessage(), is("Cannot read 1239 got:  1222"));
+        } catch (InvalidDataException e) {
+            assertThat("Expected throwable leading to InvalidDataException", e.getMessage().contains("Cannot read 1239 got:  1222"), is(true));
         }
     }
 

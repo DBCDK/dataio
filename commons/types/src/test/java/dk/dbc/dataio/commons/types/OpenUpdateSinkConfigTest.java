@@ -22,8 +22,13 @@ package dk.dbc.dataio.commons.types;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -37,6 +42,7 @@ public class OpenUpdateSinkConfigTest {
     private static final String USER_ID = "userId";
     private static final String PASSWORD = "password";
     private static final String ENDPOINT = "endpoint";
+    private static final List<String> AVAILABLE_QUEUE_PROVIDERS = new ArrayList<>(Arrays.asList("qp1", "qp2"));
 
     @Test(expected = NullPointerException.class)
     public void constructor_userIdArgIsNull_throws() {
@@ -64,18 +70,38 @@ public class OpenUpdateSinkConfigTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_wenUrlArgIsEmpty_throws() {
+    public void constructor_webUrlArgIsEmpty_throws() {
         new OpenUpdateSinkConfig(USER_ID, PASSWORD, "");
     }
 
     @Test
-    public void constructor_allArgsAreValid_returnsNewInstance() {
+    public void constructor_queueProviderArgIsNull_throws() {
+        new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, null);
+        // NB: *NO* exception should be thrown here
+    }
+
+    @Test
+    public void constructor_queueProviderArgIsEmpty_throws() {
+        new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, new ArrayList<>());
+        // This is also legal, so no exception
+    }
+
+    @Test
+    public void constructor_all3ArgsAreValid_returnsNewInstance() {
         final OpenUpdateSinkConfig instance = new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT);
         assertThat(instance, is(notNullValue()));
+        assertThat(instance.getAvailableQueueProviders(), is(nullValue()));
+    }
+
+    @Test
+    public void constructor_all4ArgsAreValid_returnsNewInstance() {
+        final OpenUpdateSinkConfig instance = new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, AVAILABLE_QUEUE_PROVIDERS);
+        assertThat(instance, is(notNullValue()));
+        assertThat(instance.getAvailableQueueProviders().size(), is(2));
     }
 
     public static OpenUpdateSinkConfig newOpenUpdateSinkConfigInstance() {
-        return new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT);
+        return new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, AVAILABLE_QUEUE_PROVIDERS);
     }
 
 }

@@ -24,20 +24,28 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.util.List;
+
 public class OpenUpdateSinkConfig implements SinkConfig {
 
     private final String userId;
     private final String password;
     private final String endpoint;
+    private final List<String> availableQueueProviders;  // Optional
 
     @JsonCreator
     public OpenUpdateSinkConfig(@JsonProperty("userId") String userId,
                                 @JsonProperty("password") String password,
-                                @JsonProperty("endpoint") String endpoint) {
-
+                                @JsonProperty("endpoint") String endpoint,
+                                @JsonProperty("queueProviders") List<String> availableQueueProviders) {
         this.userId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
         this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
+        this.availableQueueProviders = availableQueueProviders;
+    }
+
+    public OpenUpdateSinkConfig(String userId, String password, String endpoint) {
+        this(userId, password, endpoint, null);
     }
 
     public String getPassword() {
@@ -52,6 +60,10 @@ public class OpenUpdateSinkConfig implements SinkConfig {
         return endpoint;
     }
 
+    public List<String> getAvailableQueueProviders() {
+        return availableQueueProviders;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -59,9 +71,10 @@ public class OpenUpdateSinkConfig implements SinkConfig {
 
         OpenUpdateSinkConfig that = (OpenUpdateSinkConfig) o;
 
-        return userId.equals(that.userId)
-                && password.equals(that.password)
-                && endpoint.equals(that.endpoint);
+        if (!userId.equals(that.userId)) return false;
+        if (!password.equals(that.password)) return false;
+        if (!endpoint.equals(that.endpoint)) return false;
+        return availableQueueProviders != null ? availableQueueProviders.equals(that.availableQueueProviders) : that.availableQueueProviders == null;
     }
 
     @Override
@@ -69,6 +82,7 @@ public class OpenUpdateSinkConfig implements SinkConfig {
         int result = userId.hashCode();
         result = 31 * result + password.hashCode();
         result = 31 * result + endpoint.hashCode();
+        result = 31 * result + (availableQueueProviders != null ? availableQueueProviders.hashCode() : 0);
         return result;
     }
 }

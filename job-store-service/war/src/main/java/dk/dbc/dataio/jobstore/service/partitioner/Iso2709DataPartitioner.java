@@ -152,6 +152,9 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      */
     protected DataPartitionerResult nextDataPartitionerResult() throws InvalidDataException {
         DataPartitionerResult result;
+        if(isInputStreamEmpty()) {
+            return DataPartitionerResult.EMPTY;
+        }
         final byte[] recordAsBytes = getRecordAsBytes();
         try {
             final MarcRecord marcRecord = getMarcRecord(recordAsBytes);
@@ -182,6 +185,18 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     /*
      * Private methods
      */
+
+    /**
+     * This method checks if the Iso2709Iterator inputStream is empty
+     * @return true if the input stream is empty, otherwise false
+     */
+    private boolean isInputStreamEmpty() {
+        try {
+            return !inputStream.hasNext();
+        } catch (Iso2709IteratorReadError e) {
+            throw new InvalidDataException(e);
+        }
+    }
 
     /**
      * This method evaluates input stream given as input.

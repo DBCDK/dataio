@@ -59,7 +59,8 @@ public class SinkModelMapper {
                     sink.getContent().getDescription(),
                     sinkConfig.getUserId(),
                     sinkConfig.getPassword(),
-                    sinkConfig.getEndpoint());
+                    sinkConfig.getEndpoint(),
+                    sinkConfig.getAvailableQueueProviders());
         } else {
             return new SinkModel(
                     sink.getId(),
@@ -101,7 +102,8 @@ public class SinkModelMapper {
                     new OpenUpdateSinkConfig(
                             model.getOpenUpdateUserId(),
                             model.getOpenUpdatePassword(),
-                            model.getOpenUpdateEndpoint()));
+                            model.getOpenUpdateEndpoint(),
+                            model.getOpenUpdateAvailableQueueProviders()));
         } else {
             return new SinkContent(
                     model.getSinkName(),

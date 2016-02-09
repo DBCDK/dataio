@@ -79,7 +79,7 @@ public class SinkModelTest {
 
     @Test
     public void createModel_allArgs_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", "user", "pass", "url");
+        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", "user", "pass", "url", null );
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(5L));
         assertThat(model.getVersion(), is(6L));
@@ -202,7 +202,7 @@ public class SinkModelTest {
     }
 
     private SinkModel getNewStyleOpenUpdateTestModel() {
-        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", "User2", "Pass2", "Endpoint2");
+        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", "User2", "Pass2", "Endpoint2", null);
     }
 
 }

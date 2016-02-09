@@ -24,6 +24,9 @@ package dk.dbc.dataio.gui.client.modelBuilders;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class is the Builder class for SinkModel's
  */
@@ -37,6 +40,7 @@ public class SinkModelBuilder {
     private String userId = "userid";
     private String password = "password";
     private String endpoint = "endpoint";
+    private List<String> availableQueueProviders = new ArrayList<>();
 
     /**
      * Sets the ID for the Sink
@@ -129,12 +133,22 @@ public class SinkModelBuilder {
     }
 
     /**
+     * Sets the List of Available Queue Providers of the Sink - in case this is an Open Update Sink
+     * @param availableQueueProviders The List of Available Queue Providers
+     * @return The SinkModelBuilder object itself (for chaining)
+     */
+    public SinkModelBuilder setAvailableQueueProviders(List<String> availableQueueProviders) {
+        this.availableQueueProviders = availableQueueProviders;
+        return this;
+    }
+
+    /**
      * Build the SinkModel object
      * @return The SinkModel object
      */
     public SinkModel build() {
         if (sinkType == SinkContent.SinkType.OPENUPDATE) {
-            return new SinkModel(id, version, sinkType, name, resource, description, userId, password, endpoint);
+            return new SinkModel(id, version, sinkType, name, resource, description, userId, password, endpoint, availableQueueProviders);
         } else {
             return new SinkModel(id, version, sinkType, name, resource, description);
         }

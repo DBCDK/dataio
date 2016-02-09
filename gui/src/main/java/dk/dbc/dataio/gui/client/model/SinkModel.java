@@ -37,6 +37,7 @@ public class SinkModel extends GenericBackendModel {
     private String openUpdateUserId;
     private String openUpdatePassword;
     private String openUpdateEndpoint;
+    private List<String> openUpdateAvailableQueueProviders;
 
 
     /**
@@ -55,7 +56,7 @@ public class SinkModel extends GenericBackendModel {
      * @param description Sink Description
      */
     public SinkModel(long id, long version, String name, String resource, String description) {
-        this(id, version, SinkContent.SinkType.ES, name, resource, description, "", "", "");
+        this(id, version, SinkContent.SinkType.ES, name, resource, description, "", "", "", null);
     }
 
     /**
@@ -68,7 +69,7 @@ public class SinkModel extends GenericBackendModel {
      * @param description Sink Description
      */
     public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description) {
-        this(id, version, sinkType, name, resource, description, "", "", "");
+        this(id, version, sinkType, name, resource, description, "", "", "", null);
     }
 
     /**
@@ -82,8 +83,18 @@ public class SinkModel extends GenericBackendModel {
      * @param openUpdateUserId Open Update Sink Config User Id
      * @param openUpdatePassword Open Update Sink Config Password
      * @param openUpdateEndpoint Open Update Sink Config Endpoint URL
+     * @param openUpdateAvailableQueueProviders Open Update List of Available Queue Providers
      */
-    public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description, String openUpdateUserId, String openUpdatePassword, String openUpdateEndpoint) {
+    public SinkModel(long id,
+                     long version,
+                     SinkContent.SinkType sinkType,
+                     String name,
+                     String resource,
+                     String description,
+                     String openUpdateUserId,
+                     String openUpdatePassword,
+                     String openUpdateEndpoint,
+                     List<String> openUpdateAvailableQueueProviders) {
         super(id, version);
         this.sinkType = sinkType;
         this.sinkName = name;
@@ -92,6 +103,7 @@ public class SinkModel extends GenericBackendModel {
         this.openUpdateUserId = openUpdateUserId;
         this.openUpdatePassword = openUpdatePassword;
         this.openUpdateEndpoint = openUpdateEndpoint;
+        this.openUpdateAvailableQueueProviders = openUpdateAvailableQueueProviders;
     }
 
     /**
@@ -207,7 +219,24 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
+     * Gets the Open Update Configuration data: List of Available Queue Providers
+     * @return Open Update Configuration data: List of Available Queue Providers
+     */
+    public List<String> getOpenUpdateAvailableQueueProviders() {
+        return openUpdateAvailableQueueProviders;
+    }
+
+    /**
+     * Sets the Open Update Configuration data: List of Available Queue Providers
+     * @param availableQueueProviders Open Update Configuration data: List of Available Queue Providers
+     */
+    public void setOpenUpdateAvailableQueueProviders(List<String> availableQueueProviders) {
+        this.openUpdateAvailableQueueProviders = availableQueueProviders;
+    }
+
+    /**
      * Checks for empty String values
+     * NB: The list of Available Queue Providers is optional, and is therefore not considered here
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
@@ -244,7 +273,9 @@ public class SinkModel extends GenericBackendModel {
             return false;
         if (openUpdatePassword != null ? !openUpdatePassword.equals(sinkModel.openUpdatePassword) : sinkModel.openUpdatePassword != null)
             return false;
-        return !(openUpdateEndpoint != null ? !openUpdateEndpoint.equals(sinkModel.openUpdateEndpoint) : sinkModel.openUpdateEndpoint != null);
+        if (openUpdateEndpoint != null ? !openUpdateEndpoint.equals(sinkModel.openUpdateEndpoint) : sinkModel.openUpdateEndpoint != null)
+            return false;
+        return openUpdateAvailableQueueProviders != null ? openUpdateAvailableQueueProviders.equals(sinkModel.openUpdateAvailableQueueProviders) : sinkModel.openUpdateAvailableQueueProviders == null;
 
     }
 
@@ -257,6 +288,7 @@ public class SinkModel extends GenericBackendModel {
         result = 31 * result + (openUpdateUserId != null ? openUpdateUserId.hashCode() : 0);
         result = 31 * result + (openUpdatePassword != null ? openUpdatePassword.hashCode() : 0);
         result = 31 * result + (openUpdateEndpoint != null ? openUpdateEndpoint.hashCode() : 0);
+        result = 31 * result + (openUpdateAvailableQueueProviders != null ? openUpdateAvailableQueueProviders.hashCode() : 0);
         return result;
     }
 }

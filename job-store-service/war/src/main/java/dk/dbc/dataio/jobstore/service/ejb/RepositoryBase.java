@@ -24,8 +24,7 @@ public abstract class RepositoryBase {
         entityManager.flush();
     }
 
-    protected JobEntity getJobEntityById(int jobId) {
-
+    public JobEntity getJobEntityById(int jobId) {
         return entityManager.find(JobEntity.class, jobId);
     }
 

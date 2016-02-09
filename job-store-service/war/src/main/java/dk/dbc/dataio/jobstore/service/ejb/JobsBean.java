@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -621,7 +622,8 @@ public class JobsBean {
     }
 
     private void sendChunkAsMessageToSink(long jobId, Chunk processedChunk) throws JobStoreException {
-        sinkMessageProducer.send(processedChunk, jobStoreRepository.getSinkByJobId(jobId));
+        final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) jobId);
+        sinkMessageProducer.send(processedChunk, jobEntity.getCachedSink().getSink());
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

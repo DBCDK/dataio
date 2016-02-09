@@ -34,8 +34,6 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -43,20 +41,12 @@ import java.sql.Timestamp;
 
 @Entity
 @Table(name = "job")
-@NamedQueries({
-    @NamedQuery(    name = JobEntity.NQ_FIND_SINK_BY_JOB_ID,
-                    query = "SELECT job.cachedSink FROM JobEntity job WHERE job.id = :" + JobEntity.FIELD_JOB_ID)
-
-})
 public class JobEntity {
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
        database update. The only way to achieve an update is to replace
        the field value with a new instance (long live copy constructors).
      */
-
-    public static final String NQ_FIND_SINK_BY_JOB_ID = "NQ_FIND_SINK_BY_JOB_ID";
-    public static final String FIELD_JOB_ID = "jobId";
 
     @Id
     @SequenceGenerator(

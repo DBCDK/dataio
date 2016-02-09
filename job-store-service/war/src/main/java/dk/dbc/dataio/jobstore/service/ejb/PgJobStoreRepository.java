@@ -466,23 +466,6 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     /**
-     *
-     * @param jobId                 Job ID
-     * @return SinkCacheEntity      SinkCacheEntity matching the specified Job ID
-     */
-    @Stopwatch
-    public Sink getSinkByJobId(long jobId) {
-
-        SinkCacheEntity cachedSink =
-                (SinkCacheEntity)entityManager
-                .createNamedQuery(JobEntity.NQ_FIND_SINK_BY_JOB_ID)
-                .setParameter(JobEntity.FIELD_JOB_ID, jobId)
-                    .getSingleResult();
-
-        return cachedSink.getSink();
-    }
-
-    /**
      * Purges all chunks and items associated with specified job,
      * and resets the internal state of the job
      * @param jobId ID of job to be reset

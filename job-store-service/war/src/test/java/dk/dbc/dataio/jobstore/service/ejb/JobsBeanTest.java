@@ -32,12 +32,14 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SupplementaryProcessDataBuilder;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
@@ -81,7 +83,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyShort;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -214,7 +215,11 @@ public class JobsBeanTest {
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
         final Sink sink = new SinkBuilder().build();
-        when(jobsBean.jobStoreRepository.getSinkByJobId(anyLong())).thenReturn(sink);
+        final SinkCacheEntity sinkCacheEntity = mock(SinkCacheEntity.class);
+        final JobEntity jobEntity = mock(JobEntity.class);
+        when(jobsBean.jobStoreRepository.getJobEntityById(anyInt())).thenReturn(jobEntity);
+        when(jobEntity.getCachedSink()).thenReturn(sinkCacheEntity);
+        when(sinkCacheEntity.getSink()).thenReturn(sink);
 
         // Subject Under Test
         final Response response = jobsBean.addChunkProcessed(mockedUriInfo, jsonChunk, chunk.getJobId(), chunk.getChunkId());

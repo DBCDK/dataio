@@ -1,0 +1,95 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.jobstore.service.partitioner;
+
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
+import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
+import org.flywaydb.core.Flyway;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.persistence.EntityManager;
+import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+
+public class Iso2709ReorderingDataPartitionerIT {
+    private EntityManager entityManager;
+    private TransactionScopedPersistenceContext persistenceContext;
+
+    @Before
+    public void setupDatabase() {
+        migrateDb();
+    }
+
+    @Before
+    public void setupEntityManager() throws Exception {
+        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+        persistenceContext = new TransactionScopedPersistenceContext(entityManager);
+        JPATestUtils.clearDatabase(entityManager);
+    }
+
+    @Test
+    public void testReordering() {
+        final Supplier<LinkedList<String>> supplier = LinkedList::new;
+        final LinkedList<String> expected = Stream.of(
+                ">standalone<",
+                ">standaloneWithout004<",
+                ">head<",
+                ">section<",
+                ">volume<",
+                ">volumedelete<",
+                ">sectiondelete<",
+                ">headdelete<"
+        ).collect(Collectors.toCollection(supplier));
+
+        final InputStream resourceAsStream = Iso2709ReorderingDataPartitionerIT.class
+                .getResourceAsStream("/test-records-reorder-danmarc2.iso");
+        final String encoding = "latin1";
+        final JobItemReorderer jobItemReorderer = new JobItemReorderer(42, entityManager);
+
+        persistenceContext.run(() -> {
+            final Iso2709ReorderingDataPartitioner partitioner = Iso2709ReorderingDataPartitioner
+                    .newInstance(resourceAsStream, encoding, jobItemReorderer);
+            int itemNo = 0;
+            for (ChunkItem ci : partitioner) {
+                assertThat("Item number " + itemNo++, StringUtil.asString(ci.getData()), containsString(expected.removeFirst()));
+            }
+        });
+    }
+
+    private void migrateDb() {
+        final Flyway flyway = new Flyway();
+        flyway.setTable("schema_version");
+        flyway.setSchemas("public");
+        flyway.setBaselineOnMigrate(true);
+        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
+        flyway.migrate();
+    }
+}

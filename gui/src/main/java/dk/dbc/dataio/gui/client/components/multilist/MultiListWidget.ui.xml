@@ -47,10 +47,10 @@
 
     <div class="{style.multilist}">
         <dio:SortableList ui:field="list" addStyleNames="{style.sortablelist}" />
-        <g:PushButton ui:field="addButton" addStyleNames="{style.button}" >
+        <g:PushButton ui:field="addButton" addStyleNames="{style.button} multilistaddbutton" >
             <g:upFace image="{img.addButton}" />
         </g:PushButton>
-        <g:PushButton ui:field="removeButton" addStyleNames="{style.button}" >
+        <g:PushButton ui:field="removeButton" addStyleNames="{style.button} multilistremovebutton" >
             <g:upFace image="{img.removeButton}" />
         </g:PushButton>
     </div>

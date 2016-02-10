@@ -34,7 +34,7 @@
 @external .hide-cell, .show-cell;
 @external .invisible;
 @external .clickable-submitter-column-style;
-
+@external .multilistremovebutton;
 
 
 /*
@@ -283,4 +283,8 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .test-jobs-table thead th {
     background-color: testTableHeaderColor;
+}
+
+#sinkqueueproviders .multilistremovebutton {
+    display: none;
 }

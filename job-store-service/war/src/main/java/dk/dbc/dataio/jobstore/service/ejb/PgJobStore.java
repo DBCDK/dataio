@@ -118,12 +118,12 @@ public class PgJobStore {
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
         LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
 
-        addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
-
         if(!jobEntity.hasFatalError()) {
             getProxyToSelf().handlePartitioningAsynchronously(jobEntity,
                             addJobParam.getFlowBinder().getContent().getSequenceAnalysis(),
                             addJobParam.getFlowBinder().getContent().getRecordSplitter());
+        } else {
+            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
         }
 
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
@@ -233,12 +233,12 @@ public class PgJobStore {
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
             final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
-
             job = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, job.getId());
             jobStoreRepository.updateJobEntityState(job, jobStateChange);
             if (!abortDiagnostics.isEmpty()) {
                 job = abortJob(job, abortDiagnostics);
             }
+            addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, job);
         }
         return job;
     }

@@ -39,7 +39,7 @@ public class LRUCache<K, V> implements Cache<K, V> {
 
     public LRUCache(int maximumNumberOfEntries) throws IllegalArgumentException {
         if (maximumNumberOfEntries <= 0) {
-            throw new IllegalStateException("maximumNumberOfEntries must be larger than zero");
+            throw new IllegalArgumentException("maximumNumberOfEntries must be larger than zero");
         }
         map = new LinkedHashMap<K, V>(maximumNumberOfEntries + 1, .75F, true) {
             @Override

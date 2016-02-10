@@ -40,6 +40,16 @@ public class LRUCacheTest {
         cache.clear();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_maximumNumberOfEntriesIsZero_throws() {
+        new LRUCache<String, Integer>(0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_maximumNumberOfEntriesIsLessThanZero_throws() {
+        new LRUCache<String, Integer>(-1);
+    }
+
     @Test(expected = NullPointerException.class)
     public void containsKey_keyArgIsNull_throws() {
         cache.containsKey(null);

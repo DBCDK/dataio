@@ -10,6 +10,8 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Before;
 import org.junit.Test;
@@ -169,6 +171,25 @@ public class PartitioningParamTest extends ParamBaseTest {
         assertThat("Reordering variant", dataPartitioner instanceof DanMarc2LineFormatReorderingDataPartitioner, is(true));
     }
 
+    @Test
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryIsNull_isIso2709DataPartitioner() {
+        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(null).build());
+        final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
+        final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
+        assertThat("Class", dataPartitioner instanceof Iso2709DataPartitioner, is(true));
+        assertThat("Reordering variant", dataPartitioner instanceof Iso2709ReorderingDataPartitioner, is(false));
+    }
+
+    @Test
+    public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isIso2709ReorderingDataPartitioner() {
+        final JobSpecification.Ancestry ancestry = new JobSpecificationBuilder.AncestryBuilder().setTransfile("file").build();
+        final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(ancestry).build());
+        final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
+        final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
+        assertThat("Class", dataPartitioner instanceof Iso2709DataPartitioner, is(true));
+        assertThat("Reordering variant", dataPartitioner instanceof Iso2709ReorderingDataPartitioner, is(true));
+    }
+
     private PartitioningParam newPartitioningParam(JobEntity jobEntity) {
         return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
     }
@@ -176,6 +197,11 @@ public class PartitioningParamTest extends ParamBaseTest {
     private PartitioningParam newPartitioningParamForDanMarc2LineFormat(JobEntity jobEntity) {
         return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag,
                 RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
+    }
+
+    private PartitioningParam newPartitioningParamForIso2709(JobEntity jobEntity) {
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag,
+                RecordSplitterConstants.RecordSplitter.ISO2709);
     }
 
     private JobEntity getJobEntity(JobSpecification jobSpecification) {

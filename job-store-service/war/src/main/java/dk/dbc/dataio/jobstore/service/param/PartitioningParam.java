@@ -10,6 +10,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
@@ -146,7 +147,7 @@ public class PartitioningParam {
                 case XML:
                     return DefaultXmlDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 case ISO2709:
-                    return Iso2709DataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                    return getIso2709Partitioner();
                 case DANMARC2_LINE_FORMAT:
                     return getDanMarc2LineFormatPartitioner();
                 case RR_MARC_XML:
@@ -172,13 +173,26 @@ public class PartitioningParam {
     }
 
     private DataPartitioner getDanMarc2LineFormatPartitioner() {
-        final JobSpecification.Ancestry ancestry = jobEntity.getSpecification().getAncestry();
         final String encoding = jobEntity.getSpecification().getCharset();
-        if (ancestry != null && ancestry.getTransfile() != null) {
-            // Items originating from FTP server must undergo potential re-ordering
+        if (shouldBeReordered()) {
             final JobItemReorderer reorderer = new JobItemReorderer(jobEntity.getId(), entityManager);
             return DanMarc2LineFormatReorderingDataPartitioner.newInstance(dataFileInputStream, encoding, reorderer);
         }
         return DanMarc2LineFormatDataPartitioner.newInstance(dataFileInputStream, encoding);
+    }
+
+    private DataPartitioner getIso2709Partitioner() {
+        final String encoding = jobEntity.getSpecification().getCharset();
+        if(shouldBeReordered()) {
+            final JobItemReorderer reorderer = new JobItemReorderer(jobEntity.getId(), entityManager);
+            return Iso2709ReorderingDataPartitioner.newInstance(dataFileInputStream, encoding, reorderer);
+        }
+        return Iso2709DataPartitioner.newInstance(dataFileInputStream, encoding);
+    }
+
+    private boolean shouldBeReordered() {
+        final JobSpecification.Ancestry ancestry = jobEntity.getSpecification().getAncestry();
+        // Items originating from FTP server must undergo potential re-ordering
+        return ancestry != null && ancestry.getTransfile() != null;
     }
 }

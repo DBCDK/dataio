@@ -45,6 +45,8 @@ import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -214,11 +216,18 @@ public class JobsBeanTest {
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();
         final String jsonChunk = new JSONBContext().marshall(chunk);
 
-        final Sink sink = new SinkBuilder().build();
         final SinkCacheEntity sinkCacheEntity = mock(SinkCacheEntity.class);
-        final JobEntity jobEntity = mock(JobEntity.class);
+        final Sink sink = new SinkBuilder().build();
+        final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+        final JobEntity jobEntity = new JobEntity();
+        jobEntity.setCachedSink(sinkCacheEntity);
+        jobEntity.setFlowStoreReferences(flowStoreReferences);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK,
+                new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName()));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER,
+                new FlowStoreReference(42, 1, "test-binder"));
+
         when(jobsBean.jobStoreRepository.getJobEntityById(anyInt())).thenReturn(jobEntity);
-        when(jobEntity.getCachedSink()).thenReturn(sinkCacheEntity);
         when(sinkCacheEntity.getSink()).thenReturn(sink);
 
         // Subject Under Test

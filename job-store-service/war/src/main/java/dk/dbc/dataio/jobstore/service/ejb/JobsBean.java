@@ -623,7 +623,7 @@ public class JobsBean {
 
     private void sendChunkAsMessageToSink(long jobId, Chunk processedChunk) throws JobStoreException {
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) jobId);
-        sinkMessageProducer.send(processedChunk, jobEntity.getCachedSink().getSink());
+        sinkMessageProducer.send(processedChunk, jobEntity);
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

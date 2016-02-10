@@ -27,6 +27,10 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
+import dk.dbc.dataio.jobstore.types.FlowStoreReference;
+import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -47,34 +51,43 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SinkMessageProducerBeanTest {
-    private ConnectionFactory jmsConnectionFactory;
-    private JMSContext jmsContext;
-    private JMSProducer jmsProducer;
-    private Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+    /* mocks */
+    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
+    private JMSContext jmsContext = mock(JMSContext.class);
+    private JMSProducer jmsProducer = mock(JMSProducer.class);
+    private SinkCacheEntity sinkCacheEntity = mock(SinkCacheEntity.class);
+
+    private Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+    private JobEntity jobEntity = new JobEntity();
     private Sink sink = new SinkBuilder().build();
+    private FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
+    {
+        jobEntity.setCachedSink(sinkCacheEntity);
+        jobEntity.setFlowStoreReferences(flowStoreReferences);
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.SINK,
+                new FlowStoreReference(sink.getId(), sink.getVersion(), sink.getContent().getName()));
+        flowStoreReferences.setReference(FlowStoreReferences.Elements.FLOW_BINDER,
+                new FlowStoreReference(42, 1, "test-binder"));
+    }
 
     @Before
-    public void setup() {
-        jmsConnectionFactory = mock(ConnectionFactory.class);
-        jmsContext = mock(JMSContext.class);
-        jmsProducer = mock(JMSProducer.class);
-
+    public void setupExpectations() {
         when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
         when(jmsContext.createProducer()).thenReturn(jmsProducer);
+
+        when(sinkCacheEntity.getSink()).thenReturn(sink);
     }
 
     @Test (expected = NullPointerException.class)
-    public void send_processedChunkArgIsNull_throws() throws JobStoreException {
-
+    public void send_chunkArgIsNull_throws() throws JobStoreException {
         // Subject Under Test
-        getInitializedBean().send(null, sink);
+        getInitializedBean().send(null, jobEntity);
     }
 
     @Test (expected = NullPointerException.class)
-    public void send_destinationArgIsNull_throws() throws JobStoreException {
-
+    public void send_jobEntityArgIsNull_throws() throws JobStoreException {
         // Subject Under Test
-        getInitializedBean().send(processedChunk, null);
+        getInitializedBean().send(chunk, null);
     }
 
     @Test (expected = JobStoreException.class)
@@ -85,23 +98,27 @@ public class SinkMessageProducerBeanTest {
         sinkMessageProducerBean.jsonbContext = jsonbContext;
 
         // Subject Under Test
-        sinkMessageProducerBean.send(processedChunk, sink);
+        sinkMessageProducerBean.send(chunk, jobEntity);
     }
 
     @Test
-    public void createMessage_deliveredChunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
+    public void createMessage_chunkArgIsValid_returnsMessageWithHeaderProperties() throws JMSException, JSONBException {
         when(jmsContext.createTextMessage(any(String.class))).thenReturn(new MockedJmsTextMessage());
         final SinkMessageProducerBean sinkMessageProducerBean = getInitializedBean();
 
         // Subject Under Test
-        final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, processedChunk, sink);
+        final TextMessage message = sinkMessageProducerBean.createMessage(jmsContext, chunk, sink, flowStoreReferences);
 
         // Verifications
+        final FlowStoreReference sinkReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.SINK);
+        final FlowStoreReference flowBinderReference = flowStoreReferences.getReference(FlowStoreReferences.Elements.FLOW_BINDER);
         assertThat("Message source property", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
         assertThat("Message payload property", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
         assertThat("Message resource property", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(sink.getContent().getResource()));
-        assertThat("Message id property", message.getLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME), is(sink.getId()));
-        assertThat("Message version property", message.getLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME), is(sink.getVersion()));
+        assertThat("Message id property", message.getLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME), is(sinkReference.getId()));
+        assertThat("Message version property", message.getLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME), is(sinkReference.getVersion()));
+        assertThat("Message flowBinderId property", message.getLongProperty(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME), is(flowBinderReference.getId()));
+        assertThat("Message flowBinderVersion property", message.getLongProperty(JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME), is(flowBinderReference.getVersion()));
     }
 
     private SinkMessageProducerBean getInitializedBean() {

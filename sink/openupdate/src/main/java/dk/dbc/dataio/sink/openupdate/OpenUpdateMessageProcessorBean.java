@@ -58,7 +58,6 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
         final Chunk processedChunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
-
         final Chunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
         try {
             for (ChunkItem processedChunkItem : processedChunk) {
@@ -81,6 +80,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
                     default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
                 }
+                LOGGER.info("Handled item {} in chunk {} in job {}", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
             }
         } finally {
             DBCTrackedLogContext.remove();

@@ -429,6 +429,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         try {
             for (ChunkItem chunkItem : chunk) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                LOGGER.info("Updating chunk item {} for chunk {} in job {}", chunkItem.getId(), chunk.getChunkId(), chunk.getJobId());
                 final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
                 if (itemEntity == null) {
@@ -591,6 +592,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 }
 
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                LOGGER.info("Creating chunk item {} for chunk {} in job {}", chunkItem.getId(), chunkId, jobId);
                 String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 
                 StateChange stateChange = new StateChange()

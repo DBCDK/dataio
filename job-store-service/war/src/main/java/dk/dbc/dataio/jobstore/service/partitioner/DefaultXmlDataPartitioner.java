@@ -313,17 +313,19 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         do {
             e = xmlReader.nextEvent();
             if (e.isStartElement()) {
-                if(extractedKeys.contains(e.toString())) {
-                    extractedName = e.toString();
+                final String eventNameLocalPart = e.asStartElement().getName().getLocalPart();
+                if(extractedKeys.contains(eventNameLocalPart)) {
+                    extractedName = eventNameLocalPart;
                 }
                 depth++;
             }
             if(extractedName != null && e.isCharacters()) {
                 final String extractedValue = extractedValues.get(extractedName);
+                final String eventCharacterData = e.asCharacters().getData();
                 if(extractedValue == null) {
-                    extractedValues.put(extractedName, e.toString());
+                    extractedValues.put(extractedName, eventCharacterData);
                 } else {
-                    extractedValues.put(extractedName, extractedValue + e.toString());
+                    extractedValues.put(extractedName, extractedValue + eventCharacterData);
                 }
             }
             if (e.isEndElement()) {

@@ -35,7 +35,7 @@ import static dk.dbc.dataio.commons.types.ChunkItem.Type.MARCXCHANGE;
 
 public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
 
-    private final static String TRACKING_ID = "<trackingId>";
+    private final static String TRACKING_ID = "trackingId";
 
     /**
      * Creates new instance of rawRepoMarcXmlDataPartitioner

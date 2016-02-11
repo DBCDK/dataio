@@ -69,7 +69,7 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         try {
             for (final ChunkItem item : processedChunk) {
                 final String trackingId = item.getTrackingId();
-                DBCTrackedLogContext.setTrackingId(trackingId);
+                DBCTrackedLogContext.setTrackingId("traceid:" + trackingId);
                 // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
                 ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
                 ChunkItem chunkItem = new ChunkItem(item.getId(), StringUtil.asBytes("Set by DummySink"), status);

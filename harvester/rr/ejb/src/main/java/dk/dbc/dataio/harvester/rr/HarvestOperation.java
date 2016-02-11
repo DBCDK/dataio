@@ -163,7 +163,7 @@ public class HarvestOperation {
             try {
                 records = rawRepoConnector.fetchRecordCollection(recordId);
                 trackingId = getTrackingId(recordId, records);
-                DBCTrackedLogContext.setTrackingId(trackingId);
+                DBCTrackedLogContext.setTrackingId("traceid:" + trackingId);
             } catch (SQLException | RawRepoException | MarcXMergerException e) {
                 throw new HarvesterSourceException("Unable to fetch record collection for " + recordId.toString(), e);
             }

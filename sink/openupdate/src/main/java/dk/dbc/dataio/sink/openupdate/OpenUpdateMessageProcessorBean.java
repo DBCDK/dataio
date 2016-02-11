@@ -61,7 +61,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         final Chunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
         try {
             for (ChunkItem processedChunkItem : processedChunk) {
-                DBCTrackedLogContext.setTrackingId(processedChunkItem.getTrackingId());
+                DBCTrackedLogContext.setTrackingId("traceid:" + processedChunkItem.getTrackingId());
                 final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
                 final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
                         processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);

@@ -196,7 +196,7 @@ public class EsCleanupBean {
 
         try {
             for (ChunkItem chunkItem : chunk) {
-                DBCTrackedLogContext.setTrackingId("traceid:" + chunkItem.getTrackingId());
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 lostChunk.insertItem(createLostChunkItem(chunkItem));
             }
         } finally {

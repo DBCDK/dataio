@@ -131,7 +131,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         try {
             for (ChunkItem chunkItem : processedChunk) {
                 final String trackingId = chunkItem.getTrackingId();
-                DBCTrackedLogContext.setTrackingId("traceid:" + trackingId);
+                DBCTrackedLogContext.setTrackingId(trackingId);
                 switch (chunkItem.getStatus()) {
                     case SUCCESS:
                         try {

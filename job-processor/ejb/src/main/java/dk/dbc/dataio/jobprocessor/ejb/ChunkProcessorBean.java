@@ -125,7 +125,7 @@ public class ChunkProcessorBean {
         List<ChunkItem> processedItems = new ArrayList<>();
         try {
             for (ChunkItem item : chunk) {
-                DBCTrackedLogContext.setTrackingId("traceid:" + item.getTrackingId());
+                DBCTrackedLogContext.setTrackingId(item.getTrackingId());
                 final StopWatch stopWatchForItem = new StopWatch();
 
                 if (item.getStatus() != ChunkItem.Status.SUCCESS) {

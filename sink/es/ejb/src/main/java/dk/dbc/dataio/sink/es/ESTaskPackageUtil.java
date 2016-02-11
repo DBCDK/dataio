@@ -202,7 +202,7 @@ public class ESTaskPackageUtil {
                 new LinkedList<>(taskSpecificUpdateEntity.getTaskpackageRecordStructures());
         try {
             for (ChunkItem chunkItem : placeholderChunk) {
-                DBCTrackedLogContext.setTrackingId("traceid:" + chunkItem.getTrackingId());
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
                     chunkItem = getChunkItemFromTaskPackageRecordStructureData(taskSpecificUpdateEntity, chunkItem, taskPackageRecordStructureEntityList);
                 }

@@ -122,7 +122,6 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                             throw new SinkException("Unknown chunk item state: " + item.current.getStatus().name());
                     }
                 }
-                LOGGER.info("Handled item {} in chunk {} in job {}", item.current.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
             }
         } finally {
             DBCTrackedLogContext.remove();

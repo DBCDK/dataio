@@ -80,7 +80,6 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
 
                     default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
                 }
-                LOGGER.info("Handled item {} in chunk {} in job {}", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
             }
         } finally {
             DBCTrackedLogContext.remove();

@@ -21,12 +21,18 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
+import dk.dbc.dataio.commons.utils.cache.Cache;
+import dk.dbc.dataio.commons.utils.cache.CacheManager;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -41,8 +47,6 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
 
-import static dk.dbc.dataio.commons.utils.lang.StringUtil.asBytes;
-
 @MessageDriven
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
@@ -50,14 +54,21 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
 
+    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB OpenUpdateConfigBean openUpdateConfigBean;
+
+    Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(Long.class, FlowBinder.class, 10);
 
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
         final Chunk processedChunk = unmarshallPayload(consumedMessage);
         LOGGER.info("Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
+
+        final String queueProvider = getQueueProvider(consumedMessage);
+        LOGGER.debug("Using queue-provider {}", queueProvider);
+
         final Chunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
         try {
             for (ChunkItem processedChunkItem : processedChunk) {
@@ -112,5 +123,23 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         final Chunk incompleteDeliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
         incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
         return incompleteDeliveredChunk;
+    }
+
+    private String getQueueProvider(ConsumedMessage message) throws SinkException {
+        try {
+            final long flowBinderIdFromMessage = message.getHeaderValue(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME, Long.class);
+            final long flowBinderVersionFromMessage = message.getHeaderValue(JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME, Long.class);
+            FlowBinder flowBinder = cachedFlowBinders.get(flowBinderIdFromMessage);
+            if (flowBinder == null || flowBinder.getVersion() < flowBinderVersionFromMessage) {
+                flowBinder = flowStoreServiceConnectorBean.getConnector().getFlowBinder(flowBinderIdFromMessage);
+                LOGGER.info("Caching version {} of flow-binder {}",
+                        flowBinder.getVersion(), flowBinder.getContent().getName());
+                cachedFlowBinders.put(flowBinderIdFromMessage, flowBinder);
+            }
+            // TODO: 2/10/16 Wait for queueProvider accessor to be implemented in US#781
+            return flowBinder.getContent().getName();
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new SinkException(e.getMessage(), e);
+        }
     }
 }

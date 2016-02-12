@@ -73,7 +73,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         try {
             for (ChunkItem processedChunkItem : processedChunk) {
                 DBCTrackedLogContext.setTrackingId(processedChunkItem.getTrackingId());
-                LOGGER.info("TrackingId {}", processedChunkItem.getTrackingId());
+                LOGGER.info("Handling item {} for chunk {} in job {}", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
                 final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
                 final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
                         processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
@@ -94,7 +94,6 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                 }
             }
         } finally {
-            LOGGER.info("Done Handling items in chunk {} in job {}", processedChunk.getChunkId(), processedChunk.getJobId());
             DBCTrackedLogContext.remove();
         }
         addOutcomeToJobStore(outcome);

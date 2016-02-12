@@ -203,6 +203,7 @@ public class ESTaskPackageUtil {
         try {
             for (ChunkItem chunkItem : placeholderChunk) {
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                LOGGER.info("Handling item {} for chunk {} in job {}", chunkItem.getId(), chunk.getChunkId(), chunk.getJobId());
                 if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
                     chunkItem = getChunkItemFromTaskPackageRecordStructureData(taskSpecificUpdateEntity, chunkItem, taskPackageRecordStructureEntityList);
                 }

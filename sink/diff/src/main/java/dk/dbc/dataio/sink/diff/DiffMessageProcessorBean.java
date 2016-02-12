@@ -98,7 +98,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             for (final ChunkItemPair item : buildCurrentNextChunkList(processedChunk)) {
                 // TODO: 03/02/16 How does this and other "re-run job operations" influence on traceability?
                 DBCTrackedLogContext.setTrackingId(item.current.getTrackingId());
-                LOGGER.info("Handling item {} in chunk {} in job {}", item.current.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
+                LOGGER.info("Handling item {} for chunk {} in job {}", item.current.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
                 if (item.current.getStatus() != item.next.getStatus()) {
                     String message = String.format("Different status %s -> %s\n%s",
                             statusToString(item.current.getStatus()),

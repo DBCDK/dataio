@@ -69,7 +69,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         final String queueProvider = getQueueProvider(consumedMessage);
         LOGGER.debug("Using queue-provider {}", queueProvider);
 
-        final Chunk chunkForDelivery = buildBasicChunkForDeliveryFromProcessedChunk(processedChunk);
+        final Chunk outcome = buildOutcomeFromProcessedChunk(processedChunk);
         try {
             for (ChunkItem processedChunkItem : processedChunk) {
                 DBCTrackedLogContext.setTrackingId(processedChunkItem.getTrackingId());
@@ -79,14 +79,14 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                         processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
 
                 switch (processedChunkItem.getStatus()) {
-                    case SUCCESS: chunkForDelivery.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
+                    case SUCCESS: outcome.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
                         break;
 
-                    case FAILURE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
+                    case FAILURE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
                             processedChunkItem.getId(), "Failed by processor", processedChunkItem.getTrackingId()));
                         break;
 
-                    case IGNORE: chunkForDelivery.insertItem(ObjectFactory.buildIgnoredChunkItem(
+                    case IGNORE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
                             processedChunkItem.getId(), "Ignored by processor", processedChunkItem.getTrackingId()));
                         break;
 
@@ -97,12 +97,12 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
             LOGGER.info("Done Handling items in chunk {} in job {}", processedChunk.getChunkId(), processedChunk.getJobId());
             DBCTrackedLogContext.remove();
         }
-        addChunkInJobStore(chunkForDelivery);
+        addOutcomeToJobStore(outcome);
     }
 
-    private void addChunkInJobStore(Chunk chunkForDelivery) throws SinkException {
+    private void addOutcomeToJobStore(Chunk outcome) throws SinkException {
         try {
-            jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(chunkForDelivery, chunkForDelivery.getJobId(), chunkForDelivery.getChunkId());
+            jobStoreServiceConnectorBean.getConnector().addChunkIgnoreDuplicates(outcome, outcome.getJobId(), outcome.getChunkId());
         } catch (JobStoreServiceConnectorException e) {
             logJobStoreError(e);
             // Throw SinkException to force transaction rollback
@@ -119,10 +119,10 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
         }
     }
 
-    private Chunk buildBasicChunkForDeliveryFromProcessedChunk(Chunk processedChunk) {
-        final Chunk incompleteDeliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
-        incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
-        return incompleteDeliveredChunk;
+    private Chunk buildOutcomeFromProcessedChunk(Chunk processedChunk) {
+        final Chunk outcome = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
+        outcome.setEncoding(processedChunk.getEncoding());
+        return outcome;
     }
 
     private String getQueueProvider(ConsumedMessage message) throws SinkException {

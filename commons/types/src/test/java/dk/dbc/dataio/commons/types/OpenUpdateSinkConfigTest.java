@@ -42,7 +42,7 @@ public class OpenUpdateSinkConfigTest {
     private static final String USER_ID = "userId";
     private static final String PASSWORD = "password";
     private static final String ENDPOINT = "endpoint";
-    private static final List<String> AVAILABLE_QUEUE_PROVIDERS = new ArrayList<>(Arrays.asList("qp1", "qp2"));
+    private static final List<String> AVAILABLE_QUEUE_PROVIDERS = Arrays.asList("qp1", "qp2");
 
     @Test(expected = NullPointerException.class)
     public void constructor_userIdArgIsNull_throws() {

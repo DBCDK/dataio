@@ -24,6 +24,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class OpenUpdateSinkConfig implements SinkConfig {
@@ -41,7 +43,7 @@ public class OpenUpdateSinkConfig implements SinkConfig {
         this.userId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
         this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
-        this.availableQueueProviders = availableQueueProviders;
+        this.availableQueueProviders = availableQueueProviders == null ? null : new ArrayList<>(availableQueueProviders);
     }
 
     public OpenUpdateSinkConfig(String userId, String password, String endpoint) {
@@ -61,7 +63,7 @@ public class OpenUpdateSinkConfig implements SinkConfig {
     }
 
     public List<String> getAvailableQueueProviders() {
-        return availableQueueProviders;
+        return availableQueueProviders == null ? null : Collections.unmodifiableList(availableQueueProviders);
     }
 
     @Override

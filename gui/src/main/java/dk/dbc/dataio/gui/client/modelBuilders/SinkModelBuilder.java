@@ -138,7 +138,7 @@ public class SinkModelBuilder {
      * @return The SinkModelBuilder object itself (for chaining)
      */
     public SinkModelBuilder setAvailableQueueProviders(List<String> availableQueueProviders) {
-        this.availableQueueProviders = availableQueueProviders;
+        this.availableQueueProviders = new ArrayList<>(availableQueueProviders);
         return this;
     }
 

@@ -39,11 +39,17 @@ import org.junit.runner.RunWith;
 import org.mockito.Matchers;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -119,16 +125,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Before
     public void setupMockedObjects() {
-        when(mockedViewGinjector.getSinkServiceProxyAsync()).thenReturn(mockedSinkServiceProxy);
+        view = new View();
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedViewGinjector.getSinkServiceProxyAsync()).thenReturn(mockedSinkServiceProxy);
         when(mockedViewGinjector.getView()).thenReturn(view);
         mock(ContentPanel.class);
-
-    }
-
-    @Before
-    public void setupView() {
-        view = new View();
     }
 
 
@@ -245,6 +246,20 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void queueProvidersChanged_callQueueProvidersChanged_queueProvidersAreChangedAccordingly() {
+
+        // Setup
+        final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.queueProvidersChanged(QUEUE_PROVIDERS);
+
+        // Verifications
+        assertThat(presenterImpl.model.getOpenUpdateAvailableQueueProviders(), is(QUEUE_PROVIDERS));
+    }
+
+    @Test
     public void endpointChanged_callEndpointChanged_endpointIsChangedAccordingly() {
 
         // Setup
@@ -262,7 +277,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
-        presenterImpl = new PresenterImplConcrete(header);
+        initializeAndStartPresenter();
         presenterImpl.model.setSinkName("");
 
         // Subject Under Test
@@ -276,14 +291,88 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
-        presenterImpl = new PresenterImplConcrete(header);
-        presenterImpl.model.setResourceName("");
+        initializeAndStartPresenter();
+        presenterImpl.model.setDescription("");
 
         // Subject Under Test
         presenterImpl.saveButtonPressed();
 
         // Verifications
         verify(mockedTexts).error_InputFieldValidationError();
+    }
+
+    @Test
+    public void queueProvidersAddButtonPressed_callQueueProvidersAddButtonPressedNullList_EmptyListAccepted() {
+
+        // Setup
+        initializeAndStartPresenter();
+        presenterImpl.model.setOpenUpdateAvailableQueueProviders(null);
+
+        // Subject Under Test
+        presenterImpl.queueProvidersAddButtonPressed();
+
+        // Verifications
+        verify(view.queueProviders, times(2)).clear();
+        verify(view.queueProviders).setEnabled(false);
+        verifyNoMoreInteractions(view.queueProviders);
+    }
+
+    @Test
+    public void queueProvidersAddButtonPressed_callQueueProvidersAddButtonPressedEmptyList_EmptyListAccepted() {
+
+        // Setup
+        initializeAndStartPresenter();
+        final List<String> QUEUE_PROVIDERS = new ArrayList<>();
+        presenterImpl.model.setOpenUpdateAvailableQueueProviders(QUEUE_PROVIDERS);
+
+        // Subject Under Test
+        presenterImpl.queueProvidersAddButtonPressed();
+
+        // Verifications
+        verify(view.queueProviders, times(2)).clear();
+        verify(view.queueProviders).setEnabled(false);
+        verifyNoMoreInteractions(view.queueProviders);
+    }
+
+    @Test
+    public void queueProvidersAddButtonPressed_callQueueProvidersAddButtonPressedWith3ItemsList_QueueProvidersAccepted() {
+
+        // Setup
+        initializeAndStartPresenter();
+        final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
+        presenterImpl.model.setOpenUpdateAvailableQueueProviders(QUEUE_PROVIDERS);
+
+        // Subject Under Test
+        presenterImpl.queueProvidersAddButtonPressed();
+
+        // Verifications
+        verify(view.queueProviders, times(2)).clear();
+        verify(view.queueProviders).setEnabled(false);
+        verify(view.queueProviders).addValue("QProvider1", "QProvider1");
+        verify(view.queueProviders).addValue("QProvider2", "QProvider2");
+        verify(view.queueProviders).addValue("QProvider3", "QProvider3");
+        verifyNoMoreInteractions(view.queueProviders);
+    }
+
+    @Test
+    public void queueProvidersAddButtonPressed_callQueueProvidersAddButtonPressedWithDescriptionFieldEmpty_NoErrorTextIsDisplayedBecauseEmptyQueueProviderListIsLegal() {
+
+        // Setup
+        initializeAndStartPresenter();
+        presenterImpl.model.setDescription("");
+        final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
+        presenterImpl.model.setOpenUpdateAvailableQueueProviders(QUEUE_PROVIDERS);
+
+        // Subject Under Test
+        presenterImpl.queueProvidersAddButtonPressed();
+
+        // Verifications
+        verify(view.queueProviders, times(2)).clear();
+        verify(view.queueProviders).setEnabled(false);
+        verify(view.queueProviders).addValue("QProvider1", "QProvider1");
+        verify(view.queueProviders).addValue("QProvider2", "QProvider2");
+        verify(view.queueProviders).addValue("QProvider3", "QProvider3");
+        verifyNoMoreInteractions(view.queueProviders);
     }
 
     @Test

@@ -40,6 +40,9 @@ import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 public class View extends ContentPanel<Presenter> implements IsWidget {
     interface SinkBinder extends UiBinder<HTMLPanel, View> {}
     private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
@@ -122,6 +125,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @UiHandler("queueProviders")
+    void availableQueueProvidersChanged(ValueChangeEvent<Map<String, String>> event) {
+        if (presenter != null) {
+            presenter.queueProvidersChanged(new ArrayList<>(queueProviders.getValue().values()));
+            presenter.keyPressed();
+        }
+    }
+
     @UiHandler("saveButton")
     @SuppressWarnings("unused")
     void saveButtonPressed(ClickEvent event) {
@@ -132,5 +143,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @SuppressWarnings("unused")
     void deleteButtonPressed(ClickEvent event) {
         presenter.deleteButtonPressed();
+    }
+
+    @UiHandler("queueProviders")
+    void availableQueueProvidersButtonsClicked(ClickEvent event) {
+        if (queueProviders.isAddEvent(event)) {
+            presenter.queueProvidersAddButtonPressed();
+        }
     }
 }

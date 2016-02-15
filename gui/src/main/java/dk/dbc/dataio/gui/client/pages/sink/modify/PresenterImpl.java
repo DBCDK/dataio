@@ -25,13 +25,17 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+
+import java.util.List;
 
 /**
  * Abstract Presenter Implementation Class for Sink Create and Edit
@@ -119,6 +123,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the list of Available Queue Providers has been changed
+     * @param availableQueueProviders The list of Available Queue Providers
+     */
+    @Override
+    public void queueProvidersChanged(List<String> availableQueueProviders) {
+        model.setOpenUpdateAvailableQueueProviders(availableQueueProviders);
+    }
+
+    /**
      * A signal to the presenter, saying that the endpoint field has been changed
      * @param endpoint, the new endpoint value
      */
@@ -147,7 +160,18 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-    /*
+    /**
+     * A signal to the presenter, saying that the add button on the Available Queue Providers list has been pressed
+     */
+    @Override
+    public void queueProvidersAddButtonPressed() {
+        Window.alert("Add Available Queue Provider");
+        View vie = getView();
+        setQueueProvidersMultiList(vie.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+    }
+
+
+   /*
      * Protected methods
      */
 
@@ -184,6 +208,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.userid.setEnabled(false);
         view.password.clearText();
         view.password.setEnabled(false);
+        view.queueProviders.clear();
+        view.queueProviders.setEnabled(false);
         view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 
@@ -211,9 +237,26 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.userid.setEnabled(true);
         view.password.setText(model.getOpenUpdatePassword());
         view.password.setEnabled(true);
+        setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+        view.queueProviders.setEnabled(true);
         view.status.setText("");
         view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
+
+
+    /*
+     * Private methods
+     */
+
+    private void setQueueProvidersMultiList(PromptedMultiList queueProviders, List<String> modelProviders) {
+        queueProviders.clear();
+        if (modelProviders != null) {
+            for (String value: modelProviders) {
+                queueProviders.addValue(value, value);
+            }
+        }
+    }
+
 
     /*
      * Local classes

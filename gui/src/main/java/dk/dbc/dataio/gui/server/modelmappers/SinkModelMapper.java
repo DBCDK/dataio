@@ -50,6 +50,10 @@ public class SinkModelMapper {
         }
         if (sinkType == SinkContent.SinkType.OPENUPDATE) {
             OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
+            List<String> queueProviders = sinkConfig.getAvailableQueueProviders();
+            if (queueProviders == null) {
+                queueProviders = new ArrayList<>();
+            }
             return new SinkModel(
                     sink.getId(),
                     sink.getVersion(),
@@ -60,7 +64,7 @@ public class SinkModelMapper {
                     sinkConfig.getUserId(),
                     sinkConfig.getPassword(),
                     sinkConfig.getEndpoint(),
-                    sinkConfig.getAvailableQueueProviders());
+                    queueProviders);
         } else {
             return new SinkModel(
                     sink.getId(),

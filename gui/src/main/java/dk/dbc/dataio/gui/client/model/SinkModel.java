@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.model;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SinkModel extends GenericBackendModel {
@@ -56,7 +57,7 @@ public class SinkModel extends GenericBackendModel {
      * @param description Sink Description
      */
     public SinkModel(long id, long version, String name, String resource, String description) {
-        this(id, version, SinkContent.SinkType.ES, name, resource, description, "", "", "", null);
+        this(id, version, SinkContent.SinkType.ES, name, resource, description);
     }
 
     /**
@@ -69,7 +70,7 @@ public class SinkModel extends GenericBackendModel {
      * @param description Sink Description
      */
     public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description) {
-        this(id, version, sinkType, name, resource, description, "", "", "", null);
+        this(id, version, sinkType, name, resource, description, "", "", "", new ArrayList<String>());
     }
 
     /**

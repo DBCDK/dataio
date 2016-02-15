@@ -23,6 +23,8 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
+import java.util.List;
+
 public interface Presenter extends GenericPresenter {
     void sinkTypeChanged(String sinkType);
     void nameChanged(String name);
@@ -30,8 +32,10 @@ public interface Presenter extends GenericPresenter {
     void descriptionChanged(String description);
     void userIdChanged(String userId);
     void passwordChanged(String password);
+    void queueProvidersChanged(List<String> value);
     void endpointChanged(String endpoint);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();
+    void queueProvidersAddButtonPressed();
 }

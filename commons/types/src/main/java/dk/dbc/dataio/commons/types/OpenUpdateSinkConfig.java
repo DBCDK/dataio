@@ -25,7 +25,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class OpenUpdateSinkConfig implements SinkConfig {
@@ -63,7 +62,7 @@ public class OpenUpdateSinkConfig implements SinkConfig {
     }
 
     public List<String> getAvailableQueueProviders() {
-        return availableQueueProviders == null ? null : Collections.unmodifiableList(availableQueueProviders);
+        return availableQueueProviders == null ? null : new ArrayList<>(availableQueueProviders);
     }
 
     @Override

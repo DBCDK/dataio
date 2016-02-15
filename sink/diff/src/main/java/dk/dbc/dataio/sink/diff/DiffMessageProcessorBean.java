@@ -105,7 +105,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                             statusToString(item.next.getStatus()),
                             StringUtil.asString(item.next.getData())
                     );
-                    ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), message, item.current.getTrackingId());
+                    ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), message, ChunkItem.Type.STRING, item.current.getTrackingId());
                     chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message));
                     deliveredChunk.insertItem(chunkItem);
                 } else {
@@ -138,7 +138,7 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         final Chunk deliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
 
         for (final ChunkItem item : processedChunk) {
-            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items", item.getTrackingId());
+            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), "Missing Next Items", ChunkItem.Type.STRING, item.getTrackingId());
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Missing Next Items"));
             deliveredChunk.insertItem(chunkItem);
         }
@@ -164,11 +164,11 @@ public class DiffMessageProcessorBean extends AbstractSinkMessageConsumerBean {
             if (diff.isEmpty()) {
                 chunkItem = ObjectFactory.buildSuccessfulChunkItem(item.current.getId(), "Current and Next output were identical", ChunkItem.Type.STRING, item.current.getTrackingId());
             } else {
-                chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), diff, item.current.getTrackingId());
+                chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), diff, ChunkItem.Type.STRING, item.current.getTrackingId());
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Diff created: Current and Next output were not identical"));
             }
         } catch (DiffGeneratorException e) {
-            chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), StringUtil.getStackTraceString(e, ""), item.current.getTrackingId());
+            chunkItem = ObjectFactory.buildFailedChunkItem(item.current.getId(), StringUtil.getStackTraceString(e, ""), ChunkItem.Type.STRING, item.current.getTrackingId());
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception occurred while comparing addi records", e));
         }
         return chunkItem;

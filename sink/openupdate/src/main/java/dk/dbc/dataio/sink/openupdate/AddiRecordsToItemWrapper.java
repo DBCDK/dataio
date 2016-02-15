@@ -80,6 +80,7 @@ public class AddiRecordsToItemWrapper {
             return ObjectFactory.buildFailedChunkItem(
                     processedChunkItem.getId(),
                     "Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t),
+                    ChunkItem.Type.STRING,
                     processedChunkItem.getTrackingId());
         }
 

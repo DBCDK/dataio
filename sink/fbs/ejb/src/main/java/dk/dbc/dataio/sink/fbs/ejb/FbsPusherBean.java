@@ -85,14 +85,14 @@ public class FbsPusherBean {
                 case UPDATE_FAILED_PLEASE_RESEND_LATER:
                     throw new WebServiceException("Service responded with 'please resend later' message");
                 default:
-                    chunkForDelivery.insertItem(ObjectFactory.buildFailedChunkItem(processedChunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage()));
+                    chunkForDelivery.insertItem(ObjectFactory.buildFailedChunkItem(processedChunkItem.getId(), updateMarcXchangeResult.getUpdateMarcXchangeMessage(), ChunkItem.Type.STRING));
             }
         } catch (WebServiceException e) {
             LOGGER.error("WebServiceException caught when handling Item {} for chunk {} for job {}", processedChunkItem.getId(), chunkForDelivery.getChunkId(), chunkForDelivery.getJobId(), e);
             throw e;
         } catch (Exception e) {
             LOGGER.error("Item {} registered as FAILED for chunk {} for job {} due to exception", processedChunkItem.getId(), chunkForDelivery.getChunkId(), chunkForDelivery.getJobId(), e);
-            chunkForDelivery.insertItem(ObjectFactory.buildFailedChunkItem(processedChunkItem.getId(), ServiceUtil.stackTraceToString(e)));
+            chunkForDelivery.insertItem(ObjectFactory.buildFailedChunkItem(processedChunkItem.getId(), ServiceUtil.stackTraceToString(e), ChunkItem.Type.STRING));
         }
     }
 }

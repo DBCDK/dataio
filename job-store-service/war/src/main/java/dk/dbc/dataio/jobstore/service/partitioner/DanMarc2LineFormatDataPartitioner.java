@@ -130,7 +130,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead());
+                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.UNKNOWN);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
                 result = new DataPartitionerResult(chunkItem, null);
             } else {
@@ -161,7 +161,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
             }
         } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);
-            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());
+            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString(), ChunkItem.Type.STRING);
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));

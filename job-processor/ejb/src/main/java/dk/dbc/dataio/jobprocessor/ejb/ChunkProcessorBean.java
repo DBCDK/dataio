@@ -202,11 +202,11 @@ public class ChunkProcessorBean {
             processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), e.getMessage(), item.getTrackingId());
         } catch (FailRecord e) {
             LOGGER.error("RecordProcessing Terminated by JS with Message: {}", e.getMessage());
-            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage(), item.getTrackingId());
+            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage(), ChunkItem.Type.STRING, item.getTrackingId());
             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         } catch (Throwable t) {
             LOGGER.error("Exception caught during JavaScript processing", t);
-            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), item.getTrackingId());
+            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Type.STRING, item.getTrackingId());
             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught during JavaScript processing", t));
         }
         return processedItem;
@@ -229,7 +229,7 @@ public class ChunkProcessorBean {
     private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable t) {
         final List<ChunkItem> failedItems = new ArrayList<>();
         for (ChunkItem item : chunk) {
-            final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), item.getTrackingId());
+            final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Type.STRING, item.getTrackingId());
             processedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Chunk item failed during processing", t));
             failedItems.add(processedChunkItem);
         }

@@ -144,7 +144,8 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                             incompleteDeliveredChunk.insertItem(ObjectFactory.buildSuccessfulChunkItem(
                                     chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN, trackingId));
                         } catch (RuntimeException | IOException e) {
-                            ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), "Exception caught while retrieving addi records, t", trackingId);
+                            ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(),
+                                    "Exception caught while retrieving addi records, t", ChunkItem.Type.STRING, trackingId);
                             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
                             incompleteDeliveredChunk.insertItem(processedItem);
                         } finally {

@@ -166,7 +166,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead());
+                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.STRING);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
                 result = new DataPartitionerResult(chunkItem, null);
             } else {
@@ -174,7 +174,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             }
         } catch (Exception e) {
             LOGGER.error("Exception caught while decoding 2709", e);
-            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes);
+            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes, ChunkItem.Type.STRING);
             chunkItem.appendDiagnostics(new Diagnostic(Diagnostic.Level.FATAL,"Exception caught while decoding 2709", e ));
             result = new DataPartitionerResult(chunkItem, null);
         }
@@ -257,7 +257,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             }
         } catch (MarcWriterException e) {
             LOGGER.error("Exception caught while processing MarcRecord", e);
-            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString());
+            chunkItem = ObjectFactory.buildFailedChunkItem(0, marcRecord.toString(), ChunkItem.Type.STRING);
             chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));

@@ -210,7 +210,7 @@ public class EsCleanupBean {
         final ChunkItem lostChunkItem;
         if(chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
             final String data = "Item status set to failed due to taskpackage lost in ES";
-            lostChunkItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), data, chunkItem.getTrackingId());
+            lostChunkItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(), data, ChunkItem.Type.STRING, chunkItem.getTrackingId());
             lostChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(data));
         } else {
             lostChunkItem = chunkItem;

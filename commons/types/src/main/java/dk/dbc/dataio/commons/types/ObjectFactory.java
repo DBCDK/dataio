@@ -35,7 +35,7 @@ public class ObjectFactory {
     private ObjectFactory() {}
 
     /*
-     * ChunkItem
+     * IGNORED chunk item
      */
 
     /**
@@ -60,38 +60,49 @@ public class ObjectFactory {
                 ChunkItem.Status.IGNORE, Collections.singletonList(ChunkItem.Type.STRING), trackingId);
     }
 
+    /*
+     * FAILED chunk item
+     */
+
     /**
      * Builds a new chunk item with given id and data
      * @param itemId of the item
      * @param data of the item
-     * @return chunkItem with status: FAILURE, UTF_8 encoding and type: STRING
+     * @param type of the item
+     * @return chunkItem with status: FAILURE and UTF_8 encoding
      */
-    public static ChunkItem buildFailedChunkItem(long itemId, String data) {
-        return buildFailedChunkItem(itemId, data, null);
+    public static ChunkItem buildFailedChunkItem(long itemId, String data, ChunkItem.Type type) {
+        return buildFailedChunkItem(itemId, data, type, null);
     }
 
     /**
      * Builds a new chunk item with given id and data
      * @param itemId of the item
      * @param data of the item
+     * @param type of the item
      * @param trackingId of the item
-     * @return chunkItem with tracking id, status: FAILURE, UTF_8 encoding and type: STRING
+     * @return chunkItem with tracking id, status: FAILURE and UTF_8 encoding
      */
-    public static ChunkItem buildFailedChunkItem(long itemId, String data, String trackingId) {
+    public static ChunkItem buildFailedChunkItem(long itemId, String data, ChunkItem.Type type, String trackingId) {
         return buildChunkItem(itemId, StringUtil.asBytes(data, StandardCharsets.UTF_8),
-                ChunkItem.Status.FAILURE, Collections.singletonList(ChunkItem.Type.STRING), trackingId);
+                ChunkItem.Status.FAILURE, Collections.singletonList(type), trackingId);
     }
 
     /**
      * Builds a new chunk item with given id and data
      * @param itemId of the item
      * @param data of the item
-     * @return chunkItem with status: FAILURE, UTF_8 encoding and type: STRING
+     * @param type of the item
+     * @return chunkItem with status: FAILURE and UTF_8 encoding
      */
-    public static ChunkItem buildFailedChunkItem(long itemId, byte[] data) {
-        return buildChunkItem(itemId, data, ChunkItem.Status.FAILURE,
-                Collections.singletonList(ChunkItem.Type.STRING), null);
+    public static ChunkItem buildFailedChunkItem(long itemId, byte[] data, ChunkItem.Type type) {
+        return buildChunkItem(itemId, data, ChunkItem.Status.FAILURE, Collections.singletonList(type), null);
     }
+
+    /*
+     * SUCCESSFUL chunk item
+     */
+
 
     /**
      * Builds a new chunk item with given id, data and type

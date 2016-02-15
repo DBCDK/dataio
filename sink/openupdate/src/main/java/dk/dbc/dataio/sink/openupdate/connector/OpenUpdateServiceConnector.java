@@ -28,6 +28,8 @@ import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdateServices;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
 
@@ -35,6 +37,7 @@ import javax.xml.ws.BindingProvider;
  * Open Update web service connector
  */
 public class OpenUpdateServiceConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateServiceConnector.class);
 
     private static final String CONNECT_TIMEOUT_PROPERTY   = "com.sun.xml.ws.connect.timeout";
     private static final String REQUEST_TIMEOUT_PROPERTY   = "com.sun.xml.ws.request.timeout";
@@ -93,6 +96,7 @@ public class OpenUpdateServiceConnector {
         InvariantUtil.checkNotNullNotEmptyOrThrow(groupId, "groupId");
         InvariantUtil.checkNotNullNotEmptyOrThrow(schemaName, "schemaName");
         InvariantUtil.checkNotNullOrThrow(bibliographicRecord, "bibliographicRecord");
+        LOGGER.trace("Using endpoint: {}", endpoint);
         final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(groupId, schemaName, bibliographicRecord, trackingId);
         return getProxy().updateRecord(updateRecordRequest);
     }

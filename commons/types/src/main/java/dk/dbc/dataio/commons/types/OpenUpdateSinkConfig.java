@@ -87,4 +87,14 @@ public class OpenUpdateSinkConfig implements SinkConfig {
         result = 31 * result + (availableQueueProviders != null ? availableQueueProviders.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "OpenUpdateSinkConfig{" +
+                "userId='" + userId + '\'' +
+                ", password='" + password + '\'' +
+                ", endpoint='" + endpoint + '\'' +
+                ", availableQueueProviders=" + availableQueueProviders +
+                '}';
+    }
 }

@@ -28,6 +28,8 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
@@ -38,6 +40,7 @@ import javax.ejb.Singleton;
  */
 @Singleton
 public class OpenUpdateConfigBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateConfigBean.class);
 
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
@@ -76,9 +79,11 @@ public class OpenUpdateConfigBean {
             final long sinkId = consumedMessage.getHeaderValue(JmsConstants.SINK_ID_PROPERTY_NAME, Long.class);
             final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
 
-            if(sinkVersion > highestVersionSeen) {
+            LOGGER.trace("Sink version of message {} vs highest version seen {}", sinkVersion, highestVersionSeen);
+            if (sinkVersion > highestVersionSeen) {
                 final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
                 final OpenUpdateSinkConfig config = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
+                LOGGER.info("Current sink config: {}", config);
                 highestVersionSeen = sink.getVersion();
                 openUpdateServiceConnector = new OpenUpdateServiceConnector(
                         config.getEndpoint(),

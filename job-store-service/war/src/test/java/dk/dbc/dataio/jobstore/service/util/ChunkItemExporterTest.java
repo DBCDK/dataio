@@ -129,6 +129,17 @@ public class ChunkItemExporterTest {
         assertThat(StringUtil.asString(bytes), is(StringUtil.asString(danMarc2LineFormat) + StringUtil.asString(danMarc2LineFormat)));
     }
 
+    @Test
+    public void export_chunkItemWithBytesType_canBeExportedAsBytes() throws JobStoreException {
+        final String data = "Some test data";
+        final ChunkItem chunkItem = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.BYTES)
+                .setData(data)
+                .build();
+        final byte[] bytes = chunkItemExporter.export(chunkItem, ChunkItem.Type.BYTES, encoding, diagnostics);
+        assertThat(StringUtil.asString(bytes), is(data));
+    }
+
     private MarcRecord getMarcRecord() {
         final DataField dataField245 = new DataField()
                 .setTag("245")

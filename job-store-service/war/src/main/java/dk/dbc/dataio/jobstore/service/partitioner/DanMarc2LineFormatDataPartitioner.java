@@ -130,7 +130,7 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.UNKNOWN);
+                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.BYTES);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
                 result = new DataPartitionerResult(chunkItem, null);
             } else {

@@ -38,10 +38,11 @@ public class PopupTextBox extends Composite implements HasValue<String> {
      * Constructor
      *
      * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
+     * @param cancelButtonText The text to be displayed in the Cancel Button (mandatory)
      * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
     @UiConstructor
-    public PopupTextBox(String dialogTitle, String cancelButtonText, String okButtonText) {
+    public PopupTextBox(String dialogTitle, String okButtonText, String cancelButtonText) {
         initWidget(ourUiBinder.createAndBindUi(this));
         dialogBox.setText(dialogTitle);
         setButton(okButton, okButtonText);

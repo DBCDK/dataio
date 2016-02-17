@@ -48,6 +48,8 @@
         </li>
         <li><g:Label ui:field="status"></g:Label></li>
 
+        <dio:PopupTextBox ui:field="popupTextBox" dialogTitle="Indtast Queue Provider" cancelButtonText="Cancel" okButtonText="OK"/>
+
     </g:HTMLPanel>
 
 </ui:UiBinder>

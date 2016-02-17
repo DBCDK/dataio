@@ -74,7 +74,7 @@ public class SortableListWidget extends Composite implements HasValue<Map<String
      */
     @Override
     public void setValue(Map<String, String> items, boolean fireEvent) {
-        model.put(items);
+        model.put(items, fireEvent);
     }
 
     /**

@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.gui.client.components.sortablelist;
 
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
+import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.query.client.GQuery;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.Widget;
@@ -31,6 +33,7 @@ import gwtquery.plugins.draggable.client.gwt.DraggableWidget;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import java.util.HashMap;
@@ -42,6 +45,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -75,6 +79,7 @@ public class SortableListModelTest {
     @Mock DraggableWidget draggableWidget1;
     @Mock DraggableWidget draggableWidget2;
     @Mock DraggableWidget draggableWidget3;
+    @Mock ValueChangeHandler<Map<String, String>> mockedEventHandler;
 
 
     @Before
@@ -164,6 +169,34 @@ public class SortableListModelTest {
         assertThat(sortableListModel.modelWidgets.get(2).key, is(KEY3));
         assertThat(sortableListModel.modelWidgets.get(2).value, is(TEXT3));
         verify(sortableListModel.list, times(3)).add(any(Widget.class));
+    }
+
+    @Test
+    public void put_emptyMapFireEvent_eventHandlerCalled() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.addValueChangeHandler(mockedEventHandler);
+
+        sortableListModel.put(new HashMap<String, String>(), true);
+
+        ArgumentCaptor<ValueChangeEvent> argument = ArgumentCaptor.forClass(ValueChangeEvent.class);
+        verify(mockedEventHandler).onValueChange(argument.capture());
+        ValueChangeEvent<Map<String, String>> event = (ValueChangeEvent<Map<String,String>>) argument.getValue();
+        assertThat(event.getValue().size(), is(0));
+        verifyNoMoreInteractions(mockedEventHandler);
+    }
+
+    @Test
+    public void put_notEmptyMapFireEvent_eventHandlerCalled() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.addValueChangeHandler(mockedEventHandler);
+
+        sortableListModel.put(constructTestData(), true);
+
+        ArgumentCaptor<ValueChangeEvent> argument = ArgumentCaptor.forClass(ValueChangeEvent.class);
+        verify(mockedEventHandler).onValueChange(argument.capture());
+        ValueChangeEvent<Map<String, String>> event = (ValueChangeEvent<Map<String,String>>) argument.getValue();
+        assertThat(event.getValue().size(), is(3));
+        verifyNoMoreInteractions(mockedEventHandler);
     }
 
     @Test

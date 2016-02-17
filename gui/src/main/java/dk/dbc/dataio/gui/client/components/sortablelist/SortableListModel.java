@@ -81,7 +81,7 @@ public class SortableListModel {
     SortableListModel(FlowPanel list, GQueryWrapper gQueryWrapper) {
         this.list = list;
         this.gQuery = gQueryWrapper;
-        modelWidgets = new ArrayList<SortableWidget>();
+        modelWidgets = new ArrayList<>();
     }
 
     /**
@@ -89,7 +89,7 @@ public class SortableListModel {
      */
     void clear() {
         list.clear();
-        modelWidgets = new ArrayList<SortableWidget>();
+        modelWidgets = new ArrayList<>();
     }
 
     /**
@@ -147,14 +147,29 @@ public class SortableListModel {
 
     /**
      * Clears all items from the list, and replaces it with the supplied items
+     * A boolean parameter direct the method to send a fireevent upon completion
      *
      * @param items Items to set in the new list
+     * @param fireEvent Boolean to direct the method to send a ValueChangeEvent
      */
-    void put(Map<String, String> items) {
+    void put(Map<String, String> items, boolean fireEvent) {
         clear();
         for (Map.Entry<String, String> item : items.entrySet()) {
             add(item.getKey(), item.getValue());
         }
+        if (fireEvent) {
+            triggerValueChangeEvent();
+        }
+    }
+
+    /**
+     * Clears all items from the list, and replaces it with the supplied items
+     * Does not send a ValueChangeEvent
+     *
+     * @param items Items to set in the new list
+     */
+    void put(Map<String, String> items) {
+        put(items, false);
     }
 
     /**
@@ -163,7 +178,7 @@ public class SortableListModel {
      * @return Ordered Map of widgets
      */
     Map<String, String> get() {
-        Map<String, String> result = new LinkedHashMap<String, String>(modelWidgets.size());
+        Map<String, String> result = new LinkedHashMap<>(modelWidgets.size());
         for (SortableWidget widget : modelWidgets) {
             result.put(widget.key, widget.value);
         }
@@ -246,7 +261,7 @@ public class SortableListModel {
      */
     private DraggableWidget<Label> getLabelDraggableWidget(String text) {
         Label label = new Label(text);
-        DraggableWidget<Label> draggableLabel = new DraggableWidget<Label>(label);
+        DraggableWidget<Label> draggableLabel = new DraggableWidget<>(label);
         draggableLabel.setDraggableOptions(labelWidgetDraggableOptions(list));
         gQuery.$(draggableLabel).bind(Event.ONMOUSEDOWN, new MouseDownFunction());
         return draggableLabel;
@@ -275,6 +290,17 @@ public class SortableListModel {
         widget.addStyleName(selected ? SELECTED : NOT_SELECTED);
         widget.removeStyleName(selected ? NOT_SELECTED : SELECTED);
     }
+
+    /**
+     * Triggers a ValueChangeEvent - to be called whenever the model changes
+     */
+    private void triggerValueChangeEvent() {
+        if (valueChangeHandler != null) {
+            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(get()) {});
+        }
+    }
+
+
     /*
      * Private Classes
      */
@@ -296,9 +322,7 @@ public class SortableListModel {
         @Override
         public void f(DragContext dragContext) {
             reOrder();
-            if (valueChangeHandler != null) {
-                valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(get()) {});
-            }
+            triggerValueChangeEvent();
         }
     }
 }

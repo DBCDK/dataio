@@ -25,7 +25,6 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
@@ -165,13 +164,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void queueProvidersAddButtonPressed() {
-        Window.alert("Add Available Queue Provider");
-        View vie = getView();
-        setQueueProvidersMultiList(vie.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+        getView().popupTextBox.show();
     }
 
 
-   /*
+    /*
      * Protected methods
      */
 

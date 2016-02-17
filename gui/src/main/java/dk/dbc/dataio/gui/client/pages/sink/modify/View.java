@@ -33,6 +33,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.gui.client.components.PopupTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
@@ -63,6 +64,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedMultiList queueProviders;
     @UiField Button deleteButton;
     @UiField Label status;
+    @UiField PopupTextBox popupTextBox;
 
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ChangeEvent event) {
@@ -146,9 +148,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("queueProviders")
-    void availableQueueProvidersButtonsClicked(ClickEvent event) {
+    void availableQueueProvidersButtonClicked(ClickEvent event) {
         if (queueProviders.isAddEvent(event)) {
             presenter.queueProvidersAddButtonPressed();
         }
+    }
+
+    @UiHandler("popupTextBox")
+    void popupTextBoxChanged(ValueChangeEvent<String> event) {
+        Map<String, String> list = queueProviders.getValue();
+        list.put(event.getValue(), event.getValue());
+        queueProviders.setValue(list, true);
     }
 }

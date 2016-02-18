@@ -21,7 +21,10 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
@@ -30,17 +33,23 @@ import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import net.logstash.logback.encoder.org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import javax.ejb.SessionContext;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.persistence.Query;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -203,6 +212,98 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final Pattern pattern = Pattern.compile("\\*arecordFromPartitioning.*\\*arecordFromProcessing", Pattern.DOTALL);
         final Matcher matcher = pattern.matcher(mailContent);
         assertThat(matcher.find(), is(true));
+    }
+
+    /**
+     * Given: a repository containing a job with one chunk, where
+     *        the item has failed in processing and the second item has failed in delivering,
+     * When : a notification for the job of type JOB_COMPLETED is processed
+     * Then : notification is updated with completed status
+     * And  : a mail notification is sent containing item export of the item failed in delivering and with
+     *        the data from the item failed in partitioning as attachment
+     */
+    @Test
+    public void processNotificationWithAppendedAndAttachedFailures() throws MessagingException, IOException {
+        // Given...
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setSpecification(
+                new JobSpecificationBuilder()
+                        .setMailForNotificationAboutVerification("verification@company.com")
+                        .setPackaging("lin")
+                        .build()
+        );
+        jobEntity.getState()
+                .updateState(new StateChange()
+                        .setPhase(State.Phase.PARTITIONING)
+                        .incFailed(1));
+        jobEntity.getState()
+                .updateState(new StateChange()
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
+
+        persist(jobEntity);
+
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+
+        final ItemEntity itemFailedDuringPartitioning = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 0));
+        itemFailedDuringPartitioning.getState()
+                .updateState(new StateChange()
+                        .setPhase(State.Phase.PARTITIONING)
+                        .incFailed(1));
+
+        final ChunkItem partitioningOutcome = new ChunkItemBuilder()
+                .setType(ChunkItem.Type.BYTES)
+                .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().build()))
+                .setData("** unreadable record failed in partitioning **")
+                .build();
+
+        itemFailedDuringPartitioning.setPartitioningOutcome(partitioningOutcome);
+
+        final ItemEntity itemFailedDuringDelivering = newItemEntity(new ItemEntity.Key(jobEntity.getId(), 0, (short) 2));
+        itemFailedDuringDelivering.getState()
+                .updateState(new StateChange()
+                        .setPhase(State.Phase.DELIVERING)
+                        .incFailed(1));
+        itemFailedDuringDelivering.setProcessingOutcome(new ChunkItemBuilder().setData(asAddi(getMarcXchange("recordFromProcessing"))).build());
+
+        persist(itemFailedDuringPartitioning);
+        persist(itemFailedDuringDelivering);
+
+        final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
+
+        // When...
+        final NotificationEntity notification = persistenceContext.run(() ->
+                jobNotificationRepository.addNotification(JobNotification.Type.JOB_COMPLETED, jobEntity));
+
+        persistenceContext.run(() ->
+                jobNotificationRepository.processNotification(notification));
+
+        // Then...
+        final List<NotificationEntity> notifications = findAllNotifications();
+        assertThat("Number of notifications", notifications.size(), is(1));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+
+        // And...
+        final List<Message> inbox = Mailbox.get(jobEntity.getSpecification().getMailForNotificationAboutVerification());
+        assertThat("Number of notifications published", inbox.size(), is(1));
+
+        // Mail consists of 2 parts
+        Multipart multipart = (Multipart)inbox.get(0).getContent();
+        assertThat("Number of parts which the mail consist of", multipart.getCount(), is(2));
+
+        // First part contains the expected resource content
+        final Part mailContentBodyPart = multipart.getBodyPart(0);
+
+        final Pattern pattern = Pattern.compile("\\*arecordFromProcessing", Pattern.DOTALL);
+        final Matcher matcher = pattern.matcher(mailContentBodyPart.getContent().toString());
+        assertThat(matcher.find(), is(true));
+
+        // Second part contains the expected attachment
+        Part mailAttachment = multipart.getBodyPart(1);
+        assertThat("Notification attachment disposition", mailAttachment.getDisposition(), is(Part.ATTACHMENT));
+        final Writer writer = new StringWriter();
+        IOUtils.copy(mailAttachment.getInputStream(), writer);
+        assertThat("Notification attachment content", writer.toString(), is(StringUtil.asString(partitioningOutcome.getData())));
     }
 
     /**

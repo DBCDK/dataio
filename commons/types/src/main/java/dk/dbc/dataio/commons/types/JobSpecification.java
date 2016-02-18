@@ -85,7 +85,7 @@ public class JobSpecification implements Serializable {
                             @JsonProperty("type") Type type,
                             @JsonProperty("ancestry") Ancestry ancestry) throws NullPointerException, IllegalArgumentException {
 
-        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
+        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging").trim().toLowerCase();
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
         this.charset = InvariantUtil.checkNotNullNotEmptyOrThrow(charset, "charset");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");

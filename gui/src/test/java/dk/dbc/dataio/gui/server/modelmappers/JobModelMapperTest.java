@@ -88,7 +88,7 @@ public class JobModelMapperTest {
                 .setFormat("formaT")
                 .setMailForNotificationAboutProcessing("mail4ProcessinG")
                 .setMailForNotificationAboutVerification("mail4VerificatioN")
-                .setPackaging("packaginG")
+                .setPackaging("packaging")
                 .setResultmailInitials("mailInitialS")
                 .setSubmitterId(64646L)
                 .build();
@@ -135,7 +135,7 @@ public class JobModelMapperTest {
                 .setFormat("formaT2")
                 .setMailForNotificationAboutProcessing("mail4ProcessinG2")
                 .setMailForNotificationAboutVerification("mail4VerificatioN2")
-                .setPackaging("packaginG2")
+                .setPackaging("packaging2")
                 .setResultmailInitials("mailInitialS2")
                 .setSubmitterId(64647L)
                 .build();
@@ -216,7 +216,7 @@ public class JobModelMapperTest {
         assertThat(jobModel.getPartitionedCounter(), is(565L - 1 + 5L - 1 + 568L - 1));
         assertThat(jobModel.getProcessedCounter(), is(44L - 1 + 67L - 1 + 8324L - 1));
         assertThat(jobModel.getDeliveredCounter(), is(124L - 1 + 34L - 1 + 644L - 1));
-        assertThat(jobModel.getPackaging(), is("packaginG"));
+        assertThat(jobModel.getPackaging(), is("packaging"));
         assertThat(jobModel.getFormat(), is("formaT"));
         assertThat(jobModel.getCharset(), is("charseT"));
         assertThat(jobModel.getDestination(), is("destinatioN"));
@@ -346,7 +346,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).getItemCounter(), is(564L + 4L + 567L));
         assertThat(jobModels.get(0).getFailedCounter(), is(33L + 66L + 4L));
         assertThat(jobModels.get(0).getProcessingIgnoredCounter(), is(8323L));
-        assertThat(jobModels.get(0).getPackaging(), is("packaginG"));
+        assertThat(jobModels.get(0).getPackaging(), is("packaging"));
         assertThat(jobModels.get(0).getFormat(), is("formaT"));
         assertThat(jobModels.get(0).getCharset(), is("charseT"));
         assertThat(jobModels.get(0).getDestination(), is("destinatioN"));
@@ -365,7 +365,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getFailedCounter(), is(34L + 67L + 5L));
         assertThat(jobModels.get(1).getIgnoredCounter(), is(644L));
         assertThat(jobModels.get(1).getProcessingIgnoredCounter(), is(8324L));
-        assertThat(jobModels.get(1).getPackaging(), is("packaginG2"));
+        assertThat(jobModels.get(1).getPackaging(), is("packaging2"));
         assertThat(jobModels.get(1).getFormat(), is("formaT2"));
         assertThat(jobModels.get(1).getCharset(), is("charseT2"));
         assertThat(jobModels.get(1).getDestination(), is("destinatioN2"));

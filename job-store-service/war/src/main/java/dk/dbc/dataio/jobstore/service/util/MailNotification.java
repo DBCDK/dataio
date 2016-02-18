@@ -27,12 +27,19 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+import javax.activation.DataHandler;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.util.ByteArrayDataSource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -59,6 +66,7 @@ public class MailNotification {
     private final Session mailSession;
     private final NotificationEntity notification;
     private final StringBuilder builder;
+    private Attachment attachment;
 
     public MailNotification(Session mailSession, NotificationEntity notification) throws JobStoreException {
         this.mailSession = mailSession;
@@ -71,6 +79,7 @@ public class MailNotification {
 
     /**
      * Formats and sends this email notification
+     *
      * @throws JobStoreException in case of error during formatting or sending
      */
     public void send() throws JobStoreException {
@@ -81,6 +90,8 @@ public class MailNotification {
             }
             final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"), FROM_ADDRESS_PERSONAL_NAME);
             final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
+
+            // sends the e-mail
             Transport.send(buildMimeMessage(fromAddress, toAddresses));
         } catch (Exception e) {
             throw new JobStoreException("Unable to send notification", e);
@@ -89,6 +100,10 @@ public class MailNotification {
 
     public void append(byte[] addenda) {
         builder.append(new String(addenda, StandardCharsets.UTF_8));
+    }
+
+    public void attach(Attachment attachment) {
+        this.attachment = attachment;
     }
 
     private void setDestination() {
@@ -117,7 +132,7 @@ public class MailNotification {
         return Optional.of(destination);
     }
 
-     private Optional<String> getDestinationForJobCompletedNotification(JobSpecification jobSpecification) {
+    private Optional<String> getDestinationForJobCompletedNotification(JobSpecification jobSpecification) {
         final String destination = jobSpecification.getMailForNotificationAboutProcessing();
         if (destination.trim().isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
             // fall back to primary destination
@@ -186,10 +201,12 @@ public class MailNotification {
         return buffer.toString();
     }
 
-    private MimeMessage buildMimeMessage(InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException {
+    public MimeMessage buildMimeMessage(InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException, IOException {
         final MimeMessage message = new MimeMessage(mailSession);
         message.setFrom(fromAddress);
         message.setRecipients(Message.RecipientType.TO, toAddresses);
+        message.setSentDate(new Date());
+
         switch (notification.getType()) {
             case JOB_COMPLETED:
                 message.setSubject(SUBJECT_FOR_JOB_COMPLETED);
@@ -198,8 +215,34 @@ public class MailNotification {
                 message.setSubject(SUBJECT_FOR_JOB_CREATED);
                 break;
         }
-        message.setSentDate(new Date());
-        message.setText(builder.toString(), StandardCharsets.UTF_8.name());
+
+        final DataHandler messageDataHandler = new DataHandler(builder.toString(), "text/plain; charset=UTF-8");
+        if (attachment != null) {
+            message.setContent(buildMimeMultipart(messageDataHandler));
+        } else {
+            message.setDataHandler(messageDataHandler);
+        }
+        message.saveChanges();
         return message;
+    }
+
+    private Multipart buildMimeMultipart(DataHandler messageDataHandler) throws MessagingException {
+
+        // Creating body part for mail content
+        final BodyPart mailContent = new MimeBodyPart();
+        mailContent.setDataHandler(messageDataHandler);
+
+        // Creating body part for mail attachment
+        final MimeBodyPart mailAttachment = new MimeBodyPart();
+        final ByteArrayDataSource attachmentDataSource = new ByteArrayDataSource(attachment.getContent(), attachment.getContentType());
+        mailAttachment.setDataHandler(new DataHandler(attachmentDataSource));
+        mailAttachment.setDisposition(Part.ATTACHMENT);
+        mailAttachment.setFileName(attachment.getFileName());
+
+        // Creating MimeMultipart
+        final MimeMultipart multipart = new MimeMultipart();
+        multipart.addBodyPart(mailContent);
+        multipart.addBodyPart(mailAttachment);
+        return multipart;
     }
 }

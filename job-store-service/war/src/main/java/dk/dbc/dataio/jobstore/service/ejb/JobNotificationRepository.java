@@ -22,11 +22,13 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.service.util.Attachment;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobNotification;
@@ -40,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
-import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -48,6 +49,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.mail.Session;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -195,11 +197,19 @@ public class JobNotificationRepository extends RepositoryBase {
         final JobEntity job = notification.getJob();
         if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);
+            if(job.getState().getPhase(State.Phase.PARTITIONING).getFailed() > 0) {
+                mailNotification.attach(createAttachment(job, jobExporter));
+            }
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PROCESSING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
             mailNotification.append(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.DELIVERING),
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
         }
         return mailNotification;
+    }
+
+    private Attachment createAttachment(JobEntity job, JobExporter jobExporter) throws JobStoreException {
+        return new Attachment(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PARTITIONING),
+                ChunkItem.Type.BYTES, StandardCharsets.UTF_8).toByteArray(), job.getSpecification().getPackaging());
     }
 }

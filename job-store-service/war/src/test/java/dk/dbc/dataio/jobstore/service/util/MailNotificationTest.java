@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest;
@@ -35,18 +36,25 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import net.logstash.logback.encoder.org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
@@ -66,7 +74,6 @@ public class MailNotificationTest {
     private static final String JOB_COMPLETED_SUBJECT = "DANBIB:baseindlaeg";
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
-    private final String mailFrom = "dataio@dbc.dk";
     private final byte[] bytes = "Appended data".getBytes();
 
     @Before
@@ -254,12 +261,8 @@ public class MailNotificationTest {
     public void send_appliesJobCompletedTemplate() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
-        final State state = notification.getJob().getState();
-        final StateChange stateChange = new StateChange();
-        stateChange.setPhase(State.Phase.PARTITIONING);
-        stateChange.setPhase(State.Phase.DELIVERING);
-        stateChange.setSucceeded(96);
-        state.updateState(stateChange);
+
+        updateStateForJobCompletedBody(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -275,20 +278,8 @@ public class MailNotificationTest {
     public void send_appliesJobCompletedWithFailuresTemplate() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
-        final State state = notification.getJob().getState();
-        final StateChange stateChange = new StateChange();
-        stateChange.setPhase(State.Phase.PARTITIONING);
-        stateChange.setFailed(1);
-        state.updateState(stateChange);
-        stateChange.setPhase(State.Phase.PROCESSING);
-        stateChange.setFailed(1);
-        stateChange.setFailed(2);
-        state.updateState(stateChange);
-        stateChange.setPhase(State.Phase.DELIVERING);
-        stateChange.setFailed(3);
-        stateChange.setIgnored(3);
-        stateChange.setSucceeded(94);
-        state.updateState(stateChange);
+
+        updateStateForJobCompletedWithFailuresBody(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -304,7 +295,112 @@ public class MailNotificationTest {
     public void send_appliesJobCompletedWithFailuresAppendedTemplate() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
-        final State state = notification.getJob().getState();
+
+        updateStateForJobCompletedWithFailuresAppendedBody(notification.getJob().getState());
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.append(bytes);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+        final Message message = inbox.get(0);
+        assertThat("Notification subject", message.getSubject(), is(JOB_COMPLETED_SUBJECT));
+        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_APPENDED_BODY)));
+    }
+
+    @Test
+    public void send_appliesJobCompletedWithFailuresAppendedTemplateAndUnreadableLineFormatAttachment() throws JobStoreException, IOException, MessagingException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.JOB_COMPLETED, getJobEntity());
+
+        updateStateForJobCompletedWithFailuresAppendedBody(notification.getJob().getState());
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        final Attachment attachment = new Attachment("**This is an unreadable record".getBytes(), "lin");
+        mailNotification.attach(attachment);
+        mailNotification.append(bytes);
+        mailNotification.send();
+
+        // Assert that one mail has been received
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+
+        // Assert that the mail consists of 2 parts: Content and attachment
+        Multipart multipart = (Multipart)inbox.get(0).getContent();
+        assertThat("Number of parts which the mail consist of", multipart.getCount(), is(2));
+
+        // Assert that first part contains the expected resource content
+        final Part mailContent = multipart.getBodyPart(0);
+        assertThat("Notification content", mailContent.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_APPENDED_BODY)));
+
+        // Assert that second part contains the expected attachment
+        assertNotificationAttachment(attachment, multipart.getBodyPart(1));
+    }
+
+    @Test
+    public void send_appliesJobCompletedWithFailuresTemplateUnreadableIsoAttachment() throws JobStoreException, MessagingException, IOException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.JOB_COMPLETED, getJobEntity());
+
+        updateStateForJobCompletedWithFailuresBody(notification.getJob().getState());
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        final Attachment attachment = new Attachment(readTestRecord("/broken-iso2709-2.iso"), "iso");
+        mailNotification.attach(attachment);
+        mailNotification.send();
+
+        // Assert that one mail has been received
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+
+        // Assert that the mail consists of 2 parts: Content and attachment
+        Multipart multipart = (Multipart)inbox.get(0).getContent();
+        assertThat("Number of parts which the mail consist of", multipart.getCount(), is(2));
+
+        // Assert that first part contains the expected resource content
+        final Part mailContentBodyPart = multipart.getBodyPart(0);
+        assertThat("Notification content", mailContentBodyPart.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_BODY)));
+
+        // Assert that second part contains the expected attachment
+        assertNotificationAttachment(attachment, multipart.getBodyPart(1));
+    }
+
+    private void assertNotificationAttachment(Attachment attachment, Part mailAttachment) throws IOException, MessagingException {
+        assertThat("Notification attachment disposition", mailAttachment.getDisposition(), is(Part.ATTACHMENT));
+        assertThat("Notification attachment contentType", mailAttachment.getContentType().contains(attachment.getContentType()), is(true));
+        assertThat("Notification attachment filename", mailAttachment.getFileName(), is(attachment.getFileName()));
+
+        final Writer writer = new StringWriter();
+        IOUtils.copy(mailAttachment.getInputStream(), writer);
+        assertThat("Notification attachment content", writer.toString(), is(StringUtil.asString(attachment.getContent())));
+    }
+
+    private void updateStateForJobCompletedBody(State state) {
+        final StateChange stateChange = new StateChange();
+        stateChange.setPhase(State.Phase.PARTITIONING);
+        stateChange.setPhase(State.Phase.DELIVERING);
+        stateChange.setSucceeded(96);
+        state.updateState(stateChange);
+    }
+
+    private void updateStateForJobCompletedWithFailuresBody(State state) {
+        final StateChange stateChange = new StateChange();
+        stateChange.setPhase(State.Phase.PARTITIONING);
+        stateChange.setFailed(1);
+        state.updateState(stateChange);
+        stateChange.setPhase(State.Phase.PROCESSING);
+        stateChange.setFailed(1);
+        stateChange.setFailed(2);
+        state.updateState(stateChange);
+        stateChange.setPhase(State.Phase.DELIVERING);
+        stateChange.setFailed(3);
+        stateChange.setIgnored(3);
+        stateChange.setSucceeded(94);
+        state.updateState(stateChange);
+    }
+
+    private void updateStateForJobCompletedWithFailuresAppendedBody(State state) {
         final StateChange stateChange = new StateChange();
         stateChange.setPhase(State.Phase.PARTITIONING);
         stateChange.setFailed(1);
@@ -318,20 +414,11 @@ public class MailNotificationTest {
         stateChange.setIgnored(3);
         stateChange.setSucceeded(96);
         state.updateState(stateChange);
-
-        final MailNotification mailNotification = getMailNotification(notification);
-        mailNotification.append(bytes);
-        mailNotification.send();
-
-        final List<Message> inbox = Mailbox.get(destination);
-        assertThat("Number of notifications for destination", inbox.size(), is(1));
-        final Message message = inbox.get(0);
-        assertThat("Notification subject", message.getSubject(), is(JOB_COMPLETED_SUBJECT));
-        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_APPENDED_BODY)));
     }
 
     private MailNotification getMailNotification(NotificationEntity notification) throws JobStoreException {
         final Properties mailSessionProperties = new Properties();
+        String mailFrom = "dataio@dbc.dk";
         mailSessionProperties.setProperty("mail.from", mailFrom);
         mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
         return new MailNotification(Session.getDefaultInstance(mailSessionProperties), notification);
@@ -356,6 +443,17 @@ public class MailNotificationTest {
         try {
             return new String(Files.readAllBytes(Paths.get(getClass().getResource(resourceName).toURI())),
                     StandardCharsets.UTF_8);
+        } catch (IOException | URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    protected byte[] readTestRecord(String resourceName) {
+        try {
+            final URL url = MailNotificationTest.class.getResource(resourceName);
+            final Path resPath;
+            resPath = Paths.get(url.toURI());
+            return Files.readAllBytes(resPath);
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException(e);
         }

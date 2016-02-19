@@ -36,7 +36,7 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import net.logstash.logback.encoder.org.apache.commons.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -279,7 +279,7 @@ public class MailNotificationTest {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
 
-        updateStateForJobCompletedWithFailuresBody(notification.getJob().getState());
+        updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -296,7 +296,7 @@ public class MailNotificationTest {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
 
-        updateStateForJobCompletedWithFailuresAppendedBody(notification.getJob().getState());
+        updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.append(bytes);
@@ -314,7 +314,7 @@ public class MailNotificationTest {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
 
-        updateStateForJobCompletedWithFailuresAppendedBody(notification.getJob().getState());
+        updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
         final Attachment attachment = new Attachment("**This is an unreadable record".getBytes(), "lin");
@@ -343,7 +343,7 @@ public class MailNotificationTest {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
                 JobNotification.Type.JOB_COMPLETED, getJobEntity());
 
-        updateStateForJobCompletedWithFailuresBody(notification.getJob().getState());
+        updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
         final Attachment attachment = new Attachment(readTestRecord("/broken-iso2709-2.iso"), "iso");
@@ -384,35 +384,18 @@ public class MailNotificationTest {
         state.updateState(stateChange);
     }
 
-    private void updateStateForJobCompletedWithFailuresBody(State state) {
+    private void updateStateForJobCompletedWithFailures(State state) {
         final StateChange stateChange = new StateChange();
         stateChange.setPhase(State.Phase.PARTITIONING);
         stateChange.setFailed(1);
         state.updateState(stateChange);
         stateChange.setPhase(State.Phase.PROCESSING);
-        stateChange.setFailed(1);
         stateChange.setFailed(2);
         state.updateState(stateChange);
         stateChange.setPhase(State.Phase.DELIVERING);
         stateChange.setFailed(3);
         stateChange.setIgnored(3);
         stateChange.setSucceeded(94);
-        state.updateState(stateChange);
-    }
-
-    private void updateStateForJobCompletedWithFailuresAppendedBody(State state) {
-        final StateChange stateChange = new StateChange();
-        stateChange.setPhase(State.Phase.PARTITIONING);
-        stateChange.setFailed(1);
-        state.updateState(stateChange);
-        stateChange.setPhase(State.Phase.PROCESSING);
-        stateChange.setFailed(1);
-        stateChange.setFailed(2);
-        state.updateState(stateChange);
-        stateChange.setPhase(State.Phase.DELIVERING);
-        stateChange.setFailed(1);
-        stateChange.setIgnored(3);
-        stateChange.setSucceeded(96);
         state.updateState(stateChange);
     }
 

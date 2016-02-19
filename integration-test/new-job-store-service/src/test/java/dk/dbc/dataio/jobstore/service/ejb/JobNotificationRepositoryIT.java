@@ -33,7 +33,7 @@ import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
-import net.logstash.logback.encoder.org.apache.commons.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -216,7 +216,7 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
 
     /**
      * Given: a repository containing a job with one chunk, where
-     *        the item has failed in processing and the second item has failed in delivering,
+     *        the first item has failed in partitioning and the second item has failed in delivering,
      * When : a notification for the job of type JOB_COMPLETED is processed
      * Then : notification is updated with completed status
      * And  : a mail notification is sent containing item export of the item failed in delivering and with

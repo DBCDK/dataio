@@ -165,7 +165,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
-                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.BYTES);
+                ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.STRING);
                 chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
                 result = new DataPartitionerResult(chunkItem, null);
             } else {

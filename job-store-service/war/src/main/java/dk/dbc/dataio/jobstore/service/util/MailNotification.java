@@ -201,7 +201,7 @@ public class MailNotification {
         return buffer.toString();
     }
 
-    public MimeMessage buildMimeMessage(InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException, IOException {
+    private MimeMessage buildMimeMessage(InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException, IOException {
         final MimeMessage message = new MimeMessage(mailSession);
         message.setFrom(fromAddress);
         message.setRecipients(Message.RecipientType.TO, toAddresses);

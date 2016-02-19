@@ -40,7 +40,7 @@ public class Attachment {
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
         this.fileNameExtension = InvariantUtil.checkNotNullNotEmptyOrThrow(fileNameExtension, "fileNameExtension");
         this.contentType = String.format("application/octet-stream; charset=%s", decipherEncoding());
-        this.fileName = String.format("unreadable_records.%s", fileNameExtension);
+        this.fileName = String.format("fejl_i_poststruktur.%s", fileNameExtension);
     }
 
     public byte[] getContent() {

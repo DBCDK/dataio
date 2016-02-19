@@ -90,7 +90,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     @Override
     public void mailForNotificationAboutVerificationChanged(String mailForNotificationvoidAboutVerification) {
-        jobModel.setMailForNotificationvoidAboutProcessing(mailForNotificationvoidAboutVerification);
+        jobModel.setMailForNotificationvoidAboutVerification(mailForNotificationvoidAboutVerification);
     }
 
     @Override

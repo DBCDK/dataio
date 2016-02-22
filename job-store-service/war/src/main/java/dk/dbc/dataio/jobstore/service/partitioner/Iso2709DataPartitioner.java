@@ -162,6 +162,11 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             } else {
                 result = processMarcRecord(marcRecord, marcWriter);
             }
+        } catch (Iso2709IteratorReadError e) {
+            LOGGER.error("Exception caught while decoding 2709", e);
+            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes, ChunkItem.Type.BYTES);
+            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+            result = new DataPartitionerResult(chunkItem, null);
         } catch (MarcReaderException e) {
             LOGGER.error("Exception caught while creating MarcRecord", e);
             if (e instanceof MarcReaderInvalidRecordException) {
@@ -171,11 +176,6 @@ public class Iso2709DataPartitioner implements DataPartitioner {
             } else {
                 throw new InvalidDataException(e);
             }
-        } catch (Exception e) {
-            LOGGER.error("Exception caught while decoding 2709", e);
-            ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, recordAsBytes, ChunkItem.Type.STRING);
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while decoding 2709", e));
-            result = new DataPartitionerResult(chunkItem, null);
         }
         return result;
     }
@@ -263,29 +263,45 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     /**
-     * This method converts a byte array representation of the record into a document representation of the record into a marc record.
+     * This method converts a byte array representation of the record into a marc record.
      * @param recordAsBytes byte array representation of the record
      * @return marc record or null if a document could not be created
      * @throws MarcReaderException if an error occurs while creating parser
      *
-     * @throws InvalidDataException if:
-     *         A documentBuilder could not be created which satisfies the configuration requested.
-     *         Transformer instance could not be created or an unrecoverable error occurred during the course of the transformation.
+     * @throws InvalidDataException if transformer instance could not be created or if an unrecoverable error occurred
+     *         during the course of the transformation.
      */
-    private MarcRecord getMarcRecord(byte[] recordAsBytes) throws MarcReaderException, InvalidDataException {
+    private MarcRecord getMarcRecord(byte[] recordAsBytes) throws MarcReaderException, InvalidDataException, Iso2709IteratorReadError {
         try {
-            Document marcXChangeRecordAsDocument = Iso2709Unpacker.createMarcXChangeRecord(recordAsBytes, danMarc2Charset, documentBuilderFactory);
+            Document marcXChangeRecordAsDocument = getMarcXChangeRecordAsDocument(recordAsBytes);
             if (marcXChangeRecordAsDocument != null) {
                 MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(documentToString(marcXChangeRecordAsDocument).getBytes(encoding)), encoding);
                 return marcReader.read();
             }
             return null;
-        } catch (ParserConfigurationException e) {
-            LOGGER.error("Exception caught while creating MarcXChange Record", e);
-            throw new InvalidDataException(e);
         } catch (TransformerException e) {
             LOGGER.error("Unrecoverable error occurred during transformation", e);
             throw new InvalidDataException(e);
+        }
+    }
+
+    /**
+     * This method converts a byte array representation of the record into a document representation of the record.
+     * Any error thrown (excluding ParserConfigurationException), is interpreted as invalid iso.
+     * @param recordAsBytes byte array representation of the record
+     * @return document representation of the marcXChangeRecord
+     *
+     * @throws InvalidDataException id a documentBuilder could not be created satisfying the configuration requested.
+     * @throws Iso2709IteratorReadError if any error occurs while decoding 2709
+     */
+    private Document getMarcXChangeRecordAsDocument(byte[] recordAsBytes) throws InvalidDataException, Iso2709IteratorReadError {
+        try {
+            return Iso2709Unpacker.createMarcXChangeRecord(recordAsBytes, danMarc2Charset, documentBuilderFactory);
+        } catch (ParserConfigurationException e) {
+             LOGGER.error("Exception caught while creating MarcXChange Record", e);
+            throw new InvalidDataException(e);
+        } catch (Exception e) {
+            throw new Iso2709IteratorReadError("Exception caught while decoding 2709");
         }
     }
 

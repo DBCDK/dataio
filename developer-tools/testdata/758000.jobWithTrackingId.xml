@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<dataio-harvester-datafile>
+  <data-container>
+    <data-supplementary>
+      <creationDate>20160211</creationDate>
+      <enrichmentTrail>191919,758000</enrichmentTrail>
+      <trackingId>a8923e13-a26e-4317-b6c5-38d6e22912ac-{23403668:191919}</trackingId>
+    </data-supplementary>
+    <data>
+      <collection xmlns="info:lc/xmlns/marcxchange-v1">
+        <record xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.loc.gov/standards/iso25577/marcxchange-1-1.xsd">
+          <leader>00000n    2200000   4500</leader>
+          <datafield ind1="0" ind2="0" tag="001">
+            <subfield code="a">23403668</subfield>
+            <subfield code="b">758000</subfield>
+            <subfield code="c">20160211001219</subfield>
+            <subfield code="d">20160211</subfield>
+            <subfield code="f">a</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="004">
+            <subfield code="r">n</subfield>
+            <subfield code="a">e</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="008">
+            <subfield code="t">m</subfield>
+            <subfield code="u">u</subfield>
+            <subfield code="a">2001</subfield>
+            <subfield code="b">dk</subfield>
+            <subfield code="l">mul</subfield>
+            <subfield code="v">0</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="009">
+            <subfield code="a">a</subfield>
+            <subfield code="g">xx</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="021">
+            <subfield code="a">87-418-8607-0</subfield>
+            <subfield code="c">ib.</subfield>
+            <subfield code="d">kr. 305,00</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="021">
+            <subfield code="a">1-85372-034-8</subfield>
+            <subfield code="b">engelsk</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="041">
+            <subfield code="p">dan</subfield>
+            <subfield code="p">ara</subfield>
+            <subfield code="c">ara</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="096">
+            <subfield code="a">29.7</subfield>
+            <subfield code="z">830060</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="245">
+            <subfield code="a">Koranen</subfield>
+            <subfield code="p">Qur'&#x101;n maj&#x131;&#x304;d</subfield>
+            <subfield code="f">med dansk overs&#xE6;ttelse og noter af A.S. Madsen</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="250">
+            <subfield code="a">3. udgave</subfield>
+            <subfield code="x">1. oplag</subfield>
+            <subfield code="b">3. udgave</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="260">
+            <subfield code="a">[Hvidovre]</subfield>
+            <subfield code="b">Nusrat Djahan Mosk&#xE9;en</subfield>
+            <subfield code="f">Kbh.</subfield>
+            <subfield code="g">i kommission hos Borgen</subfield>
+            <subfield code="c">1989</subfield>
+            <subfield code="k">Norbok</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="300">
+            <subfield code="a">XV, 906 sider</subfield>
+            <subfield code="c">23 cm</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="508">
+            <subfield code="a">Parallel arabisk tekst og dansk overs&#xE6;ttelse</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="512">
+            <subfield code="a">P&#xE5; omslaget: Arabisk-dansk</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="520">
+            <subfield code="a">Tidligere: 2. udgave i 3 bind (1268 sider). Kbh. : Borgen, 1980. (BB ; 34)</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="532">
+            <subfield code="a">Liste over reference-v&#xE6;rker: side XV</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="652">
+            <subfield code="m">29.7</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="666">
+            <subfield code="0"/>
+            <subfield code="f">islam</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="666">
+            <subfield code="0"/>
+            <subfield code="o">hellige skrifter</subfield>
+          </datafield>
+          <datafield ind1="0" ind2="0" tag="745">
+            <subfield code="a">Qur'a&#x304;n maj&#x131;&#x304;d</subfield>
+          </datafield>
+        </record>
+      </collection>
+    </data>
+  </data-container>
+</dataio-harvester-datafile>

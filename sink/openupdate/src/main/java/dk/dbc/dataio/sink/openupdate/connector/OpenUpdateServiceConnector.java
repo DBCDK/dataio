@@ -42,7 +42,7 @@ public class OpenUpdateServiceConnector {
     private static final String CONNECT_TIMEOUT_PROPERTY   = "com.sun.xml.ws.connect.timeout";
     private static final String REQUEST_TIMEOUT_PROPERTY   = "com.sun.xml.ws.request.timeout";
     private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 60 * 1000;    // 1 minute
-    private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 3 * 60 * 1000;    // 3 minutes
+    private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 60 * 60 * 1000;    // 120 minutes -- Vi wait and wait on open update.
 
     private final String endpoint;
     private final String userName;

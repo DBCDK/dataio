@@ -27,6 +27,7 @@ import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
+import dk.dbc.dataio.jobstore.service.util.JobExporter;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -56,6 +57,8 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -128,6 +131,20 @@ public class PgJobStoreRepository extends RepositoryBase {
         final List<ItemInfoSnapshot> itemInfoSnapshots = new ArrayList<>(itemEntities.size());
         itemInfoSnapshots.addAll(itemEntities.stream().map(ItemInfoSnapshotConverter::toItemInfoSnapshot).collect(Collectors.toList()));
         return itemInfoSnapshots;
+    }
+
+    /**
+     * Exports from a job all chunk items which have failed in a specific phase
+     * @param jobId of the job
+     * @param fromPhase specified phase
+     * @param type of export
+     * @param encodedAs specified encoding
+     * @return byteArrayOutputStream containing the requested items.
+     * @throws JobStoreException on general failure to write output stream
+     */
+    @Stopwatch
+    public ByteArrayOutputStream itemsExport(int jobId, State.Phase fromPhase, ChunkItem.Type type, Charset encodedAs) throws JobStoreException {
+        return new JobExporter(entityManager).exportFailedItems(jobId, Collections.singletonList(fromPhase), type, encodedAs);
     }
 
     /**

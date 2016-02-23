@@ -69,10 +69,14 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -326,9 +330,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(Collections.<JobInfoSnapshot>emptyList());
 
         final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
 
         final CollectionType jobInfoSnapshotListType =
                 jsonbContext.getTypeFactory().constructCollectionType(List.class, JobInfoSnapshot.class);
@@ -351,9 +353,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(expectedJobInfoSnapshots);
 
         final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
 
         final CollectionType jobInfoSnapshotListType =
                 jsonbContext.getTypeFactory().constructCollectionType(List.class, JobInfoSnapshot.class);
@@ -371,9 +371,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.listItems(any(ItemListCriteria.class))).thenReturn(Collections.<ItemInfoSnapshot>emptyList());
 
         final Response response = jobsBean.listItems(asJson(new ItemListCriteria()));
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
 
         final CollectionType itemInfoSnapshotListType =
                 jsonbContext.getTypeFactory().constructCollectionType(List.class, ItemInfoSnapshot.class);
@@ -396,9 +394,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.listItems(any(ItemListCriteria.class))).thenReturn(expectedItemInfoSnapshots);
 
         final Response response = jobsBean.listItems(asJson(new JobListCriteria()));
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
 
         final CollectionType itemInfoSnapshotListType =
                 jsonbContext.getTypeFactory().constructCollectionType(List.class, ItemInfoSnapshot.class);
@@ -416,9 +412,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.countItems(any(ItemListCriteria.class))).thenReturn(110L);
 
         final Response response = jobsBean.countItems(asJson(new ItemListCriteria()));
-        assertThat("Response", response, is(notNullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
         long count = jsonbContext.unmarshall((String)response.getEntity(), Long.class);
         assertThat("Count", count, is(110L));
     }
@@ -441,9 +435,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStoreRepository.getResourceBundle(anyInt())).thenReturn(resourceBundle);
 
         final Response response = jobsBean.getResourceBundle(JOB_ID);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
         final ResourceBundle resourceBundleReturned = jsonbContext.unmarshall((String) response.getEntity(), ResourceBundle.class);
         assertThat("ResourceBundle not null", resourceBundleReturned, not(nullValue()));
     }
@@ -472,11 +464,7 @@ public class JobsBeanTest {
 
         when(jobsBean.jobStoreRepository.getChunkItemForPhase(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
 
-        final Response response = jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-        assertThat("DataString not null", response.getEntity().toString(), not(nullValue()));
+        assertOkResponse(jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING));
     }
 
 
@@ -487,10 +475,7 @@ public class JobsBeanTest {
 
         when(jobsBean.jobStoreRepository.getChunkItemForPhase(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(invalidInputException);
 
-        final Response response = jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(false));
+        assertNotFoundResponse(jobsBean.getChunkItemForPhase(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING));
     }
 
     // ************************************* getProcessedNextResult() tests ***********************************************************
@@ -501,11 +486,7 @@ public class JobsBeanTest {
 
         when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
 
-        final Response response = jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(true));
-        assertThat("DataString not null", response.getEntity().toString(), not(nullValue()));
+        assertOkResponse(jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID));
     }
 
 
@@ -516,10 +497,7 @@ public class JobsBeanTest {
 
         when(jobsBean.jobStoreRepository.getNextProcessingOutcome(anyInt(), anyInt(), anyShort())).thenThrow(invalidInputException);
 
-        final Response response = jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
-        assertThat("Response entity", response.hasEntity(), is(false));
+        assertNotFoundResponse(jobsBean.getProcessedNextResult(JOB_ID, CHUNK_ID, ITEM_ID));
     }
 
     @Test
@@ -528,9 +506,7 @@ public class JobsBeanTest {
                 Collections.singletonList(new JobNotificationBuilder().build()));
 
         final Response response = jobsBean.getNotificationsForJob(JOB_ID);
-        assertThat("Response not null", response, not(nullValue()));
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response has entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
         final List<JobNotification> notifications = jsonbContext.unmarshall(response.getEntity().toString(),
                 jsonbContext.getTypeFactory().constructCollectionType(List.class, JobNotification.class));
         assertThat("Number of notifications returned", notifications.size(), is(1));
@@ -558,8 +534,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), eq(JOB_ID))).thenReturn(jobInfoSnapshot);
 
         final Response response = jobsBean.setWorkflowNote(asJson(workflowNote), JOB_ID);
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response has entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
 
         final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
         assertThat("JobInfoSnapshot not null", returnedJobInfoSnapshot, is(notNullValue()));
@@ -589,8 +564,7 @@ public class JobsBeanTest {
         when(jobsBean.jobStore.setWorkflowNote(any(WorkflowNote.class), eq(JOB_ID), eq(CHUNK_ID), eq(ITEM_ID))).thenReturn(itemInfoSnapshot);
 
         final Response response = jobsBean.setWorkflowNote(asJson(workflowNote), JOB_ID, CHUNK_ID, ITEM_ID);
-        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat("Response has entity", response.hasEntity(), is(true));
+        assertOkResponse(response);
 
         final ItemInfoSnapshot returnedItemInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), ItemInfoSnapshot.class);
         assertThat("ItemInfoSnapshot not null", returnedItemInfoSnapshot, is(notNullValue()));
@@ -598,6 +572,62 @@ public class JobsBeanTest {
         assertThat("ItemInfoSnapshot.chunkId", returnedItemInfoSnapshot.getChunkId(), is(itemInfoSnapshot.getChunkId()));
         assertThat("ItemInfoSnapshot.itemId", returnedItemInfoSnapshot.getItemId(), is(itemInfoSnapshot.getItemId()));
         assertThat("ItemInfoSnapshot.workflowNote", returnedItemInfoSnapshot.getWorkflowNote(), is(itemInfoSnapshot.getWorkflowNote()));
+    }
+
+    // ************************************* itemsExport tests ***********************************************************
+
+    @Test
+    public void exportItemsFailedInPartitioning_exportItemsThrows_returnsStatusNotFoundResponse() throws JSONBException, JobStoreException, IOException {
+        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8)).thenThrow(new JobStoreException("failed"));
+        assertNotFoundResponse(jobsBean.exportItemsFailedInPartitioning(1, ChunkItem.Type.BYTES));
+    }
+
+    @Test
+    public void exportItemsFailedInProcessing_exportItemsThrows_returnsStatusNotFoundResponse() throws JSONBException, JobStoreException, IOException {
+        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8)).thenThrow(new JobStoreException("failed"));
+        assertNotFoundResponse(jobsBean.exportItemsFailedInProcessing(1, ChunkItem.Type.DANMARC2LINEFORMAT));
+    }
+
+    @Test
+    public void exportItemsFailedInDelivering_exportItemsThrows_returnsStatusNotFoundResponse() throws JSONBException, JobStoreException, IOException {
+        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8)).thenThrow(new JobStoreException("failed"));
+        assertNotFoundResponse(jobsBean.exportItemsFailedInDelivering(1, ChunkItem.Type.DANMARC2LINEFORMAT));
+    }
+
+    @Test
+    public void exportItemsFailedInPartitioning_exportItemsOk_returnsStatusOkResponseWithStreamingOutputAsObjectEntity() throws JSONBException, JobStoreException, IOException {
+        final String data = "exported data for item failed in partitioning";
+        final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();
+        exportedItems.write(data.getBytes());
+
+        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PARTITIONING, ChunkItem.Type.BYTES, StandardCharsets.UTF_8)).thenReturn(exportedItems);
+        final Response response = jobsBean.exportItemsFailedInPartitioning(1, ChunkItem.Type.BYTES);
+        assertOkResponse(response);
+        assertStreamingOutputForExportItems(response, data);
+    }
+
+    @Test
+    public void exportItemsFailedInProcessing_exportItemsOk_returnsStatusOkResponseWithStreamingOutputAsObjectEntity() throws JSONBException, JobStoreException, IOException {
+        final String data = "exported data for item failed in processing";
+        final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();;
+        exportedItems.write(data.getBytes());
+
+        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.PROCESSING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8)).thenReturn(exportedItems);
+        final Response response = jobsBean.exportItemsFailedInProcessing(1, ChunkItem.Type.DANMARC2LINEFORMAT);
+        assertOkResponse(response);
+        assertStreamingOutputForExportItems(response, data);
+    }
+
+    @Test
+    public void exportItemsFailedInDelivering_exportItemsOk_returnsStatusOkResponseWithStreamingOutputAsObjectEntity() throws JSONBException, JobStoreException, IOException {
+        final String data = "exported data for item failed in delivering";
+        final ByteArrayOutputStream exportedItems = new ByteArrayOutputStream();;
+        exportedItems.write(data.getBytes());
+
+        when(jobsBean.jobStoreRepository.itemsExport(1, State.Phase.DELIVERING, ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8)).thenReturn(exportedItems);
+        final Response response = jobsBean.exportItemsFailedInDelivering(1, ChunkItem.Type.DANMARC2LINEFORMAT);
+        assertOkResponse(response);
+        assertStreamingOutputForExportItems(response, data);
     }
 
     /*
@@ -615,8 +645,19 @@ public class JobsBeanTest {
         return jsonbContext.marshall(object);
     }
 
+    private void assertOkResponse(Response response) {
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(true));
+    }
+
+    private void assertNotFoundResponse(Response response) {
+        assertThat("Response not null", response, not(nullValue()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response entity", response.hasEntity(), is(false));
+    }
+
     private void assertBadRequestResponse(Response response, JobError.Code code) throws JSONBException {
-        assertThat("Response", response, is(notNullValue()));
         assertThat("Response", response, is(notNullValue()));
         assertThat("Response status", response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
         assertThat("Response entity", response.hasEntity(), is(true));
@@ -624,6 +665,13 @@ public class JobsBeanTest {
         final JobError jobError = jsonbContext.unmarshall((String) response.getEntity(), JobError.class);
         assertThat("JobError", jobError, is(notNullValue()));
         assertThat("JobError code", jobError.getCode(), is(code));
+    }
+
+    private void assertStreamingOutputForExportItems(Response response, String expectedData) throws IOException {
+        final StreamingOutput streamingOutput = (StreamingOutput) response.getEntity();
+        final ByteArrayOutputStream returnedItems = new ByteArrayOutputStream();
+        streamingOutput.write(returnedItems);
+        assertThat("Streaming output", returnedItems.toString(), is(expectedData));
     }
 
 }

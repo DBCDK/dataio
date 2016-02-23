@@ -572,7 +572,7 @@ public class JobsBean {
 
         try {
             return Response.ok(itemsExport(jobId, State.Phase.PARTITIONING, format)).build();
-        } catch (InvalidDataException e) {
+        } catch (JobStoreException e) {
             return Response.status(NOT_FOUND).build();
         }
     }
@@ -594,7 +594,7 @@ public class JobsBean {
 
         try {
             return Response.ok(itemsExport(jobId, State.Phase.PROCESSING, format)).build();
-        } catch (InvalidDataException e) {
+        } catch (JobStoreException e) {
             return Response.status(NOT_FOUND).build();
         }
     }
@@ -616,7 +616,7 @@ public class JobsBean {
 
         try {
             return Response.ok(itemsExport(jobId, State.Phase.DELIVERING, format)).build();
-        } catch (InvalidDataException e) {
+        } catch (JobStoreException e) {
             return Response.status(NOT_FOUND).build();
         }
     }
@@ -627,16 +627,11 @@ public class JobsBean {
      * @param phase in which the requested items have failed
      * @param format of item data
      * @return stream containing the exported items
-     * @throws InvalidDataException on general failure to write output stream
+     * @throws JobStoreException on general failure to write output stream
      */
-    private StreamingOutput itemsExport(int jobId, State.Phase phase, ChunkItem.Type format) throws InvalidDataException {
-        final ByteArrayOutputStream byteArrayOutputStream;
-        try {
-            byteArrayOutputStream = jobStoreRepository.itemsExport(
-                    jobId, phase, format, StandardCharsets.UTF_8);
-        } catch (JobStoreException e) {
-            throw new InvalidDataException(e);
-        }
+    private StreamingOutput itemsExport(int jobId, State.Phase phase, ChunkItem.Type format) throws JobStoreException {
+        final ByteArrayOutputStream byteArrayOutputStream = jobStoreRepository.itemsExport(
+                jobId, phase, format, StandardCharsets.UTF_8);
         return os -> os.write(byteArrayOutputStream.toByteArray());
     }
 

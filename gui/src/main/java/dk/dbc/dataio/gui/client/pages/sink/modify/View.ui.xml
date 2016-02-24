@@ -48,7 +48,7 @@
         </li>
         <li><g:Label ui:field="status"></g:Label></li>
 
-        <dio:PopupTextBox ui:field="popupTextBox" dialogTitle="{txt.label_EnterQueueProviders}" cancelButtonText="{txt.button_CancelQueueProvider}" okButtonText="{txt.button_OKQueueProvider}"/>
+        <dio:PopupTextBox ui:field="popupTextBox" dialogTitle="{txt.label_EnterQueueProviders}" okButtonText="{txt.button_OKQueueProvider}" cancelButtonText="{txt.button_CancelQueueProvider}" />
 
     </g:HTMLPanel>
 

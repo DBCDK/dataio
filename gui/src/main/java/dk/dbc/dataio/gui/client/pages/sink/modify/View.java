@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
@@ -67,8 +66,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PopupTextBox popupTextBox;
 
     @UiHandler("sinkTypeSelection")
-    void sinkTypeSelectionChanged(ChangeEvent event) {
-        switch (SinkContent.SinkType.valueOf(sinkTypeSelection.getSelectedKey())) {
+    void sinkTypeSelectionChanged(ValueChangeEvent<String> event) {
+        String selectedKey = sinkTypeSelection.getSelectedKey();
+        switch (SinkContent.SinkType.valueOf(selectedKey)) {
             case OPENUPDATE:
                 updateSinkSection.setVisible(true);
                 break;
@@ -76,52 +76,41 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
                 updateSinkSection.setVisible(false);
                 break;
         }
-    }
-
-    @UiHandler("sinkTypeSelection")
-    @SuppressWarnings("unused")
-    void setSinkTypeSelectionChanged(ValueChangeEvent<String> event) {
-        presenter.sinkTypeChanged(sinkTypeSelection.getSelectedKey());
+        presenter.sinkTypeChanged(selectedKey);
         presenter.keyPressed();
     }
 
     @UiHandler("name")
-    @SuppressWarnings("unused")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("resource")
-    @SuppressWarnings("unused")
     void resourceChanged(ValueChangeEvent<String> event) {
         presenter.resourceChanged(resource.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("description")
-    @SuppressWarnings("unused")
     void descriptionChanged(ValueChangeEvent<String> event) {
         presenter.descriptionChanged(description.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("url")
-    @SuppressWarnings("unused")
     void urlChanged(ValueChangeEvent<String> event) {
         presenter.endpointChanged(url.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("userid")
-    @SuppressWarnings("unused")
     void useridChanged(ValueChangeEvent<String> event) {
         presenter.userIdChanged(userid.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("password")
-    @SuppressWarnings("unused")
     void passwordChanged(ValueChangeEvent<String> event) {
         presenter.passwordChanged(password.getText());
         presenter.keyPressed();
@@ -136,13 +125,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("saveButton")
-    @SuppressWarnings("unused")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
     }
 
     @UiHandler("deleteButton")
-    @SuppressWarnings("unused")
     void deleteButtonPressed(ClickEvent event) {
         presenter.deleteButtonPressed();
     }

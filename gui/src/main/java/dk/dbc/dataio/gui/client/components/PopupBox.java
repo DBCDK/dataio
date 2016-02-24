@@ -16,14 +16,13 @@ import com.google.gwt.user.client.ui.Widget;
 
 /**
  * <p>Popup box for entering a widget in a popup window </p>
- * <p>The popup box consist of a header, the widget itself, and up to three buttons:
+ * <p>The popup box consist of a header, the widget itself, and up to three buttons:</p>
  *  <ul>
- *      <li>OK button</li>
- *      <li>Cancel button</li>
- *      <li>Extra button</li>
+ *   <li>OK button</li>
+ *   <li>Cancel button</li>
+ *   <li>Extra button</li>
  *  </ul>
- *  All buttons have user definable labels
- *  </p>
+ * <p> All buttons have user definable labels</p>
  *
  * @param <W> The class defining the widget to be embedded (eg. TextBox)
  * @param <T> The class defining the type of the entered value

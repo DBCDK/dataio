@@ -29,13 +29,13 @@ import com.google.gwt.user.client.ui.Widget;
  */
 public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite implements HasValue<T> {
     ValueChangeHandler<T> valueChangeHandler = null;  // This is package private because of test - should be private
-    FlowPanel basePanel = new FlowPanel();
-    DialogBox dialogBox = new DialogBox();
-    VerticalPanel containerPanel = new VerticalPanel();
-    FlowPanel buttonPanel = new FlowPanel();
-    Button cancelButton = new Button();
-    Button okButton = new Button();
-    Button extraButton = new Button();
+    FlowPanel basePanel;
+    DialogBox dialogBox;
+    VerticalPanel containerPanel;
+    FlowPanel buttonPanel;
+    Button okButton;
+    Button cancelButton;
+    Button extraButton;
     W widget;
 
 
@@ -47,7 +47,43 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
      * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
     public PopupBox(W widget, String dialogTitle, String okButtonText) {
+        this(widget, dialogTitle, okButtonText, new FlowPanel(), new DialogBox(), new VerticalPanel(), new FlowPanel(), new Button(), new Button(), new Button());
+    }
+
+    /**
+     * Constructor (with componente injections - to be used for testing)
+     * The Constructor is package scoped - not public
+     *
+     * @param widget The widget to be embedded in a Popup Box
+     * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
+     * @param okButtonText The text to be displayed in the OK Button (mandatory)
+     * @param basePanel Basepanel to be used to embed the Dialog
+     * @param dialogBox The Dialog Box component
+     * @param containerPanel The Container panel to embed the widgets
+     * @param buttonPanel The button container panel to embed the buttons
+     * @param okButton The Ok Button
+     * @param cancelButton The Cancel Button
+     * @param extraButton The Extra Button
+     */
+    PopupBox(W widget,
+            String dialogTitle,
+            String okButtonText,
+            FlowPanel basePanel,
+            DialogBox dialogBox,
+            VerticalPanel containerPanel,
+            FlowPanel buttonPanel,
+            Button okButton,
+            Button cancelButton,
+            Button extraButton) {
+        // Data injection
         this.widget = widget;
+        this.basePanel = basePanel;
+        this.dialogBox = dialogBox;
+        this.containerPanel = containerPanel;
+        this.buttonPanel = buttonPanel;
+        this.okButton = okButton;
+        this.cancelButton = cancelButton;
+        this.extraButton = extraButton;
 
         // Setup texts
         dialogBox.setText(dialogTitle);

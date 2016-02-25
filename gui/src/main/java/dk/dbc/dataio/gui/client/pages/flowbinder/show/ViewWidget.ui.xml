@@ -46,7 +46,7 @@
             </tr>
         </table>
 
-        <comp:PopupList ui:field="popupList" dialogTitle="{txt.text_SubmitterDialogBoxTitle}" okButtonText="{txt.button_Ok}"/>
+        <comp:PopupListBox ui:field="popupList" dialogTitle="{txt.text_SubmitterDialogBoxTitle}" okButtonText="{txt.button_Ok}"/>
 
     </g:HTMLPanel>
 

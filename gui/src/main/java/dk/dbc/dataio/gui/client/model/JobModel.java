@@ -46,6 +46,9 @@ public class JobModel extends GenericBackendModel {
     private final static long       PARTITIONED_COUNTER_ZERO = 0;
     private final static long       PROCESSED_COUNTER_ZERO = 0;
     private final static long       DELIVERED_COUNTER_ZERO = 0;
+    private final static long       PARTITIONING_FAILED_COUNTER_ZERO = 0;
+    private final static long       PROCESSING_FAILED_COUNTER_ZERO = 0;
+    private final static long       DELIVERING_FAILED_COUNTER_ZERO = 0;
     private final static ArrayList  LIST_OF_DIAGNOSTICS_EMPTY = new ArrayList<DiagnosticModel>();
     private final static boolean    HAS_FATAL_DIAGNOSTIC_FALSE = false;
     private final static String     PACKAGING_EMPTY = "";
@@ -78,6 +81,9 @@ public class JobModel extends GenericBackendModel {
     private long partitionedCounter;
     private long processedCounter;
     private long deliveredCounter;
+    private long partitioningFailedCounter;
+    private long processingFailedCounter;
+    private long deliveringFailedCounter;
     private List<DiagnosticModel> diagnosticModels;
     private boolean diagnosticFatal;
     private String packaging;
@@ -111,6 +117,9 @@ public class JobModel extends GenericBackendModel {
      * @param partitionedCounter                   The number of Partitioned Items
      * @param processedCounter                     The number of Processed Items
      * @param deliveredCounter                     The number of Delivered Items
+     * @param partitioningFailedCounter            The number of items failed in partitioning
+     * @param processingFailedCounter              The number of items failed in processing
+     * @param deliveringFailedCounter              The number of items failed in delivering
      * @param diagnosticModels                     The list of Diagnostics
      * @param diagnosticFatal                      The boolean telling if the list of Diagnostics contains FATAL
      * @param packaging                            The Packaging
@@ -141,6 +150,9 @@ public class JobModel extends GenericBackendModel {
                     long partitionedCounter,
                     long processedCounter,
                     long deliveredCounter,
+                    long partitioningFailedCounter,
+                    long processingFailedCounter,
+                    long deliveringFailedCounter,
                     List<DiagnosticModel> diagnosticModels,
                     boolean diagnosticFatal,
                     String packaging,
@@ -170,6 +182,9 @@ public class JobModel extends GenericBackendModel {
         this.partitionedCounter = partitionedCounter;
         this.processedCounter = processedCounter;
         this.deliveredCounter = deliveredCounter;
+        this.partitioningFailedCounter = partitioningFailedCounter;
+        this.processingFailedCounter = processingFailedCounter;
+        this.deliveringFailedCounter = deliveringFailedCounter;
         this.diagnosticModels = diagnosticModels;
         this.diagnosticFatal = diagnosticFatal;
         this.packaging = packaging;
@@ -206,6 +221,9 @@ public class JobModel extends GenericBackendModel {
                 PARTITIONED_COUNTER_ZERO,
                 PROCESSED_COUNTER_ZERO,
                 DELIVERED_COUNTER_ZERO,
+                PARTITIONING_FAILED_COUNTER_ZERO,
+                PROCESSING_FAILED_COUNTER_ZERO,
+                DELIVERING_FAILED_COUNTER_ZERO,
                 LIST_OF_DIAGNOSTICS_EMPTY,
                 HAS_FATAL_DIAGNOSTIC_FALSE,
                 PACKAGING_EMPTY,
@@ -509,6 +527,32 @@ public class JobModel extends GenericBackendModel {
         this.deliveredCounter = deliveredCounter;
     }
 
+    /**
+     * Gets the Partitioning Failed Counter
+     *
+     * @return The Partitioning Failed Counter
+     */
+    public long getPartitioningFailedCounter() {
+        return partitioningFailedCounter;
+    }
+
+    /**
+     * Gets the Processing Failed Counter
+     *
+     * @return The Processing Failed Counter
+     */
+    public long getProcessingFailedCounter() {
+        return processingFailedCounter;
+    }
+
+    /**
+     * Gets the Delivering Failed Counter
+     *
+     * @return The Delivering Failed Counter
+     */
+    public long getDeliveringFailedCounter() {
+        return deliveringFailedCounter;
+    }
 
     /**
      * Gets the list of Diagnostics

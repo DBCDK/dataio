@@ -47,6 +47,9 @@ public class JobModelBuilder {
     private long partitionedCounter = 14;
     private long processedCounter = 15;
     private long deliveredCounter = 16;
+    private long partitioningFailedCounter = 0;
+    private long processingFailedCounter = 0;
+    private long deliveringFailedCounter = 0;
     private List<DiagnosticModel> diagnosticModels = new ArrayList<>(Collections.singletonList(
             new DiagnosticModelBuilder().build()));
     private boolean diagnosticFatal = false;
@@ -142,6 +145,21 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setPartitioningFailedCounter(long partitioningFailedCounter) {
+        this.partitioningFailedCounter = partitioningFailedCounter;
+        return this;
+    }
+
+    public JobModelBuilder setProcessingFailedCounter(long processingFailedCounter) {
+        this.processingFailedCounter = processingFailedCounter;
+        return this;
+    }
+
+    public JobModelBuilder setDeliveringFailedCounter(long deliveringFailedCounter) {
+        this.deliveringFailedCounter = deliveringFailedCounter;
+        return this;
+    }
+
     public JobModelBuilder setDiagnosticModels(List<DiagnosticModel> diagnosticModels) {
         this.diagnosticModels = new ArrayList<DiagnosticModel>(diagnosticModels);
         return this;
@@ -225,6 +243,9 @@ public class JobModelBuilder {
                 partitionedCounter,
                 processedCounter,
                 deliveredCounter,
+                partitioningFailedCounter,
+                processingFailedCounter,
+                deliveringFailedCounter,
                 diagnosticModels,
                 diagnosticFatal,
                 packaging,

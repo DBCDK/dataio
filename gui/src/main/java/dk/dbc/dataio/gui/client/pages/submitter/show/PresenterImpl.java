@@ -81,7 +81,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void editSubmitter(SubmitterModel model) {
-        placeController.goTo(new EditPlace(model));
+        if (model != null) {
+            placeController.goTo(new EditPlace(model));
+        }
     }
 
     /**
@@ -142,7 +144,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
         @Override
         public void onSuccess(List<SubmitterModel> models) {
-            setSubmittersAndDecipherSelection(new HashSet<SubmitterModel>(getView().dataProvider.getList()), models);
+            setSubmittersAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
         }
     }
 

@@ -25,7 +25,6 @@ package dk.dbc.dataio.gui.client.pages.submitter.show;
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
-import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
@@ -39,7 +38,7 @@ import java.util.List;
  */
 public class View extends ViewWidget {
     ListDataProvider<SubmitterModel> dataProvider;
-    SingleSelectionModel<SubmitterModel> selectionModel = new SingleSelectionModel<SubmitterModel>();
+    SingleSelectionModel<SubmitterModel> selectionModel = new SingleSelectionModel<>();
 
     public View() {
         super("");
@@ -62,7 +61,7 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<SubmitterModel>();
+        dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(submittersTable);
 
         submittersTable.addColumn(constructSubmitterNumberColumn(), getTexts().columnHeader_Number());
@@ -70,7 +69,7 @@ public class View extends ViewWidget {
         submittersTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
         submittersTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         submittersTable.setSelectionModel(selectionModel);
-        submittersTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
+        submittersTable.addDomHandler(doubleClickEvent -> presenter.editSubmitter(selectionModel.getSelectedObject()), DoubleClickEvent.getType());
     }
 
     /**
@@ -141,24 +140,6 @@ public class View extends ViewWidget {
             }
         });
         return column;
-    }
-
-    /**
-     * This method constructs a double click event handler. On double click event, the method calls
-     * the presenter with the selection model selected value.
-     * @return the double click handler
-     */
-    private DoubleClickHandler getDoubleClickHandler(){
-        DoubleClickHandler handler = new DoubleClickHandler() {
-            @Override
-            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                SubmitterModel selected = selectionModel.getSelectedObject();
-                if(selected != null) {
-                    presenter.editSubmitter(selected);
-                }
-            }
-        };
-        return handler;
     }
 
 }

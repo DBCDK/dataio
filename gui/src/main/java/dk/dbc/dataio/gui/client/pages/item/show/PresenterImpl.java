@@ -71,7 +71,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private String header;
     private String endpoint;
 
-    /**
+    /*
      * Default constructor
      */
     public PresenterImpl(P place, PlaceController placeController, View globalItemsView, String header) {

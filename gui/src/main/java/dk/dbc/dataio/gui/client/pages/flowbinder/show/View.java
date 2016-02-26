@@ -349,7 +349,7 @@ public class View extends ViewWidget {
             });
             popupList.clear();
             for (SubmitterModel model: submitters) {
-                popupList.add(Format.inBracketsPairString(model.getNumber(), model.getName()));
+                popupList.add(Format.inBracketsPairString(model.getNumber(), model.getName()), model.getNumber());
             }
             popupList.show();
         }

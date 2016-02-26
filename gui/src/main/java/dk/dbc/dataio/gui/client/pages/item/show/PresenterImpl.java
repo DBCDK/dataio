@@ -29,6 +29,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.TabBar;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
+import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
@@ -52,6 +54,10 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
 
     private final Map<String, Integer> tabIndexes = new HashMap<>(0);
     private static final String EMPTY = "";
+    private static final String MARC2_FORMAT = "marc2";
+    private static final String PATH_PARAM_PLACEHOLDER = "{jobId}";
+    private static final String CHUNK_ITEM_TYPE_BYTES = "BYTES";
+    private static final String CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT = "DANMARC2LINEFORMAT";
 
     protected PlaceController placeController;
     View globalItemsView;
@@ -63,12 +69,28 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     protected JobModel.Type type;
     protected ItemListCriteria.Field itemSearchType;
     private String header;
+    private String endpoint;
 
+    /**
+     * Default constructor
+     */
     public PresenterImpl(P place, PlaceController placeController, View globalItemsView, String header) {
         this.placeController = placeController;
         this.globalItemsView = globalItemsView;
         this.jobId = place.getJobId();
         this.header = header;
+        commonInjector.getJndiProxyAsync().getJndiResource(
+                JndiConstants.URL_RESOURCE_JOBSTORE_RS,
+                new AsyncCallback<String>() {
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiFetchError());
+                    }
+                    @Override
+                    public void onSuccess(String jndiUrl) {
+                        endpoint = jndiUrl.replace(".dbc.dk", "");
+                    }
+                });
     }
 
      /*
@@ -429,6 +451,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
      */
     private void setJobInfoTab(JobModel jobModel) {
         View view = getView();
+        hideExportLinks(view);
         view.jobInfoTabContent.packaging.setText(jobModel.getPackaging());
         view.jobInfoTabContent.format.setText(jobModel.getFormat());
         view.jobInfoTabContent.charset.setText(jobModel.getCharset());
@@ -439,6 +462,47 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.jobInfoTabContent.type.setText(jobModel.getType().name());
         view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
         view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
+
+        if(jobModel.getFormat().toLowerCase().equals(MARC2_FORMAT) && jobModel.getFailedCounter() > 0) {
+            view.jobInfoTabContent.exportLinksHeader.setVisible(true);
+            if (jobModel.getPartitioningFailedCounter() > 0) {
+                String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PARTITIONED_FAILED, CHUNK_ITEM_TYPE_BYTES);
+                view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setText(exportUrl);
+                view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setVisible(true);
+            }
+            if (jobModel.getProcessingFailedCounter() > 0) {
+                String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_PROCESSED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
+                view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setText(exportUrl);
+                view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setVisible(true);
+            }
+            if (jobModel.getDeliveringFailedCounter() > 0) {
+                String exportUrl = buildExportUrl(JobStoreServiceConstants.EXPORT_ITEMS_DELIVERED_FAILED, CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT);
+                view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setText(exportUrl);
+                view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
+            }
+        }
+    }
+
+    /**
+     * Hides the jobInfoTabContent fields used for displaying export links
+     * @param view The view in question
+     */
+    private void hideExportLinks(View view) {
+        view.jobInfoTabContent.exportLinksHeader.setVisible(false);
+        view.jobInfoTabContent.exportLinkItemsFailedInPartitioning.setVisible(false);
+        view.jobInfoTabContent.exportLinkItemsFailedInProcessing.setVisible(false);
+        view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(false);
+    }
+
+    /**
+     * Builds the url string used for exporting failed items
+     * @param path to the REST service
+     * @param queryParam for the REST service
+     * @return url as string
+     */
+    private String buildExportUrl(String path, String queryParam) {
+        String parametrizedPath = path.replace(PATH_PARAM_PLACEHOLDER, jobId);
+        return endpoint + "/" + parametrizedPath + "?" + JobStoreServiceConstants.QUERY_PARAM_FORMAT + "=" + queryParam;
     }
 
     /**

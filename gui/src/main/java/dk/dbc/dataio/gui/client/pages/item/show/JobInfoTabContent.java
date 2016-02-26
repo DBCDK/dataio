@@ -29,6 +29,7 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 
 public class JobInfoTabContent extends Composite {
@@ -51,6 +52,10 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel type;
     @UiField PromptedLabel jobCreationTime;
     @UiField PromptedLabel jobCompletionTime;
+    @UiField Label exportLinksHeader;
+    @UiField PromptedLabel exportLinkItemsFailedInPartitioning;
+    @UiField PromptedLabel exportLinkItemsFailedInProcessing;
+    @UiField PromptedLabel exportLinkItemsFailedInDelivering;
 
     /**
      * Ui Handler to catch click events on the Back button

@@ -23,6 +23,20 @@
              xmlns:comp='urn:import:dk.dbc.dataio.gui.client.components'>
     <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
 
+    <ui:style>
+        .exportLinksHeader {
+            font-weight: bold;
+            color: #434e57;
+            background-color: #e5e9f4;
+            border-top: solid 1px lightslategray;
+            border-bottom: solid 1px lightslategray;
+            margin-top: 1em;
+            margin-bottom: 0.8em;
+            padding-bottom: 0.2em;
+            padding-top: 0.2em;
+        }
+    </ui:style>
+
     <g:HTMLPanel>
 
         <g:Button ui:field="backButton" text="{txt.label_Back}" />
@@ -37,6 +51,10 @@
         <li><comp:PromptedLabel ui:field="type" guiId="typePanel" prompt="{txt.promptJobInfo_Type}" /></li>
         <li><comp:PromptedLabel ui:field="jobCreationTime" guiId="jobCreationTimePanel" prompt="{txt.promptJobInfo_JobCreationTime}" /></li>
         <li><comp:PromptedLabel ui:field="jobCompletionTime" guiId="jobCompletionTimePanel" prompt="{txt.promptJobInfo_JobCompletionTime}" /></li>
+        <li><g:Label ui:field="exportLinksHeader" text= "{txt.promptJobInfo_ExportLinksHeader}" addStyleNames="{style.exportLinksHeader}"/></li>
+        <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInPartitioning" guiId="exportLinkItemsFailedInPartitioningPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInPartitioning}" /></li>
+        <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInProcessing" guiId="exportLinkItemsFailedInProcessingPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInProcessing}" /></li>
+        <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInDelivering" guiId="exportLinkItemsFailedInDeliveringPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInDelivering}" /></li>
 
     </g:HTMLPanel>
 

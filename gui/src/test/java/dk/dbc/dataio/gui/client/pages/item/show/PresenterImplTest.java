@@ -114,6 +114,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedLabel mockedType;
     @Mock PromptedLabel mockedJobCreationTime;
     @Mock PromptedLabel mockedJobCompletionTime;
+    @Mock Label mockedExportLinksHeader;
+    @Mock PromptedLabel mockedExportLinkItemFailedInPartitioning;
+    @Mock PromptedLabel mockedExportLinkItemFailedInProcessing;
+    @Mock PromptedLabel mockedExportLinkItemFailedInDelivering;
     @Mock TabBar mockedTabBar;
     @Mock AsyncItemViewDataProvider mockedDataProvider;
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
@@ -171,6 +175,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.type = mockedType;
         mockedView.jobInfoTabContent.jobCreationTime = mockedJobCreationTime;
         mockedView.jobInfoTabContent.jobCompletionTime = mockedJobCompletionTime;
+        mockedView.jobInfoTabContent.exportLinksHeader = mockedExportLinksHeader;
+        mockedView.jobInfoTabContent.exportLinkItemsFailedInPartitioning = mockedExportLinkItemFailedInPartitioning;
+        mockedView.jobInfoTabContent.exportLinkItemsFailedInProcessing = mockedExportLinkItemFailedInProcessing;
+        mockedView.jobInfoTabContent.exportLinkItemsFailedInDelivering = mockedExportLinkItemFailedInDelivering;
         mockedView.dataProvider = mockedDataProvider;
     }
 
@@ -224,6 +232,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
     final static String MOCKED_PROMPTJOBNOTIFICATION_DESTINATION = "Modtager";
     final static String MOCKED_PROMPTJOBNOTIFICATION_JOBCREATIONTIME = "Oprettet";
     final static String MOCKED_PROMPTJOBNOTIFICATION_JOBCOMPLETIONTIME = "Afsendt";
+    final static String MOCKED_PROMPTJOBINFO_EXPORTLINKSHEADER = "Job eksport links:";
+    final static String MOCKED_PROMPTJOBINFO_EXPORTLINKITEMSFAILEDINPARTITIONING = "Fejlet i partitioning";
+    final static String MOCKED_PROMPTJOBINFO_EXPORTLINKITEMSFAILEDINPROCESSING = "Fejlet i processing";
+    final static String MOCKED_PROMPTJOBINFO_EXPORTLINKITEMSFAILEDINDELIVERING = "Fejlet i delivering";
     final static String MOCKED_PROMPTJOBNOTIFICATION_TYPE = "Type";
     final static String MOCKED_PROMPTJOBNOTIFICATION_STATUS = "Status";
     final static String MOCKED_PROMPTJOBNOTIFICATION_STATUSMESSAGE = "Status besked";
@@ -279,6 +291,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedText.promptJobInfo_Type()).thenReturn(MOCKED_PROMPTJOBINFO_TYPE);
         when(mockedText.promptJobInfo_JobCreationTime()).thenReturn(MOCKED_PROMPTJOBINFO_JOBCREATIONTIME);
         when(mockedText.promptJobInfo_JobCompletionTime()).thenReturn(MOCKED_PROMPTJOBINFO_JOBCOMPLETIONTIME);
+        when(mockedText.promptJobInfo_ExportLinksHeader()).thenReturn(MOCKED_PROMPTJOBINFO_EXPORTLINKSHEADER);
+        when(mockedText.promptJobInfo_ExportLinkItemFailedInPartitioning()).thenReturn(MOCKED_PROMPTJOBINFO_EXPORTLINKITEMSFAILEDINPARTITIONING);
+        when(mockedText.promptJobInfo_ExportLinkItemFailedInProcessing()).thenReturn(MOCKED_PROMPTJOBINFO_EXPORTLINKITEMSFAILEDINPROCESSING);
+        when(mockedText.promptJobInfo_ExportLinkItemFailedInDelivering()).thenReturn(MOCKED_PROMPTJOBINFO_EXPORTLINKITEMSFAILEDINDELIVERING);
         when(mockedText.promptJobNotification_JobId()).thenReturn(MOCKED_PROMPTJOBNOTIFICATION_JOBID);
         when(mockedText.promptJobNotification_Destination()).thenReturn(MOCKED_PROMPTJOBNOTIFICATION_DESTINATION);
         when(mockedText.promptJobNotification_JobCreationTime()).thenReturn(MOCKED_PROMPTJOBNOTIFICATION_JOBCREATIONTIME);
@@ -1002,6 +1018,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
         verify(mockedJobCreationTime).setText("2015-08-13 14:56:11");
         verify(mockedJobCompletionTime).setText(EMPTY);
+        verifyHideExportLinks();
         verify(mockedType).setText(JobSpecification.Type.TEST.name());
         verify(mockedTabBar, times(2)).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.FAILED_ITEMS_TAB_INDEX);
@@ -1013,6 +1030,65 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView, times(1)).addFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndFailedJobsWithMarc2Format_expectedExportLinksDisplayed() {
+        final JobModel jobModel = new JobModelBuilder().setFormat("marc2").setFailedCounter(3).setPartitioningFailedCounter(1).setDeliveringFailedCounter(2).build();
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobsCallback.onSuccess(new ArrayList<>(Collections.singletonList(jobModel)));
+
+        // Verify Test
+        verifyHideExportLinks();
+        verify(mockedExportLinksHeader).setVisible(true);
+        verify(mockedExportLinkItemFailedInPartitioning).setVisible(true);
+        verify(mockedExportLinkItemFailedInPartitioning).setText(anyString());
+
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
+
+        verify(mockedExportLinkItemFailedInDelivering).setVisible(true);
+        verify(mockedExportLinkItemFailedInDelivering).setText(anyString());
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndFailedJobsWithWithoutMarc2Format_exportLinksNotDisplayed() {
+        final JobModel jobModel = new JobModelBuilder().setFormat("xml").setFailedCounter(1).setPartitioningFailedCounter(1).build();
+
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobsCallback.onSuccess(new ArrayList<>(Collections.singletonList(jobModel)));
+
+        // Verify Test
+        verifyHideExportLinks();
+        verifyNoMoreInteractions(mockedExportLinksHeader);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInPartitioning);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
+    }
+
+    @Test
+    public void getJob_callbackWithSuccessAndSuccessfulJobsWithMarc2Format_exportLinksNotDisplayed() {
+        final JobModel jobModel = new JobModelBuilder().setFormat("marc2").build();
+        setupPresenterImplConcrete();
+        presenterImpl.jobId = "1234";
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getJobsCallback.onSuccess(new ArrayList<>(Collections.singletonList(jobModel)));
+
+        // Verify Test
+        verifyHideExportLinks();
+        verifyNoMoreInteractions(mockedExportLinksHeader);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInPartitioning);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
     }
 
     @Test
@@ -1036,6 +1112,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
         verify(mockedJobCreationTime).setText("2015-08-13 14:56:11");
         verify(mockedJobCompletionTime).setText(EMPTY);
+        verifyHideExportLinks();
         verify(mockedType).setText(JobModel.Type.PERSISTENT.name());
         verify(mockedTabBar, times(2)).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
@@ -1070,6 +1147,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
         verify(mockedJobCreationTime).setText("2015-09-02 10:38:43");
         verify(mockedJobCompletionTime).setText("2015-09-02 10:39:55");
+        verifyHideExportLinks();
         verify(mockedType).setText(JobModel.Type.TRANSIENT.name());
         verify(mockedTabBar, times(2)).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
         verify(mockedTabBar, times(2)).getTab(ViewWidget.JOB_INFO_TAB_CONTENT);
@@ -1112,6 +1190,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_DIAGNOSTIC_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.JOB_NOTIFICATION_TAB_CONTENT);
         verify(mockedTabBar, times(1)).getTab(ViewWidget.WORKFLOW_NOTE_TAB_CONTENT);
+        verifyHideExportLinks();
         verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
@@ -1317,6 +1396,17 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedType);
         verifyNoMoreInteractions(mockedJobCreationTime);
         verifyNoMoreInteractions(mockedJobCompletionTime);
+        verifyNoMoreInteractions(mockedExportLinksHeader);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInPartitioning);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
+        verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
+    }
+
+    private void verifyHideExportLinks() {
+        verify(mockedExportLinksHeader).setVisible(false);
+        verify(mockedExportLinkItemFailedInPartitioning).setVisible(false);
+        verify(mockedExportLinkItemFailedInProcessing).setVisible(false);
+        verify(mockedExportLinkItemFailedInDelivering).setVisible(false);
     }
 
     private void setupPresenterImpl() {

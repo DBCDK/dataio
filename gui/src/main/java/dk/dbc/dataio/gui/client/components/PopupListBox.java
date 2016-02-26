@@ -36,6 +36,7 @@ public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, St
     /**
      * Adds an item to the list of available items in the list
      * @param text The item to add to the list
+     * @param value The key of the item added
      */
     public void add(String text, String value) {
         widget.addItem(text, value);

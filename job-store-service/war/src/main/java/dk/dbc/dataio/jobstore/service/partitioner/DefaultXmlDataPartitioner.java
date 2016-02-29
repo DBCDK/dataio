@@ -134,7 +134,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     protected Map<String, String> extractedValues;
 
     private Charset canonicalEncoding;
-    private Iterator<ChunkItem> iterator;
+    private Iterator<DataPartitionerResult> iterator;
 
     /**
      * Creates new instance of default XML DataPartitioner
@@ -180,7 +180,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
+    public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException {
         if (iterator == null) {
             try {
                 xmlReader = XMLInputFactory.newFactory().createXMLEventReader(inputStream);
@@ -191,7 +191,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                 throw new InvalidDataException(e);
             }
 
-            iterator = new Iterator<ChunkItem>() {
+            iterator = new Iterator<DataPartitionerResult>() {
                 /**
                  * @inheritDoc
                  */
@@ -208,7 +208,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                  * @inheritDoc
                  */
                 @Override
-                public ChunkItem next() throws UnrecoverableDataException {
+                public DataPartitionerResult next() throws UnrecoverableDataException {
                     try {
                         // A note about optimization:
                         // It seems possible to move ByteArrayOutputStream,
@@ -230,7 +230,7 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         xmlWriter.close();
                         ChunkItem chunkItem = nextChunkItem(baos, ChunkItem.Status.SUCCESS);
                         extractedValues.clear();
-                        return chunkItem;
+                        return new DataPartitionerResult(chunkItem, null);
                     } catch (XMLStreamException | UnsupportedEncodingException e) {
                         LOGGER.error("Exception caught", e);
                         throw new InvalidDataException(e);
@@ -257,9 +257,9 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
         return new ChunkItem(0, baos.toByteArray(), status);
     }
 
-        /*
-         * Private methods
-         */
+    /*
+    * Private methods
+    */
 
     private void validateEncoding() throws InvalidEncodingException {
         getEncoding();

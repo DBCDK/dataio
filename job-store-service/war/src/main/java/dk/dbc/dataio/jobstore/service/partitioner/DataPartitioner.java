@@ -21,12 +21,11 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 
 import java.nio.charset.Charset;
 
-public interface DataPartitioner extends Iterable<ChunkItem> {
+public interface DataPartitioner extends Iterable<DataPartitionerResult> {
     Charset getEncoding() throws InvalidEncodingException;
     long getBytesRead();
 }

@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
@@ -78,8 +77,8 @@ public class Iso2709ReorderingDataPartitionerIT {
             final Iso2709ReorderingDataPartitioner partitioner = Iso2709ReorderingDataPartitioner
                     .newInstance(resourceAsStream, encoding, jobItemReorderer);
             int itemNo = 0;
-            for (ChunkItem ci : partitioner) {
-                assertThat("Item number " + itemNo++, StringUtil.asString(ci.getData()), containsString(expected.removeFirst()));
+            for (DataPartitionerResult dataPartitionerResult : partitioner) {
+                assertThat("Item number " + itemNo++, StringUtil.asString(dataPartitionerResult.getChunkItem().getData()), containsString(expected.removeFirst()));
             }
         });
     }

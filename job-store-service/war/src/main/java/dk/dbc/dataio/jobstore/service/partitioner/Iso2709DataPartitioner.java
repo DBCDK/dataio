@@ -112,16 +112,16 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public Iterator<ChunkItem> iterator() throws UnrecoverableDataException {
-        return new Iterator<ChunkItem>() {
+    public Iterator<DataPartitionerResult> iterator() throws UnrecoverableDataException {
+        return new Iterator<DataPartitionerResult>() {
             @Override
             public boolean hasNext() {
                 return hasNextDataPartitionerResult();
             }
 
             @Override
-            public ChunkItem next() {
-                return nextDataPartitionerResult().getChunkItem();
+            public DataPartitionerResult next() {
+                return nextDataPartitionerResult();
             }
         };
     }

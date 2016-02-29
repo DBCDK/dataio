@@ -101,11 +101,13 @@ public class DanMarc2LineFormatDataPartitionerTest {
         final String simpleRecordInLineFormat = "245 00 *aA @*programmer is born*beveryday@@dbc\n";
         final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 StringUtil.asInputStream(simpleRecordInLineFormat, StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat("Valid input => hasNext() expected to be true", iterator.hasNext(), is(true));
-        ChunkItem chunkItem = iterator.next();
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat(chunkItem.getDiagnostics(), is(nullValue()));
+        assertThat(dataPartitionerResult.getRecordInfo(), is(notNullValue()));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
@@ -114,12 +116,14 @@ public class DanMarc2LineFormatDataPartitionerTest {
         final String faultyRecordInLineFormat = "245 00 *aA @*programmer is *\n";
         final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 StringUtil.asInputStream(faultyRecordInLineFormat, StandardCharsets.US_ASCII), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
-        ChunkItem chunkItem = iterator.next();
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat(chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(new String(chunkItem.getData(), StandardCharsets.UTF_8), is(faultyRecordInLineFormat));
         assertThat(chunkItem.getDiagnostics().size(), is(1));
+        assertThat(dataPartitionerResult.getRecordInfo(), is(nullValue()));
         assertThat("No more records => hasNext expected to be false", iterator.hasNext(), is(false));
     }
 
@@ -128,7 +132,7 @@ public class DanMarc2LineFormatDataPartitionerTest {
         final String faultyRecord = "*aA @*programmer is born";
         final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 StringUtil.asInputStream(faultyRecord, new DanMarc2Charset()), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
         try {
             iterator.next();
@@ -141,7 +145,8 @@ public class DanMarc2LineFormatDataPartitionerTest {
         final DataPartitioner dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 getClass().getResourceAsStream("/test-records-74-danmarc2.lin"), SPECIFIED_ENCODING);
         int chunkItemNo = 0;
-        for (ChunkItem chunkItem : dataPartitioner) {
+        for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+            final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
             chunkItemNo++;
             assertThat("Chunk item " + chunkItemNo, chunkItem, is(notNullValue()));
         }

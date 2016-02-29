@@ -21,10 +21,10 @@
 
 package dk.dbc.dataio.benchmark.jobstore.service.partitioner;
 
-import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
 import org.junit.Test;
@@ -112,8 +112,8 @@ public class Iso2709ReorderingDataPartitionerBenchmark {
     public void benchmark_74_records(BenchmarkState state) {
         final DataPartitioner dataPartitioner = state.dataPartitioner;
         state.persistenceContext.run(() -> {
-            for (Iterator<ChunkItem> iterator = dataPartitioner.iterator(); iterator.hasNext(); ) {
-                iterator.next();
+            for (Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator(); iterator.hasNext(); ) {
+                iterator.next().getChunkItem();
             }
         });
     }

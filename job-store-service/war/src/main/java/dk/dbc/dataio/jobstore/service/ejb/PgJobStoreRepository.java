@@ -25,6 +25,7 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkConverter;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
@@ -603,11 +604,12 @@ public class PgJobStoreRepository extends RepositoryBase {
                In case a DataException is thrown by the extraction process a item entity
                is still created but with a serialized JobError as payload instead.
              */
-            for (ChunkItem chunkItem : dataPartitioner) {
-                if (chunkItem == null) {
+            for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
+                if (dataPartitionerResult.isEmpty()) {
                     continue;
                 }
 
+                final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 LOGGER.info("Creating chunk item {} for chunk {} in job {}", itemCounter, chunkId, jobId);
                 String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);

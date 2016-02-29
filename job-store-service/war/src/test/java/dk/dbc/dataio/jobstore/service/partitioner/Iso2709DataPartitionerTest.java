@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import org.junit.Test;
 import org.xmlunit.matchers.CompareMatcher;
 
@@ -33,6 +34,7 @@ import java.util.Iterator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.xmlunit.builder.Input.fromByteArray;
@@ -48,6 +50,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     private final static String INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO = "/test-records-4-danmarc2-guard-against-infinite-iteration.iso";
     private final static String INPUT_RECORDS_4_ERROR_IN_RECORD2 = "/test-records-4-error-in-record2.iso";
     private final static String OUTPUT_RECORD_1_MARCXCHANGE = "/test-record-1-danmarc2.marcXChange";
+    private final static String DEFAULT_RECORD_ID = "30769430";
 
     @Test
     public void newInstance_encodingArgIsNull_throws() {
@@ -117,11 +120,13 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     public void iso2709DataPartitioner_oneValidRecord_accepted() {
         final byte[] isoRecord = getResourceAsByteArray(INPUT_RECORD_1_ISO);
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORD_1_ISO), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
-        assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
-        assertThat("No more records => hasNext() expected to be false", iterator.hasNext(), is(false));
+        assertThat("First dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        assertThat("chunkItem0.data matches expected output String", fromByteArray(dataPartitionerResult.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("recordInfo1.id", dataPartitionerResult.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
+        assertThat("No more dataPartitionerResults => hasNext() expected to be false", iterator.hasNext(), is(false));
         assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecord.length, dataPartitioner.getBytesRead(), is((long) isoRecord.length));
     }
 
@@ -129,30 +134,44 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     public void iso2709DataPartitioner_multipleRecords_accepted() {
         final byte[] isoRecords = getResourceAsByteArray(INPUT_RECORDS_3_ISO);
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_3_ISO), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
-        assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
-        assertThat("Second record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("First dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult0 = iterator.next();
+        assertThat("chunkItem0.data matches expected output String", fromByteArray(dataPartitionerResult0.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("recordInfo0.id", dataPartitionerResult0.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
+
+        assertThat("Second dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult1 = iterator.next();
+        assertThat("chunkItem1 matches expected output String", fromByteArray(dataPartitionerResult1.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("recordInfo1.id", dataPartitionerResult1.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
+
         assertThat("Third record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
-        assertThat("No more records => hasNext() expected to be false", iterator.hasNext(), is(false));
-        assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecords.length, dataPartitioner.getBytesRead(), is((long) isoRecords.length));
+        final DataPartitionerResult dataPartitionerResult2 = iterator.next();
+        assertThat("chunkItem2.data matches expected output String", fromByteArray(dataPartitionerResult2.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("recordInfo2.id", dataPartitionerResult2.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
 
+        assertThat("No more dataPartitionerResults => hasNext() expected to be false", iterator.hasNext(), is(false));
+        assertThat("dataPartitioner.getBytesRead(): " + dataPartitioner.getBytesRead() + ", is expected to match: " + isoRecords.length, dataPartitioner.getBytesRead(), is((long) isoRecords.length));
     }
 
     @Test
     public void iso2709DataPartitioner_invalidIso2709_throws() throws ParserConfigurationException {
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_BROKEN_ISO), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         // 2 good records
-        assertThat("First record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
-        assertThat("Second record => hasNext() expected to be true", iterator.hasNext(), is(true));
-        assertThat("next matches expected output String", fromByteArray(iterator.next().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
-        assertThat("next matches Failed Record ",iterator.hasNext(), is(true) );
+        assertThat("First dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult0 = iterator.next();
+        assertThat("chunkItem0.data matches expected output String", fromByteArray(dataPartitionerResult0.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("recordInfo0.id", dataPartitionerResult0.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
+
+        assertThat("Second dataPartitionerResult => hasNext() expected to be true", iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult1 = iterator.next();
+        assertThat("chunkItem1.data matches expected output String", fromByteArray(dataPartitionerResult1.getChunkItem().getData()), isEquivalentTo(fromStream(getResourceAsStream(OUTPUT_RECORD_1_MARCXCHANGE))));
+        assertThat("recordInfo1.id", dataPartitionerResult1.getRecordInfo().getId(), is(DEFAULT_RECORD_ID));
+
+        assertThat("dataPartitionerResult.chunkItem matches Failed Record ",iterator.hasNext(), is(true) );
         try {
             iterator.next();
             fail("Expected error not thrown");
@@ -167,7 +186,7 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_GUARD_AGAINST_INFINITE_ITERATION_ISO), SPECIFIED_ENCODING);
 
         int numberOfIterations = 0;
-        for (ChunkItem ci : dataPartitioner) {
+        for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
             numberOfIterations++;
         }
         assertThat("Number of iterations", numberOfIterations, is(4));
@@ -175,23 +194,34 @@ public class Iso2709DataPartitionerTest extends AbstractPartitionerTestBase{
     }
 
     @Test
-    public void iso2709DataPartitioner_fourRecordsWithErrorInRecordTwo_returnsExpectedChunkItems() {
+    public void iso2709DataPartitioner_fourRecordsWithErrorInRecordTwo_returnsExpectedDataPartitionerResults() {
         final DataPartitioner dataPartitioner = Iso2709DataPartitioner.newInstance(getResourceAsStream(INPUT_RECORDS_4_ERROR_IN_RECORD2), SPECIFIED_ENCODING);
-        final Iterator<ChunkItem> iterator = dataPartitioner.iterator();
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
 
         assertThat(iterator.hasNext(), is(true));
-        assertThat("item0.status", iterator.next().getStatus(), is(ChunkItem.Status.SUCCESS));
+        final DataPartitionerResult dataPartitionerResult0 = iterator.next();
+        assertThat("item0.status", dataPartitionerResult0.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        final RecordInfo recordInfo0 = dataPartitionerResult0.getRecordInfo();
+        assertThat(recordInfo0.getId(), is("x8888888"));
 
         assertThat(iterator.hasNext(), is(true));
-        ChunkItem item1 = iterator.next();
+        final DataPartitionerResult dataPartitionerResult1 = iterator.next();
+        final ChunkItem item1 = dataPartitionerResult1.getChunkItem();
         assertThat("item1.status", item1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat("item1.diagnostics", item1.getDiagnostics().size(), is(1));
+        assertThat("recordInfo1", dataPartitionerResult1.getRecordInfo(), is(nullValue()));
 
         assertThat(iterator.hasNext(), is(true));
-        assertThat("item2.status", iterator.next().getStatus(), is(ChunkItem.Status.SUCCESS));
+        final DataPartitionerResult dataPartitionerResult2 = iterator.next();
+        assertThat("item2.status", dataPartitionerResult2.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        final RecordInfo recordInfo2 = dataPartitionerResult2.getRecordInfo();
+        assertThat("recordInfo2.id",recordInfo2.getId(), is("9788793128231"));
 
         assertThat(iterator.hasNext(), is(true));
-        assertThat("item3.status", iterator.next().getStatus(), is(ChunkItem.Status.SUCCESS));
+        final DataPartitionerResult dataPartitionerResult3 = iterator.next();
+        assertThat("item3.status", dataPartitionerResult3.getChunkItem().getStatus(), is(ChunkItem.Status.SUCCESS));
+        final RecordInfo recordInfo3 = dataPartitionerResult3.getRecordInfo();
+        assertThat(recordInfo3.getId(), is("9788771185980"));
 
         assertThat(iterator.hasNext(), is(false));
     }

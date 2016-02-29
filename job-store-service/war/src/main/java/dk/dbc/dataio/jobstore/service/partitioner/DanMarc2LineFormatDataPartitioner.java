@@ -96,16 +96,16 @@ public class DanMarc2LineFormatDataPartitioner implements DataPartitioner {
     }
 
     @Override
-    public Iterator<ChunkItem> iterator() {
-        return new Iterator<ChunkItem>() {
+    public Iterator<DataPartitionerResult> iterator() {
+        return new Iterator<DataPartitionerResult>() {
             @Override
             public boolean hasNext() {
                 return hasNextDataPartitionerResult();
             }
 
             @Override
-            public ChunkItem next() {
-                return nextDataPartitionerResult().getChunkItem();
+            public DataPartitionerResult next() {
+                return nextDataPartitionerResult();
             }
         };
     }

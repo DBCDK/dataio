@@ -29,7 +29,6 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
-import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -68,7 +67,8 @@ public class PopupBoxTest {
     @Mock Button mockedExtraButton;
     @Mock ClickEvent mockedClickEvent;
     @Mock ValueChangeHandler mockedValueChangeHandler;
-    @Mock Element mockedElement;
+    @SuppressWarnings("deprecation")
+    @Mock com.google.gwt.user.client.Element mockedElement;
 
     /**
      * Subject Under Test

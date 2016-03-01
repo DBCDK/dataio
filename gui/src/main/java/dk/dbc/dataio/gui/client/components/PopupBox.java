@@ -1,7 +1,6 @@
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -13,6 +12,9 @@ import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.VerticalPanel;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
+import dk.dbc.dataio.gui.client.events.DialogHandler;
+import dk.dbc.dataio.gui.client.events.HasDialogHandlers;
 
 /**
  * <p>Popup box for entering a widget in a popup window </p>
@@ -27,8 +29,12 @@ import com.google.gwt.user.client.ui.Widget;
  * @param <W> The class defining the widget to be embedded (eg. TextBox)
  * @param <T> The class defining the type of the entered value
  */
-public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite implements HasValue<T> {
+public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite implements HasValue<T>, HasDialogHandlers {
+    public static final String POPUP_BOX_GUID = "dio-PopupBox";
+
     ValueChangeHandler<T> valueChangeHandler = null;  // This is package private because of test - should be private
+    DialogHandler dialogHandler = null;  // This is package private because of test - should be private
+
     FlowPanel basePanel;
     DialogBox dialogBox;
     VerticalPanel containerPanel;
@@ -92,24 +98,9 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
         setButton(extraButton, "");  // The Extra Button is optional, so no text is added yet - meaning until that is done, it is not set
 
         // Setup click event handlers for the buttons
-        okButton.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent clickEvent) {
-                okClickHandler(clickEvent);
-            }
-        });
-        cancelButton.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent clickEvent) {
-                cancelClickHandler(clickEvent);
-            }
-        });
-        extraButton.addClickHandler(new ClickHandler() {
-            @Override
-            public void onClick(ClickEvent clickEvent) {
-                extraClickHandler(clickEvent);
-            }
-        });
+        okButton.addClickHandler(this::okClickHandler);
+        cancelButton.addClickHandler(this::cancelClickHandler);
+        extraButton.addClickHandler(this::extraClickHandler);
 
         // Build the widget tree
         buttonPanel.add(okButton);
@@ -120,6 +111,9 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
         dialogBox.add(containerPanel);
         basePanel.add(dialogBox);
         initWidget(basePanel);
+
+        // Set CSS Stuff
+        dialogBox.addStyleName(POPUP_BOX_GUID);
 
         // Assure, that the dialogbox is included in the DOM
         dialogBox.setAutoHideEnabled(true);
@@ -157,6 +151,17 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
         setButton(extraButton, value);
     }
 
+    /**
+     * Sets the Guid for this element
+     * Optional setting in the UI Binder activation
+     * @param guid The Guid for this element
+     */
+    public void setGuid(String guid) {
+        if (!guid.isEmpty()) {
+            dialogBox.getElement().setId(guid);
+        }
+    }
+
 
     /**
      * Click Handlers
@@ -168,6 +173,7 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
      * @param clickEvent The click event for the OK Button
      */
     public void okClickHandler(ClickEvent clickEvent) {
+        triggerDialogEvent(DialogEvent.DialogButton.OK_BUTTON);
         hide();
         triggerValueChangeEvent();
     }
@@ -178,6 +184,7 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
      * @param clickEvent The click event for the Cancel Button
      */
     public void cancelClickHandler(ClickEvent clickEvent) {
+        triggerDialogEvent(DialogEvent.DialogButton.CANCEL_BUTTON);
         hide();
     }
 
@@ -187,6 +194,7 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
      * @param clickEvent The click event for the Cancel Button
      */
     public void extraClickHandler(ClickEvent clickEvent) {
+        triggerDialogEvent(DialogEvent.DialogButton.EXTRA_BUTTON);
         hide();
     }
 
@@ -260,14 +268,25 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
     @Override
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<T> changeHandler) {
         valueChangeHandler = changeHandler;
-        return new HandlerRegistration() {
-            @Override
-            public void removeHandler() {
-                valueChangeHandler = null;
-            }
-        };
+        return () -> valueChangeHandler = null;
     }
 
+
+     /*
+     * HasDialogHandlers overrides
+     */
+
+    /**
+     * Adds a Dialog handler to be fired upon click on one of the three buttons
+     *
+     * @param handler The new DialogHandler to service
+     * @return A Handler Registration object
+     */
+    @Override
+    public HandlerRegistration addDialogHandler(DialogHandler handler) {
+        dialogHandler = handler;
+        return () -> dialogHandler = null;
+    }
 
     /*
      * Private methods
@@ -298,5 +317,18 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
         }
     }
 
+    /**
+     * Triggers a ClickEvent
+     */
+    private void triggerDialogEvent(DialogEvent.DialogButton button) {
+        if (dialogHandler != null) {
+            dialogHandler.onDialogButtonClick(new DialogEvent() {
+                @Override
+                public DialogButton getDialogButton() {
+                    return button;
+                }
+            });
+        }
+    }
 
 }

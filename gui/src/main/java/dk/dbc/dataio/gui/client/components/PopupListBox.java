@@ -9,6 +9,9 @@ import java.util.Map;
  */
 public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, String>> {
     private final int MAX_ITEMS_IN_LIST = 20;
+    private final int MIN_ITEMS_IN_LIST = 2;
+    private final String DEFAULT_WIDTH = "16em";
+
 
     /**
      * Constructor
@@ -19,6 +22,8 @@ public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, St
     @UiConstructor
     public PopupListBox(String dialogTitle, String okButtonText) {
         super(new ListBoxHasValue(), dialogTitle, okButtonText);
+        widget.setVisibleItemCount(MIN_ITEMS_IN_LIST);  // Default initial value to be used, before any items are added
+        widget.setWidth(DEFAULT_WIDTH);  // Still a default value only to be used before any items are added
     }
 
 
@@ -57,11 +62,12 @@ public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, St
      * @param count Number of items in the listbox
      */
     private void setListBoxSize(int count) {
-        if (count < 2) {
-            count = 2;
+        if (count < MIN_ITEMS_IN_LIST) {
+            count = MIN_ITEMS_IN_LIST;
         } else if (count > MAX_ITEMS_IN_LIST) {
             count = MAX_ITEMS_IN_LIST;
         }
         widget.setVisibleItemCount(count);
+        widget.setWidth("");  // Let the ListBox adjust it's size according to its content (see constructor)
     }
 }

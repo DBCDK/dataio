@@ -29,6 +29,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.Element;
 import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
@@ -67,7 +68,7 @@ public class PopupBoxTest {
     @Mock Button mockedExtraButton;
     @Mock ClickEvent mockedClickEvent;
     @Mock ValueChangeHandler mockedValueChangeHandler;
-
+    @Mock Element mockedElement;
 
     /**
      * Subject Under Test
@@ -206,6 +207,46 @@ public class PopupBoxTest {
         verify(mockedExtraButton).setText("-Extra-Button-Text-");
         verify(mockedExtraButton).setEnabled(true);
         verify(mockedExtraButton).setVisible(true);
+        noMoreMockInvocations();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void setGuid_nullValue_exception() {
+        // Test Preparation
+        setupTest();
+        constructorVerification();
+
+        // Activate Subject Under Test
+        popupBox.setGuid(null);
+    }
+
+    @Test
+    public void setGuid_emptyValue_noAction() {
+        // Test Preparation
+        setupTest();
+        constructorVerification();
+        when(mockedDialogBox.getElement()).thenReturn(mockedElement);
+
+        // Activate Subject Under Test
+        popupBox.setGuid("");
+
+        // Test Verification
+        noMoreMockInvocations();
+    }
+
+    @Test
+    public void setGuid_validValue_setGuid() {
+        // Test Preparation
+        setupTest();
+        constructorVerification();
+        when(mockedDialogBox.getElement()).thenReturn(mockedElement);
+
+        // Activate Subject Under Test
+        popupBox.setGuid("gui ID");
+
+        // Test Verification
+        verify(mockedDialogBox).getElement();
+        verify(mockedElement).setId("gui ID");
         noMoreMockInvocations();
     }
 
@@ -400,6 +441,7 @@ public class PopupBoxTest {
         verify(mockedContainerPanel).add(mockedButtonPanel);
         verify(mockedDialogBox).add(mockedContainerPanel);
         verify(mockedBasePanel).add(mockedDialogBox);
+        verify(mockedDialogBox).addStyleName("dio-PopupBox");
         verify(mockedDialogBox).setAutoHideEnabled(true);
         verify(mockedDialogBox).setModal(true);
         verify(mockedDialogBox).isAnimationEnabled();
@@ -421,6 +463,7 @@ public class PopupBoxTest {
         verifyNoMoreInteractions(mockedBasePanel);
         verifyNoMoreInteractions(mockedWidget);
         verifyNoMoreInteractions(mockedKeyPressEvent);
+        verifyNoMoreInteractions(mockedElement);
     }
 
 }

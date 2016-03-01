@@ -33,9 +33,11 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PopupListBox;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -59,6 +61,7 @@ public class ViewWidget extends ContentPanel<Presenter> {
     @UiField PromptedMultiList flowComponents;
     @UiField Button deleteButton;
     @UiField Label status;
+    @UiField PopupListBox popupListBox;
 
 
     @UiHandler("name")
@@ -90,7 +93,6 @@ public class ViewWidget extends ContentPanel<Presenter> {
     }
 
     @UiHandler("deleteButton")
-    @SuppressWarnings("unused")
     void deleteButtonPressed(ClickEvent event) {
         presenter.deleteButtonPressed();
     }
@@ -104,4 +106,19 @@ public class ViewWidget extends ContentPanel<Presenter> {
         }
     }
 
+    @UiHandler("popupListBox")
+    void popupListBoxClicked(DialogEvent event) {
+        switch (event.getDialogButton()) {
+            case OK_BUTTON:
+                presenter.selectFlowComponentButtonPressed(popupListBox.getValue().getValue());
+                break;
+            case EXTRA_BUTTON:
+                presenter.newFlowComponentButtonPressed();
+                break;
+            case CANCEL_BUTTON:
+            default:
+                // Do nothing
+                break;
+        }
+    }
 }

@@ -1,7 +1,5 @@
 package dk.dbc.dataio.gui.client.components;
 
-import com.google.gwt.event.dom.client.ChangeEvent;
-import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -22,12 +20,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      * Constructor
      */
     public ListBoxHasValue() {
-        addChangeHandler(new ChangeHandler() {
-            @Override
-            public void onChange(ChangeEvent event) {
-                triggerValueChangeEvent();
-            }
-        });
+        addChangeHandler(event -> triggerValueChangeEvent());
     }
 
 
@@ -41,6 +34,10 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      */
     @Override
     public Map.Entry<String, String> getValue() {
+        int selectedIndex = super.getSelectedIndex();
+        if (selectedIndex < 0) {
+            return null;
+        }
         return new AbstractMap.SimpleEntry<>(
                 super.getItemText(super.getSelectedIndex()),
                 super.getValue(super.getSelectedIndex()) );
@@ -86,12 +83,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
     @Override
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Map.Entry<String, String>> changeHandler) {
         valueChangeHandler = changeHandler;
-        return new HandlerRegistration() {
-            @Override
-            public void removeHandler() {
-                valueChangeHandler = null;
-            }
-        };
+        return () -> valueChangeHandler = null;
     }
 
 

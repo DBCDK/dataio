@@ -47,6 +47,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -65,7 +66,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
-    private static boolean addButtonHasBeenPressed;
     List<FlowComponentModel> selectedFlowComponentModelList;
     List<FlowComponentModel> availableFlowComponentModelList;
     FlowComponentModel flowComponentModel1;
@@ -87,7 +87,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
             viewWidget.model = new FlowModelBuilder().setId(DEFAULT_ID).setVersion(DEFAULT_VERSION).setName(DEFAULT_NAME).setDescription(DEFAULT_DESCRIPTION).setComponents(selectedFlowComponentModelList).build();
             availableFlowComponentModels = availableFlowComponentModelList;
             saveModelHasBeenCalled = false;
-            addButtonHasBeenPressed = false;
 
         }
 
@@ -104,17 +103,16 @@ public class PresenterImplTest extends PresenterImplTestBase {
         public void deleteButtonPressed() {
         }
 
-        @Override
-        public void addButtonPressed() {
-            addButtonHasBeenPressed = true;
-        }
-
         public SaveFlowModelAsyncCallback saveFlowCallback = new SaveFlowModelAsyncCallback();
 
         public FindAllFlowComponentsAsyncCallback findAllFlowComponentsCallback = new FindAllFlowComponentsAsyncCallback();
 
         public ViewWidget getView() {
             return viewWidget;
+        }
+
+        public void setAvailableFlowComponentModels(List<FlowComponentModel> flowComponentModels) {
+            availableFlowComponentModels = flowComponentModels;
         }
     }
 
@@ -265,7 +263,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Setup
         setupPresenterImpl();
-        viewWidget.model.setFlowComponents(new ArrayList<FlowComponentModel>());
+        viewWidget.model.setFlowComponents(new ArrayList<>());
 
         // Subject Under Test
         presenterImpl.saveButtonPressed();
@@ -303,22 +301,132 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void newFlowComponentButtonPressed_call_gotoCreateFlowComponentPlace() {
+    public void addButtonPressed_callAddButtonPressedWithNullFlowComponents_popupListBoxNotCalled() {
 
+        // Setup
+        setupPresenterImpl();
+        presenterImpl.setAvailableFlowComponentModels(null);
+
+        // Subject Under Test
+        presenterImpl.addButtonPressed();
+
+        // Verifications
+        verifyNoMoreInteractions(viewWidget.popupListBox);
+    }
+
+    @Test
+    public void addButtonPressed_callAddButtonPressedWithEmptyFlowComponents_popupListBoxCleared() {
+
+        // Setup
+        setupPresenterImpl();
+        presenterImpl.setAvailableFlowComponentModels(new ArrayList<>());
+
+        // Subject Under Test
+        presenterImpl.addButtonPressed();
+
+        // Verifications
+        verify(viewWidget.popupListBox).clear();
+        verify(viewWidget.popupListBox).show();
+        verifyNoMoreInteractions(viewWidget.popupListBox);
+    }
+
+    @Test
+    public void addButtonPressed_callAddButtonPressedWithFlowComponents_popupListBoxFilled() {
+
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
+        presenterImpl.addButtonPressed();
+
+        // Verifications
+        verify(viewWidget.popupListBox).clear();
+        verify(viewWidget.popupListBox).add("FlowComponentName2", "222");
+        verify(viewWidget.popupListBox).add("FlowComponentName4", "444");
+        verify(viewWidget.popupListBox).show();
+        verifyNoMoreInteractions(viewWidget.popupListBox);
+    }
+
+    @Test
+    public void removeButtonPressed_callRemoveButtonPressedNoFlowComponentsSelected_noFlowComponentsRemoved() {
+        // Setup
+        setupPresenterImpl();
+        when(viewWidget.flowComponents.getSelectedItem()).thenReturn(null);
+
+        // Subject Under Test
+        presenterImpl.removeButtonPressed();
+
+        // Verifications
+        List<FlowComponentModel> flowComponents = viewWidget.model.getFlowComponents();
+        assertThat(flowComponents.size(), is(2));
+        assertThat(flowComponents.get(0).getId(), is(111L));
+        assertThat(flowComponents.get(1).getId(), is(333L));
+    }
+
+    @Test
+    public void removeButtonPressed_callRemoveButtonPressedAFlowComponentsSelected_oneFlowComponentsRemoved() {
+        // Setup
+        setupPresenterImpl();
+        when(viewWidget.flowComponents.getSelectedItem()).thenReturn("111");
+
+        // Subject Under Test
+        presenterImpl.removeButtonPressed();
+
+        // Verifications
+        List<FlowComponentModel> flowComponents = viewWidget.model.getFlowComponents();
+        assertThat(flowComponents.size(), is(1));
+        assertThat(flowComponents.get(0).getId(), is(333L));
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void selectFlowComponentButtonPressed_nullInput_exception() {
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
+        presenterImpl.selectFlowComponentButtonPressed(null);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void selectFlowComponentButtonPressed_emptyInput_noAction() {
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
+        presenterImpl.selectFlowComponentButtonPressed("");
+    }
+
+    @Test
+    public void selectFlowComponentButtonPressed_numberInput_selectTheRightFlowComponent() {
+        // Setup
+        setupPresenterImpl();
+
+        // Subject Under Test
+        presenterImpl.selectFlowComponentButtonPressed("444");
+
+        // Verifications
+        List<FlowComponentModel> flowComponents = viewWidget.model.getFlowComponents();
+        assertThat(flowComponents.size(), is(3));
+        assertThat(flowComponents.get(0).getId(), is(111L));
+        assertThat(flowComponents.get(1).getId(), is(333L));
+        assertThat(flowComponents.get(2).getId(), is(444L));  // Newly selected
+    }
+
+    @Test
+    public void newFlowComponentButtonPressed_call_gotoCreateFlowComponentPlace() {
         // Setup
         setupPresenterImpl();
 
         // Subject Under Test
         presenterImpl.newFlowComponentButtonPressed();
 
-        // Verificaitons
+        // Verifications
         assertThat(presenterImpl.getView().showAvailableFlowComponents, is(true));
         verify(mockedPlaceController).goTo(any(dk.dbc.dataio.gui.client.pages.flowcomponent.modify.CreatePlace.class));
     }
 
     @Test
     public void findAllFlowComponentsAsyncCallback_successfulCallback_FlowComponentsAddedAndModelUpdated() {
-
         // Setup
         final long EXTRA_ID = 127;
         final String EXTRA_NAME = "Extra Name";
@@ -356,7 +464,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Test
     public void findAllFlowComponentsAsyncCallback_successfulCallback_showAvailableFlowComponentsIsTrueAddButtonPressed() {
-
         // Setup
         setupPresenterImpl();
         viewWidget.showAvailableFlowComponents = true;
@@ -365,14 +472,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.findAllFlowComponentsCallback.onSuccess(availableFlowComponentModelList);
 
         // Verifications
-        assertThat(addButtonHasBeenPressed, is(true));
         assertThat(viewWidget.showAvailableFlowComponents, is(false));
         verify(viewWidget.flowComponents).setEnabled(true);
     }
 
     @Test
     public void findAllFlowComponentsAsyncCallback_unsuccessfulCallbackNotFoundError_errorMessageDisplayed() {
-
         // Setup
         setupPresenterImpl();
         ProxyException mockedProxyException = mock(ProxyException.class);
@@ -388,7 +493,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Test
     public void saveFlowModelAsyncCallback_successfulCallback_statusMessageDisplayed() {
-
         // Setup
         final String STATUS_MESSAGE = "Success Message";
         setupPresenterImpl();
@@ -404,7 +508,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Test
     public void saveFlowModelAsyncCallback_unsuccessfulCallbackConflictError_errorMessageDisplayed() {
-
         // Setup
         setupPresenterImpl();
         ProxyException mockedProxyException = mock(ProxyException.class);

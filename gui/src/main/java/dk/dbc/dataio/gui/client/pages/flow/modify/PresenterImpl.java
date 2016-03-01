@@ -23,8 +23,6 @@ package dk.dbc.dataio.gui.client.pages.flow.modify;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.History;
@@ -36,7 +34,6 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +47,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private final static String EMPTY = "";
-    private SelectFlowComponentDialogBox selectFlowComponentDialogBox;
 
     // Application Models
     protected List<FlowComponentModel> availableFlowComponentModels;
@@ -152,11 +148,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void addButtonPressed() {
         if (availableFlowComponentModels != null ) {
-            Map<String, String> listOfComponents = new LinkedHashMap<>();
+            getView().popupListBox.clear();
             for (FlowComponentModel component : getNonSelectedFlowComponents()) {
-                listOfComponents.put(component.getName(), String.valueOf(component.getId()));
+                getView().popupListBox.add(component.getName(), String.valueOf(component.getId()));
             }
-            selectFlowComponentDialogBox = new SelectFlowComponentDialogBox(listOfComponents, new SelectFlowComponentClickHandler(), this);
+            getView().popupListBox.show();
         }
     }
 
@@ -171,6 +167,25 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             // NOPMD
             // Exceptions are not caught intentionally here - If an exception occurs, nothing is being removed
         }
+    }
+
+
+    /**
+     * Dialog Events for the PopupListBox component (FlowComponent Selector)
+     */
+
+    /**
+     * Select a flow component from the list
+     *
+     * @param selectedKey The key of the selected Flow Component
+     */
+    @Override
+    public void selectFlowComponentButtonPressed(String selectedKey) {
+        FlowComponentModel selectedModel = getFlowComponentModel(selectedKey);
+        List<FlowComponentModel> flowComponentModels = getView().model.getFlowComponents();
+        flowComponentModels.add(selectedModel);
+        getView().model.setFlowComponents(flowComponentModels);
+        updateAllFieldsAccordingToCurrentState();
     }
 
     /**
@@ -188,7 +203,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     /**
-     * This method opdates all the fields in the view according to the stored model.
+     * This method updates all the fields in the view according to the stored model.
      */
     protected void updateAllFieldsAccordingToCurrentState() {
         ViewWidget view = getView();
@@ -326,25 +341,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-    /**
-     * Local class to be used to establish a callback from the Select Flow Components Dialog Box
-     */
-    class SelectFlowComponentClickHandler implements ClickHandler {
-        @Override
-        public void onClick(ClickEvent event) {
-            int selected = selectFlowComponentDialogBox.flowComponentsList.getSelectedIndex();
-            if (selected >= 0) {
-                String value = selectFlowComponentDialogBox.flowComponentsList.getValue(selected);
-                FlowComponentModel selectedModel = getFlowComponentModel(value);
-                List<FlowComponentModel> flowComponentModels = getView().model.getFlowComponents();
-                flowComponentModels.add(selectedModel);
-                getView().model.setFlowComponents(flowComponentModels);
-                updateAllFieldsAccordingToCurrentState();
-            }
-        }
-    }
-
-        /*
+    /*
      * Abstract methods
      */
 

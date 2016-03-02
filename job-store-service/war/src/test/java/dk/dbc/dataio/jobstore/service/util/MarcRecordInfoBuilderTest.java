@@ -28,7 +28,10 @@ import dk.dbc.marc.binding.SubField;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -56,7 +59,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
-        assertThat("isDelete()", recordInfo.isDelete(), is(false));
+        assertKeys(recordInfo.getKeys(), Collections.singletonList(id));
     }
 
     @Test
@@ -70,6 +73,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
+        assertKeys(recordInfo.getKeys(), Collections.singletonList(id));
     }
 
     @Test
@@ -83,6 +87,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.HEAD));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
+        assertKeys(recordInfo.getKeys(), Collections.singletonList(id));
     }
 
     @Test
@@ -97,6 +102,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(parent));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
+        assertKeys(recordInfo.getKeys(), Arrays.asList(id, parent));
     }
 
     @Test
@@ -111,6 +117,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(parent));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
+        assertKeys(recordInfo.getKeys(), Arrays.asList(id, parent));
     }
 
     @Test
@@ -121,6 +128,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         final MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
+        assertKeys(recordInfo.getKeys(), Collections.singletonList(id));
     }
 
     @Test
@@ -131,6 +139,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         final MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("isDelete()", recordInfo.isDelete(), is(true));
+        assertKeys(recordInfo.getKeys(), Collections.singletonList(id));
     }
 
     public static MarcRecord getMarcRecord(DataField... dataFields) {
@@ -175,5 +184,16 @@ public class MarcRecordInfoBuilderTest {
                     new SubField()
                         .setCode('a')
                         .setData(a));
+    }
+
+    /*
+     * Private methods
+     */
+
+    private void assertKeys(Set<String> actualKeys, List<String> expectedKeys) {
+        assertThat("Keys.size", actualKeys.size(), is(expectedKeys.size()));
+        for(String key : expectedKeys) {
+            assertThat("key", actualKeys.contains(key), is(true));
+        }
     }
 }

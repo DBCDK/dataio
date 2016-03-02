@@ -25,15 +25,33 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
+import java.util.Collections;
+
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 public class RecordInfoTest {
+
+    private final String id = "42";
+
     @Test
     public void marshalling() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final RecordInfo recordInfo = new RecordInfo("42");
         final RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
+    }
+
+    @Test
+    public void getKeys_idIsNull_returnsEmptySet() {
+        RecordInfo recordInfo = new RecordInfo(null);
+        assertThat(recordInfo.getKeys(), is(Collections.emptySet()));
+    }
+
+    @Test
+    public void getKeys_idIsNotNull_returnsSetContainingId() {
+        RecordInfo recordInfo = new RecordInfo(id);
+        assertThat(recordInfo.getKeys().size(), is(1));
+        assertThat(recordInfo.getKeys().contains(id), is(true));
     }
 }

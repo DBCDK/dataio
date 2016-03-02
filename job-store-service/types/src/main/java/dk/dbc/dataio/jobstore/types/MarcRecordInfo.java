@@ -25,9 +25,12 @@ package dk.dbc.dataio.jobstore.types;
  * This class contains information about a bibliographic record
  * extended with information deduced from the fact that we know it is a MARC record
  */
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Set;
 
 public class MarcRecordInfo extends RecordInfo {
     public enum RecordType {
@@ -61,6 +64,15 @@ public class MarcRecordInfo extends RecordInfo {
             }
         }
         this.parentRelation = parentRelation;
+    }
+
+    @Override
+    public Set<String> getKeys() {
+        final Set<String> keys = super.getKeys();
+        if(parentRelation != null) {
+            keys.add(parentRelation);
+        }
+        return keys;
     }
 
     public boolean isDelete() {

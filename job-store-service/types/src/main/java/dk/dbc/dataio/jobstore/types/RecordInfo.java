@@ -22,7 +22,11 @@
 package dk.dbc.dataio.jobstore.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class contains information about a bibliographic record.
@@ -38,6 +42,15 @@ public class RecordInfo {
 
     public String getId() {
         return id;
+    }
+
+    @JsonIgnore
+    public Set<String> getKeys() {
+        final Set<String> keys = new HashSet<>();
+        if(id != null) {
+            keys.add(id);
+        }
+        return keys;
     }
 
     @Override

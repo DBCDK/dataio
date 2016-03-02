@@ -73,8 +73,7 @@ public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
         DataPartitionerResult result;
         final String trackingId = extractedValues.get(TRACKING_ID);
         try {
-            final MarcXchangeV1Reader marcXchangeV1Reader = new MarcXchangeV1Reader(getInputStream(baos.toByteArray()), getEncoding());
-            final MarcRecord marcRecord = marcXchangeV1Reader.read();
+            final MarcRecord marcRecord = getMarcRecord(baos);
             if(marcRecord == null) {
                 throw new InvalidDataException("Marc Record was null");
             } else {

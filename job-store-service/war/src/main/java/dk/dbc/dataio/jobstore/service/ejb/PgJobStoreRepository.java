@@ -65,8 +65,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
@@ -612,7 +614,6 @@ public class PgJobStoreRepository extends RepositoryBase {
                 final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
                 DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
                 LOGGER.info("Creating chunk item {} for chunk {} in job {}", itemCounter, chunkId, jobId);
-                String recordFromPartitionerAsString = new String(chunkItem.getData(), StandardCharsets.UTF_8);
 
                 StateChange stateChange = new StateChange()
                         .setPhase(State.Phase.PARTITIONING)
@@ -626,7 +627,9 @@ public class PgJobStoreRepository extends RepositoryBase {
 
                 chunkItem.setId(itemCounter);
                 chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem));
-                chunkItemEntities.records.add(recordFromPartitionerAsString);
+                if(dataPartitionerResult.getRecordInfo() != null) {
+                    chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys());
+                }
 
                 if (itemCounter == maxChunkSize) {
                     break;
@@ -732,7 +735,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         if (chunkStateChange.getFailed() > 0) {
             sequenceAnalysisData = new SequenceAnalysisData(Collections.<String>emptySet());
         } else {
-            sequenceAnalysisData = new SequenceAnalysisData(sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.records));
+            sequenceAnalysisData = new SequenceAnalysisData(sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.keys));
         }
         return sequenceAnalysisData;
     }
@@ -755,15 +758,15 @@ public class PgJobStoreRepository extends RepositoryBase {
     }
 
     // EJB specification dictates Public across EJB's.
-    public static class ChunkItemEntities {
+    public static class  ChunkItemEntities {
         public final List<ItemEntity> entities;
-        public final List<String> records;
         public final StateChange chunkStateChange;
+        public final List<String> keys;
 
         public ChunkItemEntities() {
             entities = new ArrayList<>();
-            records = new ArrayList<>();
             chunkStateChange = new StateChange();
+            keys = new ArrayList<>();
         }
 
         public short size() {

@@ -22,20 +22,31 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
+import dk.dbc.dataio.jobstore.types.InvalidDataException;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcReaderInvalidRecordException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-
-import static dk.dbc.dataio.commons.types.ChunkItem.Type.DATACONTAINER;
-import static dk.dbc.dataio.commons.types.ChunkItem.Type.MARCXCHANGE;
+import java.util.Optional;
 
 
 public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
-
-    private final static String TRACKING_ID = "trackingId";
+    private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoMarcXmlDataPartitioner.class);
+    private static final String TRACKING_ID = "trackingId";
+    private final MarcRecordInfoBuilder marcRecordInfoBuilder;
 
     /**
      * Creates new instance of rawRepoMarcXmlDataPartitioner
@@ -54,13 +65,46 @@ public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
     private RawRepoMarcXmlDataPartitioner(InputStream inputStream, String expectedEncoding) {
         super(inputStream, expectedEncoding);
         extractedKeys.add(TRACKING_ID);
+        marcRecordInfoBuilder = new MarcRecordInfoBuilder();
     }
 
     @Override
-    protected ChunkItem nextChunkItem(ByteArrayOutputStream baos, ChunkItem.Status status) {
-        ChunkItem chunkItem = new ChunkItem(0, baos.toByteArray(), status, Arrays.asList(DATACONTAINER, MARCXCHANGE), StandardCharsets.UTF_8);
-        chunkItem.setTrackingId(extractedValues.get(TRACKING_ID));
-        return chunkItem;
+    protected DataPartitionerResult nextDataPartitionerResult(ByteArrayOutputStream baos) throws InvalidDataException {
+        DataPartitionerResult result;
+        final String trackingId = extractedValues.get(TRACKING_ID);
+        try {
+            final MarcXchangeV1Reader marcXchangeV1Reader = new MarcXchangeV1Reader(getInputStream(baos.toByteArray()), getEncoding());
+            final MarcRecord marcRecord = marcXchangeV1Reader.read();
+            if(marcRecord == null) {
+                throw new InvalidDataException("Marc Record was null");
+            } else {
+                final Optional<MarcRecordInfo> recordInfo = marcRecordInfoBuilder.parse(marcRecord);
+                final ChunkItem chunkItem = new ChunkItem(0, baos.toByteArray(), ChunkItem.Status.SUCCESS,
+                        Arrays.asList(ChunkItem.Type.DATACONTAINER, ChunkItem.Type.MARCXCHANGE), StandardCharsets.UTF_8);
+
+                chunkItem.setTrackingId(trackingId);
+                result = new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
+            }
+        } catch (MarcReaderException e) {
+            LOGGER.error("Exception caught while creating MarcRecord", e);
+            if (e instanceof MarcReaderInvalidRecordException) {
+                final ChunkItem chunkItem = ObjectFactory.buildFailedChunkItem(0, ((MarcReaderInvalidRecordException) e).getBytesRead(), ChunkItem.Type.STRING, trackingId);
+                chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+                result = new DataPartitionerResult(chunkItem, null);
+            } else {
+                throw new InvalidDataException(e);
+            }
+        }
+        return result;
+    }
+
+    private MarcRecord getMarcRecord(ByteArrayOutputStream baos) throws MarcReaderException {
+        MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(baos.toByteArray()), getEncoding());
+        return marcReader.read();
+    }
+
+    private BufferedInputStream getInputStream(byte[] data) {
+        return new BufferedInputStream(new ByteArrayInputStream(data));
     }
 }
 

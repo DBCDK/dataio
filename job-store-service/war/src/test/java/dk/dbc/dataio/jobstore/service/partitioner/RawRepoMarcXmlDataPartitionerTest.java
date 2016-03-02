@@ -22,9 +22,14 @@
 package dk.dbc.dataio.jobstore.service.partitioner;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -66,22 +71,83 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
     }
 
     @Test
+    public void iterator_next_erroneousXMLContainingUnfinishedSecondChildThrows() {
+        final String id = "123456";
+        final String child =
+                "<child>"
+                + "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\">"
+                +   "<record>"
+                +     "<marcx:datafield xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" tag=\"001\">"
+                +       "<marcx:subfield code=\"a\">" + id + "</marcx:subfield>"
+                +     "</marcx:datafield>"
+                +   "</record>"
+                + "</collection>"
+                +"</child>";
+
+        final String erroneousChild = "<child><grandChild>Pirate so brave on the seven seas</grand";
+
+        final ChunkItem expectedResult = new ChunkItemBuilder()
+                .setData(buildXmlWithChildren(Collections.singletonList(child)))
+                .setType(Arrays.asList(ChunkItem.Type.DATACONTAINER, ChunkItem.Type.MARCXCHANGE))
+                .build();
+
+        final DataPartitioner dataPartitioner = newPartitionerInstance(buildXmlWithChildren(Arrays.asList(child, erroneousChild)));
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+
+        assertThat(iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        assertThat("dataPartitioner.chunkItem", dataPartitionerResult.getChunkItem(), is(expectedResult));
+        assertThat("dataPartitioner.recordInfo.id", dataPartitionerResult.getRecordInfo().getId(), is(id));
+        assertThat(iterator.hasNext(), is(true));
+        try {
+            iterator.next();
+            fail("No exception thrown");
+        } catch (InvalidDataException e) {
+        }
+    }
+
+    @Test
+    public void iterator_next_marcRecordIsNullThrows() {
+        final String child = "<child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child>";
+
+        final DataPartitioner dataPartitioner = newPartitionerInstance(buildXmlWithChildren(Collections.singletonList(child)));
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+
+        assertThat(iterator.hasNext(), is(true));
+        try {
+         iterator.next();
+            fail("No exception thrown");
+        } catch (InvalidDataException e) {
+        }
+    }
+
+    @Test
     public void iterator_next_returnsThreeChunkItemsWithUnescapedTrackingIdSet() {
         final DataPartitioner dataPartitioner = newPartitionerInstance(getDataContainerXmlWithMarcExchangeAndTrackingIds());
         final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
         assertThat(iterator.hasNext(), is(true));
 
-        final ChunkItem chunkItem0 = iterator.next().getChunkItem();
-        assertThat("chunkItem0.trackingId", chunkItem0.getTrackingId(), is("<trackingid-&dataio-1>"));
+        final DataPartitionerResult dataPartitionerResult0 = iterator.next();
+        assertThat("chunkItem0.trackingId", dataPartitionerResult0.getChunkItem().getTrackingId(), is("<trackingid-&dataio-1>"));
+        assertThat("recordInfo0", dataPartitionerResult0.getRecordInfo(), is(notNullValue()));
         assertThat(iterator.hasNext(), is(true));
 
-        ChunkItem chunkItem1 = iterator.next().getChunkItem();
-        assertThat("chunkItem1.trackingId", chunkItem1.getTrackingId(), is("\"&trackingid-dataio-2\""));
+        final DataPartitionerResult dataPartitionerResult1 = iterator.next();
+        assertThat("chunkItem1.trackingId", dataPartitionerResult1.getChunkItem().getTrackingId(), is("\"&trackingid-dataio-2\""));
+        assertThat("recordInfo1", dataPartitionerResult1.getRecordInfo(), is(notNullValue()));
         assertThat(iterator.hasNext(), is(true));
 
-        ChunkItem chunkItem2 = iterator.next().getChunkItem();
-        assertThat("chunkItem1.trackingId", chunkItem2.getTrackingId(), is("'trackingid-'dataio-3&"));
+        final DataPartitionerResult dataPartitionerResult2 = iterator.next();
+        assertThat("chunkItem2.trackingId", dataPartitionerResult2.getChunkItem().getTrackingId(), is("'trackingid-'dataio-3&"));
+        assertThat("recordInfo2", dataPartitionerResult2.getRecordInfo(), is(notNullValue()));
         assertThat(iterator.hasNext(), is(false));
+    }
+
+    private String buildXmlWithChildren(List<String>children) {
+        StringBuilder stringBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>");
+        children.forEach(stringBuilder::append);
+        stringBuilder.append("</topLevel>");
+        return stringBuilder.toString();
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {

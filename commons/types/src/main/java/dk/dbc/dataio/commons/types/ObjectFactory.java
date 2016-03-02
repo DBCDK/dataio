@@ -84,8 +84,19 @@ public class ObjectFactory {
      * @return chunkItem with tracking id, status: FAILURE and UTF_8 encoding
      */
     public static ChunkItem buildFailedChunkItem(long itemId, String data, ChunkItem.Type type, String trackingId) {
-        return buildChunkItem(itemId, StringUtil.asBytes(data, StandardCharsets.UTF_8),
-                ChunkItem.Status.FAILURE, Collections.singletonList(type), trackingId);
+        return buildFailedChunkItem(itemId, StringUtil.asBytes(data, StandardCharsets.UTF_8), type, trackingId);
+    }
+
+    /**
+     * Builds a new chunk item with given id and data
+     * @param itemId of the item
+     * @param data of the item
+     * @param type of the item
+     * @param trackingId of the item
+     * @return chunkItem with with tracking id, status: FAILURE and UTF_8 encoding
+     */
+    public static ChunkItem buildFailedChunkItem(long itemId, byte[] data, ChunkItem.Type type, String trackingId) {
+        return buildChunkItem(itemId, data, ChunkItem.Status.FAILURE, Collections.singletonList(type), trackingId);
     }
 
     /**
@@ -125,7 +136,7 @@ public class ObjectFactory {
      */
     public static ChunkItem buildSuccessfulChunkItem(long itemId, String data, ChunkItem.Type type, String trackingId) {
         return buildChunkItem(itemId, StringUtil.asBytes(data, StandardCharsets.UTF_8),
-                ChunkItem.Status.SUCCESS, Collections.singletonList(type), trackingId);
+                              ChunkItem.Status.SUCCESS, Collections.singletonList(type), trackingId);
     }
 
     /**

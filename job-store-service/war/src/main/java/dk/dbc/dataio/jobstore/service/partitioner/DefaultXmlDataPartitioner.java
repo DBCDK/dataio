@@ -132,7 +132,6 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
     private List<XMLEvent> preRecordEvents;
     protected Set<String> extractedKeys;
     protected Map<String, String> extractedValues;
-
     private Charset canonicalEncoding;
     private Iterator<DataPartitionerResult> iterator;
 
@@ -228,12 +227,13 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
                         xmlWriter.add(xmlEventFactory.createEndElement("", null, rootTag));
                         xmlWriter.add(xmlEventFactory.createEndDocument());
                         xmlWriter.close();
-                        ChunkItem chunkItem = nextChunkItem(baos, ChunkItem.Status.SUCCESS);
-                        extractedValues.clear();
-                        return new DataPartitionerResult(chunkItem, null);
+                        return nextDataPartitionerResult(baos);
                     } catch (XMLStreamException | UnsupportedEncodingException e) {
                         LOGGER.error("Exception caught", e);
                         throw new InvalidDataException(e);
+                    }
+                    finally {
+                        extractedValues.clear();
                     }
                 }
 
@@ -250,11 +250,11 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
 
     /**
      * @param baos byte array output stream containing the relevant data
-     * @param status of the chunk item
-     * @return chunk item
+     * @return DataPartitionerResult containing chunk item with baos as data and status SUCCESS
      */
-    protected ChunkItem nextChunkItem(ByteArrayOutputStream baos, ChunkItem.Status status) {
-        return new ChunkItem(0, baos.toByteArray(), status);
+    protected DataPartitionerResult nextDataPartitionerResult(ByteArrayOutputStream baos) {
+        final ChunkItem chunkItem = new ChunkItem(0, baos.toByteArray(), ChunkItem.Status.SUCCESS);
+        return new DataPartitionerResult(chunkItem, null);
     }
 
     /*

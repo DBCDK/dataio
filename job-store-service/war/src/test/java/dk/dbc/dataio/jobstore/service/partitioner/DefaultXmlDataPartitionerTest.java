@@ -60,6 +60,29 @@ public class DefaultXmlDataPartitionerTest extends AbstractPartitionerTestBase {
     }
 
     @Test
+    public void next_dataPartitionerResultContainsExpectedChunkItemAndNullValuedRecordInfo() {
+        final String xml = XML_HEADER
+                + "<topLevel>"
+                +   "<collection xmlns=\"info:lc/xmlns/marcxchange-v1\">"
+                +     "<record>"
+                +       "<marcx:datafield xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" tag=\"001\">"
+                +         "<marcx:subfield code=\"a\">123456</marcx:subfield>"
+                +       "</marcx:datafield>"
+                +     "</record>"
+                +   "</collection>"
+                + "</topLevel>";
+        final ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();
+        final DataPartitioner dataPartitioner = newPartitionerInstance(xml);
+
+        final Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator();
+        assertThat(iterator.hasNext(), is(true));
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        assertThat(dataPartitionerResult.getChunkItem(), is(expectedResult));
+        assertThat(dataPartitionerResult.getRecordInfo(), is(nullValue()));
+        assertThat(iterator.hasNext(), is(false));
+    }
+
+    @Test
     public void singleXMLChild_givesOneStringWithXML() {
         final String xml = XML_HEADER + "<topLevel><child><grandChild>This is the tale of Captain Jack Sparrow</grandChild></child></topLevel>";
         final ChunkItem expectedResult = new ChunkItemBuilder().setData(xml).build();

@@ -150,7 +150,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (availableFlowComponentModels != null ) {
             getView().popupListBox.clear();
             for (FlowComponentModel component : getNonSelectedFlowComponents()) {
-                getView().popupListBox.add(component.getName(), String.valueOf(component.getId()));
+                getView().popupListBox.addItem(component.getName(), String.valueOf(component.getId()));
             }
             getView().popupListBox.show();
         }

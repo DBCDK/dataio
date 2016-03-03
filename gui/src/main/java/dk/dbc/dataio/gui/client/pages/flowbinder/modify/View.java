@@ -34,14 +34,16 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PopupListBox;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
-import dk.dbc.dataio.gui.client.components.PromptedDualList;
 import dk.dbc.dataio.gui.client.components.PromptedList;
+import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-import java.util.Collection;
+import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
     interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {}
@@ -60,11 +62,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox destination;
     @UiField PromptedList recordSplitter;
     @UiField PromptedCheckBox sequenceAnalysis;
-    @UiField PromptedDualList submitters;
+    @UiField PromptedMultiList submitters;
     @UiField PromptedList flow;
     @UiField PromptedList sink;
     @UiField Button deleteButton;
     @UiField Label status;
+    @UiField PopupListBox popupListBox;
 
     @UiHandler("name")
     void nameChanged(BlurEvent event) {
@@ -109,8 +112,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("submitters")
-    void submittersChanged(ValueChangeEvent<Collection<String>> event) {
-        presenter.submittersChanged(submitters.getSelectedItems());
+    void submittersClicked(ClickEvent event) {
+        if (submitters.isAddEvent(event)) {
+            popupListBox.show();
+        }
+        if (submitters.isRemoveEvent(event)) {
+            presenter.removeSubmitter(submitters.getSelectedItem());
+        }
+    }
+
+    @UiHandler("submitters")
+    void submittersChanged(ValueChangeEvent<Map<String, String>> event) {
+        presenter.submittersChanged(submitters.getValue());
         presenter.keyPressed();
     }
 
@@ -126,33 +139,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
-    @UiHandler("name")
-    void keyPressedInNameField(KeyDownEvent event) {
-        presenter.keyPressed();
-    }
-
-    @UiHandler("description")
-    void keyPressedInDescriptionField(KeyDownEvent event) {
-        presenter.keyPressed();
-    }
-
-    @UiHandler("frame")
-    void keyPressedInFrameField(KeyDownEvent event) {
-        presenter.keyPressed();
-    }
-
-    @UiHandler("format")
-    void keyPressedInFormatField(KeyDownEvent event) {
-        presenter.keyPressed();
-    }
-
-    @UiHandler("charset")
-    void keyPressedInCharsetField(KeyDownEvent event) {
-        presenter.keyPressed();
-    }
-
-    @UiHandler("destination")
-    void keyPressedInDestinationField(KeyDownEvent event) {
+    @UiHandler({"name", "description", "frame", "format", "charset", "destination"})
+    void keyPressedInField(KeyDownEvent event) {
         presenter.keyPressed();
     }
 
@@ -162,9 +150,15 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("deleteButton")
-    @SuppressWarnings("unused")
     void deleteButtonPressed(ClickEvent event) {
         presenter.deleteButtonPressed();
+    }
+
+    @UiHandler("popupListBox")
+    void setPopupListBoxClicked(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            presenter.addSubmitter(popupListBox.getValue().getValue());
+        }
     }
 
 }

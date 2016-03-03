@@ -77,6 +77,17 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Delete();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Select();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Cancel();
+
+
+    // Captions
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String caption_SelectQueueProvider();
+
 
     // Error messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

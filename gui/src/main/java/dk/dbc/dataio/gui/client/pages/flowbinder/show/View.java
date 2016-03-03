@@ -41,7 +41,6 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -274,13 +273,10 @@ public class View extends ViewWidget {
      * @return the double click handler
      */
     private DoubleClickHandler getDoubleClickHandler(){
-        return new DoubleClickHandler() {
-            @Override
-            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                FlowBinderModel selected = selectionModel.getSelectedObject();
-                if(selected != null) {
-                    presenter.editFlowBinder(selected);
-                }
+        return doubleClickEvent -> {
+            FlowBinderModel selected = selectionModel.getSelectedObject();
+            if(selected != null) {
+                presenter.editFlowBinder(selected);
             }
         };
     }
@@ -341,15 +337,10 @@ public class View extends ViewWidget {
         }
 
         private void showSubmittersInPopupList(List<SubmitterModel> submitters) {
-            Collections.sort(submitters, new Comparator<SubmitterModel>() {
-                @Override
-                public int compare(SubmitterModel  submitterModel1, SubmitterModel  submitterModel2) {
-                    return Long.valueOf(submitterModel1.getNumber()).compareTo(Long.valueOf(submitterModel2.getNumber()));
-                }
-            });
+            Collections.sort(submitters, (sm1, sm2) -> Long.valueOf(sm1.getNumber()).compareTo(Long.valueOf(sm2.getNumber())));
             popupList.clear();
             for (SubmitterModel model: submitters) {
-                popupList.add(Format.inBracketsPairString(model.getNumber(), model.getName()), model.getNumber());
+                popupList.addItem(Format.inBracketsPairString(model.getNumber(), model.getName()), model.getNumber());
             }
             popupList.show();
         }

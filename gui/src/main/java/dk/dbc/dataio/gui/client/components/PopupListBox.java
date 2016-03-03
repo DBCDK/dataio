@@ -40,11 +40,11 @@ public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, St
 
     /**
      * Adds an item to the list of available items in the list
-     * @param text The item to add to the list
-     * @param value The key of the item added
+     * @param item The text of the item to add to the list
+     * @param value The item's value, to be submitted if it is part of a FormPanel
      */
-    public void add(String text, String value) {
-        widget.addItem(text, value);
+    public void addItem(String item, String value) {
+        widget.addItem(item, value);
         setListBoxSize(widget.getItemCount());
     }
 

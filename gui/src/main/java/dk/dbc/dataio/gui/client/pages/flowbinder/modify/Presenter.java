@@ -35,6 +35,8 @@ public interface Presenter extends GenericPresenter {
     void recordSplitterChanged(String selectedText);
     void sequenceAnalysisChanged(boolean value);
     void submittersChanged(Map<String, String> selectedItems);
+    void addSubmitter(String submitterId);
+    void removeSubmitter(String value);
     void flowChanged(String selectedText);
     void sinkChanged(String selectedText);
     void keyPressed();

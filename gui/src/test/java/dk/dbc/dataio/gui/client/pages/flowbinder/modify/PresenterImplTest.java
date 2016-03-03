@@ -53,6 +53,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -90,7 +91,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(String header) {
             super(header);
-            model = new FlowBinderModelBuilder().setFlowModel(flowModel1).setSubmitterModels(Collections.singletonList(submitterModel1)).setSinkModel(sinkModel1).build();
+            List<SubmitterModel> submitterModelList = new ArrayList<>();
+            submitterModelList.add(submitterModel1);
+            model = new FlowBinderModelBuilder().setFlowModel(flowModel1).setSubmitterModels(submitterModelList).setSinkModel(sinkModel1).build();
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
             setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3));
@@ -124,7 +127,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         @Override
         public void deleteButtonPressed() {
-            deleteButtonPressed();
         }
     }
 
@@ -164,10 +166,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllFlows(any(FilteredAsyncCallback.class));
         verify(mockedCommonGinjector.getFlowStoreProxyAsync()).findAllSinks(any(FilteredAsyncCallback.class));
         assertThat(initializeModelHasBeenCalled, is(true));
-        FlowBinderModel model = presenterImpl.model;
-        Map<String, String> selectedSubmitterModel = new HashMap<>();
-        SubmitterModel sModel = model.getSubmitterModels().get(0);
-        selectedSubmitterModel.put(String.valueOf(sModel.getId()), sModel.getNumber() + " (" + sModel.getName() + ")");
     }
 
     @Test
@@ -193,7 +191,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void packagingChanged_callPackagingChanged_packagingIsChangedAccordingly() {
+    public void frameChanged_callFrameChanged_packagingIsChangedAccordingly() {
         final String CHANGED_PACKAGING = "UpdatedPackaging";
 
         initializeAndStartPresenter();
@@ -237,6 +235,15 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void sequenceAnalysisChanged_callSequenceAnalysisChanged_sequenceAnalysisIsChangedAccordingly() {
+        initializeAndStartPresenter();
+
+        presenterImpl.sequenceAnalysisChanged(false);
+
+        assertThat(presenterImpl.model.getSequenceAnalysis(), is(false));
+    }
+
+    @Test
     public void recordSplitterChanged_callRecordSplitterChanged_recordSplitterIsChangedAccordingly() {
         final String CHANGED_RECORDSPLITTER = "UpdatedRecordSplitter";
 
@@ -248,16 +255,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void sequenceAnalysisChanged_callSequenceAnalysisChanged_sequenceAnalysisIsChangedAccordingly() {
-        initializeAndStartPresenter();
-
-        presenterImpl.sequenceAnalysisChanged(false);
-
-        assertThat(presenterImpl.model.getSequenceAnalysis(), is(false));
-    }
-
-    @Test
-    public void selectedSubmittersChanged_callSelectedSubmittersChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
+    public void submittersChanged_callSubmittersChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
         initializeAndStartPresenter();
 
         Map<String, String> newSelectedSubmitters = new HashMap<>();
@@ -271,7 +269,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void selectedSubmittersChanged_callSelectedSubmittersChangedWithUnknownSubmitter_throws() {
+    public void submittersChanged_callSubmittersChangedWithUnknownSubmitter_throws() {
         initializeAndStartPresenter();
 
         Map<String, String> newSelectedSubmitters = new HashMap<>();
@@ -279,8 +277,95 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.submittersChanged(newSelectedSubmitters);
     }
 
+    @Test(expected = NumberFormatException.class)
+    public void addSubmitter_nullValue_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.addSubmitter(null);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void addSubmitter_emptyValue_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.addSubmitter("");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addSubmitter_unknownId_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.addSubmitter("123");
+    }
+
     @Test
-    public void selectedFlowChanged_callSelectedFlowChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
+    public void addSubmitter_knownId_submitterAdded() {
+        initializeAndStartPresenter();
+
+        presenterImpl.addSubmitter("202");
+
+        verify(view.submitters, times(2)).setEnabled(true);
+        verify(view.submitters).setEnabled(false);
+        verify(view.submitters).clear();
+        Map<String, String> expectedMap = new HashMap<>();
+        expectedMap.put("201", "2201 (SName 1)");
+        expectedMap.put("202", "2202 (SName 2)");
+        verify(view.submitters).setValue(expectedMap);
+        verifyNoMoreInteractions(view.submitters);
+    }
+
+    @Test
+    public void addSubmitter_duplicateId_submitterAdded() {
+        initializeAndStartPresenter();
+
+        presenterImpl.addSubmitter("201");
+
+        verify(view.submitters, times(2)).setEnabled(true);
+        verify(view.submitters).setEnabled(false);
+        verify(view.submitters).clear();
+        Map<String, String> expectedMap = new HashMap<>();
+        expectedMap.put("201", "2201 (SName 1)");
+        verify(view.submitters).setValue(expectedMap);
+        verifyNoMoreInteractions(view.submitters);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void removeSubmitter_nullId_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.removeSubmitter(null);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void removeSubmitter_emptyId_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.removeSubmitter("");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void removeSubmitter_unknownId_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.removeSubmitter("123");
+    }
+
+    @Test
+    public void removeSubmitter_knownId_exception() {
+        initializeAndStartPresenter();
+
+        presenterImpl.removeSubmitter("201");
+
+        verify(view.submitters, times(2)).setEnabled(true);
+        verify(view.submitters).setEnabled(false);
+        verify(view.submitters).clear();
+        Map<String, String> expectedMap = new HashMap<>();
+        verify(view.submitters).setValue(expectedMap);
+        verifyNoMoreInteractions(view.submitters);
+    }
+    
+    @Test
+    public void flowChanged_callFlowChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
         initializeAndStartPresenter();
 
         presenterImpl.flowChanged("103");
@@ -290,14 +375,14 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void selectedFlowChanged_callSelectedFlowChangedWithUnknownSubmitter_throws() {
+    public void flowChanged_callFlowChangedWithUnknownSubmitter_throws() {
         initializeAndStartPresenter();
 
         presenterImpl.flowChanged("145");
     }
 
     @Test
-    public void selectedSinkChanged_callSelectedSinkChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
+    public void sinkChanged_callSinkChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
         initializeAndStartPresenter();
 
         presenterImpl.sinkChanged("303");
@@ -307,7 +392,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void selectedSinkChanged_callSelectedSinkChangedWithUnknownSubmitter_throws() {
+    public void sinkChanged_callSinkChangedWithUnknownSubmitter_throws() {
         initializeAndStartPresenter();
 
         presenterImpl.sinkChanged("645");
@@ -432,7 +517,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
 
-    //Private methods
+    // Private methods
     private void initializeAndStartPresenter() {
         setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);

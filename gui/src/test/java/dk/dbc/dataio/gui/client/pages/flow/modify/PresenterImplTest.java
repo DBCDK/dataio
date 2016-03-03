@@ -341,8 +341,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verifications
         verify(viewWidget.popupListBox).clear();
-        verify(viewWidget.popupListBox).add("FlowComponentName2", "222");
-        verify(viewWidget.popupListBox).add("FlowComponentName4", "444");
+        verify(viewWidget.popupListBox).addItem("FlowComponentName2", "222");
+        verify(viewWidget.popupListBox).addItem("FlowComponentName4", "444");
         verify(viewWidget.popupListBox).show();
         verifyNoMoreInteractions(viewWidget.popupListBox);
     }

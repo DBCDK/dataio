@@ -149,7 +149,7 @@ public class SortableListModelTest {
     public void putEmptyMap_callPut_isEmpty() {
         SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
 
-        sortableListModel.put(new HashMap<String, String>());
+        sortableListModel.put(new HashMap<>());
 
         assertThat(sortableListModel.modelWidgets.size(), is(0));
         verify(sortableListModel.list, times(0)).add(any(Widget.class));
@@ -176,7 +176,7 @@ public class SortableListModelTest {
         SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
         sortableListModel.addValueChangeHandler(mockedEventHandler);
 
-        sortableListModel.put(new HashMap<String, String>(), true);
+        sortableListModel.put(new HashMap<>(), true);
 
         ArgumentCaptor<ValueChangeEvent> argument = ArgumentCaptor.forClass(ValueChangeEvent.class);
         verify(mockedEventHandler).onValueChange(argument.capture());
@@ -314,10 +314,10 @@ public class SortableListModelTest {
      */
 
     private Map<String, String> constructTestData() {
-        Map<String, String> items = new LinkedHashMap<String, String>();
-        items.put(TEXT1, KEY1);
-        items.put(TEXT2, KEY2);
-        items.put(TEXT3, KEY3);
+        Map<String, String> items = new LinkedHashMap<>();
+        items.put(KEY1, TEXT1);
+        items.put(KEY2, TEXT2);
+        items.put(KEY3, TEXT3);
         return items;
     }
 

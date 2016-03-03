@@ -184,6 +184,31 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * Adds a submitter to the list of submitters
+     * @param submitterId The submitter ID for the submitter to add
+     */
+    @Override
+    public void addSubmitter(String submitterId) {
+        List<SubmitterModel> submitterModels = model.getSubmitterModels();
+        submitterModels.add(getSubmitterModel(Long.parseLong(submitterId)));
+        model.setSubmitterModels(submitterModels);
+        updateAllFieldsAccordingToCurrentState();
+    }
+
+    /**
+     * Removes a submitter from the list of submitters
+     * @param value The id for the submitter to remove from the submitters list
+     */
+    @Override
+    public void removeSubmitter(String value) {
+        List<SubmitterModel> submitterModels = model.getSubmitterModels();
+        SubmitterModel submitterModel = getSubmitterModel(Long.parseLong(value));
+        int index = submitterModels.indexOf(submitterModel);
+        submitterModels.remove(index);
+        updateAllFieldsAccordingToCurrentState();
+    }
+
+    /**
      * A signal to the presenter, saying that the flow field has been changed
      *
      * @param flowId, the id for the selected flow
@@ -256,8 +281,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.recordSplitter.setEnabled(true);
         view.sequenceAnalysis.setValue(model.getSequenceAnalysis());
         view.sequenceAnalysis.setEnabled(true);
-        view.submitters.setAvailableItems(getAvailableSubmitters(model));
-        view.submitters.setSelectedItems(getSelectedSubmitters(model));
+        for (Map.Entry<String, String> entry: getAvailableSubmitters(model).entrySet()) {
+            view.popupListBox.addItem(entry.getValue(), entry.getKey());
+        }
+        view.submitters.setValue(getSelectedSubmitters(model));
         view.submitters.setEnabled(true);
         view.flow.setSelectedText(model.getFlowModel().getFlowName());
         view.flow.setEnabled(true);
@@ -298,7 +325,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for (SubmitterModel model : models) {
             submitters.put(String.valueOf(model.getId()), formatSubmitterName(model));
         }
-        getView().submitters.setAvailableItems(submitters);
+        for (Map.Entry<String, String> entry: submitters.entrySet()) {
+            getView().popupListBox.addItem(entry.getValue(), entry.getKey());
+        }
         getView().submitters.setEnabled(true);
     }
 

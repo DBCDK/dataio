@@ -33,13 +33,15 @@
         <li><dio:PromptedTextBox ui:field="destination" guiId="flowbindermodifydestinationpanel" prompt="{txt.label_Destination}" maxLength="" toolTip=""/></li>
         <li><dio:PromptedList ui:field="recordSplitter" guiId="flowbindermodifyrecordsplitterpanel" prompt="{txt.label_RecordSplitter}" multiSelect="false" visibleItems="1"/></li>
         <li><dio:PromptedCheckBox ui:field="sequenceAnalysis" guiId="flowbindermodifysequenceanalysispanel" prompt="{txt.label_SequenceAnalysis}"/></li>
-        <li><dio:PromptedDualList ui:field="submitters" guiId="flowbindermodifysubmitterspanel" prompt="{txt.label_Submitters}"/></li>
+        <li><dio:PromptedMultiList ui:field="submitters" guiId="flowbindermodifysubmitterspanel" prompt="{txt.label_Submitters}"/></li>
         <li><dio:PromptedList ui:field="flow" guiId="flowbindermodifyflowpanel" prompt="{txt.label_Flow}" multiSelect="false" visibleItems="1"/></li>
         <li><dio:PromptedList ui:field="sink" guiId="flowbindermodifysinkpanel" prompt="{txt.label_Sink}" multiSelect="false" visibleItems="1"/></li>
         <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
         <!-- Visibility of the delete button is controlled from PresenterEditImpl -->
         <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         <li><g:Label ui:field="status"/></li>
+
+        <dio:PopupListBox ui:field="popupListBox" guid="dio-QueueProviderDialogBox" dialogTitle="{txt.caption_SelectQueueProvider}" okButtonText="{txt.button_Select}" cancelButtonText="{txt.button_Cancel}"/>
 
     </g:HTMLPanel>
 

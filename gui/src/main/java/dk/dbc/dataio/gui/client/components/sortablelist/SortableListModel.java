@@ -38,7 +38,6 @@ import gwtquery.plugins.draggable.client.gwt.DraggableWidget;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +154,7 @@ public class SortableListModel {
     void put(Map<String, String> items, boolean fireEvent) {
         clear();
         for (Map.Entry<String, String> item : items.entrySet()) {
-            add(item.getKey(), item.getValue());
+            add(item.getValue(), item.getKey());
         }
         if (fireEvent) {
             triggerValueChangeEvent();
@@ -202,13 +201,10 @@ public class SortableListModel {
 
     void reOrder() {
         // First sort the widgets in the model according to their physical pixel position on the display
-        Collections.sort(modelWidgets, new Comparator<SortableWidget>() {
-            @Override
-            public int compare(SortableWidget widget1, SortableWidget widget2) {
-                int top1 = widget1.draggableWidget.getAbsoluteTop();
-                int top2 = widget2.draggableWidget.getAbsoluteTop();
-                return top1 < top2 ? -1 : top1 == top2 ? 0 : 1;
-            }
+        Collections.sort(modelWidgets, (widget1, widget2) -> {
+            int top1 = widget1.draggableWidget.getAbsoluteTop();
+            int top2 = widget2.draggableWidget.getAbsoluteTop();
+            return top1 < top2 ? -1 : top1 == top2 ? 0 : 1;
         });
         // Refresh the display according to the model
         refresh();
@@ -240,12 +236,7 @@ public class SortableListModel {
      */
     public HandlerRegistration addValueChangeHandler(final ValueChangeHandler<Map<String, String>> changeHandler) {
         valueChangeHandler = changeHandler;
-        return new HandlerRegistration() {
-            @Override
-            public void removeHandler() {
-                valueChangeHandler = null;
-            }
-        };
+        return () -> valueChangeHandler = null;
     }
 
 

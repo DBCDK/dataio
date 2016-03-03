@@ -529,8 +529,8 @@ public class ViewTest {
         // Verify test
         InOrder inOrder = inOrder(view.popupList);
         verify(view.popupList).clear();
-        inOrder.verify(view.popupList).add("1234 (Sub 1)", "1234");
-        inOrder.verify(view.popupList).add("2345 (Sub 2)", "2345");
+        inOrder.verify(view.popupList).addItem("1234 (Sub 1)", "1234");
+        inOrder.verify(view.popupList).addItem("2345 (Sub 2)", "2345");
         verify(view.popupList).show();
         verifyNoMoreInteractions(view.popupList);
     }
@@ -549,9 +549,9 @@ public class ViewTest {
         // Verify test
         InOrder inOrder = inOrder(view.popupList);
         verify(view.popupList).clear();
-        inOrder.verify(view.popupList).add("1234 (Sub 1)", "1234");
-        inOrder.verify(view.popupList).add("2345 (Sub 2)", "2345");
-        inOrder.verify(view.popupList).add("3456 (Sub 3)", "3456");
+        inOrder.verify(view.popupList).addItem("1234 (Sub 1)", "1234");
+        inOrder.verify(view.popupList).addItem("2345 (Sub 2)", "2345");
+        inOrder.verify(view.popupList).addItem("3456 (Sub 3)", "3456");
         verify(view.popupList).show();
         verifyNoMoreInteractions(view.popupList);
     }

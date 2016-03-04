@@ -57,7 +57,11 @@ public interface Texts extends Constants {
     String label_Sink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_QueueProvider();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_SequenceAnalysis();
+
 
     // Tooltips
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

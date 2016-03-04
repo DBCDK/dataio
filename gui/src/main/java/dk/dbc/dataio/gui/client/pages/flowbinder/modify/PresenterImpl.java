@@ -27,6 +27,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -228,8 +229,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void sinkChanged(String sinkId) {
         if (sinkId != null) {
-            model.setSinkModel(getSinkModel(Long.parseLong(sinkId)));
+            SinkModel sinkModel = getSinkModel(Long.parseLong(sinkId));
+            model.setSinkModel(sinkModel);
+            getView().updateSinkSection.setVisible(sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE);
         }
+    }
+
+    /**
+     * A signal to the presenter, saying that the queue providers field has been changed
+     *
+     * @param queueProviders, the list of queue providers
+     */
+    @Override
+    public void queueProvidersChanged(List<String> queueProviders) {
+//        if (queueProviders != null) {
+//            model.setSinkModel(sinkModel);
+//        }
     }
 
     /**

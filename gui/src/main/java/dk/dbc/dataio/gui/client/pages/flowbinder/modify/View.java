@@ -65,6 +65,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedMultiList submitters;
     @UiField PromptedList flow;
     @UiField PromptedList sink;
+    @UiField HTMLPanel updateSinkSection;
+    @UiField PromptedList queueProvider;
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupListBox popupListBox;

@@ -68,7 +68,8 @@ public final class FlowBinderModelMapper {
                 checkedFlowBinder.getContent().getSequenceAnalysis(),
                 checkedFlowModel,
                 checkedSubmitterModels,
-                checkedSinkModel
+                checkedSinkModel,
+                ""  // To be defined together with adding Queue Provider
                 );
     }
 
@@ -105,7 +106,7 @@ public final class FlowBinderModelMapper {
     }
 
     private static List<Long> getSubmitterIds(List<SubmitterModel> submitterModels) {
-        List<Long> submitterIds = new ArrayList<Long>();
+        List<Long> submitterIds = new ArrayList<>();
         for (SubmitterModel model: submitterModels) {
             submitterIds.add(model.getId());
         }

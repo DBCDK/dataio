@@ -54,6 +54,7 @@ public class FlowBinderModelTest {
         assertThat(model.getFlowModel().getFlowName(), is(""));  // FlowModel has been tested, therefore only name is checked
         assertThat(model.getSubmitterModels().size(), is(0));
         assertThat(model.getSinkModel().getSinkName(), is(""));  // FlowModel has been tested, therefore only name is checked
+        assertThat(model.getQueueProvider(), is(""));
     }
 
     @Test
@@ -129,7 +130,7 @@ public class FlowBinderModelTest {
     @Test
     public void isInputFieldsEmpty_emptySubmitterModelsInput_returnsTrue() {
         FlowBinderModel model = getTestModel();
-        model.setSubmitterModels(new ArrayList<SubmitterModel>());
+        model.setSubmitterModels(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
@@ -145,6 +146,13 @@ public class FlowBinderModelTest {
         FlowBinderModel model = getTestModel();
         model.setSinkModel(new SinkModel());
         assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_emptyQueueProviderInput_returnsTrue() {
+        FlowBinderModel model = getTestModel();
+        model.setQueueProvider("");
+        assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
@@ -188,7 +196,7 @@ public class FlowBinderModelTest {
         FlowModel flowModel = new FlowModelBuilder().setComponents(Collections.singletonList(flowComponentModel)).build();
         SubmitterModel submitterModel = new SubmitterModelBuilder().build();
         SinkModel sinkModel = new SinkModelBuilder().build();
-        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Collections.singletonList(submitterModel), sinkModel);
+        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Collections.singletonList(submitterModel), sinkModel, "Queue Provider");
     }
 
 }

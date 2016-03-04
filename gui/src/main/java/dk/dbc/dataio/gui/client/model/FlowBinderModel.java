@@ -38,21 +38,11 @@ public class FlowBinderModel extends GenericBackendModel {
     private FlowModel flowModel;
     private List<SubmitterModel> submitterModels;
     private SinkModel sinkModel;
+    private String queueProvider;
 
 
     public FlowBinderModel() {
-        super(0L, 0L);
-        this.name = "";
-        this.description = "";
-        this.packaging = "";
-        this.format = "";
-        this.charset = "";
-        this.destination = "";
-        this.recordSplitter = "";
-        this.sequenceAnalysis = true;
-        this.flowModel = new FlowModel();
-        this.submitterModels = new ArrayList<SubmitterModel>();
-        this.sinkModel = new SinkModel();
+        this(0L, 0L, "", "", "", "", "", "", "", true, new FlowModel(), new ArrayList<>(), new SinkModel(), "");
     }
 
     /**
@@ -69,8 +59,9 @@ public class FlowBinderModel extends GenericBackendModel {
      * @param flowModel The flow model of the Flow Binder
      * @param submitterModels The submitter models for the Flow Binder
      * @param sinkModel The sink model of the Flow Binder
+     * @param queueProvider The Queue Provider for the Flow Binder
      */
-    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, boolean sequenceAnalysis, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel) {
+    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, boolean sequenceAnalysis, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
         super(id, version);
         this.name = name;
         this.description = description;
@@ -83,24 +74,27 @@ public class FlowBinderModel extends GenericBackendModel {
         this.flowModel = flowModel;
         this.submitterModels = submitterModels;
         this.sinkModel = sinkModel;
+        this.queueProvider = queueProvider;
     }
 
     /**
      * @param model The model to clone
      */
     public FlowBinderModel(FlowBinderModel model) {
-        super(model.getId(), model.getVersion());
-        this.name = model.getName();
-        this.description = model.getDescription();
-        this.packaging = model.getPackaging();
-        this.format = model.getFormat();
-        this.charset = model.getCharset();
-        this.destination = model.getDestination();
-        this.recordSplitter = model.getRecordSplitter();
-        this.sequenceAnalysis = model.getSequenceAnalysis();
-        this.flowModel = model.getFlowModel();  // Please note, that the flow itself is not cloned
-        this.submitterModels = model.getSubmitterModels();  // Please note, that the submitters themselves are not cloned
-        this.sinkModel = model.getSinkModel();  // Please note, that the sink itself is not cloned
+        this(   model.getId(),
+                model.getVersion(),
+                model.getName(),
+                model.getDescription(),
+                model.getPackaging(),
+                model.getFormat(),
+                model.getCharset(),
+                model.getDestination(),
+                model.getRecordSplitter(),
+                model.getSequenceAnalysis(),
+                model.getFlowModel(),  // Please note, that the flow itself is not cloned
+                model.getSubmitterModels(),  // Please note, that the submitters themselves are not cloned
+                model.getSinkModel(),  // Please note, that the sink itself is not cloned
+                model.getQueueProvider());
     }
 
     /**
@@ -302,6 +296,24 @@ public class FlowBinderModel extends GenericBackendModel {
     }
 
     /**
+     * Get queue provider of Flow Binder
+     *
+     * @return Queue provider of Flow Binder
+     */
+    public String getQueueProvider() {
+        return queueProvider;
+    }
+
+    /**
+     * Set queue provider of Flow Binder
+     *
+     * @param queueProvider Queue provider of Flow Binder
+     */
+    public void setQueueProvider(String queueProvider) {
+        this.queueProvider = queueProvider;
+    }
+
+    /**
      * Checks for empty String values
      * @return true if no empty String values were found, otherwise false
      */
@@ -323,7 +335,9 @@ public class FlowBinderModel extends GenericBackendModel {
                 || flowModel == null
                 || submitterModels == null
                 || submitterModels.isEmpty()
-                || sinkModel == null;
+                || sinkModel == null
+                || queueProvider == null
+                || queueProvider.isEmpty();
     }
 
     /**
@@ -354,7 +368,8 @@ public class FlowBinderModel extends GenericBackendModel {
         if (flowModel != null ? !flowModel.equals(that.flowModel) : that.flowModel != null) return false;
         if (submitterModels != null ? !submitterModels.equals(that.submitterModels) : that.submitterModels != null)
             return false;
-        return !(sinkModel != null ? !sinkModel.equals(that.sinkModel) : that.sinkModel != null);
+        if (sinkModel != null ? !sinkModel.equals(that.sinkModel) : that.sinkModel != null) return false;
+        return queueProvider != null ? queueProvider.equals(that.queueProvider) : that.queueProvider == null;
 
     }
 
@@ -371,6 +386,8 @@ public class FlowBinderModel extends GenericBackendModel {
         result = 31 * result + (flowModel != null ? flowModel.hashCode() : 0);
         result = 31 * result + (submitterModels != null ? submitterModels.hashCode() : 0);
         result = 31 * result + (sinkModel != null ? sinkModel.hashCode() : 0);
+        result = 31 * result + (queueProvider != null ? queueProvider.hashCode() : 0);
         return result;
     }
+
 }

@@ -44,8 +44,9 @@ public class FlowBinderModelBuilder {
     private String recordSplitter = RecordSplitterConstants.RecordSplitter.XML.name();
     private boolean sequenceAnalysis = true;
     private FlowModel flowModel = new FlowModelBuilder().build();
-    private List<SubmitterModel> submitterModels = new ArrayList<SubmitterModel>(Arrays.asList(new SubmitterModelBuilder().build()));
+    private List<SubmitterModel> submitterModels = new ArrayList<>(Arrays.asList(new SubmitterModelBuilder().build()));
     private SinkModel sinkModel = new SinkModelBuilder().build();
+    private String queueProvider = "queue-provider";
 
     public FlowBinderModelBuilder setId(long id) {
         this.id = id;
@@ -112,7 +113,12 @@ public class FlowBinderModelBuilder {
         return this;
     }
 
+    public FlowBinderModelBuilder setQueueProvider(String queueProvider) {
+        this.queueProvider = queueProvider;
+        return this;
+    }
+
     public FlowBinderModel build() {
-        return new FlowBinderModel(id, version, name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowModel, submitterModels, sinkModel);
+        return new FlowBinderModel(id, version, name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowModel, submitterModels, sinkModel, queueProvider);
     }
 }

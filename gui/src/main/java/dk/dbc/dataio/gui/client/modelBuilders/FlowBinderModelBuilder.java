@@ -42,7 +42,6 @@ public class FlowBinderModelBuilder {
     private String charset = "flowbinder-charset";
     private String destination = "flowbinder-destination";
     private String recordSplitter = RecordSplitterConstants.RecordSplitter.XML.name();
-    private boolean sequenceAnalysis = true;
     private FlowModel flowModel = new FlowModelBuilder().build();
     private List<SubmitterModel> submitterModels = new ArrayList<>(Arrays.asList(new SubmitterModelBuilder().build()));
     private SinkModel sinkModel = new SinkModelBuilder().build();
@@ -93,11 +92,6 @@ public class FlowBinderModelBuilder {
         return this;
     }
 
-    public FlowBinderModelBuilder setSequenceAnalysis(boolean sequenceAnalysis) {
-        this.sequenceAnalysis = sequenceAnalysis;
-        return this;
-    }
-
     public FlowBinderModelBuilder setFlowModel(FlowModel flowModel) {
         this.flowModel = flowModel;
         return this;
@@ -119,6 +113,6 @@ public class FlowBinderModelBuilder {
     }
 
     public FlowBinderModel build() {
-        return new FlowBinderModel(id, version, name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowModel, submitterModels, sinkModel, queueProvider);
+        return new FlowBinderModel(id, version, name, description, packaging, format, charset, destination, recordSplitter, flowModel, submitterModels, sinkModel, queueProvider);
     }
 }

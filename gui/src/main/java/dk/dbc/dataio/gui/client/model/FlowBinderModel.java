@@ -34,7 +34,6 @@ public class FlowBinderModel extends GenericBackendModel {
     private String charset;
     private String destination;
     private String recordSplitter;
-    private boolean sequenceAnalysis;
     private FlowModel flowModel;
     private List<SubmitterModel> submitterModels;
     private SinkModel sinkModel;
@@ -42,7 +41,7 @@ public class FlowBinderModel extends GenericBackendModel {
 
 
     public FlowBinderModel() {
-        this(0L, 0L, "", "", "", "", "", "", "", true, new FlowModel(), new ArrayList<>(), new SinkModel(), "");
+        this(0L, 0L, "", "", "", "", "", "", "", new FlowModel(), new ArrayList<>(), new SinkModel(), "");
     }
 
     /**
@@ -55,13 +54,12 @@ public class FlowBinderModel extends GenericBackendModel {
      * @param charset The charset for the Flow Binder
      * @param destination The destination of the Flow Binder
      * @param recordSplitter The record splitter of the Flow Binder
-     * @param sequenceAnalysis boolean for telling whether sequence analysis is on or off for the flowbinder
      * @param flowModel The flow model of the Flow Binder
      * @param submitterModels The submitter models for the Flow Binder
      * @param sinkModel The sink model of the Flow Binder
      * @param queueProvider The Queue Provider for the Flow Binder
      */
-    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, boolean sequenceAnalysis, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
+    public FlowBinderModel(long id, long version, String name, String description, String packaging, String format, String charset, String destination, String recordSplitter, FlowModel flowModel, List<SubmitterModel> submitterModels, SinkModel sinkModel, String queueProvider) {
         super(id, version);
         this.name = name;
         this.description = description;
@@ -70,7 +68,6 @@ public class FlowBinderModel extends GenericBackendModel {
         this.charset = charset;
         this.destination = destination;
         this.recordSplitter = recordSplitter;
-        this.sequenceAnalysis = sequenceAnalysis;
         this.flowModel = flowModel;
         this.submitterModels = submitterModels;
         this.sinkModel = sinkModel;
@@ -90,7 +87,6 @@ public class FlowBinderModel extends GenericBackendModel {
                 model.getCharset(),
                 model.getDestination(),
                 model.getRecordSplitter(),
-                model.getSequenceAnalysis(),
                 model.getFlowModel(),  // Please note, that the flow itself is not cloned
                 model.getSubmitterModels(),  // Please note, that the submitters themselves are not cloned
                 model.getSinkModel(),  // Please note, that the sink itself is not cloned
@@ -224,24 +220,6 @@ public class FlowBinderModel extends GenericBackendModel {
     }
 
     /**
-     * Get the sequence analysis boolean of the Flow Binder
-     *
-     * @return The sequence analysis boolean of the Flow Binder
-     */
-    public boolean getSequenceAnalysis() {
-        return sequenceAnalysis;
-    }
-
-    /**
-     * Set the sequence analysis boolean of the Flow Binder
-     *
-     * @param sequenceAnalysis The sequence analysis boolean of the Flow Binder
-     */
-    public void setSequenceAnalysis(boolean sequenceAnalysis) {
-        this.sequenceAnalysis = sequenceAnalysis;
-    }
-
-    /**
      * Get the flow model of the Flow Binder
      *
      * @return The flow model of the Flow Binder
@@ -356,7 +334,6 @@ public class FlowBinderModel extends GenericBackendModel {
 
         FlowBinderModel that = (FlowBinderModel) o;
 
-        if (sequenceAnalysis != that.sequenceAnalysis) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (packaging != null ? !packaging.equals(that.packaging) : that.packaging != null) return false;
@@ -382,7 +359,6 @@ public class FlowBinderModel extends GenericBackendModel {
         result = 31 * result + (charset != null ? charset.hashCode() : 0);
         result = 31 * result + (destination != null ? destination.hashCode() : 0);
         result = 31 * result + (recordSplitter != null ? recordSplitter.hashCode() : 0);
-        result = 31 * result + (sequenceAnalysis ? 1 : 0);
         result = 31 * result + (flowModel != null ? flowModel.hashCode() : 0);
         result = 31 * result + (submitterModels != null ? submitterModels.hashCode() : 0);
         result = 31 * result + (sinkModel != null ? sinkModel.hashCode() : 0);

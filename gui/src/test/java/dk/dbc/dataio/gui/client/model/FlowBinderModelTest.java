@@ -50,7 +50,6 @@ public class FlowBinderModelTest {
         assertThat(model.getCharset(), is(""));
         assertThat(model.getDestination(), is(""));
         assertThat(model.getRecordSplitter(), is(""));
-        assertThat(model.getSequenceAnalysis(), is(true));
         assertThat(model.getFlowModel().getFlowName(), is(""));  // FlowModel has been tested, therefore only name is checked
         assertThat(model.getSubmitterModels().size(), is(0));
         assertThat(model.getSinkModel().getSinkName(), is(""));  // FlowModel has been tested, therefore only name is checked
@@ -163,7 +162,7 @@ public class FlowBinderModelTest {
 
     @Test
     public void isInputFieldsEmpty_allInputFieldsSetAndSequenceAnalysisIsFalse_returnsFalse() {
-        FlowBinderModel model = getTestModel(false);
+        FlowBinderModel model = getTestModel();
         assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
@@ -188,15 +187,11 @@ public class FlowBinderModelTest {
     }
 
     private FlowBinderModel getTestModel() {
-        return getTestModel(true);
-    }
-
-    private FlowBinderModel getTestModel(boolean sequenceAnalysis) {
         FlowComponentModel flowComponentModel = new FlowComponentModelBuilder().build();
         FlowModel flowModel = new FlowModelBuilder().setComponents(Collections.singletonList(flowComponentModel)).build();
         SubmitterModel submitterModel = new SubmitterModelBuilder().build();
         SinkModel sinkModel = new SinkModelBuilder().build();
-        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", sequenceAnalysis, flowModel, Collections.singletonList(submitterModel), sinkModel, "Queue Provider");
+        return new FlowBinderModel(11, 22, "Name", "Description", "Packaging", "Format", "Charset", "Destination", "Record Splitter", flowModel, Collections.singletonList(submitterModel), sinkModel, "Queue Provider");
     }
 
 }

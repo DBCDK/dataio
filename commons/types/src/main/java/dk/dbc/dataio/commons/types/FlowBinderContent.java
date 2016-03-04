@@ -74,7 +74,7 @@ public class FlowBinderContent implements Serializable {
                              @JsonProperty("charset") String charset,
                              @JsonProperty("destination") String destination,
                              @JsonProperty("recordSplitter") RecordSplitterConstants.RecordSplitter recordSplitter,
-                             @JsonProperty("sequenceAnalysis") boolean sequenceAnalysis,
+                             @JsonProperty("sequenceAnalysis") boolean sequenceAnalysis, // TODO: 04/03/16 Should be removed once the objects stored in flowstore have been modified
                              @JsonProperty("flowId") long flowId,
                              @JsonProperty("submitterIds") List<Long> submitterIds,
                              @JsonProperty("sinkId") long sinkId) {

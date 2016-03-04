@@ -235,15 +235,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void sequenceAnalysisChanged_callSequenceAnalysisChanged_sequenceAnalysisIsChangedAccordingly() {
-        initializeAndStartPresenter();
-
-        presenterImpl.sequenceAnalysisChanged(false);
-
-        assertThat(presenterImpl.model.getSequenceAnalysis(), is(false));
-    }
-
-    @Test
     public void recordSplitterChanged_callRecordSplitterChanged_recordSplitterIsChangedAccordingly() {
         final String CHANGED_RECORDSPLITTER = "UpdatedRecordSplitter";
 

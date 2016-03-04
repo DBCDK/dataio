@@ -146,16 +146,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * A signal to the presenter, saying that the sequenceAnalysis field has been changed
-     *
-     * @param sequenceAnalysis, the new value
-     */
-    @Override
-    public void sequenceAnalysisChanged(boolean sequenceAnalysis) {
-        model.setSequenceAnalysis(sequenceAnalysis);
-    }
-
-    /**
      * A signal to the presenter, saying that the record splitter field has been changed
      *
      * @param recordSplitter, the selected record splitter
@@ -294,8 +284,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setEnabled(true);
         view.recordSplitter.setSelectedText(model.getRecordSplitter());
         view.recordSplitter.setEnabled(true);
-        view.sequenceAnalysis.setValue(model.getSequenceAnalysis());
-        view.sequenceAnalysis.setEnabled(true);
         for (Map.Entry<String, String> entry: getAvailableSubmitters(model).entrySet()) {
             view.popupListBox.addItem(entry.getValue(), entry.getKey());
         }
@@ -399,7 +387,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setEnabled(false);
         view.recordSplitter.clear();
         view.recordSplitter.setEnabled(false);
-        view.sequenceAnalysis.setEnabled(true);
         view.recordSplitter.setEnabled(false);
         view.submitters.clear();
         view.submitters.setEnabled(false);

@@ -188,7 +188,7 @@ public class FlowBinderModelMapperTest {
     @Test(expected = IllegalArgumentException.class)
     public void toFlowBinderContent_validInputNoSubmitters_throwsIllegalArgumentException() {
         FlowBinderModel model = new FlowBinderModel(defaultFlowBinderModel);
-        model.setSubmitterModels(new ArrayList<SubmitterModel>());
+        model.setSubmitterModels(new ArrayList<>());
 
         FlowBinderModelMapper.toFlowBinderContent(model);
     }

@@ -34,7 +34,6 @@ public interface Presenter extends GenericPresenter {
     void charsetChanged(String text);
     void destinationChanged(String text);
     void recordSplitterChanged(String selectedText);
-    void sequenceAnalysisChanged(boolean value);
     void submittersChanged(Map<String, String> selectedItems);
     void addSubmitter(String submitterId);
     void removeSubmitter(String value);

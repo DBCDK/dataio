@@ -35,7 +35,6 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PopupListBox;
-import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
@@ -61,7 +60,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox charset;
     @UiField PromptedTextBox destination;
     @UiField PromptedList recordSplitter;
-    @UiField PromptedCheckBox sequenceAnalysis;
     @UiField PromptedMultiList submitters;
     @UiField PromptedList flow;
     @UiField PromptedList sink;
@@ -104,12 +102,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("recordSplitter")
     void recordSplitterChanged(ValueChangeEvent<String> event) {
         presenter.recordSplitterChanged(recordSplitter.getSelectedKey());
-        presenter.keyPressed();
-    }
-
-    @UiHandler("sequenceAnalysis")
-    void sequenceAnalysisChanged(ValueChangeEvent<Boolean> event) {
-        presenter.sequenceAnalysisChanged(sequenceAnalysis.getValue());
         presenter.keyPressed();
     }
 

@@ -15,13 +15,12 @@ public class TestablePartitioningParam extends PartitioningParam {
     public TestablePartitioningParam(JobEntity jobEntity,
                                      FileStoreServiceConnector fileStoreServiceConnector,
                                      EntityManager entityManager,
-                                     boolean doSequenceAnalysis,
                                      List<Diagnostic> diagnostics,
                                      RecordSplitterConstants.RecordSplitter recordSplitter,
                                      InputStream dataFileInputStream,
                                      DataPartitioner dataPartitioner) {
 
-        super(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysis, recordSplitter);
+        super(jobEntity, fileStoreServiceConnector, entityManager, recordSplitter);
         this.diagnostics = diagnostics;
         this.dataFileInputStream = dataFileInputStream;
         this.dataPartitioner = dataPartitioner;

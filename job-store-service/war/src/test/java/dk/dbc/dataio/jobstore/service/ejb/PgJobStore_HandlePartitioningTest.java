@@ -25,7 +25,6 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
@@ -56,7 +55,6 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyObject;
@@ -106,7 +104,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(testablePartitioningParam.getJobEntity());
         when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999l);
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(99999L);
 
         setupMockedSink();
         setupMockedJobQueueNamedQueryForFindByJob();
@@ -192,12 +190,8 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
         when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
 
-        final Sink EXPECTED_SINK = new Sink(5l, 1l, new SinkContent("TestSink", "TestResource", "TestDescription"));
         final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(testablePartitioningParam.getJobEntity().getSpecification()).build();
-
-        when(jobEntity.getCachedSink().getSink()).thenReturn(EXPECTED_SINK);
         when(entityManager.find(JobEntity.class, jobEntity.getId(), LockModeType.PESSIMISTIC_WRITE)).thenReturn(jobEntity);
-        setupMockedSink();
         setupMockedJobQueueNamedQueryForFindByJob();
 
         // Subject Under Test
@@ -205,7 +199,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Verify
         assertThat("Sink not occupied!", jobInfoSnapshot, is(notNullValue()));
-        verify(pgJobStore.jobQueueRepository).addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), anyBoolean(), any(RecordSplitter.class));
+        verify(pgJobStore.jobQueueRepository).addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), any(RecordSplitter.class));
     }
 
     @Test
@@ -214,14 +208,14 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
         when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
-        when(pgJobStore.jobQueueRepository.addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), anyBoolean(), any(RecordSplitter.class))).thenReturn(OCCUPIED);
+        when(pgJobStore.jobQueueRepository.addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), any(RecordSplitter.class))).thenReturn(OCCUPIED);
 
         // Subject Under Test
         final JobInfoSnapshot jobInfoSnapshot = pgJobStore.handlePartitioning(testablePartitioningParam);
 
         // Verify
         assertThat("Sink for job occupied!", jobInfoSnapshot, is(notNullValue()));
-        verify(pgJobStore.jobQueueRepository).addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), anyBoolean(), any(RecordSplitter.class));
+        verify(pgJobStore.jobQueueRepository).addJobToJobQueueInDatabase(anyLong(), any(JobEntity.class), any(RecordSplitter.class));
     }
 
     @Test
@@ -229,16 +223,11 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
 
         // Setup preconditions
         final PgJobStore pgJobStore = newPgJobStore();
-        final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
-        when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
-        setupMockedSink(0l);
-        setupMockedJobQueueNamedQueryForFindByJob();
 
         // Subject Under Test
         final boolean sinkOccupied = pgJobStore.jobQueueRepository.addJobToJobQueueInDatabase(
-                2l,
+                2L,
                 new JobEntity(),
-                Boolean.FALSE,
                 RecordSplitter.XML);
 
         // Verify
@@ -263,8 +252,8 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setFlowStoreReferences(mockedAddJobParam.getFlowStoreReferences()).build();
 
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269l);
-        Long expectedNumberOfJobsBySink = 1l;
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(269L);
+        Long expectedNumberOfJobsBySink = 1L;
 
         Query mockedNamedQueryFindJobsBySink = mock(Query.class);
         when(entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)).thenReturn(mockedNamedQueryFindJobsBySink);
@@ -273,7 +262,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(mockedNamedQueryFindJobsBySink.getSingleResult()).thenReturn(expectedNumberOfJobsBySink);
 
         // Subject Under Test
-        final boolean sinkOccupied = pgJobStore.jobQueueRepository.addJobToJobQueueInDatabase(2l, new JobEntity(), Boolean.FALSE, RecordSplitter.XML);
+        final boolean sinkOccupied = pgJobStore.jobQueueRepository.addJobToJobQueueInDatabase(2L, new JobEntity(), RecordSplitter.XML);
 
         // Verify
         assertThat("Sink for job IS occupied!", sinkOccupied, is(true));
@@ -294,7 +283,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     private void setupMockedSink() {
-        setupMockedSink(0l);
+        setupMockedSink(0L);
     }
     private void setupMockedSink(Long numberJobsBySink) {
         Query mockedNamedQueryFindJobsBySink = mock(Query.class);

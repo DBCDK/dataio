@@ -27,8 +27,8 @@ import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.integrationtest.JmsQueueConnector;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -76,11 +76,11 @@ public class QueueIT extends AbstractJobStoreTest {
     public void addChunk_jobStateUpdatedAndWorkloadPublished()
             throws IOException, JobStoreServiceConnectorException, JSONBException, JMSException, URISyntaxException {
         final int expectedNumberOfRecords = 11;
-        final String fileId = createMarcxchangeHarvesterDataFile(tmpFolder.newFile(), expectedNumberOfRecords);
+        final String fileId = createLineFormatDataFile();
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                    .setPackaging("xml")
+                    .setPackaging("lin")
                     .setFormat("basis")
-                    .setCharset("utf8")
+                    .setCharset("latin1")
                     .setDestination(test.getMethodName())
                     .setSubmitterId(870970)
                     .setDataFile(FileStoreUrn.create(fileId).toString())

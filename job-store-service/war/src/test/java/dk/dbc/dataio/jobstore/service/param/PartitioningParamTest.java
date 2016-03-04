@@ -37,7 +37,6 @@ public class PartitioningParamTest extends ParamBaseTest {
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final EntityManager entityManager = mock(EntityManager.class);
     private final RecordSplitterConstants.RecordSplitter dataPartitionerType = RecordSplitterConstants.RecordSplitter.XML;
-    private final boolean doSequenceAnalysisFlag = false;
 
     @Before
     public void setFileStoreServiceConnectorExpectations() throws FileStoreServiceConnectorException {
@@ -57,7 +56,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void constructor_jobEntityArgIsNull_throws() {
         try {
-            new PartitioningParam(null, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
+            new PartitioningParam(null, fileStoreServiceConnector, entityManager, dataPartitionerType);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -66,7 +65,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void constructor_fileStoreServiceConnectorArgIsNull_throws() {
         try {
-            new PartitioningParam(new JobEntity(), null, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
+            new PartitioningParam(new JobEntity(), null, entityManager, dataPartitionerType);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -75,7 +74,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void constructor_entityManagerArgIsNull_throws() {
         try {
-            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, null, doSequenceAnalysisFlag, dataPartitionerType);
+            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, null, dataPartitionerType);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -84,7 +83,7 @@ public class PartitioningParamTest extends ParamBaseTest {
     @Test
     public void constructor_dataPartitionerTypeArgIsNull_throws() {
         try {
-            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, null);
+            new PartitioningParam(new JobEntity(), fileStoreServiceConnector, entityManager, null);
             fail("No exception thrown");
         } catch (NullPointerException e) {
         }
@@ -191,16 +190,16 @@ public class PartitioningParamTest extends ParamBaseTest {
     }
 
     private PartitioningParam newPartitioningParam(JobEntity jobEntity) {
-        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag, dataPartitionerType);
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, dataPartitionerType);
     }
 
     private PartitioningParam newPartitioningParamForDanMarc2LineFormat(JobEntity jobEntity) {
-        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag,
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager,
                 RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
     }
 
     private PartitioningParam newPartitioningParamForIso2709(JobEntity jobEntity) {
-        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysisFlag,
+        return new PartitioningParam(jobEntity, fileStoreServiceConnector, entityManager,
                 RecordSplitterConstants.RecordSplitter.ISO2709);
     }
 

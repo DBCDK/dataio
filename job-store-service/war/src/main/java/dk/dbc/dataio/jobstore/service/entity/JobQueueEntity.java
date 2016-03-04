@@ -79,19 +79,15 @@ public class JobQueueEntity {
     private State state;
 
     @Column(updatable = false)
-    private boolean sequenceAnalysis;
-
-    @Column(updatable = false)
     @Enumerated(EnumType.STRING)
     private RecordSplitter recordSplitterType;
 
     public JobQueueEntity() {}
-    public JobQueueEntity(long sinkId, JobEntity job, State state, boolean doSequenceAnalysis, RecordSplitter recordSplitterType) {
+    public JobQueueEntity(long sinkId, JobEntity job, State state, RecordSplitter recordSplitterType) {
         this.sinkId = sinkId;
         this.job = job;
         this.state = state;
         this.timeOfEntry = new Timestamp(System.currentTimeMillis());
-        this.sequenceAnalysis = doSequenceAnalysis;
         this.recordSplitterType = recordSplitterType;
     }
 
@@ -128,13 +124,6 @@ public class JobQueueEntity {
     }
     public void setTimeOfEntry(Timestamp timeOfEntry) {
         this.timeOfEntry = timeOfEntry;
-    }
-
-    public boolean isSequenceAnalysis() {
-        return sequenceAnalysis;
-    }
-    public void setSequenceAnalysis(boolean sequenceAnalysis) {
-        this.sequenceAnalysis = sequenceAnalysis;
     }
 
     public RecordSplitter getRecordSplitterType() {

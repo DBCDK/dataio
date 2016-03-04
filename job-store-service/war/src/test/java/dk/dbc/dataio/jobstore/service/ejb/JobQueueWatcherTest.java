@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
@@ -63,7 +64,7 @@ public class JobQueueWatcherTest {
         */
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
 
-        final Long sinkId = 1l;
+        final Long sinkId = 1L;
         when(mockedJobQueueRepository.getUniqueSinkIds()).thenReturn(buildListOfSinkIds(sinkId));
 
         final JobEntity jobEntity1 = buildJobEntity("42");
@@ -77,7 +78,7 @@ public class JobQueueWatcherTest {
         jobQueueWatcher.doWatch();
 
         // Verifications
-        verify(mockedJobStore, times(1)).handlePartitioningAsynchronously(any(JobEntity.class), any(Boolean.class), any(RecordSplitterConstants.RecordSplitter.class));
+        verify(mockedJobStore, times(1)).handlePartitioningAsynchronously(any(JobEntity.class), any(RecordSplitterConstants.RecordSplitter.class));
     }
 
     @Test
@@ -96,8 +97,8 @@ public class JobQueueWatcherTest {
         */
         when(mockedFileStoreServiceConnectorBean.getConnector()).thenReturn(mockedFileStoreServiceConnector);
 
-        final Long sinkId1 = 1l;
-        final Long sinkId2 = 2l;
+        final Long sinkId1 = 1L;
+        final Long sinkId2 = 2L;
 
         when(mockedJobQueueRepository.getUniqueSinkIds()).thenReturn(buildListOfSinkIds(sinkId1, sinkId2));
 
@@ -116,7 +117,7 @@ public class JobQueueWatcherTest {
         jobQueueWatcher.doWatch();
 
         // Verifications
-        verify(mockedJobStore, times(2)).handlePartitioningAsynchronously(any(JobEntity.class), any(Boolean.class), any(RecordSplitterConstants.RecordSplitter.class));
+        verify(mockedJobStore, times(2)).handlePartitioningAsynchronously(any(JobEntity.class), any(RecordSplitterConstants.RecordSplitter.class));
     }
 
     @Test
@@ -131,8 +132,8 @@ public class JobQueueWatcherTest {
 
             which triggers no jobs to be started!
         */
-        final Long sinkId = 1l;
-        final List<Long> listOfSinkIdsWithOneSink = new ArrayList<>(Arrays.asList(sinkId));
+        final Long sinkId = 1L;
+        final List<Long> listOfSinkIdsWithOneSink = new ArrayList<>(Collections.singletonList(sinkId));
         when(mockedJobQueueRepository.getUniqueSinkIds()).thenReturn(listOfSinkIdsWithOneSink);
 
         final JobEntity jobEntity1 = buildJobEntity("42");
@@ -145,15 +146,6 @@ public class JobQueueWatcherTest {
 
         // Verifications - their is NO interactions with JobStore Bean (method: handlePartitioningAsynchronously)
         verifyZeroInteractions(mockedJobStore);
-    }
-
-
-    /*
-        This simulates the call to jobQueueRepository.getUniqueSinkIds() in jobQueueWatcher.buildJobQueueEntitiesGroupedBySink();
-     */
-    private List<Long> getEmptyListOfSinkIds() {
-
-        return new ArrayList<Long>();
     }
 
     private List<Long> buildListOfSinkIds(Long... sinkIds) {

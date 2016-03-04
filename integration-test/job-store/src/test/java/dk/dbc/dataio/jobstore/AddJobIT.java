@@ -57,28 +57,27 @@ public class AddJobIT extends AbstractJobStoreTest {
 
     /**
      * Given: an empty job-store <br/>
-     * When: a job specification is posted, which references a harvester marcXchange data file
+     * When: a job specification is posted, which references a line format data file
      * containing a number of records exceeding the capacity of a single chunk <br/>
      * Then: a new job is created without error <br/>
      * And: the proper number of chunks is created <br/>
      */
     @Test
-    public void createJob_jobSpecificationReferencesHarvesterMarcxchangeDataFile_newJobIsCreated()
+    public void createJob_jobSpecificationReferencesLineFormatDataFile_newJobIsCreated()
             throws IOException, JobStoreServiceConnectorException, URISyntaxException {
-        final int recordCount = 15;
-        final String fileId = createMarcxchangeHarvesterDataFile(tmpFolder.newFile(), recordCount);
+        final int recordCount = 11;
+        final String fileId = createLineFormatDataFile();
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                    .setPackaging("xml")
-                    .setFormat("katalog")
-                    .setCharset("utf8")
-                    .setDestination(test.getMethodName())
-                    .setSubmitterId(700000)
-                    .setDataFile(FileStoreUrn.create(fileId).toString())
-                    .build();
+                .setPackaging("lin")
+                .setFormat("katalog")
+                .setCharset("latin1")
+                .setDestination(test.getMethodName())
+                .setSubmitterId(700000)
+                .setDataFile(FileStoreUrn.create(fileId).toString())
+                .build();
         createFlowStoreEnvironmentMatchingJobSpecification(jobSpecification);
 
         // When...
-
         final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));
 
         final JobInfoSnapshot jobInfoSnapshotAfterWait = this.waitForJobCompletion(jobInfoSnapshot.getJobId());

@@ -18,7 +18,6 @@ public class JobQueueEntityBuilder {
     private JobEntity job;
     private long sinkId = 100;
     private State state = IN_PROGRESS;
-    private boolean sequenceAnalysis = false;
     private RecordSplitter recordSplitterType = XML;
 
     public JobQueueEntityBuilder setJob(JobEntity job) {
@@ -36,11 +35,6 @@ public class JobQueueEntityBuilder {
         return this;
     }
 
-    public JobQueueEntityBuilder setSequenceAnalysis(boolean sequenceAnalysis) {
-        this.sequenceAnalysis = sequenceAnalysis;
-        return this;
-    }
-
     public JobQueueEntityBuilder setRecordSplittertype(RecordSplitter recordSplitterType) {
         this.recordSplitterType = recordSplitterType;
         return this;
@@ -51,7 +45,6 @@ public class JobQueueEntityBuilder {
         jobQueueEntity.setJob(this.job);
         jobQueueEntity.setSinkId(this.sinkId);
         jobQueueEntity.setState(this.state);
-        jobQueueEntity.setSequenceAnalysis(this.sequenceAnalysis);
         jobQueueEntity.setRecordSplitterType(this.recordSplitterType);
         return jobQueueEntity;
     }

@@ -32,7 +32,6 @@ public class TestablePartitioningParamBuilder {
     private JobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(new JobSpecificationBuilder().setDataFile(fileStoreUrn.toString()).build()).build();
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private EntityManager entityManager = mock(EntityManager.class);
-    private boolean doSequenceAnalysis = false;
     private String records =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
             + "<records>"
@@ -56,11 +55,6 @@ public class TestablePartitioningParamBuilder {
 
     public TestablePartitioningParamBuilder setJobEntity(JobEntity jobEntity) {
         this.jobEntity = jobEntity;
-        return this;
-    }
-
-    public TestablePartitioningParamBuilder setSequenceAnalysis(boolean doSequenceAnalysis) {
-        this.doSequenceAnalysis = doSequenceAnalysis;
         return this;
     }
 
@@ -90,7 +84,7 @@ public class TestablePartitioningParamBuilder {
     }
 
     public TestablePartitioningParam build() {
-        return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, doSequenceAnalysis, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
+        return new TestablePartitioningParam(jobEntity, fileStoreServiceConnector, entityManager, diagnostics, recordSplitter, dataFileInputStream, dataPartitioner);
     }
 
 }

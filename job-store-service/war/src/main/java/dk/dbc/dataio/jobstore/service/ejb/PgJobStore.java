@@ -119,9 +119,7 @@ public class PgJobStore {
         LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
 
         if(!jobEntity.hasFatalError()) {
-            getProxyToSelf().handlePartitioningAsynchronously(jobEntity,
-                            addJobParam.getFlowBinder().getContent().getSequenceAnalysis(),
-                            addJobParam.getFlowBinder().getContent().getRecordSplitter());
+            getProxyToSelf().handlePartitioningAsynchronously(jobEntity, addJobParam.getFlowBinder().getContent().getRecordSplitter());
         } else {
             addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
         }
@@ -136,15 +134,13 @@ public class PgJobStore {
     /**
      * This method is a wrapper of the handlePartitioning method to support asynchronous behavior
      * @param jobEntity job to partition
-     * @param doSequenceAnalysis sequence analysis flag (soon to be deprecated)
      * @param dataPartitionerType type of data partitioner
      * @throws JobStoreException on failure to partition job
      */
     @Asynchronous
-    public void handlePartitioningAsynchronously(JobEntity jobEntity, boolean doSequenceAnalysis,
-            RecordSplitterConstants.RecordSplitter dataPartitionerType) throws JobStoreException {
+    public void handlePartitioningAsynchronously(JobEntity jobEntity, RecordSplitterConstants.RecordSplitter dataPartitionerType) throws JobStoreException {
         handlePartitioning(new PartitioningParam(jobEntity, fileStoreServiceConnectorBean.getConnector(),
-                entityManager, doSequenceAnalysis, dataPartitionerType));
+                entityManager, dataPartitionerType));
     }
 
     /**
@@ -167,7 +163,6 @@ public class PgJobStore {
             if (!jobEntity.hasFatalError()) {
                 // This does not ensure FIFO behaviour and is in my opinion a flawed design (JBN)
                 final boolean sinkAvailable = isSinkAvailableAndAddJobToJobQueue(jobEntity, jobEntity.getCachedSink().getSink(),
-                        partitioningParam.getDoSequenceAnalysis(),
                         partitioningParam.getRecordSplitterType());
 
                 if (sinkAvailable) {
@@ -187,12 +182,12 @@ public class PgJobStore {
     }
 
     // Important that the Sink ID is the real Sink's ID and not the cached ones because the Cache can hold the same Sink in different versions.
-    private boolean isSinkAvailableAndAddJobToJobQueue(JobEntity job, Sink sink, boolean doSequenceAnalysis, RecordSplitterConstants.RecordSplitter recordSplitterType) {
+    private boolean isSinkAvailableAndAddJobToJobQueue(JobEntity job, Sink sink, RecordSplitterConstants.RecordSplitter recordSplitterType) {
 
         final boolean SINK_OCCUPIED = false;
         final boolean SINK_AVAILABLE = true;
 
-        boolean sinkOccupied = this.jobQueueRepository.addJobToJobQueueInDatabase(sink.getId(), job, doSequenceAnalysis, recordSplitterType);
+        boolean sinkOccupied = this.jobQueueRepository.addJobToJobQueueInDatabase(sink.getId(), job, recordSplitterType);
 
         LOGGER.info(String.format("Sink (ID: %s) - occupied: %s", sink.getId(), sinkOccupied));
         if(sinkOccupied) {

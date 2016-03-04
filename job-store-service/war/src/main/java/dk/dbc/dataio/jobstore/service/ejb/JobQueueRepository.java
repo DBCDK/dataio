@@ -60,23 +60,22 @@ public class JobQueueRepository extends RepositoryBase {
 
      * @param sinkId                Id of the concrete Sink - NOT the CachedSink
      * @param job                   Id of the job
-     * @param doSequenceAnalysis    Do it or not
      * @param recordSplitterType    type of the Record Splitter
      * @return                      true if sink is occupied
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public boolean addJobToJobQueueInDatabase(long sinkId, JobEntity job, boolean doSequenceAnalysis, RecordSplitterConstants.RecordSplitter recordSplitterType) {
+    public boolean addJobToJobQueueInDatabase(long sinkId, JobEntity job, RecordSplitterConstants.RecordSplitter recordSplitterType) {
 
         final boolean sinkOccupied = isSinkOccupied(sinkId);
 
         if(sinkOccupied) {
-            this.addAsWaiting(sinkId, job, doSequenceAnalysis, recordSplitterType);
+            this.addAsWaiting(sinkId, job, recordSplitterType);
         } else {
 
             if(this.isAlreadyWaiting(job)) {
                 this.updateJobToBeInProgressIfExists(job);
             } else {
-                this.addAsInProgress(sinkId, job, doSequenceAnalysis, recordSplitterType);
+                this.addAsInProgress(sinkId, job, recordSplitterType);
             }
         }
 
@@ -192,17 +191,15 @@ public class JobQueueRepository extends RepositoryBase {
     private void addAsWaiting(
             long sinkId,
             JobEntity job,
-            boolean doSequenceAnalysis,
             RecordSplitterConstants.RecordSplitter recordSplitterType) {
 
-        persist(new JobQueueEntity(sinkId, job, WAITING, doSequenceAnalysis, recordSplitterType));
+        persist(new JobQueueEntity(sinkId, job, WAITING, recordSplitterType));
     }
     private void addAsInProgress(
             long sinkId,
             JobEntity job,
-            boolean doSequenceAnalysis,
             RecordSplitterConstants.RecordSplitter recordSplitterType) {
 
-        persist(new JobQueueEntity(sinkId, job, IN_PROGRESS, doSequenceAnalysis, recordSplitterType));
+        persist(new JobQueueEntity(sinkId, job, IN_PROGRESS, recordSplitterType));
     }
 }

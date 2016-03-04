@@ -10,16 +10,15 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
+import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserNoOrderKeyGenerator;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +48,6 @@ public class PartitioningParam {
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private EntityManager entityManager;
     protected List<Diagnostic> diagnostics = new ArrayList<>();
-    private boolean doSequenceAnalysis = Boolean.FALSE;
     private JobEntity jobEntity;
     private String dataFileId;
     protected InputStream dataFileInputStream;
@@ -61,15 +59,13 @@ public class PartitioningParam {
             JobEntity jobEntity,
             FileStoreServiceConnector fileStoreServiceConnector,
             EntityManager entityManager,
-            boolean doSequenceAnalysis,
             RecordSplitter recordSplitterType) throws NullPointerException {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobEntity = InvariantUtil.checkNotNullOrThrow(jobEntity, "jobEntity");
         if (!this.jobEntity.hasFatalError()) {
             this.entityManager = InvariantUtil.checkNotNullOrThrow(entityManager, "entityManager");
-            this.doSequenceAnalysis = doSequenceAnalysis;
             this.recordSplitterType = InvariantUtil.checkNotNullOrThrow(recordSplitterType, "recordSplitterType");
-            this.sequenceAnalyserKeyGenerator = newSequenceAnalyserKeyGenerator();
+            this.sequenceAnalyserKeyGenerator = new SequenceAnalyserDefaultKeyGenerator();
             this.dataFileId = extractDataFileIdFromURN();
             this.dataFileInputStream = newDataFileInputStream();
             this.dataPartitioner = newDataPartitioner();
@@ -96,10 +92,6 @@ public class PartitioningParam {
         return dataPartitioner;
     }
 
-    public boolean getDoSequenceAnalysis() {
-        return doSequenceAnalysis;
-    }
-
     public RecordSplitter getRecordSplitterType() {
         return recordSplitterType;
     }
@@ -116,17 +108,6 @@ public class PartitioningParam {
                 LOGGER.error("Unable to close datafile input stream", e);
             }
         }
-    }
-
-    private SequenceAnalyserKeyGenerator newSequenceAnalyserKeyGenerator() {
-        if (doSequenceAnalysis) {
-            if (jobEntity.getCachedSink().getSink() != null) {
-                return new SequenceAnalyserSinkKeyGenerator(jobEntity.getCachedSink().getSink().getId());
-            }
-        } else {
-            return new SequenceAnalyserNoOrderKeyGenerator();
-        }
-        return null;
     }
 
     private InputStream newDataFileInputStream() {

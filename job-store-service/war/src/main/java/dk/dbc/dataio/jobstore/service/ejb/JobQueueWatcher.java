@@ -78,7 +78,6 @@ public class JobQueueWatcher {
         try{
             jobStore.handlePartitioningAsynchronously(
                             jobToStart,
-                            jobQueueEntity.isSequenceAnalysis(),
                             jobQueueEntity.getRecordSplitterType());
         } catch (JobStoreException jse) {
             LOGGER.info(

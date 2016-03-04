@@ -209,7 +209,6 @@ public class AbstractJobStoreIT {
         final JobQueueEntity jobQueueEntity = new JobQueueEntity();
         jobQueueEntity.setJob(job);
         jobQueueEntity.setRecordSplitterType(RecordSplitterConstants.RecordSplitter.XML);
-        jobQueueEntity.setSequenceAnalysis(true);
         jobQueueEntity.setSinkId(0);
         jobQueueEntity.setState(JobQueueEntity.State.WAITING);
         jobQueueEntity.setTimeOfEntry(new Timestamp(new Date().getTime()));

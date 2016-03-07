@@ -46,6 +46,7 @@ public class FlowBinderContent implements Serializable {
     private final long flowId;
     private final List<Long> submitterIds;
     private final long sinkId;
+    private final String queueProvider;
 
     /**
      * Class constructor
@@ -61,6 +62,7 @@ public class FlowBinderContent implements Serializable {
      * @param flowId id of flow attached to this flowbinder
      * @param submitterIds ids of submitters attached to this flowbinder
      * @param sinkId id of sink attached to this flowbinder
+     * @param queueProvider the queue provider to use for this flow binder
      *
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued String or List argument
@@ -77,7 +79,8 @@ public class FlowBinderContent implements Serializable {
                              @JsonProperty("sequenceAnalysis") boolean sequenceAnalysis, // TODO: 04/03/16 Should be removed once the objects stored in flowstore have been modified
                              @JsonProperty("flowId") long flowId,
                              @JsonProperty("submitterIds") List<Long> submitterIds,
-                             @JsonProperty("sinkId") long sinkId) {
+                             @JsonProperty("sinkId") long sinkId,
+                             @JsonProperty("queueProvider") String queueProvider) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
@@ -89,38 +92,35 @@ public class FlowBinderContent implements Serializable {
         this.sequenceAnalysis = sequenceAnalysis;
         this.flowId = InvariantUtil.checkLowerBoundOrThrow(flowId, "flowId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.submitterIds = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(submitterIds, "submitterIds"));
-        this.sinkId = InvariantUtil.checkLowerBoundOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
         if (this.submitterIds.size() == 0) {
             throw new IllegalArgumentException("submitterIds can not be empty");
         }
-    }
-
-    public String getCharset() {
-        return charset;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public long getFlowId() {
-        return flowId;
-    }
-
-    public String getFormat() {
-        return format;
+        this.sinkId = InvariantUtil.checkLowerBoundOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
+        this.queueProvider = InvariantUtil.checkNotNullNotEmptyOrThrow(queueProvider, "queueProvider");
     }
 
     public String getName() {
         return name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public String getPackaging() {
         return packaging;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public String getCharset() {
+        return charset;
+    }
+
+    public String getDestination() {
+        return destination;
     }
 
     public RecordSplitterConstants.RecordSplitter getRecordSplitter() {
@@ -131,12 +131,20 @@ public class FlowBinderContent implements Serializable {
         return sequenceAnalysis;
     }
 
-    public long getSinkId() {
-        return sinkId;
+    public long getFlowId() {
+        return flowId;
     }
 
     public List<Long> getSubmitterIds() {
         return new ArrayList<>(submitterIds);
+    }
+
+    public long getSinkId() {
+        return sinkId;
+    }
+
+    public String getQueueProvider() {
+        return queueProvider;
     }
 
     @Override
@@ -156,8 +164,10 @@ public class FlowBinderContent implements Serializable {
                 && charset.equals(that.charset)
                 && destination.equals(that.destination)
                 && recordSplitter == that.recordSplitter
-                && submitterIds.equals(that.submitterIds);
+                && submitterIds.equals(that.submitterIds)
+                && queueProvider.equals(that.queueProvider);
     }
+
 
     @Override
     public int hashCode() {
@@ -172,6 +182,7 @@ public class FlowBinderContent implements Serializable {
         result = 31 * result + (int) (flowId ^ (flowId >>> 32));
         result = 31 * result + submitterIds.hashCode();
         result = 31 * result + (int) (sinkId ^ (sinkId >>> 32));
+        result = 31 * result + (queueProvider != null ? queueProvider.hashCode() : 0);
         return result;
     }
 }

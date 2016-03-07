@@ -50,95 +50,106 @@ public class FlowBinderContentTest {
     private static final Long FLOW_ID = 42L;
     private static final List<Long> SUBMITTER_IDS = Collections.singletonList(42L);
     private static final Long SINK_ID = 31L;
+    private static final String QUEUE_PROVIDER = "queue provider";
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
-        new FlowBinderContent(null, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(null, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
-        new FlowBinderContent("", DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent("", DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_descriptionArgIsNull_throws() {
-        new FlowBinderContent(NAME, null, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, null, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_descriptionArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, "", PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, "", PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_packagingArgIsNull_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, null, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, null, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_packagingArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, "", FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, "", FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_formatArgIsNull_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, null, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, null, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_formatArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, "", CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, "", CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_charsetArgIsNull_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, null, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, null, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_charsetArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, "", DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, "", DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_destinationArgIsNull_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, null, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, null, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_destinationArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, "", RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, "", RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_recordSplitterArgIsNull_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, null, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, null, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_flowIdArgIsLessThanLowerBound_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, SUBMITTER_IDS, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_submitterIdsArgIsNull_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, null, SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, null, SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_submitterIdsArgIsEmpty_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, new ArrayList<Long>(0), SINK_ID);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, new ArrayList<>(0), SINK_ID, QUEUE_PROVIDER);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_sinkIdArgIsLessThanLowerBound_throws() {
-        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, Constants.PERSISTENCE_ID_LOWER_BOUND - 1);
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, QUEUE_PROVIDER);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_queueProviderArgIsNull_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_queueProviderArgIsEmpty_throws() {
+        new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, "");
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowBinderContent instance = new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        final FlowBinderContent instance = new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
         assertThat(instance, is(notNullValue()));
     }
 
@@ -146,7 +157,7 @@ public class FlowBinderContentTest {
     public void verify_defensiveCopyingOfSubmitterIdsList() {
         final List<Long> submitterIds = new ArrayList<>();
         submitterIds.add(42L);
-        final FlowBinderContent instance = new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, submitterIds, SINK_ID);
+        final FlowBinderContent instance = new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, submitterIds, SINK_ID, QUEUE_PROVIDER);
         assertThat(instance.getSubmitterIds().size(), is(1));
         submitterIds.add(null);
         final List<Long> returnedSubmitterIds = instance.getSubmitterIds();
@@ -156,6 +167,6 @@ public class FlowBinderContentTest {
     }
 
     public static FlowBinderContent newFlowBinderContentInstance() {
-        return new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID);
+        return new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, QUEUE_PROVIDER);
     }
 }

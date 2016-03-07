@@ -39,6 +39,7 @@ public class FlowBinderContentBuilder {
     private long flowId = 47L;
     private List<Long> submitterIds = Collections.singletonList(78L);
     private long sinkId = 24L;
+    private String queueProvider = "queue-provider";
 
 
     public FlowBinderContentBuilder setName(String name) {
@@ -96,8 +97,13 @@ public class FlowBinderContentBuilder {
         return this;
     }
 
+    public FlowBinderContentBuilder setQueueProvider(String queueProvider) {
+        this.queueProvider = queueProvider;
+        return this;
+    }
+
     public FlowBinderContent build() {
-        return new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowId, submitterIds, sinkId);
+        return new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowId, submitterIds, sinkId, queueProvider);
     }
 
 }

@@ -159,6 +159,7 @@ public class FlowBinderModelMapperTest {
         assertThat(flowBinderModel.getSubmitterModels().size(), is(1));
         assertThat(flowBinderModel.getSubmitterModels().get(0).getId(), is(DEFAULT_SUBMITTER_ID));
         assertThat(flowBinderModel.getSinkModel().getId(), is(DEFAULT_SINK_ID));
+        assertThat(flowBinderModel.getQueueProvider(), is(defaultFlowBinder.getContent().getQueueProvider()));
     }
 
 
@@ -217,6 +218,7 @@ public class FlowBinderModelMapperTest {
         assertThat(content.getSubmitterIds().size(), is(1));
         assertThat(content.getSubmitterIds().get(0), is(defaultSubmitterModel.getId()));
         assertThat(content.getSinkId(), is(defaultSinkModel.getId()));
+        assertThat(content.getQueueProvider(), is(defaultFlowBinderModel.getQueueProvider()));
     }
 
 }

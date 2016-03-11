@@ -96,7 +96,7 @@ public class FlowBinderContent implements Serializable {
             throw new IllegalArgumentException("submitterIds can not be empty");
         }
         this.sinkId = InvariantUtil.checkLowerBoundOrThrow(sinkId, "sinkId", Constants.PERSISTENCE_ID_LOWER_BOUND);
-        this.queueProvider = InvariantUtil.checkNotNullNotEmptyOrThrow(queueProvider, "queueProvider");
+        this.queueProvider = queueProvider;  // No invariant check due to backwards compatibility issues
     }
 
     public String getName() {

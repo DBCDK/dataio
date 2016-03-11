@@ -87,7 +87,7 @@ public interface Texts extends Constants {
 
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String caption_SelectQueueProvider();
+    String caption_SelectSubmitter();
 
 
     // Error messages

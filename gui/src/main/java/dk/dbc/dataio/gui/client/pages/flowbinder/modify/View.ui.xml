@@ -38,11 +38,13 @@
         <g:HTMLPanel ui:field="updateSinkSection" visible="false">
             <li><dio:PromptedList ui:field="queueProvider" guiId="flowbindermodifyqueueproviderpanel" prompt="{txt.label_QueueProvider}" multiSelect="false" visibleItems="1"/></li>
         </g:HTMLPanel>
-        <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
-        <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
+        <li>
+            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
+        </li>
         <li><g:Label ui:field="status"/></li>
 
-        <dio:PopupListBox ui:field="popupListBox" guid="dio-QueueProviderDialogBox" dialogTitle="{txt.caption_SelectQueueProvider}" okButtonText="{txt.button_Select}" cancelButtonText="{txt.button_Cancel}"/>
+        <dio:PopupListBox ui:field="popupListBox" guid="dio-QueueProviderDialogBox" dialogTitle="{txt.caption_SelectSubmitter}" okButtonText="{txt.button_Select}" cancelButtonText="{txt.button_Cancel}"/>
 
     </g:HTMLPanel>
 

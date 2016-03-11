@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
@@ -148,10 +149,39 @@ public class FlowBinderModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_emptyQueueProviderInput_returnsTrue() {
+    public void isInputFieldsEmpty_updateSinkAndNullQueueProviderInput_returnsTrue() {
+        FlowBinderModel model = getTestModel();
+        model.setQueueProvider(null);
+        SinkModel sinkModel = new SinkModelBuilder().setSinkType(SinkContent.SinkType.OPENUPDATE).build();
+        model.setSinkModel(sinkModel);
+        assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_updateSinkAndEmptyQueueProviderInput_returnsTrue() {
         FlowBinderModel model = getTestModel();
         model.setQueueProvider("");
+        SinkModel sinkModel = new SinkModelBuilder().setSinkType(SinkContent.SinkType.OPENUPDATE).build();
+        model.setSinkModel(sinkModel);
         assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_nonUpdateSinkAndNullQueueProviderInput_returnsFalse() {
+        FlowBinderModel model = getTestModel();
+        model.setQueueProvider(null);
+        SinkModel sinkModel = new SinkModelBuilder().setSinkType(SinkContent.SinkType.ES).build();
+        model.setSinkModel(sinkModel);
+        assertThat(model.isInputFieldsEmpty(), is(false));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_nonUpdateSinkAndEmptyQueueProviderInput_returnsFalse() {
+        FlowBinderModel model = getTestModel();
+        model.setQueueProvider("");
+        SinkModel sinkModel = new SinkModelBuilder().setSinkType(SinkContent.SinkType.ES).build();
+        model.setSinkModel(sinkModel);
+        assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
     @Test

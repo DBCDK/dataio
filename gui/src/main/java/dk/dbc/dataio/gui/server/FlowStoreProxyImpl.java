@@ -562,7 +562,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             log.error("FlowStoreProxy: " + callerMethodName + " - Null Pointer Exception", exception);
             throw (NullPointerException) exception;
         } else {
-            log.error("FlowStoreProxy: " + callerMethodName + " - Unknown Exception", exception);
+            log.error("FlowStoreProxy: " + callerMethodName + " - Unexpected Exception", exception);
             throw new ProxyException(ProxyError.ERROR_UNKNOWN, exception);
         }
     }

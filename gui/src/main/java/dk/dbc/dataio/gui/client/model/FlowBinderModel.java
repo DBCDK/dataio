@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.ArrayList;
@@ -296,7 +297,8 @@ public class FlowBinderModel extends GenericBackendModel {
      * @return true if no empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        return name == null
+        boolean isEmpty =
+                name == null
                 || name.isEmpty()
                 || description == null
                 || description.isEmpty()
@@ -313,9 +315,13 @@ public class FlowBinderModel extends GenericBackendModel {
                 || flowModel == null
                 || submitterModels == null
                 || submitterModels.isEmpty()
-                || sinkModel == null
-                || queueProvider == null
-                || queueProvider.isEmpty();
+                || sinkModel == null;
+        if (!isEmpty && sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+            if (queueProvider == null || queueProvider.isEmpty() ) {
+                isEmpty = true;
+            }
+        }
+        return isEmpty;
     }
 
     /**

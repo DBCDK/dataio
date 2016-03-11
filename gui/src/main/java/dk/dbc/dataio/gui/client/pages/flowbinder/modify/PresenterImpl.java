@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class represents the create flowbinder activity encompassing saving
+ * This class represents the create and edit flowbinder activity encompassing saving
  * of flowbinder data in the flow store via RPC proxy
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
@@ -206,7 +206,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void flowChanged(String flowId) {
-        if (flowId != null) {
+        if (flowId != null && !flowId.isEmpty()) {
             model.setFlowModel(getFlowModel(Long.parseLong(flowId)));
         }
     }
@@ -218,23 +218,24 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void sinkChanged(String sinkId) {
-        if (sinkId != null) {
+        if (sinkId != null && !sinkId.isEmpty()) {
             SinkModel sinkModel = getSinkModel(Long.parseLong(sinkId));
             model.setSinkModel(sinkModel);
-            getView().updateSinkSection.setVisible(sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE);
+            considerQueueProviderVisiblity(sinkModel);
+            updateAllFieldsAccordingToCurrentState();
         }
     }
 
     /**
      * A signal to the presenter, saying that the queue providers field has been changed
      *
-     * @param queueProviders, the list of queue providers
+     * @param queueProvider queue providers
      */
     @Override
-    public void queueProvidersChanged(List<String> queueProviders) {
-//        if (queueProviders != null) {
-//            model.setSinkModel(sinkModel);
-//        }
+    public void queueProviderChanged(String queueProvider) {
+        if (queueProvider != null) {
+            model.setQueueProvider(queueProvider);
+        }
     }
 
     /**
@@ -263,6 +264,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     /*
      * Private methods
      */
+
     private String formatSubmitterName(SubmitterModel model) {
         return model.getNumber() + " (" + model.getName() + ")";
     }
@@ -284,15 +286,24 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setEnabled(true);
         view.recordSplitter.setSelectedText(model.getRecordSplitter());
         view.recordSplitter.setEnabled(true);
-        for (Map.Entry<String, String> entry: getAvailableSubmitters(model).entrySet()) {
-            view.popupListBox.addItem(entry.getValue(), entry.getKey());
-        }
+        setAvailableSubmittersToView(getAvailableSubmitters(model));
         view.submitters.setValue(getSelectedSubmitters(model));
         view.submitters.setEnabled(true);
         view.flow.setSelectedText(model.getFlowModel().getFlowName());
         view.flow.setEnabled(true);
         view.sink.setSelectedText(model.getSinkModel().getSinkName());
         view.sink.setEnabled(true);
+        setAvailableQueueProvidersToView(model.getSinkModel().getOpenUpdateAvailableQueueProviders());
+        view.queueProvider.setValue(model.getQueueProvider());
+        view.queueProvider.setEnabled(true);
+    }
+
+    private void setAvailableQueueProvidersToView(List<String> availableQueueProviders) {
+        getView().queueProvider.clear();
+        for (String queueProvider: availableQueueProviders) {
+            getView().queueProvider.addAvailableItem(queueProvider);
+        }
+        considerQueueProviderVisiblity(model.getSinkModel());
     }
 
     private Map<String, String> getAvailableSubmitters(FlowBinderModel model) {
@@ -303,6 +314,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             }
         }
         return availableSubmitterMap;
+    }
+
+    private void setAvailableSubmittersToView(Map<String, String> submitters) {
+        getView().popupListBox.clear();
+        for (Map.Entry<String, String> entry: submitters.entrySet()) {
+            getView().popupListBox.addItem(entry.getValue(), entry.getKey());
+        }
     }
 
     private boolean isSubmitterSelected(long id, List<SubmitterModel> submitterModels) {
@@ -328,9 +346,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         for (SubmitterModel model : models) {
             submitters.put(String.valueOf(model.getId()), formatSubmitterName(model));
         }
-        for (Map.Entry<String, String> entry: submitters.entrySet()) {
-            getView().popupListBox.addItem(entry.getValue(), entry.getKey());
-        }
+        setAvailableSubmittersToView(submitters);
         getView().submitters.setEnabled(true);
     }
 
@@ -341,6 +357,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             getView().flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
         }
         getView().flow.setEnabled(true);
+        flowChanged(getView().flow.getSelectedKey());
     }
 
     protected void setAvailableSinks(List<SinkModel> models) {
@@ -350,6 +367,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             getView().sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
         }
         getView().sink.setEnabled(true);
+        sinkChanged(getView().sink.getSelectedKey());
     }
 
     protected void setAvailableRecordSplitters() {
@@ -440,8 +458,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         this.model = model;
     }
 
+    private void considerQueueProviderVisiblity(SinkModel sinkModel) {
+        getView().updateSinkSection.setVisible(sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE);
+    }
+
+
     /*
-     * Local class
+     * Local classes
      */
 
 
@@ -501,11 +524,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         @Override
         public void onSuccess(FlowBinderModel model) {
             getView().status.setText(getTexts().status_SaveSuccess());
-            setFlowBinderModel(model);
-            updateAllFieldsAccordingToCurrentState();
             History.back();
         }
-
     }
 
 

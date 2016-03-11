@@ -137,13 +137,13 @@ public class FlowBinderContentTest {
         new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, Constants.PERSISTENCE_ID_LOWER_BOUND - 1, QUEUE_PROVIDER);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_queueProviderArgIsNull_throws() {
+    @Test
+    public void constructor_queueProviderArgIsNull_throwsNot() {
         new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, null);
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_queueProviderArgIsEmpty_throws() {
+    @Test
+    public void constructor_queueProviderArgIsEmpty_throwsNot() {
         new FlowBinderContent(NAME, DESCRIPTION, PACKAGING, FORMAT, CHARSET, DESTINATION, RECORD_SPLITTER, SEQUENCE_ANALYSIS, FLOW_ID, SUBMITTER_IDS, SINK_ID, "");
     }
 

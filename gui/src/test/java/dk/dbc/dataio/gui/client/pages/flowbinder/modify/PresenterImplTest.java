@@ -350,11 +350,30 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(view.submitters, times(2)).setEnabled(true);
         verify(view.submitters).setEnabled(false);
         verify(view.submitters).clear();
-        Map<String, String> expectedMap = new HashMap<>();
-        verify(view.submitters).setValue(expectedMap);
+        verify(view.submitters).setValue(new HashMap<>());
         verifyNoMoreInteractions(view.submitters);
     }
-    
+
+    @Test
+    public void flowChanged_callFlowChangedWithNullSubmitter_flowNotChanged() {
+        initializeAndStartPresenter();
+
+        presenterImpl.flowChanged(null);
+
+        assertThat(presenterImpl.model.getFlowModel().getId(), is(flowModel1.getId()));
+        assertThat(presenterImpl.model.getFlowModel().getFlowName(), is(flowModel1.getFlowName()));
+    }
+
+    @Test
+    public void flowChanged_callFlowChangedWithEmptySubmitter_flowNotChanged() {
+        initializeAndStartPresenter();
+
+        presenterImpl.flowChanged("");
+
+        assertThat(presenterImpl.model.getFlowModel().getId(), is(flowModel1.getId()));
+        assertThat(presenterImpl.model.getFlowModel().getFlowName(), is(flowModel1.getFlowName()));
+    }
+
     @Test
     public void flowChanged_callFlowChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
         initializeAndStartPresenter();
@@ -373,7 +392,27 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void sinkChanged_callSinkChangedWithKnownSubmitter_selectedSubmittersIsChangedAccordingly() {
+    public void sinkChanged_callSinkChangedWithNullSink_sinkNotChanged() {
+        initializeAndStartPresenter();
+
+        presenterImpl.sinkChanged(null);
+
+        assertThat(presenterImpl.model.getSinkModel().getId(), is(sinkModel1.getId()));
+        assertThat(presenterImpl.model.getSinkModel().getSinkName(), is(sinkModel1.getSinkName()));
+    }
+
+    @Test
+    public void sinkChanged_callSinkChangedWithEmptySink_sinkNotChanged() {
+        initializeAndStartPresenter();
+
+        presenterImpl.sinkChanged("");
+
+        assertThat(presenterImpl.model.getSinkModel().getId(), is(sinkModel1.getId()));
+        assertThat(presenterImpl.model.getSinkModel().getSinkName(), is(sinkModel1.getSinkName()));
+    }
+
+    @Test
+    public void sinkChanged_callSinkChangedWithKnownSink_sinkIsChangedAccordingly() {
         initializeAndStartPresenter();
 
         presenterImpl.sinkChanged("303");
@@ -383,10 +422,37 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void sinkChanged_callSinkChangedWithUnknownSubmitter_throws() {
+    public void sinkChanged_callSinkChangedWithUnknownSink_throws() {
         initializeAndStartPresenter();
 
         presenterImpl.sinkChanged("645");
+    }
+
+    @Test
+    public void queueProviderChanged_callQueueProviderChangedWithNullQueueProvider_queueProviderNotChanged() {
+        initializeAndStartPresenter();
+
+        presenterImpl.queueProviderChanged(null);
+
+        assertThat(presenterImpl.model.getQueueProvider(), is("queue-provider"));
+    }
+
+    @Test
+    public void queueProviderChanged_callQueueProviderChangedWithEmptyQueueProvider_queueProviderIsEmpty() {
+        initializeAndStartPresenter();
+
+        presenterImpl.queueProviderChanged("");
+
+        assertThat(presenterImpl.model.getQueueProvider(), is(""));
+    }
+
+    @Test
+    public void queueProviderChanged_callQueueProviderChangedWithNonEmptyQueueProvider_queueProviderIsChangedAccordingly() {
+        initializeAndStartPresenter();
+
+        presenterImpl.queueProviderChanged("hello queue provider");
+
+        assertThat(presenterImpl.model.getQueueProvider(), is("hello queue provider"));
     }
 
     @Test
@@ -504,7 +570,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.saveFlowBinderCallback.onSuccess(flowBinderModel);
 
         verify(view.status).setText(SUCCESS_TEXT);
-        assertThat(presenterImpl.model, is(flowBinderModel));
     }
 
 

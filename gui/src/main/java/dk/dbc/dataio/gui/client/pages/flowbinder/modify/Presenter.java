@@ -23,7 +23,6 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
-import java.util.List;
 import java.util.Map;
 
 public interface Presenter extends GenericPresenter {
@@ -39,7 +38,7 @@ public interface Presenter extends GenericPresenter {
     void removeSubmitter(String value);
     void flowChanged(String selectedText);
     void sinkChanged(String selectedText);
-    void queueProvidersChanged(List<String> queueProviders);
+    void queueProviderChanged(String queueProvider);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();

@@ -133,6 +133,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @UiHandler("queueProvider")
+    void queueProviderChanged(ValueChangeEvent<String> event) {
+        presenter.queueProviderChanged(queueProvider.getSelectedKey());
+        presenter.keyPressed();
+    }
+
     @UiHandler({"name", "description", "frame", "format", "charset", "destination"})
     void keyPressedInField(KeyDownEvent event) {
         presenter.keyPressed();

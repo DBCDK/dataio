@@ -542,7 +542,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @throws NullPointerException
      */
     private void handleExceptions(Exception exception, String callerMethodName) throws ProxyException, NullPointerException {
-        if(exception instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException)  {
+        if (exception instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException) {
             FlowStoreServiceConnectorUnexpectedStatusCodeException fsscusce = (FlowStoreServiceConnectorUnexpectedStatusCodeException) exception;
             log.error("FlowStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(fsscusce.getStatusCode()), fsscusce);
             throw new ProxyException(StatusCodeTranslator.toProxyError(fsscusce.getStatusCode()), fsscusce.getMessage());
@@ -558,9 +558,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             JavaScriptProjectFetcherException jspfe = (JavaScriptProjectFetcherException) exception;
             log.error("FlowStoreProxy: " + callerMethodName + " - Subversion Lookup Failed Exception", jspfe);
             throw new ProxyException(ProxyError.SUBVERSION_LOOKUP_FAILED, jspfe);
-        } else if(exception instanceof NullPointerException){
+        } else if (exception instanceof NullPointerException) {
+            log.error("FlowStoreProxy: " + callerMethodName + " - Null Pointer Exception", exception);
             throw (NullPointerException) exception;
         } else {
+            log.error("FlowStoreProxy: " + callerMethodName + " - Unknown Exception", exception);
             throw new ProxyException(ProxyError.ERROR_UNKNOWN, exception);
         }
     }

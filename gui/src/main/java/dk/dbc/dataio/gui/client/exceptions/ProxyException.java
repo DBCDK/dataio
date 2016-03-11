@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.gui.client.exceptions;
 
-import java.io.Serializable;
+import com.google.gwt.user.client.rpc.IsSerializable;
 
-public class ProxyException extends Exception implements Serializable {
+public class ProxyException extends Exception implements IsSerializable {
     private static final long serialVersionUID = -93191478556372060L;
     private /* final */ ProxyError errorCode;
 

@@ -316,10 +316,8 @@ public class FlowBinderModel extends GenericBackendModel {
                 || submitterModels == null
                 || submitterModels.isEmpty()
                 || sinkModel == null;
-        if (!isEmpty && sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
-            if (queueProvider == null || queueProvider.isEmpty() ) {
-                isEmpty = true;
-            }
+        if (!isEmpty && sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE && (queueProvider == null || queueProvider.isEmpty())) {
+            isEmpty = true;
         }
         return isEmpty;
     }

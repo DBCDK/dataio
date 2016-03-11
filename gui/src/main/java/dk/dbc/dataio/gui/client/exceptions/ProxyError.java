@@ -21,7 +21,9 @@
 
 package dk.dbc.dataio.gui.client.exceptions;
 
-public enum ProxyError {
+import com.google.gwt.user.client.rpc.IsSerializable;
+
+public enum ProxyError implements IsSerializable {
     SERVICE_NOT_FOUND,
     BAD_REQUEST,                // invalid data content
     NOT_ACCEPTABLE,             // violation of unique key contraints

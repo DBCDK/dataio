@@ -21,15 +21,30 @@
 
 package dk.dbc.dataio.sink.diff;
 
-import org.xmlunit.XMLUnitException;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.builder.Input;
-import org.xmlunit.diff.ComparisonController;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.Difference;
+import dk.dbc.xmldiff.XmlDiff;
+import dk.dbc.xmldiff.XmlDiffTextWriter;
+import dk.dbc.xmldiff.XmlDiffWriter;
+import org.xml.sax.SAXException;
+
+import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 
 public class XmlDiffGenerator {
+    private static final String EMPTY = "";
+
+        // Tags marking difference in current
+        private static final String OPEN_CURRENT = "CURRENT[";
+        private static final String CLOSE_CURRENT = "]CURRENT , ";
+
+        // Tags marking differences in next
+        private static final String OPEN_NEXT = "NEXT[";
+        private static final String CLOSE_NEXT = "]NEXT";
+
+        // Namespace url changed (URI) => name is unchanged
+        private static final String OPEN_URI = "URI CHANGED[";
+        private static final String CLOSE_URI = "]URI CHANGED";
     /**
      * Creates diff string through XmlDiff.
      *
@@ -42,41 +57,23 @@ public class XmlDiffGenerator {
      *
      * @throws DiffGeneratorException on failure to create diff
      */
-    public String getDiff(final byte[] current, final byte[] next) throws DiffGeneratorException {
+    public String getDiff(byte[] current, byte[] next) throws DiffGeneratorException {
+        final XmlDiffWriter writer = new XmlDiffTextWriter(OPEN_CURRENT, CLOSE_CURRENT, OPEN_NEXT, CLOSE_NEXT, OPEN_URI, CLOSE_URI);
         try {
-            final Diff diffResult = DiffBuilder.compare(Input.fromByteArray(current))
-                    .withTest(Input.fromByteArray(next))
-                    .checkForSimilar()
-                    .ignoreWhitespace()
-                    .withComparisonController(new ComparisonController() {
-                        @Override
-                        public boolean stopDiffing(final Difference difference) {
-                            return false; // we want all differences
-                        }
-                    })
-                    .build();
-            if (!diffResult.hasDifferences()) {
-                return "";
+            XmlDiff xmldiff = XmlDiff.builder().normalize(true).build();
+            boolean isEquivalent=xmldiff.compare(
+                    new ByteArrayInputStream(current),
+                    new ByteArrayInputStream(next),
+                    writer);
+            if ( ! isEquivalent ) {
+                return writer.toString();
+            } else {
+                return EMPTY;
             }
+        } catch (XPathExpressionException | SAXException | IOException e) {
+            throw new DiffGeneratorException("XmlDiff Failed to compare input", e);
 
-            return buildResultString(diffResult);
-        } catch ( XMLUnitException e) {
-           throw new DiffGeneratorException("XmlDiff Failed to compare input", e);
         }
-    }
-
-    String buildResultString( final Diff diff) {
-        final Iterable<Difference> differences = diff.getDifferences();
-
-        final StringBuilder result = new StringBuilder();
-        int changeNumber=1;
-        for (final Difference difference : differences) {
-            result.append("Change nr ").append(changeNumber++).append(" ----\n");
-            result.append(difference.toString()); // Default output format
-            result.append("----\n");
-        }
-
-        return result.toString();
     }
 
 }

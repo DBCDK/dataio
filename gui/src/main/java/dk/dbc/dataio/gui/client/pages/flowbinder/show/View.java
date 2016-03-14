@@ -93,6 +93,7 @@ public class View extends ViewWidget {
         flowBindersTable.addColumn(constructSubmittersColumn(), getTexts().columnHeader_Submitters());
         flowBindersTable.addColumn(constructFlowColumn(), getTexts().columnHeader_Flow());
         flowBindersTable.addColumn(constructSinkColumn(), getTexts().columnHeader_Sink());
+        flowBindersTable.addColumn(constructQueueProviderColumn(), getTexts().columnHeader_QueueProvider());
         flowBindersTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
         flowBindersTable.setSelectionModel(selectionModel);
         flowBindersTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
@@ -239,6 +240,21 @@ public class View extends ViewWidget {
             @Override
             public String getValue(FlowBinderModel model) {
                 return model.getSinkModel().getSinkName();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Queue Provider column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Queue Provider column
+     */
+    Column constructQueueProviderColumn() {
+        return new TextColumn<FlowBinderModel>() {
+            @Override
+            public String getValue(FlowBinderModel model) {
+                return model.getQueueProvider();
             }
         };
     }

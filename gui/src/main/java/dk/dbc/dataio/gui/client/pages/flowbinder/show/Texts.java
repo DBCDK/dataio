@@ -63,6 +63,9 @@ public interface Texts extends Constants {
     String columnHeader_Sink();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_QueueProvider();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
 

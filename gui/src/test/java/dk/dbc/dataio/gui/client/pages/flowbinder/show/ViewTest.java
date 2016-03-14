@@ -145,6 +145,7 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_SUBMITTERS = "Mocked Text: Submittere";
     final static String MOCKED_COLUMNHEADER_FLOW = "Mocked Text: Flow";
     final static String MOCKED_COLUMNHEADER_SINK = "Mocked Text: Sink";
+    final static String MOCKED_COLUMNHEADER_QUEUE_PROVIDER = "Mocked Text: Queue provider";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: Handling";
     final static String MOCKED_BUTTON_EDIT = "Mocked Text: Rediger";
     final static String MOCKED_TEXT_SUBMITTERS = "Mocked Text: submittere";
@@ -167,6 +168,7 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Submitters()).thenReturn(MOCKED_COLUMNHEADER_SUBMITTERS);
         when(mockedTexts.columnHeader_Flow()).thenReturn(MOCKED_COLUMNHEADER_FLOW);
         when(mockedTexts.columnHeader_Sink()).thenReturn(MOCKED_COLUMNHEADER_SINK);
+        when(mockedTexts.columnHeader_QueueProvider()).thenReturn(MOCKED_COLUMNHEADER_QUEUE_PROVIDER);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
         when(mockedTexts.button_Edit()).thenReturn(MOCKED_BUTTON_EDIT);
         when(mockedTexts.text_Submitters()).thenReturn(MOCKED_TEXT_SUBMITTERS);
@@ -206,6 +208,7 @@ public class ViewTest {
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SUBMITTERS));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FLOW));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SINK));
+        verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_QUEUE_PROVIDER));
         verify(view.flowBindersTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION));
         verify(view.flowBindersTable).setSelectionModel(view.selectionModel);
         verify(view.flowBindersTable).addDomHandler(any(DoubleClickHandler.class), eq(DoubleClickEvent.getType()));
@@ -374,6 +377,20 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getSinkModel().getSinkName()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructQueueProviderColumn_call_correctlySetup() {
+
+        // Setup
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructQueueProviderColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(flowBinderModel1), is(flowBinderModel1.getQueueProvider()));
     }
 
     @Test

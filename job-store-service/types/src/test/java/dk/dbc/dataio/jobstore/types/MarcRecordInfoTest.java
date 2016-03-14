@@ -117,7 +117,6 @@ public class MarcRecordInfoTest {
         final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
         Set<String> keys = recordInfo.getKeys();
         assertThat("keys.size", keys.size(), is(1));
-        assertThat("keys.id", keys.contains(id), is(false));
         assertThat("keys.parentRelation", keys.contains(parentRelation), is(true));
     }
 
@@ -127,7 +126,6 @@ public class MarcRecordInfoTest {
         Set<String> keys = recordInfo.getKeys();
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.id", keys.contains(id), is(true));
-        assertThat("keys.parentRelation", keys.contains(parentRelation), is(false));
     }
 
     @Test
@@ -142,7 +140,6 @@ public class MarcRecordInfoTest {
     @Test
     public void marshalling() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
-        System.out.println(jsonbContext.marshall(recordInfo));
         final MarcRecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), MarcRecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
     }

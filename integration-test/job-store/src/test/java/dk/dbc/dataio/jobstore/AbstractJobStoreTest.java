@@ -48,12 +48,7 @@ import org.junit.BeforeClass;
 import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 
 public abstract class AbstractJobStoreTest {
     protected static FileStoreServiceConnector fileStoreServiceConnector;
@@ -94,14 +89,7 @@ public abstract class AbstractJobStoreTest {
     }
 
     private static InputStream readTestRecord(String resourceName) {
-        try {
-            final URL url = AbstractJobStoreTest.class.getResource(resourceName);
-            final Path resPath;
-            resPath = Paths.get(url.toURI());
-            return Files.newInputStream(resPath);
-        } catch (IOException | URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+        return AbstractJobStoreTest.class.getResourceAsStream(resourceName);
     }
 
     protected void createFlowStoreEnvironmentMatchingJobSpecification(JobSpecification jobSpecification) {
@@ -118,7 +106,7 @@ public abstract class AbstractJobStoreTest {
                     .setFormat(jobSpecification.getFormat())
                     .setCharset(jobSpecification.getCharset())
                     .setDestination(jobSpecification.getDestination())
-                    .setSubmitterIds(Arrays.asList(submitter.getId()))
+                    .setSubmitterIds(Collections.singletonList(submitter.getId()))
                     .setFlowId(flow.getId())
                     .setSinkId(sink.getId())
                     .setRecordSplitter(RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT)

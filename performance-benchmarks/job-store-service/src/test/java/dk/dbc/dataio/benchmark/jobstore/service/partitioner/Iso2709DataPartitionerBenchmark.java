@@ -101,7 +101,7 @@ public class Iso2709DataPartitionerBenchmark {
     public void benchmark_74_records(BenchmarkState state) {
         final DataPartitioner dataPartitioner = state.dataPartitioner;
         for (Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator(); iterator.hasNext(); ) {
-            iterator.next().getChunkItem();
+            iterator.next();
         }
     }
 }

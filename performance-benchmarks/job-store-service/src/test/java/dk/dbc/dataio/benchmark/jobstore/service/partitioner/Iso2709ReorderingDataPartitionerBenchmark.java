@@ -113,7 +113,7 @@ public class Iso2709ReorderingDataPartitionerBenchmark {
         final DataPartitioner dataPartitioner = state.dataPartitioner;
         state.persistenceContext.run(() -> {
             for (Iterator<DataPartitionerResult> iterator = dataPartitioner.iterator(); iterator.hasNext(); ) {
-                iterator.next().getChunkItem();
+                iterator.next();
             }
         });
     }

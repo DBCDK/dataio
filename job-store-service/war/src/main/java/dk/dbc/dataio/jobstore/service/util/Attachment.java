@@ -31,6 +31,9 @@ import java.nio.charset.StandardCharsets;
  */
 public class Attachment {
 
+    private final static String ISO2709 = "iso2709";
+    private final static String LINE_FORMAT = "lin";
+
     private final byte[] content;
     private final String fileNameExtension;
     private final String contentType;
@@ -38,7 +41,7 @@ public class Attachment {
 
     public Attachment(byte[] content, String fileNameExtension) {
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
-        this.fileNameExtension = InvariantUtil.checkNotNullNotEmptyOrThrow(fileNameExtension, "fileNameExtension");
+        this.fileNameExtension = decipherFileNameExtension(fileNameExtension);
         this.contentType = String.format("application/octet-stream; charset=%s", decipherEncoding());
         this.fileName = String.format("fejl_i_poststruktur.%s", fileNameExtension);
     }
@@ -62,16 +65,26 @@ public class Attachment {
     /**
      * This method uses the file name extension to chose the encoding.
      * The deduction will only work as long as we receive iso as latin1
-     * @return
+     * @return encoding
      */
     private String decipherEncoding() {
         switch (fileNameExtension) {
-            case "lin":
+            case LINE_FORMAT:
                 return StandardCharsets.UTF_8.name();
-            case "iso":
+            case ISO2709:
                 return StandardCharsets.ISO_8859_1.name();
             default:
                 throw new InvalidDataException(String.format("Unknown file name extension: %s", fileNameExtension));
         }
+    }
+
+    /**
+     * Since windows translates .iso to an ISO Image, the given file name extension (if iso) is replaced with iso2709
+     * @param fileNameExtension the given file name extension
+     * @return file name extension (lin or iso2709)
+     */
+    private String decipherFileNameExtension(String fileNameExtension) {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(fileNameExtension, "fileNameExtension");
+        return fileNameExtension.equals("iso") ? ISO2709 : fileNameExtension;
     }
 }

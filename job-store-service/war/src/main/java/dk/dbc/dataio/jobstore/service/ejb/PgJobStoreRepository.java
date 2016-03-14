@@ -251,7 +251,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             // Items were created, so now create the chunk to which they belong
             final StateChange chunkStateChange = chunkItemEntities.chunkStateChange.setBeginDate(chunkBegin);
 
-            SequenceAnalysisData sequenceAnalysisData = initializeSequenceAnalysisData(sequenceAnalyserKeyGenerator, chunkItemEntities, chunkStateChange);
+            SequenceAnalysisData sequenceAnalysisData = initializeSequenceAnalysisData(sequenceAnalyserKeyGenerator, chunkItemEntities);
 
             final State chunkState = initializeChunkState(chunkItemEntities);
 
@@ -728,15 +728,11 @@ public class PgJobStoreRepository extends RepositoryBase {
         }
         return chunkState;
     }
-    private SequenceAnalysisData initializeSequenceAnalysisData(SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, ChunkItemEntities chunkItemEntities, StateChange chunkStateChange) {
-        SequenceAnalysisData sequenceAnalysisData;
-        if (chunkStateChange.getFailed() > 0) {
-            sequenceAnalysisData = new SequenceAnalysisData(Collections.<String>emptySet());
-        } else {
-            sequenceAnalysisData = new SequenceAnalysisData(sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.keys));
-        }
-        return sequenceAnalysisData;
+
+    private SequenceAnalysisData initializeSequenceAnalysisData(SequenceAnalyserKeyGenerator sequenceAnalyserKeyGenerator, ChunkItemEntities chunkItemEntities) {
+        return new SequenceAnalysisData(sequenceAnalyserKeyGenerator.generateKeys(chunkItemEntities.keys));
     }
+
     private void throwInvalidInputException(String errMsg, JobError.Code jobErrorCode) throws InvalidInputException {
         final JobError jobError = new JobError(jobErrorCode, errMsg, JobError.NO_STACKTRACE);
         throw new InvalidInputException(errMsg, jobError);

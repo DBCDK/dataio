@@ -51,8 +51,8 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserSinkKeyGenerator;
 import org.junit.Test;
 import types.TestableJobEntityBuilder;
 
@@ -161,8 +161,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("First chunk", chunkEntity, is(notNullValue()));
         assertThat("First chunk: number of items", chunkEntity.getNumberOfItems(), is(params.maxChunkSize));
         assertThat("First chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(PARTITIONING).getEndDate(), is(notNullValue()));
-        assertThat("First chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(1));
-        assertThat("First chunk: seq keys", chunkEntity.getSequenceAnalysisData().getData().contains(Long.toString(params.sink.getId())), is(true));
+        assertThat("First chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(0));
         assertThat("Job: number of chunks after first chunk", jobEntity.getNumberOfChunks(), is(1));
         assertThat("Job: number of items after first chunk", jobEntity.getNumberOfItems(), is((int) params.maxChunkSize));
         assertThat("Job: partitioning phase endDate not set after first chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));
@@ -171,8 +170,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         assertThat("Second chunk", chunkEntity, is(notNullValue()));
         assertThat("Second chunk: number of items", chunkEntity.getNumberOfItems(), is((short) (EXPECTED_NUMBER_OF_ITEMS - params.maxChunkSize)));
         assertThat("Second chunk: Partitioning phase endDate set", chunkEntity.getState().getPhase(PARTITIONING).getEndDate(), is(notNullValue()));
-        assertThat("Second chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(1));
-        assertThat("Second chunk: seq keys", chunkEntity.getSequenceAnalysisData().getData().contains(Long.toString(params.sink.getId())), is(true));
+        assertThat("Second chunk: number of seq keys", chunkEntity.getSequenceAnalysisData().getData().size(), is(0));
         assertThat("Job: number of chunks after second chunk", jobEntity.getNumberOfChunks(), is(2));
         assertThat("Job: number of items after second chunk", jobEntity.getNumberOfItems(), is(EXPECTED_NUMBER_OF_ITEMS));
         assertThat("Job: partitioning phase endDate not set after second chunk", jobEntity.getState().getPhase(PARTITIONING).getEndDate(), is(nullValue()));
@@ -534,7 +532,7 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
-            sequenceAnalyserKeyGenerator = new SequenceAnalyserSinkKeyGenerator(sink.getId());
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserDefaultKeyGenerator();
             maxChunkSize = 10;
             dataFileId = "datafile";
         }

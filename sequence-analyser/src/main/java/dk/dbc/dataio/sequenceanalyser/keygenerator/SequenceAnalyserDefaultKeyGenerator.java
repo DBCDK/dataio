@@ -31,17 +31,13 @@ import java.util.Set;
  */
 public class SequenceAnalyserDefaultKeyGenerator implements SequenceAnalyserKeyGenerator {
 
-    private final Set<String> keys;
-
-    public SequenceAnalyserDefaultKeyGenerator() {
-        this.keys = new HashSet<>();
-    }
+    public SequenceAnalyserDefaultKeyGenerator() { }
 
     @Override
     public Set<String> generateKeys(List<String> data) {
         if(data != null) {
-            keys.addAll(data);
+            return Collections.unmodifiableSet(new HashSet<>(data));
         }
-        return Collections.unmodifiableSet(keys);
+        return Collections.emptySet();
     }
 }

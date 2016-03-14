@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -144,10 +145,7 @@ public class RawRepoMarcXmlDataPartitionerTest extends AbstractPartitionerTestBa
     }
 
     private String buildXmlWithChildren(List<String>children) {
-        StringBuilder stringBuilder = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>");
-        children.forEach(stringBuilder::append);
-        stringBuilder.append("</topLevel>");
-        return stringBuilder.toString();
+        return children.stream().collect(Collectors.joining("", "<?xml version=\"1.0\" encoding=\"UTF-8\"?><topLevel>","</topLevel>"));
     }
 
     private DataPartitioner newPartitionerInstance(String xml) {

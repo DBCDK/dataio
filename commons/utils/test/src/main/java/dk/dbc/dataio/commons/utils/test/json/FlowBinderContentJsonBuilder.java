@@ -24,7 +24,7 @@ package dk.dbc.dataio.commons.utils.test.json;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FlowBinderContentJsonBuilder extends JsonBuilder {
@@ -36,8 +36,7 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
     private String destination = "destination";
     private String recordSplitter = RecordSplitterConstants.RecordSplitter.XML.name();
     private Long flowId = 42L;
-    private List<Long> submitterIds = new ArrayList<>(Arrays.asList(43L));
-    private boolean sequenceAnalysis = true;
+    private List<Long> submitterIds = new ArrayList<>(Collections.singletonList(43L));
     private Long sinkId = 44L;
     private String queueProvider = "queue-provider";
 
@@ -76,11 +75,6 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
-    public FlowBinderContentJsonBuilder setSequenceAnalysis(boolean sequenceAnalysis) {
-        this.sequenceAnalysis = sequenceAnalysis;
-        return this;
-    }
-
     public FlowBinderContentJsonBuilder setFlowId(Long flowId) {
         this.flowId = flowId;
         return this;
@@ -111,7 +105,6 @@ public class FlowBinderContentJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("charset", charset)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("destination", destination)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("recordSplitter", recordSplitter)); stringBuilder.append(MEMBER_DELIMITER);
-        stringBuilder.append(asBooleanMember("sequenceAnalysis", sequenceAnalysis)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("flowId", flowId)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongArray("submitterIds", submitterIds)); stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asLongMember("sinkId", sinkId)); stringBuilder.append(MEMBER_DELIMITER);

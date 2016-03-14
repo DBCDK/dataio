@@ -97,7 +97,6 @@ public final class FlowBinderModelMapper {
                 model.getCharset(),
                 model.getDestination(),
                 RecordSplitterConstants.RecordSplitter.valueOf(model.getRecordSplitter()),
-                false, // FIXME: 04/03/16 Should be removed once sequenceAnalysis has been removed from FlowBinderContent as it is no longer used.
                 model.getFlowModel().getId(),
                 getSubmitterIds(model.getSubmitterModels()),
                 model.getSinkModel().getId(),

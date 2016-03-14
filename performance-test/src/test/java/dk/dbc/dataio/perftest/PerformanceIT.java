@@ -307,7 +307,6 @@ public class PerformanceIT {
                 .setFormat(FORMAT)
                 .setCharset(ENCODING)
                 .setDestination(DESTINATION)
-                .setSequneceAnalysis(true)
                 .setFlowId(flow.getId())
                 .setSinkId(sink.getId())
                 .setSubmitterIds(Collections.singletonList(submitter.getId()))

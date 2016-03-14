@@ -191,12 +191,6 @@ public class FlowBinderModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_allInputFieldsSetAndSequenceAnalysisIsFalse_returnsFalse() {
-        FlowBinderModel model = getTestModel();
-        assertThat(model.isInputFieldsEmpty(), is(false));
-    }
-
-    @Test
     public void getDataioPatternMatches_validFlowBinderNameInput_returnsEmptyList() {
         FlowBinderModel model = getTestModel();
         model.setName("Valid flow binder name + 1_2_3");

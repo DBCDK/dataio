@@ -35,7 +35,6 @@ public class FlowBinderContentBuilder {
     private String charset = "flowbinder-charset";
     private String destination = "flowbinder-destination";
     private RecordSplitterConstants.RecordSplitter recordSplitter = RecordSplitterConstants.RecordSplitter.XML;
-    private boolean sequenceAnalysis = true;
     private long flowId = 47L;
     private List<Long> submitterIds = Collections.singletonList(78L);
     private long sinkId = 24L;
@@ -77,11 +76,6 @@ public class FlowBinderContentBuilder {
         return this;
     }
 
-    public FlowBinderContentBuilder setSequneceAnalysis(boolean sequenceAnalysis) {
-        this.sequenceAnalysis = sequenceAnalysis;
-        return this;
-    }
-
     public FlowBinderContentBuilder setFlowId(long flowId) {
         this.flowId = flowId;
         return this;
@@ -103,7 +97,7 @@ public class FlowBinderContentBuilder {
     }
 
     public FlowBinderContent build() {
-        return new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, sequenceAnalysis, flowId, submitterIds, sinkId, queueProvider);
+        return new FlowBinderContent(name, description, packaging, format, charset, destination, recordSplitter, flowId, submitterIds, sinkId, queueProvider);
     }
 
 }

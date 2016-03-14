@@ -100,7 +100,7 @@ public class FlowBinderModelMapperTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void toModel_validInputNoFlowIdInFlowBinderContent_throws() {
-        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setSequneceAnalysis(true).setFlowId(0L).setSubmitterIds(Collections.singletonList(4L)).setSinkId(5L).build();
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setFlowId(0L).setSubmitterIds(Collections.singletonList(4L)).setSinkId(5L).build();
         FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
 
         FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());
@@ -108,7 +108,7 @@ public class FlowBinderModelMapperTest {
 
     @Test(expected = NullPointerException.class)
     public void toModel_validInputNoSubmitterIdsInFlowBinderContent_throws() {
-        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setSequneceAnalysis(true).setFlowId(3L).setSubmitterIds(null).setSinkId(5L).build();
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setFlowId(3L).setSubmitterIds(null).setSinkId(5L).build();
         FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
 
         FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());
@@ -116,7 +116,7 @@ public class FlowBinderModelMapperTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void toModel_validInputNoSinkIdInFlowBinderContent_throws() {
-        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setSequneceAnalysis(true).setFlowId(3L).setSubmitterIds(Collections.singletonList(4L)).setSinkId(0L).build();
+        FlowBinderContent flowBinderContent = new FlowBinderContentBuilder().setFlowId(3L).setSubmitterIds(Collections.singletonList(4L)).setSinkId(0L).build();
         FlowBinder flowBinder = new FlowBinderBuilder().setContent(flowBinderContent).build();
 
         FlowBinderModelMapper.toModel(flowBinder, new FlowModel(), Collections.singletonList(new SubmitterModel()), new SinkModel());

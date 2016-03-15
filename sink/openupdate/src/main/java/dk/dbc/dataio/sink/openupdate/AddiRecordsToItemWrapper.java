@@ -68,6 +68,7 @@ public class AddiRecordsToItemWrapper {
 
     /**
      * calls the openupdate web service for all Addi records and concatenate all the result to a single result in the ChunkItem data part.
+     * @param queueProvider name of queue provider to be included in request
      * @return  returns the ChunkItem ready to store in JobStore.
      */
     public ChunkItem callOpenUpdateWebServiceForEachAddiRecord(String queueProvider) {

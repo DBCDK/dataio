@@ -52,11 +52,11 @@ import static org.mockito.Mockito.when;
 
 public class
 AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
-
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
     private final ChunkItem chunkItemWithValidAddiRecords = buildChunkItemWithMultipleValidAddiRecords();
+    private final String queueProvider = "queue";
 
     private final ChunkItem processedChunkItemValid = new ChunkItemBuilder()
             .setData(getAddi(getMetaXml(), getMarcExchangeValidatedOkByWebservice()))
@@ -90,7 +90,7 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
                 .thenReturn(getWebserviceResultValidatedOk());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
 
         // Verification
         assertNotNull(chunkItemForDelivery);
@@ -108,7 +108,7 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
                 .thenReturn(getWebserviceResultWithValidationErrors());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
 
         // Verification
         String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
@@ -128,7 +128,7 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
                 .thenThrow(new WebServiceException());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
 
         // Verification
         assertNotNull(chunkItemForDelivery);
@@ -145,7 +145,7 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
                 .thenReturn(getWebserviceResultValidatedOk());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord();
+        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
 
         // Verification
         assertNotNull(chunkItemForDelivery);

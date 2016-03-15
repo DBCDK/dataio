@@ -22,11 +22,15 @@
 package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraData;
+import dk.dbc.dataio.sink.openupdate.bindings.BibliographicRecordExtraDataMarshallerTest;
 import dk.dbc.dataio.sink.util.DocumentTransformer;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import org.junit.Test;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.transform.TransformerException;
 import java.nio.charset.StandardCharsets;
 
@@ -39,16 +43,18 @@ import static org.junit.Assert.fail;
 public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
+    private final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
+    private final String queueProvider = null;
 
     @Test(expected = NullPointerException.class)
     public void preprocess_addiArgIsNull_throws() {
-        addiRecordPreprocessor.preprocess(null);
+        addiRecordPreprocessor.preprocess(null, queueProvider);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void preprocess_addiArgIsInvalid_throws() {
         final AddiRecord addiRecord = toAddiRecord(getAddi("", getContentXml()));
-        addiRecordPreprocessor.preprocess(addiRecord);
+        addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
     }
 
     @Test
@@ -57,7 +63,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>");
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
         try {
-            addiRecordPreprocessor.preprocess(addiRecord);
+            addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
             fail();
         } catch (IllegalArgumentException e) {
             assertThat("Message contains: " + AddiRecordPreprocessor.ES_INFO_ELEMENT, e.getMessage().contains(AddiRecordPreprocessor.ES_INFO_ELEMENT), is(true));
@@ -71,7 +77,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
                 "<es:info submitter=\"870970\"/>");
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
         try {
-            addiRecordPreprocessor.preprocess(addiRecord);
+            addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
             fail();
         } catch (IllegalArgumentException e) {
             assertThat("Message contains: " + AddiRecordPreprocessor.UPDATE_TEMPLATE_ELEMENT, e.getMessage().contains(AddiRecordPreprocessor.UPDATE_TEMPLATE_ELEMENT), is(true));
@@ -81,10 +87,8 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Test
     public void preprocess_esInfoSubmitterAttributeFound_setsSubmitterToAttributeValue() {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
-
         // Subject under test
-        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
         // Verify
         assertThat("update value", result.getTemplate(), is(UPDATE_TEMPLATE_ATTRIBUTE_VALUE));
@@ -92,10 +96,8 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Test
     public void preprocess_updateTemplateAttributeFound_setsTemplateToAttributeValue() {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
-
         // Subject under test
-        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
         // Verify
         assertThat("submitter value", result.getSubmitter(), is(ES_INFO_SUBMITTER_ATTRIBUTE_VALUE));
@@ -110,7 +112,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
 
         // Subject under test
-        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
         // Verify
         assertThat("submitter is empty", result.getSubmitter(), is(""));
@@ -125,7 +127,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
 
         // Subject under test
-        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
         // Verify
         assertThat("template is empty", result.getTemplate(), is(""));
@@ -133,11 +135,8 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Test
     public void preprocess_contentIsValid_setsBibliographicalRecord() throws TransformerException {
-        final String contentXml = getContentXml();
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), contentXml));
-
         // Subject under test
-        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord);
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
         final BibliographicRecord bibliographicalRecord = result.getBibliographicRecord();
 
         // Verify
@@ -149,6 +148,23 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final Element element = (Element) bibliographicalRecord.getRecordData().getContent().get(0);
         final byte[] bibliographicalContent = documentTransformer.documentToByteArray(element.getOwnerDocument());
         final String bibliographicalContentXml = new String(bibliographicalContent, StandardCharsets.UTF_8);
-        assertThat("BibliographicalRecord content matches addi content", bibliographicalContentXml, isEquivalentTo(contentXml));
+        assertThat("BibliographicalRecord content matches addi content", bibliographicalContentXml, isEquivalentTo(getContentXml()));
+    }
+
+    @Test
+    public void preprocess_queueProviderIsNonNull_setsBibliographicalRecordExtraData() throws JAXBException {
+        final String queueProvider = "queue";
+
+        // Subject under test
+        final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
+        final BibliographicRecord bibliographicalRecord = result.getBibliographicRecord();
+
+        // Verify
+        assertThat("BibliographicRecord extraRecordData is non-empty", bibliographicalRecord.getExtraRecordData().getContent().size(), is(1));
+        final Document bibliographicRecordExtraDataDocument =
+                ((Element) bibliographicalRecord.getExtraRecordData().getContent().get(0)).getOwnerDocument();
+        final BibliographicRecordExtraData bibliographicRecordExtraData =
+                BibliographicRecordExtraDataMarshallerTest.unmarshall(bibliographicRecordExtraDataDocument);
+        assertThat(bibliographicRecordExtraData.getProviderName(), is(queueProvider));
     }
 }

@@ -79,7 +79,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                         processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
 
                 switch (processedChunkItem.getStatus()) {
-                    case SUCCESS: outcome.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord());
+                    case SUCCESS: outcome.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord(queueProvider));
                         break;
 
                     case FAILURE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
@@ -135,8 +135,7 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
                         flowBinder.getVersion(), flowBinder.getContent().getName());
                 cachedFlowBinders.put(flowBinderIdFromMessage, flowBinder);
             }
-            // TODO: 2/10/16 Wait for queueProvider accessor to be implemented in US#781
-            return flowBinder.getContent().getName();
+            return flowBinder.getContent().getQueueProvider();
         } catch (FlowStoreServiceConnectorException e) {
             throw new SinkException(e.getMessage(), e);
         }

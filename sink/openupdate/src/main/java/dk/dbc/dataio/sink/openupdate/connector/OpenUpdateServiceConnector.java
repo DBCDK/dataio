@@ -141,5 +141,4 @@ public class OpenUpdateServiceConnector {
 
         return proxy;
     }
-
 }

@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class AddiRecordsToItemWrapper {
-
     private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
+
     private StringBuilder crossAddiRecordsMessage = new StringBuilder();
     private AddiRecordPreprocessor addiRecordPreprocessor;
     private OpenUpdateServiceConnector openUpdateServiceConnector;
@@ -70,7 +70,7 @@ public class AddiRecordsToItemWrapper {
      * calls the openupdate web service for all Addi records and concatenate all the result to a single result in the ChunkItem data part.
      * @return  returns the ChunkItem ready to store in JobStore.
      */
-    public ChunkItem callOpenUpdateWebServiceForEachAddiRecord() {
+    public ChunkItem callOpenUpdateWebServiceForEachAddiRecord(String queueProvider) {
         addiRecordIndex = 1;
         final List<AddiRecord> addiRecordsForItem;
         try {
@@ -86,7 +86,7 @@ public class AddiRecordsToItemWrapper {
 
         final Optional<AddiStatus> failed = addiRecordsForItem.stream()
                 // retrieve the AddiStatus from each call to OpenUpdate
-                .map(addiRecord -> callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(addiRecord, addiRecordsForItem.indexOf(addiRecord)))
+                .map(addiRecord -> callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(addiRecord, addiRecordsForItem.indexOf(addiRecord), queueProvider))
                 // only collect the failed status'
                 .filter(addiStatus -> addiStatus == AddiStatus.FAILED_STACKTRACE || addiStatus == AddiStatus.FAILED_VALIDATION)
                 // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
@@ -105,10 +105,10 @@ public class AddiRecordsToItemWrapper {
      * Private methods
      */
 
-    private AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex) {
+    private AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex, String queueProvider) {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {
-            final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord);
+            final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
             final UpdateRecordResult webserviceResult = openUpdateServiceConnector.updateRecord(
                     preprocessorResult.getSubmitter(),

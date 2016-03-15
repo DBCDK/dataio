@@ -36,77 +36,78 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class AddiRecordsToItemWrapper {
+public class ChunkItemProcessor {
+    // TODO: 3/15/16 This class is a mess and needs to be refactored.
+
     private enum AddiStatus {OK, FAILED_STACKTRACE, FAILED_VALIDATION}
 
-    private StringBuilder crossAddiRecordsMessage = new StringBuilder();
-    private AddiRecordPreprocessor addiRecordPreprocessor;
-    private OpenUpdateServiceConnector openUpdateServiceConnector;
-    private ChunkItem processedChunkItem;
-    private UpdateRecordResultMarshaller updateRecordResultMarshaller;
+    private final AddiRecordPreprocessor addiRecordPreprocessor;
+    private final OpenUpdateServiceConnector openUpdateServiceConnector;
+    private final UpdateRecordResultMarshaller updateRecordResultMarshaller;
+    private final ChunkItem chunkItem;
 
     private int addiRecordIndex;
     private int totalNumberOfAddiRecords;
-    private List<Diagnostic> diagnostics = new ArrayList<>();
+    private List<Diagnostic> diagnostics;
+    private StringBuilder crossAddiRecordsMessage;
 
     /**
-     * @param processedChunkItem processed Chunk Item to copy values from
+     * @param chunkItem chunk item to be processed
      * @param addiRecordPreprocessor ADDI record pre-processor
      * @param openUpdateServiceConnector OpenUpdate webservice connector
      * @param updateRecordResultMarshaller updateRecordResultMarshaller
-     * @throws NullPointerException NullPointer thrown if arguments are null
+     * @throws NullPointerException if given null-valued argument
      */
-    public AddiRecordsToItemWrapper(ChunkItem processedChunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
-                                    OpenUpdateServiceConnector openUpdateServiceConnector,
-                                    UpdateRecordResultMarshaller updateRecordResultMarshaller) throws NullPointerException {
-
-        this.processedChunkItem = InvariantUtil.checkNotNullOrThrow(processedChunkItem, "processedChunkItem");
+    public ChunkItemProcessor(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor,
+                              OpenUpdateServiceConnector openUpdateServiceConnector,
+                              UpdateRecordResultMarshaller updateRecordResultMarshaller) throws NullPointerException {
+        this.chunkItem = InvariantUtil.checkNotNullOrThrow(chunkItem, "chunkItem");
         this.addiRecordPreprocessor = InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
         this.openUpdateServiceConnector = InvariantUtil.checkNotNullOrThrow(openUpdateServiceConnector, "openUpdateServiceConnector");
         this.updateRecordResultMarshaller = InvariantUtil.checkNotNullOrThrow(updateRecordResultMarshaller, "updateRecordResultMarshaller");
     }
 
     /**
-     * calls the openupdate web service for all Addi records and concatenate all the result to a single result in the ChunkItem data part.
+     * Calls the update web service for all ADDI records contained in this chunk item and combines
+     * the results to into a single result chunk item.
      * @param queueProvider name of queue provider to be included in request
-     * @return  returns the ChunkItem ready to store in JobStore.
+     * @return resulting chunk item
      */
-    public ChunkItem callOpenUpdateWebServiceForEachAddiRecord(String queueProvider) {
+    public ChunkItem processForQueueProvider(String queueProvider) {
         addiRecordIndex = 1;
+        diagnostics = new ArrayList<>();
+        crossAddiRecordsMessage = new StringBuilder();
+
         final List<AddiRecord> addiRecordsForItem;
         try {
-            addiRecordsForItem = AddiUtil.getAddiRecordsFromChunkItem(processedChunkItem);
+            addiRecordsForItem = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
             totalNumberOfAddiRecords = addiRecordsForItem.size();
         } catch (Throwable t) {
             return ObjectFactory.buildFailedChunkItem(
-                    processedChunkItem.getId(),
-                    "Failed when reading Addi records for processed ChunkItem: " + processedChunkItem.getId() + " -> " + StringUtil.getStackTraceString(t),
+                    chunkItem.getId(),
+                    "Failed when reading Addi records for processed ChunkItem: " + chunkItem.getId() + " -> " + StringUtil.getStackTraceString(t),
                     ChunkItem.Type.STRING,
-                    processedChunkItem.getTrackingId());
+                    chunkItem.getTrackingId());
         }
 
         final Optional<AddiStatus> failed = addiRecordsForItem.stream()
                 // retrieve the AddiStatus from each call to OpenUpdate
-                .map(addiRecord -> callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(addiRecord, addiRecordsForItem.indexOf(addiRecord), queueProvider))
+                .map(addiRecord -> callUpdateService(addiRecord, addiRecordsForItem.indexOf(addiRecord), queueProvider))
                 // only collect the failed status'
                 .filter(addiStatus -> addiStatus == AddiStatus.FAILED_STACKTRACE || addiStatus == AddiStatus.FAILED_VALIDATION)
                 // retrieve the first -> if a failed status exist the Optional object has a present object associated with it
                 .findFirst();
 
-        ChunkItem chunkItem = ObjectFactory.buildSuccessfulChunkItem(processedChunkItem.getId(),
-                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING, processedChunkItem.getTrackingId());
+        final ChunkItem result = ObjectFactory.buildSuccessfulChunkItem(chunkItem.getId(),
+                getItemContentCrossAddiRecords(), ChunkItem.Type.STRING, chunkItem.getTrackingId());
 
         if(failed.isPresent()) {
-            diagnostics.stream().forEach(chunkItem::appendDiagnostics);
+            diagnostics.stream().forEach(result::appendDiagnostics);
         }
-        return chunkItem;
+        return result;
     }
 
-    /*
-     * Private methods
-     */
-
-    private AddiStatus callOpenUpdateWebServiceForAddiRecordAndBuildItemContent(AddiRecord addiRecord, int addiRecordIndex, String queueProvider) {
+    private AddiStatus callUpdateService(AddiRecord addiRecord, int addiRecordIndex, String queueProvider) {
         this.addiRecordIndex = addiRecordIndex + 1;
         try {
             final AddiRecordPreprocessor.Result preprocessorResult = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
@@ -115,22 +116,21 @@ public class AddiRecordsToItemWrapper {
                     preprocessorResult.getSubmitter(),
                     preprocessorResult.getTemplate(),
                     preprocessorResult.getBibliographicRecord(),
-                    processedChunkItem.getTrackingId());
+                    chunkItem.getTrackingId());
 
-            if(webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
+            if (webserviceResult.getUpdateStatus() == UpdateStatusEnum.OK) {
                 crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.OK));
                 return AddiStatus.OK;
             }
-           else {
-                crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
-                crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));
 
-                UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
-                List<Diagnostic> errorDiagnostics = updateRecordErrorInterpreter.getDiagnostics(webserviceResult, addiRecord.getContentData());
-                diagnostics.addAll(errorDiagnostics);
+            crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_VALIDATION));
+            crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));
 
-                return AddiStatus.FAILED_VALIDATION;
-            }
+            final UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
+            diagnostics.addAll(updateRecordErrorInterpreter.getDiagnostics(webserviceResult, addiRecord.getContentData()));
+
+            return AddiStatus.FAILED_VALIDATION;
+
         } catch (Throwable t) {
             crossAddiRecordsMessage.append(getAddiRecordMessage(AddiStatus.FAILED_STACKTRACE));
             crossAddiRecordsMessage.append(StringUtil.getStackTraceString(t));
@@ -147,7 +147,7 @@ public class AddiRecordsToItemWrapper {
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {
         final String itemResultTemplate = "Addi record with trackingID %s : %s out of %s -> %s \\n";
-        return String.format(itemResultTemplate, processedChunkItem.getTrackingId(), addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
+        return String.format(itemResultTemplate, chunkItem.getTrackingId(), addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
     }
 
     private String getItemContentCrossAddiRecords() {

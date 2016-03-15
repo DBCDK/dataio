@@ -63,34 +63,34 @@ public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerB
     @Stopwatch
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException, NullPointerException {
-        final Chunk processedChunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Chunk received successfully. Chunk ID: " + processedChunk.getChunkId() + ", Job ID: " + processedChunk.getJobId());
+        final Chunk chunk = unmarshallPayload(consumedMessage);
+        LOGGER.info("Chunk received successfully. Chunk ID: " + chunk.getChunkId() + ", Job ID: " + chunk.getJobId());
 
         final String queueProvider = getQueueProvider(consumedMessage);
         LOGGER.debug("Using queue-provider {}", queueProvider);
 
-        final Chunk outcome = buildOutcomeFromProcessedChunk(processedChunk);
+        final Chunk outcome = buildOutcomeFromProcessedChunk(chunk);
         try {
-            for (ChunkItem processedChunkItem : processedChunk) {
-                DBCTrackedLogContext.setTrackingId(processedChunkItem.getTrackingId());
-                LOGGER.info("Handling item {} for chunk {} in job {}", processedChunkItem.getId(), processedChunk.getChunkId(), processedChunk.getJobId());
+            for (ChunkItem chunkItem : chunk) {
+                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                LOGGER.info("Handling item {} for chunk {} in job {}", chunkItem.getId(), chunk.getChunkId(), chunk.getJobId());
                 final OpenUpdateServiceConnector openUpdateServiceConnector = openUpdateConfigBean.getConnector(consumedMessage);
-                final AddiRecordsToItemWrapper addiRecordsToItemWrapper = new AddiRecordsToItemWrapper(
-                        processedChunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
+                final ChunkItemProcessor chunkItemProcessor = new ChunkItemProcessor(
+                        chunkItem, addiRecordPreprocessor, openUpdateServiceConnector, updateRecordResultMarshaller);
 
-                switch (processedChunkItem.getStatus()) {
-                    case SUCCESS: outcome.insertItem(addiRecordsToItemWrapper.callOpenUpdateWebServiceForEachAddiRecord(queueProvider));
+                switch (chunkItem.getStatus()) {
+                    case SUCCESS: outcome.insertItem(chunkItemProcessor.processForQueueProvider(queueProvider));
                         break;
 
                     case FAILURE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
-                            processedChunkItem.getId(), "Failed by processor", processedChunkItem.getTrackingId()));
+                            chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId()));
                         break;
 
                     case IGNORE: outcome.insertItem(ObjectFactory.buildIgnoredChunkItem(
-                            processedChunkItem.getId(), "Ignored by processor", processedChunkItem.getTrackingId()));
+                            chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId()));
                         break;
 
-                    default: throw new SinkException("Unknown chunk item state: " + processedChunkItem.getStatus().name());
+                    default: throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
                 }
             }
         } finally {

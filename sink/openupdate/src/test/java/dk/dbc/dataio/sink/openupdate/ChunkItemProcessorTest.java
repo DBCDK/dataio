@@ -50,8 +50,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class
-AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
+public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
@@ -65,32 +64,32 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordsForItemArgIsNull_throws() {
-        new AddiRecordsToItemWrapper(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+        new ChunkItemProcessor(null, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordPreprocessorArgIsNull_throws() {
-        new AddiRecordsToItemWrapper(processedChunkItemValid, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+        new ChunkItemProcessor(processedChunkItemValid, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_openUpdateServiceConnectorArgIsNull_throws() {
-        new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, null, updateRecordResultMarshaller);
+        new ChunkItemProcessor(processedChunkItemValid, addiRecordPreprocessor, null, updateRecordResultMarshaller);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_updateRecordResultMarshallerArgIsNull_throws() {
-        new AddiRecordsToItemWrapper(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null);
+        new ChunkItemProcessor(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null);
     }
 
     @Test
-    public void callOpenUpdateWebServiceForEachAddiRecord_OK() throws JAXBException {
+    public void processForQueueProvider_OK() throws JAXBException {
         // Expectations
         when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
                 .thenReturn(getWebserviceResultValidatedOk());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
+        final ChunkItem chunkItemForDelivery = newChunkItemProcessor().processForQueueProvider(queueProvider);
 
         // Verification
         assertNotNull(chunkItemForDelivery);
@@ -102,13 +101,13 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void callOpenUpdateWebServiceForEachAddiRecord_validationError() throws JAXBException {
+    public void processForQueueProvider_validationError() throws JAXBException {
         // Expectations
         when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
                 .thenReturn(getWebserviceResultWithValidationErrors());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
+        final ChunkItem chunkItemForDelivery = newChunkItemProcessor().processForQueueProvider(queueProvider);
 
         // Verification
         String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
@@ -122,13 +121,13 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void callOpenUpdateWebServiceForEachAddiRecord_stackTrace() throws JAXBException {
+    public void processForQueueProvider_stackTrace() throws JAXBException {
         // Expectations
         when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
                 .thenThrow(new WebServiceException());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
+        final ChunkItem chunkItemForDelivery = newChunkItemProcessor().processForQueueProvider(queueProvider);
 
         // Verification
         assertNotNull(chunkItemForDelivery);
@@ -139,13 +138,13 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     @Test
-    public void callOpenUpdateWebServiceForEachAddiRecordWithMultipleAddiRecords_OK() throws JAXBException {
+    public void processForQueueProvider_chunkItemContainsMultipleAddiRecords_OK() throws JAXBException {
         // Expectations
         when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
                 .thenReturn(getWebserviceResultValidatedOk());
 
         // Subject Under Test
-        final ChunkItem chunkItemForDelivery = newAddiRecordsToItemWrapper().callOpenUpdateWebServiceForEachAddiRecord(queueProvider);
+        final ChunkItem chunkItemForDelivery = newChunkItemProcessor().processForQueueProvider(queueProvider);
 
         // Verification
         assertNotNull(chunkItemForDelivery);
@@ -161,8 +160,8 @@ AddiRecordsToItemWrapperTest extends AbstractOpenUpdateSinkTestBase {
      * Private methods
      */
 
-    private AddiRecordsToItemWrapper newAddiRecordsToItemWrapper() {
-        return new AddiRecordsToItemWrapper(
+    private ChunkItemProcessor newChunkItemProcessor() {
+        return new ChunkItemProcessor(
                 chunkItemWithValidAddiRecords,
                 addiRecordPreprocessor,
                 mockedOpenUpdateServiceConnector,

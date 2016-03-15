@@ -37,7 +37,6 @@ import dk.dbc.marc.Iso2709Unpacker;
 import dk.dbc.marc.binding.MarcRecord;
 import dk.dbc.marc.reader.MarcReaderException;
 import dk.dbc.marc.reader.MarcReaderInvalidRecordException;
-import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcWriter;
 import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
@@ -45,15 +44,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
@@ -72,7 +68,6 @@ public class Iso2709DataPartitioner implements DataPartitioner {
     private String specifiedEncoding;
 
     private DanMarc2Charset danMarc2Charset;
-    private DocumentBuilderFactory documentBuilderFactory;
 
     /**
      * Creates new instance of default Iso2709 DataPartitioner
@@ -95,7 +90,6 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         this.specifiedEncoding = specifiedEncoding;
         validateSpecifiedEncoding();
         danMarc2Charset = new DanMarc2Charset();
-        documentBuilderFactory = DocumentBuilderFactory.newInstance();
         marcWriter = new MarcXchangeV1Writer();
         marcRecordInfoBuilder = new MarcRecordInfoBuilder();
 
@@ -268,50 +262,14 @@ public class Iso2709DataPartitioner implements DataPartitioner {
      * @return marc record or null if a document could not be created
      * @throws MarcReaderException if an error occurs while creating parser
      *
-     * @throws InvalidDataException if transformer instance could not be created or if an unrecoverable error occurred
-     *         during the course of the transformation.
+     * @throws Iso2709IteratorReadError if any error occurs while decoding 2709
      */
     private MarcRecord getMarcRecord(byte[] recordAsBytes) throws MarcReaderException, InvalidDataException, Iso2709IteratorReadError {
         try {
-            Document marcXChangeRecordAsDocument = getMarcXChangeRecordAsDocument(recordAsBytes);
-            if (marcXChangeRecordAsDocument != null) {
-                MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(documentToString(marcXChangeRecordAsDocument).getBytes(encoding)), encoding);
-                return marcReader.read();
-            }
-            return null;
-        } catch (TransformerException e) {
-            LOGGER.error("Unrecoverable error occurred during transformation", e);
-            throw new InvalidDataException(e);
-        }
-    }
-
-    /**
-     * This method converts a byte array representation of the record into a document representation of the record.
-     * Any error thrown (excluding ParserConfigurationException), is interpreted as invalid iso.
-     * @param recordAsBytes byte array representation of the record
-     * @return document representation of the marcXChangeRecord
-     *
-     * @throws InvalidDataException id a documentBuilder could not be created satisfying the configuration requested.
-     * @throws Iso2709IteratorReadError if any error occurs while decoding 2709
-     */
-    private Document getMarcXChangeRecordAsDocument(byte[] recordAsBytes) throws InvalidDataException, Iso2709IteratorReadError {
-        try {
-            return Iso2709Unpacker.createMarcXChangeRecord(recordAsBytes, danMarc2Charset, documentBuilderFactory);
-        } catch (ParserConfigurationException e) {
-             LOGGER.error("Exception caught while creating MarcXChange Record", e);
-            throw new InvalidDataException(e);
+            return Iso2709Unpacker.createMarcRecord(recordAsBytes, danMarc2Charset);
         } catch (Exception e) {
             throw new Iso2709IteratorReadError("Exception caught while decoding 2709");
         }
-    }
-
-    /**
-     * This method wraps a byte array in a buffered input stream
-     * @param data the byte array
-     * @return bufferedInputStream
-     */
-    private BufferedInputStream getInputStream(byte[] data) {
-        return new BufferedInputStream(new ByteArrayInputStream(data));
     }
 
     /**

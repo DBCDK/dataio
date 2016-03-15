@@ -39,9 +39,9 @@ public class Attachment {
     private final String contentType;
     private final String fileName;
 
-    public Attachment(byte[] content, String fileNameExtension) {
+    public Attachment(byte[] content, String packaging) {
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
-        this.fileNameExtension = decipherFileNameExtension(fileNameExtension);
+        this.fileNameExtension = decipherFileNameExtension(packaging);
         this.contentType = String.format("application/octet-stream; charset=%s", decipherEncoding());
         this.fileName = String.format("fejl_i_poststruktur.%s", fileNameExtension);
     }
@@ -79,12 +79,13 @@ public class Attachment {
     }
 
     /**
-     * Since windows translates .iso to an ISO Image, the given file name extension (if iso) is replaced with iso2709
-     * @param fileNameExtension the given file name extension
+     * Since windows translates .iso to an ISO Image, the given packaging (if iso) is translated to file
+     * name extension: iso2709.
+     * @param packaging (iso or lin)
      * @return file name extension (lin or iso2709)
      */
-    private String decipherFileNameExtension(String fileNameExtension) {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(fileNameExtension, "fileNameExtension");
-        return fileNameExtension.equals("iso") ? ISO2709 : fileNameExtension;
+    private String decipherFileNameExtension(String packaging) {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "fileNameExtension");
+        return packaging.equals("iso") ? ISO2709 : packaging;
     }
 }

@@ -42,16 +42,9 @@ import dk.dbc.marc.writer.MarcWriterException;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
@@ -272,20 +265,4 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         }
     }
 
-    /**
-     *
-     * This method converts a document to a String
-     * @param document the document to convert
-     * @return String representation of the document
-     *
-     * @throws TransformerException if it was not possible to create a Transformer instance or
-     *         if an unrecoverable error occurs during the course of the transformation.
-     */
-    private String documentToString(Document document) throws TransformerException {
-        DOMSource domSource = new DOMSource(document);
-        StreamResult result = new StreamResult(new StringWriter());
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
-        transformer.transform(domSource, result);
-        return result.getWriter().toString();
-    }
 }

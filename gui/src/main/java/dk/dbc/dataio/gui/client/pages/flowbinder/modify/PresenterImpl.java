@@ -357,7 +357,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             getView().flow.addAvailableItem(model.getFlowName(), Long.toString(model.getId()));
         }
         getView().flow.setEnabled(true);
-        flowChanged(getView().flow.getSelectedKey());
     }
 
     protected void setAvailableSinks(List<SinkModel> models) {
@@ -367,7 +366,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             getView().sink.addAvailableItem(model.getSinkName(), Long.toString(model.getId()));
         }
         getView().sink.setEnabled(true);
-        sinkChanged(getView().sink.getSelectedKey());
     }
 
     protected void setAvailableRecordSplitters() {

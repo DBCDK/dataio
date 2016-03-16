@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.types.DataContainer;
@@ -75,6 +76,8 @@ public class HarvestOperation {
     }
 
     public int execute() throws HarvesterException {
+        final StopWatch stopWatch = new StopWatch();
+
         int itemsHarvested = 0;
         QueueJob nextQueuedItem = getNextQueuedItem();
         while (nextQueuedItem != null) {
@@ -98,7 +101,10 @@ public class HarvestOperation {
             nextQueuedItem = getNextQueuedItem();
         }
         flushHarvesterJobBuilders();
-        LOGGER.info("Harvested {} items from {} queue", itemsHarvested, config.getConsumerId());
+
+        LOGGER.info("Harvested {} items from {} queue in {} ms",
+                itemsHarvested, config.getConsumerId(), stopWatch.getElapsedTime());
+
         return itemsHarvested;
     }
 

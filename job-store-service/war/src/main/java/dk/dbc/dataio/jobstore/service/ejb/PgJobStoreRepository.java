@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
@@ -52,6 +53,7 @@ import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.profiler.Profiler;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -68,8 +70,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 
 /**
  * Created by ThomasBerg @LundOgBendsen on 02/09/15.
@@ -369,27 +369,40 @@ public class PgJobStoreRepository extends RepositoryBase {
      */
     @Stopwatch
     public Chunk getChunk(Chunk.Type type, int jobId, int chunkId) throws NullPointerException {
-        final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
-        final ItemListCriteria criteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
-                .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
+        final Profiler profiler=new Profiler("pgJobStoreReposiutory.getChunk");
+        try {
+            final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
+            final ItemListCriteria criteria = new ItemListCriteria()
+                    .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId))
+                    .and(new ListFilter<>(ItemListCriteria.Field.CHUNK_ID, ListFilter.Op.EQUAL, chunkId))
+                    .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
-        final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
-        if (itemEntities.size() > 0) {
-            final Chunk chunk = new Chunk(jobId, chunkId, type);
-            for (ItemEntity itemEntity : itemEntities) {
-                if (PROCESSED == type) {
-                    // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
-                    chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
-                } else {
-                    chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
+            profiler.start("execute Query");
+            final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
+            if (itemEntities.size() > 0) {
+                Profiler nestedProfiler=profiler.startNested("loop items");
+                final Chunk chunk = new Chunk(jobId, chunkId, type);
+                int i=0;
+                for (ItemEntity itemEntity : itemEntities) {
+                    if (PROCESSED == type) {
+                        nestedProfiler.start("Get ProcessintOutcome + nextProcessingOutComme : "+ i);
+                        // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
+                        chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
+                        nestedProfiler.stop();
+                    } else {
+                        nestedProfiler.start("getChunkItemForPhase " + i);
+                        chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
+                        nestedProfiler.stop();
+                    }
+                    ++i;
                 }
+                chunk.setEncoding(StandardCharsets.UTF_8); // TODO: 15/01/16 This is a temporary solution that should be removed once encoding is removed from Chunk
+                return chunk;
             }
-            chunk.setEncoding(StandardCharsets.UTF_8); // TODO: 15/01/16 This is a temporary solution that should be removed once encoding is removed from Chunk
-            return chunk;
+            return null;
+        } finally {
+            LOGGER.info("pgJobStoreReposiutory.getChunk timings:\n"+profiler.toString());
         }
-        return null;
     }
 
     @Stopwatch

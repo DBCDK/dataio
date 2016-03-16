@@ -85,7 +85,7 @@ public class Attachment {
      * @return file name extension (lin or iso2709)
      */
     private String decipherFileNameExtension(String packaging) {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "fileNameExtension");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         return packaging.equals("iso") ? ISO2709 : packaging;
     }
 }

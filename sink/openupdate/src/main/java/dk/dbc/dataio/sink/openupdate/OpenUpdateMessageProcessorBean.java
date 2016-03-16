@@ -51,13 +51,12 @@ import javax.ejb.MessageDriven;
 public class OpenUpdateMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateMessageProcessorBean.class);
 
-    private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
-    private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
-
     @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB OpenUpdateConfigBean openUpdateConfigBean;
 
+    AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
+    UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
     Cache<Long, FlowBinder> cachedFlowBinders = CacheManager.createLRUCache(Long.class, FlowBinder.class, 10);
 
     @Stopwatch

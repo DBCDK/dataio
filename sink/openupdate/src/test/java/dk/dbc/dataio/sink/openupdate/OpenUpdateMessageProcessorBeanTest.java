@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
@@ -28,6 +29,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.FlowBinder;
+import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -36,13 +38,16 @@ import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +58,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -66,17 +72,24 @@ public class OpenUpdateMessageProcessorBeanTest {
     private final JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     private final OpenUpdateConfigBean openUpdateConfigBean = mock(OpenUpdateConfigBean.class);
     private final OpenUpdateServiceConnector openUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
+    private final AddiRecordPreprocessor addiRecordPreprocessor = Mockito.spy(new AddiRecordPreprocessor());
 
     private final JSONBContext jsonbContext = new JSONBContext();
+    private final String queueProvider = "queue";
+    private final FlowBinderContent flowBinderContent = new FlowBinderContentBuilder()
+            .setQueueProvider(queueProvider)
+            .build();
     private final FlowBinder flowBinder = new FlowBinderBuilder()
             .setId(42)
             .setVersion(10)
+            .setContent(flowBinderContent)
             .build();
     private final OpenUpdateMessageProcessorBean openUpdateMessageProcessorBean = new OpenUpdateMessageProcessorBean();
     {
         openUpdateMessageProcessorBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         openUpdateMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         openUpdateMessageProcessorBean.openUpdateConfigBean = openUpdateConfigBean;
+        openUpdateMessageProcessorBean.addiRecordPreprocessor = addiRecordPreprocessor;
     }
 
     @Before
@@ -129,6 +142,20 @@ public class OpenUpdateMessageProcessorBeanTest {
         verify(flowStoreServiceConnector, times(1)).getFlowBinder(flowBinder.getId());
     }
 
+    @Test
+    public void handleConsumedMessage_callsAddiRecordPreprocessorWithQueueProvider() throws InvalidMessageException, SinkException {
+        openUpdateMessageProcessorBean.handleConsumedMessage(
+                getConsumedMessageForChunk(
+                        new ChunkBuilder(Chunk.Type.PROCESSED)
+                                .setItems(Collections.singletonList(
+                                        new ChunkItemBuilder()
+                                                .setData(getValidAddi("addi content"))
+                                                .build()))
+                                .build()));
+
+        verify(addiRecordPreprocessor).preprocess(any(AddiRecord.class), eq(queueProvider));
+    }
+
     private ConsumedMessage getConsumedMessageForChunk(Chunk chunk) {
         try {
             final Map<String, Object> headers = new HashMap<>();
@@ -147,5 +174,14 @@ public class OpenUpdateMessageProcessorBeanTest {
                 .setItems(Collections.singletonList(
                         new ChunkItemBuilder().setStatus(ChunkItem.Status.IGNORE).build()))
                 .build();
+    }
+
+    public static byte[] getValidAddi(String... content) {
+        final StringBuilder addi = new StringBuilder();
+        for (String s : content) {
+            addi.append(String.format("19\n<es:referencedata/>\n%d\n%s\n",
+                    s.getBytes(StandardCharsets.UTF_8).length, s));
+        }
+        return addi.toString().getBytes(StandardCharsets.UTF_8);
     }
 }

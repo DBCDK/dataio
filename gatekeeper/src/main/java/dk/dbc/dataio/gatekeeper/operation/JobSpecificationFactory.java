@@ -41,7 +41,10 @@ public class JobSpecificationFactory {
 
     /**
      * Creates job specification from given transfile line using
-     * "missing value" placeholders for missing field values
+     * "missing value" placeholders for missing field values. In case destination
+     * is {@value #DESTINATION_DANBIB} missing values for packaging and/or
+     * encoding fields will be set to {@value PACKAGING_DANBIB_DEFAULT} and
+     * {@value ENCODING_DANBIB_DEFAULT} respectively.
      * @param line transfile line to convert into job specification
      * @param transfileName name of parent transfile
      * @param fileStoreId file-store service ID of data file referenced in transfile line

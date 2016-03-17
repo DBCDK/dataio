@@ -147,6 +147,110 @@ public class JobSpecificationFactoryTest {
     }
 
     @Test
+    public void createJobSpecification_destinationDanbibWithMissingPackagingAndEncoding_usesDefaults() {
+        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
+                .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
+                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
+                .setCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
+                .setFormat(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
+                .setType(JobSpecification.Type.PERSISTENT)
+                .setAncestry(
+                        new JobSpecificationBuilder.AncestryBuilder()
+                                .setTransfile(transfileName)
+                                .setDatafile(Constants.MISSING_FIELD_VALUE)
+                                .build()
+                )
+                .build();
+        final JobSpecification jobSpecification = JobSpecificationFactory
+                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42");
+
+        assertThat(jobSpecification, is(jobSpecificationTemplate));
+    }
+
+    @Test
+    public void createJobSpecification_destinationDanbibWithMissingPackaging_usesDefault() {
+        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
+                .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
+                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
+                .setCharset("utf8")
+                .setFormat(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
+                .setType(JobSpecification.Type.PERSISTENT)
+                .setAncestry(
+                        new JobSpecificationBuilder.AncestryBuilder()
+                                .setTransfile(transfileName)
+                                .setDatafile(Constants.MISSING_FIELD_VALUE)
+                                .build()
+                )
+                .build();
+        final JobSpecification jobSpecification = JobSpecificationFactory
+                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=,c=utf8,o=,m=,M=,i="), transfileName, "42");
+
+        assertThat(jobSpecification, is(jobSpecificationTemplate));
+    }
+
+    @Test
+    public void createJobSpecification_destinationDanbibWithMissingEncoding_usesDefault() {
+        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
+                .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
+                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setPackaging("lin")
+                .setCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
+                .setFormat(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
+                .setType(JobSpecification.Type.PERSISTENT)
+                .setAncestry(
+                        new JobSpecificationBuilder.AncestryBuilder()
+                                .setTransfile(transfileName)
+                                .setDatafile(Constants.MISSING_FIELD_VALUE)
+                                .build()
+                )
+                .build();
+        final JobSpecification jobSpecification = JobSpecificationFactory
+                .createJobSpecification(new TransFile.Line("b=danbib,f=,t=lin,c=,o=,m=,M=,i="), transfileName, "42");
+
+        assertThat(jobSpecification, is(jobSpecificationTemplate));
+    }
+
+    @Test
+    public void createJobSpecification_nonDanbibDestination_noDefaultsUsed() {
+        final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
+                .setDestination("not_danbib")
+                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setPackaging(Constants.MISSING_FIELD_VALUE)
+                .setCharset(Constants.MISSING_FIELD_VALUE)
+                .setFormat(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutVerification(Constants.MISSING_FIELD_VALUE)
+                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
+                .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
+                .setDataFile(Constants.MISSING_FIELD_VALUE)
+                .setType(JobSpecification.Type.PERSISTENT)
+                .setAncestry(
+                        new JobSpecificationBuilder.AncestryBuilder()
+                                .setTransfile(transfileName)
+                                .setDatafile(Constants.MISSING_FIELD_VALUE)
+                                .build()
+                )
+                .build();
+        final JobSpecification jobSpecification = JobSpecificationFactory
+                .createJobSpecification(new TransFile.Line("b=not_danbib,f=,t=,c=,o=,m=,M=,i="), transfileName, "42");
+
+        assertThat(jobSpecification, is(jobSpecificationTemplate));
+    }
+
+    @Test
     public void createJobSpecification_fileFieldSubstringOutOfBounds_mapsToMissingField() {
         final JobSpecification jobSpecification = JobSpecificationFactory
                 .createJobSpecification(new TransFile.Line("f=123"), transfileName, "42");

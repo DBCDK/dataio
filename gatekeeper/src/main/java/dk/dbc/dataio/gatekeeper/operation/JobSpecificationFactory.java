@@ -33,6 +33,10 @@ import java.net.URISyntaxException;
  * Factory class for the creation of job specifications from trans file entries
  */
 public class JobSpecificationFactory {
+    public static final String DESTINATION_DANBIB = "danbib";
+    public static final String PACKAGING_DANBIB_DEFAULT = "iso";
+    public static final String ENCODING_DANBIB_DEFAULT = "latin-1";
+
     private JobSpecificationFactory() {}
 
     /**
@@ -50,44 +54,53 @@ public class JobSpecificationFactory {
         InvariantUtil.checkNotNullOrThrow(line, "line");
         InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileStoreId, "fileStoreId");
-        return new JobSpecification(
-                getFieldValueOrMissing(line, "t"),
-                getFieldValueOrMissing(line, "o"),
-                getFieldValueOrMissing(line, "c"),
-                getFieldValueOrMissing(line, "b"),
+
+        final String destination = getFieldValue(line, "b", Constants.MISSING_FIELD_VALUE);
+
+        String defaultPackaging = Constants.MISSING_FIELD_VALUE;
+        String defaultEncoding = Constants.MISSING_FIELD_VALUE;
+        if (DESTINATION_DANBIB.equals(destination)) {
+            defaultPackaging = PACKAGING_DANBIB_DEFAULT;
+            defaultEncoding = ENCODING_DANBIB_DEFAULT;
+        }
+
+        final String packaging = getFieldValue(line, "t", defaultPackaging);
+        final String format = getFieldValue(line, "o", Constants.MISSING_FIELD_VALUE);
+        final String encoding = getFieldValue(line, "c", defaultEncoding);
+
+        return new JobSpecification(packaging, format, encoding, destination,
                 getSubmitterIdOrMissing(line),
-                getFieldValueOrMissing(line, "m"),
-                getFieldValueOrMissing(line, "M"),
-                getFieldValueOrMissing(line, "i"),
+                getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE),
+                getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE),
+                getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE),
                 getFileStoreUrnOrMissing(line, fileStoreId),
                 JobSpecification.Type.PERSISTENT,
                 getAncestry(transfileName, line));
     }
 
     public static long getSubmitterIdOrMissing(TransFile.Line line) {
-        final String fieldValue = getFieldValueOrMissing(line, "f");
+        final String fieldValue = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
         try {
             final String submitter = fieldValue.substring(0, 6);
-            return Long.valueOf(submitter);
+            return Long.parseLong(submitter);
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
     }
 
-    private static String getFieldValueOrMissing(TransFile.Line line, String fieldName) {
+    private static String getFieldValue(TransFile.Line line, String fieldName, String defaultValue) {
         final String fieldValue = line.getField(fieldName);
         if (fieldValue == null || fieldValue.trim().isEmpty()) {
-            return Constants.MISSING_FIELD_VALUE;
+            return defaultValue;
         }
         return fieldValue;
     }
 
-    private static String getFileStoreUrnOrMissing(TransFile.Line line, String fileStoreId)
-            throws IllegalArgumentException {
-        final String fieldValue = getFieldValueOrMissing(line, "f");
+    private static String getFileStoreUrnOrMissing(TransFile.Line line, String fileStoreId) throws IllegalArgumentException {
+        final String fieldValue = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
             return Constants.MISSING_FIELD_VALUE;
         }
@@ -102,7 +115,7 @@ public class JobSpecificationFactory {
     }
 
     private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line) {
-        final String datafileName = getFieldValueOrMissing(line, "f");
+        final String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         final String batchId = getBatchId(datafileName);
         return new JobSpecification.Ancestry(transfileName, datafileName, batchId);
     }

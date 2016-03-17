@@ -36,10 +36,14 @@ import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RelationHints;
+import dk.dbc.rawrepo.RelationHintsOpenAgency;
+import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -265,6 +269,7 @@ public class HarvestOperation {
         if (openAgencyTarget == null) {
             throw new IllegalArgumentException("No OpenAgency target configured");
         }
+
         final OpenAgencyServiceFromURL openAgencyService;
         if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
             openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl());
@@ -276,7 +281,11 @@ public class HarvestOperation {
                                             openAgencyTarget.getPassword())
                                     .build(openAgencyTarget.getUrl());
         }
-        return new RawRepoConnector(config.getResource(), openAgencyService);
+
+        final AgencySearchOrder agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyService);
+        final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
+
+        return new RawRepoConnector(config.getResource(), agencySearchOrder, relationHints);
     }
 
     private DocumentBuilder getDocumentBuilder() {

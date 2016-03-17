@@ -24,12 +24,13 @@ package dk.dbc.dataio.harvester.utils.rawrepo;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RelationHints;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,7 +55,8 @@ public class RawRepoConnectorTest {
 
     private final DataSource dataSource = mock(DataSource.class);
     private final RawRepoDAO rawRepoDAO = mock(RawRepoDAO.class);
-    private final OpenAgencyServiceFromURL agencyService = mock(OpenAgencyServiceFromURL.class);
+    private final AgencySearchOrder agencySearchOrder = mock(AgencySearchOrder.class);
+    private final RelationHints relationHints = mock(RelationHints.class);
 
     @BeforeClass
     public static void setupClass() {
@@ -69,28 +71,33 @@ public class RawRepoConnectorTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_dataSourceResourceNameIsNull_throws() {
-        new RawRepoConnector(null, agencyService);
+        new RawRepoConnector(null, agencySearchOrder, relationHints);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_dataSourceResourceNameIsEmpty_throws() {
-        new RawRepoConnector("", agencyService);
+        new RawRepoConnector("", agencySearchOrder, relationHints);
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupThrowsNamingException_throws() {
-        new RawRepoConnector("noSuchResource", agencyService);
+        new RawRepoConnector("noSuchResource", agencySearchOrder, relationHints);
     }
 
     @Test(expected = IllegalStateException.class)
     public void constructor_dataSourceResourceNameLookupReturnsNonDataSourceObject_throws() {
         InMemoryInitialContextFactory.bind(DATA_SOURCE_RESOURCE_NAME, "notDataSource");
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencyService);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder, relationHints);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_agencySearchOrderIsNull_throws() {
-        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null);
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, null, relationHints);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_relationalHintsIsNull_throws() {
+        new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder, null);
     }
 
     @Test
@@ -192,6 +199,6 @@ public class RawRepoConnectorTest {
     }
 
     private RawRepoConnector getRawRepoConnector() {
-        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencyService);
+        return new RawRepoConnector(DATA_SOURCE_RESOURCE_NAME, agencySearchOrder, relationHints);
     }
 }

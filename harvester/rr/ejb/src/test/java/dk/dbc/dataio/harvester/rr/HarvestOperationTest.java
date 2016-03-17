@@ -352,7 +352,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getRawRepoConnector_openAgencyTargetIsConfigured_configuresOpenAgencyServiceFromUrl() throws MalformedURLException {
+    public void getRawRepoConnector_openAgencyTargetIsConfigured_configuresAgencySearchOrder() throws MalformedURLException {
         try {
             final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
             openAgencyTarget.setUrl("http://test.dbc.dk/oa");
@@ -363,7 +363,8 @@ public class HarvestOperationTest {
 
             final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);
             final RawRepoConnector rawRepoConnector = harvestOperation.getRawRepoConnector(config);
-            assertThat(rawRepoConnector.getAgencyService(), is(notNullValue()));
+            assertThat(rawRepoConnector.getAgencySearchOrder(), is(notNullValue()));
+            assertThat(rawRepoConnector.getRelationHints(), is(notNullValue()));
         } finally {
             InMemoryInitialContextFactory.clear();
         }

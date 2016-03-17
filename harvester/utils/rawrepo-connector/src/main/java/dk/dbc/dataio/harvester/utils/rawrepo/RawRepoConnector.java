@@ -25,12 +25,13 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.marcxmerge.MarcXMerger;
 import dk.dbc.marcxmerge.MarcXMergerException;
-import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
+import dk.dbc.rawrepo.AgencySearchOrder;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoDAO;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
+import dk.dbc.rawrepo.RelationHints;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 /**
  * This class facilitates access to the RawRepo through data source
@@ -51,13 +51,22 @@ public class RawRepoConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(RawRepoConnector.class);
 
     private final DataSource dataSource;
-    private final OpenAgencyServiceFromURL agencyService;
-    private final ExecutorService agencyServiceExecutor = null;
+    private final AgencySearchOrder agencySearchOrder;
+    private final RelationHints relationHints;
 
-    public RawRepoConnector(String dataSourceResourceName, OpenAgencyServiceFromURL agencyService)
+    // This class is NOT thread safe.
+    private final MarcXMerger marcXMerger;
+
+    public RawRepoConnector(String dataSourceResourceName, AgencySearchOrder agencySearchOrder, RelationHints relationHints)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         dataSource = lookupDataSource(dataSourceResourceName);
-        this.agencyService = InvariantUtil.checkNotNullOrThrow(agencyService, "agencyService");
+        this.agencySearchOrder = InvariantUtil.checkNotNullOrThrow(agencySearchOrder, "agencySearchOrder");
+        this.relationHints = InvariantUtil.checkNotNullOrThrow(relationHints, "relationHints");
+        try {
+            this.marcXMerger = new MarcXMerger();
+        } catch (MarcXMergerException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public Record fetchRecord(RecordId id) throws NullPointerException, SQLException, RawRepoException {
@@ -65,8 +74,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.builder(connection).openAgency(agencyService, agencyServiceExecutor).build()
-                        .fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
+                return getRawRepoDAO(connection).fetchRecord(id.getBibliographicRecordId(), id.getAgencyId());
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -79,9 +87,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return getStringRecordMap(id, RawRepoDAO.builder(connection)
-                        .openAgency(agencyService, agencyServiceExecutor)
-                        .build());
+                return getStringRecordMap(id, getRawRepoDAO(connection));
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -89,10 +95,6 @@ public class RawRepoConnector {
     }
 
     Map<String, Record> getStringRecordMap(RecordId id, RawRepoDAO rawRepoDAO) throws RawRepoException, MarcXMergerException {
-        // This new'ing is expensive but I don't trust reuse due to
-        // internal Transformer and DocumentBuilder
-        final MarcXMerger marcXMerger = new MarcXMerger();
-
         final String bibliographicRecordId = id.getBibliographicRecordId();
         final int agencyId = id.getAgencyId();
 
@@ -114,8 +116,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                return RawRepoDAO.builder(connection).openAgency(agencyService, agencyServiceExecutor).build()
-                        .dequeue(consumerId);
+                return getRawRepoDAO(connection).dequeue(consumerId);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -129,8 +130,7 @@ public class RawRepoConnector {
         try (final Connection connection = dataSource.getConnection()) {
             final StopWatch stopWatch = new StopWatch();
             try {
-                RawRepoDAO.builder(connection).openAgency(agencyService, agencyServiceExecutor).build()
-                        .queueFail(queueJob, errorMessage);
+                getRawRepoDAO(connection).queueFail(queueJob, errorMessage);
             } finally {
                 LOGGER.debug("RawRepo operation took {} milliseconds", stopWatch.getElapsedTime());
             }
@@ -141,8 +141,19 @@ public class RawRepoConnector {
         return dataSource;
     }
 
-    public OpenAgencyServiceFromURL getAgencyService() {
-        return agencyService;
+    public AgencySearchOrder getAgencySearchOrder() {
+        return agencySearchOrder;
+    }
+
+    public RelationHints getRelationHints() {
+        return relationHints;
+    }
+
+    private RawRepoDAO getRawRepoDAO(Connection connection) throws RawRepoException {
+        return RawRepoDAO.builder(connection)
+                .searchOrder(agencySearchOrder)
+                .relationHints(relationHints)
+                .build();
     }
 
     private DataSource lookupDataSource(String dataSourceResourceName)

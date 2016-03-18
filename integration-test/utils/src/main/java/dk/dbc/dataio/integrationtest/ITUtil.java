@@ -54,6 +54,7 @@ public class ITUtil {
     public static final String FLOW_BINDERS_SEARCH_INDEX_TABLE_NAME = "flow_binders_search_index";
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
     public static final String SINKS_TABLE_NAME = "sinks";
+    public static final String GATEKEEPER_DESTINATIONS_TABLE_NAME = "gatekeeper_destinations";
 
     private ITUtil() { }
 
@@ -137,7 +138,8 @@ public class ITUtil {
                 FLOW_COMPONENTS_TABLE_NAME,
                 FLOWS_TABLE_NAME,
                 SUBMITTERS_TABLE_NAME,
-                SINKS_TABLE_NAME);
+                SINKS_TABLE_NAME,
+                GATEKEEPER_DESTINATIONS_TABLE_NAME);
     }
 
     public static void clearFileStore() {

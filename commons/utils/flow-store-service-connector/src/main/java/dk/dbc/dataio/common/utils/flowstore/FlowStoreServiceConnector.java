@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowStoreError;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
@@ -859,6 +860,36 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    // ************************************************** GatekeeperDestinations *****************************************
+
+    /**
+     * persists the given GatekeeperDestination
+     *
+     * @param gatekeeperDestination to persist
+     * @return GatekeeperDestination
+     * @throws NullPointerException                                   if given null-valued argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if gatekeeperDestination creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create gatekeeperDestination
+     */
+    public GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws FlowStoreServiceConnectorException {
+        log.trace("FlowStoreServiceConnector: createGatekeeperDestination({}, {}, {}, {}",
+                gatekeeperDestination.getSubmitterNumber(),
+                gatekeeperDestination.getDestination(),
+                gatekeeperDestination.getPackaging(),
+                gatekeeperDestination.getFormat());
+
+        InvariantUtil.checkNotNullOrThrow(gatekeeperDestination, "gatekeeperDestination");
+        final StopWatch stopWatch = new StopWatch();
+        final Response response = doPostWithJson(httpClient, gatekeeperDestination, baseUrl, FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
+        try {
+            verifyResponseStatus(response, Response.Status.CREATED);
+            return readResponseEntity(response, GatekeeperDestination.class);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: createGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
 
     // ******************************************** Private helper methods ********************************************
 

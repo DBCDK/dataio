@@ -1,0 +1,106 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package dk.dbc.dataio.flowstore.ejb;
+
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.flowstore.entity.GatekeeperDestinationEntity;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+
+@Stateless
+@Path("/")
+public class GatekeeperDestinationsBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GatekeeperDestinationsBean.class);
+
+    JSONBContext jsonbContext = new JSONBContext();
+
+    @PersistenceContext
+    EntityManager entityManager;
+
+    /**
+     * Creates a new gatekeeper destination
+     *
+     * @param uriInfo URI information
+     * @param gatekeeperDestination The gatekeeperDestination to save
+     *
+     * @return a HTTP 201 response with gatekeeper destination as JSON,
+     *         a HTTP 406 response in case of Unique Constraint Violation
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JSONBException on failure to create json gatekeeperDestination
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response createGatekeeperDestination(@Context UriInfo uriInfo, String gatekeeperDestination) throws JSONBException {
+        LOGGER.trace("GateKeeperDestination {}", gatekeeperDestination);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(gatekeeperDestination, "gatekeeperDestination");
+        final GatekeeperDestinationEntity gatekeeperDestinationEntity = saveEntity(gatekeeperDestination);
+
+        return Response.created(getUri(uriInfo, Integer.toString(gatekeeperDestinationEntity.getId())))
+                .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
+                .build();
+    }
+
+    /*
+     * Private methods
+     */
+
+    /**
+     *
+     * @param gatekeeperDestination to persist
+     * @return persisted gatekeeperDestination
+     * @throws JSONBException JSONBException on failure unmarshalling to gatekeeperDestinationEntity
+     */
+    private GatekeeperDestinationEntity saveEntity(String gatekeeperDestination) throws JSONBException {
+        GatekeeperDestinationEntity gatekeeperDestinationEntity = jsonbContext.unmarshall(gatekeeperDestination, GatekeeperDestinationEntity.class);
+        entityManager.persist(gatekeeperDestinationEntity);
+        entityManager.flush();
+        entityManager.refresh(gatekeeperDestinationEntity);
+        return gatekeeperDestinationEntity;
+    }
+
+    private URI getUri(UriInfo uriInfo, String id) {
+        final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
+        return absolutePathBuilder.path(id).build();
+    }
+}

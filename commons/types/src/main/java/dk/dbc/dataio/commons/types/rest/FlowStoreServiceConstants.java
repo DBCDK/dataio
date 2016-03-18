@@ -58,5 +58,7 @@ public class FlowStoreServiceConstants {
 
     public static final String HARVESTERS_RR_CONFIG = "harvesters/rr/config";
 
+    public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
+
     private FlowStoreServiceConstants() { }
 }

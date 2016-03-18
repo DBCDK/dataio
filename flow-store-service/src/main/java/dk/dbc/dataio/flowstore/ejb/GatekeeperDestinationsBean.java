@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -43,6 +45,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.util.List;
 
 @Stateless
 @Path("/")
@@ -78,6 +81,23 @@ public class GatekeeperDestinationsBean {
 
         return Response.created(getUri(uriInfo, Integer.toString(gatekeeperDestinationEntity.getId())))
                 .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
+                .build();
+    }
+
+    /**
+     * Returns list of all stored gatekeeper destinations sorted by submitterNumber in ascending order
+     * @return a HTTP OK response with result list as JSON
+     * @throws JSONBException on failure to create result list as JSON
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS)
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response findAllGatekeeperDestinations() throws JSONBException {
+        final Query query = entityManager.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL);
+        final List<GatekeeperDestinationEntity> results = query.getResultList();
+        return Response
+                .ok()
+                .entity(jsonbContext.marshall(results))
                 .build();
     }
 

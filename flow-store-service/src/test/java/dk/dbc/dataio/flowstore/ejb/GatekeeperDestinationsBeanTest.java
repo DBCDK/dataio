@@ -21,18 +21,24 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.GatekeeperDestinationJsonBuilder;
+import dk.dbc.dataio.flowstore.entity.GatekeeperDestinationEntity;
+import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -45,6 +51,7 @@ public class GatekeeperDestinationsBeanTest {
 
     private static final EntityManager ENTITY_MANAGER = mock(EntityManager.class);
     private UriInfo mockedUriInfo;
+    private JSONBContext jsonbContext;
 
     @Before
     public void setup() throws URISyntaxException {
@@ -54,6 +61,8 @@ public class GatekeeperDestinationsBeanTest {
         when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.path(anyString())).thenReturn(mockedUriBuilder);
         when(mockedUriBuilder.build()).thenReturn(new URI("location"));
+
+        jsonbContext = new JSONBContext();
     }
 
     @Test
@@ -88,6 +97,43 @@ public class GatekeeperDestinationsBeanTest {
         // Verification
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
         assertThat(response.hasEntity(), is(true));
+    }
+
+    @Test
+    public void findAllGatekeeperDestinations_noGatekeeperDestinationsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException {
+        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        final Query query = mock(Query.class);
+
+        when(ENTITY_MANAGER.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+
+        final Response response = gatekeeperDestinationsBean.findAllGatekeeperDestinations();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
+        assertThat(entityNode.size(), is(0));
+    }
+
+    @Test
+    public void findAllGatekeeperDestinations_gatekeeperDestinationsFound_returnsResponseWithHttpStatusOkAndGatekeeperDestinationEntities() throws JSONBException {
+        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        final Query query = mock(Query.class);
+        final GatekeeperDestinationEntity gatekeeperDestinationEntityA = jsonbContext.unmarshall(
+                new GatekeeperDestinationJsonBuilder().setSubmitterNumber("123").build(), GatekeeperDestinationEntity.class);
+
+        final GatekeeperDestinationEntity gatekeeperDestinationEntityB = jsonbContext.unmarshall(
+                new GatekeeperDestinationJsonBuilder().setSubmitterNumber("234").build(), GatekeeperDestinationEntity.class);
+
+        when(ENTITY_MANAGER.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Arrays.asList(gatekeeperDestinationEntityA, gatekeeperDestinationEntityB));
+
+        final Response response = gatekeeperDestinationsBean.findAllGatekeeperDestinations();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
+        final ArrayNode entityNode = (ArrayNode) jsonbContext.getJsonTree((String) response.getEntity());
+        assertThat(entityNode.size(), is(2));
+        assertThat(entityNode.get(0).get("submitterNumber").textValue(), is("123"));
+        assertThat(entityNode.get(1).get("submitterNumber").textValue(), is("234"));
     }
 
     /*

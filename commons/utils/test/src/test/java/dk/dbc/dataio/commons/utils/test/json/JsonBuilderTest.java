@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
@@ -128,7 +129,7 @@ public class JsonBuilderTest {
     }
 
     @Test
-    public void test() {
-        System.out.println(new JobSpecificationJsonBuilder().build());
+    public void GatekeeperDestinationJsonBuilderProducesValidJson() throws JSONBException {
+        jsonbContext.unmarshall(new GatekeeperDestinationJsonBuilder().build(), GatekeeperDestination.class);
     }
 }

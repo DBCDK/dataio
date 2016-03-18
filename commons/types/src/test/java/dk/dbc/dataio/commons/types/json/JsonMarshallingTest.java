@@ -35,6 +35,8 @@ import dk.dbc.dataio.commons.types.FlowComponentTest;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.FlowContentTest;
 import dk.dbc.dataio.commons.types.FlowTest;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.commons.types.GatekeeperDestinationTest;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.JavaScriptTest;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -163,5 +165,11 @@ public class JsonMarshallingTest {
     public void verify_jsonMarshallingForChunkItemWithTypeAndEncoding() throws Exception {
         final String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstanceWithTypeAndEncoding());
         jsonbContext.unmarshall(json, ChunkItem.class);
+    }
+
+    @Test
+    public void verify_jsonMarshallingForSavedGatekeeperDestination() throws Exception {
+        final String json = jsonbContext.marshall(GatekeeperDestinationTest.newGatekeeperDestinationInstance());
+        jsonbContext.unmarshall(json, GatekeeperDestination.class);
     }
 }

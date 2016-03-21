@@ -35,7 +35,10 @@
             <g:TreeItem text="{txt.menu_Harvesters}" ui:field="harvesters"/>
             <g:TreeItem text="{txt.menu_Submitters}" ui:field="submitters"/>
             <g:TreeItem text="{txt.menu_Sinks}" ui:field="sinks"/>
-            <g:TreeItem text="{txt.menu_Ftp}" ui:field="ftp"/>
+            <g:TreeItem text="{txt.menu_Gatekeeper}">
+                <g:TreeItem text="{txt.menu_IoTraffic}" ui:field="ioTraffic"/>
+                <g:TreeItem text="{txt.menu_Ftp}" ui:field="ftp"/>
+            </g:TreeItem>
         </g:Tree>
 
     </g:HTMLPanel>

@@ -49,8 +49,9 @@ public class NavigationPanel extends FlowPanel {
     @UiField TreeItem flowComponents;
     @UiField TreeItem flowBinders;
     @UiField TreeItem sinks;
-    @UiField TreeItem ftp;
     @UiField TreeItem harvesters;
+    @UiField TreeItem ioTraffic;
+    @UiField TreeItem ftp;
 
 
     /**
@@ -70,6 +71,7 @@ public class NavigationPanel extends FlowPanel {
         harvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.show.Place());
         submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
         sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
+        ioTraffic.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
         ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
     }
 

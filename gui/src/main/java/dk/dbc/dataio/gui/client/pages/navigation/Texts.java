@@ -86,8 +86,14 @@ public interface Texts extends Constants {
     String menu_Items();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Ftp();
+    String menu_Harvesters();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Harvesters();
+    String menu_Gatekeeper();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_IoTraffic();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_Ftp();
 }

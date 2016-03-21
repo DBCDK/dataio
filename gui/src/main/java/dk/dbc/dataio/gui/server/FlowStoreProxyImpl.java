@@ -27,6 +27,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -519,6 +520,42 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             handleExceptions(genericException, callerMethodName);
         }
         return rawRepoHarvesterConfig;
+    }
+
+    /*
+     * Gatekeeper destinations
+     */
+
+    @Override
+    public GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException {
+        final String callerMethodName = "createGatekeeperDestination";
+        GatekeeperDestination destination = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            destination = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return destination;
+    }
+
+    @Override
+    public List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProxyException {
+        final String callerMethodName = "findAllGatekeeperDestinations";
+        List<GatekeeperDestination> destinations = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+//        try {
+//            destinations = flowStoreServiceConnector.findAllGatekeeperDestination();
+//        } catch(Exception genericException) {
+//            handleExceptions(genericException, callerMethodName);
+//        }
+        destinations = new ArrayList<>();
+        destinations.add(new GatekeeperDestination(1234L, "870970", "gatekeeper destination 1", "iso", "basis"));
+        destinations.add(new GatekeeperDestination(2345L, "870970", "Desti",                    "xml", "katalog"));
+        destinations.add(new GatekeeperDestination(3456L, "830060", "Gatey",                    "xml", "marc2"));
+        destinations.add(new GatekeeperDestination(4567L, "300151", "Nation",                   "iso", "katalog"));
+        destinations.add(new GatekeeperDestination(5678L, "300175", "Keeper",                   "lin", "marc2"));
+        return destinations;
     }
 
 

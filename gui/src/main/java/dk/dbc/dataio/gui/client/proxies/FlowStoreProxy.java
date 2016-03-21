@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.proxies;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -76,6 +77,10 @@ public interface FlowStoreProxy extends RemoteService {
 
     // Harvesters
     RawRepoHarvesterConfig getHarvesterRrConfigs() throws ProxyException;
+
+    // Gatekeeper destinations
+    GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;
+    List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProxyException;
 
     // Other
     void close();

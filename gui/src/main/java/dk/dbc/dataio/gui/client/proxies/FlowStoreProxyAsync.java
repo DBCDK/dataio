@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -69,6 +70,10 @@ public interface FlowStoreProxyAsync {
 
     // Harvesters
     void getHarvesterRrConfigs(AsyncCallback<RawRepoHarvesterConfig> async);
+
+    // Gatekeeper destinations
+    void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);
+    void findAllGatekeeperDestinations(AsyncCallback<List<GatekeeperDestination>> async);
 
     // Other
     void close(AsyncCallback<Void> async);

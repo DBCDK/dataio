@@ -54,6 +54,10 @@ public class GatekeeperDestination implements Serializable {
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
     }
 
+    public GatekeeperDestination() {
+        this(0L, "", "", "", "");
+    }
+
     public long getId() {
         return id;
     }

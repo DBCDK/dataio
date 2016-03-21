@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.*;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
@@ -203,6 +204,21 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     @Override
     public RawRepoHarvesterConfig getHarvesterRrConfigs() throws ProxyException {
         return flowStoreProxy.getHarvesterRrConfigs();
+    }
+
+
+    /*
+     * Gatekeeper destinations
+     */
+
+    @Override
+    public GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException {
+        return flowStoreProxy.createGatekeeperDestination(gatekeeperDestination);
+    }
+
+    @Override
+    public List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProxyException {
+        return flowStoreProxy.findAllGatekeeperDestinations();
     }
 
 

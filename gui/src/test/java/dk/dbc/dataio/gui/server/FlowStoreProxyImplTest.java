@@ -29,6 +29,7 @@ import dk.dbc.dataio.commons.types.FlowBinderContent;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.FlowContent;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -1718,6 +1719,80 @@ public class FlowStoreProxyImplTest {
             }
         }
     }
+
+
+    // Gatekeeper destination tests
+
+    /*
+     * Test createGatekeeperDestination
+     */
+
+    @Test
+    public void createGatekeeperDestination_remoteServiceReturnsHttpStatusCreated_returnsCreatedGatekeeperDestination() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final GatekeeperDestination destination = new GatekeeperDestination(1234L, "830060", "Gatekeeper Destination", "xml", "marc2");
+        when(flowStoreServiceConnector.createGatekeeperDestination(any(GatekeeperDestination.class))).thenReturn(destination);
+
+        try {
+            final GatekeeperDestination createdDestination = flowStoreProxy.createGatekeeperDestination(new GatekeeperDestination(1235L, "830065", "Gatekeeper Dest", "xml", "marc2"));
+            assertNotNull(createdDestination);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createGatekeeperDestination()");
+        }
+    }
+
+    @Test
+    public void createGatekeeperDestination_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createGatekeeperDestination_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void createGatekeeperDestination_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        createGatekeeperDestination_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void createGatekeeperDestination_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        final GatekeeperDestination destination = new GatekeeperDestination(1234L, "830060", "Gatekeeper Destination", "xml", "marc2");
+        createGatekeeperDestination_testForProxyError(destination, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void createGatekeeperDestination_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        when(flowStoreServiceConnector.createGatekeeperDestination(any(GatekeeperDestination.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+        try {
+            flowStoreProxy.createGatekeeperDestination(new GatekeeperDestination(1234L, "830060", "Gatekeeper Destination", "xml", "marc2"));
+            fail("No " + expectedErrorName + " error was thrown by createGatekeeperDestination()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void createGatekeeperDestination_testForProxyError(GatekeeperDestination destination, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        when(flowStoreServiceConnector.createGatekeeperDestination(any(GatekeeperDestination.class)))
+                .thenThrow(exception);
+        try {
+            flowStoreProxy.createGatekeeperDestination(destination);
+            fail("No " + expectedErrorName + " error was thrown by createGatekeeperDestination()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    /*
+     * Test findAllGatekeeperDestinations
+     */
+
+    // To be implemented when the non-test version of findAllGateKeeperDestinations proxy has been implemented
+
 
 
     // Private methods

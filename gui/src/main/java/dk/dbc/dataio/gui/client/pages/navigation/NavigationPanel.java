@@ -71,7 +71,7 @@ public class NavigationPanel extends FlowPanel {
         harvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.show.Place());
         submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
         sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
-        ioTraffic.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
+        ioTraffic.setUserObject(new dk.dbc.dataio.gui.client.pages.iotraffic.Place());
         ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
     }
 

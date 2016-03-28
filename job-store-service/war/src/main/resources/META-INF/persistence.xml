@@ -46,6 +46,8 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
+      <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
     </properties>
   </persistence-unit>
   <persistence-unit name="jobstoreIT" transaction-type="RESOURCE_LOCAL">
@@ -70,6 +72,8 @@
     <class>dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
+      <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
     </properties>
   </persistence-unit>
 </persistence>

@@ -34,6 +34,7 @@ public class FlowStoreServiceConstants {
     public static final String SUBMITTER_ID_VARIABLE = "id";
     public static final String FLOW_COMPONENT_ID_VARIABLE = "id";
     public static final String FLOW_BINDER_ID_VARIABLE = "id";
+    public static final String GATEKEEPER_DESTINATION_ID_VARIABLE = "id";
 
     public static final String SINK = "sinks/{id}";
     public static final String SUBMITTER = "submitters/{id}";
@@ -59,6 +60,7 @@ public class FlowStoreServiceConstants {
     public static final String HARVESTERS_RR_CONFIG = "harvesters/rr/config";
 
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
+    public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";
 
     private FlowStoreServiceConstants() { }
 }

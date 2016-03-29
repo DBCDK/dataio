@@ -87,15 +87,15 @@ public class GatekeeperDestinationsIT {
     public void createGatekeeperDestination_ok() throws Exception{
 
         // When...
-        final GatekeeperDestination gatekeeperDestinationBeforePersist = new GatekeeperDestinationBuilder().setId(0).build();
+        final GatekeeperDestination gatekeeperDestinationPrePersist = new GatekeeperDestinationBuilder().setId(0).build();
 
         // Then...
-        GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationBeforePersist);
+        GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist);
 
         // And...
         assertNotNull(gatekeeperDestination);
-        assertThat(gatekeeperDestination, is(gatekeeperDestinationBeforePersist));
-        assertThat(gatekeeperDestination.getId(), not(gatekeeperDestinationBeforePersist.getId()));
+        assertThat(gatekeeperDestination, is(gatekeeperDestinationPrePersist));
+        assertThat(gatekeeperDestination.getId(), not(gatekeeperDestinationPrePersist.getId()));
 
         // And ...
         final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
@@ -130,12 +130,12 @@ public class GatekeeperDestinationsIT {
     @Test
     public void createGatekeeperDestination_duplicateValues_NotAcceptable() throws FlowStoreServiceConnectorException {
         // Given...
-        final GatekeeperDestination gatekeeperDestinationBeforePersist = new GatekeeperDestinationBuilder().setId(0).build();
+        final GatekeeperDestination gatekeeperDestinationPrePersist = new GatekeeperDestinationBuilder().setId(0).build();
         try {
-            flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationBeforePersist);
+            flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist);
 
             // When...
-            flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationBeforePersist);
+            flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist);
             fail("Unique constraint was not detected as input to createGatekeeperDestination().");
 
             // Then...
@@ -173,14 +173,14 @@ public class GatekeeperDestinationsIT {
     @Test
     public void findAllGatekeeperDestinations_Ok() throws Exception {
         // Given...
-        final GatekeeperDestination gatekeeperDestination1 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("1").build();
-        final GatekeeperDestination gatekeeperDestination2 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("2").build();
-        final GatekeeperDestination gatekeeperDestination3 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("3").build();
+        final GatekeeperDestination gatekeeperDestinationPrePersist1 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("1").build();
+        final GatekeeperDestination gatekeeperDestinationPrePersist2 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("2").build();
+        final GatekeeperDestination gatekeeperDestinationPrePersist3 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("3").build();
 
         final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-        final GatekeeperDestination sortsSecond = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination2);
-        final GatekeeperDestination sortsThird = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination3);
-        final GatekeeperDestination sortsFirst = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination1);
+        final GatekeeperDestination sortsSecond = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist2);
+        final GatekeeperDestination sortsThird = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist3);
+        final GatekeeperDestination sortsFirst = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist1);
 
         // When...
         final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
@@ -193,5 +193,47 @@ public class GatekeeperDestinationsIT {
         assertThat(gatekeeperDestinations.get(0), is (sortsFirst));
         assertThat(gatekeeperDestinations.get(1), is (sortsSecond));
         assertThat(gatekeeperDestinations.get(2), is (sortsThird));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the gatekeeper destination path with a valid identifier
+     * Then : a gatekeeper destination is found and returned
+     * And  : assert that the gatekeeper destination found has an id and contains the same information as the
+     *        gatekeeper destination created
+     */
+    @Test
+    public void getGatekeeperDestination_ok() throws Exception {
+
+        // When...
+        final GatekeeperDestination gatekeeperDestinationPrePersist = new GatekeeperDestinationBuilder().setId(0).build();
+        final GatekeeperDestination persistedGatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist);
+
+        // Then...
+        final GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector.getGatekeeperDestination(persistedGatekeeperDestination.getId());
+
+        // And...
+        assertThat(gatekeeperDestination, is(notNullValue()));
+        assertThat(gatekeeperDestination, is(persistedGatekeeperDestination));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : Attempting to retrieve a gatekeeper destination with an unknown gatekeeper destination id
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void getGatekeeperDestination_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
+        try{
+            // Given...
+            flowStoreServiceConnector.getGatekeeperDestination(432);
+
+            fail("Invalid request to getGatekeeperDestination() was not detected.");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+        }
     }
 }

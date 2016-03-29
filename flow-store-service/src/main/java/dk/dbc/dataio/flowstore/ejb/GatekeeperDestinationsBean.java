@@ -38,6 +38,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -51,6 +52,7 @@ import java.util.List;
 @Path("/")
 public class GatekeeperDestinationsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(GatekeeperDestinationsBean.class);
+    private static final String NULL_ENTITY = "";
 
     JSONBContext jsonbContext = new JSONBContext();
 
@@ -98,6 +100,31 @@ public class GatekeeperDestinationsBean {
         return Response
                 .ok()
                 .entity(jsonbContext.marshall(results))
+                .build();
+    }
+
+    /**
+     * Retrieves gatekeeper destination from underlying data store
+     *
+     * @param id gatekeeper destination identifier
+     *
+     * @return a HTTP 200 response with gatekeeper destination as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JSONBException if unable to marshall value type into its JSON representation
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getGatekeeperDestination(@PathParam(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE) int id) throws JSONBException {
+        final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
+        if (gatekeeperDestinationEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+        }
+        return Response
+                .ok()
+                .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
                 .build();
     }
 

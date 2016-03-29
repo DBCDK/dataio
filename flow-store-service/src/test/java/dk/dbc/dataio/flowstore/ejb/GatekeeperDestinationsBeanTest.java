@@ -157,7 +157,7 @@ public class GatekeeperDestinationsBeanTest {
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
 
         // Subject under test
-        Response response = gatekeeperDestinationsBean.getGatekeeperDestination(42);
+        Response response = gatekeeperDestinationsBean.getGatekeeperDestination(42L);
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -172,7 +172,7 @@ public class GatekeeperDestinationsBeanTest {
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(gatekeeperDestinationEntity);
 
         // Subject under test
-        Response response = gatekeeperDestinationsBean.getGatekeeperDestination(42);
+        Response response = gatekeeperDestinationsBean.getGatekeeperDestination(42L);
 
         // Verification
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));

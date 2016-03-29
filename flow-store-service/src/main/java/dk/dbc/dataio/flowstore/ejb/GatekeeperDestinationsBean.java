@@ -81,7 +81,7 @@ public class GatekeeperDestinationsBean {
         InvariantUtil.checkNotNullNotEmptyOrThrow(gatekeeperDestination, "gatekeeperDestination");
         final GatekeeperDestinationEntity gatekeeperDestinationEntity = saveEntity(gatekeeperDestination);
 
-        return Response.created(getUri(uriInfo, Integer.toString(gatekeeperDestinationEntity.getId())))
+        return Response.created(getUri(uriInfo, String.valueOf(gatekeeperDestinationEntity.getId())))
                 .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
                 .build();
     }
@@ -96,7 +96,7 @@ public class GatekeeperDestinationsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     public Response findAllGatekeeperDestinations() throws JSONBException {
         final Query query = entityManager.createNamedQuery(GatekeeperDestinationEntity.QUERY_FIND_ALL);
-        final List<GatekeeperDestinationEntity> results = query.getResultList();
+        final List results = query.getResultList();
         return Response
                 .ok()
                 .entity(jsonbContext.marshall(results))
@@ -117,7 +117,7 @@ public class GatekeeperDestinationsBean {
     @GET
     @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getGatekeeperDestination(@PathParam(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE) int id) throws JSONBException {
+    public Response getGatekeeperDestination(@PathParam(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE) Long id) throws JSONBException {
         final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
         if (gatekeeperDestinationEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();

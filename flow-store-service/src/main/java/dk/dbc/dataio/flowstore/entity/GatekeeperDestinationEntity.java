@@ -45,7 +45,7 @@ public class GatekeeperDestinationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private int id;
+    private long id;
     private String submitterNumber;
     private String destination;
     private String packaging;
@@ -53,7 +53,7 @@ public class GatekeeperDestinationEntity {
 
     public GatekeeperDestinationEntity() {}
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 

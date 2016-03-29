@@ -32,13 +32,25 @@ public class PromptedData extends FlowPanel {
     public static final String PROMPTED_DATA_PROMPT_CLASS = "dio-PromptedData-PromptClass";
     public static final String PROMPTED_DATA_DATA_CLASS = "dio-PromptedData-DataClass";
 
+    private final Label promptLabel = new Label();
+
     public PromptedData(String guiId, String prompt) {
         super();
         getElement().setId(guiId);
         setStylePrimaryName(PROMPTED_DATA_CLASS);
-        Label promptLabel = new Label(prompt);
+        promptLabel.setText(prompt);
         promptLabel.setStylePrimaryName(PROMPTED_DATA_PROMPT_CLASS);
         add(promptLabel);
+    }
+
+    public void setPromptStyle(String promptStyle) {
+        if (promptStyle.toLowerCase().equals("stacked")) {
+            promptLabel.getElement().getStyle().setProperty("display", "block");
+            getElement().getStyle().setProperty("float", "left");
+        } else {
+            promptLabel.getElement().getStyle().setProperty("display", "");
+            getElement().getStyle().setProperty("float", "");
+        }
     }
 
 }

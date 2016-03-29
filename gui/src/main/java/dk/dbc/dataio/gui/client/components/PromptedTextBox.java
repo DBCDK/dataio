@@ -49,14 +49,18 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
     }
 
     public @UiConstructor
-    PromptedTextBox(String guiId, String prompt, String maxLength, String toolTip) {
+    PromptedTextBox(String guiId, String prompt, String maxLength) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             textBox.getElement().setAttribute("Maxlength", maxLength);
         }
+    }
+
+    public void setToolTip(String toolTip) {
         if (!toolTip.isEmpty()) {
-            addToolTip(toolTip);
+            new Tooltip(textBox, toolTip);
         }
+
     }
 
     @Override
@@ -109,10 +113,6 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
         textBox.setFocus(focused);
     }
 
-    public void addToolTip(String toolTipText) {
-        new Tooltip(textBox, toolTipText);
-    }
-  
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return textBox.addKeyDownHandler(handler);
     }

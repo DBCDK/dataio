@@ -24,8 +24,32 @@
 
     <ui:with type="dk.dbc.dataio.gui.client.pages.iotraffic.Texts" field="txt"/>
 
-    <g:HTMLPanel>
-        <h1>Empty Io Traffic page</h1>
+    <ui:style>
+        .promptText {
+            float: left;
+            margin-top: 1.4em;
+        }
+        .newParagraph {
+            clear: both;
+        }
+        .ioTrafficContainer li > div {
+            margin-right: 1em;
+        }
+        .addButton {
+            margin-top: 1.4em;
+            margin-left: 0;
+        }
+    </ui:style>
+
+    <g:HTMLPanel styleName="{style.ioTrafficContainer}">
+        <li><g:Label addStyleNames="{style.promptText}" text="{txt.label_New}" /></li>
+        <li><dio:PromptedTextBox promptStyle="stacked" ui:field="submitter" guiId="io-traffic-submitter" prompt="{txt.label_Submitter}" maxLength="160"/></li>
+        <li><dio:PromptedTextBox promptStyle="stacked" ui:field="format" guiId="io-traffic-format" prompt="{txt.label_Packaging}" maxLength="160"/></li>
+        <li><dio:PromptedTextBox promptStyle="stacked" ui:field="destination" guiId="io-traffic-destination" prompt="{txt.label_Destination}" maxLength="160"/></li>
+        <li><g:Button addStyleNames="{style.addButton}" text="{txt.button_Add}"></g:Button></li>
+
+        <g:SimplePanel styleName="{style.newParagraph}"/>
+
     </g:HTMLPanel>
 
 </ui:UiBinder>

@@ -49,14 +49,18 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
     }
 
     public @UiConstructor
-    PromptedPasswordTextBox(String guiId, String prompt, String maxLength, String toolTip) {
+    PromptedPasswordTextBox(String guiId, String prompt, String maxLength) {
         this(guiId, prompt);
         if (!maxLength.isEmpty()) {
             passwordTextBox.getElement().setAttribute("Maxlength", maxLength);
         }
+    }
+
+    public void setToolTip(String toolTip) {
         if (!toolTip.isEmpty()) {
-            addToolTip(toolTip);
+            new Tooltip(passwordTextBox, toolTip);
         }
+
     }
 
     @Override
@@ -109,10 +113,6 @@ public class PromptedPasswordTextBox extends PromptedData implements HasValue<St
         passwordTextBox.setFocus(focused);
     }
 
-    public void addToolTip(String toolTipText) {
-        new Tooltip(passwordTextBox, toolTipText);
-    }
-  
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return passwordTextBox.addKeyDownHandler(handler);
     }

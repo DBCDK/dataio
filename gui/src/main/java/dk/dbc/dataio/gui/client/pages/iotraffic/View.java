@@ -29,8 +29,8 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface SinkBinder extends UiBinder<HTMLPanel, View> {}
-    private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
+    interface UiTrafficBinder extends UiBinder<HTMLPanel, View> {}
+    private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
 
     public View() {
         super("");

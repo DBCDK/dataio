@@ -35,6 +35,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
@@ -43,6 +44,7 @@ import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static junit.framework.TestCase.fail;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -234,6 +236,49 @@ public class GatekeeperDestinationsIT {
         }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
             // And...
             assertThat(e.getStatusCode(), is(404));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service and a gatekeeper destination is stored
+     * When : attempting to delete the gatekeeper destination
+     * Then : the gatekeeper destination is deleted
+     */
+    @Test
+    public void deleteGatekeeperDestination_Ok() throws FlowStoreServiceConnectorException {
+
+        // Given...
+        GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(new GatekeeperDestinationBuilder().setId(0L).build());
+
+        // When...
+        flowStoreServiceConnector.deleteGatekeeperDestination(gatekeeperDestination.getId());
+
+        // Then...
+        try {
+            flowStoreServiceConnector.getGatekeeperDestination(gatekeeperDestination.getId());
+            fail("Gatekeeper destination was not deleted");
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : attempting to delete a gatekeeper destination that does not exist
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void deleteGatekeeperDestination_gateKeeperDestinationNotFound() throws ProcessingException {
+        try {
+            // When...
+            flowStoreServiceConnector.deleteGatekeeperDestination(42L);
+            fail("None existing Gatekeeper destination was not detected");
+
+            // Then ...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+            // And...
+            assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(NOT_FOUND));
         }
     }
 }

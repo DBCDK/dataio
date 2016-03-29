@@ -47,6 +47,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -179,6 +180,35 @@ public class GatekeeperDestinationsBeanTest {
         assertThat(response.hasEntity(), is(true));
         JsonNode entityNode = jsonbContext.getJsonTree((String) response.getEntity());
         assertThat(entityNode.get("submitterNumber").textValue(), is(submitterNumber));
+    }
+
+    // ****************************************************** delete gatekeeper destination *****************************************************
+
+    @Test
+    public void deleteGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
+
+        // Subject under test
+        final Response response = gatekeeperDestinationsBean.deleteGatekeeperDestination(42L);
+
+        // Verification
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void deleteGatekeeperDestination_gatekeeperDestinationFound_returnsNoContentHttpResponse() throws JSONBException, ReferencedEntityNotFoundException {
+        final GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
+        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(gatekeeperDestinationEntity);
+
+        // Subject under test
+        final Response response = gatekeeperDestinationsBean.deleteGatekeeperDestination(42L);
+
+        // Verification
+        verify(ENTITY_MANAGER).remove(gatekeeperDestinationEntity);
+        assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
     /*

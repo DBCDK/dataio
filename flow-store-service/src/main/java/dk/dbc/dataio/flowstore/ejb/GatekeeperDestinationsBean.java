@@ -35,6 +35,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -126,6 +127,30 @@ public class GatekeeperDestinationsBean {
                 .ok()
                 .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
                 .build();
+    }
+
+    /**
+     * Deletes an existing gatekeeper destination
+     *
+     * @param id of the gatekeeper destination
+     *
+     * @return a HTTP 204 response with no content,
+     *         a HTTP 404 response in case of gatekeeper destination not found
+     *         a HTTP 500 response in case of general error.
+     */
+    @DELETE
+    @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
+    public Response deleteGatekeeperDestination(
+            @PathParam(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE) Long id) {
+
+        final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
+
+        if(gatekeeperDestinationEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+        }
+
+        entityManager.remove(gatekeeperDestinationEntity);
+        return Response.noContent().build();
     }
 
     /*

@@ -891,6 +891,27 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Retrieves all gatekeeperDestinations from the flow-store
+     *
+     * @return a list containing the gatekeeperDestinations found sorted by submitterNumber in ascending order
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve gatekeeperDestinations
+     */
+    public List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProcessingException, FlowStoreServiceConnectorException{
+        log.trace("FlowStoreServiceConnector: findAllGatekeeperDestinations();");
+        final StopWatch stopWatch = new StopWatch();
+        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<GatekeeperDestination>>() {
+            });
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: findAllGatekeeperDestinations took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {

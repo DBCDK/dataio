@@ -936,6 +936,31 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Deletes an existing gatekeeperDestination from the flow-store
+     *
+     * @param id, the database related ID
+     *
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
+     */
+    public void deleteGatekeeperDestination(long id) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        log.trace("FlowStoreServiceConnector: deleteGatekeeperDestination({})", id);
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
+                .bind(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE, Long.toString(id));
+
+        final Response response = doDelete(httpClient, baseUrl, pathBuilder.build());
+
+        try {
+            verifyResponseStatus(response, NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: deleteGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {

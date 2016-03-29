@@ -39,10 +39,12 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
 import static junit.framework.TestCase.fail;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNot.not;
@@ -94,6 +96,10 @@ public class GatekeeperDestinationsIT {
         assertNotNull(gatekeeperDestination);
         assertThat(gatekeeperDestination, is(gatekeeperDestinationBeforePersist));
         assertThat(gatekeeperDestination.getId(), not(gatekeeperDestinationBeforePersist.getId()));
+
+        // And ...
+        final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+        assertThat(gatekeeperDestinations.size(), is(1));
     }
 
     /**
@@ -104,7 +110,11 @@ public class GatekeeperDestinationsIT {
     @Test
     public void createGatekeeperDestination_invalidJson_BadRequest() {
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
+        final Response response = HttpClient.doPostWithJson(
+                restClient,
+                "<invalid json />",
+                baseUrl,
+                FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS);
 
         // Then...
         assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
@@ -132,6 +142,56 @@ public class GatekeeperDestinationsIT {
         } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
             // And...
             assertThat(e.getStatusCode(), is(406));
+            // And...
+            List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+            assertThat(gatekeeperDestinations.size(), is(1));
         }
+    }
+
+    /*
+     * Given: a deployed flow-store service containing no gatekeeper destinations
+     * When: GETing gatekeeper destinations collection
+     * Then: request returns with empty list
+     */
+    @Test
+    public void findAllGatekeeperDestinations_emptyResult() throws Exception {
+        // When...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+
+        // Then...
+        assertThat(gatekeeperDestinations, is(notNullValue()));
+        assertThat(gatekeeperDestinations.size(), is(0));
+    }
+
+    /*
+     * Given: a deployed flow-store service containing three gatekeeper destinations
+     * When: GETing gatekeeper destinations collection
+     * Then: request returns with 3 gatekeeper destinations
+     * And: the gatekeeper destinations are sorted by submitter number
+     */
+    @Test
+    public void findAllGatekeeperDestinations_Ok() throws Exception {
+        // Given...
+        final GatekeeperDestination gatekeeperDestination1 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("1").build();
+        final GatekeeperDestination gatekeeperDestination2 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("2").build();
+        final GatekeeperDestination gatekeeperDestination3 = new GatekeeperDestinationBuilder().setId(0).setSubmitterNumber("3").build();
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        final GatekeeperDestination sortsSecond = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination2);
+        final GatekeeperDestination sortsThird = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination3);
+        final GatekeeperDestination sortsFirst = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestination1);
+
+        // When...
+        final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+
+        // Then...
+        assertNotNull(gatekeeperDestinations);
+        assertThat(gatekeeperDestinations.size(), is (3));
+
+        // And...
+        assertThat(gatekeeperDestinations.get(0), is (sortsFirst));
+        assertThat(gatekeeperDestinations.get(1), is (sortsSecond));
+        assertThat(gatekeeperDestinations.get(2), is (sortsThird));
     }
 }

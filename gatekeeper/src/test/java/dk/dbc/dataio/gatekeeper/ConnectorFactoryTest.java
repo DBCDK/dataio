@@ -26,22 +26,32 @@ import org.junit.Test;
 public class ConnectorFactoryTest {
     @Test(expected = NullPointerException.class)
     public void constructor_fileStoreServiceEndpointArgIsNull_throws() {
-        new ConnectorFactory(null, "jobStoreServiceEndpoint");
+        new ConnectorFactory(null, "jobStoreServiceEndpoint", "flowStoreServiceEndpoint");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_fileStoreServiceEndpointArgIsEmpty_throws() {
-        new ConnectorFactory(" ", "jobStoreServiceEndpoint");
+        new ConnectorFactory(" ", "jobStoreServiceEndpoint", "flowStoreServiceEndpoint");
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_jobStoreServiceEndpointArgIsNull_throws() {
-        new ConnectorFactory("fileStoreServiceEndpoint", null);
+        new ConnectorFactory("fileStoreServiceEndpoint", null, "flowStoreServiceEndpoint");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_jobStoreServiceEndpointArgIsEmpty_throws() {
-        new ConnectorFactory("fileStoreServiceEndpoint", " ");
+        new ConnectorFactory("fileStoreServiceEndpoint", " ", "flowStoreServiceEndpoint");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_flowStoreServiceEndpointArgIsNull_throws() {
+        new ConnectorFactory("fileStoreServiceEndpoint", "jobStoreServiceEndpoint", null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void constructor_flowStoreServiceEndpointArgIsEmpty_throws() {
+        new ConnectorFactory("fileStoreServiceEndpoint", "jobStoreServiceEndpoint", " ");
     }
 
 }

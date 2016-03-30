@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -39,14 +40,17 @@ public class ConnectorFactory {
     private final Client client;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
 
-    public ConnectorFactory(String fileStoreServiceEndpoint, String jobStoreServiceEndpoint)
+    public ConnectorFactory(String fileStoreServiceEndpoint, String jobStoreServiceEndpoint, String flowStoreServiceEndpoint)
             throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullNotEmptyOrThrow(fileStoreServiceEndpoint, "fileStoreServiceEndpoint");
         InvariantUtil.checkNotNullNotEmptyOrThrow(jobStoreServiceEndpoint, "jobStoreServiceEndpoint");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(flowStoreServiceEndpoint, "flowStoreServiceEndpoint");
 
         LOGGER.info("fileStoreServiceEndpoint: {}", fileStoreServiceEndpoint);
         LOGGER.info("jobStoreServiceEndpoint: {}", jobStoreServiceEndpoint);
+        LOGGER.info("flowStoreServiceEndpoint: {}", flowStoreServiceEndpoint);
 
         final ClientConfig config = new ClientConfig();
         config.register(new JacksonFeature());
@@ -55,6 +59,7 @@ public class ConnectorFactory {
         client = HttpClient.newClient(config);
         fileStoreServiceConnector = new FileStoreServiceConnector(client, fileStoreServiceEndpoint);
         jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreServiceEndpoint);
+        flowStoreServiceConnector = new FlowStoreServiceConnector(client, flowStoreServiceEndpoint);
     }
 
     public FileStoreServiceConnector getFileStoreServiceConnector() {
@@ -63,6 +68,10 @@ public class ConnectorFactory {
 
     public JobStoreServiceConnector getJobStoreServiceConnector() {
         return jobStoreServiceConnector;
+    }
+
+    public FlowStoreServiceConnector getFlowStoreServiceConnector() {
+        return flowStoreServiceConnector;
     }
 
     public void close() {

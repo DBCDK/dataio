@@ -49,21 +49,22 @@ public class Gatekeeper {
         final Path shadowDir = Paths.get(commandLine.getOptionValue("s"));
         final String jobStoreServiceUrl = commandLine.getOptionValue("j");
         final String fileStoreServiceUrl = commandLine.getOptionValue("f");
+        final String flowStoreServiceUrl = commandLine.getOptionValue("flowStore");
         final ShutdownManager shutdownManager = new ShutdownManager();
 
         registerShutdownHook(shutdownManager);
 
         final Gatekeeper gatekeeper = new Gatekeeper(dir, shadowDir,
-                fileStoreServiceUrl, jobStoreServiceUrl, shutdownManager);
+                fileStoreServiceUrl, jobStoreServiceUrl, flowStoreServiceUrl, shutdownManager);
         while (true) {
             gatekeeper.standGuard();
         }
     }
 
     public Gatekeeper(Path dir, Path shadowDir, String fileStoreServiceUrl, String jobStoreServiceUrl,
-                      ShutdownManager shutdownManager) {
+                      String flowStoreServiceUrl, ShutdownManager shutdownManager) {
         final WriteAheadLog wal = new WriteAheadLogH2();
-        final ConnectorFactory connectorFactory = new ConnectorFactory(fileStoreServiceUrl, jobStoreServiceUrl);
+        final ConnectorFactory connectorFactory = new ConnectorFactory(fileStoreServiceUrl, jobStoreServiceUrl, flowStoreServiceUrl);
         jobDispatcher = new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);
     }
 
@@ -155,6 +156,15 @@ public class Gatekeeper {
                 .withLongOpt("file-store-service-url")
                 .create("f");
         options.addOption(fileStoreServiceUrl);
+
+        @SuppressWarnings("static-access")
+        final Option flowStoreServiceUrl = OptionBuilder.withArgName("url")
+                .hasArg()
+                .isRequired()
+                .withDescription("Base URL of flow-store service")
+                .withLongOpt("flow-store-service-url")
+                .create("flowStore");
+        options.addOption(flowStoreServiceUrl);
 
         return options;
     }

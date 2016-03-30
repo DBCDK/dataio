@@ -22,6 +22,9 @@
 package dk.dbc.dataio.gatekeeper;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -49,6 +52,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -69,8 +73,11 @@ public class JobDispatcherIT {
     private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private ShutdownManager shutdownManager;
     private Exception exception;
+    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationForTest();;
+
 
     @Before
     public void setupSystem() throws IOException {
@@ -83,9 +90,11 @@ public class JobDispatcherIT {
     }
 
     @Before
-    public void setupMocks() throws JobStoreServiceConnectorException {
+    public void setupMocks() throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
+        when(connectorFactory.getFlowStoreServiceConnector()).thenReturn(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().build());
     }
 

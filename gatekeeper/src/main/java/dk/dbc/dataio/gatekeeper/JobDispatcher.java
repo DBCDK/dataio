@@ -236,8 +236,8 @@ public class JobDispatcher {
      * Loads the necessary modifications for a given transfile into the WAL
      * @param transfile transfile for which modifications are to be added
      */
-    void writeWal(TransFile transfile) {
-        final ModificationFactory modificationFactory = new ModificationFactory(transfile);
+    void writeWal(TransFile transfile) throws IllegalStateException{
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, connectorFactory.getFlowStoreServiceConnector());
         wal.add(modificationFactory.getModifications());
     }
 

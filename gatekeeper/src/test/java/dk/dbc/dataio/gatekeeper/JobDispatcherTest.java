@@ -21,6 +21,9 @@
 
 package dk.dbc.dataio.gatekeeper;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
@@ -74,7 +77,9 @@ public class JobDispatcherTest {
     private ConnectorFactory connectorFactory = mock(ConnectorFactory.class);
     private JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
+    private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private ShutdownManager shutdownManager;
+    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationForTest();
 
     @Before
     public void setupFileSystem() throws IOException {
@@ -83,12 +88,14 @@ public class JobDispatcherTest {
     }
 
     @Before
-    public void setupMocks() throws JobStoreServiceConnectorException {
+    public void setupMocks() throws JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         wal = new MockedWriteAheadLog();
         shutdownManager = new ShutdownManager();
         when(connectorFactory.getFileStoreServiceConnector()).thenReturn(fileStoreServiceConnector);
         when(connectorFactory.getJobStoreServiceConnector()).thenReturn(jobStoreServiceConnector);
+        when(connectorFactory.getFlowStoreServiceConnector()).thenReturn(flowStoreServiceConnector);
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().build());
+        when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(gatekeeperDestinations);
     }
 
     @Test(expected = NullPointerException.class)
@@ -360,6 +367,10 @@ public class JobDispatcherTest {
         assertThat("CreateJobOperation.getTransfileData()", ((CreateJobOperation) operation).getTransfileData(),
                 is(modification.getArg()));
     }
+
+    /*
+     * Private methods
+     */
 
     private JobDispatcher getJobDispatcher() {
         return new JobDispatcher(dir, shadowDir, wal, connectorFactory, shutdownManager);

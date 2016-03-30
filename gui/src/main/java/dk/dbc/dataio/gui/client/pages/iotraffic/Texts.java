@@ -38,11 +38,24 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String label_Packaging();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Format();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Destination();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_Copy();
 
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Add();
+
+    // Error Messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_InputFieldValidationError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_CannotCreateGatekeeperDestination();
 
 }

@@ -22,19 +22,72 @@
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
+import dk.dbc.dataio.gui.client.components.EnterButton;
+import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
+import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    interface UiTrafficBinder extends UiBinder<HTMLPanel, View> {}
+    interface UiTrafficBinder extends UiBinder<HTMLPanel, View> {
+    }
+
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
+
+    @UiField PromptedTextBox submitter;
+    @UiField PromptedTextBox packaging;
+    @UiField PromptedTextBox format;
+    @UiField PromptedTextBox destination;
+    @UiField PromptedCheckBox copy;
+    @UiField EnterButton addButton;
+
 
     public View() {
         super("");
         add(uiBinder.createAndBindUi(this));
     }
 
+    @UiHandler("submitter")
+    void submitterChanged(ValueChangeEvent<String> event) {
+        presenter.submitterChanged(submitter.getText());
+    }
+
+    @UiHandler("packaging")
+    void packaginChanged(ValueChangeEvent<String> event) {
+        presenter.packagingChanged(packaging.getText());
+    }
+
+    @UiHandler("format")
+    void formatChanged(ValueChangeEvent<String> event) {
+        presenter.formatChanged(format.getText());
+    }
+
+    @UiHandler("destination")
+    void destinationChanged(ValueChangeEvent<String> event) {
+        presenter.destinationChanged(destination.getText());
+    }
+
+    @UiHandler("copy")
+    void copyChanged(ValueChangeEvent<Boolean> event) {
+        presenter.copyChanged(copy.getValue());
+    }
+
+    @UiHandler("addButton")
+    void addButtonPressed(ClickEvent event) {
+        presenter.addButtonPressed();
+    }
+
+    void displayWarning(String warning) {
+        Window.alert(warning);
+    }
+
 }
+

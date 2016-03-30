@@ -55,7 +55,7 @@ public class GatekeeperDestination implements Serializable {
     }
 
     public GatekeeperDestination() {
-        this(0L, "", "", "", "");
+        this(0L, "0", "<empty>", "<empty>", "<empty>");
     }
 
     public long getId() {

@@ -42,11 +42,14 @@
     </ui:style>
 
     <g:HTMLPanel styleName="{style.ioTrafficContainer}">
+        <h2><ui:text from="{txt.label_PageTitle}"/></h2>
         <li><g:Label addStyleNames="{style.promptText}" text="{txt.label_New}" /></li>
         <li><dio:PromptedTextBox promptStyle="stacked" ui:field="submitter" guiId="io-traffic-submitter" prompt="{txt.label_Submitter}" maxLength="160"/></li>
-        <li><dio:PromptedTextBox promptStyle="stacked" ui:field="format" guiId="io-traffic-format" prompt="{txt.label_Packaging}" maxLength="160"/></li>
+        <li><dio:PromptedTextBox promptStyle="stacked" ui:field="packaging" guiId="io-traffic-packaging" prompt="{txt.label_Packaging}" maxLength="160"/></li>
+        <li><dio:PromptedTextBox promptStyle="stacked" ui:field="format" guiId="io-traffic-format" prompt="{txt.label_Format}" maxLength="160"/></li>
         <li><dio:PromptedTextBox promptStyle="stacked" ui:field="destination" guiId="io-traffic-destination" prompt="{txt.label_Destination}" maxLength="160"/></li>
-        <li><g:Button addStyleNames="{style.addButton}" text="{txt.button_Add}"></g:Button></li>
+        <li><dio:PromptedCheckBox promptStyle="stacked" ui:field="copy" guiId="io-traffic-copy" prompt="{txt.label_Copy}"/></li>
+        <li><dio:EnterButton ui:field="addButton" addStyleNames="{style.addButton}" text="{txt.button_Add}"></dio:EnterButton></li>
 
         <g:SimplePanel styleName="{style.newParagraph}"/>
 

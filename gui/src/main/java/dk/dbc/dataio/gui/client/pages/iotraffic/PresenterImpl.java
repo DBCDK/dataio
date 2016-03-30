@@ -25,7 +25,10 @@ package dk.dbc.dataio.gui.client.pages.iotraffic;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 /**
@@ -36,7 +39,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
+    FlowStoreProxyAsync flowStoreProxy = commonInjector.getFlowStoreProxyAsync();
+
     protected String header;
+
+    String submitter = "";
+    String packaging = "";
+    String format = "";
+    String destination = "";
+    Boolean copy = false;
+
 
     public PresenterImpl(String header) {
         this.header = header;
@@ -54,6 +66,48 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         containerWidget.setWidget(getView().asWidget());
         getView().setHeader(this.header);
         getView().setPresenter(this);
+        initializeData();
+    }
+
+
+    /*
+     * Indications from the View
+     */
+    @Override
+    public void submitterChanged(String submitter) {
+        this.submitter = submitter;
+    }
+
+    @Override
+    public void packagingChanged(String packaging) {
+        this.packaging = packaging;
+    }
+
+    @Override
+    public void formatChanged(String format) {
+        this.format = format;
+    }
+
+    @Override
+    public void destinationChanged(String destination) {
+        this.destination = destination;
+    }
+
+    @Override
+    public void copyChanged(Boolean copy) {
+        this.copy = copy;
+    }
+
+    @Override
+    public void addButtonPressed() {
+        if (submitter.isEmpty() || packaging.isEmpty() || format.isEmpty() || destination.isEmpty()) {
+            getView().displayWarning(getTexts().error_InputFieldValidationError());
+        } else {
+            flowStoreProxy.createGatekeeperDestination(
+                    new GatekeeperDestination(0L, submitter, destination, packaging, format),
+                    new CreateGatekeeperDestinationCallback()
+            );
+        }
     }
 
 
@@ -69,7 +123,33 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         return viewInjector.getTexts();
     }
 
+    private void initializeData() {
+        submitter = "";
+        getView().submitter.clearText();
+        packaging = "";
+        getView().packaging.clearText();
+        format = "any";
+        getView().format.clearText();
+        destination = "";
+        getView().destination.clearText();
+        copy = false;
+        getView().copy.setValue(false);
+    }
 
+
+    /*
+     * Local classes
+     */
+    private class CreateGatekeeperDestinationCallback implements AsyncCallback<GatekeeperDestination> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            getView().displayWarning(getTexts().error_CannotCreateGatekeeperDestination());
+        }
+        @Override
+        public void onSuccess(GatekeeperDestination destination) {
+            initializeData();
+        }
+    }
 }
 
 

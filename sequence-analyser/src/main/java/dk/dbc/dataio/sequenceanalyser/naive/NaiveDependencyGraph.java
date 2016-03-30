@@ -135,6 +135,7 @@ class NaiveDependencyGraph {
     }
 
     private void findAndUpdateDependencies(Node tailNode) {
+        final List<CollisionDetectionElementIdentifier> blockedBy = new ArrayList<>();
         for (Node headNode : nodes) {
             // find intersection between keysets (if any)
             Set<String> keyIntersection = new HashSet<>(headNode.getKeys());
@@ -144,7 +145,11 @@ class NaiveDependencyGraph {
                 Edge edge = new Edge(headNode, tailNode);
                 tailNode.getEdges().add(edge);
                 headNode.getEdges().add(edge);
+                blockedBy.add(headNode.getIdentifier());
             }
+        }
+        if (!blockedBy.isEmpty()) {
+            LOGGER.info("node {} is blocked by {}", tailNode.getIdentifier(), blockedBy);
         }
     }
 

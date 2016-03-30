@@ -158,46 +158,6 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
         } catch (FlowStoreServiceConnectorException e) { }
     }
 
-    // *************************************************** get gatekeeper destination tests *******************************************************************
-
-    @Test
-    public void getGatekeeperDestination_gatekeeperDestinationRetrieved_returnsGatekeeperDestination() throws FlowStoreServiceConnectorException {
-        final GatekeeperDestination expectedGatekeeperDestination = new GatekeeperDestinationBuilder().build();
-
-        // Subject under test
-        final GatekeeperDestination result = getGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(
-                Response.Status.OK.getStatusCode(),
-                expectedGatekeeperDestination);
-
-        // Verification
-        assertThat(result, is(notNullValue()));
-        assertThat(result.getId(), is(expectedGatekeeperDestination.getId()));
-    }
-
-    @Test
-    public void getGatekeeperDestination_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        try {
-            getGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
-    }
-
-    @Test
-    public void getGatekeeperDestination_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
-        try {
-            getGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), null);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException e) { }
-    }
-
-    @Test
-    public void getGatekeeperDestination_responseWithNotFound_throws() throws FlowStoreServiceConnectorException {
-        try {
-            getGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null);
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorUnexpectedStatusCodeException e) { }
-    }
-
     // ************************************************** delete gatekeeper destination tests *****************************************************************
 
     @Test
@@ -245,18 +205,6 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllGatekeeperDestinations();
-    }
-
-    /*
-     * Helper method for getGatekeeperDestination tests
-     */
-    private GatekeeperDestination getGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
-                .bind(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE, ID);
-        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
-                .thenReturn(new MockedResponse<>(statusCode, returnValue));
-        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
-        return instance.getGatekeeperDestination(ID);
     }
 
     /*

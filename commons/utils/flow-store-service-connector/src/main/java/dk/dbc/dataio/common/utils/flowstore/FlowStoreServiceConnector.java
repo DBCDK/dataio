@@ -913,30 +913,6 @@ public class FlowStoreServiceConnector {
     }
 
     /**
-     * Retrieves the specified gatekeeperDestination from the flow-store
-     *
-     * @param id of the gatekeeperDestination
-     * @return the gatekeeperDestination found
-     * @throws ProcessingException on general communication error
-     * @throws FlowStoreServiceConnectorException on failure to retrieve the gatekeeperDestination
-     */
-    public GatekeeperDestination getGatekeeperDestination(long id) throws ProcessingException, FlowStoreServiceConnectorException {
-        log.trace("FlowStoreServiceConnector: getGatekeeperDestination({});", id);
-        final StopWatch stopWatch = new StopWatch();
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
-                .bind(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE, id);
-        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
-
-        try {
-            verifyResponseStatus(response, Response.Status.OK);
-            return readResponseEntity(response, GatekeeperDestination.class);
-        } finally {
-            response.close();
-            log.debug("FlowStoreServiceConnector: getGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-    /**
      * Deletes an existing gatekeeperDestination from the flow-store
      *
      * @param id, the database related ID

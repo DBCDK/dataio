@@ -198,48 +198,6 @@ public class GatekeeperDestinationsIT {
     }
 
     /**
-     * Given: a deployed flow-store service
-     * When : valid JSON is POSTed to the gatekeeper destination path with a valid identifier
-     * Then : a gatekeeper destination is found and returned
-     * And  : assert that the gatekeeper destination found has an id and contains the same information as the
-     *        gatekeeper destination created
-     */
-    @Test
-    public void getGatekeeperDestination_ok() throws Exception {
-
-        // When...
-        final GatekeeperDestination gatekeeperDestinationPrePersist = new GatekeeperDestinationBuilder().setId(0).build();
-        final GatekeeperDestination persistedGatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(gatekeeperDestinationPrePersist);
-
-        // Then...
-        final GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector.getGatekeeperDestination(persistedGatekeeperDestination.getId());
-
-        // And...
-        assertThat(gatekeeperDestination, is(notNullValue()));
-        assertThat(gatekeeperDestination, is(persistedGatekeeperDestination));
-    }
-
-    /**
-     * Given: a deployed flow-store service
-     * When : Attempting to retrieve a gatekeeper destination with an unknown gatekeeper destination id
-     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
-     * And  : request returns with a NOT_FOUND http status code
-     */
-    @Test
-    public void getGatekeeperDestination_WrongIdNumber_NotFound() throws FlowStoreServiceConnectorException{
-        try{
-            // Given...
-            flowStoreServiceConnector.getGatekeeperDestination(432);
-
-            fail("Invalid request to getGatekeeperDestination() was not detected.");
-            // Then...
-        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-            // And...
-            assertThat(e.getStatusCode(), is(404));
-        }
-    }
-
-    /**
      * Given: a deployed flow-store service and a gatekeeper destination is stored
      * When : attempting to delete the gatekeeper destination
      * Then : the gatekeeper destination is deleted
@@ -254,12 +212,8 @@ public class GatekeeperDestinationsIT {
         flowStoreServiceConnector.deleteGatekeeperDestination(gatekeeperDestination.getId());
 
         // Then...
-        try {
-            flowStoreServiceConnector.getGatekeeperDestination(gatekeeperDestination.getId());
-            fail("Gatekeeper destination was not deleted");
-        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
-            assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(NOT_FOUND));
-        }
+        final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+        assertThat(gatekeeperDestinations.size(), is(0));
     }
 
     /**

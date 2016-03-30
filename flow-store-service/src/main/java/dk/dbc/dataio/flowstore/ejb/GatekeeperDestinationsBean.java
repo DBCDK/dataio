@@ -105,31 +105,6 @@ public class GatekeeperDestinationsBean {
     }
 
     /**
-     * Retrieves gatekeeper destination from underlying data store
-     *
-     * @param id gatekeeper destination identifier
-     *
-     * @return a HTTP 200 response with gatekeeper destination as JSON,
-     *         a HTTP 404 response with error content as JSON if not found,
-     *         a HTTP 500 response in case of general error.
-     *
-     * @throws JSONBException if unable to marshall value type into its JSON representation
-     */
-    @GET
-    @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getGatekeeperDestination(@PathParam(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE) Long id) throws JSONBException {
-        final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
-        if (gatekeeperDestinationEntity == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
-        }
-        return Response
-                .ok()
-                .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
-                .build();
-    }
-
-    /**
      * Deletes an existing gatekeeper destination
      *
      * @param id of the gatekeeper destination

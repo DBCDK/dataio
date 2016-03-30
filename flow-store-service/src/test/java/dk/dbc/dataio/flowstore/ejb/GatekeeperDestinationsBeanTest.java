@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
 import dk.dbc.dataio.commons.utils.test.json.GatekeeperDestinationJsonBuilder;
@@ -148,38 +147,6 @@ public class GatekeeperDestinationsBeanTest {
         assertThat(entityNode.size(), is(2));
         assertThat(entityNode.get(0).get("submitterNumber").textValue(), is("123"));
         assertThat(entityNode.get(1).get("submitterNumber").textValue(), is("234"));
-    }
-
-    // ******************************************************* get gatekeeper destination *******************************************************
-
-    @Test
-    public void getGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
-        when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
-
-        // Subject under test
-        Response response = gatekeeperDestinationsBean.getGatekeeperDestination(42L);
-
-        // Verification
-        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
-    }
-
-    @Test
-    public void getGatekeeperDestination_gatekeeperDestinationFound_returnsResponseWithHttpStatusOK() throws JSONBException {
-        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
-        final GatekeeperDestinationEntity gatekeeperDestinationEntity = new GatekeeperDestinationEntity();
-        final String submitterNumber = "1234567";
-        gatekeeperDestinationEntity.setSubmitterNumber(submitterNumber);
-        when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(gatekeeperDestinationEntity);
-
-        // Subject under test
-        Response response = gatekeeperDestinationsBean.getGatekeeperDestination(42L);
-
-        // Verification
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-        assertThat(response.hasEntity(), is(true));
-        JsonNode entityNode = jsonbContext.getJsonTree((String) response.getEntity());
-        assertThat(entityNode.get("submitterNumber").textValue(), is(submitterNumber));
     }
 
     // ****************************************************** delete gatekeeper destination *****************************************************

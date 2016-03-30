@@ -374,6 +374,34 @@ public class UpdateRecordErrorInterpreterTest extends AbstractOpenUpdateSinkTest
         assertThat(diagnostic.getAttribute(), is(nullValue()));
     }
 
+    @Test
+    public void getDiagnostics_validateEntryContainsNonFatalMessage_returnsEmptyList() {
+        // Error message #1
+        final ValidateEntry validateEntry1 = new ValidateEntry();
+        validateEntry1.setWarningOrError(ValidateWarningOrErrorEnum.ERROR);
+        validateEntry1.setMessage("error message");
+
+        // Error message #2
+        final ValidateEntry validateEntry2 = new ValidateEntry();
+        validateEntry2.setWarningOrError(ValidateWarningOrErrorEnum.ERROR);
+        validateEntry2.setMessage(UpdateRecordErrorInterpreter.NON_FATAL_ERROR_MESSAGE);
+
+        final ValidateInstance validateInstance = new ValidateInstance();
+        validateInstance.getValidateEntry().add(validateEntry1);
+        validateInstance.getValidateEntry().add(validateEntry2);
+
+        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        updateRecordResult.setUpdateStatus(UpdateStatusEnum.VALIDATION_ERROR);
+        updateRecordResult.setValidateInstance(validateInstance);
+
+        // Subject under test
+        final List<Diagnostic> diagnostics = interpreter.getDiagnostics(
+                updateRecordResult,
+                readTestRecord(RECORD_PRODUCES_MULTIPLE_DIAGNOSTICS));
+
+        assertThat("Number of diagnostics", diagnostics.size(), is(0));
+    }
+
 
     /*
      * Private methods

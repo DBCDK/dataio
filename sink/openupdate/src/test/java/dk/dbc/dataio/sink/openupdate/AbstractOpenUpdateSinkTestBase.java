@@ -141,7 +141,7 @@ public class AbstractOpenUpdateSinkTestBase {
      * Private methods
      */
 
-    private static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
+    protected static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
         final Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
         StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
         return (UpdateRecordResponse) unmarshaller.unmarshal(reader);

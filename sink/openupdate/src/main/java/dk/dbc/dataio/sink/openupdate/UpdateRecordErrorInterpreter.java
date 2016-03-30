@@ -43,6 +43,8 @@ import java.util.Optional;
  * This class interprets an UpdateRecordResult, and fetches the field and subfield positions
  */
 public class UpdateRecordErrorInterpreter {
+    static final String NON_FATAL_ERROR_MESSAGE = "Posten kan ikke slettes, da den ikke findes";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(UpdateRecordErrorInterpreter.class);
     private static final String FIELD_PREPEND = "felt ";
     private static final String SUBFIELD_PREPEND = "delfelt ";
@@ -60,6 +62,14 @@ public class UpdateRecordErrorInterpreter {
             List<ValidateEntry> validateEntries = updateRecordResult.getValidateInstance().getValidateEntry();
             if (!validateEntries.isEmpty()) {
                 for (ValidateEntry entry: validateEntries) {
+                    if (NON_FATAL_ERROR_MESSAGE.equals(entry.getMessage())) {
+                        LOGGER.debug("Update service result contains non-fatal '{}' message", entry.getMessage());
+                        // Empty diagnostics will cause ChunkItemProcessor to
+                        // return ChunkItem with status SUCCESS
+                        diagnostics.clear();
+                        break;
+                    }
+
                     String field = null;
                     String subField = null;
                     try {

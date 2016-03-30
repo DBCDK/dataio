@@ -30,6 +30,7 @@ import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -154,6 +155,31 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
         verify(mockedOpenUpdateServiceConnector, times(3)).updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString());
         assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
+    }
+
+    @Test
+    public void processForQueueProvider_emptyDiagnosticsReturnsChunkItemWithStatusSuccess() throws JAXBException {
+        final byte[] updateRecordResponse = (
+          "<updateRecordResponse xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
+            "<updateRecordResult>" +
+              "<updateStatus>failed_update_internal_error</updateStatus>" +
+              "<validateInstance>" +
+                "<validateEntry>" +
+                  "<warningOrError>error</warningOrError>" +
+                  "<message>Posten kan ikke slettes, da den ikke findes</message>" +
+                "</validateEntry>" +
+              "</validateInstance>" +
+            "</updateRecordResult>" +
+          "</updateRecordResponse>").getBytes(StandardCharsets.UTF_8);
+
+        // Expectations
+        when(mockedOpenUpdateServiceConnector.updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString()))
+                .thenReturn(unmarshalUpdateRecordResponse(updateRecordResponse).getUpdateRecordResult());
+
+        // subject under test
+        final ChunkItem chunkItem = newChunkItemProcessor().processForQueueProvider(queueProvider);
+
+        assertThat("ChunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
     }
 
     /*

@@ -29,8 +29,8 @@ public final class Assert {
 	 * <code>exceptionClass</code>. If not, an {@link AssertionError} is thrown with
 	 * the reason and information about the failure. Example:
 	 * <pre>
-	 *   assertThat(&quot;NPE expected&quot;, () -> {}, isThrowing(NullPointerException.class)); // fails:
-	 *   assertThat(&quot;NPE expected&quot;, () -> {String s = null; if (s.isEmpty()) {}}, isThrowing(NullPointerException.class) // passes
+	 *   assertThat(&quot;NPE expected&quot;, () -&gt; {}, isThrowing(NullPointerException.class)); // fails:
+	 *   assertThat(&quot;NPE expected&quot;, () -&gt; {String s = null; if (s.isEmpty()) {}}, isThrowing(NullPointerException.class) // passes
 	 * </pre>
      * @param reason additional information about the error
      * @param block code block expected to throw exception as a lambda
@@ -63,8 +63,8 @@ public final class Assert {
 	 * <code>exceptionClass</code>. If not, an {@link AssertionError} is thrown with
 	 * information about the failure. Example:
 	 * <pre>
-	 *   assertThat(() -> {}, isThrowing(NullPointerException.class)); // fails:
-	 *   assertThat(() -> {String s = null; if (s.isEmpty()) {}}, isThrowing(NullPointerException.class) // passes
+	 *   assertThat(() -&gt; {}, isThrowing(NullPointerException.class)); // fails:
+	 *   assertThat(() -&gt; {String s = null; if (s.isEmpty()) {}}, isThrowing(NullPointerException.class) // passes
 	 * </pre>
      * @param block code block expected to throw exception as a lambda
      * @param exceptionClass class of expected exception

@@ -30,10 +30,13 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.components.EnterButton;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
+
+import java.util.List;
 
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
@@ -48,10 +51,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox destination;
     @UiField PromptedCheckBox copy;
     @UiField EnterButton addButton;
+    @UiField(provided=true) GatekeepersTable gatekeepersTable;
 
 
     public View() {
         super("");
+        gatekeepersTable = new GatekeepersTable();
         add(uiBinder.createAndBindUi(this));
     }
 
@@ -85,8 +90,21 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.addButtonPressed();
     }
 
-    void displayWarning(String warning) {
+    /**
+     * Displays a warning to the user
+     * @param warning The warning to display
+     */
+    public void displayWarning(String warning) {
         Window.alert(warning);
+    }
+
+    /**
+     * This method is used to put data into the view
+     *
+     * @param gatekeepers The list of gatekeepers to put into the view
+     */
+    public void setGatekeepers(List<GatekeeperDestination> gatekeepers) {
+        gatekeepersTable.setGatekeepers(gatekeepers);
     }
 
 }

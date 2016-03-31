@@ -31,6 +31,8 @@ import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
+import java.util.List;
+
 /**
  * Abstract Presenter Implementation Class for Io Traffic
  */
@@ -69,7 +71,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         initializeData();
     }
 
-
     /*
      * Indications from the View
      */
@@ -77,6 +78,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     public void submitterChanged(String submitter) {
         this.submitter = submitter;
     }
+
 
     @Override
     public void packagingChanged(String packaging) {
@@ -134,6 +136,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().destination.clearText();
         copy = false;
         getView().copy.setValue(false);
+        flowStoreProxy.findAllGatekeeperDestinations(new FindAllGateKeeperDestinationsCallback());
     }
 
 
@@ -148,6 +151,17 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onSuccess(GatekeeperDestination destination) {
             initializeData();
+        }
+    }
+
+    private class FindAllGateKeeperDestinationsCallback implements AsyncCallback<List<GatekeeperDestination>> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            getView().displayWarning(getTexts().error_CannotFetchGatekeeperDestinations());
+        }
+        @Override
+        public void onSuccess(List<GatekeeperDestination> gatekeeperDestinations) {
+            getView().setGatekeepers(gatekeeperDestinations);
         }
     }
 }

@@ -44,6 +44,7 @@ public class EnterButton extends Button implements Focusable {
             int keyCode = event.getNativeEvent ().getKeyCode();
             if (keyCode == KeyCodes.KEY_ENTER) {
                 setFocus(true);  // Set focus to the button itself, in order to fire the ValueChangeEvent on the previously focus'ed widget
+                setFocus(false);  // Blur focus in order to avoid double activations
                 click();
             }
         }

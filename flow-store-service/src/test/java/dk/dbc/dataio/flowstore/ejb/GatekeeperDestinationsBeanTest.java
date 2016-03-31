@@ -22,8 +22,9 @@
 package dk.dbc.dataio.flowstore.ejb;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import dk.dbc.dataio.commons.types.exceptions.ReferencedEntityNotFoundException;
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.utils.test.json.GatekeeperDestinationJsonBuilder;
+import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.flowstore.entity.GatekeeperDestinationEntity;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -92,7 +93,7 @@ public class GatekeeperDestinationsBeanTest {
     }
 
     @Test
-    public void createGatekeeperDestination_gatekeeperDestinationCreated_returnsResponseWithHttpStatusOk() throws JSONBException, ReferencedEntityNotFoundException {
+    public void createGatekeeperDestination_gatekeeperDestinationCreated_returnsResponseWithHttpStatusOk() throws JSONBException {
         final String gatekeeperDestination = new GatekeeperDestinationJsonBuilder().build();
         final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
 
@@ -152,7 +153,7 @@ public class GatekeeperDestinationsBeanTest {
     // ****************************************************** delete gatekeeper destination *****************************************************
 
     @Test
-    public void deleteGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
         final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
         when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
 
@@ -164,7 +165,7 @@ public class GatekeeperDestinationsBeanTest {
     }
 
     @Test
-    public void deleteGatekeeperDestination_gatekeeperDestinationFound_returnsNoContentHttpResponse() throws JSONBException, ReferencedEntityNotFoundException {
+    public void deleteGatekeeperDestination_gatekeeperDestinationFound_returnsNoContentHttpResponse() throws JSONBException {
         final GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
         final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
 
@@ -176,6 +177,56 @@ public class GatekeeperDestinationsBeanTest {
         // Verification
         verify(ENTITY_MANAGER).remove(gatekeeperDestinationEntity);
         assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+    }
+
+    // ***************************************************** update gatekeeper destination ******************************************************
+
+    @Test(expected = NullPointerException.class)
+    public void updateGatekeeperDestination_nullGatekeeperDestination_throws() throws JSONBException {
+        newGatekeeperDestinationsBeanWithMockedEntityManager().updateGatekeeperDestination(null, 42L);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void updateGatekeeperDestination_emptyGatekeeperDestination_throws() throws JSONBException {
+        newGatekeeperDestinationsBeanWithMockedEntityManager().updateGatekeeperDestination("", 42L);
+    }
+
+    @Test
+    public void updateGatekeeperDestination_gatekeeperDestinationNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
+        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+
+        when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(null);
+
+        // Subject under test
+        final Response response = gatekeeperDestinationsBean.updateGatekeeperDestination(new GatekeeperDestinationJsonBuilder().build(), 42L);
+
+        // Verification
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void updateGatekeeperDestination_gatekeeperDestinationFound_returnsResponseWithHttpStatusOk() throws JSONBException {
+        final GatekeeperDestinationEntity gatekeeperDestinationEntity = mock(GatekeeperDestinationEntity.class);
+        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
+        final GatekeeperDestinationsBean gatekeeperDestinationsBean = newGatekeeperDestinationsBeanWithMockedEntityManager();
+        gatekeeperDestinationsBean.jsonbContext = mock(JSONBContext.class);
+
+        when(gatekeeperDestinationsBean.jsonbContext.unmarshall(anyString(), eq(GatekeeperDestination.class))).thenReturn(gatekeeperDestination);
+        when(ENTITY_MANAGER.find(eq(GatekeeperDestinationEntity.class), any())).thenReturn(gatekeeperDestinationEntity);
+        when(gatekeeperDestinationsBean.jsonbContext.marshall(gatekeeperDestinationEntity)).thenReturn("entity");
+
+        // Subject under test
+        final Response response = gatekeeperDestinationsBean.updateGatekeeperDestination(
+                new JSONBContext().marshall(gatekeeperDestination), gatekeeperDestination.getId());
+
+        // Verification
+        verify(gatekeeperDestinationEntity).setSubmitterNumber(gatekeeperDestination.getSubmitterNumber());
+        verify(gatekeeperDestinationEntity).setDestination(gatekeeperDestination.getDestination());
+        verify(gatekeeperDestinationEntity).setPackaging(gatekeeperDestination.getPackaging());
+        verify(gatekeeperDestinationEntity).setFormat(gatekeeperDestination.getFormat());
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.hasEntity(), is(true));
     }
 
     /*

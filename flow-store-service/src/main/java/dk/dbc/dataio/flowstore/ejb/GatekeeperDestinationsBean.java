@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -126,6 +127,49 @@ public class GatekeeperDestinationsBean {
 
         entityManager.remove(gatekeeperDestinationEntity);
         return Response.noContent().build();
+    }
+
+    /**
+     * Updates an existing gatekeeper destination
+     *
+     * @param gatekeeperDestinationJson the gatekeeper destination holding the values to update as json
+     *
+     * @return a HTTP 200 response with gatekeeper destination as JSON,
+     *         a HTTP 404 response in case of gatekeeper destination not found
+     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JSONBException on failure to unmarshal to gatekeeperDestination
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response updateGatekeeperDestination(String gatekeeperDestinationJson, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
+
+        InvariantUtil.checkNotNullNotEmptyOrThrow(gatekeeperDestinationJson, "gatekeeperDestinationJson");
+
+        final GatekeeperDestination gatekeeperDestination = jsonbContext.unmarshall(gatekeeperDestinationJson, GatekeeperDestination.class);
+
+        if(id != gatekeeperDestination.getId()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity(NULL_ENTITY).build();
+        }
+
+        final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
+        if (gatekeeperDestinationEntity == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+        }
+        entityManager.detach(gatekeeperDestinationEntity);
+        gatekeeperDestinationEntity.setSubmitterNumber(gatekeeperDestination.getSubmitterNumber());
+        gatekeeperDestinationEntity.setDestination(gatekeeperDestination.getDestination());
+        gatekeeperDestinationEntity.setPackaging(gatekeeperDestination.getPackaging());
+        gatekeeperDestinationEntity.setFormat(gatekeeperDestination.getFormat());
+        entityManager.merge(gatekeeperDestinationEntity);
+        entityManager.flush();
+        return Response
+                .ok()
+                .entity(jsonbContext.marshall(gatekeeperDestinationEntity))
+                .build();
     }
 
     /*

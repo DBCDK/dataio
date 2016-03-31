@@ -133,6 +133,7 @@ public class GatekeeperDestinationsBean {
      * Updates an existing gatekeeper destination
      *
      * @param gatekeeperDestinationJson the gatekeeper destination holding the values to update as json
+     * @param id of the gatekeeper destination to update
      *
      * @return a HTTP 200 response with gatekeeper destination as JSON,
      *         a HTTP 404 response in case of gatekeeper destination not found

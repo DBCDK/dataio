@@ -269,7 +269,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
-                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
         when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, null));
@@ -321,7 +321,7 @@ public class FlowStoreServiceConnector_FlowBinders_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
         when(HttpClient.doPostWithJson(CLIENT, headers, flowBinderContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 

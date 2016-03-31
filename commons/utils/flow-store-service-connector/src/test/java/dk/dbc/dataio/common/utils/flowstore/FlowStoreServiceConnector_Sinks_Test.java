@@ -133,7 +133,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
 
     private Sink getSink_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
-                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, ID);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, ID);
         when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -178,7 +178,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK_CONTENT)
-                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
         when(HttpClient.doPostWithJson(CLIENT, headers, sinkContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
 
@@ -215,7 +215,7 @@ public class FlowStoreServiceConnector_Sinks_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
-                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
         when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, null));

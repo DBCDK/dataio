@@ -115,7 +115,7 @@ public class SubmittersBean {
     @GET
     @Path(FlowStoreServiceConstants.SUBMITTER)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSubmitter(@PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id) throws JSONBException {
+    public Response getSubmitter(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final Submitter submitter = entityManager.find(Submitter.class, id);
         if (submitter == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
@@ -176,7 +176,7 @@ public class SubmittersBean {
     @Path(FlowStoreServiceConstants.SUBMITTER_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateSubmitter(String submitterContent, @PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long id,
+    public Response updateSubmitter(String submitterContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
         @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(submitterContent, SUBMITTER_CONTENT_DISPLAY_TEXT);
@@ -214,7 +214,7 @@ public class SubmittersBean {
     @DELETE
     @Path(FlowStoreServiceConstants.SUBMITTER)
     public Response deleteSubmitter(
-            @PathParam(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE) Long submitterId,
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long submitterId,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
 
         final Submitter submitterEntity = entityManager.find(Submitter.class, submitterId);

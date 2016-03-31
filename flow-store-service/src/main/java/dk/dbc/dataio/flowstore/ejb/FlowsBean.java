@@ -86,7 +86,7 @@ public class FlowsBean {
     @GET
     @Path(FlowStoreServiceConstants.FLOW)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlow(@PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id) throws JSONBException {
+    public Response getFlow(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final Flow flow = entityManager.find(Flow.class, id);
         if (flow == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
@@ -150,7 +150,7 @@ public class FlowsBean {
     public Response updateFlow(
             String flowContent,
             @Context UriInfo uriInfo,
-            @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long id,
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
             @QueryParam(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH) Boolean isRefresh) throws JSONBException, ReferencedEntityNotFoundException {
 
@@ -276,7 +276,7 @@ public class FlowsBean {
     @DELETE
     @Path(FlowStoreServiceConstants.FLOW)
     public Response deleteFlow(
-            @PathParam(FlowStoreServiceConstants.FLOW_ID_VARIABLE) Long flowId,
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long flowId,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
 
         final Flow flowEntity = entityManager.find(Flow.class, flowId);

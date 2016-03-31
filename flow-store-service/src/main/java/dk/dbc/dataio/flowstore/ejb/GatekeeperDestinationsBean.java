@@ -116,7 +116,7 @@ public class GatekeeperDestinationsBean {
     @DELETE
     @Path(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
     public Response deleteGatekeeperDestination(
-            @PathParam(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE) Long id) {
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) {
 
         final GatekeeperDestinationEntity gatekeeperDestinationEntity = entityManager.find(GatekeeperDestinationEntity.class, id);
 

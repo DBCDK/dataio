@@ -131,7 +131,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
 
     private Submitter getSubmitter_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER)
-                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, ID);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, ID);
         when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -180,7 +180,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
-                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, submitterToUpdate.getId());
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, submitterToUpdate.getId());
         when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), submitterToUpdate));
 
@@ -219,7 +219,7 @@ public class FlowStoreServiceConnector_Submitters_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
-                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, ID);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, ID);
         when(HttpClient.doPostWithJson(CLIENT, headers, submitterContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, ""));
 

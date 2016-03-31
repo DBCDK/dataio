@@ -133,7 +133,7 @@ public class FlowStoreServiceConnector_Flows_Test {
     // Helper method
     private Flow getFlow_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
         when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -173,7 +173,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, true);
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
         when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, "", FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -194,7 +194,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false);
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, flowToUpdate.getId());
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowToUpdate.getId());
 
         when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), flowToUpdate));
@@ -238,7 +238,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         queryParameters.put(FlowStoreServiceConstants.QUERY_PARAMETER_REFRESH, false);
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
         when(HttpClient.doPostWithJson(CLIENT, queryParameters, headers, flowContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
@@ -322,7 +322,7 @@ public class FlowStoreServiceConnector_Flows_Test {
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
         when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, null));

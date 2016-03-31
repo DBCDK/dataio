@@ -239,7 +239,7 @@ public class FlowBindersBean {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     public Response updateFlowBinder(String flowBinderContent,
-                                     @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id,
+                                     @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
                                      @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException, ReferencedEntityNotFoundException {
 
         log.trace("called with: '{}'", flowBinderContent);
@@ -287,7 +287,7 @@ public class FlowBindersBean {
     @DELETE
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
     public Response deleteFlowBinder(
-            @PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long flowBinderId,
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long flowBinderId,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
 
         final FlowBinder flowBinderEntity = entityManager.find(FlowBinder.class, flowBinderId);
@@ -345,7 +345,7 @@ public class FlowBindersBean {
     @GET
     @Path(FlowStoreServiceConstants.FLOW_BINDER)
     @Produces({ MediaType.APPLICATION_JSON })
-    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE) Long id) throws JSONBException {
+    public Response getFlowBinderById(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final FlowBinder flowBinder = entityManager.find(FlowBinder.class, id);
 
         if (flowBinder == null) {

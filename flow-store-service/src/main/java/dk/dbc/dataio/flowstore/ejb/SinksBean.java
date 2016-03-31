@@ -71,7 +71,7 @@ public class SinksBean extends AbstractResourceBean {
     @GET
     @Path(FlowStoreServiceConstants.SINK)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getSink(@PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id) throws JSONBException {
+    public Response getSink(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, id);
         if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
@@ -134,7 +134,7 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINK_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateSink(String sinkContent, @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long id,
+    public Response updateSink(String sinkContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
         @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(sinkContent, SINK_CONTENT_DISPLAY_TEXT);
@@ -174,7 +174,7 @@ public class SinksBean extends AbstractResourceBean {
     @DELETE
     @Path(FlowStoreServiceConstants.SINK)
     public Response deleteSink(
-            @PathParam(FlowStoreServiceConstants.SINK_ID_VARIABLE) Long sinkId,
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long sinkId,
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
 
         final SinkEntity entityEntity = entityManager.find(SinkEntity.class, sinkId);

@@ -78,7 +78,7 @@ public class FlowComponentsBean {
     @GET
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response getFlowComponent(@PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id) throws JSONBException {
+    public Response getFlowComponent(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final FlowComponent flowComponent = entityManager.find(FlowComponent.class, id);
         if (flowComponent == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
@@ -148,7 +148,7 @@ public class FlowComponentsBean {
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateFlowComponent(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id,
+    public Response updateFlowComponent(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
                                @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowComponentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
@@ -185,7 +185,7 @@ public class FlowComponentsBean {
     @Path(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
-    public Response updateNext(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE) Long id,
+    public Response updateNext(@Context UriInfo uriInfo, String flowComponentContent, @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
                                         @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);

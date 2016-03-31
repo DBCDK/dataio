@@ -212,7 +212,7 @@ public class FlowStoreServiceConnector_GatekeeperDestinations_Test {
      */
     private void deleteGatekeeperDestination_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
-                .bind(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
         when(HttpClient.doDelete(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, null));

@@ -137,7 +137,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
     // Helper method
     private FlowComponent getFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, long id) throws FlowStoreServiceConnectorException {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
-                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
         when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -182,7 +182,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
         when(HttpClient.doPostWithJson(CLIENT, headers, flowComponentContent, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
@@ -248,7 +248,7 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
-                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, id);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
         when(HttpClient.doPostWithJson(CLIENT, headers, next, FLOW_STORE_URL, path.build()))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();

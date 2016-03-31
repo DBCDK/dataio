@@ -125,7 +125,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
         log.trace("FlowStoreServiceConnector: getSink({});", sinkId);
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK)
-                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, sinkId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
             verifyResponseStatus(response, Response.Status.OK);
@@ -172,7 +172,7 @@ public class FlowStoreServiceConnector {
         InvariantUtil.checkNotNullOrThrow(sinkContent, "sinkContent");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SINK_CONTENT)
-                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(sinkId));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(sinkId));
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -201,7 +201,7 @@ public class FlowStoreServiceConnector {
 
         final PathBuilder pathBuilder = new PathBuilder(
                 FlowStoreServiceConstants.SINK)
-                .bind(FlowStoreServiceConstants.SINK_ID_VARIABLE, Long.toString(sinkId));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(sinkId));
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -237,7 +237,7 @@ public class FlowStoreServiceConnector {
         final PathBuilder pathBuilder = new PathBuilder(
                 FlowStoreServiceConstants.SUBMITTER)
                 .bind(
-                    FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE,
+                    FlowStoreServiceConstants.ID_VARIABLE,
                     Long.toString(submitterId));
 
         final Map<String, String> headers = new HashMap<>(1);
@@ -292,7 +292,7 @@ public class FlowStoreServiceConnector {
         log.trace("FlowStoreServiceConnector: getSubmitter({});", submitterId);
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER)
-                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, submitterId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, submitterId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
@@ -343,7 +343,7 @@ public class FlowStoreServiceConnector {
         InvariantUtil.checkNotNullOrThrow(submitterContent, "submitterContent");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.SUBMITTER_CONTENT)
-                .bind(FlowStoreServiceConstants.SUBMITTER_ID_VARIABLE, submitterId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, submitterId);
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -437,7 +437,7 @@ public class FlowStoreServiceConnector {
         log.trace("FlowStoreServiceConnector: getFlowComponent({});", flowComponentId);
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
-                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, flowComponentId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowComponentId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
@@ -464,7 +464,7 @@ public class FlowStoreServiceConnector {
         InvariantUtil.checkNotNullOrThrow(flowComponentContent, "flowComponentContent");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, flowComponentId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowComponentId);
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -492,7 +492,7 @@ public class FlowStoreServiceConnector {
         log.trace("FlowStoreServiceConnector: updateNext({}, {});", flowComponentId, version);
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT_NEXT)
-                .bind(FlowStoreServiceConstants.FLOW_COMPONENT_ID_VARIABLE, flowComponentId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowComponentId);
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -544,7 +544,7 @@ public class FlowStoreServiceConnector {
         log.trace("FlowStoreServiceConnector: getFlow({});", flowId);
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, flowId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
 
         try {
@@ -590,7 +590,7 @@ public class FlowStoreServiceConnector {
         log.trace("FlowStoreServiceConnector: refreshFlowComponents({}, {});", flowId, version);
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, flowId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowId);
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -626,7 +626,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
 
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, flowId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowId);
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -659,7 +659,7 @@ public class FlowStoreServiceConnector {
 
         final PathBuilder pathBuilder = new PathBuilder(
                 FlowStoreServiceConstants.FLOW)
-                .bind(FlowStoreServiceConstants.FLOW_ID_VARIABLE, Long.toString(flowId));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(flowId));
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -736,7 +736,7 @@ public class FlowStoreServiceConnector {
         InvariantUtil.checkNotNullOrThrow(flowBinderContent, "flowBinderContent");
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER_CONTENT)
-                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, flowBinderId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowBinderId);
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -765,7 +765,7 @@ public class FlowStoreServiceConnector {
 
         final PathBuilder pathBuilder = new PathBuilder(
                 FlowStoreServiceConstants.FLOW_BINDER)
-                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, Long.toString(flowBinderId));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(flowBinderId));
 
         final Map<String, String> headers = new HashMap<>(1);
         headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
@@ -792,7 +792,7 @@ public class FlowStoreServiceConnector {
         log.trace("FlowStoreServiceConnector: getFlowBinder({});", flowBinderId);
         final StopWatch stopWatch = new StopWatch();
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_BINDER)
-                .bind(FlowStoreServiceConstants.FLOW_BINDER_ID_VARIABLE, flowBinderId);
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, flowBinderId);
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
             verifyResponseStatus(response, Response.Status.OK);
@@ -925,7 +925,7 @@ public class FlowStoreServiceConnector {
         final StopWatch stopWatch = new StopWatch();
 
         final PathBuilder pathBuilder = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
-                .bind(FlowStoreServiceConstants.GATEKEEPER_DESTINATION_ID_VARIABLE, Long.toString(id));
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
 
         final Response response = doDelete(httpClient, baseUrl, pathBuilder.build());
 

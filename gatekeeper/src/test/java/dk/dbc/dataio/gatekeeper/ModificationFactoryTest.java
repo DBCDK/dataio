@@ -44,6 +44,7 @@ import static junit.framework.TestCase.fail;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -105,7 +106,7 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void getModifications_singleParallelLineWithoutDatafile_returnsModifications() throws IOException {
+    public void getModifications_singleDataioExclusiveLineWithoutDatafile_returnsModifications() throws IOException {
         final String line = "b=danbib,t=lin,c=latin-1,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, line + System.lineSeparator());
@@ -113,17 +114,12 @@ public class ModificationFactoryTest {
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.getModifications();
-        assertThat("Number of modifications", modifications.size(), is(3));
+        assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
-        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.CREATE_TRANSFILE));
-        assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.DELETE_FILE));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
 
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
-        assertThat("Modification 3 arg", modifications.get(2).getArg(), is(transfilePath.getFileName().toString()));
-
-        final String createTransfileArg = modifications.get(1).getArg();
-        assertThat("Transfile contains", createTransfileArg, containsString(line + System.lineSeparator()));
-        assertThat("Transfile has end marker", createTransfileArg, containsString("slut"));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfilePath.getFileName().toString()));
     }
 
     @Test
@@ -175,12 +171,12 @@ public class ModificationFactoryTest {
 
         final String createTransfileArg = modifications.get(3).getArg();
         assertThat("Transfile contains", createTransfileArg, containsString(line1 + System.lineSeparator()));
-        assertThat("Transfile contains", createTransfileArg, containsString(line2 + System.lineSeparator()));
+        assertThat("Transfile does not contain", createTransfileArg, not(containsString(line2 + System.lineSeparator())));
         assertThat("Transfile has end marker", createTransfileArg, containsString("slut"));
     }
 
     @Test
-    public void getModifications_multipleMixedTypes_returnsModifications() throws IOException {
+    public void getModifications_multipleMixedTypes_returnsModification() throws IOException {
         final String line1 = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final String line2 = "b=dfa,f=654321.file,t=lin,c=utf-8,o=marc2";
         final Path transfilePath = testFolder.newFile().toPath();
@@ -232,13 +228,14 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void processLine_posthusExclusiveLineContainsNoDatafile_returnsNoModifications() throws IOException {
+    public void processLine_posthusExclusiveLineContainsNoDatafile_returnsModification() throws IOException {
         final Path transfilePath = testFolder.newFile().toPath();
         writeFile(transfilePath, "b=mybib,t=lin,c=latin-1,o=marc2");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.processLine(transfile.getLines().get(0));
-        assertThat("Number of modifications", modifications.size(), is(0));
+        assertThat("Number of modifications", modifications.size(), is(1));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
     }
 
     @Test
@@ -247,10 +244,23 @@ public class ModificationFactoryTest {
         writeFile(transfilePath, "b=mybib,f=123456.file,t=lin,c=latin-1,o=marc2");
         final TransFile transfile = new TransFile(transfilePath);
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
-        final List<Modification> modifications =
-                modificationFactory.processLine(transfile.getLines().get(0));
+        final List<Modification> modifications = modificationFactory.processLine(transfile.getLines().get(0));
         assertThat("Number of modifications", modifications.size(), is(1));
         assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.MOVE_FILE));
+    }
+
+    @Test
+    public void processLine_posthusExclusiveLineWithoutPackaging_returnsModifications() throws IOException {
+        final Path transfilePath = testFolder.newFile().toPath();
+        writeFile(transfilePath, "b=folk,f=820010.file,c=latin-1,o=marc2" + System.lineSeparator());
+        writeFile(transfilePath, "slut");
+        final TransFile transfile = new TransFile(transfilePath);
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
+        final List<Modification> modifications = modificationFactory.getModifications();
+        assertThat("Number of modifications", modifications.size(), is(3));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.MOVE_FILE));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.CREATE_TRANSFILE));
+        assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.DELETE_FILE));
     }
 
     @Test
@@ -334,24 +344,17 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void determineType_lineIsInvalid_returnsPosthusExclusive() {
+    public void determineType_lineIsInvalid_returnsDataioExclusiveExclusive() {
         final TransFile.Line line = new TransFile.Line("foo");
         final ModificationFactory modificationFactory = new ModificationFactory(flowStoreServiceConnector);
-        assertThat(modificationFactory.determineType(line), is(ModificationFactory.Type.POSTHUS_EXCLUSIVE));
+        assertThat(modificationFactory.determineType(line), is(ModificationFactory.Type.DATAIO_EXCLUSIVE));
     }
 
     @Test
-    public void determineType_danbibMatch_returnsParallel() {
+    public void determineType_missingSubmitter_returnsDataioExclusive() {
         final TransFile.Line line = new TransFile.Line("b=danbib,t=lin,c=latin-1,o=marc2");
         final ModificationFactory modificationFactory = new ModificationFactory(flowStoreServiceConnector);
-        assertThat(modificationFactory.determineType(line), is(ModificationFactory.Type.PARALLEL));
-    }
-
-    @Test
-    public void determineType_dfaMatch_returnsPosthusExclusive() {
-        final TransFile.Line line = new TransFile.Line("b=dfa,t=lin,c=latin-1,o=marc2");
-        final ModificationFactory modificationFactory = new ModificationFactory(flowStoreServiceConnector);
-        assertThat(modificationFactory.determineType(line), is(ModificationFactory.Type.POSTHUS_EXCLUSIVE));
+        assertThat(modificationFactory.determineType(line), is(ModificationFactory.Type.DATAIO_EXCLUSIVE));
     }
 
     @Test

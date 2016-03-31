@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.operation.JobSpecificationFactory;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.DATAIO_EXCLUSIVE;
 import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.PARALLEL;
 import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.POSTHUS_EXCLUSIVE;
 
@@ -55,16 +57,15 @@ public class ModificationFactory {
 
     private final TransFile transfile;
     private final StringBuilder newTransfile = new StringBuilder();
-    private FlowStoreServiceConnector flowStoreServiceConnector;
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
 
     /**
      * Class Constructor
      * @param transfile for which modifications are to be listed
      * @param flowStoreServiceConnector used to retrieve list of gatekeeper destinations
      * @throws NullPointerException if given null-valued transfile
-     * @throws IllegalStateException on error retrieving gatekeeper destinations
      */
-    public ModificationFactory(TransFile transfile, FlowStoreServiceConnector flowStoreServiceConnector) throws NullPointerException, IllegalStateException {
+    public ModificationFactory(TransFile transfile, FlowStoreServiceConnector flowStoreServiceConnector) throws NullPointerException {
         this.transfile = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
     }
@@ -170,29 +171,21 @@ public class ModificationFactory {
      */
     Type determineType(TransFile.Line line) throws IllegalStateException {
         final Set<GatekeeperDestination> gatekeeperDestinationsForDataIo = getGatekeeperDestinationsForDataIo();
-        final long submitterNumber = JobSpecificationFactory.getSubmitterIdOrMissing(line);
+        final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(line, "0", "0");
 
-        final String destination = line.getField("b");
-        final String format      = line.getField("o");
-        String packaging         = line.getField("t");
+        if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
+            GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
+                    0L,
+                    String.valueOf(jobSpecification.getSubmitterId()),
+                    jobSpecification.getDestination(),
+                    jobSpecification.getPackaging(),
+                    jobSpecification.getFormat());
 
-        if(packaging == null && "danbib".equals(destination)){
-            packaging = "iso";
-        }
-
-        if(submitterNumber != Constants.MISSING_SUBMITTER_VALUE) {
-            GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(0L, String.valueOf(submitterNumber), destination, packaging, format);
             if (gatekeeperDestinationsForDataIo.contains(gatekeeperDestination)) {
                 return PARALLEL;
             }
         } else {
-            for (GatekeeperDestination gatekeeperDestination : gatekeeperDestinationsForDataIo) {
-                if (gatekeeperDestination.getDestination().equals(destination)
-                        && gatekeeperDestination.getPackaging().equals(packaging)
-                        && gatekeeperDestination.getFormat().equals(format)) {
-                    return PARALLEL;
-                }
-            }
+            return DATAIO_EXCLUSIVE;
         }
         return POSTHUS_EXCLUSIVE;
     }

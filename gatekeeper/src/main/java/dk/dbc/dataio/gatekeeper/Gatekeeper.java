@@ -49,7 +49,7 @@ public class Gatekeeper {
         final Path shadowDir = Paths.get(commandLine.getOptionValue("s"));
         final String jobStoreServiceUrl = commandLine.getOptionValue("j");
         final String fileStoreServiceUrl = commandLine.getOptionValue("f");
-        final String flowStoreServiceUrl = commandLine.getOptionValue("flowStore");
+        final String flowStoreServiceUrl = commandLine.getOptionValue("c");
         final ShutdownManager shutdownManager = new ShutdownManager();
 
         registerShutdownHook(shutdownManager);
@@ -163,7 +163,7 @@ public class Gatekeeper {
                 .isRequired()
                 .withDescription("Base URL of flow-store service")
                 .withLongOpt("flow-store-service-url")
-                .create("flowStore");
+                .create("c");
         options.addOption(flowStoreServiceUrl);
 
         return options;

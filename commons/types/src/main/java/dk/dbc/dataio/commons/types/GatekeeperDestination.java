@@ -34,11 +34,11 @@ import java.io.Serializable;
 public class GatekeeperDestination implements Serializable {
 
     private static final long serialVersionUID = -4446705379590875306L;
-    private final long id;
-    private final String submitterNumber;
-    private final String destination;
-    private final String packaging;
-    private final String format;
+    private /*final*/ long id;
+    private /*final*/ String submitterNumber;
+    private /*final*/ String destination;
+    private /*final*/ String packaging;
+    private /*final*/ String format;
 
     @JsonCreator
     public GatekeeperDestination(@JsonProperty("id") long id,
@@ -54,9 +54,8 @@ public class GatekeeperDestination implements Serializable {
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
     }
 
-    public GatekeeperDestination() {
-        this(0L, "0", "<empty>", "<empty>", "<empty>");
-    }
+    //This constructor only exists due to gwt serialization issues.
+    private GatekeeperDestination() { }
 
     public long getId() {
         return id;

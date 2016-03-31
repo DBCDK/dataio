@@ -33,7 +33,6 @@ import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.ejb.EJB;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -52,18 +51,6 @@ public class NotificationsBean {
 
     @EJB
     JobNotificationRepository jobNotificationRepository;
-
-    /**
-     * This is a dummy service for TEST purposes.
-     * @return always OK
-     */
-    @GET
-    @Path(JobStoreServiceConstants.NOTIFICATIONS_TEST)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Stopwatch
-    public Response testThis() {
-        return Response.ok().entity("Hi from NotificationBean").build();
-    }
 
     /**
      * Adds a Notification for later processing

@@ -1791,7 +1791,36 @@ public class FlowStoreProxyImplTest {
      * Test findAllGatekeeperDestinations
      */
 
-    // To be implemented when the non-test version of findAllGateKeeperDestinations proxy has been implemented
+    @Test
+    public void findAllGatekeeperDestinations_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+        try {
+            flowStoreProxy.findAllGatekeeperDestinations();
+            fail("No INTERNAL_SERVER_ERROR was thrown by findAllGatekeeperDestinations()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(ProxyError.INTERNAL_SERVER_ERROR));
+        }
+    }
+
+    @Test
+    public void findAllGatekeeperDestinations_remoteServiceReturnsHttpStatusOk_returnsListOfGatekeeperDestinations() throws Exception {
+
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(123L, "1234", "-destination-", "-packaging-", "-format-");
+
+        when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(Collections.singletonList(gatekeeperDestination));
+        try {
+            final List<GatekeeperDestination> allGatekeepers = flowStoreProxy.findAllGatekeeperDestinations();
+            assertNotNull(allGatekeepers);
+            assertThat(allGatekeepers.size(), is(1));
+            assertThat(allGatekeepers.get(0).getId(), is(gatekeeperDestination.getId()));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: findAllGatekeeperDestinations()");
+        }
+    }
 
 
 

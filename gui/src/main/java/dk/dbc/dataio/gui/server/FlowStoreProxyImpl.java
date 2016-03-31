@@ -544,17 +544,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         final String callerMethodName = "findAllGatekeeperDestinations";
         List<GatekeeperDestination> destinations = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
-//        try {
-//            destinations = flowStoreServiceConnector.findAllGatekeeperDestination();
-//        } catch(Exception genericException) {
-//            handleExceptions(genericException, callerMethodName);
-//        }
-        destinations = new ArrayList<>();
-        destinations.add(new GatekeeperDestination(1234L, "870970", "gatekeeper destination 1", "iso", "basis"));
-        destinations.add(new GatekeeperDestination(2345L, "870970", "Desti",                    "xml", "katalog"));
-        destinations.add(new GatekeeperDestination(3456L, "830060", "Gatey",                    "xml", "marc2"));
-        destinations.add(new GatekeeperDestination(4567L, "300151", "Nation",                   "iso", "katalog"));
-        destinations.add(new GatekeeperDestination(5678L, "300175", "Keeper",                   "lin", "marc2"));
+        try {
+            destinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
         return destinations;
     }
 

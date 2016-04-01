@@ -28,7 +28,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
-import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
@@ -128,8 +127,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     private void initializeData() {
         submitter = "";
-        View v = getView();
-        PromptedTextBox s = v.submitter;
         getView().submitter.clearText();
         packaging = "";
         getView().packaging.clearText();

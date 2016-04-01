@@ -30,6 +30,8 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -58,6 +60,7 @@ public class GatekeeperDestinationsIT {
     private static Connection dbConnection;
     private static String baseUrl;
     private static FlowStoreServiceConnector flowStoreServiceConnector;
+    private static JSONBContext jsonbContext;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -65,6 +68,7 @@ public class GatekeeperDestinationsIT {
         dbConnection = newIntegrationTestConnection();
         restClient = HttpClient.newClient();
         flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+        jsonbContext = new JSONBContext();
     }
 
     @AfterClass
@@ -235,4 +239,138 @@ public class GatekeeperDestinationsIT {
             assertThat(Response.Status.fromStatusCode(e.getStatusCode()), is(NOT_FOUND));
         }
     }
+
+    /**
+     * Given: a deployed flow-store service with a valid gatekeeper destination with given id is already stored
+     * When : valid JSON is POSTed to the gatekeeper/destinations path with an identifier (update)
+     * Then : assert the correct fields have been set with the correct values
+     * And  : assert that updated data can be found in the underlying database and only one gatekeeper destination exists
+     */
+    @Test
+    public void updateGatekeeperDestination_ok() throws Exception{
+
+        // Given...
+        GatekeeperDestination originalGatekeeperDestination = flowStoreServiceConnector.createGatekeeperDestination(
+                new GatekeeperDestinationBuilder().setPackaging("lin").setId(0L).build());
+
+        GatekeeperDestination modifiedGatekeeperDestination = new GatekeeperDestinationBuilder()
+                .setId(originalGatekeeperDestination.getId()).setPackaging("iso").build();
+
+        // When...
+        GatekeeperDestination updatedGatekeeperDestination = flowStoreServiceConnector.updateGatekeeperDestination(modifiedGatekeeperDestination);
+
+        // Then...
+        assertThat(updatedGatekeeperDestination, is(modifiedGatekeeperDestination));
+
+        // And...
+        assertThat(flowStoreServiceConnector.findAllGatekeeperDestinations().size(), is(1));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : JSON posted to the gatekeeper/destinations path with update causes JSONBException
+     * Then : request returns with a BAD REQUEST http status code
+     */
+    @Test
+    public void updateGatekeeperDestination_invalidJson_BadRequest() throws FlowStoreServiceConnectorException {
+        // Given...
+        GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector
+                .createGatekeeperDestination(new GatekeeperDestinationBuilder().setId(0L).build());
+
+        // When...
+        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl,
+                FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS, String.valueOf(gatekeeperDestination.getId()));
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : JSON posted to the gatekeeper/destinations path with an identifier (update), where the id of the gatekeeper destination object
+     *        does not match the id given in path, causes JSONBException
+     * Then : request returns with a BAD REQUEST http status code
+     */
+    @Test
+    public void updateGatekeeperDestination_gatekeeperDestinationIdDoesNotMatchIdInPath_BadRequest() throws FlowStoreServiceConnectorException, JSONBException {
+        // Given...
+        GatekeeperDestination gatekeeperDestination = flowStoreServiceConnector
+                .createGatekeeperDestination(new GatekeeperDestinationBuilder().setId(0L).build());
+
+        // When...
+        final Response response = HttpClient.doPostWithJson(restClient, jsonbContext.marshall(gatekeeperDestination), baseUrl,
+                FlowStoreServiceConstants.GATEKEEPER_DESTINATIONS, String.valueOf(gatekeeperDestination.getId() + 1));
+        // Then...
+        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the gatekeeper/destinations path with an identifier (update) and a none existing id number
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     * And  : assert that no gatekeeper destination exist in the underlying database
+     */
+    @Test
+    public void updateGatekeeperDestination_noneExistingIdNumber_NotFound() throws FlowStoreServiceConnectorException {
+        // Given...
+        try {
+            // When...
+            flowStoreServiceConnector.updateGatekeeperDestination(new GatekeeperDestinationBuilder().build());
+            fail("None existing gatekeeper id was not detected as input to updateGatekeeperDestination().");
+
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+
+            // And...
+            final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+            assertThat(gatekeeperDestinations.size(), is(0));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service with two valid gatekeeper destinations stored
+     * When : valid JSON is POSTed to the gatekeeper/destinations path with an identifier (update) but with a combination of values that are
+     *        already in use by another existing gatekeeper destination
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_ACCEPTABLE http status code
+     * And  : assert that two gatekeeper destinations exists in the underlying database
+     * And  : updated data cannot be found in the underlying database
+     */
+    @Test
+    public void updateGatekeeperDestination_noneUniqueValues_NotAcceptable() throws FlowStoreServiceConnectorException{
+        // Given...
+        GatekeeperDestination gatekeeperDestinationA = flowStoreServiceConnector.createGatekeeperDestination(
+                new GatekeeperDestinationBuilder().setDestination("A").setId(0).build());
+
+        GatekeeperDestination gatekeeperDestinationB = flowStoreServiceConnector.createGatekeeperDestination(
+                new GatekeeperDestinationBuilder().setDestination("B").setId(0).build());
+
+        try {
+            // When... (Attempting to update the second gatekeeperDestination with the same value combination as the first gatekeeperDestination)
+            flowStoreServiceConnector.updateGatekeeperDestination(new GatekeeperDestinationBuilder()
+                    .setId(gatekeeperDestinationB.getId())
+                    .setDestination(gatekeeperDestinationA.getDestination())
+                    .build()
+            );
+
+            fail("Primary key violation was not detected as input to updateGatekeeperDestination().");
+            // Then...
+        }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+
+            // And...
+            assertThat(e.getStatusCode(), is(406));
+
+            // And...
+            final List<GatekeeperDestination> gatekeeperDestinations = flowStoreServiceConnector.findAllGatekeeperDestinations();
+            assertThat(gatekeeperDestinations.size(), is(2));
+
+            // And...
+            assertThat(gatekeeperDestinations.get(0), is (gatekeeperDestinationA));
+            assertThat(gatekeeperDestinations.get(1), is (gatekeeperDestinationB));
+        }
+    }
+
 }

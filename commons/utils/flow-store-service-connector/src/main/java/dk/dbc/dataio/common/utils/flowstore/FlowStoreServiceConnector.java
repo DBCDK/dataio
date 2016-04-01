@@ -937,6 +937,33 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Updates an existing gatekeeper destination from the flow-store
+     *
+     * @param gatekeeperDestination containing the updated values
+     * @return the updated gatekeeperDestination
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to update the gatekeeper destination
+     */
+    public GatekeeperDestination updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws ProcessingException, FlowStoreServiceConnectorException {
+        log.trace("FlowStoreServiceConnector: updateGatekeeperDestination()");
+        InvariantUtil.checkNotNullOrThrow(gatekeeperDestination, "gatekeeperDestination");
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.GATEKEEPER_DESTINATION)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(gatekeeperDestination.getId()));
+
+        final Response response = doPostWithJson(httpClient, gatekeeperDestination, baseUrl, path.build());
+
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseEntity(response, GatekeeperDestination.class);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: updateGatekeeperDestination took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {

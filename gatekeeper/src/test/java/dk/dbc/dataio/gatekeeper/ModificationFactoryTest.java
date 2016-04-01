@@ -24,6 +24,7 @@ package dk.dbc.dataio.gatekeeper;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.gatekeeper.operation.Opcode;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.gatekeeper.wal.Modification;
@@ -442,7 +443,15 @@ public class ModificationFactoryTest {
      * Package private methods
      */
     static List<GatekeeperDestination> getGatekeeperDestinationForTest() {
-        return Collections.singletonList(new GatekeeperDestination(0L, "820010", "danbib", "lin", "marc2"));
+        return Collections.singletonList(new GatekeeperDestinationBuilder()
+                .setId(0L)
+                .setSubmitterNumber("820010")
+                .setDestination("danbib")
+                .setPackaging("lin")
+                .setFormat("marc2")
+                .setCopy(true)
+                .build()
+        );
     }
 
     /*

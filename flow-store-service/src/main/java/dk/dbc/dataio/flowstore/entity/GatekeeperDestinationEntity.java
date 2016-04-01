@@ -50,6 +50,7 @@ public class GatekeeperDestinationEntity {
     private String destination;
     private String packaging;
     private String format;
+    private boolean copy;
 
     public GatekeeperDestinationEntity() {}
 
@@ -87,5 +88,13 @@ public class GatekeeperDestinationEntity {
 
     public void setFormat(String format) {
         this.format = format;
+    }
+
+    public boolean isCopy() {
+        return copy;
+    }
+
+    public void setCopy(boolean copy) {
+        this.copy = copy;
     }
 }

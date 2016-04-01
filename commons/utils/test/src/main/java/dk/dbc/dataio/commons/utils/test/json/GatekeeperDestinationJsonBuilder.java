@@ -28,6 +28,7 @@ public class GatekeeperDestinationJsonBuilder extends JsonBuilder {
     private String destination = "destination";
     private String packaging = "packaging";
     private String format = "format";
+    private boolean copy = false;
 
     public GatekeeperDestinationJsonBuilder setSubmitterNumber(String submitterNumber) {
         this.submitterNumber = submitterNumber;
@@ -49,6 +50,11 @@ public class GatekeeperDestinationJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public GatekeeperDestinationJsonBuilder setCopy(boolean copy) {
+        this.copy = copy;
+        return this;
+    }
+
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
@@ -61,6 +67,8 @@ public class GatekeeperDestinationJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("packaging", packaging));
         stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asTextMember("format", format));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asBooleanMember("copy", copy));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

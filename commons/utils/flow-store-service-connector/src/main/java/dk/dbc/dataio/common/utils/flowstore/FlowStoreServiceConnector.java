@@ -873,11 +873,12 @@ public class FlowStoreServiceConnector {
      * @throws FlowStoreServiceConnectorException                     on general failure to create gatekeeperDestination
      */
     public GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws FlowStoreServiceConnectorException {
-        log.trace("FlowStoreServiceConnector: createGatekeeperDestination({}, {}, {}, {}",
+        log.trace("FlowStoreServiceConnector: createGatekeeperDestination({}, {}, {}, {}, {}",
                 gatekeeperDestination.getSubmitterNumber(),
                 gatekeeperDestination.getDestination(),
                 gatekeeperDestination.getPackaging(),
-                gatekeeperDestination.getFormat());
+                gatekeeperDestination.getFormat(),
+                gatekeeperDestination.isCopy());
 
         InvariantUtil.checkNotNullOrThrow(gatekeeperDestination, "gatekeeperDestination");
         final StopWatch stopWatch = new StopWatch();

@@ -42,6 +42,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -1731,11 +1732,10 @@ public class FlowStoreProxyImplTest {
     public void createGatekeeperDestination_remoteServiceReturnsHttpStatusCreated_returnsCreatedGatekeeperDestination() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final GatekeeperDestination destination = new GatekeeperDestination(1234L, "830060", "Gatekeeper Destination", "xml", "marc2");
+        final GatekeeperDestination destination = new GatekeeperDestinationBuilder().build();
         when(flowStoreServiceConnector.createGatekeeperDestination(any(GatekeeperDestination.class))).thenReturn(destination);
-
         try {
-            final GatekeeperDestination createdDestination = flowStoreProxy.createGatekeeperDestination(new GatekeeperDestination(1235L, "830065", "Gatekeeper Dest", "xml", "marc2"));
+            final GatekeeperDestination createdDestination = flowStoreProxy.createGatekeeperDestination(destination);
             assertNotNull(createdDestination);
         } catch (ProxyException e) {
             fail("Unexpected error when calling: createGatekeeperDestination()");
@@ -1755,8 +1755,8 @@ public class FlowStoreProxyImplTest {
     @Test
     public void createGatekeeperDestination_throwsIllegalArgumentException() throws Exception {
         IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
-        final GatekeeperDestination destination = new GatekeeperDestination(1234L, "830060", "Gatekeeper Destination", "xml", "marc2");
-        createGatekeeperDestination_testForProxyError(destination, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+        createGatekeeperDestination_testForProxyError(new GatekeeperDestinationBuilder().build(),
+                illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
     }
 
     private void createGatekeeperDestination_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
@@ -1766,7 +1766,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createGatekeeperDestination(any(GatekeeperDestination.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
-            flowStoreProxy.createGatekeeperDestination(new GatekeeperDestination(1234L, "830060", "Gatekeeper Destination", "xml", "marc2"));
+            flowStoreProxy.createGatekeeperDestination(new GatekeeperDestinationBuilder().build());
             fail("No " + expectedErrorName + " error was thrown by createGatekeeperDestination()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1809,7 +1809,7 @@ public class FlowStoreProxyImplTest {
 
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(123L, "1234", "-destination-", "-packaging-", "-format-");
+        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().build();
 
         when(flowStoreServiceConnector.findAllGatekeeperDestinations()).thenReturn(Collections.singletonList(gatekeeperDestination));
         try {

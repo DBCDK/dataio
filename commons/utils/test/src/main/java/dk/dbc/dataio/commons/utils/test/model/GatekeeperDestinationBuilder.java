@@ -30,6 +30,7 @@ public class GatekeeperDestinationBuilder {
     private String destination = "destination";
     private String packaging = "packaging";
     private String format = "format";
+    private boolean copy = false;
 
     public GatekeeperDestinationBuilder setId(long id) {
         this.id = id;
@@ -56,8 +57,13 @@ public class GatekeeperDestinationBuilder {
         return this;
     }
 
+    public GatekeeperDestinationBuilder setCopy(boolean copy) {
+        this.copy = copy;
+        return this;
+    }
+
 
     public GatekeeperDestination build() {
-        return new GatekeeperDestination(id, submitterNumber, destination, packaging, format);
+        return new GatekeeperDestination(id, submitterNumber, destination, packaging, format, copy);
     }
 }

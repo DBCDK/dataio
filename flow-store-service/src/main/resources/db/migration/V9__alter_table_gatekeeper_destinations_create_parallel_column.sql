@@ -1,0 +1,1 @@
+ALTER TABLE gatekeeper_destinations ADD COLUMN copy BOOLEAN NOT NULL DEFAULT FALSE;

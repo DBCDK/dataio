@@ -175,11 +175,12 @@ public class ModificationFactory {
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
             GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
-                    0L,
+                    0L,      // Will not be compared through equals
                     String.valueOf(jobSpecification.getSubmitterId()),
                     jobSpecification.getDestination(),
                     jobSpecification.getPackaging(),
-                    jobSpecification.getFormat());
+                    jobSpecification.getFormat(),
+                    false);  // Will not be compared through equals
 
             if (gatekeeperDestinationsForDataIo.contains(gatekeeperDestination)) {
                 return PARALLEL;

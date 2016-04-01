@@ -28,13 +28,14 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.List;
 
 /**
- * Abstract Presenter Implementation Class for Io Traffic
+ * Concrete Presenter Implementation Class for Io Traffic
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
 
@@ -127,10 +128,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     private void initializeData() {
         submitter = "";
+        View v = getView();
+        PromptedTextBox s = v.submitter;
         getView().submitter.clearText();
         packaging = "";
         getView().packaging.clearText();
-        format = "any";
+        format = "";
         getView().format.clearText();
         destination = "";
         getView().destination.clearText();
@@ -143,7 +146,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /*
      * Local classes
      */
-    private class CreateGatekeeperDestinationCallback implements AsyncCallback<GatekeeperDestination> {
+    class CreateGatekeeperDestinationCallback implements AsyncCallback<GatekeeperDestination> {
         @Override
         public void onFailure(Throwable throwable) {
             getView().displayWarning(getTexts().error_CannotCreateGatekeeperDestination());
@@ -154,7 +157,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
     }
 
-    private class FindAllGateKeeperDestinationsCallback implements AsyncCallback<List<GatekeeperDestination>> {
+    class FindAllGateKeeperDestinationsCallback implements AsyncCallback<List<GatekeeperDestination>> {
         @Override
         public void onFailure(Throwable throwable) {
             getView().displayWarning(getTexts().error_CannotFetchGatekeeperDestinations());

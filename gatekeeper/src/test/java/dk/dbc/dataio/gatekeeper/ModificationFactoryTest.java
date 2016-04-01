@@ -38,7 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 import static junit.framework.TestCase.fail;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 public class ModificationFactoryTest {
 
     private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private List<GatekeeperDestination> gatekeeperDestinations = getGatekeeperDestinationForTest();
+    private List<GatekeeperDestination> gatekeeperDestinations = getGatekeeperDestinationsForTest();
 
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
@@ -148,6 +148,25 @@ public class ModificationFactoryTest {
     }
 
     @Test
+    public void getModifications_singleDataioExclusiveLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+        final String line = "b=danbib,f=820011.file,t=lin,c=latin-1,o=marc2";
+        final Path transfilePath = testFolder.newFile().toPath();
+        writeFile(transfilePath, line + System.lineSeparator());
+        writeFile(transfilePath, "slut");
+        final TransFile transfile = new TransFile(transfilePath);
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
+        final List<Modification> modifications = modificationFactory.getModifications();
+        assertThat("Number of modifications", modifications.size(), is(3));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
+        assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.DELETE_FILE));
+
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820011.file"));
+        assertThat("Modification 3 arg", modifications.get(2).getArg(), is(transfilePath.getFileName().toString()));
+    }
+
+    @Test
     public void getModifications_multipleParallelLines_returnsModifications() throws IOException {
         final String line1 = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final String line2 = "b=danbib,t=lin,c=utf-8,o=marc2";
@@ -226,6 +245,18 @@ public class ModificationFactoryTest {
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.MOVE_FILE));
+    }
+
+    @Test
+    public void processLine_dataioExclusiveContainsDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+        final Path transfilePath = testFolder.newFile().toPath();
+        writeFile(transfilePath, "b=danbib,f=820011.file,t=lin,c=latin-1,o=marc2");
+        final TransFile transfile = new TransFile(transfilePath);
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
+        final List<Modification> modifications = modificationFactory.processLine(transfile.getLines().get(0));
+        assertThat("Number of modifications", modifications.size(), is(2));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
     }
 
     @Test
@@ -442,16 +473,26 @@ public class ModificationFactoryTest {
     /*
      * Package private methods
      */
-    static List<GatekeeperDestination> getGatekeeperDestinationForTest() {
-        return Collections.singletonList(new GatekeeperDestinationBuilder()
+    static List<GatekeeperDestination> getGatekeeperDestinationsForTest() {
+        GatekeeperDestination gatekeeperDestinationIsParallel = new GatekeeperDestinationBuilder()
                 .setId(0L)
                 .setSubmitterNumber("820010")
                 .setDestination("danbib")
                 .setPackaging("lin")
                 .setFormat("marc2")
                 .setCopy(true)
-                .build()
-        );
+                .build();
+
+        GatekeeperDestination gatekeeperDestinationIsDataioExclusive = new GatekeeperDestinationBuilder()
+                .setId(0L)
+                .setSubmitterNumber("820011")
+                .setDestination("danbib")
+                .setPackaging("lin")
+                .setFormat("marc2")
+                .setCopy(false)
+                .build();
+
+        return Arrays.asList(gatekeeperDestinationIsParallel, gatekeeperDestinationIsDataioExclusive);
     }
 
     /*

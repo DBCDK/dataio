@@ -79,7 +79,7 @@ public class JobDispatcherTest {
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private ShutdownManager shutdownManager;
-    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationForTest();
+    private List<GatekeeperDestination> gatekeeperDestinations = ModificationFactoryTest.getGatekeeperDestinationsForTest();
 
     @Before
     public void setupFileSystem() throws IOException {

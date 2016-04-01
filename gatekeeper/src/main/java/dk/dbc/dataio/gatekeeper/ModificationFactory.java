@@ -174,6 +174,7 @@ public class ModificationFactory {
         final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(line, "0", "0");
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
+
             GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
                     0L,      // Will not be compared through equals
                     String.valueOf(jobSpecification.getSubmitterId()),
@@ -182,8 +183,14 @@ public class ModificationFactory {
                     jobSpecification.getFormat(),
                     false);  // Will not be compared through equals
 
-            if (gatekeeperDestinationsForDataIo.contains(gatekeeperDestination)) {
-                return PARALLEL;
+            for(GatekeeperDestination gatekeeperDestinationForDataIo : gatekeeperDestinationsForDataIo) {
+                if(gatekeeperDestinationForDataIo.equals(gatekeeperDestination)) {
+                    if(gatekeeperDestinationForDataIo.isCopy()) {
+                        return PARALLEL;
+                    } else {
+                        return DATAIO_EXCLUSIVE;
+                    }
+                }
             }
         } else {
             return DATAIO_EXCLUSIVE;

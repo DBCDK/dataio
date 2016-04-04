@@ -34,10 +34,8 @@ import dk.dbc.dataio.gatekeeper.wal.Modification;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.DATAIO_EXCLUSIVE;
@@ -171,13 +169,9 @@ public class ModificationFactory {
     /* Determines type of transfile line
      */
     Type determineType(TransFile.Line line) throws IllegalStateException {
-        final Map<GatekeeperDestination, GatekeeperDestination> gatekeeperDestinationsForDataIo =
-                getGatekeeperDestinationsForDataIo().stream().collect(Collectors.toMap(c -> c, c -> c));
-
         final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(line, "0", "0");
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
-
             final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
                     0L,      // Will not be compared through equals
                     String.valueOf(jobSpecification.getSubmitterId()),
@@ -186,6 +180,7 @@ public class ModificationFactory {
                     jobSpecification.getFormat(),
                     false);  // Will not be compared through equals
 
+            final Map<GatekeeperDestination, GatekeeperDestination> gatekeeperDestinationsForDataIo = getGatekeeperDestinationsForDataIo();
             if (gatekeeperDestinationsForDataIo.containsKey(gatekeeperDestination)) {
                 if (gatekeeperDestinationsForDataIo.get(gatekeeperDestination).isCopy()) {
                     return PARALLEL;
@@ -247,9 +242,9 @@ public class ModificationFactory {
         return createNotification;
     }
 
-    private Set<GatekeeperDestination> getGatekeeperDestinationsForDataIo() throws IllegalStateException {
+    private Map<GatekeeperDestination, GatekeeperDestination> getGatekeeperDestinationsForDataIo() throws IllegalStateException {
         try {
-            return Collections.unmodifiableSet(new HashSet<>(flowStoreServiceConnector.findAllGatekeeperDestinations()));
+            return Collections.unmodifiableMap(flowStoreServiceConnector.findAllGatekeeperDestinations().stream().collect(Collectors.toMap(c -> c, c -> c)));
         } catch (FlowStoreServiceConnectorException e) {
             throw new IllegalStateException(e);
         }

@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.iotraffic;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
 import dk.dbc.dataio.gui.client.components.EnterButton;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
@@ -250,7 +251,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
 
         // Subject Under Test
-        callback.onSuccess(new GatekeeperDestination(123, "1234", "d", "p", "s", false));
+        callback.onSuccess(new GatekeeperDestinationBuilder().build());
 
         // Verify Test
         verifyInitializeDataMethodCall();
@@ -281,7 +282,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         PresenterImpl.FindAllGateKeeperDestinationsCallback callback = presenterImpl.new FindAllGateKeeperDestinationsCallback();
         when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
         when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
-        List<GatekeeperDestination> gatekeeperDestinations = Collections.singletonList(new GatekeeperDestination(123, "1234", "d", "p", "s", false));
+        List<GatekeeperDestination> gatekeeperDestinations = Collections.singletonList(new GatekeeperDestinationBuilder().build());
 
         // Subject Under Test
         callback.onSuccess(gatekeeperDestinations);

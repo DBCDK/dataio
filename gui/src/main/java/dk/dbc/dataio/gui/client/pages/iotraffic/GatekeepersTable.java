@@ -34,7 +34,8 @@ import java.util.List;
  * Gatekeepers Table for the IoTraffic View
  */
 public class GatekeepersTable extends CellTable {
-    Texts texts = ((ViewGinjector)GWT.create(ViewGinjector.class)).getTexts();
+    ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
+    Texts texts = viewGinjector.getTexts();
     ListDataProvider<GatekeeperDestination> dataProvider;
 
     /**

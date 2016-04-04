@@ -24,6 +24,8 @@ package dk.dbc.dataio.gui.client.pages.iotraffic;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
+import dk.dbc.dataio.commons.utils.test.model.GatekeeperDestinationBuilder;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -50,6 +52,13 @@ public class GatekeepersTableTest {
 
     @Mock ListDataProvider<GatekeeperDestination> mockedDataProvider;
     @Mock List<GatekeeperDestination> mockedGatekeeperList;
+    @Mock Texts mockedTexts;
+
+    @Before
+    public void setupTexts() {
+        when(mockedTexts.label_DoNotCopy()).thenReturn("DoNotCopy");
+    }
+
 
     @Test
     public void constructor_noData_emptyOk() {
@@ -67,8 +76,8 @@ public class GatekeepersTableTest {
         gatekeepersTable.dataProvider = mockedDataProvider;
         when(mockedDataProvider.getList()).thenReturn(mockedGatekeeperList);
         List<GatekeeperDestination> gatekeeperDestinationList = new ArrayList<>();
-        gatekeeperDestinationList.add(new GatekeeperDestination(111L, "11", "de", "pa", "fo", false));
-        gatekeeperDestinationList.add(new GatekeeperDestination(111L, "22", "des", "pac", "for", false));
+        gatekeeperDestinationList.add(new GatekeeperDestinationBuilder().build());
+        gatekeeperDestinationList.add(new GatekeeperDestinationBuilder().build());
 
         // Subject under test
         gatekeepersTable.setGatekeepers(gatekeeperDestinationList);
@@ -84,10 +93,16 @@ public class GatekeepersTableTest {
     @Test
     public void constructor_data_checkGetValueCallbacks() {
         // Prepare test
-        GatekeeperDestination gatekeeper = new GatekeeperDestination(111L, "11", "de", "pa", "fo", false);
+        GatekeeperDestination gatekeeper = new GatekeeperDestinationBuilder().
+                setSubmitterNumber("11").
+                setDestination("de").
+                setPackaging("pa").
+                setFormat("fo").
+                setCopy(false).build();
 
         // Subject Under Test
         GatekeepersTable gatekeepersTable = new GatekeepersTable();
+        gatekeepersTable.texts = mockedTexts;
 
         // Verify Test
         assertThat(gatekeepersTable.getColumnCount(), is(5));
@@ -95,7 +110,7 @@ public class GatekeepersTableTest {
         assertThat(gatekeepersTable.getColumn(1).getValue(gatekeeper), is("pa"));
         assertThat(gatekeepersTable.getColumn(2).getValue(gatekeeper), is("fo"));
         assertThat(gatekeepersTable.getColumn(3).getValue(gatekeeper), is("de"));
-        assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is(""));
+        assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is("DoNotCopy"));
     }
 
 }

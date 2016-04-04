@@ -287,7 +287,7 @@ public class GatekeeperDestinationsIT {
     /**
      * Given: a deployed flow-store service
      * When : JSON posted to the gatekeeper/destinations path with an identifier (update), where the id of the gatekeeper destination object
-     *        does not match the id given in path, causes JSONBException
+     *        does not match the id given in path.
      * Then : request returns with a BAD REQUEST http status code
      */
     @Test

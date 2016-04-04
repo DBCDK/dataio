@@ -35,7 +35,7 @@ public class TransFileTest {
     
     private final static String validTransFileDataLine1  = "b=databroendpr2,f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext";
     private final static String validTransFileDataLine2  = "b=databroendpr2,f=150014.201305272202.albumTOTAL.002.xml,t=xml,o=nmtrack,c=utf8,m=elephant@dbc.dk,M=dinosaur@dbc.dk,i=";
-    private final static String invalidTransFileDataLine = "b=databroendpr2, f=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext";
+    private final static String invalidTransFileDataLine = "b=databroendpr2,x=150014.201305272202.albumTOTAL.001.xml,t=xml,o=nmalbum,c=utf8,m=kildepost@dbc.dk,M=secondary@dbc.dk,i=initialstext";
     private final static String emptyLine = "";
     private final static String endMark = "slut";
     

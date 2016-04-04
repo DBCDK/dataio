@@ -28,6 +28,16 @@
     <ui:style>
         .outerHtmlPanel {
             width: 100%;
+            max-width: 130em;
+            min-width: 88em;
+
+           /*
+            * min-width:
+            * This value determines when the horizontal scroll bar is shown.
+            * If adding new columns to the jobsTable: Make sure the value is larger than the
+            * jobsTable minimum 'collapse ability'.
+            */
+
         }
 
         .radio-buttons {

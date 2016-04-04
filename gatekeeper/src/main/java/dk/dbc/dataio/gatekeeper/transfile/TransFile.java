@@ -156,10 +156,10 @@ public class TransFile {
         private void parse() {
             final StringTokenizer lineTokenizer = new StringTokenizer(line, ",");
             while (lineTokenizer.hasMoreElements()) {
-                final String keyValuePair = lineTokenizer.nextToken();
+                final String keyValuePair = lineTokenizer.nextToken().trim();
                 final StringTokenizer keyValueTokenizer = new StringTokenizer(keyValuePair, "=");
                 if (keyValueTokenizer.countTokens() == 2) {
-                    fields.put(keyValueTokenizer.nextToken(), keyValueTokenizer.nextToken());
+                    fields.put(keyValueTokenizer.nextToken().trim(), keyValueTokenizer.nextToken().trim());
                 } else {
                     LOGGER.error("Invalid key/value pair '{}'", keyValuePair);
                 }

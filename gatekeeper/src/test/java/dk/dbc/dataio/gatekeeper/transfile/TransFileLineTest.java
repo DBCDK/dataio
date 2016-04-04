@@ -57,7 +57,7 @@ public class TransFileLineTest {
 
     @Test
     public void getField_whenFieldExists_returnsValue() {
-        final String lineValue = "b=base1,f=file1,c=latin-1";
+        final String lineValue = "b=base1, f=file1,c = latin-1";
         final TransFile.Line line = new TransFile.Line(lineValue);
         assertThat("Field b", line.getField("b"), is("base1"));
         assertThat("Field f", line.getField("f"), is("file1"));

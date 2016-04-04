@@ -21,11 +21,10 @@
 
 package dk.dbc.dataio.commons.utils.transfile;
 
-import org.hamcrest.core.IsNull;
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
+import org.hamcrest.core.IsNull;
 import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
 public class TransFileDataTest {
     @Test (expected = NullPointerException.class)
@@ -69,6 +68,21 @@ public class TransFileDataTest {
         assertThat(line.getSecondaryEmailAddress(), is("secondary@dbc.dk"));
         assertThat(line.getInitials(), is("initialstext"));
     }
+
+    @Test
+    public void validFullExampleWithSpace_Ok() {
+        TransFileData line = new TransFileData("b= databroendpr2, f= 150014.201305272202.albumTOTAL.001.xml, t= xml, o= nmalbum, c=utf8, m=kildepost@dbc.dk, M=secondary@dbc.dk,i=initialstext");
+        assertThat(line.getBaseName(), is("databroendpr2"));
+        assertThat(line.getFileName(), is("150014.201305272202.albumTOTAL.001.xml"));
+        assertThat(line.getSubmitterNumber(), is(150014L));
+        assertThat(line.getTechnicalProtocol(), is("xml"));
+        assertThat(line.getLibraryFormat(), is("nmalbum"));
+        assertThat(line.getCharacterSet(), is("utf8"));
+        assertThat(line.getPrimaryEmailAddress(), is("kildepost@dbc.dk"));
+        assertThat(line.getSecondaryEmailAddress(), is("secondary@dbc.dk"));
+        assertThat(line.getInitials(), is("initialstext"));
+    }
+
 
     @Test (expected = IllegalArgumentException.class)
     public void leadingEmptyField_generateException() {

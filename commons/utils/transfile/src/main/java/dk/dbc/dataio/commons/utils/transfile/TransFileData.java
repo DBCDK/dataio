@@ -44,6 +44,8 @@ public class TransFileData {
         if (transFileData.isEmpty()) {
             return;  // An empty input line is legal
         }
+        transFileData=transFileData.replaceAll(" ","");
+
         String[] split = transFileData.split(",");
         if (split.length < 1) {
             throw new IllegalArgumentException("Empty input is not allowed");

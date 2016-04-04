@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -170,12 +171,14 @@ public class ModificationFactory {
     /* Determines type of transfile line
      */
     Type determineType(TransFile.Line line) throws IllegalStateException {
-        final Set<GatekeeperDestination> gatekeeperDestinationsForDataIo = getGatekeeperDestinationsForDataIo();
+        final Map<GatekeeperDestination, GatekeeperDestination> gatekeeperDestinationsForDataIo =
+                getGatekeeperDestinationsForDataIo().stream().collect(Collectors.toMap(c -> c, c -> c));
+
         final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(line, "0", "0");
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
 
-            GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
+            final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
                     0L,      // Will not be compared through equals
                     String.valueOf(jobSpecification.getSubmitterId()),
                     jobSpecification.getDestination(),
@@ -183,19 +186,15 @@ public class ModificationFactory {
                     jobSpecification.getFormat(),
                     false);  // Will not be compared through equals
 
-            for(GatekeeperDestination gatekeeperDestinationForDataIo : gatekeeperDestinationsForDataIo) {
-                if(gatekeeperDestinationForDataIo.equals(gatekeeperDestination)) {
-                    if(gatekeeperDestinationForDataIo.isCopy()) {
-                        return PARALLEL;
-                    } else {
-                        return DATAIO_EXCLUSIVE;
-                    }
+            if (gatekeeperDestinationsForDataIo.containsKey(gatekeeperDestination)) {
+                if (gatekeeperDestinationsForDataIo.get(gatekeeperDestination).isCopy()) {
+                    return PARALLEL;
                 }
+            } else {
+                return POSTHUS_EXCLUSIVE;
             }
-        } else {
-            return DATAIO_EXCLUSIVE;
         }
-        return POSTHUS_EXCLUSIVE;
+        return DATAIO_EXCLUSIVE;
     }
 
     String getDataFilename(TransFile.Line line) {

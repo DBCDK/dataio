@@ -137,7 +137,7 @@ public class GatekeeperDestinationsBean {
      *
      * @return a HTTP 200 response with gatekeeper destination as JSON,
      *         a HTTP 404 response in case of gatekeeper destination not found
-     *         a HTTP 406 response in case of Unique Restraint of Primary Key Violation
+     *         a HTTP 406 response in case of uniqueness constraint violation
      *         a HTTP 500 response in case of general error.
      *
      * @throws JSONBException on failure to unmarshal to gatekeeperDestination

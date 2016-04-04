@@ -52,7 +52,6 @@
     <module>service</module>
     <module>stopwatch</module>
     <module>test</module>
-    <module>transfile</module>
   </modules>
 
 </project>

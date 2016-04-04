@@ -154,12 +154,13 @@ public class TransFile {
         }
 
         private void parse() {
-            final StringTokenizer lineTokenizer = new StringTokenizer(line, ",");
+            final String trimmedLine = line.replaceAll("\\s", "");
+            final StringTokenizer lineTokenizer = new StringTokenizer(trimmedLine, ",");
             while (lineTokenizer.hasMoreElements()) {
-                final String keyValuePair = lineTokenizer.nextToken().trim();
+                final String keyValuePair = lineTokenizer.nextToken();
                 final StringTokenizer keyValueTokenizer = new StringTokenizer(keyValuePair, "=");
                 if (keyValueTokenizer.countTokens() == 2) {
-                    fields.put(keyValueTokenizer.nextToken().trim(), keyValueTokenizer.nextToken().trim());
+                    fields.put(keyValueTokenizer.nextToken(), keyValueTokenizer.nextToken());
                 } else {
                     LOGGER.error("Invalid key/value pair '{}'", keyValuePair);
                 }

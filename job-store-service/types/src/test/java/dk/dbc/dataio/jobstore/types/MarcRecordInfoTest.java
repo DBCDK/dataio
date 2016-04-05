@@ -143,4 +143,11 @@ public class MarcRecordInfoTest {
         final MarcRecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), MarcRecordInfo.class);
         assertThat(unmarshalled, is(recordInfo));
     }
+
+    @Test
+    public void marshalling_marcRecordInfoCanBeUnmarshalledAsRecordInfo() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final RecordInfo unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(recordInfo), RecordInfo.class);
+        assertThat(unmarshalled, is(recordInfo));
+    }
 }

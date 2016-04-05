@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +33,7 @@ import java.util.Set;
  * This class contains information about a bibliographic record.
  * Some time in the future this will also encompass keys for sequence analysis.
  */
+@JsonTypeInfo(use=JsonTypeInfo.Id.CLASS, include= JsonTypeInfo.As.PROPERTY, property="@class")
 public class RecordInfo {
     protected final String id;
 

@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,8 +75,9 @@ public class CreateJobOperation implements Operation {
         LOGGER.info("Creating job for transfile entry: '{}'", transfileData);
         final TransFile.Line transfileLine = new TransFile.Line(transfileData);
         final String fileStoreId = uploadToFileStore(transfileLine.getField("f"));
-        final JobSpecification jobSpecification =
-                JobSpecificationFactory.createJobSpecification(transfileLine, transfileName, fileStoreId);
+
+        final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(
+                transfileLine, transfileName, fileStoreId, readAllTransfileBytes(fileStoreId));
 
         createJobInJobStore(jobSpecification, fileStoreId);
     }
@@ -158,5 +160,14 @@ public class CreateJobOperation implements Operation {
             }
         }
         return doRemoveFromFileStore;
+    }
+
+    private byte[] readAllTransfileBytes(String fileStoreId) throws OperationExecutionException {
+        try {
+            return Files.readAllBytes(workingDir.resolve(transfileName));
+        } catch (IOException e) {
+            removeFromFileStore(fileStoreId);
+            throw new OperationExecutionException(e);
+        }
     }
 }

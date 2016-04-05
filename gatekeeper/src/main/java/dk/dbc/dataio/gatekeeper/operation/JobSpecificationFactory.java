@@ -48,11 +48,12 @@ public class JobSpecificationFactory {
      * @param line transfile line to convert into job specification
      * @param transfileName name of parent transfile
      * @param fileStoreId file-store service ID of data file referenced in transfile line
+     * @param rawTransfile transfile content (can be null)
      * @return JobSpecification instance
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued fileStoreId argument
      */
-    public static JobSpecification createJobSpecification(TransFile.Line line, String transfileName, String fileStoreId)
+    public static JobSpecification createJobSpecification(TransFile.Line line, String transfileName, String fileStoreId, byte[] rawTransfile)
             throws NullPointerException, IllegalArgumentException {
         InvariantUtil.checkNotNullOrThrow(line, "line");
         InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
@@ -78,7 +79,7 @@ public class JobSpecificationFactory {
                 getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE),
                 getFileStoreUrnOrMissing(line, fileStoreId),
                 JobSpecification.Type.PERSISTENT,
-                getAncestry(transfileName, line));
+                getAncestry(transfileName, line, rawTransfile));
     }
 
     private static long getSubmitterIdOrMissing(String transfileName) {
@@ -118,10 +119,10 @@ public class JobSpecificationFactory {
         }
     }
 
-    private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line) {
+    private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line, byte[] rawTransfile) {
         final String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         final String batchId = getBatchId(datafileName);
-        return new JobSpecification.Ancestry(transfileName, datafileName, batchId, null);  // Todo: The field "details" will be fixed by JBN
+        return new JobSpecification.Ancestry(transfileName, datafileName, batchId, rawTransfile);
     }
 
     private static String getBatchId(String datafileName) {

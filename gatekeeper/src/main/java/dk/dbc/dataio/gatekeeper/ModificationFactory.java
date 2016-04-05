@@ -47,6 +47,8 @@ import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.POSTHUS_EXCLUSIV
  */
 public class ModificationFactory {
     private static final String EMPTY_STRING = "";
+    private static final String DUMMY_FILE_STORE_ID = "0";
+    private static final byte[] DUMMY_RAW_TRANSFILE = null;
 
     enum Type {
         DATAIO_EXCLUSIVE,
@@ -170,7 +172,7 @@ public class ModificationFactory {
      */
     Type determineType(TransFile.Line line) throws IllegalStateException {
         final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(
-                line, transfile.getPath().getFileName().toString(), "0");
+                line, transfile.getPath().getFileName().toString(), DUMMY_FILE_STORE_ID, DUMMY_RAW_TRANSFILE);
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
             final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(

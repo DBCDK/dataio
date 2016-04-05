@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
@@ -30,9 +30,9 @@ import javax.persistence.Converter;
 import java.sql.SQLException;
 
 @Converter
-public class RecordInfoConverter implements AttributeConverter<MarcRecordInfo, PGobject> {
+public class RecordInfoConverter implements AttributeConverter<RecordInfo, PGobject> {
     @Override
-    public PGobject convertToDatabaseColumn(MarcRecordInfo recordInfo) throws IllegalStateException {
+    public PGobject convertToDatabaseColumn(RecordInfo recordInfo) throws IllegalStateException {
         final PGobject pgObject = new PGobject();
         pgObject.setType("jsonb");
         try {
@@ -44,10 +44,10 @@ public class RecordInfoConverter implements AttributeConverter<MarcRecordInfo, P
     }
 
     @Override
-    public MarcRecordInfo convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
+    public RecordInfo convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
             if (pgObject != null) {
-                return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), MarcRecordInfo.class);
+                return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), RecordInfo.class);
             }
         } catch (JSONBException e) {
             throw new IllegalStateException(e);

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -72,6 +73,9 @@ public class ItemEntity {
 
     @Convert(converter = WorkflowNoteConverter.class)
     private WorkflowNote workflowNote;
+
+    @Convert(converter = RecordInfoConverter.class)
+    private RecordInfo recordInfo;
 
     public Key getKey() {
         return key;
@@ -143,6 +147,14 @@ public class ItemEntity {
 
     public void setWorkflowNote(WorkflowNote workflowNote) {
         this.workflowNote = workflowNote;
+    }
+
+    public RecordInfo getRecordInfo() {
+        return recordInfo;
+    }
+
+    public void setRecordInfo(RecordInfo recordInfo) {
+        this.recordInfo = recordInfo;
     }
 
     @Embeddable

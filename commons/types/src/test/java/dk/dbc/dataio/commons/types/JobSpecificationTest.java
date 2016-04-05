@@ -145,22 +145,22 @@ public class JobSpecificationTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_ancestryHasNullValuedDataFile_throws() {
-        new JobSpecification.Ancestry(TRANS_FILE, null, "");
+        new JobSpecification.Ancestry(TRANS_FILE, null, "", new byte[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_ancestryHasEmptyValuedDataFile_throws() {
-        new JobSpecification.Ancestry(TRANS_FILE, "", "");
+        new JobSpecification.Ancestry(TRANS_FILE, "", "", new byte[0]);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_ancestryHasNullValuedTransFile_throws() {
-        new JobSpecification.Ancestry(null, DATA_FILE, "");
+        new JobSpecification.Ancestry(null, DATA_FILE, "", new byte[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_ancestryHasEmptyValuedTransFile_throws() {
-        new JobSpecification.Ancestry("", DATA_FILE, "");
+        new JobSpecification.Ancestry("", DATA_FILE, "", new byte[0]);
     }
 
     public static JobSpecification newJobSpecificationInstance() {

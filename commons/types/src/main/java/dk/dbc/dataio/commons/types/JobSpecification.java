@@ -225,17 +225,20 @@ public class JobSpecification implements Serializable {
         private final String transfile;
         private final String datafile;
         private final String batchId;
+        private final byte[] details;
 
 
         @JsonCreator
         public Ancestry(
                 @JsonProperty("transfile") String transfile,
                 @JsonProperty("datafile") String datafile,
-                @JsonProperty("batchId") String batchId) {
+                @JsonProperty("batchId") String batchId,
+                @JsonProperty("details") byte[] details) {
 
             this.transfile = InvariantUtil.checkNotNullNotEmptyOrThrow(transfile, "transfile");
             this.datafile = InvariantUtil.checkNotNullNotEmptyOrThrow(datafile, "datafile");
             this.batchId = batchId;
+            this.details = details;
         }
 
         public String getTransfile() {
@@ -248,6 +251,10 @@ public class JobSpecification implements Serializable {
 
         public String getBatchId() {
             return batchId;
+        }
+
+        public byte[] getDetails() {
+            return details;
         }
 
         @Override

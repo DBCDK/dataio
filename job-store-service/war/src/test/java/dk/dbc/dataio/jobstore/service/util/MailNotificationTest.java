@@ -408,7 +408,12 @@ public class MailNotificationTest {
     }
 
     private JobEntity getJobEntity() {
-        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry("file.trans", "file.dat", "batch001");
+        final JobSpecification.Ancestry ancestry = new JobSpecificationBuilder.AncestryBuilder()
+                .setTransfile("file.trans")
+                .setDatafile("file.dat")
+                .setBatchId("batch001")
+                .setDetails("details".getBytes())
+                .build();
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                 .setSubmitterId(424242)
                 .setAncestry(ancestry)

@@ -121,7 +121,7 @@ public class JobSpecificationFactory {
     private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line) {
         final String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         final String batchId = getBatchId(datafileName);
-        return new JobSpecification.Ancestry(transfileName, datafileName, batchId);
+        return new JobSpecification.Ancestry(transfileName, datafileName, batchId, null);  // Todo: The field "details" will be fixed by JBN
     }
 
     private static String getBatchId(String datafileName) {

@@ -31,7 +31,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class JobSpecificationFactoryTest {
-    private final String transfileName = "123456.trans";
+    private final long submitter = 810010;
+    private final String transfileName = String.format("%d.trans", submitter);
 
     @Test(expected = NullPointerException.class)
     public void createJobSpecification_lineArgIsNull_throws() {
@@ -60,7 +61,6 @@ public class JobSpecificationFactoryTest {
 
     @Test
     public void createJobSpecification_lineArgIsValid_mapsFieldsToJobSpecification() {
-        final int submitter = 810010;
         final String batchId = "001";
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setSubmitterId(submitter)
@@ -98,7 +98,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_lineArgHasMissingFields_mapsFieldsToJobSpecification() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setDestination(Constants.MISSING_FIELD_VALUE)
-                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setSubmitterId(submitter)
                 .setPackaging(Constants.MISSING_FIELD_VALUE)
                 .setCharset(Constants.MISSING_FIELD_VALUE)
                 .setFormat(Constants.MISSING_FIELD_VALUE)
@@ -124,7 +124,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_lineArgHasEmptyFields_mapsFieldsToJobSpecification() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setDestination(Constants.MISSING_FIELD_VALUE)
-                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setSubmitterId(submitter)
                 .setPackaging(Constants.MISSING_FIELD_VALUE)
                 .setCharset(Constants.MISSING_FIELD_VALUE)
                 .setFormat(Constants.MISSING_FIELD_VALUE)
@@ -150,7 +150,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_destinationDanbibWithMissingPackagingAndEncoding_usesDefaults() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
-                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setSubmitterId(submitter)
                 .setPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
                 .setCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
                 .setFormat(Constants.MISSING_FIELD_VALUE)
@@ -176,7 +176,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_destinationDanbibWithMissingPackaging_usesDefault() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
-                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setSubmitterId(submitter)
                 .setPackaging(JobSpecificationFactory.PACKAGING_DANBIB_DEFAULT)
                 .setCharset("utf8")
                 .setFormat(Constants.MISSING_FIELD_VALUE)
@@ -202,7 +202,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_destinationDanbibWithMissingEncoding_usesDefault() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setDestination(JobSpecificationFactory.DESTINATION_DANBIB)
-                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setSubmitterId(submitter)
                 .setPackaging("lin")
                 .setCharset(JobSpecificationFactory.ENCODING_DANBIB_DEFAULT)
                 .setFormat(Constants.MISSING_FIELD_VALUE)
@@ -228,7 +228,7 @@ public class JobSpecificationFactoryTest {
     public void createJobSpecification_nonDanbibDestination_noDefaultsUsed() {
         final JobSpecification jobSpecificationTemplate = new JobSpecificationBuilder()
                 .setDestination("not_danbib")
-                .setSubmitterId(Constants.MISSING_SUBMITTER_VALUE)
+                .setSubmitterId(submitter)
                 .setPackaging(Constants.MISSING_FIELD_VALUE)
                 .setCharset(Constants.MISSING_FIELD_VALUE)
                 .setFormat(Constants.MISSING_FIELD_VALUE)
@@ -251,16 +251,16 @@ public class JobSpecificationFactoryTest {
     }
 
     @Test
-    public void createJobSpecification_fileFieldSubstringOutOfBounds_mapsToMissingField() {
+    public void createJobSpecification_transfileNameSubstringOutOfBounds_mapsToMissingField() {
         final JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("f=123"), transfileName, "42");
+                .createJobSpecification(new TransFile.Line("foo"), "123", "42");
         assertThat(jobSpecification.getSubmitterId(), is(Constants.MISSING_SUBMITTER_VALUE));
     }
 
     @Test
-    public void createJobSpecification_fileFieldSubstringNaN_mapsToMissingField() {
+    public void createJobSpecification_submitterPartOfTransfileNameIsNaN_mapsToMissingField() {
         final JobSpecification jobSpecification = JobSpecificationFactory
-                .createJobSpecification(new TransFile.Line("f=abcdefhijklmnopq"), transfileName, "42");
+                .createJobSpecification(new TransFile.Line("foo"), "abcdef.trans", "42");
         assertThat(jobSpecification.getSubmitterId(), is(Constants.MISSING_SUBMITTER_VALUE));
     }
 

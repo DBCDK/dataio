@@ -106,8 +106,8 @@ public class JobDispatcherIT {
     @Test(timeout = 5000)
     public void staticTransfilesProcessed() throws Throwable {
         // Given...
-        final Path transfile = writeFile(dir, "file.trs",
-                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "slut");
+        final Path transfile = writeFile(dir, "820010.trs",
+                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -118,8 +118,8 @@ public class JobDispatcherIT {
             // Then...
             waitWhileFileExists(transfile);
             assertThat("No exception from thread", exception, is(nullValue()));
-            assertThat("dir/file.trs exists", Files.exists(transfile), is(false));
-            assertThat("shadowDir/file.trs exists", Files.exists(shadowDir.resolve("file.trs")), is(true));
+            assertThat("dir/820010.trs exists", Files.exists(transfile), is(false));
+            assertThat("shadowDir/820010.trs exists", Files.exists(shadowDir.resolve("820010.trs")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -163,8 +163,7 @@ public class JobDispatcherIT {
     @Test(timeout = 5000)
     public void walProcessedAfterRestart() throws Throwable {
         // Given...
-        final Path transfile = writeFile(dir, "file.trans",
-                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() + "slut");
+        final Path transfile = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         JobDispatcher jobDispatcher = getJobDispatcher();
 
         Thread t = getJobDispatcherThread(jobDispatcher);
@@ -176,8 +175,8 @@ public class JobDispatcherIT {
             // Then...
             waitWhileNoException();
             assertThat("Exception from thread", exception instanceof InterruptedException, is(true));
-            assertThat("dir/file.trans exists", Files.exists(transfile), is(true));
-            assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(false));
+            assertThat("dir/820010.trans exists", Files.exists(transfile), is(true));
+            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(false));
             assertWalSize(4);
         } finally {
             t.interrupt();
@@ -191,8 +190,8 @@ public class JobDispatcherIT {
             t.start();
 
             waitWhileFileExists(transfile);
-            assertThat("dir/file.trans exists", Files.exists(transfile), is(false));
-            assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
+            assertThat("dir/820010.trans exists", Files.exists(transfile), is(false));
+            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("820010.trans")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -240,8 +239,7 @@ public class JobDispatcherIT {
         }
 
         // Given...
-        final Path transfile = writeFile(dir, "file.trans",
-                "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
+        final Path transfile = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\n");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -252,8 +250,8 @@ public class JobDispatcherIT {
 
             // Then...
             assertThat("No exception from thread", exception, is(nullValue()));
-            assertThat("dir/file.trans exists", Files.exists(transfile), is(true));
-            assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(false));
+            assertThat("dir/820010.trans exists", Files.exists(transfile), is(true));
+            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("820010.trans")), is(false));
 
             // And...
             assertEmptyWal();
@@ -264,8 +262,8 @@ public class JobDispatcherIT {
             // Then...
             waitWhileFileExists(transfile);
             assertThat("No exception from thread", exception, is(nullValue()));
-            assertThat("dir/file.trans exists", Files.exists(transfile), is(false));
-            assertThat("shadowDir/file.trans exists", Files.exists(shadowDir.resolve("file.trans")), is(true));
+            assertThat("dir/820010.trans exists", Files.exists(transfile), is(false));
+            assertThat("shadowDir/820010.trans exists", Files.exists(shadowDir.resolve("820010.trans")), is(true));
             assertEmptyWal();
         } finally {
             t.interrupt();
@@ -286,8 +284,8 @@ public class JobDispatcherIT {
         }
 
         // Given...
-        final Path stalledTransfile = writeFile(dir, "stalled.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
-        final Path transfile = writeFile(dir, "file.trans", "b=danbib,f=820030.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator());
+        final Path stalledTransfile = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
+        final Path transfile = writeFile(dir, "820030.trans", "b=danbib,f=820030.file,t=lin,c=latin-1,o=marc2\n");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         final Thread t = getJobDispatcherThread(jobDispatcher);
 
@@ -297,7 +295,7 @@ public class JobDispatcherIT {
             Thread.sleep(500);
 
             // And...
-            assertThat("dir/stalled.trans exists", Files.exists(stalledTransfile), is(true));
+            assertThat("dir/820010.trans exists", Files.exists(stalledTransfile), is(true));
             stallFile(stalledTransfile);
 
             // When...

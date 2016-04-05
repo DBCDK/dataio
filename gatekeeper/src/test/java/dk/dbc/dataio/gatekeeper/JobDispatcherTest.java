@@ -144,7 +144,7 @@ public class JobDispatcherTest {
     @Test
     public void processIfCompleteTransfile_fileIsIncomplete_notProcessedReturnsFalse()
             throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
-        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
+        final Path transfilePath = writeFile(dir, "123456.trans", "b=danbib,f=123456.file,t=lin,c=latin-1,o=marc2");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(false));
         assertThat("WAL modifications", wal.modificationsAddedOverTime, is(0));
@@ -153,13 +153,13 @@ public class JobDispatcherTest {
     @Test
     public void processIfCompleteTransfile_fileIsComplete_processedReturnsTrue()
             throws OperationExecutionException, ModificationLockedException, InterruptedException, IOException {
-        final Path transfilePath = writeFile(dir, "file.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
+        final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final JobDispatcher jobDispatcher = getJobDispatcher();
         assertThat("processIfCompleteTransfile()", jobDispatcher.processIfCompleteTransfile(transfilePath), is(true));
 
         // We don't assert all the modifications
         assertThat("Original transfile exists", Files.exists(transfilePath), is(false));
-        assertThat("New transfile is created", Files.exists(shadowDir.resolve("file.trans")), is(true));
+        assertThat("New transfile is created", Files.exists(shadowDir.resolve("820010.trans")), is(true));
 
         // Assert WAL interaction
         assertThat("WAL is empty", wal.modifications.isEmpty(), is(true));
@@ -168,16 +168,14 @@ public class JobDispatcherTest {
 
     @Test
     public void processTransfile() throws IOException, OperationExecutionException, InterruptedException, ModificationLockedException {
-        final Path transfilePath = writeFile(dir,
-                "file.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
-                "slut");
+        final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.processTransfile(transFile);
 
         // We don't assert all the modifications
         assertThat("Original transfile exists", Files.exists(transfilePath), is(false));
-        assertThat("New transfile is created", Files.exists(shadowDir.resolve("file.trans")), is(true));
+        assertThat("New transfile is created", Files.exists(shadowDir.resolve("820010.trans")), is(true));
 
         // Assert WAL interaction
         assertThat("WAL is empty", wal.modifications.isEmpty(), is(true));
@@ -218,7 +216,7 @@ public class JobDispatcherTest {
     public void getStalledIncompleteTransfiles_stalledTransfilesExist_returnsList() throws IOException {
         final Path path1 = writeFile(dir, "file1.trans", "data1");
         final Path path2 = writeFile(dir, "file2.trs", "data2");
-        final Path path3 = writeFile(dir, "file3.trans", "data3" + System.lineSeparator() + "slut");
+        final Path path3 = writeFile(dir, "file3.trans", "data3\nslut");
         writeFile(dir, "file4.trans", "data4");
         final BasicFileAttributes fileAttributes = Files.readAttributes(path1, BasicFileAttributes.class);
         final FileTime lastModified = FileTime.from(
@@ -240,9 +238,7 @@ public class JobDispatcherTest {
 
     @Test
     public void writeWal_addModificationsToWal() throws IOException {
-        final Path transfilePath = writeFile(dir,
-                "file.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2" + System.lineSeparator() +
-                "slut");
+        final Path transfilePath = writeFile(dir, "820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2\nslut");
         final TransFile transFile = new TransFile(transfilePath);
         final JobDispatcher jobDispatcher = getJobDispatcher();
         jobDispatcher.writeWal(transFile);

@@ -169,7 +169,8 @@ public class ModificationFactory {
     /* Determines type of transfile line
      */
     Type determineType(TransFile.Line line) throws IllegalStateException {
-        final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(line, "0", "0");
+        final JobSpecification jobSpecification = JobSpecificationFactory.createJobSpecification(
+                line, transfile.getPath().getFileName().toString(), "0");
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
             final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(

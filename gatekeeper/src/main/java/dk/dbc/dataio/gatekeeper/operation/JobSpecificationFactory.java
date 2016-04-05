@@ -72,7 +72,7 @@ public class JobSpecificationFactory {
         final String encoding = getFieldValue(line, "c", defaultEncoding);
 
         return new JobSpecification(packaging, format, encoding, destination,
-                getSubmitterIdOrMissing(line),
+                getSubmitterIdOrMissing(transfileName),
                 getFieldValue(line, "m", Constants.MISSING_FIELD_VALUE),
                 getFieldValue(line, "M", Constants.MISSING_FIELD_VALUE),
                 getFieldValue(line, "i", Constants.MISSING_FIELD_VALUE),
@@ -81,13 +81,14 @@ public class JobSpecificationFactory {
                 getAncestry(transfileName, line));
     }
 
-    public static long getSubmitterIdOrMissing(TransFile.Line line) {
-        final String fieldValue = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
-        if (Constants.MISSING_FIELD_VALUE.equals(fieldValue)) {
+    private static long getSubmitterIdOrMissing(String transfileName) {
+        if (transfileName == null ||
+            transfileName.trim().isEmpty() ||
+            Constants.MISSING_FIELD_VALUE.equals(transfileName)) {
             return Constants.MISSING_SUBMITTER_VALUE;
         }
         try {
-            final String submitter = fieldValue.substring(0, 6);
+            final String submitter = transfileName.substring(0, 6);
             return Long.parseLong(submitter);
         } catch (IndexOutOfBoundsException | NumberFormatException e) {
             return Constants.MISSING_SUBMITTER_VALUE;

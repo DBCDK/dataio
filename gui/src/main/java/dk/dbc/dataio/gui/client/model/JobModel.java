@@ -61,6 +61,10 @@ public class JobModel extends GenericBackendModel {
     private final static String     DATAFILE_EMPTY = "";
     private final static int        PARTNUMBER_ZERO = 0;
     private final static WorkflowNoteModel WORKFLOW_NOTE_MODEL_NULL = null;
+    private final static String     TRANS_FILE_ANCESTRY_EMPTY = "";
+    private final static String     DATA_FILE_ANCESTRY_EMPTY = "";
+    private final static String     BATCH_ID_ANCESTRY_EMPTY = "";
+    private final static String     DETAILS_ANCESTRY_EMPTY = "";
 
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
@@ -97,6 +101,10 @@ public class JobModel extends GenericBackendModel {
     private String dataFile;
     private int partNumber;
     private WorkflowNoteModel workflowNoteModel;
+    private String transFileAncestry;
+    private String dataFileAncestry;
+    private String batchIdAncestry;
+    private String detailsAncestry;
 
     /**
      * Constructor with full parameter list
@@ -133,6 +141,10 @@ public class JobModel extends GenericBackendModel {
      * @param dataFile                             The data file of the job
      * @param partNumber                           The part number
      * @param workflowNoteModel                    The workflow note model
+     * @param transFileAncestry                    The name of the trans file
+     * @param dataFileAncestry                     The name of the data file
+     * @param batchIdAncestry                      The batch id
+     * @param detailsAncestry                      The content of the trans file
      */
     public JobModel(String jobCreationTime,
                     String jobCompletionTime,
@@ -165,7 +177,11 @@ public class JobModel extends GenericBackendModel {
                     Type type,
                     String dataFile,
                     int partNumber,
-                    WorkflowNoteModel workflowNoteModel) {
+                    WorkflowNoteModel workflowNoteModel,
+                    String transFileAncestry,
+                    String dataFileAncestry,
+                    String batchIdAncestry,
+                    String detailsAncestry) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -198,7 +214,11 @@ public class JobModel extends GenericBackendModel {
         this.dataFile = dataFile;
         this.partNumber = partNumber;
         this.workflowNoteModel = workflowNoteModel;
-    }
+        this.transFileAncestry = transFileAncestry;
+        this.dataFileAncestry = dataFileAncestry;
+        this.batchIdAncestry = batchIdAncestry;
+        this.detailsAncestry = detailsAncestry;
+        }
 
     /**
      * Default empty constructor
@@ -236,7 +256,11 @@ public class JobModel extends GenericBackendModel {
                 Type.TRANSIENT,
                 DATAFILE_EMPTY,
                 PARTNUMBER_ZERO,
-                WORKFLOW_NOTE_MODEL_NULL);
+                WORKFLOW_NOTE_MODEL_NULL,
+                TRANS_FILE_ANCESTRY_EMPTY,
+                DATA_FILE_ANCESTRY_EMPTY,
+                BATCH_ID_ANCESTRY_EMPTY,
+                DETAILS_ANCESTRY_EMPTY);
     }
 
     /**
@@ -707,13 +731,12 @@ public class JobModel extends GenericBackendModel {
         return type;
     }
 
+    /**
+     * Sets the Type
+     * @param type The Type to set
+     */
     public void setType(JobModel.Type type) {
         this.type = type;
-    }
-
-
-    public int getPartNumber() {
-        return partNumber;
     }
 
     /**
@@ -725,13 +748,110 @@ public class JobModel extends GenericBackendModel {
         return dataFile;
     }
 
+    /**
+     * Sets the data file
+     * @param dataFile The data file to set
+     */
+    public void setDataFile(String dataFile) {
+        this.dataFile = dataFile;
+    }
+
+    /**
+     * Gets the Part Number
+     * @return The Part Number
+     */
+    public int getPartNumber() {
+        return partNumber;
+    }
+
+    /**
+     * Sets the Part Number
+     * @param partNumber The Part Number to set
+     */
+    public void setPartNumber(int partNumber) {
+        this.partNumber = partNumber;
+    }
+
+    /**
+     * Gets the Workflow Note Model
+     * @return The Workflow Note Model
+     */
     public WorkflowNoteModel getWorkflowNoteModel() {
         return workflowNoteModel;
     }
 
+    /**
+     * Sets the Workflow Note Model
+     * @param workflowNoteModel The Workflow Note Model
+     */
     public void setWorkflowNoteModel(WorkflowNoteModel workflowNoteModel) {
         this.workflowNoteModel = workflowNoteModel;
     }
+
+    /**
+     * Gets the name of the Trans File from the Ancestry
+     * @return The name of the Trans File from the Ancestry
+     */
+    public String getTransFileAncestry() {
+        return transFileAncestry;
+    }
+
+    /**
+     * Sets the name of the Trans File in the Ancestry
+     * @param transFileAncestry The Trans File in the Ancestry
+     */
+    public void setTransFileAncestry(String transFileAncestry) {
+        this.transFileAncestry = transFileAncestry;
+    }
+
+    /**
+     * Gets the name of the Data File from the Ancestry
+     * @return The name of the Data File from the Ancestry
+     */
+    public String getDataFileAncestry() {
+        return dataFileAncestry;
+    }
+
+    /**
+     * Sets the name of the Data File in the Ancestry
+     * @param dataFileAncestry The Data File in the Ancestry
+     */
+    public void setDataFileAncestry(String dataFileAncestry) {
+        this.dataFileAncestry = dataFileAncestry;
+    }
+
+    /**
+     * Gets the Batch Id from the Ancestry
+     * @return The Batch Id from the Ancestry
+     */
+    public String getBatchIdAncestry() {
+        return batchIdAncestry;
+    }
+
+    /**
+     * Sets the Batch Id in the Ancestry
+     * @param batchIdAncestry The Batch Id in the Ancestry
+     */
+    public void setBatchIdAncestry(String batchIdAncestry) {
+        this.batchIdAncestry = batchIdAncestry;
+    }
+
+    /**
+     * Gets the Details (The content of the Trans File) from the Ancestry
+     * @return The Details from the Ancestry
+     */
+    public String getDetailsAncestry() {
+        return detailsAncestry;
+    }
+
+    /**
+     * Sets the Details (The content of the Trans File) in the Ancestry
+     * @param detailsAncestry The Details in the Ancestry
+     */
+    public void setDetailsAncestry(String detailsAncestry) {
+        this.detailsAncestry = detailsAncestry;
+    }
+
 
     /**
      * Checks for empty String values

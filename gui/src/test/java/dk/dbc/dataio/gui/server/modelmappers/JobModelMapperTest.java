@@ -91,6 +91,14 @@ public class JobModelMapperTest {
                 .setPackaging("packaging")
                 .setResultmailInitials("mailInitialS")
                 .setSubmitterId(64646L)
+                .setAncestry(
+                        new JobSpecificationBuilder.AncestryBuilder()
+                        .setTransfile("anc transfilE")
+                        .setDatafile("anc datafilE")
+                        .setBatchId("anc batchiD")
+                        .setDetails("anc detailS".getBytes())
+                        .build()
+                )
                 .build();
         testJobInfoSnapshot = new JobInfoSnapshotBuilder()
                 .setSpecification(testJobSpecification)
@@ -138,6 +146,14 @@ public class JobModelMapperTest {
                 .setPackaging("packaging2")
                 .setResultmailInitials("mailInitialS2")
                 .setSubmitterId(64647L)
+                .setAncestry(
+                        new JobSpecificationBuilder.AncestryBuilder()
+                                .setTransfile("anc transfilE2")
+                                .setDatafile("anc datafilE2")
+                                .setBatchId("anc batchiD2")
+                                .setDetails("anc detailS2".getBytes())
+                                .build()
+                )
                 .build();
         testJobInfoSnapshot2 = new JobInfoSnapshotBuilder()
                 .setSpecification(testJobSpecification2)
@@ -223,6 +239,10 @@ public class JobModelMapperTest {
         assertThat(jobModel.getMailForNotificationAboutVerification(), is("mail4VerificatioN"));
         assertThat(jobModel.getMailForNotificationAboutProcessing(), is("mail4ProcessinG"));
         assertThat(jobModel.getResultmailInitials(), is("mailInitialS"));
+        assertThat(jobModel.getTransFileAncestry(), is("anc transfilE"));
+        assertThat(jobModel.getDataFileAncestry(), is("anc datafilE"));
+        assertThat(jobModel.getBatchIdAncestry(), is("anc batchiD"));
+        assertThat(jobModel.getDetailsAncestry(), is("anc detailS"));
     }
 
     @Test
@@ -353,6 +373,10 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(0).getMailForNotificationAboutVerification(), is("mail4VerificatioN"));
         assertThat(jobModels.get(0).getMailForNotificationAboutProcessing(), is("mail4ProcessinG"));
         assertThat(jobModels.get(0).getResultmailInitials(), is("mailInitialS"));
+        assertThat(jobModels.get(0).getTransFileAncestry(), is("anc transfilE"));
+        assertThat(jobModels.get(0).getDataFileAncestry(), is("anc datafilE"));
+        assertThat(jobModels.get(0).getBatchIdAncestry(), is("anc batchiD"));
+        assertThat(jobModels.get(0).getDetailsAncestry(), is("anc detailS"));
         assertThat(jobModels.get(1).getJobCreationTime(), is("2015-04-06 13:01:24"));
         assertThat(jobModels.get(1).getJobCompletionTime(), is("2015-04-07 13:01:24"));
         assertThat(jobModels.get(1).getJobId(), is("1749"));
@@ -372,6 +396,10 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getMailForNotificationAboutVerification(), is("mail4VerificatioN2"));
         assertThat(jobModels.get(1).getMailForNotificationAboutProcessing(), is("mail4ProcessinG2"));
         assertThat(jobModels.get(1).getResultmailInitials(), is("mailInitialS2"));
+        assertThat(jobModels.get(1).getTransFileAncestry(), is("anc transfilE2"));
+        assertThat(jobModels.get(1).getDataFileAncestry(), is("anc datafilE2"));
+        assertThat(jobModels.get(1).getBatchIdAncestry(), is("anc batchiD2"));
+        assertThat(jobModels.get(1).getDetailsAncestry(), is("anc detailS2"));
     }
 
 

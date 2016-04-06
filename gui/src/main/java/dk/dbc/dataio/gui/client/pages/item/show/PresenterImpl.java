@@ -481,6 +481,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
             }
         }
+
+//        jobModel.
     }
 
     /**

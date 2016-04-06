@@ -51,6 +51,7 @@ public class JobModelMapper {
      * @return The mapped JobModel object
      */
     public static JobModel toModel(JobInfoSnapshot jobInfoSnapshot) {
+        final boolean ancestry = jobInfoSnapshot.getSpecification().getAncestry() != null;
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
         return new JobModel(
@@ -85,10 +86,19 @@ public class JobModelMapper {
                 getType(jobInfoSnapshot.getSpecification().getType()),
                 jobInfoSnapshot.getSpecification().getDataFile(),
                 jobInfoSnapshot.getPartNumber(),
-                WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote())
+                WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()),
+                ancestry ? jobInfoSnapshot.getSpecification().getAncestry().getTransfile() : "",
+                ancestry ? jobInfoSnapshot.getSpecification().getAncestry().getDatafile() : "",
+                ancestry ? jobInfoSnapshot.getSpecification().getAncestry().getBatchId() : "",
+                ancestry ? new String(jobInfoSnapshot.getSpecification().getAncestry().getDetails()) : ""
         );
     }
 
+    /**
+     * Maps a JobModel object to a JobInputStream
+     * @param jobModel The Job Model
+     * @return a JobInputStream
+     */
     public static JobInputStream toJobInputStream(JobModel jobModel) {
 
         final JobSpecification  jobSpecification = new JobSpecification(
@@ -105,6 +115,7 @@ public class JobModelMapper {
         );
         return new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());
     }
+
     /**
      * Maps a list of JobInfoSnapshot objects to a list of JobModel objects
      * @param jobInfoSnapshots A list of input JobInfoSnapshot objects

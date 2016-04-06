@@ -64,6 +64,10 @@ public class JobModelBuilder {
     private String dataFile = "";
     private int partNumber = 0;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
+    private String transFileAncestry;
+    private String dataFileAncestry;
+    private String batchIdAncestry;
+    private String detailsAncestry;
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -161,7 +165,7 @@ public class JobModelBuilder {
     }
 
     public JobModelBuilder setDiagnosticModels(List<DiagnosticModel> diagnosticModels) {
-        this.diagnosticModels = new ArrayList<DiagnosticModel>(diagnosticModels);
+        this.diagnosticModels = new ArrayList<>(diagnosticModels);
         return this;
     }
 
@@ -225,6 +229,26 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setTransFileAncestry(String transFileAncestry) {
+        this.transFileAncestry = transFileAncestry;
+        return this;
+    }
+
+    public JobModelBuilder setDataFileAncestry(String dataFileAncestry) {
+        this.dataFileAncestry = dataFileAncestry;
+        return this;
+    }
+
+    public JobModelBuilder setBatchIdAncestry(String batchIdAncestry) {
+        this.batchIdAncestry = batchIdAncestry;
+        return this;
+    }
+
+    public JobModelBuilder setDetailsAncestry(String detailsAncestry) {
+        this.detailsAncestry = detailsAncestry;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -258,7 +282,12 @@ public class JobModelBuilder {
                 type,
                 dataFile,
                 partNumber,
-                workflowNoteModel
+                workflowNoteModel,
+                transFileAncestry,
+                dataFileAncestry,
+                batchIdAncestry,
+                detailsAncestry
+
         );
     }
 }

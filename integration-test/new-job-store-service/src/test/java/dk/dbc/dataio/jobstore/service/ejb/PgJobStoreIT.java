@@ -34,11 +34,8 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
-import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
-import dk.dbc.dataio.jobstore.types.FlowStoreReference;
-import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -58,8 +55,6 @@ import org.slf4j.LoggerFactory;
 import types.TestableAddJobParam;
 import types.TestableAddJobParamBuilder;
 
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.persistence.EntityTransaction;
 import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
@@ -573,222 +568,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
     /**
      * Given: a job store containing a number of jobs
-     * When : requesting a job listing with a criteria selecting a subset of the jobs
-     * Then : only the filtered snapshots are returned
-     */
-    @Test
-    public void listJobs() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
-        final List<JobInfoSnapshot> expectedSnapshots = snapshots.subList(1, snapshots.size() - 1);
-
-        // When...
-        final JsonObject jsonValue = Json.createObjectBuilder()
-                .add("destination", snapshots.get(0).getSpecification().getDestination())
-                .add("type", snapshots.get(0).getSpecification().getType().name())
-                .build();
-
-        final JobListCriteria jobListCriteria = new JobListCriteria()
-                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonValue.toString()))
-                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
-                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()))
-                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC));
-
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteria);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(expectedSnapshots.size()));
-        assertThat("First snapshot in result set", returnedSnapshots.get(0).getJobId(), is(expectedSnapshots.get(0).getJobId()));
-        assertThat("Second snapshot in result set", returnedSnapshots.get(1).getJobId(), is(expectedSnapshots.get(1).getJobId()));
-    }
-
-    /**
-     * Given: a job store containing a number of jobs
-     * When : requesting a job count with a criteria selecting a subset of the jobs
-     * Then : only the filtered snapshots are counted and orderby/offset is ignored
-     */
-    @Test
-    public void countJobs() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> snapshots = addJobs(4, pgJobStore);
-
-        // When...
-        final JsonObject jsonValue = Json.createObjectBuilder()
-                .add("destination", snapshots.get(0).getSpecification().getDestination())
-                .add("type", snapshots.get(0).getSpecification().getType().name())
-                .build();
-
-        final JobListCriteria jobListCriteria = new JobListCriteria()
-                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonValue.toString()))
-                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.GREATER_THAN, snapshots.get(0).getJobId()))
-                .and(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.LESS_THAN, snapshots.get(snapshots.size() - 1).getJobId()))
-                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC))
-                .limit(1).offset(12);
-
-        final long count= pgJobStore.jobStoreRepository.countJobs(jobListCriteria);
-
-        // Then...
-        assertThat( count, is(2L));
-    }
-
-
-    /**
-     * Given    : a job store containing a number of jobs, where one has failed during delivering
-     * When     : requesting a job listing with a criteria selecting only jobs failed in delivering
-     * Then     : only jobs failed during delivery are returned.
-     */
-    @Test
-    public void listJobs_withDeliveringFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringDelivery() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> jobs = addJobs(3, pgJobStore);
-
-        final Chunk chunkFailedDuringProcessing = buildChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(0).getJobId(), 0, 0, 6, Chunk.Type.PROCESSED);
-        final Chunk chunkFailedDuringDelivery = buildChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(1).getJobId(), 0, 0, 6, Chunk.Type.DELIVERED);
-
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunkFailedDuringProcessing);
-        pgJobStore.addChunk(chunkFailedDuringDelivery);
-        chunkTransaction.commit();
-
-        // When...
-        final JobListCriteria jobListCriteriaDeliveringFailed = buildJobListCriteria(JobListCriteria.Field.STATE_DELIVERING_FAILED);
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaDeliveringFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
-        assertThat((long) returnedSnapshots.get(0).getJobId(), is(chunkFailedDuringDelivery.getJobId()));
-    }
-
-    /**
-     * Given    : a job store containing a number of jobs, where one has failed during processing
-     * When     : requesting a job listing with a criteria selecting only jobs failed in processing
-     * Then     : only jobs failed during processing are returned.
-     */
-    @Test
-    public void listJobs_withProcessingFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringProcessing() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> jobs = addJobs(3, pgJobStore);
-
-        final Chunk chunkFailedDuringDelivery = buildChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(0).getJobId(), 0, 0, 6, Chunk.Type.DELIVERED);
-        final Chunk chunkFailedDuringProcessing = buildChunkContainingFailedAndIgnoredItem(
-                10, jobs.get(1).getJobId(), 0, 0, 6, Chunk.Type.PROCESSED);
-
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunkFailedDuringDelivery);
-        pgJobStore.addChunk(chunkFailedDuringProcessing);
-        chunkTransaction.commit();
-
-        // When...
-        final JobListCriteria jobListCriteriaProcessingFailed = buildJobListCriteria(JobListCriteria.Field.STATE_PROCESSING_FAILED);
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaProcessingFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
-        assertThat((long) returnedSnapshots.get(0).getJobId(), is(chunkFailedDuringProcessing.getJobId()));
-    }
-
-    @Test
-    public void listJobs_withFatalErrorCriteria_returnsJobInfoSnapshotsForJobsFailedDuringCreation() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        // Adding job that fails in job creation
-        final JobInfoSnapshot jobFailedDuringCreation = addJobs(1, pgJobStore).get(0);
-
-        // When...
-        final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaJobCreationFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
-
-        // And...
-        final JobInfoSnapshot snapshot = returnedSnapshots.get(0);
-        assertThat("JobInfoSnapshot.jobId", snapshot.getJobId(), is(jobFailedDuringCreation.getJobId()));
-    }
-
-    @Test
-    public void listJobs_withFatalErrorCriteria_returnsJobInfoSnapshotForJobsFailedDuringPartitioning() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        when(mockedFileStoreServiceConnector.getFile(anyString())).thenReturn(new ByteArrayInputStream(getInvalidXml().getBytes()));
-
-        // Adding job that fails during partitioning
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setRecords(getInvalidXml()).build();
-        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
-        final EntityTransaction transaction = entityManager.getTransaction();
-
-        transaction.begin();
-        final JobInfoSnapshot jobFailedDuringPartitioning = pgJobStore.addJob(testableAddJobParam);
-        transaction.commit();
-
-        // When...
-        final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaJobCreationFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
-
-        // And...
-        final JobInfoSnapshot snapshot = returnedSnapshots.get(0);
-        assertThat("JobInfoSnapshot.jobId", snapshot.getJobId(), is(jobFailedDuringPartitioning.getJobId()));
-    }
-
-    @Test
-    public void listJobs_withFatalErrorCriteriaWhenNoDiagnosticsExists_returnsEmptyList() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize(defaultByteSize);
-
-        // Adding job without failure
-        addJobs(1, pgJobStore);
-
-        // When...
-        final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaJobCreationFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(0));
-    }
-
-    @Test
-    public void listJobs_withFatalErrorCriteriaWhenOnlyWarningDiagnosticExists_returnsEmptyList() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        // Adding job with diagnostic with level WARNING
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                .setDiagnostics(Collections.singletonList(new DiagnosticBuilder().setLevel(Diagnostic.Level.WARNING).build()))
-                .build();
-
-        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
-        commitJob(pgJobStore, testableAddJobParam);
-
-        // When...
-        final JobListCriteria jobListCriteriaJobCreationFailed = buildJobListCriteria(JobListCriteria.Field.WITH_FATAL_ERROR);
-        final List<JobInfoSnapshot> returnedSnapshots = pgJobStore.jobStoreRepository.listJobs(jobListCriteriaJobCreationFailed);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(0));
-    }
-
-    /**
-     * Given: a job store containing a number of jobs
      * When : requesting an item count with a criteria selecting items from a specific job
      * Then : only the filtered snapshots from the specific job are counted and orderby/offset is ignored
      */
@@ -810,52 +589,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
         // Then...
         assertThat("item count returned", count, is(11L));
-    }
-
-    /**
-     * Given: a job store containing 3 number of jobs all with reference to different sinks
-     * When : requesting a job listing with a criteria selecting jobs with reference to a specific sink
-     * Then : only one filtered snapshot is returned
-     */
-    @Test
-    public void listJobs_withSinkIdCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        final int numberOfJobs = 3;
-        List<JobInfoSnapshot> snapshots = new ArrayList<>(numberOfJobs);
-
-        // Create 3 jobs, each containing params with reference to different sinks.
-        for(int i = 0; i < numberOfJobs; i ++) {
-            FlowStoreReference flowStoreReference = new FlowStoreReference(i + 1, i + 1, "sinkName" + (i + 1));
-            FlowStoreReferences flowStoreReferences = new FlowStoreReferencesBuilder()
-                    .setFlowStoreReference(FlowStoreReferences.Elements.SINK, flowStoreReference).build();
-
-            final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().setFlowStoreReferences(flowStoreReferences).build();
-            setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
-
-            final EntityTransaction jobTransaction = entityManager.getTransaction();
-            jobTransaction.begin();
-            snapshots.add(pgJobStore.addJob(testableAddJobParam));
-            jobTransaction.commit();
-        }
-
-        // When...
-        final JobListCriteria jobListCriteria = new JobListCriteria().where(new ListFilter<>(
-                JobListCriteria.Field.SINK_ID,
-                ListFilter.Op.EQUAL,
-                Long.valueOf(snapshots.get(1).getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId()).intValue()));
-
-        final List<JobInfoSnapshot> returnedSnapshotsForSink = pgJobStore.jobStoreRepository.listJobs(jobListCriteria);
-
-        // Then...
-        assertThat("Number of returned snapshots", returnedSnapshotsForSink.size(), is(1));
-        JobInfoSnapshot jobInfoSnapshot = returnedSnapshotsForSink.get(0);
-        assertThat("jobInfoSnapshot.flowStoreReferences.Element.Sink.id: " + jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId(),
-                jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getId(), is(2L));
-        assertThat("jobInfoSnapshot.flowStoreReferences.Element.Sink.name ",
-                jobInfoSnapshot.getFlowStoreReferences().getReference(FlowStoreReferences.Elements.SINK).getName(), is("sinkName2"));
-        assertThat("jobInfoSnapshot.jobId: " + jobInfoSnapshot.getJobId(), jobInfoSnapshot.getJobId(), is(snapshots.get(1).getJobId()));
     }
 
     /**
@@ -1518,12 +1251,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
                     break;
             }
         }
-    }
-
-    private JobListCriteria buildJobListCriteria(JobListCriteria.Field jobStateValue) {
-        return new JobListCriteria()
-                .where(new ListFilter<>(jobStateValue))
-                .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.DESC));
     }
 
     private Chunk buildChunk(long jobId, long chunkId, int numberOfItems, Chunk.Type type, ChunkItem.Status status) {

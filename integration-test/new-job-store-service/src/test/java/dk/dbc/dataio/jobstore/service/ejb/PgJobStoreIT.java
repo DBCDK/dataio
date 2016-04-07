@@ -21,32 +21,18 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.FileStoreUrn;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowContent;
-import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
-import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
-import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
@@ -65,7 +51,6 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
-import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -78,9 +63,7 @@ import javax.json.JsonObject;
 import javax.persistence.EntityTransaction;
 import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -102,19 +85,11 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     private static final long SLEEP_INTERVAL_IN_MS = 1000;
     private static final long MAX_WAIT_IN_MS = 10000;
     private static final Logger LOGGER = LoggerFactory.getLogger(PgJobStoreIT.class);
-    private static final FileStoreUrn FILE_STORE_URN;
     private static final JobSchedulerBean JOB_SCHEDULER_BEAN = mock(JobSchedulerBean.class);
 
     private static final State.Phase PROCESSING = State.Phase.PROCESSING;
     private static final int MAX_CHUNK_SIZE = 10;
 
-    static {
-        try {
-            FILE_STORE_URN = FileStoreUrn.create("42");
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
     private final String defaultXml = "<records>"
             + "<record>first</record>"
             + "<record>second</record>"
@@ -130,164 +105,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             + "</records>";
 
     private final long defaultByteSize = defaultXml.getBytes().length;
-
-    /**
-     * Given: a job store with empty flowcache
-     * When : a flow is added
-     * Then : the flow is inserted into the flowcache
-     */
-    @Test
-    public void cacheFlow_addingNeverBeforeSeenFlow_isCached() throws JobStoreException, SQLException, JSONBException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        // When...
-        final Flow flow = new FlowBuilder().build();
-        final FlowCacheEntity flowCacheEntity = pgJobStore.jobStoreRepository.cacheFlow(pgJobStore.jobStoreRepository.jsonbContext.marshall(flow));
-
-        // Then...
-        assertThat("entity", flowCacheEntity, is(notNullValue()));
-        assertThat("table size", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
-        assertThat("entity.flow.id", flowCacheEntity.getFlow().getId(), is(flow.getId()));
-    }
-
-    /**
-     * Given: a job store with non-empty flowcache
-     * When : a flow is added matching an already cached flow
-     * Then : no new flow is inserted into the flowcache
-     */
-    @Test
-    public void cacheFlow_addingAlreadyCachedFlow_leavesCacheUnchanged() throws JobStoreException, SQLException, JSONBException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final Flow flow = new FlowBuilder().build();
-        final String flowJson = pgJobStore.jobStoreRepository.jsonbContext.marshall(flow);
-        final FlowCacheEntity existingFlowCacheEntity = pgJobStore.jobStoreRepository.cacheFlow(flowJson);
-
-        initialiseEntityManager();
-        clearEntityManagerCache();
-
-        // When...
-        final FlowCacheEntity flowCacheEntity = pgJobStore.jobStoreRepository.cacheFlow(flowJson);
-
-        // Then...
-        assertThat("entity.id", flowCacheEntity.getId(), is(existingFlowCacheEntity.getId()));
-        assertThat("entity.checksum", flowCacheEntity.getChecksum(), is(existingFlowCacheEntity.getChecksum()));
-        assertThat("entity.flow", flowCacheEntity.getFlow(), is(existingFlowCacheEntity.getFlow()));
-        assertThat("table size", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
-    }
-
-    @Test
-    public void createJobEntity_trimsNonAcctestFlows() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
-        final PgJobStore pgJobStore = newPgJobStore();
-        int nextRevision = 1;
-        for (JobSpecification.Type type : JobSpecification.Type.values()) {
-            if (type == JobSpecification.Type.ACCTEST)
-                continue;
-
-            // When adding jobs with non-ACCTEST type referencing flows which only differs on
-            // their "next" components the flows are trimmed resulting in cache hits.
-
-            JobSpecification jobSpecification = new JobSpecificationBuilder()
-                    .setType(type)
-                    .setDataFile(FILE_STORE_URN.toString())
-                    .build();
-
-            final FlowContent flowContent = new FlowContentBuilder()
-                    .setComponents(Collections.singletonList(
-                            new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision++).build()).build()
-                    ))
-                    .build();
-            final Flow flow = new FlowBuilder()
-                    .setContent(flowContent)
-                    .build();
-
-            final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                    .setJobSpecification(jobSpecification)
-                    .setFlow(flow).build();
-
-            final EntityTransaction transaction = entityManager.getTransaction();
-            transaction.begin();
-            pgJobStore.jobStoreRepository.createJobEntity(testableAddJobParam);
-            transaction.commit();
-
-            assertThat("flow cache table size when flow is trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
-        }
-
-        // When adding job with type ACCTEST the flow is not trimmed resulting in cache insert.
-        JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setType(JobSpecification.Type.ACCTEST)
-                .setDataFile(FILE_STORE_URN.toString())
-                .build();
-
-        final FlowContent flowContent = new FlowContentBuilder()
-                .setComponents(Collections.singletonList(
-                        new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().setName("next_" + nextRevision++).build()).build()
-                ))
-                .build();
-
-        final Flow flow = new FlowBuilder()
-                .setContent(flowContent)
-                .build();
-
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
-                .setJobSpecification(jobSpecification)
-                .setFlow(flow).build();
-
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        pgJobStore.jobStoreRepository.createJobEntity(testableAddJobParam);
-
-        transaction.commit();
-
-        assertThat("flow cache table size when flow is not trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(2L));
-    }
-
-    /**
-     * Given: a job store with empty sinkcache
-     * When : a sink is added
-     * Then : the sink is inserted into the sinkcache
-     */
-    @Test
-    public void cacheSink_addingNeverBeforeSeenSink_isCached() throws JobStoreException, SQLException, JSONBException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        // When...
-        final Sink sink = new SinkBuilder().build();
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.jobStoreRepository.cacheSink(pgJobStore.jobStoreRepository.jsonbContext.marshall(sink));
-
-        // Then...
-        assertThat("entity", sinkCacheEntity, is(notNullValue()));
-        assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
-        assertThat("entity.sink.id", sinkCacheEntity.getSink().getId(), is(sink.getId()));
-    }
-
-    /**
-     * Given: a job store with non-empty sinkcache
-     * When : a sink is added matching an already cached sink
-     * Then : no new sink is inserted into the sinkcache
-     */
-    @Test
-    public void cacheSink_addingAlreadyCachedSink_leavesCacheUnchanged() throws JobStoreException, SQLException, JSONBException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final Sink sink = new SinkBuilder().build();
-        final String sinkJson = pgJobStore.jobStoreRepository.jsonbContext.marshall(sink);
-        final SinkCacheEntity existingSinkCacheEntity = pgJobStore.jobStoreRepository.cacheSink(sinkJson);
-
-        initialiseEntityManager();
-        clearEntityManagerCache();
-
-        // When...
-        final SinkCacheEntity sinkCacheEntity = pgJobStore.jobStoreRepository.cacheSink(sinkJson);
-
-        // Then...
-        assertThat("entity.id", sinkCacheEntity.getId(), is(existingSinkCacheEntity.getId()));
-        assertThat("entity.checksum", sinkCacheEntity.getChecksum(), is(existingSinkCacheEntity.getChecksum()));
-        assertThat("entity.sink", sinkCacheEntity.getSink(), is(existingSinkCacheEntity.getSink()));
-        assertThat("table size", getSizeOfTable(SINK_CACHE_TABLE_NAME), is(1L));
-    }
 
     /**
      * Given: an empty job store
@@ -1635,14 +1452,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertThat("Job table size", getSizeOfTable(JOB_TABLE_NAME), is((long) expectedJobTableSize));
         assertThat("Chunk table size", getSizeOfTable(CHUNK_TABLE_NAME), is((long) expectedChunkTableSize));
         assertThat("Item table size", getSizeOfTable(ITEM_TABLE_NAME), is((long) expectedItemTableSize));
-    }
-
-    private long getSizeOfTable(String tableName) throws SQLException {
-        try (final Connection connection = newConnection()) {
-            final List<List<Object>> rs = JDBCUtil.queryForRowLists(connection,
-                    String.format("SELECT COUNT(*) FROM %s", tableName));
-            return ((long) rs.get(0).get(0));
-        }
     }
 
     private void assertEntities(JobEntity jobEntity, int expectedNumberOfChunks, int expectedNumberOfItems, List<State.Phase> phases) {

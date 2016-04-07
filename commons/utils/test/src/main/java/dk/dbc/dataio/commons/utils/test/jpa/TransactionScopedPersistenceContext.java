@@ -40,6 +40,8 @@ public class TransactionScopedPersistenceContext {
         transaction.begin();
         try {
             return codeBlock.execute();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             transaction.commit();
         }
@@ -50,6 +52,8 @@ public class TransactionScopedPersistenceContext {
         transaction.begin();
         try {
             codeBlock.execute();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         } finally {
             transaction.commit();
         }
@@ -61,7 +65,7 @@ public class TransactionScopedPersistenceContext {
      */
     @FunctionalInterface
     public interface CodeBlockExecution<T> {
-        T execute();
+        T execute() throws Exception;
     }
 
     /**
@@ -69,6 +73,6 @@ public class TransactionScopedPersistenceContext {
      */
     @FunctionalInterface
     public interface CodeBlockVoidExecution {
-        void execute();
+        void execute() throws Exception;
     }
 }

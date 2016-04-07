@@ -26,8 +26,11 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -39,7 +42,6 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.fail;
 
 public class FileFinderTest {
-
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
@@ -86,6 +88,46 @@ public class FileFinderTest {
             matchingFiles.add(testFolder.newFile().toPath());
             fail("No exception thrown");
         } catch (UnsupportedOperationException e) {
+        }
+    }
+
+    @Test
+    public void findFilesWithExtension_returnsListOrderedByFileCreationTimeThenByFileName() throws IOException {
+        final Path first = testFolder.newFile("2.trans").toPath();
+        final Path second = testFolder.newFile("3.trans").toPath();
+        final Path third = testFolder.newFile("1.trans").toPath();
+
+        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(
+                testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList(".trans")));
+
+        assertThat("first", matchingFiles.get(0), is(third));
+        assertThat("second", matchingFiles.get(1), is(first));
+        assertThat("third", matchingFiles.get(2), is(second));
+    }
+
+    @Test
+    public void findFilesWithExtension_returnsListOrderedByFileCreationTime() throws IOException {
+        final Path first = testFolder.newFile("2.trans").toPath();
+        final Path second = testFolder.newFile("3.trans").toPath();
+        final Path third = testFolder.newFile("1.trans").toPath();
+        setFileCreationTime(second, Files.getLastModifiedTime(first).toMillis() + 1000);
+        setFileCreationTime(third, Files.getLastModifiedTime(first).toMillis() + 2000);
+
+        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(
+                testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList(".trans")));
+
+        assertThat("first", matchingFiles.get(0), is(first));
+        assertThat("second", matchingFiles.get(1), is(second));
+        assertThat("third", matchingFiles.get(2), is(third));
+    }
+
+    private static void setFileCreationTime(Path file, long creationTime) {
+        final BasicFileAttributeView attributes = Files.getFileAttributeView(file, BasicFileAttributeView.class);
+        final FileTime time = FileTime.fromMillis(creationTime);
+        try {
+            attributes.setTimes(time, time, time);
+        } catch (IOException e) {
+            throw new IllegalStateException();
         }
     }
 }

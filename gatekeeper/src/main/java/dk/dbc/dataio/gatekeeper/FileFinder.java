@@ -29,8 +29,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +40,8 @@ import java.util.stream.Collectors;
 public class FileFinder {
     /**
      * Finds all files in given directory ending with the specified
-     * file extension(s)
+     * file extension(s) ordered by ascending creation time (one second granularity)
+     * and then by filename
      * @param dir directory to search
      * @param extensions only match files with given extensions (dot is not required)
      * @return list of matching files
@@ -55,11 +58,11 @@ public class FileFinder {
         return findFilesWithExtensionVisitor.getMatchingFilesFound();
     }
 
-    static class FindFilesWithExtensionVisitor extends SimpleFileVisitor<Path> {
+    private static class FindFilesWithExtensionVisitor extends SimpleFileVisitor<Path> {
         private final List<Path> matchingFilesFound;
         private final Set<String> extensions;
 
-        public FindFilesWithExtensionVisitor(Set<String> extensions) {
+        FindFilesWithExtensionVisitor(Set<String> extensions) {
             this.matchingFilesFound = new ArrayList<>();
             this.extensions = extensions;
         }
@@ -74,8 +77,29 @@ public class FileFinder {
             return FileVisitResult.CONTINUE;
         }
 
-        public List<Path> getMatchingFilesFound() {
+        List<Path> getMatchingFilesFound() {
+            Collections.sort(matchingFilesFound, new ByFileCreationTimeThenByFileName());
             return Collections.unmodifiableList(matchingFilesFound);
+        }
+
+        private static class ByFileCreationTimeThenByFileName implements Comparator<Path> {
+            @Override
+            public int compare(Path p1, Path p2) {
+                // Note: FileTime granularity is one second
+                int compareTo = getCreationTime(p1).compareTo(getCreationTime(p2));
+                if (compareTo == 0) {
+                    compareTo = p1.getFileName().compareTo(p2.getFileName());
+                }
+                return compareTo;
+            }
+
+            private FileTime getCreationTime(Path path) {
+                try {
+                    return Files.readAttributes(path, BasicFileAttributes.class).creationTime();
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+            }
         }
     }
 }

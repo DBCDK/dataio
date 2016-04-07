@@ -186,7 +186,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
 
         final JobListCriteria jobListCriteria = new JobListCriteria().where(new ListFilter<>(
                 JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, 1L))
-                .orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
+                .orderBy(new ListOrderBy<>(JobListCriteria.Field.JOB_ID, ListOrderBy.Sort.ASC));
 
         // When...
         final List<JobInfoSnapshot> returnedSnapshotsForSink = pgJobStoreRepository.listJobs(jobListCriteria);

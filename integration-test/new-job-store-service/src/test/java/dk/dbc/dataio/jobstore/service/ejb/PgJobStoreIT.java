@@ -33,7 +33,6 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -43,12 +42,8 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
-import dk.dbc.dataio.jobstore.types.criteria.ChunkListCriteria;
-import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
-import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +55,6 @@ import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -565,189 +559,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
             }
         }
     }
-
-    /**
-     * Given: a job store containing a number of jobs
-     * When : requesting an item count with a criteria selecting items from a specific job
-     * Then : only the filtered snapshots from the specific job are counted and orderby/offset is ignored
-     */
-    @Test
-    public void countItems() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final List<JobInfoSnapshot> snapshots = addJobs(2, pgJobStore);
-
-        // When...
-         final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, snapshots.get(0).getJobId()))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC))
-                .limit(1).offset(6);
-
-        final long count = pgJobStore.jobStoreRepository.countItems(itemListCriteria);
-
-        // Then...
-        assertThat("item count returned", count, is(11L));
-    }
-
-    /**
-     * Given   : a job store containing a number of jobs
-     * When    : requesting an item listing with a criteria selecting failed items from a specific job
-     * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
-     */
-    @Test
-    public void listItems_withFailedItemsCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short failedItemId = 3;          // The failed item will be the 4th out of 10
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
-
-        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, 6, Chunk.Type.PROCESSED);
-
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
-        chunkTransaction.commit();
-
-        // When...
-        final ItemListCriteria findAllItemsForJobWithStatusFailed = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
-                .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
-
-        List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.jobStoreRepository.listItems(findAllItemsForJobWithStatusFailed);
-        assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
-        assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(failedItemId));
-        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(failedItemId + 1));
-    }
-
-    /**
-     * Given   : a job store containing a number of jobs
-     * When    : requesting an item listing with a criteria selecting ignored items from a specific job
-     * Then    : the expected filtered snapshot is returned, sorted by chunk id ASC > item id ASC
-     */
-    @Test
-    public void listItems_withIgnoredItemsCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short failedItemId = 3;          // The failed item will be the 4th out of 10
-        final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
-
-        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, Chunk.Type.PROCESSED);
-
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
-        chunkTransaction.commit();
-
-        // When...
-        final ItemListCriteria findAllItemsForJobWithStatusIgnored = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
-                .and(new ListFilter<>(ItemListCriteria.Field.STATE_IGNORED));
-
-        List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.jobStoreRepository.listItems(findAllItemsForJobWithStatusIgnored);
-        assertThat("Number of returned snapshots", returnedItemInfoSnapshots.size(), is(1));
-        assertThat("Job id referred to by item", returnedItemInfoSnapshots.get(0).getJobId(), is(jobInfoSnapshot.getJobId()));
-        assertThat("Item id", returnedItemInfoSnapshots.get(0).getItemId(), is(ignoredItemId));
-        assertThat("Item number", returnedItemInfoSnapshots.get(0).getItemNumber(), is(ignoredItemId + 1));
-    }
-
-    /**
-     * Given   : a job store containing a number of jobs
-     * When    : requesting an item listing with a criteria selecting all items from a specific job
-     * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC
-     */
-    @Test
-    public void listItems_withoutItemCriteria_returnsSnapshots() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short failedItemId = 3;          // The failed item will be the 4th out of 10
-        final short ignoredItemId = 4;         // The ignored item is the 5th out of 10
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
-
-        Chunk chunk = buildChunkContainingFailedAndIgnoredItem(
-                10, jobInfoSnapshot.getJobId(), chunkId, failedItemId, ignoredItemId, Chunk.Type.PROCESSED);
-
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        pgJobStore.addChunk(chunk);
-        chunkTransaction.commit();
-
-        // When...
-        final ItemListCriteria itemListCriteria = new ItemListCriteria()
-                .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobInfoSnapshot.getJobId()))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
-                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
-
-        List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStore.jobStoreRepository.listItems(itemListCriteria);
-
-        // Then
-        assertThat("Number of returned items", returnedItemInfoSnapshots.size(), is(jobInfoSnapshot.getNumberOfItems()));
-        int expectedItemId = 1;
-        for(ItemInfoSnapshot itemInfoSnapshot : returnedItemInfoSnapshots) {
-            assertThat("Job id referred to by item", itemInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
-            assertThat("Item number", itemInfoSnapshot.getItemNumber(), is(expectedItemId));
-            expectedItemId++;
-        }
-    }
-
-    /**
-     * Given   : a job store containing job
-     * When    : requesting a chunk collision detection element listing with a criteria selecting all chunks that has not finished
-     * Then    : the expected filtered chunk collision detection elements are returned, sorted by creation time ASC
-     */
-    @Test
-    public void listChunksCollisionDetectionElements() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
-        final PgJobStore pgJobStore = newPgJobStore();
-        final EntityTransaction transaction = entityManager.getTransaction();
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
-        transaction.begin();
-        pgJobStore.addJob(testableAddJobParam);
-        transaction.commit();
-
-        // When...
-        final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
-                .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
-                .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
-
-        // Then ...
-        List<CollisionDetectionElement> returnedChunkCollisionDetectionElements = pgJobStore.jobStoreRepository.listChunksCollisionDetectionElements(chunkListCriteria);
-        assertThat(returnedChunkCollisionDetectionElements, not(nullValue()));
-
-        assertThat(returnedChunkCollisionDetectionElements.size(), is(2));
-
-        for(CollisionDetectionElement cde : returnedChunkCollisionDetectionElements) {
-            final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) cde.getIdentifier();
-            ChunkEntity.Key chunkEntityKey = new ChunkEntity.Key(Long.valueOf(chunkIdentifier.getChunkId()).intValue(), Long.valueOf(chunkIdentifier.getJobId()).intValue());
-            ChunkEntity chunkEntity = entityManager.find(ChunkEntity.class, chunkEntityKey);
-
-            assertThat("Time of completion is null", chunkEntity.getTimeOfCompletion(), is(nullValue())); // no end date
-            assertThat(
-                    "Previous collisionDetectionElement.timeOfCreation: {"
-                            + timeOfCreation
-                            + "} is before or equal to next collisionDetectionElement.timeOfCreation: {"
-                            + chunkEntity.getTimeOfCreation() +"}.",
-                    timeOfCreation.before(chunkEntity.getTimeOfCreation()) || timeOfCreation.equals(chunkEntity.getTimeOfCreation()), is(true)); // oldest first
-            timeOfCreation = chunkEntity.getTimeOfCreation();
-        }
-    }
-
 
     /**
      * Given: a job store where a job exists

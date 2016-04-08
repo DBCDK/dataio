@@ -47,7 +47,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class PgJobStoreRepositoryIT_CachingIT extends AbstractJobStoreIT {
+public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstractIT {
 
     /**
      * Given: a job store with empty flowcache
@@ -57,10 +57,9 @@ public class PgJobStoreRepositoryIT_CachingIT extends AbstractJobStoreIT {
     @Test
     public void cacheFlow_addingNeverBeforeSeenFlow_isCached() throws JSONBException, SQLException {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        final Flow flow = new FlowBuilder().build();
 
         // When...
-        final Flow flow = new FlowBuilder().build();
         final FlowCacheEntity flowCacheEntity = pgJobStoreRepository.cacheFlow(
                 pgJobStoreRepository.jsonbContext.marshall(flow));
 
@@ -78,7 +77,6 @@ public class PgJobStoreRepositoryIT_CachingIT extends AbstractJobStoreIT {
     @Test
     public void cacheFlow_addingAlreadyCachedFlow_leavesCacheUnchanged() throws JSONBException, SQLException {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final FlowCacheEntity existingFlowCacheEntity = newPersistedFlowCacheEntity();
 
         // When...
@@ -104,7 +102,6 @@ public class PgJobStoreRepositoryIT_CachingIT extends AbstractJobStoreIT {
     @Test
     public void createJobEntity_trimsNonAcctestFlows() throws SQLException {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         int nextRevision = 1;
         for (JobSpecification.Type type : JobSpecification.Type.values()) {
             if (type == JobSpecification.Type.ACCTEST)
@@ -145,10 +142,9 @@ public class PgJobStoreRepositoryIT_CachingIT extends AbstractJobStoreIT {
     @Test
     public void cacheSink_addingNeverBeforeSeenSink_isCached() throws JSONBException, SQLException {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
+        final Sink sink = new SinkBuilder().build();
 
         // When...
-        final Sink sink = new SinkBuilder().build();
         final SinkCacheEntity sinkCacheEntity = pgJobStoreRepository.cacheSink(pgJobStoreRepository.jsonbContext.marshall(sink));
 
         // Then...
@@ -165,7 +161,6 @@ public class PgJobStoreRepositoryIT_CachingIT extends AbstractJobStoreIT {
     @Test
     public void cacheSink_addingAlreadyCachedSink_leavesCacheUnchanged() throws JSONBException, SQLException {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final SinkCacheEntity existingSinkCacheEntity = newPersistedSinkCacheEntity();
 
         // When...

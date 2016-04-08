@@ -1,9 +1,29 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferenceBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -16,7 +36,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
-import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
 import org.junit.Test;
 
 import java.sql.Timestamp;
@@ -26,11 +45,10 @@ import java.util.List;
 
 import static javax.json.Json.createObjectBuilder;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
-public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
+public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstractIT {
 
     /**
      * Given: a job store containing three jobs
@@ -40,7 +58,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void countJobs() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final List<JobEntity> jobEntities = Arrays.asList(newPersistedJobEntity(), newPersistedJobEntity(), newPersistedJobEntity());
 
         // When...
@@ -65,9 +82,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
      */
     @Test
     public void listJobs() {
-
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final List<JobEntity> jobEntities = Arrays.asList(
                 newPersistedJobEntity(),
                 newPersistedJobEntity(),
@@ -97,7 +112,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void listJobs_withDeliveringFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringDelivery() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final List<JobEntity> jobEntities = Arrays.asList(
                 newPersistedFailedJobEntity(State.Phase.PROCESSING),
                 newPersistedFailedJobEntity(State.Phase.DELIVERING),
@@ -124,7 +138,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void listJobs_withProcessingFailedCriteria_returnsJobInfoSnapshotsForJobsFailedDuringProcessing() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final List<JobEntity> jobEntities = Arrays.asList(
                 newPersistedFailedJobEntity(State.Phase.PROCESSING),
                 newPersistedFailedJobEntity(State.Phase.PROCESSING),
@@ -152,7 +165,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void listJobs_withFatalErrorCriteria_returnsJobInfoSnapshotsForJobsWithFatalError() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final List<JobEntity> jobEntities = Arrays.asList(
                 newPersistedFailedJobEntity(State.Phase.PARTITIONING, true),
                 newPersistedFailedJobEntity(State.Phase.PARTITIONING),
@@ -178,8 +190,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void listJobs_withSinkIdCriteria_returnsJobInfoSnapshotsForSelectedSink() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
-
         JobEntity jobEntity1 = newPersistedJobEntityWithSinkReference(1L);
         JobEntity jobEntity2 = newPersistedJobEntityWithSinkReference(1L);
         newPersistedJobEntityWithSinkReference(2L);
@@ -213,9 +223,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void countItems() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
-
         final int selectedJobId = newPersistedJobEntity().getId();
         final List<ItemEntity> expectedItemEntities = generateChunkAndItemEntitiesForJob(selectedJobId);
 
@@ -235,20 +243,20 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     /**
      * Given   : a job store containing two jobs, each with two chunks containing one successful item, three failed items and one ignored item
      * When    : requesting an item listing with a criteria selecting failed items from the selected job
-     * Then    : the expected filtered snapshots are returned.
+     * Then    : the expected filtered snapshots are returned, sorted by chunk id ASC > item id ASC.
      */
     @Test
     public void listItems_withFailedItemsCriteria_returnsItemInfoSnapshotsForSelectedJob() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
-
         final int selectedJobId = newPersistedJobEntity().getId();
         generateChunkAndItemEntitiesForJob(selectedJobId);
 
         final ItemListCriteria findAllItemsForJobWithStatusFailed = new ItemListCriteria()
                 .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, selectedJobId))
-                .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED));
+                .and(new ListFilter<>(ItemListCriteria.Field.STATE_FAILED))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.CHUNK_ID, ListOrderBy.Sort.ASC))
+                .orderBy(new ListOrderBy<>(ItemListCriteria.Field.ITEM_ID, ListOrderBy.Sort.ASC));
 
         // When...
         final List<ItemInfoSnapshot> returnedItemInfoSnapshots = pgJobStoreRepository.listItems(findAllItemsForJobWithStatusFailed);
@@ -271,11 +279,9 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void listItems_withIgnoredItemsCriteria_returnsItemInfoSnapshotsForSelectedJob() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
-        final int selectedJobId = newPersistedJobEntity().getId();
-
-        generateChunkAndItemEntitiesForJob(selectedJobId);
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
+        final int selectedJobId = newPersistedJobEntity().getId();
+        generateChunkAndItemEntitiesForJob(selectedJobId);
 
         final ItemListCriteria findAllItemsForJobWithStatusIgnored = new ItemListCriteria()
                 .where(new ListFilter<>(ItemListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, selectedJobId))
@@ -299,9 +305,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     @Test
     public void listItems_withoutItemCriteria_returnsItemInfoSnapshotsForSelectedJob() {
         // Given...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         generateChunkAndItemEntitiesForJob(newPersistedJobEntity().getId());
-
         final int selectedJobId = newPersistedJobEntity().getId();
         final List<ItemEntity> expectedItemEntities = generateChunkAndItemEntitiesForJob(selectedJobId);
 
@@ -330,33 +334,21 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
     public void listChunksCollisionDetectionElements() {
         // Given...
         Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final int jobId = newPersistedJobEntity().getId();
-        final long submitterNumber = 42;
+        newPersistedAndRefreshedChunkEntity(new ChunkEntity.Key(0, jobId));
+        newPersistedAndRefreshedChunkEntity(new ChunkEntity.Key(1, jobId));
 
-        persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
-                jobId, 0, (short)10,
-                DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"),
-                new SequenceAnalyserDefaultKeyGenerator(submitterNumber), "dataFileId")
-        );
 
-        persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
-                jobId, 1, (short)10,
-                DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"),
-                new SequenceAnalyserDefaultKeyGenerator(submitterNumber),
-                "dataFileId"));
-
-        // When...
         final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
                 .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
                 .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
 
-        // Then ...
+        // When...
         List<CollisionDetectionElement> returnedChunkCollisionDetectionElements = pgJobStoreRepository.listChunksCollisionDetectionElements(chunkListCriteria);
-        assertThat(returnedChunkCollisionDetectionElements, not(nullValue()));
 
+        // Then ...
         assertThat(returnedChunkCollisionDetectionElements.size(), is(2));
-
+        
         for(CollisionDetectionElement cde : returnedChunkCollisionDetectionElements) {
             final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) cde.getIdentifier();
             ChunkEntity.Key chunkEntityKey = new ChunkEntity.Key(Long.valueOf(chunkIdentifier.getChunkId()).intValue(), Long.valueOf(chunkIdentifier.getJobId()).intValue());
@@ -377,6 +369,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
      * Private methods
      */
 
+    // ************************** JobEntity creation **************************
 
     private JobEntity newPersistedFailedJobEntity(State.Phase failedPhase) {
         return newPersistedFailedJobEntity(failedPhase, false);
@@ -409,12 +402,15 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
         return jobEntity;
     }
 
-    private String getJsonValue(JobEntity jobEntity) {
-        return createObjectBuilder()
-                .add("destination", jobEntity.getSpecification().getDestination())
-                .add("type", jobEntity.getSpecification().getType().name())
-                .build().toString();
+    // ************************* ChunkEntity creation **************************
+
+    private ChunkEntity newPersistedAndRefreshedChunkEntity(ChunkEntity.Key key) {
+        final ChunkEntity chunkEntity = newPersistedChunkEntity(key);
+        persistAndRefresh(chunkEntity);
+        return chunkEntity;
     }
+
+    // ************************** ItemEntity creation **************************
 
     private ItemEntity newPersistedFailedItemEntity(ItemEntity.Key key) {
         final ItemEntity itemEntity = newFailedItemEntity(key);
@@ -439,6 +435,8 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
         itemEntity.getState().getPhase(State.Phase.PROCESSING).setIgnored(1);
         return itemEntity;
     }
+
+    // **************************** Helper methods *****************************
 
     private List<ItemEntity> generateChunkAndItemEntitiesForJob(int jobId) {
         List<ItemEntity> itemEntities = new ArrayList<>();
@@ -472,5 +470,19 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
             assertThat(previousItemId < itemInfoSnapshot.getItemId(), is(true));
             previousItemId = itemInfoSnapshot.getItemId();
         }
+    }
+
+    private String getJsonValue(JobEntity jobEntity) {
+        return createObjectBuilder()
+                .add("destination", jobEntity.getSpecification().getDestination())
+                .add("type", jobEntity.getSpecification().getType().name())
+                .build().toString();
+    }
+
+    private void persistAndRefresh(Object entity) {
+        persistenceContext.run(() -> {
+            entityManager.persist(entity);
+            entityManager.refresh(entity);
+        });
     }
 }

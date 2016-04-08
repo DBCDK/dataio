@@ -24,8 +24,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
@@ -44,8 +42,6 @@ import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.StateChange;
-import dk.dbc.dataio.jobstore.types.StateElement;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
 import org.junit.Before;
@@ -58,7 +54,6 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
-import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -268,8 +263,10 @@ public class AbstractJobStoreIT {
     }
 
     protected long getSizeOfTable(String tableName) throws SQLException {
-        final List<List<Object>> rs = JDBCUtil.queryForRowLists(newConnection(),
-                String.format("SELECT COUNT(*) FROM %s", tableName));
-        return ((long) rs.get(0).get(0));
+        try (final Connection connection = newConnection()) {
+            final List<List<Object>> rs = JDBCUtil.queryForRowLists(connection,
+                    String.format("SELECT COUNT(*) FROM %s", tableName));
+            return ((long) rs.get(0).get(0));
+        }
     }
 }

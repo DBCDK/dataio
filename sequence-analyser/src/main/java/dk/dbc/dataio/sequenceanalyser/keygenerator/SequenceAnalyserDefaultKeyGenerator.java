@@ -22,22 +22,33 @@
 package dk.dbc.dataio.sequenceanalyser.keygenerator;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
- * Simple sequence analyser key generator ensuring duplicates are removed from given list of keys.
+ * Simple sequence analyser key generator adding submitter postfix to each token in given list
+ * while ensuring that duplicates are removed.
  */
 public class SequenceAnalyserDefaultKeyGenerator implements SequenceAnalyserKeyGenerator {
+    private final String submitter;
 
-    public SequenceAnalyserDefaultKeyGenerator() { }
+    public SequenceAnalyserDefaultKeyGenerator(long submitterNumber) {
+        submitter = String.valueOf(submitterNumber);
+    }
 
     @Override
-    public Set<String> generateKeys(List<String> data) {
-        if(data != null) {
-            return Collections.unmodifiableSet(new HashSet<>(data));
+    public Set<String> generateKeys(List<String> tokens) {
+        if (tokens != null) {
+            return Collections.unmodifiableSet(
+                tokens.stream()
+                        .map(this::postfixSubmitter)
+                        .collect(Collectors.toSet()));
         }
         return Collections.emptySet();
+    }
+
+    private String postfixSubmitter(String key) {
+        return key + ":" + submitter;
     }
 }

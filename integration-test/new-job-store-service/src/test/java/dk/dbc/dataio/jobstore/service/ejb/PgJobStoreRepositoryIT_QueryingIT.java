@@ -332,17 +332,18 @@ public class PgJobStoreRepositoryIT_QueryingIT extends AbstractJobStoreIT {
         Timestamp timeOfCreation = new Timestamp(System.currentTimeMillis()); //timestamp older than creation time for any of the chunks.
         final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final int jobId = newPersistedJobEntity().getId();
+        final long submitterNumber = 42;
 
         persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
                 jobId, 0, (short)10,
                 DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"),
-                new SequenceAnalyserDefaultKeyGenerator(), "dataFileId")
+                new SequenceAnalyserDefaultKeyGenerator(submitterNumber), "dataFileId")
         );
 
         persistenceContext.run(() -> pgJobStoreRepository.createChunkEntity(
                 jobId, 1, (short)10,
                 DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"),
-                new SequenceAnalyserDefaultKeyGenerator(),
+                new SequenceAnalyserDefaultKeyGenerator(submitterNumber),
                 "dataFileId"));
 
         // When...

@@ -29,31 +29,32 @@ import java.util.Set;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertThat;
 
 public class SequenceAnalyserDefaultKeyGeneratorTest {
-    private final SequenceAnalyserDefaultKeyGenerator keyGenerator = new SequenceAnalyserDefaultKeyGenerator();
+    private final long submitter = 42;
+    private final SequenceAnalyserDefaultKeyGenerator keyGenerator = new SequenceAnalyserDefaultKeyGenerator(submitter);
 
     @Test
     public void generateKeys_nullInput_returnsEmptyKeySet() {
         final Set<String> keys = keyGenerator.generateKeys(null);
-        assertThat(keys, is(notNullValue()));
-        assertThat(keys.size(), is(0));
+        assertThat("keys", keys, is(notNullValue()));
+        assertThat("keys.size", keys.size(), is(0));
     }
 
     @Test
     public void generateKeys_emptyInputList_returnsEmptyKeySet() {
         final Set<String> keys = keyGenerator.generateKeys(new ArrayList<>());
-        assertThat(keys, is(notNullValue()));
-        assertThat(keys.size(), is(0));
+        assertThat("keys", keys, is(notNullValue()));
+        assertThat("keys.size", keys.size(), is(0));
     }
 
     @Test
     public void generateKeys_listContainingDuplicateKeys_returnsKeySetWithUniqueValues() {
         final Set<String> keys = keyGenerator.generateKeys(Arrays.asList("id", "parent", "id"));
-        assertThat(keys, is(notNullValue()));
-        assertThat(keys.size(), is(2));
-        assertThat(keys.contains("id"), is(true));
-        assertThat(keys.contains("parent"), is(true));
+        assertThat("keys", keys, is(notNullValue()));
+        assertThat("keys.size", keys.size(), is(2));
+        assertThat("keys contains", keys, contains("id:42", "parent:42"));
     }
 }

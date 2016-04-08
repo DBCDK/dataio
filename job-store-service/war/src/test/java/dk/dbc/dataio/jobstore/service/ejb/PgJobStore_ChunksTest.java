@@ -25,6 +25,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
@@ -527,12 +528,13 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         public short maxChunkSize;
 
         public Params() {
-            jobInputStream = new JobInputStream(new JobSpecificationBuilder().build(), true, 0);
+            final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+            jobInputStream = new JobInputStream(jobSpecification, true, 0);
             dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8.name());
             flow = new FlowBuilder().build();
             sink = new SinkBuilder().build();
             flowStoreReferences = new FlowStoreReferencesBuilder().build();
-            sequenceAnalyserKeyGenerator = new SequenceAnalyserDefaultKeyGenerator();
+            sequenceAnalyserKeyGenerator = new SequenceAnalyserDefaultKeyGenerator(jobSpecification.getSubmitterId());
             maxChunkSize = 10;
             dataFileId = "datafile";
         }

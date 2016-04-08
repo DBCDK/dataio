@@ -107,7 +107,7 @@ public class FileFinderTest {
 
     @Test
     public void findFilesWithExtension_returnsListOrderedByFileCreationTime() throws IOException {
-        if (SystemUtil.isOsX()) { // setting file create time does not work on OS X - https://bugs.openjdk.java.net/browse/JDK-8151430
+        if (!SystemUtil.isOsX()) { // setting file create time does not work on OS X - https://bugs.openjdk.java.net/browse/JDK-8151430
             final Path first = testFolder.newFile("2.trans").toPath();
             final Path second = testFolder.newFile("3.trans").toPath();
             final Path third = testFolder.newFile("1.trans").toPath();

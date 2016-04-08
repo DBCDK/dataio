@@ -279,7 +279,7 @@ public class JobDispatcherIT {
      */
     @Test(timeout = 5000)
     public void checkForStalledTransfilesExecutedOnTransfileCompletedEvent() throws InterruptedException {
-        if (SystemUtil.isOsX()) {  // Do NOT run on Mac OsX, because WatchService is poll based on OsX, and has a long poll time (10 sec)
+        if (!SystemUtil.isOsX()) {  // Do NOT run on Mac OsX, because WatchService is poll based on OsX, and has a long poll time (10 sec)
             return;
         }
 

@@ -34,6 +34,7 @@ public class ItemModelBuilder {
     private String itemId = "0";
     private String chunkId = "0";
     private String jobId = "1";
+    private String recordId = "1";
     private ItemModel.LifeCycle lifeCycle = ItemModel.LifeCycle.PARTITIONING;
     private List<DiagnosticModel> diagnosticModels = new ArrayList<>(Collections.singletonList(
             new DiagnosticModelBuilder().build()));
@@ -60,6 +61,11 @@ public class ItemModelBuilder {
         return this;
     }
 
+    public ItemModelBuilder setRecordId(String recordId) {
+        this.recordId = recordId;
+        return this;
+    }
+
     public ItemModelBuilder setLifeCycle(ItemModel.LifeCycle lifeCycle) {
         this.lifeCycle = lifeCycle;
         return this;
@@ -81,7 +87,7 @@ public class ItemModelBuilder {
     }
 
     public ItemModel build() {
-        return new ItemModel(itemNumber, itemId, chunkId, jobId, lifeCycle, diagnosticModels, diagnosticFatal, workflowNoteModel);
+        return new ItemModel(itemNumber, itemId, chunkId, jobId, recordId, lifeCycle, diagnosticModels, diagnosticFatal, workflowNoteModel);
     }
 
 }

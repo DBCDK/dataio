@@ -32,6 +32,9 @@ public interface Texts extends Constants {
     String column_Item();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String column_RecordId();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String column_Status();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -32,6 +32,7 @@ public class ItemModel extends GenericBackendModel {
     private String itemId;
     private String chunkId;
     private String jobId;
+    private String recordId;
     private LifeCycle lifeCycle;
     private List<DiagnosticModel> diagnosticModels;
     private boolean diagnosticFatal;
@@ -42,6 +43,7 @@ public class ItemModel extends GenericBackendModel {
             String itemId,
             String chunkId,
             String jobId,
+            String recordId,
             LifeCycle lifeCycle,
             List<DiagnosticModel> diagnosticModels,
             boolean diagnosticFatal,
@@ -52,6 +54,7 @@ public class ItemModel extends GenericBackendModel {
         this.itemId = itemId;
         this.chunkId = chunkId;
         this.jobId = jobId;
+        this.recordId = recordId;
         this.lifeCycle = lifeCycle;
         this.diagnosticModels = diagnosticModels;
         this.diagnosticFatal = diagnosticFatal;
@@ -59,7 +62,7 @@ public class ItemModel extends GenericBackendModel {
     }
 
     public ItemModel() {
-        this("1", "0", "0", "0", LifeCycle.PARTITIONING, new ArrayList<DiagnosticModel>(), false, (WorkflowNoteModel)null);
+        this("1", "0", "0", "0", "0", LifeCycle.PARTITIONING, new ArrayList<DiagnosticModel>(), false, (WorkflowNoteModel)null);
     }
 
     public String getItemNumber() {
@@ -76,6 +79,10 @@ public class ItemModel extends GenericBackendModel {
 
     public String getJobId() {
         return jobId;
+    }
+
+    public String getRecordId() {
+        return recordId;
     }
 
     public LifeCycle getStatus() {

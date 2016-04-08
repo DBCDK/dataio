@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.gui.client.model.DiagnosticModel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 
 import java.util.ArrayList;
@@ -101,6 +102,7 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
+                getRecordId(itemInfoSnapshot.getRecordInfo()),
                 searchFailed(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
                 hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
@@ -148,6 +150,7 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
+                getRecordId(itemInfoSnapshot.getRecordInfo()),
                 searchIgnored(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
                 hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
@@ -166,6 +169,7 @@ public final class ItemModelMapper {
                 Long.valueOf(itemInfoSnapshot.getItemId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getChunkId()).toString(),
                 Long.valueOf(itemInfoSnapshot.getJobId()).toString(),
+                getRecordId(itemInfoSnapshot.getRecordInfo()),
                 searchAll(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
                 hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
@@ -223,5 +227,9 @@ public final class ItemModelMapper {
             }
         }
         return lifeCycle;
+    }
+
+    private static String getRecordId(RecordInfo recordInfo) {
+        return recordInfo == null ? "" : recordInfo.getId();
     }
 }

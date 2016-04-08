@@ -149,27 +149,28 @@ public class View extends ViewWidget {
         listView.itemsTable.setWidth("100%", true);
         listView.itemsTable.addColumn(constructItemColumn(), getTexts().column_Item());
         listView.itemsTable.setColumnWidth(0, 8, Style.Unit.EM);
+        listView.itemsTable.addColumn(constructRecordIdColumn(), getTexts().column_RecordId());
+        listView.itemsTable.setColumnWidth(1, 10, Style.Unit.EM);
         listView.itemsTable.addColumn(constructStatusColumn(), getTexts().column_Status());
-        listView.itemsTable.setColumnWidth(1, 8, Style.Unit.EM);
+        listView.itemsTable.setColumnWidth(2, 8, Style.Unit.EM);
         listView.itemsTable.setVisibleRange(0, 20);
         listView.itemsPager.setDisplay(listView.itemsTable);
-
     }
 
     void addFixedColumn() {
-        if(failedContext.listView.itemsTable.getColumnCount() == 2) {
+        if(failedContext.listView.itemsTable.getColumnCount() == 3) {
             failedContext.listView.itemsTable.addColumn(constructFixedColumn(), getTexts().column_Fixed());
-            failedContext.listView.itemsTable.setColumnWidth(2, 4, Style.Unit.EM);
+            failedContext.listView.itemsTable.setColumnWidth(3, 4, Style.Unit.EM);
             failedContext.listView.itemsTable.setVisibleRange(0, 20);
             failedContext.listView.itemsTable.redraw();
         }
     }
 
     void removeFixedColumn() {
-        if(failedContext.listView.itemsTable.getColumnCount() == 3) {
-            failedContext.listView.itemsTable.getColumn(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
-            failedContext.listView.itemsTable.clearColumnWidth(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
-            failedContext.listView.itemsTable.removeColumn(ViewWidget.IGNORED_ITEMS_TAB_INDEX);
+        if(failedContext.listView.itemsTable.getColumnCount() == 4) {
+            failedContext.listView.itemsTable.getColumn(ITEM_FIXED_COLUMN_INDEX);
+            failedContext.listView.itemsTable.clearColumnWidth(ITEM_FIXED_COLUMN_INDEX);
+            failedContext.listView.itemsTable.removeColumn(ITEM_FIXED_COLUMN_INDEX);
             failedContext.listView.itemsTable.redraw();
         }
     }
@@ -210,6 +211,21 @@ public class View extends ViewWidget {
             @Override
             public String getValue(ItemModel model) {
                 return getTexts().text_Item() + " " + model.getItemNumber();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the RecordId column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed RecordId column
+     */
+    Column constructRecordIdColumn() {
+        return new TextColumn<ItemModel>() {
+            @Override
+            public String getValue(ItemModel model) {
+                return model.getRecordId();
             }
         };
     }

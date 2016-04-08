@@ -115,6 +115,7 @@ public class ViewTest {
     final static String MOCKED_COLUMN_FIXED = "Mocked Fixed";
     final static String MOCKED_COLUMN_LEVEL = "Mocked Diagnostic level";
     final static String MOCKED_COLUMN_MESSAGE = "Mocked Diagnostic message";
+    final static String MOCKED_COLUMN_RECORD_ID = "Mocked Record Id";
     final static String MOCKED_COLUMN_STATUS = "Mocked Status";
     final static String MOCKED_ERROR_COULDNOTFETCHITEMS = "Mocked Det var ikke muligt at hente poster fra Job Store";
     final static String MOCKED_LABEL_BACK = "Mocked Tilbage til Joboversigten";
@@ -134,6 +135,7 @@ public class ViewTest {
         when(mockedTexts.column_Fixed()).thenReturn(MOCKED_COLUMN_FIXED);
         when(mockedTexts.column_Message()).thenReturn(MOCKED_COLUMN_MESSAGE);
         when(mockedTexts.column_Level()).thenReturn(MOCKED_COLUMN_LEVEL);
+        when(mockedTexts.column_RecordId()).thenReturn(MOCKED_COLUMN_RECORD_ID);
         when(mockedTexts.column_Status()).thenReturn(MOCKED_COLUMN_STATUS);
         when(mockedTexts.error_CouldNotFetchItems()).thenReturn(MOCKED_ERROR_COULDNOTFETCHITEMS);
         when(mockedTexts.label_Back()).thenReturn(MOCKED_LABEL_BACK);
@@ -163,6 +165,7 @@ public class ViewTest {
         verify(mockedItemsPager, times(3)).firstPage();
         verify(mockedItemsTable, times(1)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_ITEM));
         verify(mockedItemsTable, times(1)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_STATUS));
+        verify(mockedItemsTable, times(1)).addColumn(isA(Column.class), eq(MOCKED_COLUMN_RECORD_ID));
         verify(mockedItemsPager, times(1)).setDisplay(mockedItemsTable);
         verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_LEVEL));
         verify(mockedJobDiagnosticTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_MESSAGE));

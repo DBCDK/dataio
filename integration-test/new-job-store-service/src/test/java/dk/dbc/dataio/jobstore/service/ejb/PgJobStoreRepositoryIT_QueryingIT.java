@@ -338,7 +338,6 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         newPersistedAndRefreshedChunkEntity(new ChunkEntity.Key(0, jobId));
         newPersistedAndRefreshedChunkEntity(new ChunkEntity.Key(1, jobId));
 
-
         final ChunkListCriteria chunkListCriteria = new ChunkListCriteria()
                 .where(new ListFilter<>(ChunkListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL))
                 .orderBy(new ListOrderBy<>(ChunkListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
@@ -405,7 +404,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     // ************************* ChunkEntity creation **************************
 
     private ChunkEntity newPersistedAndRefreshedChunkEntity(ChunkEntity.Key key) {
-        final ChunkEntity chunkEntity = newPersistedChunkEntity(key);
+        final ChunkEntity chunkEntity = newChunkEntity(key);
         persistAndRefresh(chunkEntity);
         return chunkEntity;
     }
@@ -482,6 +481,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     private void persistAndRefresh(Object entity) {
         persistenceContext.run(() -> {
             entityManager.persist(entity);
+            entityManager.flush();
             entityManager.refresh(entity);
         });
     }

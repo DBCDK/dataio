@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import org.junit.Test;
 
@@ -62,6 +63,7 @@ public class ItemInfoSnapshotConverterTest {
         itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData("DeliveringData").build());
         itemEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         itemEntity.setWorkflowNote(new WorkflowNoteBuilder().build());
+        itemEntity.setRecordInfo(new RecordInfo("42"));
         return itemEntity;
     }
 
@@ -72,6 +74,7 @@ public class ItemInfoSnapshotConverterTest {
         assertThat(itemInfoSnapshot.getJobId(), is(itemEntity.getKey().getJobId()));
         assertThat(itemInfoSnapshot.getState(), is(itemEntity.getState()));
         assertThat(itemInfoSnapshot.getTimeOfCompletion().getTime(), is(itemEntity.getTimeOfCompletion().getTime()));
-        assertThat(itemInfoSnapshot.getWorkflowNote(), is(itemInfoSnapshot.getWorkflowNote()));
+        assertThat(itemInfoSnapshot.getWorkflowNote(), is(itemEntity.getWorkflowNote()));
+        assertThat(itemInfoSnapshot.getRecordInfo(), is(itemEntity.getRecordInfo()));
     }
 }

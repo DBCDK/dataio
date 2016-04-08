@@ -1,3 +1,24 @@
+/*
+ * DataIO - Data IO
+ * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
+ * Denmark. CVR: 15149043
+ *
+ * This file is part of DataIO.
+ *
+ * DataIO is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * DataIO is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
@@ -36,6 +57,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
@@ -638,7 +660,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 itemState.updateState(stateChange);
 
                 chunkItem.setId(itemCounter);
-                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem));
+                chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem, dataPartitionerResult.getRecordInfo()));
                 if(dataPartitionerResult.getRecordInfo() != null) {
                     chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys());
                 }
@@ -663,7 +685,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             itemState.getDiagnostics().add(diagnostic);
             itemState.updateState(stateChange);
 
-            chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter, itemState, null));
+            chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter, itemState, null, null));
             chunkItemEntities.chunkStateChange.incFailed(1);
         } finally {
             DBCTrackedLogContext.remove();
@@ -681,11 +703,12 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @return created item entity (managed)
      */
     @Stopwatch
-    private ItemEntity persistItemInDatabase(int jobId, int chunkId, short itemId, State state, ChunkItem chunkItem) {
+    private ItemEntity persistItemInDatabase(int jobId, int chunkId, short itemId, State state, ChunkItem chunkItem, RecordInfo recordInfo) {
         final ItemEntity itemEntity = new ItemEntity();
         itemEntity.setKey(new ItemEntity.Key(jobId, chunkId, itemId));
         itemEntity.setState(state);
         itemEntity.setPartitioningOutcome(chunkItem);
+        itemEntity.setRecordInfo(recordInfo);
         entityManager.persist(itemEntity);
         return itemEntity;
     }

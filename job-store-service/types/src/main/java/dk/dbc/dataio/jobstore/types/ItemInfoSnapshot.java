@@ -38,6 +38,7 @@ public class ItemInfoSnapshot {
     private Date timeOfCompletion;
     private State state;
     private WorkflowNote workflowNote;
+    private RecordInfo recordInfo;
 
     @JsonCreator
     public ItemInfoSnapshot(@JsonProperty("itemNumber") int itemNumber,
@@ -48,7 +49,8 @@ public class ItemInfoSnapshot {
                             @JsonProperty("timeOfLastModification") Date timeOfLastModification,
                             @JsonProperty("timeOfCompletion") Date timeOfCompletion,
                             @JsonProperty("state") State state,
-                            @JsonProperty ("workflowNote") WorkflowNote workflowNote) {
+                            @JsonProperty("workflowNote") WorkflowNote workflowNote,
+                            @JsonProperty("recordInfo") RecordInfo recordInfo) {
 
         this.itemNumber = itemNumber;
         this.itemId = itemId;
@@ -59,6 +61,7 @@ public class ItemInfoSnapshot {
         this.timeOfCompletion = (timeOfCompletion == null) ? null : new Date(timeOfCompletion.getTime());
         this.state = state;
         this.workflowNote = workflowNote;
+        this.recordInfo = recordInfo;
     }
 
     public int getItemNumber() {
@@ -97,6 +100,10 @@ public class ItemInfoSnapshot {
         return workflowNote;
     }
 
+    public RecordInfo getRecordInfo() {
+        return recordInfo;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -112,7 +119,8 @@ public class ItemInfoSnapshot {
                 && !(timeOfLastModification != null ? !timeOfLastModification.equals(that.timeOfLastModification) : that.timeOfLastModification != null)
                 && !(timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null)
                 && !(state != null ? !state.equals(that.state) : that.state != null)
-                && !(workflowNote != null ? !workflowNote.equals(that.workflowNote) : that.workflowNote != null);
+                && !(workflowNote != null ? !workflowNote.equals(that.workflowNote) : that.workflowNote != null)
+                && !(recordInfo != null ? !recordInfo.equals(that.recordInfo) : that.recordInfo != null);
     }
 
     @Override
@@ -126,6 +134,7 @@ public class ItemInfoSnapshot {
         result = 31 * result + (timeOfCompletion != null ? timeOfCompletion.hashCode() : 0);
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (workflowNote != null ? workflowNote.hashCode() : 0);
+        result = 31 * result + (recordInfo != null ? recordInfo.hashCode() : 0);
         return result;
     }
 }

@@ -24,6 +24,9 @@ package dk.dbc.dataio.jobstore.service.ejb;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
@@ -34,7 +37,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertThat;
 
-public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
+public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
 
     public void createEmptyJobs(int... jobids) {
@@ -68,7 +71,6 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         newPersistedChunkEntity(new ChunkEntity.Key(1, job2));
         newPersistedChunkEntity(new ChunkEntity.Key(2, job2));
         // When...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         assertThat("Number of chunks purged", pgJobStoreRepository.purgeChunks(job2), is(3));
@@ -108,7 +110,6 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)2));
 
         // When...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         assertThat("Number of items purged", pgJobStoreRepository.purgeItems(job2), is(3));
@@ -150,7 +151,6 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         newPersistedItemEntity(new ItemEntity.Key(job.getId(), chunkId, (short)1));
 
         // When...
-        final PgJobStoreRepository pgJobStoreRepository = newPgJobStoreRepository();
         final EntityTransaction transaction = entityManager.getTransaction();
         transaction.begin();
         final JobEntity purgedJob = pgJobStoreRepository.resetJob(job.getId());
@@ -164,5 +164,21 @@ public class PgJobStoreRepositoryIT extends AbstractJobStoreIT {
         assertThat(findAllItems().size(), is(0));
     }
 
+    @Test
+    public void createChunkItemEntities_setsRecordInfo() {
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10,
+                DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"))
+        );
+
+        final List<ItemEntity> itemEntities = findAllItems();
+        assertThat("itemEntities.size", itemEntities.size(), is(1));
+        final RecordInfo recordInfo = itemEntities.get(0).getRecordInfo();
+        assertThat("recordInfo is instanceof MarcRecordInfo", recordInfo instanceof MarcRecordInfo, is(true));
+        assertThat("recordInfo.id", recordInfo.getId(), is("112613"));
+    }
 
 }

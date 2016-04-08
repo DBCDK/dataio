@@ -53,7 +53,8 @@ public class ItemInfoSnapshotConverter {
                 toDate(itemEntity.getTimeOfLastModification()),
                 toDate(itemEntity.getTimeOfCompletion()),
                 itemEntity.getState(),
-                itemEntity.getWorkflowNote());
+                itemEntity.getWorkflowNote(),
+                itemEntity.getRecordInfo());
     }
 
     private static int calculateItemNumber(ItemEntity.Key key) {

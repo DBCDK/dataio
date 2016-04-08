@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.test.types;
 
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 
@@ -38,6 +39,7 @@ public class ItemInfoSnapshotBuilder {
     private Date timeOfCompletion = new Date();
     private State state = new State();
     private WorkflowNote workflowNote = null;
+    private RecordInfo recordInfo = new RecordInfo("42");
 
     public ItemInfoSnapshotBuilder setItemId(short itemId) {
         this.itemId = itemId;
@@ -81,8 +83,13 @@ public class ItemInfoSnapshotBuilder {
         return this;
     }
 
+    public ItemInfoSnapshotBuilder setRecordInfo(RecordInfo recordInfo) {
+        this.recordInfo = recordInfo;
+        return this;
+    }
+
     public ItemInfoSnapshot build() {
-        return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state, workflowNote);
+        return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state, workflowNote, recordInfo);
     }
 
     private int calculateItemNumber() {

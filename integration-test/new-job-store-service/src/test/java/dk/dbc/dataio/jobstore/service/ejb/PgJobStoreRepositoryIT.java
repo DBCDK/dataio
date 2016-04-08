@@ -164,18 +164,27 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat(findAllItems().size(), is(0));
     }
 
+    /**
+     * Given: a job repository containing one job and one chunk
+     * When : the item entity is created
+     * Then : record info of type MarcRecordInfo is set on the item entity containing the expected record id
+     */
     @Test
     public void createChunkItemEntities_setsRecordInfo() {
+        // Given...
         final JobEntity jobEntity = newPersistedJobEntity();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
 
+        // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
                 jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10,
                 DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"))
         );
 
+        // Then...
         final List<ItemEntity> itemEntities = findAllItems();
         assertThat("itemEntities.size", itemEntities.size(), is(1));
+
         final RecordInfo recordInfo = itemEntities.get(0).getRecordInfo();
         assertThat("recordInfo is instanceof MarcRecordInfo", recordInfo instanceof MarcRecordInfo, is(true));
         assertThat("recordInfo.id", recordInfo.getId(), is("112613"));

@@ -107,18 +107,20 @@ public class FileFinderTest {
 
     @Test
     public void findFilesWithExtension_returnsListOrderedByFileCreationTime() throws IOException {
-        final Path first = testFolder.newFile("2.trans").toPath();
-        final Path second = testFolder.newFile("3.trans").toPath();
-        final Path third = testFolder.newFile("1.trans").toPath();
-        setFileCreationTime(second, Files.getLastModifiedTime(first).toMillis() + 1000);
-        setFileCreationTime(third, Files.getLastModifiedTime(first).toMillis() + 2000);
+        if (SystemUtil.isOsX()) { // setting file create time does not work on OS X - https://bugs.openjdk.java.net/browse/JDK-8151430
+            final Path first = testFolder.newFile("2.trans").toPath();
+            final Path second = testFolder.newFile("3.trans").toPath();
+            final Path third = testFolder.newFile("1.trans").toPath();
+            setFileCreationTime(second, Files.getLastModifiedTime(first).toMillis() + 1000);
+            setFileCreationTime(third, Files.getLastModifiedTime(first).toMillis() + 2000);
 
-        final List<Path> matchingFiles = FileFinder.findFilesWithExtension(
-                testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList(".trans")));
+            final List<Path> matchingFiles = FileFinder.findFilesWithExtension(
+                    testFolder.getRoot().toPath(), new HashSet<>(Collections.singletonList(".trans")));
 
-        assertThat("first", matchingFiles.get(0), is(first));
-        assertThat("second", matchingFiles.get(1), is(second));
-        assertThat("third", matchingFiles.get(2), is(third));
+            assertThat("first", matchingFiles.get(0), is(first));
+            assertThat("second", matchingFiles.get(1), is(second));
+            assertThat("third", matchingFiles.get(2), is(third));
+        }
     }
 
     private static void setFileCreationTime(Path file, long creationTime) {

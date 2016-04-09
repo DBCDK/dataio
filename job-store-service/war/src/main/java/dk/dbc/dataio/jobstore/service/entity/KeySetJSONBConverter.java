@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
@@ -34,7 +33,7 @@ import java.util.Set;
 
 @Converter
 public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTrackingEntity.Key>, PGobject> {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
     public PGobject convertToDatabaseColumn(Set<DependencyTrackingEntity.Key> sequenceAnalysisData) throws IllegalStateException {
         final PGobject pgObject = new PGobject();

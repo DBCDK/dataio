@@ -1,6 +1,6 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
-
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.Blocked;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.QueuedToProcess;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.QueuedToSink;
@@ -15,10 +15,10 @@ import javax.persistence.Converter;
  *
  */
 @Converter(autoApply = true)
-public class ChunkProcessStatusConverter implements AttributeConverter<DependencyTrackingEntity.ChunkProcessStatus, Integer> {
+public class ChunkProcessStatusConverter implements AttributeConverter<ChunkProcessStatus, Integer> {
 
     @Override
-    public Integer convertToDatabaseColumn(DependencyTrackingEntity.ChunkProcessStatus chunkProcessStatus) {
+    public Integer convertToDatabaseColumn(ChunkProcessStatus chunkProcessStatus) {
         switch ( chunkProcessStatus ) {
             case ReadyToProcess:  return 1;
             case QueuedToProcess: return 2;
@@ -31,7 +31,7 @@ public class ChunkProcessStatusConverter implements AttributeConverter<Dependenc
     }
 
     @Override
-    public DependencyTrackingEntity.ChunkProcessStatus convertToEntityAttribute(Integer chunkProcessStatus) {
+    public ChunkProcessStatus convertToEntityAttribute(Integer chunkProcessStatus) {
         switch ( chunkProcessStatus ) {
             case 1: return ReadyToProcess;
             case 2: return QueuedToProcess;

@@ -44,6 +44,10 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.ChunkProcessStatusConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
@@ -70,10 +74,16 @@
     <class>dk.dbc.dataio.jobstore.service.entity.WorkflowNoteConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.RecordInfoConverter</class>
     <class>dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.KeySetJSONBConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.ChunkProcessStatusConverter</class>
+    <class>dk.dbc.dataio.jobstore.service.entity.StringSetConverter</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
       <property name="eclipselink.jdbc.batch-writing" value="JDBC" />
       <property name="eclipselink.jdbc.batch-writing.size" value="1000" />
+      <property name="eclipselink.logging.file" value="output.log"/>
+
     </properties>
   </persistence-unit>
 </persistence>

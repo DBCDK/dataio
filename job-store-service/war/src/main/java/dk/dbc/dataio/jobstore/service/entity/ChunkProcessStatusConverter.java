@@ -1,0 +1,47 @@
+package dk.dbc.dataio.jobstore.service.entity;
+
+
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.Blocked;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.QueuedToProcess;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.QueuedToSink;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.ReadyDelevering;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.ReadyToProcess;
+
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
+
+/**
+ * JPA Converter Class for enum ChunkProcessStatus
+ *
+ */
+@Converter(autoApply = true)
+public class ChunkProcessStatusConverter implements AttributeConverter<DependencyTrackingEntity.ChunkProcessStatus, Integer> {
+
+    @Override
+    public Integer convertToDatabaseColumn(DependencyTrackingEntity.ChunkProcessStatus chunkProcessStatus) {
+        switch ( chunkProcessStatus ) {
+            case ReadyToProcess:  return 1;
+            case QueuedToProcess: return 2;
+            case Blocked:         return 3;
+            case ReadyDelevering: return 4;
+            case QueuedToSink:    return 5;
+            default:
+        }
+        return null;
+    }
+
+    @Override
+    public DependencyTrackingEntity.ChunkProcessStatus convertToEntityAttribute(Integer chunkProcessStatus) {
+        switch ( chunkProcessStatus ) {
+            case 1: return ReadyToProcess;
+            case 2: return QueuedToProcess;
+            case 3: return Blocked;
+            case 4: return ReadyDelevering;
+            case 5: return QueuedToSink;
+            default:
+        }
+        return null;
+    }
+
+
+}

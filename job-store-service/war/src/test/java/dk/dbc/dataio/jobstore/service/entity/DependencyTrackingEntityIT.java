@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
+import static java.lang.Integer.max;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,7 +12,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static sun.swing.MenuItemLayoutHelper.max;
 
 import javax.persistence.EntityManager;
 import java.util.Collections;

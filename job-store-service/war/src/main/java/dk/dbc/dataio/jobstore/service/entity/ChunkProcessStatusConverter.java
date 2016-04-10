@@ -1,11 +1,7 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.Blocked;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.QueuedToProcess;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.QueuedToSink;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.ReadyDelevering;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.ReadyToProcess;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus.*;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;

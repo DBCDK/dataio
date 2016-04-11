@@ -26,14 +26,16 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class FileMoveOperationTest {
     @Rule
@@ -69,22 +71,19 @@ public class FileMoveOperationTest {
 
     @Test
     public void execute_sourcePathExists_movesToDestination() throws IOException, OperationExecutionException {
-        final Path source = testFolder.newFile("file").toPath();
-        final Path destination = testFolder.newFolder().toPath();
-        final FileMoveOperation fileMoveOperation = new FileMoveOperation(source, destination.resolve("file"));
+        final Path source = testFolder.newFile("source").toPath();
+        final Path destination = Files.createFile(testFolder.newFolder().toPath().resolve("destination"));
+        final FileMoveOperation fileMoveOperation = new FileMoveOperation(source, destination);
         fileMoveOperation.execute();
         assertThat("Source file exists after move", Files.exists(source), is(false));
-        assertThat("Destination file exists after move", Files.exists(destination.resolve("file")), is(true));
+        assertThat("Destination file exists after move", Files.exists(destination), is(true));
     }
 
     @Test
     public void execute_moveFails_throws() throws IOException, OperationExecutionException {
         final Path source = testFolder.newFile("file").toPath();
-        final FileMoveOperation fileMoveOperation = new FileMoveOperation(source, testFolder.newFolder().toPath());
-        try {
-            fileMoveOperation.execute();
-            fail("No OperationExecutionException thrown");
-        } catch (OperationExecutionException e) {
-        }
+        final Path inaccessibleDestination = FileSystems.getDefault().getPath(System.getProperty("user.home")).getParent();
+        final FileMoveOperation fileMoveOperation = new FileMoveOperation(source, inaccessibleDestination);
+        assertThat(fileMoveOperation::execute, isThrowing(OperationExecutionException.class));
     }
 }

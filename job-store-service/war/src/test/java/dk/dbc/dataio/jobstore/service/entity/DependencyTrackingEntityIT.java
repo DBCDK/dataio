@@ -65,7 +65,7 @@ public class DependencyTrackingEntityIT {
 
         DependencyTrackingEntity e=em.find(DependencyTrackingEntity.class,  new DependencyTrackingEntity.Key(0,1));
 
-        assertThat( e.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.ReadyToProcess));
+        assertThat( e.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS));
         assertThat( e.getMatchKeys(), containsInAnyOrder( "5 023 297 2", "2 004 091 2", "4 016 438 3", "0 198 393 8", "2 022 704 4", "2 017 916 3", "5 000 116 4", "5 017 224 4", "2 002 537 9", "5 005 396 2", "4 107 001 3", "2 017 919 8", "0 193 840 1", "0 189 413 7", "2 015 874 3", "5 017 504 9", "0 189 446 3", "2 015 875 1", "5 044 974 2", "5 007 721 7", "f0"));
 
         e.setWaitingOn(createSet(new Key(1, 1), new Key(0, 3)));

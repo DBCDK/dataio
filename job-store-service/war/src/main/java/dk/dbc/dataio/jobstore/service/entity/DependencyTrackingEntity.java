@@ -45,11 +45,11 @@ public class DependencyTrackingEntity {
      */
 
     public enum ChunkProcessStatus {
-        ReadyToProcess,  // Chunk is Ready for Processing
-        QueuedToProcess, // Chunk is Send to JobProcessor JMS queue
-        Blocked, // Chunk waits for Other Chunk to return from the Sink
-        ReadyDelevering, // Ready for Sending to Sink JMS queue
-        QueuedToSink // Chunk is send to to the Sink JMS queue
+        READY_TO_PROCESS,  // Chunk is Ready for Processing
+        QUEUED_TO_PROCESS, // Chunk is Send to JobProcessor JMS queue
+        BLOCKED, // Chunk waits for Other Chunk to return from the Sink
+        READY_DELEVERING, // Ready for Sending to Sink JMS queue
+        QUEUED_TO_DELEVERING // Chunk is send to to the Sink JMS queue
     }
 
 
@@ -62,7 +62,7 @@ public class DependencyTrackingEntity {
 
     @Column(nullable = false)
     @Convert(converter = ChunkProcessStatusConverter.class)
-    private ChunkProcessStatus status = ChunkProcessStatus.ReadyToProcess;
+    private ChunkProcessStatus status = ChunkProcessStatus.READY_TO_PROCESS;
 
     @Column(columnDefinition = "jsonb" )
     @Convert(converter = KeySetJSONBConverter.class)

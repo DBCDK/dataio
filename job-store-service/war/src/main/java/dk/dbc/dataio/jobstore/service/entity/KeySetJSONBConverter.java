@@ -21,18 +21,19 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import com.fasterxml.jackson.databind.type.CollectionType;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.postgresql.util.PGobject;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 @Converter
 public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTrackingEntity.Key>, PGobject> {
+
+    final CollectionType JSONSetKeyType = ConverterJSONBContext.getInstance().getTypeFactory().constructCollectionType(Set.class, DependencyTrackingEntity.Key.class);
 
     @Override
     public PGobject convertToDatabaseColumn(Set<DependencyTrackingEntity.Key> sequenceAnalysisData) throws IllegalStateException {
@@ -49,8 +50,7 @@ public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTr
     @Override
     public Set<DependencyTrackingEntity.Key> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
-            DependencyTrackingEntity.Key[] r=ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), DependencyTrackingEntity.Key[].class);
-            return new HashSet<>(Arrays.asList(r));
+            return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), JSONSetKeyType);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

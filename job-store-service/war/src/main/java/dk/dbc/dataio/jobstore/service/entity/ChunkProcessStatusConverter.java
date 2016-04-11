@@ -16,11 +16,11 @@ public class ChunkProcessStatusConverter implements AttributeConverter<ChunkProc
     @Override
     public Integer convertToDatabaseColumn(ChunkProcessStatus chunkProcessStatus) {
         switch ( chunkProcessStatus ) {
-            case ReadyToProcess:  return 1;
-            case QueuedToProcess: return 2;
-            case Blocked:         return 3;
-            case ReadyDelevering: return 4;
-            case QueuedToSink:    return 5;
+            case READY_TO_PROCESS:     return 1;
+            case QUEUED_TO_PROCESS:    return 2;
+            case BLOCKED:              return 3;
+            case READY_DELEVERING:     return 4;
+            case QUEUED_TO_DELEVERING: return 5;
             default:
         }
         return null;
@@ -29,11 +29,11 @@ public class ChunkProcessStatusConverter implements AttributeConverter<ChunkProc
     @Override
     public ChunkProcessStatus convertToEntityAttribute(Integer chunkProcessStatus) {
         switch ( chunkProcessStatus ) {
-            case 1: return ReadyToProcess;
-            case 2: return QueuedToProcess;
-            case 3: return Blocked;
-            case 4: return ReadyDelevering;
-            case 5: return QueuedToSink;
+            case 1: return READY_TO_PROCESS;
+            case 2: return QUEUED_TO_PROCESS;
+            case 3: return BLOCKED;
+            case 4: return READY_DELEVERING;
+            case 5: return QUEUED_TO_DELEVERING;
             default:
         }
         return null;

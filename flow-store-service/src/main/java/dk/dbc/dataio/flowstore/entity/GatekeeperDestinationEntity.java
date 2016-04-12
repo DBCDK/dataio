@@ -51,6 +51,7 @@ public class GatekeeperDestinationEntity {
     private String packaging;
     private String format;
     private boolean copyToPosthus;
+    private boolean notifyFromPosthus;
 
     public GatekeeperDestinationEntity() {}
 
@@ -96,5 +97,13 @@ public class GatekeeperDestinationEntity {
 
     public void setCopyToPosthus(boolean copyToPosthus) {
         this.copyToPosthus = copyToPosthus;
+    }
+
+    public boolean isNotifyFromPosthus() {
+        return notifyFromPosthus;
+    }
+
+    public void setNotifyFromPosthus(boolean notifyFromPosthus) {
+        this.notifyFromPosthus = notifyFromPosthus;
     }
 }

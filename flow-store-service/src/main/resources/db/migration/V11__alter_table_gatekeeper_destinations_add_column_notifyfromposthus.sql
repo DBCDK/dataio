@@ -1,0 +1,1 @@
+ALTER TABLE gatekeeper_destinations ADD COLUMN notifyfromposthus BOOLEAN NOT NULL DEFAULT FALSE;

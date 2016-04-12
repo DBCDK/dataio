@@ -29,6 +29,7 @@ public class GatekeeperDestinationJsonBuilder extends JsonBuilder {
     private String packaging = "packaging";
     private String format = "format";
     private boolean copyToPosthus = false;
+    private boolean notifyFromPosthus = false;
 
     public GatekeeperDestinationJsonBuilder setSubmitterNumber(String submitterNumber) {
         this.submitterNumber = submitterNumber;
@@ -55,6 +56,11 @@ public class GatekeeperDestinationJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public GatekeeperDestinationJsonBuilder setNotifyFromPosthus(boolean notifyFromPosthus) {
+        this.notifyFromPosthus = notifyFromPosthus;
+        return this;
+    }
+
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
@@ -69,6 +75,8 @@ public class GatekeeperDestinationJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("format", format));
         stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asBooleanMember("copyToPosthus", copyToPosthus));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asBooleanMember("notifyFromPosthus", notifyFromPosthus));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

@@ -106,7 +106,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().displayWarning(getTexts().error_InputFieldValidationError());
         } else {
             flowStoreProxy.createGatekeeperDestination(
-                    new GatekeeperDestination(0L, submitter, destination, packaging, format, copy),
+                    new GatekeeperDestination(0L, submitter, destination, packaging, format, copy, false),
                     new CreateGatekeeperDestinationCallback()
             );
         }

@@ -41,54 +41,55 @@ public class GatekeeperDestinationTest {
     private static final String PACKAGING = "lin";
     private static final String FORMAT = "marc2";
     private static final boolean COPY_TO_POSTHUS = false;
+    private static final boolean NOTIFY_FROM_POSTHUS = false;
 
     @Test(expected = NullPointerException.class)
     public void constructor_submitterNumberArgIsNull_throws() {
-        new GatekeeperDestination(ID, null, DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, null, DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_submitterNumberArgIsEmpty_throws() {
-        new GatekeeperDestination(ID, "", DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, "", DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_destinationArgIsNull_throws() {
-        new GatekeeperDestination(ID, SUBMITTER_NUMBER, null, PACKAGING, FORMAT, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, null, PACKAGING, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_destinationArgIsEmpty_throws() {
-        new GatekeeperDestination(ID, SUBMITTER_NUMBER, "", PACKAGING, FORMAT, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, "", PACKAGING, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_packagingArgIsNull_throws() {
-        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, null, FORMAT, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, null, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_packagingArgIsEmpty_throws() {
-        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, "", FORMAT, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, "", FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_formatArgIsNull_throws() {
-        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, null, COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, null, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_formatArgIsEmpty_throws() {
-        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, "", COPY_TO_POSTHUS);
+        new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, "", COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final GatekeeperDestination instance = new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS);
+        final GatekeeperDestination instance = new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
         assertThat(instance, is(notNullValue()));
     }
 
     public static GatekeeperDestination newGatekeeperDestinationInstance() {
-        return new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS);
+        return new GatekeeperDestination(ID, SUBMITTER_NUMBER, DESTINATION, PACKAGING, FORMAT, COPY_TO_POSTHUS, NOTIFY_FROM_POSTHUS);
     }
 }

@@ -31,6 +31,7 @@ public class GatekeeperDestinationBuilder {
     private String packaging = "packaging";
     private String format = "format";
     private boolean copyToPosthus = false;
+    private boolean notifyFromPosthus = false;
 
     public GatekeeperDestinationBuilder setId(long id) {
         this.id = id;
@@ -62,8 +63,13 @@ public class GatekeeperDestinationBuilder {
         return this;
     }
 
+    public GatekeeperDestinationBuilder setNotifyFromPosthus(boolean notifyFromPosthus) {
+        this.notifyFromPosthus = notifyFromPosthus;
+        return this;
+    }
+
 
     public GatekeeperDestination build() {
-        return new GatekeeperDestination(id, submitterNumber, destination, packaging, format, copyToPosthus);
+        return new GatekeeperDestination(id, submitterNumber, destination, packaging, format, copyToPosthus, notifyFromPosthus);
     }
 }

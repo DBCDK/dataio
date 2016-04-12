@@ -180,8 +180,8 @@ public class ModificationFactory {
                     jobSpecification.getDestination(),
                     jobSpecification.getPackaging(),
                     jobSpecification.getFormat(),
+                    false,   // Will not be compared through equals
                     false);  // Will not be compared through equals
-
             final Map<GatekeeperDestination, GatekeeperDestination> gatekeeperDestinationsForDataIo = getGatekeeperDestinationsForDataIo();
             if (gatekeeperDestinationsForDataIo.containsKey(gatekeeperDestination)) {
                 if (gatekeeperDestinationsForDataIo.get(gatekeeperDestination).isCopyToPosthus()) {

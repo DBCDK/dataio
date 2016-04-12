@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,7 +41,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Simple non-validating transfile parser
+ * Simple transfile parser
  */
 public class TransFile {
     public static final Pattern END_OF_FILE = Pattern.compile("slut|finish", Pattern.CASE_INSENSITIVE);
@@ -62,29 +61,28 @@ public class TransFile {
      */
     public TransFile(Path transfile) throws NullPointerException {
         path = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
-        parse(path);
-    }
-
-    private void parse(Path transfile) throws UncheckedIOException {
-        LOGGER.info("Parsing transfile {}", transfile.toAbsolutePath());
         if (Files.exists(transfile)) {
             try (final Scanner fileScanner = new Scanner(transfile, StandardCharsets.UTF_8.name())) {
-                while (fileScanner.hasNextLine()) {
-                    if (fileScanner.hasNext(END_OF_FILE)) {
-                        fileScanner.nextLine();
-                        isComplete = true;
-                        break;
-                    }
-                    final String nextLine = fileScanner.nextLine();
-                    if (!nextLine.trim().isEmpty()) {
-                        lines.add(new Line(nextLine));
-                    }
-                }
+                parse(fileScanner);
             } catch (IOException e) {
                 invalidate("Trans fil kunne ikke læses: " + e.getMessage());
             }
-            verify();
         }
+    }
+
+    private void parse(Scanner scanner) {
+        while (scanner.hasNextLine()) {
+            if (scanner.hasNext(END_OF_FILE)) {
+                scanner.nextLine();
+                isComplete = true;
+                break;
+            }
+            final String nextLine = scanner.nextLine();
+            if (!nextLine.trim().isEmpty()) {
+                lines.add(new Line(nextLine));
+            }
+        }
+        verify();
     }
 
     /**

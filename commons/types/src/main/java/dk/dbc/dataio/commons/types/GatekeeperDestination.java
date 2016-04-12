@@ -39,7 +39,7 @@ public class GatekeeperDestination implements Serializable {
     private /*final*/ String destination;
     private /*final*/ String packaging;
     private /*final*/ String format;
-    private /*final*/ boolean copy;
+    private /*final*/ boolean copyToPosthus;
 
     @JsonCreator
     public GatekeeperDestination(@JsonProperty("id") long id,
@@ -47,14 +47,14 @@ public class GatekeeperDestination implements Serializable {
                                  @JsonProperty("destination") String destination,
                                  @JsonProperty("packaging") String packaging,
                                  @JsonProperty("format") String format,
-                                 @JsonProperty("copy") boolean copy) {
+                                 @JsonProperty("copyToPosthus") boolean copyToPosthus) {
 
         this.id = id;
         this.submitterNumber = InvariantUtil.checkNotNullNotEmptyOrThrow(submitterNumber, "submitterNumber");
         this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
         this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
         this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
-        this.copy = copy;
+        this.copyToPosthus = copyToPosthus;
     }
 
     //This constructor only exists due to gwt serialization issues.
@@ -80,8 +80,8 @@ public class GatekeeperDestination implements Serializable {
         return format;
     }
 
-    public boolean isCopy() {
-        return copy;
+    public boolean isCopyToPosthus() {
+        return copyToPosthus;
     }
 
     @Override

@@ -98,7 +98,7 @@ public class GatekeepersTableTest {
                 setDestination("de").
                 setPackaging("pa").
                 setFormat("fo").
-                setCopy(false).build();
+                setCopyToPosthus(false).build();
 
         // Subject Under Test
         GatekeepersTable gatekeepersTable = new GatekeepersTable();

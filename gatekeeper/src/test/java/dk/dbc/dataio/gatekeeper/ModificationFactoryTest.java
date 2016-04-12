@@ -419,7 +419,7 @@ public class ModificationFactoryTest {
                 .setDestination("danbib")
                 .setPackaging("lin")
                 .setFormat("marc2")
-                .setCopy(true)
+                .setCopyToPosthus(true)
                 .build();
 
         GatekeeperDestination gatekeeperDestinationIsDataioExclusive = new GatekeeperDestinationBuilder()
@@ -428,7 +428,7 @@ public class ModificationFactoryTest {
                 .setDestination("danbib")
                 .setPackaging("lin")
                 .setFormat("marc2")
-                .setCopy(false)
+                .setCopyToPosthus(false)
                 .build();
 
         return Arrays.asList(gatekeeperDestinationIsParallel, gatekeeperDestinationIsDataioExclusive);

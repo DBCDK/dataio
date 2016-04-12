@@ -1,0 +1,1 @@
+ALTER TABLE gatekeeper_destinations RENAME COLUMN copy TO copytoposthus;

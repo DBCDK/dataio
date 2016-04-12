@@ -107,7 +107,7 @@ public class GatekeepersTable extends CellTable {
         return new TextColumn<GatekeeperDestination>() {
             @Override
             public String getValue(GatekeeperDestination gatekeeper) {
-                return gatekeeper.isCopy() ? texts.label_DoCopy() : texts.label_DoNotCopy();
+                return gatekeeper.isCopyToPosthus() ? texts.label_DoCopy() : texts.label_DoNotCopy();
             }
         };
     }

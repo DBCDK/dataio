@@ -184,7 +184,7 @@ public class ModificationFactory {
 
             final Map<GatekeeperDestination, GatekeeperDestination> gatekeeperDestinationsForDataIo = getGatekeeperDestinationsForDataIo();
             if (gatekeeperDestinationsForDataIo.containsKey(gatekeeperDestination)) {
-                if (gatekeeperDestinationsForDataIo.get(gatekeeperDestination).isCopy()) {
+                if (gatekeeperDestinationsForDataIo.get(gatekeeperDestination).isCopyToPosthus()) {
                     return PARALLEL;
                 }
             } else {

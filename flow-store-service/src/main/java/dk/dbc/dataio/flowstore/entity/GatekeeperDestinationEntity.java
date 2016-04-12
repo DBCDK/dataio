@@ -50,7 +50,7 @@ public class GatekeeperDestinationEntity {
     private String destination;
     private String packaging;
     private String format;
-    private boolean copy;
+    private boolean copyToPosthus;
 
     public GatekeeperDestinationEntity() {}
 
@@ -90,11 +90,11 @@ public class GatekeeperDestinationEntity {
         this.format = format;
     }
 
-    public boolean isCopy() {
-        return copy;
+    public boolean isCopyToPosthus() {
+        return copyToPosthus;
     }
 
-    public void setCopy(boolean copy) {
-        this.copy = copy;
+    public void setCopyToPosthus(boolean copyToPosthus) {
+        this.copyToPosthus = copyToPosthus;
     }
 }

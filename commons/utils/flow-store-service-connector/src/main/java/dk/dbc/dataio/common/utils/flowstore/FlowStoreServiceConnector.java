@@ -878,7 +878,7 @@ public class FlowStoreServiceConnector {
                 gatekeeperDestination.getDestination(),
                 gatekeeperDestination.getPackaging(),
                 gatekeeperDestination.getFormat(),
-                gatekeeperDestination.isCopy());
+                gatekeeperDestination.isCopyToPosthus());
 
         InvariantUtil.checkNotNullOrThrow(gatekeeperDestination, "gatekeeperDestination");
         final StopWatch stopWatch = new StopWatch();

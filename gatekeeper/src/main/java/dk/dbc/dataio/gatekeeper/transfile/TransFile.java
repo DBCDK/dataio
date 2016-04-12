@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -67,6 +68,19 @@ public class TransFile {
             } catch (IOException e) {
                 invalidate("Trans fil kunne ikke læses: " + e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Return new transfile representation
+     * @param transfileContent transfile content
+     * @throws NullPointerException if given null-valued transfile content
+     */
+    public TransFile(String transfileContent) throws NullPointerException {
+        InvariantUtil.checkNotNullOrThrow(transfileContent, "transfileContent");
+        path = Paths.get("__inline__");
+        try (final Scanner stringScanner = new Scanner(transfileContent)) {
+            parse(stringScanner);
         }
     }
 
@@ -158,6 +172,7 @@ public class TransFile {
     public static class Line {
         private final String line;
         private final Map<String, String> fields = new HashMap<>();
+        private boolean isModified = false;
 
         /**
          * Constructor
@@ -171,9 +186,15 @@ public class TransFile {
         }
 
         /**
-         * @return line in its raw input form
+         * @return string representation of line
          */
         public String getLine() {
+            if (isModified) {
+                return fields.entrySet().stream()
+                        .sorted(Map.Entry.comparingByKey())
+                        .map(entry -> entry.getKey() + "=" + entry.getValue())
+                        .collect(Collectors.joining(","));
+            }
             return line;
         }
 
@@ -191,6 +212,18 @@ public class TransFile {
          */
         public String getField(String fieldName) {
             return fields.get(fieldName);
+        }
+
+        /**
+         * Sets value of field
+         * @param fieldName name of field
+         * @param fieldValue value of field
+         */
+        public void setField(String fieldName, String fieldValue) {
+            if (fieldName != null) {
+                isModified = true;
+                fields.put(fieldName, fieldValue);
+            }
         }
 
         private void parse() {

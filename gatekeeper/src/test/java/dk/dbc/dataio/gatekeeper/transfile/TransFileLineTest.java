@@ -69,4 +69,13 @@ public class TransFileLineTest {
         final TransFile.Line line = new TransFile.Line("b=base");
         assertThat("Non existing field", line.getField("f"), is(nullValue()));
     }
+
+    @Test
+    public void getLine_whenLineIsModified_returnsModifiedLine() {
+        final String content = "f=file1,b=base1,m=mail@company.com";
+        final TransFile.Line line = new TransFile.Line(content);
+        line.setField("b", "foo");
+        line.setField("m", "");
+        assertThat(line.getLine(), is("b=foo,f=file1,m="));
+    }
 }

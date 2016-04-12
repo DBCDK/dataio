@@ -27,7 +27,7 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
-import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("Duplicates")
-public class CreateIncompleteTransfileNotificationOperationTest {
+public class CreateInvalidTransfileNotificationOperationTest {
     private final MockedJobStoreServiceConnector jobStoreServiceConnector = new MockedJobStoreServiceConnector();
     private final Path workingDir = Paths.get("wd");
     private final String transfileName = "123456.001.trans";
@@ -69,27 +69,27 @@ public class CreateIncompleteTransfileNotificationOperationTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_jobStoreServiceConnectorArgIsNull_throws() {
-        new CreateIncompleteTransfileNotificationOperation(null, workingDir, transfileName, transfileData);
+        new CreateInvalidTransfileNotificationOperation(null, workingDir, transfileName, transfileData);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_workingDirArgIsNull_throws() {
-        new CreateIncompleteTransfileNotificationOperation(jobStoreServiceConnector, null, transfileName, transfileData);
+        new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, null, transfileName, transfileData);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_transfileNameArgIsNull_throws() {
-        new CreateIncompleteTransfileNotificationOperation(jobStoreServiceConnector, workingDir, null, transfileData);
+        new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, workingDir, null, transfileData);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_transfileNameArgIsEmpty_throws() {
-        new CreateIncompleteTransfileNotificationOperation(jobStoreServiceConnector, workingDir, " ", transfileData);
+        new CreateInvalidTransfileNotificationOperation(jobStoreServiceConnector, workingDir, " ", transfileData);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final CreateIncompleteTransfileNotificationOperation operation = new CreateIncompleteTransfileNotificationOperation(
+        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, workingDir, transfileName, transfileData);
         assertThat("instance", operation, is(notNullValue()));
         assertThat("getJobStoreServiceConnector()", operation.getJobStoreServiceConnector(), is((JobStoreServiceConnector) jobStoreServiceConnector));
@@ -105,7 +105,7 @@ public class CreateIncompleteTransfileNotificationOperationTest {
         final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
         when(jobStoreServiceConnector.addNotification(any(AddNotificationRequest.class))).thenThrow(exception);
 
-        final CreateIncompleteTransfileNotificationOperation operation = new CreateIncompleteTransfileNotificationOperation(
+        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, workingDir, transfileName, transfileData);
         try {
             operation.execute();
@@ -117,15 +117,15 @@ public class CreateIncompleteTransfileNotificationOperationTest {
 
     @Test
     public void execute_noTransfileContent_issuesRequest() throws OperationExecutionException {
-        final CreateIncompleteTransfileNotificationOperation operation = new CreateIncompleteTransfileNotificationOperation(
+        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, workingDir, transfileName, transfileData);
         operation.execute();
 
         assertThat("Number of requests created", jobStoreServiceConnector.addNotificationRequests.size(), is(1));
         final AddNotificationRequest request = jobStoreServiceConnector.addNotificationRequests.remove();
         assertThat("Notification destination", request.getDestinationEmail(), is(Constants.MISSING_FIELD_VALUE));
-        assertThat("Notification type", request.getNotificationType(), is(JobNotification.Type.INCOMPLETE_TRANSFILE));
-        final IncompleteTransfileNotificationContext context = (IncompleteTransfileNotificationContext) request.getContext();
+        assertThat("Notification type", request.getNotificationType(), is(JobNotification.Type.INVALID_TRANSFILE));
+        final InvalidTransfileNotificationContext context = (InvalidTransfileNotificationContext) request.getContext();
         assertThat("Notification context", context, is(notNullValue()));
         assertThat("Context transfile name", context.getTransfileName(), is(transfileName));
         assertThat("Context transfile content", context.getTransfileContent(), is(transfileData));
@@ -138,7 +138,7 @@ public class CreateIncompleteTransfileNotificationOperationTest {
         appendToFile(transfile, "f=test.dat,m=" + System.lineSeparator());
         appendToFile(transfile, "m=" + destination);
 
-        final CreateIncompleteTransfileNotificationOperation operation = new CreateIncompleteTransfileNotificationOperation(
+        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
         operation.execute();
 
@@ -154,7 +154,7 @@ public class CreateIncompleteTransfileNotificationOperationTest {
         appendToFile(transfile, "f=test.dat,m=" + System.lineSeparator());
         appendToFile(transfile, "M=" + destination);
 
-        final CreateIncompleteTransfileNotificationOperation operation = new CreateIncompleteTransfileNotificationOperation(
+        final CreateInvalidTransfileNotificationOperation operation = new CreateInvalidTransfileNotificationOperation(
                 jobStoreServiceConnector, testFolder.getRoot().toPath(), transfileName, transfileData);
         operation.execute();
 

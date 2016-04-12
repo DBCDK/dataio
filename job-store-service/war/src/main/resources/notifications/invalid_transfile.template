@@ -3,7 +3,7 @@ Fejlmeddelelse fra DanBibs Posthus
 **********************************
 
 Trans fil               :     ${transfileName}
-Besked                  :     Trans fil mangler slut markering
+Besked                  :     ${cause}
 Trans fil indhold       :
 
 ${transfileContent}

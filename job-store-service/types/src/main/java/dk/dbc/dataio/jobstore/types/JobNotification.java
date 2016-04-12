@@ -39,7 +39,7 @@ public class JobNotification implements Serializable {
         // since they are used as database attribute values
         JOB_CREATED((short) 1),
         JOB_COMPLETED((short) 2),
-        INCOMPLETE_TRANSFILE((short) 3);
+        INVALID_TRANSFILE((short) 4);
 
         private final short value;
         Type(short value) {

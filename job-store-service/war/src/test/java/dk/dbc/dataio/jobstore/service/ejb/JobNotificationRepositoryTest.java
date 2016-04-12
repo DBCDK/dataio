@@ -189,11 +189,11 @@ public class JobNotificationRepositoryTest {
     public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JSONBException, JobStoreException {
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
-                JobNotification.Type.INCOMPLETE_TRANSFILE, destination, new NotificationContext() {});
+                JobNotification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {});
 
         assertThat("getStatus()", notificationEntity.getStatus(), is(JobNotification.Status.WAITING));
-        assertThat("getType()", notificationEntity.getType(), is(JobNotification.Type.INCOMPLETE_TRANSFILE));
-        //JobEntity does not and should not exist for type INCOMPLETE_TRANSFILE
+        assertThat("getType()", notificationEntity.getType(), is(JobNotification.Type.INVALID_TRANSFILE));
+        //JobEntity does not and should not exist for type INVALID_TRANSFILE
         assertThat("getJob()", notificationEntity.getJob(), is(nullValue()));
         assertThat("getDestination()", notificationEntity.getDestination(), equalTo(destination));
 

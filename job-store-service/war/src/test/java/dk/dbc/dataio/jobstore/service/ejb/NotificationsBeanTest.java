@@ -37,12 +37,12 @@ public class NotificationsBeanTest {
 
     @Test
     public void addNotification_validNotificationsRequest_returnsResponseWithStatusOk() throws Exception {
-        when(jobNotificationRepository.addNotification(eq(JobNotification.Type.INCOMPLETE_TRANSFILE), anyString(),
+        when(jobNotificationRepository.addNotification(eq(JobNotification.Type.INVALID_TRANSFILE), anyString(),
                 any(JobNotificationRepositoryTest.NotificationContextImpl.class)))
                 .thenReturn(new NotificationEntity());
 
         final AddNotificationRequest request = new AddNotificationRequest("mail@company.com",
-                new JobNotificationRepositoryTest.NotificationContextImpl(), JobNotification.Type.INCOMPLETE_TRANSFILE);
+                new JobNotificationRepositoryTest.NotificationContextImpl(), JobNotification.Type.INVALID_TRANSFILE);
         final Response notificationResponse = notificationsBean.addNotification(jsonbContext.marshall(request));
         assertThat("Response", notificationResponse, is(notNullValue()));
         assertThat("Response status", notificationResponse.getStatus(), is(Response.Status.OK.getStatusCode()));

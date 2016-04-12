@@ -27,22 +27,22 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
-import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 
 import java.nio.file.Path;
 
-public class CreateIncompleteTransfileNotificationOperation implements Operation {
+public class CreateInvalidTransfileNotificationOperation implements Operation {
     private static final Opcode OPCODE = Opcode.CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final Path workingDir;
     private final String transfileName;
     private final String transfileData;
 
-    public CreateIncompleteTransfileNotificationOperation(JobStoreServiceConnector jobStoreServiceConnector,
-                              Path workingDir,
-                              String transfileName,
-                              String transfileData)
+    public CreateInvalidTransfileNotificationOperation(JobStoreServiceConnector jobStoreServiceConnector,
+                                                       Path workingDir,
+                                                       String transfileName,
+                                                       String transfileData)
             throws NullPointerException, IllegalArgumentException {
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
         this.workingDir = InvariantUtil.checkNotNullOrThrow(workingDir, "workingDir");
@@ -73,10 +73,10 @@ public class CreateIncompleteTransfileNotificationOperation implements Operation
 
     @Override
     public void execute() throws OperationExecutionException {
-        final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext(
-                transfileName, transfileData);
+        final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext(
+                transfileName, transfileData, "Trans fil mangler slut markering");
         final AddNotificationRequest addNotificationRequest = new AddNotificationRequest(
-                getDestinationFromTransfile(), context, JobNotification.Type.INCOMPLETE_TRANSFILE);
+                getDestinationFromTransfile(), context, JobNotification.Type.INVALID_TRANSFILE);
         try {
             jobStoreServiceConnector.addNotification(addNotificationRequest);
         } catch (JobStoreServiceConnectorException e) {

@@ -25,20 +25,24 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
-public class IncompleteTransfileNotificationContext implements NotificationContext {
+public class InvalidTransfileNotificationContext implements NotificationContext {
     private String transfileName;
     private String transfileContent;
+    private String cause;
 
     @JsonCreator
-    public IncompleteTransfileNotificationContext(
+    public InvalidTransfileNotificationContext(
             @JsonProperty("transfileName") String transfileName,
-            @JsonProperty("transfileContent") String transfileContent) {
+            @JsonProperty("transfileContent") String transfileContent,
+            @JsonProperty("cause") String cause) {
 
         InvariantUtil.checkNotNullOrThrow(transfileName, "transfileName");
         InvariantUtil.checkNotNullOrThrow(transfileContent, "transfileContent");
+        InvariantUtil.checkNotNullOrThrow(cause, "cause");
 
         this.transfileName = transfileName;
         this.transfileContent = transfileContent;
+        this.cause = cause;
     }
     public String getTransfileName() {
         return transfileName;
@@ -46,5 +50,9 @@ public class IncompleteTransfileNotificationContext implements NotificationConte
 
     public String getTransfileContent() {
         return transfileContent;
+    }
+
+    public String getCause() {
+        return cause;
     }
 }

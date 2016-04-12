@@ -39,7 +39,7 @@ import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
-import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -908,8 +908,8 @@ public class JobStoreServiceConnectorTest {
 
     private static AddNotificationRequest getAddNotificationRequest() {
         try {
-            final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext("name", "content");
-            return new AddNotificationRequest("mail@company.com", context, JobNotification.Type.INCOMPLETE_TRANSFILE);
+            final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("name", "content", "cause");
+            return new AddNotificationRequest("mail@company.com", context, JobNotification.Type.INVALID_TRANSFILE);
         } catch (Exception e) {
             fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);

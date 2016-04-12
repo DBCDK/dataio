@@ -29,7 +29,7 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
-import dk.dbc.dataio.jobstore.types.IncompleteTransfileNotificationContext;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
@@ -69,7 +69,7 @@ public class MailNotificationTest {
     private static final String JOB_COMPLETED_BODY = "/notifications/job_completed.body";
     private static final String JOB_COMPLETED_WITH_FAILURES_BODY = "/notifications/job_completed_with_failures.body";
     private static final String JOB_COMPLETED_WITH_FAILURES_APPENDED_BODY = "/notifications/job_completed_with_failures_appended.body";
-    private static final String INCOMPLETE_TRANSFILE_BODY = "/notifications/incomplete_transfile.body";
+    private static final String INVALID_TRANSFILE_BODY = "/notifications/invalid_transfile.body";
     private static final String JOB_CREATED_SUBJECT = "DANBIB:postmester";
     private static final String JOB_COMPLETED_SUBJECT = "DANBIB:baseindlaeg";
     private final String destination = "mail@example.com";
@@ -84,7 +84,7 @@ public class MailNotificationTest {
     @Test
     public void send_notificationWithNullDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INCOMPLETE_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE);
         notification.setDestination(null);
         notification.setContext("{}");
 
@@ -98,7 +98,7 @@ public class MailNotificationTest {
     @Test
     public void send_notificationWithEmptyDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INCOMPLETE_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE);
         notification.setDestination(" ");
         notification.setContext("{}");
 
@@ -112,7 +112,7 @@ public class MailNotificationTest {
     @Test
     public void send_notificationWithMissingDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INCOMPLETE_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE);
         notification.setDestination(Constants.MISSING_FIELD_VALUE);
         notification.setContext("{}");
 
@@ -211,9 +211,9 @@ public class MailNotificationTest {
     @Test
     public void send_appliesIncompleteTransfileTemplate() throws JobStoreException, MessagingException, IOException, JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
-        final IncompleteTransfileNotificationContext context = new IncompleteTransfileNotificationContext("file.trans", "content");
+        final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("file.trans", "content", "Trans fil mangler slut markering");
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INCOMPLETE_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE);
         notification.setDestination(destination);
         notification.setContext(jsonbContext.marshall(context));
 
@@ -223,7 +223,7 @@ public class MailNotificationTest {
         final List<Message> inbox = Mailbox.get(destination);
         assertThat("Number of notifications for destination", inbox.size(), is(1));
         final String content = (String) inbox.get(0).getContent();
-        assertThat("Notification content", content, is(getResourceContent(INCOMPLETE_TRANSFILE_BODY)));
+        assertThat("Notification content", content, is(getResourceContent(INVALID_TRANSFILE_BODY)));
     }
 
     @Test

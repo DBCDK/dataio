@@ -51,6 +51,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
 import dk.dbc.dataio.jobstore.service.util.FlowTrimmer;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
+import dk.dbc.dataio.jobstore.service.util.TrackingIdGenerator;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -646,7 +647,13 @@ public class PgJobStoreRepository extends RepositoryBase {
                 }
 
                 final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
-                DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+                String trackingId = chunkItem.getTrackingId();
+                if(trackingId == null || trackingId.isEmpty()) {
+                    // Generate dataio specific tracking id
+                    trackingId = TrackingIdGenerator.getTrackingId(jobId, chunkId, itemCounter);
+                    chunkItem.setTrackingId(trackingId);
+                }
+                DBCTrackedLogContext.setTrackingId(trackingId);
                 LOGGER.info("Creating chunk item {} for chunk {} in job {}", itemCounter, chunkId, jobId);
 
                 StateChange stateChange = new StateChange()

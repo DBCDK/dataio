@@ -25,12 +25,17 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -174,11 +179,11 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         // Given...
         final JobEntity jobEntity = newPersistedJobEntity();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        final DataPartitioner dataPartitioner = getDanMarc2LineFormatDataPartitioner("/test-record-danmarc2.lin");
 
         // When...
         persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
-                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10,
-                DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream("/test-record-danmarc2.lin"), "latin1"))
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
         );
 
         // Then...
@@ -188,6 +193,67 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         final RecordInfo recordInfo = itemEntities.get(0).getRecordInfo();
         assertThat("recordInfo is instanceof MarcRecordInfo", recordInfo instanceof MarcRecordInfo, is(true));
         assertThat("recordInfo.id", recordInfo.getId(), is("112613"));
+    }
+
+    /**
+     * Given: a job repository containing one job and one chunk
+     * When : the item entity is created
+     * Then : the dataio specific tracking id is generated and set on the item entity
+     */
+    @Test
+    public void createChunkItemEntities_setsDataioTrackingId() throws UnknownHostException {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        final DataPartitioner dataPartitioner = getDanMarc2LineFormatDataPartitioner("/test-record-danmarc2.lin");
+        final String expectedTrackingId = InetAddress.getLocalHost().getHostAddress()
+                + "-" + jobEntity.getId() + "-" + chunkEntity.getKey().getId() + "-" + 0;
+
+        // When...
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
+        );
+
+        // Then...
+        final List<ItemEntity> itemEntities = findAllItems();
+        assertThat("itemEntities.size", itemEntities.size(), is(1));
+        assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is(expectedTrackingId));
+    }
+
+    /**
+     * Given: a job repository containing one job and one chunk
+     * When : the item entity is created
+     * Then : the tracking id harvested is set on the item entity
+     */
+    @Test
+    public void createChunkItemEntities_setsHarvestedTrackingId() throws UnknownHostException {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
+        final DataPartitioner dataPartitioner = getRawRepoMarcXmlDataPartitioner("/datacontainer-with-tracking-id.xml");
+
+        // When...
+        persistenceContext.run(() -> pgJobStoreRepository.createChunkItemEntities(
+                jobEntity.getId(), chunkEntity.getKey().getId(), (short) 10, dataPartitioner)
+        );
+
+        // Then...
+        final List<ItemEntity> itemEntities = findAllItems();
+        assertThat("itemEntities.size", itemEntities.size(), is(1));
+        assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("123456789"));
+    }
+
+    /*
+     * private methods
+     */
+
+
+    private DanMarc2LineFormatDataPartitioner getDanMarc2LineFormatDataPartitioner(String resourceName) {
+        return DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream(resourceName), "latin1");
+    }
+
+    private RawRepoMarcXmlDataPartitioner getRawRepoMarcXmlDataPartitioner(String resourceName) {
+        return RawRepoMarcXmlDataPartitioner.newInstance(getClass().getResourceAsStream(resourceName), StandardCharsets.UTF_8.name());
     }
 
 }

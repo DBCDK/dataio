@@ -21,12 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Embeddable;
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.Objects;
 import java.util.Set;
 
@@ -37,6 +32,18 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "dependencytracking")
+@SqlResultSetMapping(
+    name="JobIdChunkIdResult",
+    classes={
+       @ConstructorResult(
+            targetClass=dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key.class,
+              columns={
+                 @ColumnResult(name="jobid"),
+                 @ColumnResult(name="chunkid"),
+                 }
+       )
+    }
+)
 public class DependencyTrackingEntity {
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a

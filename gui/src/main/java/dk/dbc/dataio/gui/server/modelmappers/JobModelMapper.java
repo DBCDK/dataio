@@ -51,7 +51,7 @@ public class JobModelMapper {
      * @return The mapped JobModel object
      */
     public static JobModel toModel(JobInfoSnapshot jobInfoSnapshot) {
-        final boolean ancestry = jobInfoSnapshot.getSpecification().getAncestry() != null;
+        final JobSpecification.Ancestry ancestry = jobInfoSnapshot.getSpecification().getAncestry();
 
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
         return new JobModel(
@@ -87,10 +87,10 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getDataFile(),
                 jobInfoSnapshot.getPartNumber(),
                 WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()),
-                ancestry ? jobInfoSnapshot.getSpecification().getAncestry().getTransfile() : "",
-                ancestry ? jobInfoSnapshot.getSpecification().getAncestry().getDatafile() : "",
-                ancestry ? jobInfoSnapshot.getSpecification().getAncestry().getBatchId() : "",
-                ancestry ? new String(jobInfoSnapshot.getSpecification().getAncestry().getDetails()) : ""
+                ancestry != null ? ancestry.getTransfile() : "",
+                ancestry != null ? ancestry.getDatafile() : "",
+                ancestry != null ? ancestry.getBatchId() : "",
+                ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : ""
         );
     }
 

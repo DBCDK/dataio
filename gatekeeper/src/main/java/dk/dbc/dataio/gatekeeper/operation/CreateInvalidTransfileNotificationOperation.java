@@ -33,7 +33,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import java.nio.file.Path;
 
 public class CreateInvalidTransfileNotificationOperation implements Operation {
-    private static final Opcode OPCODE = Opcode.CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION;
+    private static final Opcode OPCODE = Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final Path workingDir;
     private final String transfileName;

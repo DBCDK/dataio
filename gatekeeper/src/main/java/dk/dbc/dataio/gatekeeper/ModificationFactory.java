@@ -92,7 +92,7 @@ public class ModificationFactory {
             // For now just move to posthus...
             modifications.add(getFileMoveModification(transfile.getPath().getFileName().toString()));
         } else if (!transfile.isComplete()) {
-            modifications.add(getCreateIncompleteTransfileNotificationModification());
+            modifications.add(getCreateInvalidTransfileNotificationModification());
             modifications.add(getFileDeleteModification(transfile.getPath().getFileName().toString()));
         } else {
             for (TransFile.Line line : transfile.getLines()) {
@@ -235,9 +235,9 @@ public class ModificationFactory {
         return createTransfile;
     }
 
-    Modification getCreateIncompleteTransfileNotificationModification() {
+    Modification getCreateInvalidTransfileNotificationModification() {
         final Modification createNotification = new Modification();
-        createNotification.setOpcode(Opcode.CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION);
+        createNotification.setOpcode(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION);
         createNotification.setTransfileName(transfile.getPath().getFileName().toString());
         createNotification.setArg(transfile.getLines().stream()
                 .map(TransFile.Line::getLine)

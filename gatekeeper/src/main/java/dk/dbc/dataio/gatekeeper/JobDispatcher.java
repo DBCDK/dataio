@@ -304,7 +304,7 @@ public class JobDispatcher {
                         connectorFactory.getFileStoreServiceConnector(), dir.toAbsolutePath(),
                         modification.getTransfileName(), modification.getArg());
                 break;
-            case CREATE_INCOMPLETE_TRANSFILE_NOTIFICATION:
+            case CREATE_INVALID_TRANSFILE_NOTIFICATION:
                 op = new CreateInvalidTransfileNotificationOperation(connectorFactory.getJobStoreServiceConnector(),
                         dir.toAbsolutePath(),modification.getTransfileName(), modification.getArg());
                 break;

@@ -36,18 +36,20 @@ public class CreateInvalidTransfileNotificationOperation implements Operation {
     private static final Opcode OPCODE = Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION;
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final Path workingDir;
+    private final TransFile transfile;
     private final String transfileName;
-    private final String transfileData;
+    private final String causeForInvalidation;
 
     public CreateInvalidTransfileNotificationOperation(JobStoreServiceConnector jobStoreServiceConnector,
                                                        Path workingDir,
                                                        String transfileName,
-                                                       String transfileData)
+                                                       String causeForInvalidation)
             throws NullPointerException, IllegalArgumentException {
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
         this.workingDir = InvariantUtil.checkNotNullOrThrow(workingDir, "workingDir");
         this.transfileName = InvariantUtil.checkNotNullNotEmptyOrThrow(transfileName, "transfileName");
-        this.transfileData = transfileData;
+        this.causeForInvalidation = InvariantUtil.checkNotNullNotEmptyOrThrow(causeForInvalidation, "causeForInvalidation");
+        this.transfile = new TransFile(workingDir.resolve(transfileName));
     }
 
     @Override
@@ -67,14 +69,14 @@ public class CreateInvalidTransfileNotificationOperation implements Operation {
         return transfileName;
     }
 
-    public String getTransfileData() {
-        return transfileData;
+    public String getCauseForInvalidation() {
+        return causeForInvalidation;
     }
 
     @Override
     public void execute() throws OperationExecutionException {
         final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext(
-                transfileName, transfileData, "Trans fil mangler slut markering");
+                transfileName, transfile.toString(), causeForInvalidation);
         final AddNotificationRequest addNotificationRequest = new AddNotificationRequest(
                 getDestinationFromTransfile(), context, JobNotification.Type.INVALID_TRANSFILE);
         try {
@@ -85,7 +87,6 @@ public class CreateInvalidTransfileNotificationOperation implements Operation {
     }
 
     private String getDestinationFromTransfile() {
-        final TransFile transfile = new TransFile(workingDir.resolve(transfileName));
         return transfile.getLines().stream()
                 .map(this::getDestinationFromTransfileLine)
                 .filter(dest -> dest != null)

@@ -61,12 +61,27 @@ public class TransFileTest {
         assertThat("Transfile line 1", transFile.getLines().get(0).getLine(), is(line1));
         assertThat("Transfile line 2", transFile.getLines().get(1).getLine(), is(line2));
         assertThat(transFile.isComplete(), is(true));
+        assertThat(transFile.isValid(), is(true));
     }
 
     @Test
     public void isComplete_transfileIsNotComplete_returnsFalse() throws IOException {
         final TransFile transFile = new TransFile(testFolder.newFile().toPath());
         assertThat(transFile.isComplete(), is(false));
+    }
+
+    @Test
+    public void isValid_transfileIsNotComplete_returnsFalse() throws IOException {
+        final TransFile transFile = new TransFile(testFolder.newFile().toPath());
+        assertThat(transFile.isValid(), is(false));
+    }
+
+    @Test
+    public void isValid_transfileNameContainsWhitespace_returnsFalse() throws IOException {
+        final Path file = testFolder.newFile("my file.trans").toPath();
+        Files.write(file, "slut".getBytes());
+        final TransFile transFile = new TransFile(file);
+        assertThat(transFile.isValid(), is(false));
     }
 
     @Test

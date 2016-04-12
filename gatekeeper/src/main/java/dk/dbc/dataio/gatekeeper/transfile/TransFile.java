@@ -39,17 +39,20 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Simple non-validating transfile parser
  */
 public class TransFile {
     public static final Pattern END_OF_FILE = Pattern.compile("slut|finish", Pattern.CASE_INSENSITIVE);
-
+    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final Logger LOGGER = LoggerFactory.getLogger(TransFile.class);
 
     private final Path path;
     private boolean isComplete = false;
+    private boolean isValid = true;
+    private String causeForInvalidation;
     private List<Line> lines = new ArrayList<>();
 
     /**
@@ -79,8 +82,9 @@ public class TransFile {
                     }
                 }
             } catch (IOException e) {
-                throw new UncheckedIOException(e);
+                invalidate("Trans fil kunne ikke læses: " + e.getMessage());
             }
+            verify();
         }
     }
 
@@ -99,6 +103,13 @@ public class TransFile {
     }
 
     /**
+     * @return true if transfile is valid, otherwise false
+     */
+    public boolean isValid() {
+        return isValid;
+    }
+
+    /**
      * @return Transfile lines as unmodifiable list
      */
     public List<Line> getLines() {
@@ -110,6 +121,38 @@ public class TransFile {
      */
     public Path getPath() {
         return path;
+    }
+
+    /**
+     * @return cause for transfile invalidation or null if transfile is valid
+     */
+    public String getCauseForInvalidation() {
+        return causeForInvalidation;
+    }
+
+    @Override
+    public String toString() {
+        return lines.stream()
+                .map(TransFile.Line::getLine)
+                .collect(Collectors.joining("\n"));
+    }
+
+    private void invalidate(String cause) {
+        isValid = false;
+        causeForInvalidation = cause;
+    }
+
+    private void verify() {
+        if (isValid) { // only verify if transfile has not already been invalidated
+            if (!isComplete) {
+                invalidate("Trans fil mangler slut markering");
+                return;
+            }
+
+            if (WHITESPACE.matcher(path.getFileName().toString()).find()) {
+                invalidate("Trans fil navn indeholder blank tegn");
+            }
+        }
     }
 
     /**

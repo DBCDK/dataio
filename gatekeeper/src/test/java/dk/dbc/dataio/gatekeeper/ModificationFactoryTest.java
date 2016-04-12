@@ -86,14 +86,13 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void getModifications_transfileIsIncomplete_returnsModifications() throws IOException {
-        final String content = "b=danbib,t=lin,c=latin-1,o=marc2";
-        final TransFile transfile = createTransfile("123456.trans", content);
+    public void getModifications_transfileIsInvalid_returnsModifications() throws IOException {
+        final TransFile transfile = createTransfile("123456.trans", "b=danbib,t=lin,c=latin-1,o=marc2");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(content));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Trans fil mangler slut markering"));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfile.getPath().getFileName().toString()));
     }

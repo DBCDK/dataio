@@ -55,7 +55,13 @@
         <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInPartitioning" guiId="exportLinkItemsFailedInPartitioningPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInPartitioning}" /></li>
         <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInProcessing" guiId="exportLinkItemsFailedInProcessingPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInProcessing}" /></li>
         <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInDelivering" guiId="exportLinkItemsFailedInDeliveringPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInDelivering}" /></li>
-
+        <g:HTMLPanel ui:field="ancestrySection" visible="false" addStyleNames="gray-box-container">
+            <li><h2><g:Label text="{txt.header_TransFile}"/></h2></li>
+            <li><comp:PromptedLabel ui:field="ancestryTransFile" guiId="ancestryTransFilePanel" prompt="{txt.promptJobInfo_AncestryTransFile}" /></li>
+            <li><comp:PromptedLabel ui:field="ancestryDataFile" guiId="ancestryDataFilePanel" prompt="{txt.promptJobInfo_AncestryDataFile}" /></li>
+            <li><comp:PromptedLabel ui:field="ancestryBatchId" guiId="ancestryBatchId" prompt="{txt.promptJobInfo_AncestryBatchId}" /></li>
+            <div class="gray-box-content"><g:InlineHTML ui:field="ancestryContent"/></div>
+        </g:HTMLPanel>
     </g:HTMLPanel>
 
 </ui:UiBinder>

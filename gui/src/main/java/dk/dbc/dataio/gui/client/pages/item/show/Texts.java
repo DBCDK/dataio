@@ -75,6 +75,11 @@ public interface Texts extends Constants {
     String label_Back();
 
 
+    // Headers
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_TransFile();
+
+
     // Texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_Item();
@@ -143,6 +148,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_NextOutputPost();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_Note();
+
 
     // JobInfo Prompt Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -187,8 +195,14 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_ExportLinkItemFailedInDelivering();
 
-    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String tab_Note();
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_AncestryTransFile();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_AncestryDataFile();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_AncestryBatchId();
 
 
     // JobNotification Prompt Labels

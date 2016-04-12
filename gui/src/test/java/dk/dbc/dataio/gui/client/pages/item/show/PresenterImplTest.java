@@ -27,6 +27,8 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.DecoratedTabPanel;
+import com.google.gwt.user.client.ui.HTMLPanel;
+import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.TabBar;
 import com.google.gwt.user.client.ui.TextArea;
@@ -118,6 +120,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedLabel mockedExportLinkItemFailedInPartitioning;
     @Mock PromptedLabel mockedExportLinkItemFailedInProcessing;
     @Mock PromptedLabel mockedExportLinkItemFailedInDelivering;
+    @Mock HTMLPanel mockedAncestrySection;
+    @Mock PromptedLabel mockedAncestryTransFile;
+    @Mock PromptedLabel mockedAncestryDataFile;
+    @Mock PromptedLabel mockedAncestryBatchId;
+    @Mock InlineHTML mockedAncestryContent;
     @Mock TabBar mockedTabBar;
     @Mock AsyncItemViewDataProvider mockedDataProvider;
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
@@ -179,6 +186,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.exportLinkItemsFailedInPartitioning = mockedExportLinkItemFailedInPartitioning;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInProcessing = mockedExportLinkItemFailedInProcessing;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInDelivering = mockedExportLinkItemFailedInDelivering;
+        mockedView.jobInfoTabContent.ancestrySection = mockedAncestrySection;
+        mockedView.jobInfoTabContent.ancestryTransFile = mockedAncestryTransFile;
+        mockedView.jobInfoTabContent.ancestryDataFile = mockedAncestryDataFile;
+        mockedView.jobInfoTabContent.ancestryBatchId = mockedAncestryBatchId;
+        mockedView.jobInfoTabContent.ancestryContent = mockedAncestryContent;
         mockedView.dataProvider = mockedDataProvider;
     }
 
@@ -377,6 +389,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setJobCompletionTime("2015-09-02 10:39:55")
             .setType(JobModel.Type.TRANSIENT)
             .setWorkflowNoteModel(workflowNoteModel)
+            .setTransFileAncestry("transfile ancestry")
+            .setDataFileAncestry("datafile ancestry")
+            .setBatchIdAncestry("batch id ancestry")
+            .setDetailsAncestry("details ancestry")
             .build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
@@ -1030,6 +1046,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView, times(1)).addFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
+
+        verifyNoAncestryData();
     }
 
     @Test
@@ -1052,6 +1070,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         verify(mockedExportLinkItemFailedInDelivering).setVisible(true);
         verify(mockedExportLinkItemFailedInDelivering).setText(anyString());
+
+        verifyNoAncestryData();
     }
 
     @Test
@@ -1071,6 +1091,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedExportLinkItemFailedInPartitioning);
         verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
         verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
+
+        verifyNoAncestryData();
     }
 
     @Test
@@ -1089,6 +1111,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedExportLinkItemFailedInPartitioning);
         verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
         verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
+
+        verifyNoAncestryData();
     }
 
     @Test
@@ -1124,6 +1148,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
+
+        verifyNoAncestryData();
     }
 
     @Test
@@ -1159,6 +1185,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
+
+        verifyAncestryData();
     }
 
     @Test
@@ -1194,6 +1222,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView, times(1)).removeFixedColumn();
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
+
+        verifyNoAncestryData();
     }
 
     @Test
@@ -1407,6 +1437,34 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedExportLinkItemFailedInPartitioning).setVisible(false);
         verify(mockedExportLinkItemFailedInProcessing).setVisible(false);
         verify(mockedExportLinkItemFailedInDelivering).setVisible(false);
+    }
+
+    private void verifyNoAncestryData() {
+        verify(mockedAncestrySection).setVisible(false);
+        verifyNoMoreInteractions(mockedAncestrySection);
+        verifyNoMoreInteractions(mockedAncestryTransFile);
+        verifyNoMoreInteractions(mockedAncestryDataFile);
+        verifyNoMoreInteractions(mockedAncestryBatchId);
+        verifyNoMoreInteractions(mockedAncestryContent);
+
+    }
+
+    private void verifyAncestryData() {
+        verify(mockedAncestrySection, times(4)).setVisible(true);
+        verifyNoMoreInteractions(mockedAncestrySection);
+        verify(mockedAncestryTransFile).setText("transfile ancestry");
+        verify(mockedAncestryTransFile).setVisible(true);
+        verifyNoMoreInteractions(mockedAncestryTransFile);
+        verify(mockedAncestryDataFile).setText("datafile ancestry");
+        verify(mockedAncestryDataFile).setVisible(true);
+        verifyNoMoreInteractions(mockedAncestryDataFile);
+        verify(mockedAncestryBatchId).setText("batch id ancestry");
+        verify(mockedAncestryBatchId).setVisible(true);
+        verifyNoMoreInteractions(mockedAncestryBatchId);
+        verify(mockedAncestryContent).setText("details ancestry");
+        verify(mockedAncestryContent).setVisible(true);
+        verifyNoMoreInteractions(mockedAncestryContent);
+
     }
 
     private void setupPresenterImpl() {

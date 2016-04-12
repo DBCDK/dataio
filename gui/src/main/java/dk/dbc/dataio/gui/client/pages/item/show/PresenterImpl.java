@@ -28,10 +28,12 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
+import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -481,8 +483,33 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 view.jobInfoTabContent.exportLinkItemsFailedInDelivering.setVisible(true);
             }
         }
+        if (jobModel.getDetailsAncestry() == null || jobModel.getDetailsAncestry().isEmpty()) {
+            view.jobInfoTabContent.ancestrySection.setVisible(false);
+        } else {
+            setAncestryView(jobModel.getTransFileAncestry(), view, view.jobInfoTabContent.ancestryTransFile);
+            setAncestryView(jobModel.getDataFileAncestry(), view, view.jobInfoTabContent.ancestryDataFile);
+            setAncestryView(jobModel.getBatchIdAncestry(), view, view.jobInfoTabContent.ancestryBatchId);
+            setAncestryView(jobModel.getDetailsAncestry(), view, view.jobInfoTabContent.ancestryContent);
+        }
+    }
 
-//        jobModel.
+    private void setAncestryView(String value, View view, PromptedLabel widget) {
+        if (value == null || value.isEmpty()) {
+            widget.setVisible(false);
+        } else {
+            widget.setText(value);
+            widget.setVisible(true);
+            view.jobInfoTabContent.ancestrySection.setVisible(true);
+        }
+    }
+    private void setAncestryView(String value, View view, InlineHTML widget) {
+        if (value == null || value.isEmpty()) {
+            widget.setVisible(false);
+        } else {
+            widget.setText(value);
+            widget.setVisible(true);
+            view.jobInfoTabContent.ancestrySection.setVisible(true);
+        }
     }
 
     /**

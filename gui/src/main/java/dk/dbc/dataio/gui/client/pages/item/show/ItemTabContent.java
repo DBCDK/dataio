@@ -40,12 +40,7 @@ public class ItemTabContent extends HTML{
     }
 
     private void getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) {
-        jobStoreProxy.getItemData(
-                Long.valueOf(itemModel.getJobId()).intValue(),
-                Long.valueOf(itemModel.getChunkId()).intValue(),
-                Long.valueOf(itemModel.getItemId()).shortValue(),
-                lifeCycle,
-                new GetItemDataAsyncCallback());
+        jobStoreProxy.getItemData(itemModel, lifeCycle, new GetItemDataAsyncCallback());
     }
 
     /*

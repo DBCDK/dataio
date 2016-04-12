@@ -186,7 +186,8 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PROCESSING);
+//        jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PROCESSING);
+        jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PROCESSING);
     }
 
     @Test
@@ -194,7 +195,7 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(getXmlData());
         try {
-            String data = jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PARTITIONING);
+            String data = jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
             assertThat("data not null", data, not(nullValue()));
             assertThat(data, is(JobStoreProxyImpl.format(getXmlData())));
         } catch (ProxyException e) {
@@ -207,7 +208,7 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PARTITIONING);
+        jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
     }
 
     @Test(expected = ProxyException.class)

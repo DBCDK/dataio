@@ -82,9 +82,7 @@ public class ItemTabContentTest {
 
         // Test Verification
         verify(mockedJobStoreProxy).getItemData(
-                eq(Long.valueOf(TEST_ITEM_MODEL.getJobId()).intValue()),
-                eq(Long.valueOf(TEST_ITEM_MODEL.getChunkId()).intValue()),
-                eq(Long.valueOf(TEST_ITEM_MODEL.getItemId()).shortValue()),
+                eq(TEST_ITEM_MODEL),
                 eq(LIFECYCLE), any(FilteredAsyncCallback.class));
     }
 

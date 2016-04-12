@@ -36,7 +36,7 @@ public interface JobStoreProxyAsync {
     void countJobs(JobListCriteria model, AsyncCallback<Long> async);
     void listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria, AsyncCallback<List<ItemModel>> async);
     void countItems(ItemListCriteria criteria, AsyncCallback<Long> async);
-    void getItemData(int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle, AsyncCallback<String> async);
+    void getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle, AsyncCallback<String> async);
     void getProcessedNextResult(int jobId, int chunkId, short itemId, AsyncCallback<String> async);
     void listJobNotificationsForJob(int jobId, AsyncCallback<List<JobNotification>> async);
     void addJob(JobModel jobModel, AsyncCallback<JobModel> async);

@@ -192,9 +192,9 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public String getItemData (int jobId, int chunkId, short itemId, ItemModel.LifeCycle lifeCycle) throws ProxyException {
+    public String getItemData (ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException {
         final State.Phase phase;
-        log.trace("JobStoreProxy: getChunkItem(\"{}\", \"{}\", \"{}\", {});", jobId, chunkId, itemId, lifeCycle);
+        log.trace("JobStoreProxy: getItemData(\"{}\", {});", itemModel, lifeCycle);
         final StopWatch stopWatch = new StopWatch();
         try {
         switch (lifeCycle) {
@@ -208,7 +208,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
                 phase = State.Phase.DELIVERING;
                 break;
             }
-            return format(jobStoreServiceConnector.getItemData(jobId, chunkId, itemId, phase));
+            return format(jobStoreServiceConnector.getItemData(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), phase));
 
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {

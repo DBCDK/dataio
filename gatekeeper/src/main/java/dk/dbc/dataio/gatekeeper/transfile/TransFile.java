@@ -59,9 +59,8 @@ public class TransFile {
      * Return new transfile representation
      * @param transfile path of transfile to parse
      * @throws NullPointerException if given null-valued transfile path
-     * @throws UncheckedIOException if unable to read transfile
      */
-    public TransFile(Path transfile) throws NullPointerException, IllegalArgumentException {
+    public TransFile(Path transfile) throws NullPointerException {
         path = InvariantUtil.checkNotNullOrThrow(transfile, "transfile");
         parse(path);
     }

@@ -92,7 +92,7 @@ public class ModificationFactoryTest {
         final List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Trans fil mangler slut markering"));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Transfil mangler slut markering"));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfile.getPath().getFileName().toString()));
     }
@@ -128,7 +128,7 @@ public class ModificationFactoryTest {
         assertThat("Modification 4 arg", modifications.get(3).getArg(), is(transfile.getPath().getFileName().toString()));
 
         final String createTransfileArg = modifications.get(2).getArg();
-        assertThat("Transfile contains", createTransfileArg, containsString("M=,b=danbib,c=latin-1,f=820009.file,m=,o=marc2,t=lin\n"));
+        assertThat("Transfile contains", createTransfileArg, containsString("M=datain-io@dbc.dk,b=danbib,c=latin-1,f=820009.file,m=datain-io@dbc.dk,o=marc2,t=lin\n"));
         assertThat("Transfile has end marker", createTransfileArg, containsString("slut"));
     }
 
@@ -190,8 +190,8 @@ public class ModificationFactoryTest {
 
         final String createTransfileArg = modifications.get(3).getArg();
         assertThat("Transfile contains", createTransfileArg, containsString(
-                "M=,b=danbib,c=latin-1,f=820009.file,m=,o=marc2,t=lin\n" +
-                "M=,b=danbib,c=utf-8,m=,o=marc2,t=lin\n" +
+                "M=datain-io@dbc.dk,b=danbib,c=latin-1,f=820009.file,m=datain-io@dbc.dk,o=marc2,t=lin\n" +
+                "M=datain-io@dbc.dk,b=danbib,c=utf-8,m=datain-io@dbc.dk,o=marc2,t=lin\n" +
                 "slut"
         ));
     }

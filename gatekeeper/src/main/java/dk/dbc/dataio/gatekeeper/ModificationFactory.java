@@ -163,8 +163,8 @@ public class ModificationFactory {
      */
     List<Modification> getParallelWithDataioNotificationsModifications(TransFile.Line line) {
         final TransFile.Line lineForPosthus = new TransFile.Line(line);
-        lineForPosthus.setField("m", "");
-        lineForPosthus.setField("M", "");
+        lineForPosthus.setField("m", "datain-io@dbc.dk");
+        lineForPosthus.setField("M", "datain-io@dbc.dk");
 
         final ArrayList<Modification> modifications = new ArrayList<>();
         modifications.add(getCreateJobModification(line.getLine()));

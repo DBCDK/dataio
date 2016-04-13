@@ -142,12 +142,12 @@ public class TransFile {
     private void verify() {
         if (isValid) { // only verify if transfile has not already been invalidated
             if (!isComplete) {
-                invalidate("Trans fil mangler slut markering");
+                invalidate("Transfil mangler slut markering");
                 return;
             }
 
             if (WHITESPACE.matcher(path.getFileName().toString()).find()) {
-                invalidate("Trans fil navn indeholder blank tegn");
+                invalidate("Transfilnavn indeholder blanktegn");
             }
         }
     }

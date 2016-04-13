@@ -42,12 +42,10 @@
             margin-left: 0;
         }
         ul {
-            padding:0;
+            padding: 0;
         }
         ul li {
-            width: auto;
             float: left;
-
         }
     </ui:style>
 
@@ -60,6 +58,7 @@
             <li><dio:PromptedTextBox promptStyle="stacked" ui:field="format" guiId="io-traffic-format" prompt="{txt.label_Format}" maxLength="160"/></li>
             <li><dio:PromptedTextBox promptStyle="stacked" ui:field="destination" guiId="io-traffic-destination" prompt="{txt.label_Destination}" maxLength="160"/></li>
             <li><dio:PromptedCheckBox promptStyle="stacked" ui:field="copy" guiId="io-traffic-copy" prompt="{txt.label_Copy}"/></li>
+            <li><dio:PromptedCheckBox promptStyle="stacked" ui:field="notify" guiId="io-traffic-notify" prompt="{txt.label_Notify}"/></li>
             <li><dio:EnterButton ui:field="addButton" addStyleNames="{style.addButton}" text="{txt.button_Add}"></dio:EnterButton></li>
         </ul>
         <g:SimplePanel styleName="{style.newParagraph}"/>

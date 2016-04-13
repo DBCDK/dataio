@@ -29,5 +29,6 @@ public interface Presenter extends GenericPresenter {
     void formatChanged(String format);
     void destinationChanged(String submitter);
     void copyChanged(Boolean copy);
+    void notifyChanged(Boolean notify);
     void addButtonPressed();
 }

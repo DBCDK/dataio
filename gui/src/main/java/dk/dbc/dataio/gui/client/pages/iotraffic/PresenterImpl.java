@@ -50,6 +50,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     String format = "";
     String destination = "";
     Boolean copy = false;
+    Boolean notify = false;
 
 
     public PresenterImpl(String header) {
@@ -98,6 +99,18 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void copyChanged(Boolean copy) {
         this.copy = copy;
+        if (copy) {
+            getView().notify.setVisible(true);
+        } else {
+            this.notify = false;
+            getView().notify.setVisible(false);
+            getView().notify.setValue(false);
+        }
+    }
+
+    @Override
+    public void notifyChanged(Boolean notify) {
+        this.notify = notify;
     }
 
     @Override
@@ -106,7 +119,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().displayWarning(getTexts().error_InputFieldValidationError());
         } else {
             flowStoreProxy.createGatekeeperDestination(
-                    new GatekeeperDestination(0L, submitter, destination, packaging, format, copy, false),
+                    new GatekeeperDestination(0L, submitter, destination, packaging, format, copy, notify),
                     new CreateGatekeeperDestinationCallback()
             );
         }
@@ -136,6 +149,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().destination.clearText();
         copy = false;
         getView().copy.setValue(false);
+        notify = false;
+        getView().notify.setValue(false);
+        getView().notify.setVisible(false);
         flowStoreProxy.findAllGatekeeperDestinations(new FindAllGateKeeperDestinationsCallback());
     }
 

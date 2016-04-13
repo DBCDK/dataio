@@ -57,6 +57,7 @@ public class GatekeepersTableTest {
     @Before
     public void setupTexts() {
         when(mockedTexts.label_DoNotCopy()).thenReturn("DoNotCopy");
+        when(mockedTexts.label_DoNotNotify()).thenReturn("DoNotNotify");
     }
 
 
@@ -105,12 +106,12 @@ public class GatekeepersTableTest {
         gatekeepersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(gatekeepersTable.getColumnCount(), is(5));
+        assertThat(gatekeepersTable.getColumnCount(), is(6));
         assertThat(gatekeepersTable.getColumn(0).getValue(gatekeeper), is("11"));
         assertThat(gatekeepersTable.getColumn(1).getValue(gatekeeper), is("pa"));
         assertThat(gatekeepersTable.getColumn(2).getValue(gatekeeper), is("fo"));
         assertThat(gatekeepersTable.getColumn(3).getValue(gatekeeper), is("de"));
         assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is("DoNotCopy"));
+        assertThat(gatekeepersTable.getColumn(5).getValue(gatekeeper), is("DoNotNotify"));
     }
-
 }

@@ -321,3 +321,10 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
     white-space: pre;
     font-family: monospace;
 }
+
+#io-traffic-notify div.dio-PromptedData-PromptClass {
+    width: auto;
+}
+#io-traffic-copy div.dio-PromptedData-PromptClass {
+    width: auto;
+}

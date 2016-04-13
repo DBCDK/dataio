@@ -37,6 +37,8 @@ import org.mockito.Mock;
 import java.util.Collections;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -60,6 +62,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedTextBox mockedFormat;
     @Mock PromptedTextBox mockedDestination;
     @Mock PromptedCheckBox mockedCopy;
+    @Mock PromptedCheckBox mockedNotify;
     @Mock EnterButton mockedAddButton;
     @Mock GatekeepersTable mockedGatekeepersTable;
     @Mock Throwable mockedThrowable;
@@ -74,6 +77,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.format = mockedFormat;
         mockedView.destination = mockedDestination;
         mockedView.copy = mockedCopy;
+        mockedView.notify = mockedNotify;
         mockedView.addButton = mockedAddButton;
         mockedView.gatekeepersTable = mockedGatekeepersTable;
     }
@@ -101,6 +105,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyInitializeDataMethodCall();
     }
 
+    @Test
+    public void copyChanged_copyChangedToFalse_notifyIsSetToFalse() {
+        // Prepare Test
+        presenterImpl = setupPresenter();
+
+        // Subject under test
+        presenterImpl.copyChanged(false);
+
+        // Verify Test
+        assertThat(presenterImpl.copy, is(false));
+        assertThat(presenterImpl.notify, is(false));
+    }
 
     @Test(expected = NullPointerException.class)
     public void addButtonPressed_submitterNull_exception() {
@@ -306,6 +322,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenter.format = "format";
         presenter.destination = "destination";
         presenter.copy = true;
+        presenter.notify = true;
         return presenter;
     }
 
@@ -315,6 +332,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedFormat).clearText();
         verify(mockedDestination).clearText();
         verify(mockedCopy).setValue(false);
+        verify(mockedNotify).setValue(false);
+        verify(mockedNotify).setVisible(false);
         verify(presenterImpl.flowStoreProxy).findAllGatekeeperDestinations(any(PresenterImpl.FindAllGateKeeperDestinationsCallback.class));
         verifyNoMoreInteractions(mockedSubmitter);
         verifyNoMoreInteractions(mockedPackaging);

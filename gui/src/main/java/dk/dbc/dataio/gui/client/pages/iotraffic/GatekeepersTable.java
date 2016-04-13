@@ -50,6 +50,7 @@ public class GatekeepersTable extends CellTable {
         addColumn(constructFormatColumn(), texts.label_Format());
         addColumn(constructDestinationColumn(), texts.label_Destination());
         addColumn(constructCopyColumn(), texts.label_Copy());
+        addColumn(constructNotifyColumn(), texts.label_Notify());
     }
 
     /**
@@ -108,6 +109,15 @@ public class GatekeepersTable extends CellTable {
             @Override
             public String getValue(GatekeeperDestination gatekeeper) {
                 return gatekeeper.isCopyToPosthus() ? texts.label_DoCopy() : texts.label_DoNotCopy();
+            }
+        };
+    }
+
+    private Column constructNotifyColumn() {
+        return new TextColumn<GatekeeperDestination>() {
+            @Override
+            public String getValue(GatekeeperDestination gatekeeper) {
+                return gatekeeper.isNotifyFromPosthus() ? texts.label_DoNotify() : texts.label_DoNotNotify();
             }
         };
     }

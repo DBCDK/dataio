@@ -50,6 +50,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox format;
     @UiField PromptedTextBox destination;
     @UiField PromptedCheckBox copy;
+    @UiField PromptedCheckBox notify;
     @UiField EnterButton addButton;
     @UiField(provided=true) GatekeepersTable gatekeepersTable;
 
@@ -83,6 +84,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("copy")
     void copyChanged(ValueChangeEvent<Boolean> event) {
         presenter.copyChanged(copy.getValue());
+    }
+
+    @UiHandler("notify")
+    void notifyChanged(ValueChangeEvent<Boolean> event) {
+        presenter.notifyChanged(notify.getValue());
     }
 
     @UiHandler("addButton")

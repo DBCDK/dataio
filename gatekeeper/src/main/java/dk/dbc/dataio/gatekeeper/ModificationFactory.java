@@ -39,7 +39,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.DATAIO_EXCLUSIVE;
-import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.PARALLEL;
+import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.PARALLEL_WITH_DATAIO_NOTIFICATIONS;
+import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.PARALLEL_WITH_POSTHUS_NOTIFICATIONS;
 import static dk.dbc.dataio.gatekeeper.ModificationFactory.Type.POSTHUS_EXCLUSIVE;
 
 /**
@@ -53,7 +54,8 @@ public class ModificationFactory {
     enum Type {
         DATAIO_EXCLUSIVE,
         POSTHUS_EXCLUSIVE,
-        PARALLEL
+        PARALLEL_WITH_DATAIO_NOTIFICATIONS,
+        PARALLEL_WITH_POSTHUS_NOTIFICATIONS
     }
 
     private final TransFile transfile;
@@ -115,8 +117,11 @@ public class ModificationFactory {
     List<Modification> processLine(TransFile.Line line) {
         final List<Modification> modifications;
         switch (determineType(line)) {
-            case PARALLEL:
-                modifications = getParallelModifications(line);
+            case PARALLEL_WITH_DATAIO_NOTIFICATIONS:
+                modifications = getParallelWithDataioNotificationsModifications(line);
+                break;
+            case PARALLEL_WITH_POSTHUS_NOTIFICATIONS:
+                modifications = getParallelWithPosthusNotificationsModifications(line);
                 break;
             case POSTHUS_EXCLUSIVE:
                 modifications = getPosthusExclusiveModifications(line);
@@ -138,7 +143,7 @@ public class ModificationFactory {
         if (!dataFilename.isEmpty()) {
             modifications.add(getFileMoveModification(dataFilename));
         }
-        newTransfile.append(line.getLine()).append(System.lineSeparator());
+        newTransfile.append(line.getLine()).append("\n");
         return modifications;
     }
 
@@ -154,16 +159,37 @@ public class ModificationFactory {
         return modifications;
     }
 
-    /* Returns modifications when going to both dataio and posthus
+    /* Returns modifications when going to both dataio and posthus with notifications handled by dataio
      */
-    List<Modification> getParallelModifications(TransFile.Line line) {
+    List<Modification> getParallelWithDataioNotificationsModifications(TransFile.Line line) {
+        final TransFile.Line lineForPosthus = new TransFile.Line(line);
+        lineForPosthus.setField("m", "");
+        lineForPosthus.setField("M", "");
+
         final ArrayList<Modification> modifications = new ArrayList<>();
         modifications.add(getCreateJobModification(line.getLine()));
         final String dataFilename = getDataFilename(line);
         if (!dataFilename.isEmpty()) {
             modifications.add(getFileMoveModification(dataFilename));
         }
-        newTransfile.append(line.getLine()).append(System.lineSeparator());
+        newTransfile.append(lineForPosthus.getLine()).append("\n");
+        return modifications;
+    }
+
+    /* Returns modifications when going to both dataio and posthus with notifications handled by posthus
+     */
+    List<Modification> getParallelWithPosthusNotificationsModifications(TransFile.Line line) {
+        final TransFile.Line lineForDataio = new TransFile.Line(line);
+        lineForDataio.setField("m", "");
+        lineForDataio.setField("M", "");
+
+        final ArrayList<Modification> modifications = new ArrayList<>();
+        modifications.add(getCreateJobModification(lineForDataio.getLine()));
+        final String dataFilename = getDataFilename(line);
+        if (!dataFilename.isEmpty()) {
+            modifications.add(getFileMoveModification(dataFilename));
+        }
+        newTransfile.append(line.getLine()).append("\n");
         return modifications;
     }
 
@@ -174,7 +200,7 @@ public class ModificationFactory {
                 line, transfile.getPath().getFileName().toString(), DUMMY_FILE_STORE_ID, DUMMY_RAW_TRANSFILE);
 
         if(jobSpecification.getSubmitterId() != Constants.MISSING_SUBMITTER_VALUE) {
-            final GatekeeperDestination gatekeeperDestination = new GatekeeperDestination(
+            final GatekeeperDestination gatekeeperDestinationKey = new GatekeeperDestination(
                     0L,      // Will not be compared through equals
                     String.valueOf(jobSpecification.getSubmitterId()),
                     jobSpecification.getDestination(),
@@ -183,9 +209,14 @@ public class ModificationFactory {
                     false,   // Will not be compared through equals
                     false);  // Will not be compared through equals
             final Map<GatekeeperDestination, GatekeeperDestination> gatekeeperDestinationsForDataIo = getGatekeeperDestinationsForDataIo();
-            if (gatekeeperDestinationsForDataIo.containsKey(gatekeeperDestination)) {
-                if (gatekeeperDestinationsForDataIo.get(gatekeeperDestination).isCopyToPosthus()) {
-                    return PARALLEL;
+            if (gatekeeperDestinationsForDataIo.containsKey(gatekeeperDestinationKey)) {
+                final GatekeeperDestination gatekeeperDestination = gatekeeperDestinationsForDataIo.get(gatekeeperDestinationKey);
+                if (gatekeeperDestination.isCopyToPosthus()) {
+                    if (gatekeeperDestination.isNotifyFromPosthus()) {
+                        return PARALLEL_WITH_POSTHUS_NOTIFICATIONS;
+                    } else {
+                        return PARALLEL_WITH_DATAIO_NOTIFICATIONS;
+                    }
                 }
             } else {
                 return POSTHUS_EXCLUSIVE;

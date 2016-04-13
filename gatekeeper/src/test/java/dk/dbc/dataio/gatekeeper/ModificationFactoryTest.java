@@ -111,8 +111,29 @@ public class ModificationFactoryTest {
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfile.getPath().getFileName().toString()));
     }
 
+   @Test
+   public void getModifications_singleParallelWithDataioNotificationsLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+        final String line = "b=danbib,f=820009.file,t=lin,c=latin-1,o=marc2";
+        final TransFile transfile = createTransfile("820009.trans", line + "\nslut");
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
+        final List<Modification> modifications = modificationFactory.getModifications();
+        assertThat("Number of modifications", modifications.size(), is(4));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.MOVE_FILE));
+        assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.CREATE_TRANSFILE));
+        assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.DELETE_FILE));
+
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820009.file"));
+        assertThat("Modification 4 arg", modifications.get(3).getArg(), is(transfile.getPath().getFileName().toString()));
+
+        final String createTransfileArg = modifications.get(2).getArg();
+        assertThat("Transfile contains", createTransfileArg, containsString("M=,b=danbib,c=latin-1,f=820009.file,m=,o=marc2,t=lin\n"));
+        assertThat("Transfile has end marker", createTransfileArg, containsString("slut"));
+    }
+
     @Test
-    public void getModifications_singleParallelLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
+    public void getModifications_singleParallelWithPosthusNotificationsLineWithDatafile_returnsModifications() throws IOException, FlowStoreServiceConnectorException {
         final String line = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
         final TransFile transfile = createTransfile("820010.trans", line + "\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
@@ -123,12 +144,12 @@ public class ModificationFactoryTest {
         assertThat("Modification 3 opcode", modifications.get(2).getOpcode(), is(Opcode.CREATE_TRANSFILE));
         assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.DELETE_FILE));
 
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("M=,b=danbib,c=latin-1,f=820010.file,m=,o=marc2,t=lin"));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
         assertThat("Modification 4 arg", modifications.get(3).getArg(), is(transfile.getPath().getFileName().toString()));
 
         final String createTransfileArg = modifications.get(2).getArg();
-        assertThat("Transfile contains", createTransfileArg, containsString(line + System.lineSeparator()));
+        assertThat("Transfile contains", createTransfileArg, containsString(line + "\n"));
         assertThat("Transfile has end marker", createTransfileArg, containsString("slut"));
     }
 
@@ -150,9 +171,9 @@ public class ModificationFactoryTest {
 
     @Test
     public void getModifications_multipleParallelLines_returnsModifications() throws IOException {
-        final String line1 = "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2";
+        final String line1 = "b=danbib,f=820009.file,t=lin,c=latin-1,o=marc2";
         final String line2 = "b=danbib,t=lin,c=utf-8,o=marc2";
-        final TransFile transfile = createTransfile("820010.trans", line1 + "\n" + line2 + "\nslut");
+        final TransFile transfile = createTransfile("820009.trans", line1 + "\n" + line2 + "\nslut");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(5));
@@ -163,12 +184,16 @@ public class ModificationFactoryTest {
         assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.DELETE_FILE));
 
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line1));
-        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820009.file"));
         assertThat("Modification 3 arg", modifications.get(2).getArg(), is(line2));
         assertThat("Modification 5 arg", modifications.get(4).getArg(), is(transfile.getPath().getFileName().toString()));
 
         final String createTransfileArg = modifications.get(3).getArg();
-        assertThat("Transfile contains", createTransfileArg, containsString(line1 + "\n" + line2 + "\nslut"));
+        assertThat("Transfile contains", createTransfileArg, containsString(
+                "M=,b=danbib,c=latin-1,f=820009.file,m=,o=marc2,t=lin\n" +
+                "M=,b=danbib,c=utf-8,m=,o=marc2,t=lin\n" +
+                "slut"
+        ));
     }
 
     @Test
@@ -185,7 +210,7 @@ public class ModificationFactoryTest {
         assertThat("Modification 4 opcode", modifications.get(3).getOpcode(), is(Opcode.CREATE_TRANSFILE));
         assertThat("Modification 5 opcode", modifications.get(4).getOpcode(), is(Opcode.DELETE_FILE));
 
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is(line1));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("M=,b=danbib,c=latin-1,f=820010.danbib.file,m=,o=marc2,t=lin"));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.danbib.file"));
         assertThat("Modification 3 arg", modifications.get(2).getArg(), is("820010.dfa.file"));
         assertThat("Modification 5 arg", modifications.get(4).getArg(), is(transfile.getPath().getFileName().toString()));
@@ -298,25 +323,49 @@ public class ModificationFactoryTest {
     }
 
     @Test
-    public void getParallelModifications_lineContainsNoDatafile_returnsModifications() throws IOException {
+    public void getParallelWithDataioNotificationsModifications_lineContainsNoDatafile_returnsModifications() throws IOException {
         final TransFile transfile = createTransfile("820010.trans", "b=danbib,t=lin,c=latin-1,o=marc2");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications =
-                modificationFactory.getParallelModifications(transfile.getLines().get(0));
+                modificationFactory.getParallelWithDataioNotificationsModifications(transfile.getLines().get(0));
         assertThat("Number of modifications", modifications.size(), is(1));
         assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("Modification arg", modifications.get(0).getArg(), is(transfile.getLines().get(0).getLine()));
     }
 
     @Test
-    public void getParallelModifications_lineContainsDatafile_returnsModifications() throws IOException {
+    public void getParallelWithDataioNotificationsModifications_lineContainsDatafile_returnsModifications() throws IOException {
         final TransFile transfile = createTransfile("820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
         final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
         final List<Modification> modifications =
-                modificationFactory.getParallelModifications(transfile.getLines().get(0));
+                modificationFactory.getParallelWithDataioNotificationsModifications(transfile.getLines().get(0));
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
         assertThat("Modification 1 arg", modifications.get(0).getArg(), is(transfile.getLines().get(0).getLine()));
+        assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.MOVE_FILE));
+        assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
+    }
+
+    @Test
+    public void getParallelWithPosthusNotificationsModifications_lineContainsNoDatafile_returnsModifications() throws IOException {
+        final TransFile transfile = createTransfile("820010.trans", "b=danbib,t=lin,c=latin-1,o=marc2");
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
+        final List<Modification> modifications =
+                modificationFactory.getParallelWithPosthusNotificationsModifications(transfile.getLines().get(0));
+        assertThat("Number of modifications", modifications.size(), is(1));
+        assertThat("Modification opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
+        assertThat("Modification arg", modifications.get(0).getArg(), is("M=,b=danbib,c=latin-1,m=,o=marc2,t=lin"));
+    }
+
+    @Test
+    public void getParallelWithPosthusNotificationsModifications_lineContainsDatafile_returnsModifications() throws IOException {
+        final TransFile transfile = createTransfile("820010.trans", "b=danbib,f=820010.file,t=lin,c=latin-1,o=marc2");
+        final ModificationFactory modificationFactory = new ModificationFactory(transfile, flowStoreServiceConnector);
+        final List<Modification> modifications =
+                modificationFactory.getParallelWithPosthusNotificationsModifications(transfile.getLines().get(0));
+        assertThat("Number of modifications", modifications.size(), is(2));
+        assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_JOB));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("M=,b=danbib,c=latin-1,f=820010.file,m=,o=marc2,t=lin"));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.MOVE_FILE));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is("820010.file"));
     }
@@ -413,16 +462,27 @@ public class ModificationFactoryTest {
      * Package private methods
      */
     static List<GatekeeperDestination> getGatekeeperDestinationsForTest() {
-        GatekeeperDestination gatekeeperDestinationIsParallel = new GatekeeperDestinationBuilder()
+        final GatekeeperDestination gatekeeperDestinationIsParallelWithDataioNotifications = new GatekeeperDestinationBuilder()
+                .setId(0L)
+                .setSubmitterNumber("820009")
+                .setDestination("danbib")
+                .setPackaging("lin")
+                .setFormat("marc2")
+                .setCopyToPosthus(true)
+                .setNotifyFromPosthus(false)
+                .build();
+
+        final GatekeeperDestination gatekeeperDestinationIsParallelWithPosthusNotifications = new GatekeeperDestinationBuilder()
                 .setId(0L)
                 .setSubmitterNumber("820010")
                 .setDestination("danbib")
                 .setPackaging("lin")
                 .setFormat("marc2")
                 .setCopyToPosthus(true)
+                .setNotifyFromPosthus(true)
                 .build();
 
-        GatekeeperDestination gatekeeperDestinationIsDataioExclusive = new GatekeeperDestinationBuilder()
+        final GatekeeperDestination gatekeeperDestinationIsDataioExclusive = new GatekeeperDestinationBuilder()
                 .setId(0L)
                 .setSubmitterNumber("820011")
                 .setDestination("danbib")
@@ -431,7 +491,10 @@ public class ModificationFactoryTest {
                 .setCopyToPosthus(false)
                 .build();
 
-        return Arrays.asList(gatekeeperDestinationIsParallel, gatekeeperDestinationIsDataioExclusive);
+        return Arrays.asList(
+                gatekeeperDestinationIsParallelWithDataioNotifications,
+                gatekeeperDestinationIsParallelWithPosthusNotifications,
+                gatekeeperDestinationIsDataioExclusive);
     }
 
     /*

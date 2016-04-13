@@ -142,7 +142,7 @@ public class TransFile {
     private void verify() {
         if (isValid) { // only verify if transfile has not already been invalidated
             if (!isComplete) {
-                invalidate("Transfil mangler slut markering");
+                invalidate("Transfil mangler slut-linje");
                 return;
             }
 

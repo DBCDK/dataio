@@ -92,7 +92,7 @@ public class ModificationFactoryTest {
         final List<Modification> modifications = modificationFactory.getModifications();
         assertThat("Number of modifications", modifications.size(), is(2));
         assertThat("Modification 1 opcode", modifications.get(0).getOpcode(), is(Opcode.CREATE_INVALID_TRANSFILE_NOTIFICATION));
-        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Transfil mangler slut markering"));
+        assertThat("Modification 1 arg", modifications.get(0).getArg(), is("Transfil mangler slut-linje"));
         assertThat("Modification 2 opcode", modifications.get(1).getOpcode(), is(Opcode.DELETE_FILE));
         assertThat("Modification 2 arg", modifications.get(1).getArg(), is(transfile.getPath().getFileName().toString()));
     }

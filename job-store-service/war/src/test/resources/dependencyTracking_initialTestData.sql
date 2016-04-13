@@ -1,6 +1,5 @@
 
 delete from job;
-delete from chunk;
 
 -- create som jobs
 insert into job (id, specification, state, flowstorereferences) values (1,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
@@ -15,7 +14,7 @@ $do$
 DECLARE
  _counter int := 0;
 BEGIN
-WHILE _counter < 1000
+WHILE _counter < 10
 LOOP
    insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,_counter,'','{}'::JSON,'{}'::JSON);
    insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (2,_counter,'','{}'::JSON,'{}'::JSON);

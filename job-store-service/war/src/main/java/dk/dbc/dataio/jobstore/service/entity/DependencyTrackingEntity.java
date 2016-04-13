@@ -37,10 +37,10 @@ import java.util.Set;
     classes={
        @ConstructorResult(
             targetClass=dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key.class,
-              columns={
-                 @ColumnResult(name="jobid"),
-                 @ColumnResult(name="chunkid"),
-                 }
+            columns= {
+                    @ColumnResult(name = "jobId"),
+                    @ColumnResult(name = "chunkId"),
+            }
        )
     }
 )
@@ -143,9 +143,9 @@ public class DependencyTrackingEntity {
         /* Private constructor in order to keep class static */
         private Key(){}
 
-        public Key(int chunkId, int jobId) {
-            this.chunkId = chunkId;
+        public Key(int jobId, int chunkId ) {
             this.jobId = jobId;
+            this.chunkId = chunkId;
         }
 
         public int getChunkId() {
@@ -172,9 +172,9 @@ public class DependencyTrackingEntity {
 
         @Override
         public String toString() {
-            return "Key{" +
-                    "chunkId=" + chunkId +
-                    ", jobId=" + jobId +
+            return "DependenT..Key{" +
+                    "jobId=" + jobId +
+                    ", chunkId=" + chunkId +
                     '}';
         }
     }

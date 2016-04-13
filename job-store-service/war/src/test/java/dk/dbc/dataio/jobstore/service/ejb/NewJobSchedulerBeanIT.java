@@ -4,6 +4,7 @@ import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.*;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntityIT;
+import static java.awt.PageAttributes.MediaType.C1;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
@@ -39,11 +40,12 @@ public class NewJobSchedulerBeanIT {
             LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }
         flyway.migrate();
+
+        JPATestUtils.runSqlFromResource(em, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
     }
 
     @Test
     public void findChunksToWaitFor() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
 
         NewJobSchedulerBean bean= new NewJobSchedulerBean();
         bean.entityManager=em;
@@ -56,6 +58,20 @@ public class NewJobSchedulerBeanIT {
 
         assertThat(bean.findChunksToWaitFor( 0, createSet("KK2")), containsInAnyOrder( new Key(1,0), new Key(1,1), new Key(1,2), new Key(1,3) ));
         assertThat(bean.findChunksToWaitFor( 1, createSet("K4", "K6", "C4")), containsInAnyOrder( new Key(2,0), new Key(2,2), new Key(2,4)));
+    }
+
+
+    @Test
+    public void findChunksWaitingForMe() throws Exception {
+
+        NewJobSchedulerBean bean= new NewJobSchedulerBean();
+        bean.entityManager=em;
+
+        assertThat(bean.findChunksWaitingForMe( new Key(1,1)), containsInAnyOrder( new Key(1,1)));
+        assertThat(bean.findChunksWaitingForMe( new Key(0,1)), containsInAnyOrder( new Key(1,1), new Key(2,1)));
+
+        List<Key> res=bean.findChunksWaitingForMe( new Key(3,0) );
+        assertThat(res, containsInAnyOrder( new Key(1,0), new Key(1,1), new Key(1,2), new Key(1,3), new Key(2,0), new Key(2,1), new Key(2,2), new Key(2,3), new Key(2,4)));
     }
 
     // TODO: move to common code some ware

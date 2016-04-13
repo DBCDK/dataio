@@ -4,9 +4,11 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
+import dk.dbc.dataio.jsonb.JSONBException;
 import static org.eclipse.persistence.expressions.ExpressionOperator.Sin;
 
 import javax.ejb.Stateless;
@@ -52,6 +54,13 @@ public class NewJobSchedulerBean {
         Query query=entityManager.createNativeQuery( buildFindChunksToWaitForQuery( sinkId, matchKeys ), "JobIdChunkIdResult");
         List<DependencyTrackingEntity.Key> result=query.getResultList();
         return result;
+    };
+
+
+    List<DependencyTrackingEntity.Key> findChunksWaitingForMe( DependencyTrackingEntity.Key key ) throws JSONBException {
+        String keyAsJson= ConverterJSONBContext.getInstance().marshall(key);
+        Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingon @> '["+ keyAsJson +"]'" , "JobIdChunkIdResult");
+        return query.getResultList();
     };
 
     /**

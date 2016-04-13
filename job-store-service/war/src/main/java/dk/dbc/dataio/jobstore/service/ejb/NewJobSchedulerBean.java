@@ -47,7 +47,7 @@ public class NewJobSchedulerBean {
      * @return
      */
     List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys ) {
-        if( matchKeys.size() == 0 ) return new ArrayList<>();
+        if( matchKeys.isEmpty() ) return new ArrayList<>();
 
         Query query=entityManager.createNativeQuery( buildFindChunksToWaitForQuery( sinkId, matchKeys ), "JobIdChunkIdResult");
         List<DependencyTrackingEntity.Key> result=query.getResultList();

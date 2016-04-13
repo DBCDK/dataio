@@ -40,7 +40,7 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
     private static final String GUIID_HEADER_PANEL = "header-panel";
     private static final String GUIID_CONTENT_PANEL = "content-panel";
 
-    protected T presenter;
+    public T presenter;
     private boolean initialized = false;
     private final HeaderPanel headerPanel = new HeaderPanel(mainConstants.header_DataIO(), GUIID_HEADER_PANEL);
     private final ContentContainerPanel contentPanel = new ContentContainerPanel(GUIID_CONTENT_PANEL);

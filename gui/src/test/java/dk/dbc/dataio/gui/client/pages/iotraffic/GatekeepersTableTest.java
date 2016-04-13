@@ -53,18 +53,20 @@ public class GatekeepersTableTest {
     @Mock ListDataProvider<GatekeeperDestination> mockedDataProvider;
     @Mock List<GatekeeperDestination> mockedGatekeeperList;
     @Mock Texts mockedTexts;
+    @Mock View mockedView;
 
     @Before
     public void setupTexts() {
         when(mockedTexts.label_DoNotCopy()).thenReturn("DoNotCopy");
         when(mockedTexts.label_DoNotNotify()).thenReturn("DoNotNotify");
+        when(mockedTexts.button_Delete()).thenReturn("ButtonDelete");
     }
 
 
     @Test
     public void constructor_noData_emptyOk() {
         // Subject under test
-        GatekeepersTable gatekeepersTable = new GatekeepersTable();
+        GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
 
         // Verify Test
         assertThat(gatekeepersTable.getRowCount(), is(0));
@@ -73,7 +75,7 @@ public class GatekeepersTableTest {
     @Test
     public void constructor_data_dataOk() {
         // Prepare test
-        GatekeepersTable gatekeepersTable = new GatekeepersTable();
+        GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
         gatekeepersTable.dataProvider = mockedDataProvider;
         when(mockedDataProvider.getList()).thenReturn(mockedGatekeeperList);
         List<GatekeeperDestination> gatekeeperDestinationList = new ArrayList<>();
@@ -102,16 +104,17 @@ public class GatekeepersTableTest {
                 setCopyToPosthus(false).build();
 
         // Subject Under Test
-        GatekeepersTable gatekeepersTable = new GatekeepersTable();
+        GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
         gatekeepersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(gatekeepersTable.getColumnCount(), is(6));
+        assertThat(gatekeepersTable.getColumnCount(), is(7));
         assertThat(gatekeepersTable.getColumn(0).getValue(gatekeeper), is("11"));
         assertThat(gatekeepersTable.getColumn(1).getValue(gatekeeper), is("pa"));
         assertThat(gatekeepersTable.getColumn(2).getValue(gatekeeper), is("fo"));
         assertThat(gatekeepersTable.getColumn(3).getValue(gatekeeper), is("de"));
         assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is("DoNotCopy"));
         assertThat(gatekeepersTable.getColumn(5).getValue(gatekeeper), is("DoNotNotify"));
+        assertThat(gatekeepersTable.getColumn(6).getValue(gatekeeper), is("ButtonDelete"));
     }
 }

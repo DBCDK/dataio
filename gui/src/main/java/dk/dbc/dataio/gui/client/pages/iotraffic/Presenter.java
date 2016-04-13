@@ -31,4 +31,5 @@ public interface Presenter extends GenericPresenter {
     void copyChanged(Boolean copy);
     void notifyChanged(Boolean notify);
     void addButtonPressed();
+    void deleteButtonPressed(long gatekeeperId);
 }

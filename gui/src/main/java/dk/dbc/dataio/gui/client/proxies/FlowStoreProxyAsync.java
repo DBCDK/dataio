@@ -23,7 +23,6 @@ package dk.dbc.dataio.gui.client.proxies;
 
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
-import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
@@ -75,8 +74,8 @@ public interface FlowStoreProxyAsync {
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);
     void findAllGatekeeperDestinations(AsyncCallback<List<GatekeeperDestination>> async);
-    void deleteGatekeeperDestination(long id, AsyncCallback<Void> async) throws ProxyException;
-    void updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async) throws ProxyException;
+    void deleteGatekeeperDestination(long id, AsyncCallback<Void> async);
+    void updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);
 
     // Other
     void close(AsyncCallback<Void> async);

@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
@@ -36,12 +38,14 @@ import java.util.List;
 public class GatekeepersTable extends CellTable {
     ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
     Texts texts = viewGinjector.getTexts();
+    View view;
     ListDataProvider<GatekeeperDestination> dataProvider;
 
     /**
      * Constructor
      */
-    public GatekeepersTable() {
+    public GatekeepersTable(View view) {
+        this.view = view;
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
 
@@ -51,6 +55,7 @@ public class GatekeepersTable extends CellTable {
         addColumn(constructDestinationColumn(), texts.label_Destination());
         addColumn(constructCopyColumn(), texts.label_Copy());
         addColumn(constructNotifyColumn(), texts.label_Notify());
+        addColumn(constructActivityColumn(), texts.label_Action());
     }
 
     /**
@@ -63,10 +68,10 @@ public class GatekeepersTable extends CellTable {
         dataProvider.getList().addAll(gatekeepers);
     }
 
-
     /*
      * Local methods
      */
+
 
     private Column constructSubmitterColumn() {
         return new TextColumn<GatekeeperDestination>() {
@@ -120,6 +125,22 @@ public class GatekeepersTable extends CellTable {
                 return gatekeeper.isNotifyFromPosthus() ? texts.label_DoNotify() : texts.label_DoNotNotify();
             }
         };
+    }
+
+    private Column constructActivityColumn() {
+        Column column = new Column<GatekeeperDestination, String>(new ButtonCell()) {
+            @Override
+            public String getValue(GatekeeperDestination object) {
+                return texts.button_Delete();
+            }
+        };
+        column.setFieldUpdater(new FieldUpdater<GatekeeperDestination, String>() {
+            @Override
+            public void update(int index, GatekeeperDestination gatekeeperDestination, String buttonText) {
+                view.presenter.deleteButtonPressed(gatekeeperDestination.getId());
+            }
+        });
+        return column;
     }
 
 }

@@ -57,7 +57,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     public View() {
         super("");
-        gatekeepersTable = new GatekeepersTable();
+        gatekeepersTable = new GatekeepersTable(this);
         add(uiBinder.createAndBindUi(this));
     }
 

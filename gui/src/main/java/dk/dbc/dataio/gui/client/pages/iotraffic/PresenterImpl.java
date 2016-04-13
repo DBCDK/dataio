@@ -125,6 +125,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
     }
 
+    @Override
+    public void deleteButtonPressed(long gatekeeperId) {
+        flowStoreProxy.deleteGatekeeperDestination(gatekeeperId, new DeleteGatekeeperDestinationCallback());
+    }
+
 
     /*
      * Local methods
@@ -180,6 +185,18 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
             getView().setGatekeepers(gatekeeperDestinations);
         }
     }
+
+    class DeleteGatekeeperDestinationCallback implements AsyncCallback<Void> {
+        @Override
+        public void onFailure(Throwable caught) {
+            getView().displayWarning(getTexts().error_CannotDeleteGatekeeperDestination());
+        }
+        @Override
+        public void onSuccess(Void result) {
+            initializeData();
+        }
+    }
+
 }
 
 

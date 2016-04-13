@@ -31,7 +31,12 @@ import static org.junit.Assert.assertThat;
 public class TransFileLineTest {
     @Test(expected = NullPointerException.class)
     public void constructor_lineArgIsNull_throws() {
-        new TransFile.Line(null);
+        new TransFile.Line((String) null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void copyConstructor_lineArgIsNull_throws() {
+        new TransFile.Line((TransFile.Line) null);
     }
 
     @Test(expected = IllegalArgumentException.class)

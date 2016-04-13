@@ -40,7 +40,7 @@ public class TransFileTest {
 
     @Test(expected = NullPointerException.class)
     public void constructor_transfileArgIsNull_throws() throws IOException {
-        new TransFile((Path) null);
+        new TransFile(null);
     }
 
     @Test
@@ -63,30 +63,6 @@ public class TransFileTest {
         assertThat("Transfile is complete", transFile.isComplete(), is(true));
         assertThat("Transfile is valid", transFile.isValid(), is(true));
     }
-
-    @Test(expected = NullPointerException.class)
-    public void stringConstructor_transfileContentArgIsNull_throws() throws IOException {
-        new TransFile((String) null);
-    }
-
-    @Test
-    public void stringConstructor() {
-        final String line1 = "b=base1,f=file1";
-        final String line2 = "b=base2,f=file2";
-        final StringBuilder content = new StringBuilder()
-                .append(line1).append("\n")
-                .append(line2).append("\n")
-                .append("slut");
-        final TransFile transFile = new TransFile(content.toString());
-        assertThat("Number of transfile lines", transFile.getLines().size(), is(2));
-        assertThat("Transfile line 1", transFile.getLines().get(0).getLine(), is(line1));
-        assertThat("Transfile line 2", transFile.getLines().get(1).getLine(), is(line2));
-        assertThat("Transfile is complete", transFile.isComplete(), is(true));
-        assertThat("Transfile is valid", transFile.isValid(), is(true));
-        assertThat("Transfile path", transFile.getPath().getFileName().toString(), is("__inline__"));
-        assertThat("Transfile exists", transFile.exists(), is(false));
-    }
-
 
     @Test
     public void isComplete_transfileIsNotComplete_returnsFalse() throws IOException {

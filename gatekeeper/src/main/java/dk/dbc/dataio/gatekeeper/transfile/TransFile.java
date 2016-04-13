@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -68,19 +67,6 @@ public class TransFile {
             } catch (IOException e) {
                 invalidate("Trans fil kunne ikke læses: " + e.getMessage());
             }
-        }
-    }
-
-    /**
-     * Return new transfile representation
-     * @param transfileContent transfile content
-     * @throws NullPointerException if given null-valued transfile content
-     */
-    public TransFile(String transfileContent) throws NullPointerException {
-        InvariantUtil.checkNotNullOrThrow(transfileContent, "transfileContent");
-        path = Paths.get("__inline__");
-        try (final Scanner stringScanner = new Scanner(transfileContent)) {
-            parse(stringScanner);
         }
     }
 
@@ -183,6 +169,11 @@ public class TransFile {
         public Line(String line) throws NullPointerException, IllegalArgumentException {
             this.line = InvariantUtil.checkNotNullNotEmptyOrThrow(line, "line");
             parse();
+        }
+
+        /* Copy constructor */
+        public Line(Line line) throws NullPointerException {
+            this(line.getLine());
         }
 
         /**

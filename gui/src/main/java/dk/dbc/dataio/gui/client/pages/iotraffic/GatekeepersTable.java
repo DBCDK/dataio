@@ -43,6 +43,8 @@ public class GatekeepersTable extends CellTable {
 
     /**
      * Constructor
+     *
+     * @param view The owner view for this Gatekeeper Table
      */
     public GatekeepersTable(View view) {
         this.view = view;

@@ -36,19 +36,19 @@ public final class TrackingIdGenerator {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TrackingIdGenerator.class);
     private static String ipAddress;
-    private static final String separator = "-";
+    private static final String SEPARATOR = "-";
     static{
         try {
             //the raw IP address in a string format.
             ipAddress = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException e) {
             ipAddress = UUID.randomUUID().toString();
-            LOGGER.info("IP address of host could not be determined. Using immutable universally unique identifier with value: {}", ipAddress, e);
+            LOGGER.warn("IP address of host could not be determined. Using immutable universally unique identifier with value: {}", ipAddress, e);
         }
     }
 
     public static String getTrackingId(int jobId, int chunkId, short itemId) {
-        return ipAddress + separator + jobId + separator + chunkId + separator + itemId;
+        return ipAddress + SEPARATOR + jobId + SEPARATOR + chunkId + SEPARATOR + itemId;
     }
 
 }

@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
@@ -93,6 +92,8 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 
 /**
  * Created by ThomasBerg @LundOgBendsen on 02/09/15.
@@ -648,7 +649,7 @@ public class PgJobStoreRepository extends RepositoryBase {
 
                 final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
                 String trackingId = chunkItem.getTrackingId();
-                if(trackingId == null || trackingId.isEmpty()) {
+                if(trackingId == null || trackingId.trim().isEmpty()) {
                     // Generate dataio specific tracking id
                     trackingId = TrackingIdGenerator.getTrackingId(jobId, chunkId, itemCounter);
                     chunkItem.setTrackingId(trackingId);

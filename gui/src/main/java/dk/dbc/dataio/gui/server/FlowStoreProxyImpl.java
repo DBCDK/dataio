@@ -552,6 +552,30 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return destinations;
     }
 
+    @Override
+    public void deleteGatekeeperDestination(long id) throws ProxyException {
+        final String callerMethodName = "deleteGatekeeperDestination";
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            flowStoreServiceConnector.deleteGatekeeperDestination(id);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
+    @Override
+    public GatekeeperDestination updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws ProxyException {
+        final String callerMethodName = "updateGatekeeperDestination";
+        GatekeeperDestination updatedGatekeeperDestination = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            updatedGatekeeperDestination = flowStoreServiceConnector.updateGatekeeperDestination(gatekeeperDestination);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return updatedGatekeeperDestination;
+    }
+
 
     /*
      * Other

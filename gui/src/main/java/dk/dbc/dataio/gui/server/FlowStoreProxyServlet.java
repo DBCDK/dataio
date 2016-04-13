@@ -221,6 +221,16 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
         return flowStoreProxy.findAllGatekeeperDestinations();
     }
 
+    @Override
+    public void deleteGatekeeperDestination(long id) throws ProxyException {
+        flowStoreProxy.deleteGatekeeperDestination(id);
+    }
+
+    @Override
+    public GatekeeperDestination updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws ProxyException {
+        return flowStoreProxy.updateGatekeeperDestination(gatekeeperDestination);
+    }
+
 
     /*
      * Other

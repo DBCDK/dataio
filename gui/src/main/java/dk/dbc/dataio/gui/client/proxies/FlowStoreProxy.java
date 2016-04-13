@@ -81,6 +81,8 @@ public interface FlowStoreProxy extends RemoteService {
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;
     List<GatekeeperDestination> findAllGatekeeperDestinations() throws ProxyException;
+    void deleteGatekeeperDestination(long id) throws ProxyException;
+    GatekeeperDestination updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws ProxyException;
 
     // Other
     void close();

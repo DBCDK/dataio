@@ -1823,6 +1823,128 @@ public class FlowStoreProxyImplTest {
     }
 
 
+    /*
+     * Test deleteGatekeeperDestination
+     */
+
+    @Test
+    public void deleteGatekeeperDestination_remoteServiceReturnsHttpStatusNoContent() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        try {
+            flowStoreProxy.deleteGatekeeperDestination(ID);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: deleteGatekeeperDestination()");
+        }
+    }
+
+    @Test
+    public void deleteGatekeeperDestination_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        deleteGatekeeperDestination_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void deleteGatekeeperDestination_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        deleteGatekeeperDestination_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void deleteGatekeeperDestination_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        deleteGatekeeperDestination_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    private void deleteGatekeeperDestination_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        doThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("msg", errorCodeToReturn)).when(flowStoreServiceConnector).deleteGatekeeperDestination(eq(ID));
+        try {
+            flowStoreProxy.deleteGatekeeperDestination(ID);
+            fail("No " + expectedErrorName + " error was thrown by deleteGatekeeperDestination()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
+     * Test updateGatekeeperDestination
+     */
+
+    @Test
+    public void updateGatekeeperDestination_remoteServiceReturnsHttpStatusOk_returnsGatekeeperDestination() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final GatekeeperDestination initialGatekeeperDestination = new GatekeeperDestinationBuilder().setId(ID).build();
+        final GatekeeperDestination newGatekeeperDestination = new GatekeeperDestinationBuilder().setId(ID).build();
+        when(flowStoreServiceConnector.updateGatekeeperDestination(initialGatekeeperDestination)).thenReturn(newGatekeeperDestination);
+        try {
+            final GatekeeperDestination updatedGatekeeperDestination = flowStoreProxy.updateGatekeeperDestination(newGatekeeperDestination);
+            assertNotNull(updatedGatekeeperDestination);
+            assertThat(updatedGatekeeperDestination, is(newGatekeeperDestination));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: updatedGatekeeperDestination()");
+        }
+    }
+
+    @Test
+    public void updateGatekeeperDestination_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        updateGatekeeperDestination_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void updateGatekeeperDestination_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        updateGatekeeperDestination_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void updateGatekeeperDestination_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        updateGatekeeperDestination_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void updateGatekeeperDestination_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        updateGatekeeperDestination_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void updateGatekeeperDestination_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().setId(ID).build();
+        updateGatekeeperDestination_testForProxyError(gatekeeperDestination, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void updateGatekeeperDestination_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final GatekeeperDestination gatekeeperDestination = new GatekeeperDestinationBuilder().setId(ID).build();
+
+        when(flowStoreServiceConnector.updateGatekeeperDestination(gatekeeperDestination))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+        try {
+            flowStoreProxy.updateGatekeeperDestination(gatekeeperDestination);
+            fail("No " + expectedErrorName + " error was thrown by updateGatekeeperDestination()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void updateGatekeeperDestination_testForProxyError(GatekeeperDestination gatekeeperDestination, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        when(flowStoreServiceConnector.updateGatekeeperDestination(gatekeeperDestination)).thenThrow(exception);
+
+        try {
+            flowStoreProxy.updateGatekeeperDestination(gatekeeperDestination);
+            fail("No " + expectedErrorName + " error was thrown by updateGatekeeperDestination()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
 
     // Private methods
 

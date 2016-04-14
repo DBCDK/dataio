@@ -100,10 +100,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     public void copyChanged(Boolean copy) {
         this.copy = copy;
         if (copy) {
-            getView().notify.setVisible(true);
+            getView().notify.setEnabled(true);
         } else {
             this.notify = false;
-            getView().notify.setVisible(false);
+            getView().notify.setEnabled(false);
             getView().notify.setValue(false);
         }
     }
@@ -156,7 +156,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().copy.setValue(false);
         notify = false;
         getView().notify.setValue(false);
-        getView().notify.setVisible(false);
+        getView().notify.setEnabled(false);
         flowStoreProxy.findAllGatekeeperDestinations(new FindAllGateKeeperDestinationsCallback());
     }
 

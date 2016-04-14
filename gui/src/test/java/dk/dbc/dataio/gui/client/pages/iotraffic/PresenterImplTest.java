@@ -385,7 +385,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedDestination).clearText();
         verify(mockedCopy).setValue(false);
         verify(mockedNotify).setValue(false);
-        verify(mockedNotify).setVisible(false);
+        verify(mockedNotify).setEnabled(false);
         verify(presenterImpl.flowStoreProxy).findAllGatekeeperDestinations(any(PresenterImpl.FindAllGateKeeperDestinationsCallback.class));
         verifyNoMoreInteractions(mockedSubmitter);
         verifyNoMoreInteractions(mockedPackaging);

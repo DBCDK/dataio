@@ -40,6 +40,7 @@ import java.util.List;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -241,6 +242,24 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void deleteButtonPressed_validData_callFlowStore() {
+        // Prepare Test
+        presenterImpl = setupPresenter();
+
+        // Subject Under Test
+        presenterImpl.deleteButtonPressed(123L);
+
+        // Verify Test
+        verify(presenterImpl.flowStoreProxy).deleteGatekeeperDestination(
+                eq(123L),
+                any(PresenterImpl.DeleteGatekeeperDestinationCallback.class)
+        );
+        verifyNoMoreInteractions(presenterImpl.flowStoreProxy);
+        verifyNoMoreInteractions(mockedTexts);
+        verifyNoMoreInteractions(mockedView);
+    }
+
+    @Test
     public void createGatekeeperDestinationCallback_callOnFailure_displayWarning() {
         // Prepare Test
         presenterImpl = new PresenterImpl("Header Text");
@@ -307,6 +326,39 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).setGatekeepers(gatekeeperDestinations);
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
+    }
+
+    @Test
+    public void deleteGatekeeperDestinationCallback_callOnFailure_displayWarning() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+        PresenterImpl.DeleteGatekeeperDestinationCallback callback = presenterImpl.new DeleteGatekeeperDestinationCallback();
+        when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
+        when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
+
+        // Subject Under Test
+        callback.onFailure(mockedThrowable);
+
+        // Verify Test
+        verify(mockedTexts).error_CannotDeleteGatekeeperDestination();
+        verify(mockedView).displayWarning(any(String.class));
+        verifyNoMoreInteractions(mockedTexts);
+        verifyNoMoreInteractions(mockedView);
+    }
+
+    @Test
+    public void deleteGatekeeperDestinationCallback_callOnSucces_initializeData() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+        PresenterImpl.DeleteGatekeeperDestinationCallback callback = presenterImpl.new DeleteGatekeeperDestinationCallback();
+        when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
+        when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
+
+        // Subject Under Test
+        callback.onSuccess(null);
+
+        // Verify Test
+        verifyInitializeDataMethodCall();
     }
 
 

@@ -131,9 +131,6 @@ public interface Texts extends Constants {
     String tab_JobNotification();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String tab_ItemDiagnostic();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_JavascriptLog();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -147,6 +144,9 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_NextOutputPost();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String tab_ItemDiagnostic();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String tab_Note();
@@ -178,10 +178,14 @@ public interface Texts extends Constants {
     String promptJobInfo_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_JobCreationTime();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_JobCompletionTime();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String promptJobInfo_JobCreationTime();
+    String promptJobInfo_Filestore();
+
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_ExportLinksHeader();
@@ -194,6 +198,7 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_ExportLinkItemFailedInDelivering();
+
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_AncestryTransFile();

@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PromptedAnchor;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 
 public class JobInfoTabContent extends Composite {
@@ -57,6 +58,7 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel exportLinkItemsFailedInPartitioning;
     @UiField PromptedLabel exportLinkItemsFailedInProcessing;
     @UiField PromptedLabel exportLinkItemsFailedInDelivering;
+    @UiField PromptedAnchor fileStore;
     @UiField HTMLPanel ancestrySection;
     @UiField PromptedLabel ancestryTransFile;
     @UiField PromptedLabel ancestryDataFile;

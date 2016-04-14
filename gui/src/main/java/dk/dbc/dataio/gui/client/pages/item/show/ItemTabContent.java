@@ -70,6 +70,7 @@ public class ItemTabContent extends HTML{
      */
     private String formatXml(String data) {
         data = data.replace("\t", NBSP);
+        data = data.replace("/\n/g", "<br />");
         data = data.replace("&amp;", AMP);
         SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder().appendEscapedLines(data);
         return safeHtmlBuilder.toSafeHtml().asString();

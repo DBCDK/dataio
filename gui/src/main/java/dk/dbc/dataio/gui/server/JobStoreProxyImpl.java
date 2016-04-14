@@ -401,41 +401,44 @@ public class JobStoreProxyImpl implements JobStoreProxy {
      */
     static String format(String xmlString) {
         String formattedString = xmlString;
+
         // Might be xml alike and should be displayed as xml even though the xml string starts with a number...
         // check for the xmlns attribute.
         if(xmlString.contains("xmlns") || xmlString.contains("?xml")) {
-            /* Remove new lines */
-            final String LINE_BREAK = "\n";
-            xmlString = xmlString.replaceAll(LINE_BREAK, "");
-            StringBuffer prettyPrintXml = new StringBuffer();
+            final String lineBreak = System.lineSeparator();
+            final String empty = "";
+            final StringBuffer prettyPrintXml = new StringBuffer();
+
             /* Group the xml tags */
             Pattern pattern = Pattern.compile("(<[^/][^>]+>)?([^<]*)(</[^>]+>)?(<[^/][^>]+/>)?");
             Matcher matcher = pattern.matcher(xmlString);
             int tabCount = 0;
             while (matcher.find()) {
-                String str1 = null == matcher.group(1) || "null".equals(matcher.group()) ? "" : matcher.group(1);
-                String str2 = null == matcher.group(2) || "null".equals(matcher.group()) ? "" : matcher.group(2);
-                String str3 = null == matcher.group(3) || "null".equals(matcher.group()) ? "" : matcher.group(3);
-                String str4 = null == matcher.group(4) || "null".equals(matcher.group()) ? "" : matcher.group(4);
+                String str1 = null == matcher.group(1) || "null".equals(matcher.group()) ? empty : matcher.group(1);
+                String str2 = null == matcher.group(2) || "null".equals(matcher.group()) ? empty : matcher.group(2);
+                String str3 = null == matcher.group(3) || "null".equals(matcher.group()) ? empty : matcher.group(3);
+                String str4 = null == matcher.group(4) || "null".equals(matcher.group()) ? empty : matcher.group(4);
 
-                if (matcher.group() != null && !matcher.group().trim().equals("")) {
+                if (matcher.group() != null && !matcher.group().trim().equals(empty)) {
                     printTabs(tabCount, prettyPrintXml);
-                    if (!str1.equals("") && str3.equals("")) {
+                    if (!str1.equals(empty) && str3.equals(empty)) {
                         ++tabCount;
                     }
-                    if (str1.equals("") && !str3.equals("")) {
+                    if (str1.equals(empty) && !str3.equals(empty)) {
                         --tabCount;
                         prettyPrintXml.deleteCharAt(prettyPrintXml.length() - 1);
                     }
                     prettyPrintXml.append(str1);
                     prettyPrintXml.append(str2);
                     prettyPrintXml.append(str3);
-                    if (!str4.equals("")) {
-                        prettyPrintXml.append(LINE_BREAK);
+                    if (!str4.equals(empty)) {
+                        prettyPrintXml.append(lineBreak);
                         printTabs(tabCount, prettyPrintXml);
                         prettyPrintXml.append(str4);
                     }
-                    prettyPrintXml.append(LINE_BREAK);
+                    if (!str2.equals(lineBreak)){
+                        prettyPrintXml.append(lineBreak);
+                    }
                 }
             }
             formattedString = prettyPrintXml.toString();

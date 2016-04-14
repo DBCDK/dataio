@@ -146,11 +146,32 @@ public class ChunkItemProcessor {
     }
 
     private String getAddiRecordMessage(AddiStatus addiStatus) {
-        final String itemResultTemplate = "Addi record with trackingID %s : %s out of %s -> %s \\n";
+        final String itemResultTemplate = "Addi record with trackingID %s : %s out of %s -> %s\n";
         return String.format(itemResultTemplate, chunkItem.getTrackingId(), addiRecordIndex, totalNumberOfAddiRecords, addiStatus);
     }
 
     private String getItemContentCrossAddiRecords() {
-        return this.crossAddiRecordsMessage.toString();
+        if(!diagnostics.isEmpty()) {
+            appendDiagnosticsContentToCrossAddiRecordsMessage();
+        }
+        return crossAddiRecordsMessage.toString();
+    }
+
+    private void appendDiagnosticsContentToCrossAddiRecordsMessage() {
+        crossAddiRecordsMessage.append(System.lineSeparator());
+        for(Diagnostic diagnostic : diagnostics) {
+            if(diagnostic.getStacktrace() != null) {
+                crossAddiRecordsMessage.append(diagnostic.getMessage());
+            } else {
+                crossAddiRecordsMessage.append("e01 00 *a").append(diagnostic.getMessage());
+                if (diagnostic.getTag() != null) {
+                    crossAddiRecordsMessage.append("*b").append(diagnostic.getTag());
+                    if (diagnostic.getAttribute() != null) {
+                        crossAddiRecordsMessage.append("*c").append(diagnostic.getAttribute());
+                    }
+                }
+            }
+            crossAddiRecordsMessage.append(System.lineSeparator());
+        }
     }
 }

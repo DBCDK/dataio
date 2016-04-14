@@ -94,8 +94,10 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
         // Verification
         assertNotNull(chunkItemForDelivery);
+        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
         assertEquals("Expected status OK", chunkItemForDelivery.getStatus(), ChunkItem.Status.SUCCESS);
-        assertFalse(asString(chunkItemForDelivery.getData()).contains("errorMessages"));
+        assertFalse(chunkItemDataAsString.contains("errorMessages"));
+        assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
         assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
         assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
@@ -111,10 +113,11 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         final ChunkItem chunkItemForDelivery = newChunkItemProcessor().processForQueueProvider(queueProvider);
 
         // Verification
-        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
         assertNotNull(chunkItemForDelivery);
+        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
         assertTrue(chunkItemDataAsString.contains("message"));
+        assertTrue(chunkItemDataAsString.contains("e01 00 *a"));
         assertTrue(StringUtils.countMatches(chunkItemDataAsString, "<message>") == 3);
         assertThat(chunkItemForDelivery.getDiagnostics(), is(notNullValue()));
         assertThat(chunkItemForDelivery.getDiagnostics().size(), is(3));
@@ -132,8 +135,10 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
         // Verification
         assertNotNull(chunkItemForDelivery);
+        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
         assertEquals("Expected status FAILURE", chunkItemForDelivery.getStatus(), ChunkItem.Status.FAILURE);
-        assertTrue(asString(chunkItemForDelivery.getData()).contains("FAILED_STACKTRACE"));
+        assertTrue(chunkItemDataAsString.contains("FAILED_STACKTRACE"));
+        assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
         assertThat(chunkItemForDelivery.getDiagnostics().size(), is(1));
         assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
     }
@@ -149,9 +154,11 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
         // Verification
         assertNotNull(chunkItemForDelivery);
+        String chunkItemDataAsString = asString(chunkItemForDelivery.getData());
         assertEquals("Expected status OK", chunkItemForDelivery.getStatus(), ChunkItem.Status.SUCCESS);
-        assertFalse(asString(chunkItemForDelivery.getData()).contains("errorMessages"));
-        assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
+        assertFalse(chunkItemDataAsString.contains("errorMessages"));
+        assertTrue(chunkItemDataAsString.contains("OK"));
+        assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
         verify(mockedOpenUpdateServiceConnector, times(3)).updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString());
         assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));

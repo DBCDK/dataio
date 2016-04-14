@@ -25,10 +25,6 @@
     <servlet-class>dk.dbc.dataio.gui.server.FlowStoreProxyServlet</servlet-class>
   </servlet>
   <servlet>
-    <servlet-name>SinkServiceProxyServlet</servlet-name>
-    <servlet-class>dk.dbc.dataio.gui.server.SinkServiceProxyServlet</servlet-class>
-  </servlet>
-  <servlet>
     <servlet-name>JavaScriptProjectFetcher</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.JavaScriptProjectFetcherServlet</servlet-class>
   </servlet>
@@ -48,10 +44,6 @@
   <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/FlowStoreProxy</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>SinkServiceProxyServlet</servlet-name>
-    <url-pattern>/dk.dbc.dataio.gui.Main/SinkServiceProxy</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>JavaScriptProjectFetcher</servlet-name>

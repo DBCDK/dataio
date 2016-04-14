@@ -30,7 +30,6 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.model.PingResponseModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
@@ -155,7 +154,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         } else if (!model.getDataioPatternMatches().isEmpty()) {
             getView().setErrorText(getTexts().error_NameFormatValidationError());
         } else {
-            doPingAndSaveSink();
+            saveModel();
         }
     }
 
@@ -208,10 +207,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.queueProviders.clear();
         view.queueProviders.setEnabled(false);
         view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
-    }
-
-    private void doPingAndSaveSink() {
-        viewInjector.getSinkServiceProxyAsync().ping(model, new PingSinkServiceFilteredAsyncCallback());
     }
 
     /**
@@ -273,22 +268,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             getView().status.setText(getTexts().status_SinkSuccessfullySaved());
             setSinkModel(model);
             History.back();
-        }
-    }
-
-    class PingSinkServiceFilteredAsyncCallback extends FilteredAsyncCallback<PingResponseModel> {
-        @Override
-        public void onFilteredFailure(Throwable caught) {
-            getView().setErrorText(getTexts().error_PingCommunicationError());
-        }
-
-        @Override
-        public void onSuccess(PingResponseModel result) {
-            if (result.getStatus() == PingResponseModel.Status.OK) {
-                saveModel();
-            } else {
-                getView().setErrorText(getTexts().error_ResourceNameNotValid());
-            }
         }
     }
 

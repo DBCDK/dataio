@@ -37,6 +37,7 @@ import com.google.gwt.view.client.Range;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
+import dk.dbc.dataio.gui.client.components.PromptedAnchor;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -120,6 +121,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedLabel mockedExportLinkItemFailedInPartitioning;
     @Mock PromptedLabel mockedExportLinkItemFailedInProcessing;
     @Mock PromptedLabel mockedExportLinkItemFailedInDelivering;
+    @Mock PromptedAnchor mockedFileStore;
     @Mock HTMLPanel mockedAncestrySection;
     @Mock PromptedLabel mockedAncestryTransFile;
     @Mock PromptedLabel mockedAncestryDataFile;
@@ -187,6 +189,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.exportLinkItemsFailedInProcessing = mockedExportLinkItemFailedInProcessing;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInDelivering = mockedExportLinkItemFailedInDelivering;
         mockedView.jobInfoTabContent.ancestrySection = mockedAncestrySection;
+        mockedView.jobInfoTabContent.fileStore = mockedFileStore;
         mockedView.jobInfoTabContent.ancestryTransFile = mockedAncestryTransFile;
         mockedView.jobInfoTabContent.ancestryDataFile = mockedAncestryDataFile;
         mockedView.jobInfoTabContent.ancestryBatchId = mockedAncestryBatchId;
@@ -356,6 +359,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
         Texts getTexts() {
             return mockedText;
         }
+
+        void setUrlDataioFilestoreRs(String url) {
+            urlDataioFilestoreRs = url;
+        }
     }
 
     // Test Data
@@ -393,6 +400,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setDataFileAncestry("datafile ancestry")
             .setBatchIdAncestry("batch id ancestry")
             .setDetailsAncestry("details ancestry")
+            .setDataFile("data:file:83")
             .build();
 
     private JobModel testJobModelFailed = new JobModelBuilder()
@@ -416,6 +424,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setMailForNotificationAboutProcessing("mailProcessingA")
             .setResultMailInitials("resultMailInitialsA")
             .setType(JobModel.Type.TEST)
+            .setDataFile("data:file:83")
             .build();
 
     private JobModel testJobModelIgnored = new JobModelBuilder()
@@ -440,6 +449,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setResultMailInitials("resultMailInitialsA")
             .setType(JobModel.Type.PERSISTENT)
             .setWorkflowNoteModel(workflowNoteModel)
+            .setDataFile("data:file:83")
             .build();
 
     private JobModel testJobModelIgnored2 = new JobModelBuilder()
@@ -466,6 +476,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             .setResultMailInitials("resultMailInitialsB")
             .setType(JobModel.Type.ACCTEST)
             .setWorkflowNoteModel(workflowNoteModel)
+            .setDataFile("data:file:83")
             .build();
 
     private List<JobModel> testJobModelsEmpty = new ArrayList<>();
@@ -1018,6 +1029,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImplConcrete();
         presenterImpl.jobId = "1234";
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
+        presenterImpl.setUrlDataioFilestoreRs("filestore/url");
 
         // Test Subject Under Test
         presenterImpl.getJobsCallback.onSuccess(testJobModelsFailed);
@@ -1034,6 +1046,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
         verify(mockedJobCreationTime).setText("2015-08-13 14:56:11");
         verify(mockedJobCompletionTime).setText(EMPTY);
+        verify(mockedFileStore).setHref("filestore/url/files/83");
+        verify(mockedFileStore).setVisible(true);
         verifyHideExportLinks();
         verify(mockedType).setText(JobSpecification.Type.TEST.name());
         verify(mockedTabBar, times(2)).getTab(ViewWidget.ALL_ITEMS_TAB_INDEX);
@@ -1407,7 +1421,91 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     }
 
-    //Private methods
+    @Test
+    public void setFileStoreUrl_nullAnchor_doNothing() {
+        setupPresenterImplConcrete();
+        presenterImpl.setUrlDataioFilestoreRs("url");
+        final JobModel model = new JobModelBuilder().setDataFile(null).build();
+
+        // Test Subject Under Test
+        presenterImpl.setFileStoreUrl(null, model);
+
+        // Verify Test
+        verifyNoMoreInteractions(mockedFileStore);
+    }
+
+    @Test
+    public void setFileStoreUrl_nullJobModel_setLinkInvisible() {
+        setupPresenterImplConcrete();
+        presenterImpl.setUrlDataioFilestoreRs("url");
+
+        // Test Subject Under Test
+        presenterImpl.setFileStoreUrl(mockedFileStore, null);
+
+        // Verify Test
+        verify(mockedFileStore).setVisible(false);
+        verifyNoMoreInteractions(mockedFileStore);
+    }
+
+    @Test
+    public void setFileStoreUrl_nullDataFile_setLinkInvisible() {
+        setupPresenterImplConcrete();
+        presenterImpl.setUrlDataioFilestoreRs("url");
+        final JobModel model = new JobModelBuilder().setDataFile(null).build();
+
+        // Test Subject Under Test
+        presenterImpl.setFileStoreUrl(mockedFileStore, model);
+
+        // Verify Test
+        verify(mockedFileStore).setVisible(false);
+        verifyNoMoreInteractions(mockedFileStore);
+    }
+
+    @Test
+    public void setFileStoreUrl_emptyDataFile_setLinkInvisible() {
+        setupPresenterImplConcrete();
+        presenterImpl.setUrlDataioFilestoreRs("url");
+        final JobModel model = new JobModelBuilder().setDataFile("").build();
+
+        // Test Subject Under Test
+        presenterImpl.setFileStoreUrl(mockedFileStore, model);
+
+        // Verify Test
+        verify(mockedFileStore).setVisible(false);
+        verifyNoMoreInteractions(mockedFileStore);
+    }
+
+    @Test
+    public void setFileStoreUrl_invalidDataFile_setLinkInvisible() {
+        setupPresenterImplConcrete();
+        presenterImpl.setUrlDataioFilestoreRs("url");
+        final JobModel model = new JobModelBuilder().setDataFile("a").build();
+
+        // Test Subject Under Test
+        presenterImpl.setFileStoreUrl(mockedFileStore, model);
+
+        // Verify Test
+        verify(mockedFileStore).setVisible(false);
+        verifyNoMoreInteractions(mockedFileStore);
+    }
+
+    @Test
+    public void setFileStoreUrl_validDataFile_setLinkInvisible() {
+        setupPresenterImplConcrete();
+        presenterImpl.setUrlDataioFilestoreRs("url");
+        final JobModel model = new JobModelBuilder().setDataFile("a:b:23").build();
+
+        // Test Subject Under Test
+        presenterImpl.setFileStoreUrl(mockedFileStore, model);
+
+        // Verify Test
+        verify(mockedFileStore).setHref("url/files/23");
+        verify(mockedFileStore).setVisible(true);
+        verifyNoMoreInteractions(mockedFileStore);
+    }
+
+
+    // Private methods
 
     private String buildHeaderText(String jobId, String submitterNumber, String sinkName) {
         return MOCKED_TEXT_JOBID + " " + jobId + ", "

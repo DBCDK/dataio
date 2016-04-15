@@ -33,6 +33,7 @@ import com.google.gwt.user.client.ui.TabBar;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
+import dk.dbc.dataio.gui.client.components.PromptedAnchor;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.ItemModel;
@@ -72,6 +73,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     protected ItemListCriteria.Field itemSearchType;
     private String header;
     private String endpoint;
+    protected String urlDataioFilestoreRs = null;
 
     /*
      * Default constructor
@@ -86,11 +88,23 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 new AsyncCallback<String>() {
                     @Override
                     public void onFailure(Throwable throwable) {
-                        viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiFetchError());
+                        viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiFtpFetchError());
                     }
                     @Override
                     public void onSuccess(String jndiUrl) {
                         endpoint = jndiUrl.replace(".dbc.dk", "");
+                    }
+                });
+        commonInjector.getJndiProxyAsync().getJndiResource(
+                JndiConstants.URL_RESOURCE_FILESTORE_RS,
+                new AsyncCallback<String>() {
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiFileStoreFetchError());
+                    }
+                    @Override
+                    public void onSuccess(String jndiUrl) {
+                        urlDataioFilestoreRs = jndiUrl;
                     }
                 });
     }
@@ -465,6 +479,8 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
         view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
 
+        setFileStoreUrl(view.jobInfoTabContent.fileStore, jobModel);
+
         if(jobModel.getFormat().toLowerCase().equals(MARC2_FORMAT) && jobModel.getFailedCounter() > 0) {
             view.jobInfoTabContent.exportLinksHeader.setVisible(true);
             if (jobModel.getPartitioningFailedCounter() > 0) {
@@ -490,6 +506,23 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             setAncestryView(jobModel.getDataFileAncestry(), view, view.jobInfoTabContent.ancestryDataFile);
             setAncestryView(jobModel.getBatchIdAncestry(), view, view.jobInfoTabContent.ancestryBatchId);
             setAncestryView(jobModel.getDetailsAncestry(), view, view.jobInfoTabContent.ancestryContent);
+        }
+    }
+
+    void setFileStoreUrl(PromptedAnchor anchor, JobModel model) {
+        if (anchor == null) {
+            return;
+        }
+        if (model == null || urlDataioFilestoreRs == null || model.getDataFile() == null || model.getDataFile().isEmpty()) {
+            anchor.setVisible(false);
+        } else {
+            final String[] numbers = model.getDataFile().split(":");
+            if (numbers.length > 1) {
+                anchor.setHref(urlDataioFilestoreRs + "/files/" + numbers[2]);
+                anchor.setVisible(true);
+            } else {
+                anchor.setVisible(false);
+            }
         }
     }
 

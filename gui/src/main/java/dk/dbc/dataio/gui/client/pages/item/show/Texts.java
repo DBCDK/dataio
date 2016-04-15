@@ -67,7 +67,10 @@ public interface Texts extends Constants {
     String error_CouldNotFetchJobNotifications();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_JndiFetchError();
+    String error_JndiFtpFetchError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_JndiFileStoreFetchError();
 
 
     // Labels

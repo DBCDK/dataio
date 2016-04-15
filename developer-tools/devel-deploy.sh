@@ -26,7 +26,7 @@ function die() {
 }
 
 VERSION="1.0-SNAPSHOT"
-COMPONENTS="dataio-file-store-service-ear dataio-flow-store-service dataio-job-store-service-war dataio-log-store-service-war dataio-sink-service"
+COMPONENTS="dataio-file-store-service-ear dataio-flow-store-service dataio-job-store-service-war dataio-log-store-service-war"
 #COMPONENTS="dataio-flow-store-service"
 
 APPS=""

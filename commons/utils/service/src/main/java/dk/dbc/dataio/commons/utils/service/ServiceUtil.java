@@ -41,7 +41,6 @@ public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
 
     public static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
-    private static final String SINK_SERVICE_ENDPOINT_RESOURCE = "dataioSinkServiceEndpoint";
     private static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
 
     private static final JSONBContext jsonbContext = new JSONBContext();
@@ -104,20 +103,6 @@ public class ServiceUtil {
      */
     public static String getLogStoreServiceEndpoint() throws NamingException {
         return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_LOGSTORE_RS);
-    }
-
-    /**
-     * Looks up sink service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value #SINK_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a '{@value #SINK_SERVICE_ENDPOINT_RESOURCE}'
-     * system property.
-     *
-     * @return sink service URL as String
-     *
-     * @throws NamingException if unable to lookup name
-     */
-    public static String getSinkServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(SINK_SERVICE_ENDPOINT_RESOURCE);
     }
 
     /**

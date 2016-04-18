@@ -157,7 +157,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("popupListBox")
     void setPopupListBoxClicked(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
-            presenter.addSubmitter(popupListBox.getValue().getValue());
+            presenter.addSubmitters(popupListBox.getValue());
         }
     }
 

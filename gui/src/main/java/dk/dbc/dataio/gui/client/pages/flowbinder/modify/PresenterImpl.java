@@ -38,8 +38,10 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class represents the create and edit flowbinder activity encompassing saving
@@ -175,14 +177,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * Adds a submitter to the list of submitters
-     * @param submitterId The submitter ID for the submitter to add
+     * Adds a map of submitters
+     * @param submitterIds Map of submitters to add
      */
     @Override
-    public void addSubmitter(String submitterId) {
-        List<SubmitterModel> submitterModels = model.getSubmitterModels();
-        submitterModels.add(getSubmitterModel(Long.parseLong(submitterId)));
-        model.setSubmitterModels(submitterModels);
+    public void addSubmitters(Map<String, String> submitterIds) {
+        Set<SubmitterModel> submitterModels = new LinkedHashSet<>();  // Preserve order in the set
+        submitterModels.addAll(model.getSubmitterModels());  // Put in a set to avoid duplicates
+        for (String id: submitterIds.keySet()) {
+            submitterModels.add(getSubmitterModel(Long.parseLong(id)));
+        }
+        final List<SubmitterModel> result = new ArrayList<>();
+        result.addAll(submitterModels);
+        model.setSubmitterModels(result);
         updateAllFieldsAccordingToCurrentState();
     }
 

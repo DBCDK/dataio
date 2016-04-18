@@ -110,7 +110,7 @@ public class ViewWidget extends ContentPanel<Presenter> {
     void popupListBoxClicked(DialogEvent event) {
         switch (event.getDialogButton()) {
             case OK_BUTTON:
-                presenter.selectFlowComponentButtonPressed(popupListBox.getValue().getValue());
+                presenter.selectFlowComponentButtonPressed(popupListBox.getValue());
                 break;
             case EXTRA_BUTTON:
                 presenter.newFlowComponentButtonPressed();

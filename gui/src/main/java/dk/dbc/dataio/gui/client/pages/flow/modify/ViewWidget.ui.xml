@@ -39,7 +39,7 @@
         <li><g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button></li>
         <li><g:Label ui:field="status"/></li>
 
-        <dio:PopupListBox ui:field="popupListBox" guid="dio-FlowComponentSelectionDialogBox" okButtonText="{txt.button_Select}" dialogTitle="{txt.caption_SelectFlowComponent}" cancelButtonText="{txt.button_Cancel}" extraButtonText="{txt.button_NewFlowComponent}"/>
+        <dio:PopupListBox ui:field="popupListBox" guid="dio-FlowComponentSelectionDialogBox" multipleSelect="false" okButtonText="{txt.button_Select}" dialogTitle="{txt.caption_SelectFlowComponent}" cancelButtonText="{txt.button_Cancel}" extraButtonText="{txt.button_NewFlowComponent}"/>
 
     </g:HTMLPanel>
 

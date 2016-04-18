@@ -34,8 +34,10 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class represents the create flow activity encompassing saving
@@ -175,16 +177,20 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
 
     /**
-     * Select a flow component from the list
+     * Select a list of flow components from the list
      *
-     * @param selectedKey The key of the selected Flow Component
+     * @param selectedKeys The list of keys of the selected Flow Components
      */
     @Override
-    public void selectFlowComponentButtonPressed(String selectedKey) {
-        FlowComponentModel selectedModel = getFlowComponentModel(selectedKey);
-        List<FlowComponentModel> flowComponentModels = getView().model.getFlowComponents();
-        flowComponentModels.add(selectedModel);
-        getView().model.setFlowComponents(flowComponentModels);
+    public void selectFlowComponentButtonPressed(Map<String, String> selectedKeys) {
+        Set<FlowComponentModel> flowComponentModels = new LinkedHashSet<>();  // Preserve order in the set
+        flowComponentModels.addAll(getView().model.getFlowComponents());  // Put in a set to avoid duplicates
+        for (String id: selectedKeys.keySet()) {
+            flowComponentModels.add(getFlowComponentModel(id));
+        }
+        final List<FlowComponentModel> result = new ArrayList<>();
+        result.addAll(flowComponentModels);
+        getView().model.setFlowComponents(result);
         updateAllFieldsAccordingToCurrentState();
     }
 

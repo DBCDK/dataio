@@ -268,32 +268,38 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.submittersChanged(newSelectedSubmitters);
     }
 
-    @Test(expected = NumberFormatException.class)
+    @Test(expected = NullPointerException.class)
     public void addSubmitter_nullValue_exception() {
         initializeAndStartPresenter();
 
-        presenterImpl.addSubmitter(null);
+        presenterImpl.addSubmitters(null);
     }
 
     @Test(expected = NumberFormatException.class)
     public void addSubmitter_emptyValue_exception() {
         initializeAndStartPresenter();
 
-        presenterImpl.addSubmitter("");
+        final Map<String, String> submitters = new HashMap<>();
+        submitters.put("", "");
+        presenterImpl.addSubmitters(submitters);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addSubmitter_unknownId_exception() {
         initializeAndStartPresenter();
 
-        presenterImpl.addSubmitter("123");
+        final Map<String, String> submitters = new HashMap<>();
+        submitters.put("123", "123");
+        presenterImpl.addSubmitters(submitters);
     }
 
     @Test
     public void addSubmitter_knownId_submitterAdded() {
         initializeAndStartPresenter();
 
-        presenterImpl.addSubmitter("202");
+        final Map<String, String> submitters = new HashMap<>();
+        submitters.put("202", "202");
+        presenterImpl.addSubmitters(submitters);
 
         verify(view.submitters, times(2)).setEnabled(true);
         verify(view.submitters).setEnabled(false);
@@ -309,7 +315,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void addSubmitter_duplicateId_submitterAdded() {
         initializeAndStartPresenter();
 
-        presenterImpl.addSubmitter("201");
+        final Map<String, String> submitters = new HashMap<>();
+        submitters.put("201", "201");
+        presenterImpl.addSubmitters(submitters);
 
         verify(view.submitters, times(2)).setEnabled(true);
         verify(view.submitters).setEnabled(false);

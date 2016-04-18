@@ -6,15 +6,15 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.HasValue;
 import com.google.gwt.user.client.ui.ListBox;
 
-import java.util.AbstractMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * <p>A list box (using the standard ListBox component), implementing the interface HasValue</p>
- * <p>The value in question is the selected value as a Map.Entry&lt;text, key&gt;</p>
+ * <p>The value in question is the selected value as a Map&lt;text, key&gt;</p>
  */
-public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<String, String>> {
-    ValueChangeHandler<Map.Entry<String, String>> valueChangeHandler = null;  // This is package private because of test - should be private
+public class ListBoxHasValue extends ListBox implements HasValue<Map<String, String>> {
+    ValueChangeHandler<Map<String, String>> valueChangeHandler = null;  // This is package private because of test - should be private
 
     /**
      * Constructor
@@ -33,14 +33,18 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      * @return The value of the selected item
      */
     @Override
-    public Map.Entry<String, String> getValue() {
+    public Map<String, String> getValue() {
         int selectedIndex = super.getSelectedIndex();
         if (selectedIndex < 0) {
             return null;
         }
-        return new AbstractMap.SimpleEntry<>(
-                super.getItemText(super.getSelectedIndex()),
-                super.getValue(super.getSelectedIndex()) );
+        TreeMap<String, String> selectedItems = new TreeMap<>();
+        for (int i = 0; i < getItemCount(); i++) {
+            if (isItemSelected(i)) {
+                selectedItems.put(getValue(i), getItemText(i));
+            }
+        }
+        return selectedItems;
     }
 
     /**
@@ -50,7 +54,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      * @param value The item to be the future selected item
      */
     @Override
-    public void setValue(Map.Entry<String, String> value) {
+    public void setValue(Map<String, String> value) {
         setValue(value, false);
     }
 
@@ -61,13 +65,10 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      * @param fireEvents If true, a Value Change event will be fired if a match is found
      */
     @Override
-    public void setValue(Map.Entry<String, String> value, boolean fireEvents) {
+    public void setValue(Map<String, String> value, boolean fireEvents) {
         if (value != null) {
             for (int i=0; i<getItemCount(); i++) {
-                if (value.getKey().equals(getValue(i))) {
-                    setSelectedIndex(i);
-                    break;
-                }
+                setItemSelected(i, value.containsKey(getValue(i)));
             }
         }
         if (fireEvents) {
@@ -81,7 +82,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      * @return A Remove Handler to be used, if the event handler needs to be removed
      */
     @Override
-    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Map.Entry<String, String>> changeHandler) {
+    public HandlerRegistration addValueChangeHandler(ValueChangeHandler<Map<String, String>> changeHandler) {
         valueChangeHandler = changeHandler;
         return () -> valueChangeHandler = null;
     }
@@ -96,7 +97,7 @@ public class ListBoxHasValue extends ListBox implements HasValue<Map.Entry<Strin
      */
     private void triggerValueChangeEvent() {
         if (valueChangeHandler != null) {
-            valueChangeHandler.onValueChange(new ValueChangeEvent<Map.Entry<String, String>>(getValue()) {});
+            valueChangeHandler.onValueChange(new ValueChangeEvent<Map<String, String>>(getValue()) {});
         }
     }
 

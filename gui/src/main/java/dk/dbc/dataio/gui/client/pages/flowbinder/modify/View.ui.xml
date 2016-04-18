@@ -44,7 +44,7 @@
         </li>
         <li><g:Label ui:field="status"/></li>
 
-        <dio:PopupListBox ui:field="popupListBox" guid="dio-QueueProviderDialogBox" dialogTitle="{txt.caption_SelectSubmitter}" okButtonText="{txt.button_Select}" cancelButtonText="{txt.button_Cancel}"/>
+        <dio:PopupListBox ui:field="popupListBox" guid="dio-QueueProviderDialogBox" dialogTitle="{txt.caption_SelectSubmitter}" multipleSelect="true" okButtonText="{txt.button_Select}" cancelButtonText="{txt.button_Cancel}"/>
 
     </g:HTMLPanel>
 

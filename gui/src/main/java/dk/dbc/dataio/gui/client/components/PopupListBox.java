@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Popup box for entering a list in a popup window
  */
-public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, String>> {
+public class PopupListBox extends PopupBox<ListBoxHasValue, Map<String, String>> {
     private final int MAX_ITEMS_IN_LIST = 20;
     private final int MIN_ITEMS_IN_LIST = 2;
     private final String DEFAULT_WIDTH = "16em";
@@ -45,6 +45,27 @@ public class PopupListBox extends PopupBox<ListBoxHasValue, Map.Entry<String, St
      */
     public void addItem(String item, String value) {
         widget.addItem(item, value);
+    }
+
+    /**
+     * Sets the possibility of setting more than one list item in the list
+     * @param multipleSelect If true, it is possible to select more than one item in the list.
+     */
+    public void setMultipleSelect(Boolean multipleSelect) {
+        widget.setMultipleSelect(multipleSelect);
+    }
+
+
+    /*
+     * Override PopupBox methods
+     */
+
+    /**
+     * Shows the popup and attach it to the page. It must have a child widget before this method is called.
+     */
+    @Override
+    public void show() {
+        super.show();
         setListBoxSize(widget.getItemCount());
     }
 

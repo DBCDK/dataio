@@ -40,6 +40,7 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -378,7 +379,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(flowComponents.get(0).getId(), is(333L));
     }
 
-    @Test(expected = NumberFormatException.class)
+    @Test(expected = NullPointerException.class)
     public void selectFlowComponentButtonPressed_nullInput_exception() {
         // Setup
         setupPresenterImpl();
@@ -393,7 +394,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImpl();
 
         // Subject Under Test
-        presenterImpl.selectFlowComponentButtonPressed("");
+        final Map<String, String> flowComponent = new HashMap<>();
+        flowComponent.put("", "");
+        presenterImpl.selectFlowComponentButtonPressed(flowComponent);
     }
 
     @Test
@@ -402,7 +405,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenterImpl();
 
         // Subject Under Test
-        presenterImpl.selectFlowComponentButtonPressed("444");
+        final Map<String, String> flowComponent = new HashMap<>();
+        flowComponent.put("444", "444");
+        presenterImpl.selectFlowComponentButtonPressed(flowComponent);
 
         // Verifications
         List<FlowComponentModel> flowComponents = viewWidget.model.getFlowComponents();

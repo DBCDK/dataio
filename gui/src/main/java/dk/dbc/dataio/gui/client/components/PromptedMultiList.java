@@ -150,4 +150,13 @@ public class PromptedMultiList extends PromptedData implements HasValue<Map<Stri
         return multiList.addClickHandler(clickHandler);
     }
 
+    /**
+     * Sets the sorting in the list to be Manual or Automatic
+     * @param manualSorting Manual sorting if true, Automatic if false
+     */
+    public void setManualSorting(Boolean manualSorting) {
+        multiList.setManualSorting(manualSorting);
+    }
+
+
 }

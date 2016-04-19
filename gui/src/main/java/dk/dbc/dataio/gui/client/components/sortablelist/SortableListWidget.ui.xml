@@ -23,7 +23,7 @@
 
     <ui:style>
         .sortablelist {
-            cursor: pointer;
+            cursor: default;
         }
         .sortableListContainer {
             /* This container allows 1 pixel extra space at the bottom, which makes it possible to move an item to the bottom */

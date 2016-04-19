@@ -57,11 +57,11 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class SortableListModelTest {
-    final String TEXT1 = "-text-1-";
+    final String TEXT1 = "b-text";
     final String KEY1 = "-key-1-";
-    final String TEXT2 = "-text-2-";
+    final String TEXT2 = "a-text";
     final String KEY2 = "-key-2-";
-    final String TEXT3 = "-text-3-";
+    final String TEXT3 = "c-text";
     final String KEY3 = "-key-3-";
     private final String SELECTED = "sortable-widget-entry-selected";
     private final String NOT_SELECTED = "sortable-widget-entry-deselected";
@@ -222,22 +222,41 @@ public class SortableListModelTest {
     }
 
     @Test
-    public void refresh_callRefresh_allWidgetsOnDisplayIsRefreshed() {
+    public void refresh_manualSortingEnabled_allWidgetsOnDisplayIsRefreshed() {
         SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
         sortableListModel.put(constructTestData());
+        sortableListModel.setEnabled(true);
+        sortableListModel.setManualSorting(true);
 
         sortableListModel.refresh();
 
         assertThat(sortableListModel.modelWidgets.get(0).draggableWidget.isDragDisabled(), is(false));
         assertThat(sortableListModel.modelWidgets.get(1).draggableWidget.isDragDisabled(), is(false));
         assertThat(sortableListModel.modelWidgets.get(2).draggableWidget.isDragDisabled(), is(false));
-        verify(sortableListModel.list, times(6)).add(any(Widget.class));  // Remember: 3 times upon put, 3 times upon refresh
+        verify(sortableListModel.list, times(6)).add(any(Widget.class));
     }
 
     @Test
-    public void reOrder_callReOrder_widgetsAreReorderedAccordingToTheirTopPosition() {
+    public void refresh_manualSortingDisabled_allWidgetsOnDisplayIsRefreshed() {
         SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
         sortableListModel.put(constructTestData());
+        sortableListModel.setEnabled(true);
+        sortableListModel.setManualSorting(false);
+
+        sortableListModel.refresh();
+
+        assertThat(sortableListModel.modelWidgets.get(0).draggableWidget.isDragDisabled(), is(true));
+        assertThat(sortableListModel.modelWidgets.get(1).draggableWidget.isDragDisabled(), is(true));
+        assertThat(sortableListModel.modelWidgets.get(2).draggableWidget.isDragDisabled(), is(true));
+        verify(sortableListModel.list, times(9)).add(any(Widget.class));
+    }
+
+    @Test
+    public void reOrder_manualSortingEnabled_widgetsAreReorderedAccordingToTheirTopPosition() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+        sortableListModel.setEnabled(true);
+        sortableListModel.setManualSorting(true);
 
         sortableListModel.reOrder();
 
@@ -248,7 +267,29 @@ public class SortableListModelTest {
         assertThat(sortableListModel.modelWidgets.get(0).draggableWidget.isDragDisabled(), is(false));
         assertThat(sortableListModel.modelWidgets.get(1).draggableWidget.isDragDisabled(), is(false));
         assertThat(sortableListModel.modelWidgets.get(2).draggableWidget.isDragDisabled(), is(false));
-        verify(sortableListModel.list, times(6)).add(any(Widget.class));  // Remember: 3 times upon put, 3 times upon refresh
+        verify(sortableListModel.list, times(6)).add(any(Widget.class));
+        assertThat(sortableListModel.modelWidgets.get(0).key, is(KEY1));
+        assertThat(sortableListModel.modelWidgets.get(1).key, is(KEY2));
+        assertThat(sortableListModel.modelWidgets.get(2).key, is(KEY3));
+    }
+
+    @Test
+    public void reOrder_manualSortingDisabled_widgetsAreReorderedAccordingToText() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+        sortableListModel.setEnabled(true);
+        sortableListModel.setManualSorting(false);
+
+        sortableListModel.reOrder();
+
+        assertThat(sortableListModel.modelWidgets.get(0).draggableWidget.isDragDisabled(), is(true));
+        assertThat(sortableListModel.modelWidgets.get(1).draggableWidget.isDragDisabled(), is(true));
+        assertThat(sortableListModel.modelWidgets.get(2).draggableWidget.isDragDisabled(), is(true));
+        verify(sortableListModel.list, times(9)).add(any(Widget.class));
+        // Test reordering according to list item text
+        assertThat(sortableListModel.modelWidgets.get(0).key, is(KEY2));
+        assertThat(sortableListModel.modelWidgets.get(1).key, is(KEY1));
+        assertThat(sortableListModel.modelWidgets.get(2).key, is(KEY3));
     }
 
     @Test
@@ -279,6 +320,34 @@ public class SortableListModelTest {
         assertThat(sortableListModel.modelWidgets.get(0).selected, is(false));
         assertThat(sortableListModel.modelWidgets.get(1).selected, is(true));
         assertThat(sortableListModel.modelWidgets.get(2).selected, is(false));
+    }
+
+    @Test
+    public void sortIfNeeded_manualSortEnabled_noAction() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+        sortableListModel.setManualSorting(true);
+
+        sortableListModel.sortIfNeeded();
+
+        assertThat(sortableListModel.modelWidgets.get(0).key, is(KEY1));
+        assertThat(sortableListModel.modelWidgets.get(1).key, is(KEY2));
+        assertThat(sortableListModel.modelWidgets.get(2).key, is(KEY3));
+        verify(mockedFlowPanel).clear();  // To make sure, that refresh has been called
+    }
+
+    @Test
+    public void sortIfNeeded_manualSortDisabled_noAction() {
+        SortableListModel sortableListModel = new SortableListModel(mockedFlowPanel, mockedGQueryWrapper);
+        sortableListModel.put(constructTestData());
+        sortableListModel.setManualSorting(false);
+
+        sortableListModel.sortIfNeeded();
+
+        assertThat(sortableListModel.modelWidgets.get(0).key, is(KEY2));
+        assertThat(sortableListModel.modelWidgets.get(1).key, is(KEY1));
+        assertThat(sortableListModel.modelWidgets.get(2).key, is(KEY3));
+        verify(mockedFlowPanel, times(3)).clear();  // To make sure, that refresh has been called
     }
 
     @Test

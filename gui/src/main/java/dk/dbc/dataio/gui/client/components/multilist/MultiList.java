@@ -80,4 +80,13 @@ public class MultiList extends MultiListWidget {
     public String getSelectedItem() {
         return list.getSelectedItem();
     }
+
+    /**
+     * Sets the sorting in the list to be Manual or Automatic
+     * @param manualSorting Manual sorting if true, Automatic if false
+     */
+    public void setManualSorting(Boolean manualSorting) {
+        list.setManualSorting(manualSorting);
+    }
+
 }

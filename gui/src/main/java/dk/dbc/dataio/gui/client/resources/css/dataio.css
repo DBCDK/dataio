@@ -233,6 +233,7 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .gwtQuery-draggable-dragging {
     z-index: 1;
+    margin-left: 1px;
 }
 
 .dio-MultiProgressBar {

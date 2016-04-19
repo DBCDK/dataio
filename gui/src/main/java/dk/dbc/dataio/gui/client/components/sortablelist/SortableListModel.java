@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 public class SortableListModel {
+
     static class SortableWidget {  // This is package private because of test - should be private
         String key;
         String value;
@@ -61,6 +62,7 @@ public class SortableListModel {
     GQueryWrapper gQuery = null;
     ValueChangeHandler<Map<String, String>> valueChangeHandler = null;  // This is package private because of test - should be private
     private boolean enabled = false;
+    private Boolean manualSorting = true;  // Manual sorting is default
     FlowPanel list;  // This is package private because of test - should be private
     private final String SELECTED = "sortable-widget-entry-selected";
     private final String NOT_SELECTED = "sortable-widget-entry-deselected";
@@ -99,14 +101,8 @@ public class SortableListModel {
      */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-        for (SortableWidget widget : modelWidgets) {
-            widget.draggableWidget.setDisabledDrag(!enabled);
-            if (enabled) {
-                widget.draggableWidget.getOriginalWidget().removeStyleName(DISABLED_SORTABLE_WIDGET);
-            } else {
-                widget.draggableWidget.getOriginalWidget().addStyleName(DISABLED_SORTABLE_WIDGET);
-            }
-        }
+        setDragEnable(enabled);
+        setGrayed(!enabled);
     }
 
     /**
@@ -142,6 +138,7 @@ public class SortableListModel {
         list.add(draggableLabel);
         setSelected(draggableLabel, false);
         modelWidgets.add(new SortableWidget(key, text, false, draggableLabel));
+        sortIfNeeded();
     }
 
     /**
@@ -185,12 +182,19 @@ public class SortableListModel {
     }
 
     /**
+     * Sets the sorting in the list to be Manual or Automatic
+     * @param manualSorting Manual sorting if true, Automatic if false
+     */
+    void setManualSorting(Boolean manualSorting) {
+        this.manualSorting = manualSorting;
+        sortIfNeeded();
+    }
+
+    /**
      * Refreshes all widgets on the display, to reflect the changes in the model
      */
     void refresh() {
-        for (SortableWidget widget : modelWidgets) {
-            widget.draggableWidget.setDisabledDrag(true);
-        }
+        setDragEnable(false);
         list.clear();
         for (SortableWidget widget : modelWidgets) {
             widget.draggableWidget = getLabelDraggableWidget(widget.value);
@@ -228,6 +232,16 @@ public class SortableListModel {
     }
 
     /**
+     * Sorts the list if manual sort is disabled
+     */
+    void sortIfNeeded() {
+        if (!manualSorting) {
+            Collections.sort(modelWidgets, (w1, w2) -> w1.value.compareToIgnoreCase(w2.value));
+            refresh();
+        }
+    }
+
+    /**
      * Adds a change handler to the list
      * Upon changes in the list, the associated handler will be activated
      *
@@ -255,6 +269,7 @@ public class SortableListModel {
         DraggableWidget<Label> draggableLabel = new DraggableWidget<>(label);
         draggableLabel.setDraggableOptions(labelWidgetDraggableOptions(list));
         gQuery.$(draggableLabel).bind(Event.ONMOUSEDOWN, new MouseDownFunction());
+        draggableLabel.setDisabledDrag(!enabled || !manualSorting);
         return draggableLabel;
     }
 
@@ -291,6 +306,33 @@ public class SortableListModel {
         }
     }
 
+    /**
+     * Enables or disables manual dragging in the list
+     * @param dragEnable Enables or disables manual dragging
+     */
+    private void setDragEnable(boolean dragEnable) {
+        for (SortableWidget widget : modelWidgets) {
+            if (manualSorting) {
+                widget.draggableWidget.setDisabledDrag(!dragEnable);
+            } else {
+                widget.draggableWidget.setDisabledDrag(true);
+            }
+        }
+    }
+
+    /**
+     * Sets if items in the list is grayed out
+     * @param grayed True makes all items grayed, false makes them normal
+     */
+    private void setGrayed(boolean grayed) {
+        for (SortableWidget widget : modelWidgets) {
+            if (grayed) {
+                widget.draggableWidget.getOriginalWidget().addStyleName(DISABLED_SORTABLE_WIDGET);
+            } else {
+                widget.draggableWidget.getOriginalWidget().removeStyleName(DISABLED_SORTABLE_WIDGET);
+            }
+        }
+    }
 
     /*
      * Private Classes

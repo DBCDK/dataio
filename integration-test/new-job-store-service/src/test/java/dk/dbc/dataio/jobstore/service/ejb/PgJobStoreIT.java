@@ -33,15 +33,11 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
-import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Test;
@@ -561,42 +557,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     /**
-     * Given: a job store where a job exists
-     * When : requesting a resource bundle for the existing job
-     * Then : the resource bundle contains the correct flow, sink and supplementary process data
-     */
-    @Test
-    public void getResourceBundle() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-
-        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
-        jobTransaction.commit();
-
-        assertThat(jobInfoSnapshot, not(nullValue()));
-
-        // When...
-        ResourceBundle resourceBundle = pgJobStore.jobStoreRepository.getResourceBundle(jobInfoSnapshot.getJobId());
-
-        // Then...
-        assertThat("ResourceBundle", resourceBundle, not(nullValue()));
-        assertThat("ResourceBundle.flow", resourceBundle.getFlow(), not(nullValue()));
-        assertThat(resourceBundle.getFlow(), is(testableAddJobParam.getFlow()));
-
-        assertThat("ResourceBundle.sink", resourceBundle.getSink(), not(nullValue()));
-        assertThat(resourceBundle.getSink(), is(testableAddJobParam.getSink()));
-
-        assertThat("ResourceBundle.supplementaryProcessData", resourceBundle.getSupplementaryProcessData(), not(nullValue()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getSubmitter(), is(testableAddJobParam.getJobInputStream().getJobSpecification().getSubmitterId()));
-        assertThat(resourceBundle.getSupplementaryProcessData().getFormat(), is(testableAddJobParam.getJobInputStream().getJobSpecification().getFormat()));
-    }
-
-    /**
      * Given: a non-empty jobstore
      * Then : a chunks can be retrieved
      */
@@ -816,74 +776,6 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         // Then...
         assertThat("chunkItem", chunkItem, not(nullValue()));
         assertThat("chunkItem.data", chunkItem.getData(), is(successfulItemEntity.getNextProcessingOutcome().getData()));
-    }
-
-    /**
-     * Given: an a job store containing a job entity
-     * When : calling setWorkflowNote()
-     * Then : the job entity is updated
-     * And  : the returned JobInfoSnapshot contains the workflowNote
-     */
-    @Test
-    public void setWorkflowNote_jobEntityUpdated_returnsJobInfoSnapShot() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length);
-
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
-        jobTransaction.commit();
-
-        // When...
-        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
-        jobTransaction.begin();
-        final JobInfoSnapshot updatedJobInfoSnapshot = pgJobStore.setWorkflowNote(workflowNote, jobInfoSnapshot.getJobId());
-        jobTransaction.commit();
-
-        // Then...
-        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobInfoSnapshot.getJobId());
-        assertThat("JobEntity.workflowNote", jobEntity.getWorkflowNote(), is(workflowNote));
-
-        // And...
-        assertThat("JobInfoSnapshot not null", updatedJobInfoSnapshot, is(notNullValue()));
-        assertThat("JobInfoSnapshot.workflowNote", updatedJobInfoSnapshot.getWorkflowNote(), is(workflowNote));
-    }
-
-    /**
-     * Given: an a job store containing a job entity
-     * When : calling setWorkflowNote() on an item
-     * Then : the item entity is updated
-     * And  : the returned ItemInfoSnapshot contains the workflowNote
-     */
-    @Test
-    public void setWorkflowNote_itemEntityUpdated_returnsItemInfoSnapShot() throws FlowStoreServiceConnectorException, FileStoreServiceConnectorException, JobStoreException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-        setupSuccessfulMockedReturnsFromFlowStore(testableAddJobParam);
-        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn((long) testableAddJobParam.getRecords().getBytes(StandardCharsets.UTF_8).length);
-
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addAndScheduleJob(testableAddJobParam.getJobInputStream());
-        jobTransaction.commit();
-
-        final WorkflowNote itemWorkflowNote = new WorkflowNoteBuilder().build();
-        jobTransaction.begin();
-        final ItemInfoSnapshot updatedItemInfoSnapshot = pgJobStore.setWorkflowNote(itemWorkflowNote, jobInfoSnapshot.getJobId(), 0, (short)7);
-        jobTransaction.commit();
-
-        // Then...
-        ItemEntity.Key key = new ItemEntity.Key(jobInfoSnapshot.getJobId(), 0, (short)7);
-        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
-        assertThat("ItemEntity.workflowNote", itemEntity.getWorkflowNote(), is(itemWorkflowNote));
-
-        // And...
-        assertThat("ItemInfoSnapshot not null", updatedItemInfoSnapshot, is(notNullValue()));
-        assertThat("ItemInfoSnapshot.workflowNote", updatedItemInfoSnapshot.getWorkflowNote(), is(itemWorkflowNote));
     }
 
     /*

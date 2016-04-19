@@ -21,14 +21,19 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
+import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
+import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
+import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.Test;
 
 import javax.persistence.EntityTransaction;
@@ -40,6 +45,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
@@ -243,10 +249,94 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("itemEntity.trackingId", itemEntities.get(0).getPartitioningOutcome().getTrackingId(), is("123456789"));
     }
 
+    /**
+     * Given: a job store where a job exists
+     * When : requesting a resource bundle for the existing job
+     * Then : the resource bundle contains the correct flow, sink and supplementary process data
+     */
+    @Test
+    public void getResourceBundle() throws JobStoreException {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
+
+        // When...
+        ResourceBundle resourceBundle = pgJobStoreRepository.getResourceBundle(jobEntity.getId());
+
+        // Then...
+        assertThat("ResourceBundle", resourceBundle, not(nullValue()));
+        assertThat("ResourceBundle.flow", resourceBundle.getFlow(), is(jobEntity.getCachedFlow().getFlow()));
+        assertThat("ResourceBundle.sink", resourceBundle.getSink(), is(jobEntity.getCachedSink().getSink()));
+
+        SupplementaryProcessData supplementaryProcessData = resourceBundle.getSupplementaryProcessData();
+        assertThat("ResourceBundle.supplementaryProcessData.submitter", supplementaryProcessData.getSubmitter(), is(jobEntity.getSpecification().getSubmitterId()));
+        assertThat("ResourceBundle.supplementaryProcessData.format", supplementaryProcessData.getFormat(), is(jobEntity.getSpecification().getFormat()));
+    }
+
+    /**
+     * Given: an a job store containing a job entity
+     * When : calling setWorkflowNote()
+     * Then : the job entity is updated
+     */
+    @Test
+    public void setJobEntityWorkFlowNote_jobEntityUpdated() {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+
+        // When...
+        persistenceContext.run(() ->
+                pgJobStoreRepository.setJobEntityWorkFlowNote(workflowNote, jobEntity.getId())
+        );
+
+        // Then...
+        assertThat("JobEntity.workflowNote", jobEntity.getWorkflowNote(), is(workflowNote));
+    }
+
+    /**
+     * Given: an a job store containing a persisted item entity
+     * When : calling setWorkflowNote() on a the item
+     * Then : the item entity is updated
+     */
+    @Test
+    public void setItemEntityWorkFlowNote_itemEntityUpdated() {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntity();
+
+        final int jobId = jobEntity.getId();
+        final int chunkId = 0;
+        final short itemId = 0;
+
+        newPersistedChunkEntity(new ChunkEntity.Key(chunkId, jobId));
+        final ItemEntity itemEntity = newPersistedItemEntity(new ItemEntity.Key(jobId, chunkId, itemId));
+        final WorkflowNote workflowNote = new WorkflowNoteBuilder().build();
+
+        // When...
+        persistenceContext.run(() ->
+                pgJobStoreRepository.setItemEntityWorkFlowNote(workflowNote, jobId, chunkId, itemId)
+        );
+
+        // Then...
+        assertThat("ItemEntity.workflowNote", itemEntity.getWorkflowNote(), is(workflowNote));
+    }
+
+
     /*
      * private methods
      */
 
+
+    private JobEntity newPersistedJobEntityWithSinkAndFlowCache() {
+        final JobEntity jobEntity = newJobEntityWithSinkAndFlowCache();
+        persist(jobEntity);
+        return jobEntity;
+    }
+
+    private JobEntity newJobEntityWithSinkAndFlowCache() {
+        final JobEntity jobEntity = newJobEntity();
+        jobEntity.setCachedSink(newPersistedSinkCacheEntity());
+        jobEntity.setCachedFlow(newPersistedFlowCacheEntity());
+        return jobEntity;
+    }
 
     private DanMarc2LineFormatDataPartitioner getDanMarc2LineFormatDataPartitioner(String resourceName) {
         return DanMarc2LineFormatDataPartitioner.newInstance(getClass().getResourceAsStream(resourceName), "latin1");

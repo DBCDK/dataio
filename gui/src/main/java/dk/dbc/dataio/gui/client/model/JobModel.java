@@ -65,6 +65,7 @@ public class JobModel extends GenericBackendModel {
     private final static String     DATA_FILE_ANCESTRY_EMPTY = "";
     private final static String     BATCH_ID_ANCESTRY_EMPTY = "";
     private final static String     DETAILS_ANCESTRY_EMPTY = "";
+    private final static String     PREVIOUS_JOB_ID_ANCESTRY_EMPTY = "";
 
 
     public enum Type { TRANSIENT, PERSISTENT, TEST, ACCTEST }
@@ -105,6 +106,8 @@ public class JobModel extends GenericBackendModel {
     private String dataFileAncestry;
     private String batchIdAncestry;
     private String detailsAncestry;
+    private String previousJobIdAncestry;
+
 
     /**
      * Constructor with full parameter list
@@ -145,6 +148,7 @@ public class JobModel extends GenericBackendModel {
      * @param dataFileAncestry                     The name of the data file
      * @param batchIdAncestry                      The batch id
      * @param detailsAncestry                      The content of the trans file
+     * @param previousJobIdAncestry                If this is a job re-run, this is the job id for the previous job id
      */
     public JobModel(String jobCreationTime,
                     String jobCompletionTime,
@@ -181,7 +185,8 @@ public class JobModel extends GenericBackendModel {
                     String transFileAncestry,
                     String dataFileAncestry,
                     String batchIdAncestry,
-                    String detailsAncestry) {
+                    String detailsAncestry,
+                    String previousJobIdAncestry) {
         this.jobCreationTime = jobCreationTime;
         this.jobCompletionTime = jobCompletionTime;
         this.jobId = jobId;
@@ -218,6 +223,7 @@ public class JobModel extends GenericBackendModel {
         this.dataFileAncestry = dataFileAncestry;
         this.batchIdAncestry = batchIdAncestry;
         this.detailsAncestry = detailsAncestry;
+        this.previousJobIdAncestry = previousJobIdAncestry;
         }
 
     /**
@@ -260,7 +266,8 @@ public class JobModel extends GenericBackendModel {
                 TRANS_FILE_ANCESTRY_EMPTY,
                 DATA_FILE_ANCESTRY_EMPTY,
                 BATCH_ID_ANCESTRY_EMPTY,
-                DETAILS_ANCESTRY_EMPTY);
+                DETAILS_ANCESTRY_EMPTY,
+                PREVIOUS_JOB_ID_ANCESTRY_EMPTY);
     }
 
     /**
@@ -850,6 +857,22 @@ public class JobModel extends GenericBackendModel {
      */
     public void setDetailsAncestry(String detailsAncestry) {
         this.detailsAncestry = detailsAncestry;
+    }
+
+    /**
+     * Gets the Previous Job Id from the Ancestry, if this job is a re-run of a job
+     * @return The Previous Job Id from the Ancestry
+     */
+    public String getPreviousJobIdAncestry() {
+        return previousJobIdAncestry;
+    }
+
+    /**
+     * Sets the Previous Job Id from the Ancestry, if this job is a re-run of a job
+     * @param previousJobIdAncestry The Previous Job Id in the Ancestry
+     */
+    public void setPreviousJobIdAncestry(String previousJobIdAncestry) {
+        this.previousJobIdAncestry = previousJobIdAncestry;
     }
 
 

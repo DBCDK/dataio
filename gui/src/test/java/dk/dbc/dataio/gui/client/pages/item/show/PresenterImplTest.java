@@ -1061,7 +1061,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
 
-        verifyNoAncestryData();
+        verifyAncestryData("-transFileAncestry-", "-dataFileAncestry-", "123", "-detailsAncestry-");
     }
 
     @Test
@@ -1085,7 +1085,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedExportLinkItemFailedInDelivering).setVisible(true);
         verify(mockedExportLinkItemFailedInDelivering).setText(anyString());
 
-        verifyNoAncestryData();
+        verifyAncestryData("-transFileAncestry-", "-dataFileAncestry-", "123", "-detailsAncestry-");
     }
 
     @Test
@@ -1106,7 +1106,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
         verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
 
-        verifyNoAncestryData();
+        verifyAncestryData("-transFileAncestry-", "-dataFileAncestry-", "123", "-detailsAncestry-");
     }
 
     @Test
@@ -1126,7 +1126,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedExportLinkItemFailedInProcessing);
         verifyNoMoreInteractions(mockedExportLinkItemFailedInDelivering);
 
-        verifyNoAncestryData();
+        verifyAncestryData("-transFileAncestry-", "-dataFileAncestry-", "123", "-detailsAncestry-");
     }
 
     @Test
@@ -1163,7 +1163,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
 
-        verifyNoAncestryData();
+        verifyAncestryData("-transFileAncestry-", "-dataFileAncestry-", "123", "-detailsAncestry-");
     }
 
     @Test
@@ -1200,7 +1200,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
 
-        verifyAncestryData();
+        verifyAncestryData("transfile ancestry", "datafile ancestry", "batch id ancestry", "details ancestry");
     }
 
     @Test
@@ -1237,7 +1237,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedView.jobHeader);
         verifyNoMoreInteractionsForJobInfoFields();
 
-        verifyNoAncestryData();
+        verifyAncestryData("-transFileAncestry-", "-dataFileAncestry-", "123", "-detailsAncestry-");
     }
 
     @Test
@@ -1537,32 +1537,21 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedExportLinkItemFailedInDelivering).setVisible(false);
     }
 
-    private void verifyNoAncestryData() {
-        verify(mockedAncestrySection).setVisible(false);
-        verifyNoMoreInteractions(mockedAncestrySection);
-        verifyNoMoreInteractions(mockedAncestryTransFile);
-        verifyNoMoreInteractions(mockedAncestryDataFile);
-        verifyNoMoreInteractions(mockedAncestryBatchId);
-        verifyNoMoreInteractions(mockedAncestryContent);
-
-    }
-
-    private void verifyAncestryData() {
+    private void verifyAncestryData(String transFile, String dataFile, String batchId, String details) {
         verify(mockedAncestrySection, times(4)).setVisible(true);
         verifyNoMoreInteractions(mockedAncestrySection);
-        verify(mockedAncestryTransFile).setText("transfile ancestry");
+        verify(mockedAncestryTransFile).setText(transFile);
         verify(mockedAncestryTransFile).setVisible(true);
         verifyNoMoreInteractions(mockedAncestryTransFile);
-        verify(mockedAncestryDataFile).setText("datafile ancestry");
+        verify(mockedAncestryDataFile).setText(dataFile);
         verify(mockedAncestryDataFile).setVisible(true);
         verifyNoMoreInteractions(mockedAncestryDataFile);
-        verify(mockedAncestryBatchId).setText("batch id ancestry");
+        verify(mockedAncestryBatchId).setText(batchId);
         verify(mockedAncestryBatchId).setVisible(true);
         verifyNoMoreInteractions(mockedAncestryBatchId);
-        verify(mockedAncestryContent).setText("details ancestry");
+        verify(mockedAncestryContent).setText(details);
         verify(mockedAncestryContent).setVisible(true);
         verifyNoMoreInteractions(mockedAncestryContent);
-
     }
 
     private void setupPresenterImpl() {

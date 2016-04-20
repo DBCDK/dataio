@@ -87,11 +87,11 @@ public class JobModelMapper {
                 jobInfoSnapshot.getSpecification().getDataFile(),
                 jobInfoSnapshot.getPartNumber(),
                 WorkflowNoteModelMapper.toWorkflowNoteModel(jobInfoSnapshot.getWorkflowNote()),
-                ancestry != null ? ancestry.getTransfile() : "",
-                ancestry != null ? ancestry.getDatafile() : "",
+                ancestry != null ? ancestry.getTransfile() : null,
+                ancestry != null ? ancestry.getDatafile() : null,
                 ancestry != null ? ancestry.getBatchId() : "",
-                ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : ""
-        );
+                ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "",
+                ancestry != null ? ancestry.getPreviousJobId() : null);
     }
 
     /**

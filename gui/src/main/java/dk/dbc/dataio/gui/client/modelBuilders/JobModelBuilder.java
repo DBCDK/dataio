@@ -64,10 +64,11 @@ public class JobModelBuilder {
     private String dataFile = "";
     private int partNumber = 0;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
-    private String transFileAncestry;
-    private String dataFileAncestry;
-    private String batchIdAncestry;
-    private String detailsAncestry;
+    private String transFileAncestry = "-transFileAncestry-";
+    private String dataFileAncestry = "-dataFileAncestry-";
+    private String batchIdAncestry = "123";
+    private String detailsAncestry = "-detailsAncestry-";
+    private String previousJobIdAncestry = "33";
 
     public JobModelBuilder setJobCreationTime(String jobCreationTime) {
         this.jobCreationTime = jobCreationTime;
@@ -249,6 +250,11 @@ public class JobModelBuilder {
         return this;
     }
 
+    public JobModelBuilder setPreviousJobIdAncestry(String previousJobIdAncestry) {
+        this.previousJobIdAncestry = previousJobIdAncestry;
+        return this;
+    }
+
     public JobModel build() {
         return new JobModel(
                 jobCreationTime,
@@ -286,8 +292,8 @@ public class JobModelBuilder {
                 transFileAncestry,
                 dataFileAncestry,
                 batchIdAncestry,
-                detailsAncestry
-
+                detailsAncestry,
+                previousJobIdAncestry
         );
     }
 }

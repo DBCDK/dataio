@@ -21,7 +21,11 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -29,15 +33,15 @@ import dk.dbc.dataio.jobstore.service.partitioner.DanMarc2LineFormatDataPartitio
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
+import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import org.junit.Test;
 
-import javax.persistence.EntityTransaction;
-import javax.persistence.Query;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -45,22 +49,11 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
-
-
-    public void createEmptyJobs(int... jobids) {
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        for( int jobid: jobids ) {
-            Query q=entityManager.createNativeQuery("INSERT INTO job (id,specification,state,flowstorereferences ) VALUES (?1, '{}'::JSONB, '{}'::JSON, '{}'::JSON );");
-            q.setParameter(1, jobid);
-            q.executeUpdate();
-        }
-        transaction.commit();
-    }
 
     /**
      * Given: a job repository containing chunks from multiple jobs
@@ -72,28 +65,28 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     @Test
     public void purgeChunks() {
         // Given...
-        final int job1 = 1;
-        final int job2 = 2;
+        final int jobId1 = newPersistedJobEntity().getId();
+        final int jobId2 = newPersistedJobEntity().getId();
 
-        createEmptyJobs( 1, 2);
-        newPersistedChunkEntity(new ChunkEntity.Key(0, job1));
-        newPersistedChunkEntity(new ChunkEntity.Key(1, job1));
-        newPersistedChunkEntity(new ChunkEntity.Key(0, job2));
-        newPersistedChunkEntity(new ChunkEntity.Key(1, job2));
-        newPersistedChunkEntity(new ChunkEntity.Key(2, job2));
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId1));
+        newPersistedChunkEntity(new ChunkEntity.Key(1, jobId1));
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId2));
+        newPersistedChunkEntity(new ChunkEntity.Key(1, jobId2));
+        newPersistedChunkEntity(new ChunkEntity.Key(2, jobId2));
+
         // When...
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        assertThat("Number of chunks purged", pgJobStoreRepository.purgeChunks(job2), is(3));
-        transaction.commit();
+        final int numberOfPurgedChunks = persistenceContext.run(() ->
+                pgJobStoreRepository.purgeChunks(jobId2)
+        );
 
         // Then...
+        assertThat("Number of chunks purged", numberOfPurgedChunks, is(3));
         final List<ChunkEntity> remainingChunks = findAllChunks();
         assertThat("Number of remaining chunks", remainingChunks.size(), is(2));
 
         // And...
         for (ChunkEntity entity : remainingChunks) {
-            assertThat("Job ID of remaining chunk", entity.getKey().getJobId(), is(not(job2)));
+            assertThat("Job ID of remaining chunk", entity.getKey().getJobId(), is(not(jobId2)));
         }
     }
 
@@ -106,43 +99,32 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     @Test
     public void purgeItems() {
         // Given...
-        final int job1 = 1;
-        final int job2 = 2;
+        final int jobId1 = newPersistedJobEntity().getId();
+        final int jobId2 = newPersistedJobEntity().getId();
         final int chunkId = 0;
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId1));
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId2));
 
-        createEmptyJobs( 1, 2);
-        createEmptyChunksForJob(1, 0);
-        createEmptyChunksForJob(2, 0);
-
-        newPersistedItemEntity(new ItemEntity.Key(job1, chunkId, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(job1, chunkId, (short)1));
-        newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)1));
-        newPersistedItemEntity(new ItemEntity.Key(job2, chunkId, (short)2));
+        newPersistedItemEntity(new ItemEntity.Key(jobId1, chunkId, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(jobId1, chunkId, (short)1));
+        newPersistedItemEntity(new ItemEntity.Key(jobId2, chunkId, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(jobId2, chunkId, (short)1));
+        newPersistedItemEntity(new ItemEntity.Key(jobId2, chunkId, (short)2));
 
         // When...
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        assertThat("Number of items purged", pgJobStoreRepository.purgeItems(job2), is(3));
-        transaction.commit();
+        final int numberOfPurgedItems = persistenceContext.run(() ->
+                pgJobStoreRepository.purgeItems(jobId2)
+        );
 
         // Then...
+        assertThat("Number of items purged", numberOfPurgedItems, is(3));
         final List<ItemEntity> remainingItems = findAllItems();
         assertThat("Number of remaining items", remainingItems.size(), is(2));
 
         // And...
         for (ItemEntity entity : remainingItems) {
-            assertThat("Job ID of remaining item", entity.getKey().getJobId(), is(not(job2)));
+            assertThat("Job ID of remaining item", entity.getKey().getJobId(), is(not(jobId2)));
         }
-    }
-
-    private void createEmptyChunksForJob(int jobId, int chunkId) {
-        entityManager.getTransaction().begin();
-        Query q=entityManager.createNativeQuery("INSERT INTO chunk (jobid, id, datafileid, sequenceanalysisdata, state ) VALUES (?1,?2,'test','{}'::JSON, '{}'::JSON);");
-        q.setParameter(1,jobId);
-        q.setParameter(2,chunkId);
-        q.executeUpdate();
-        entityManager.getTransaction().commit();
     }
 
     /**
@@ -156,19 +138,18 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     public void resetJob() {
         // Given...
         final int chunkId = 0;
-        final JobEntity job = newPersistedJobEntity();
-        newPersistedChunkEntity(new ChunkEntity.Key(0, job.getId()));
-        newPersistedItemEntity(new ItemEntity.Key(job.getId(), chunkId, (short)0));
-        newPersistedItemEntity(new ItemEntity.Key(job.getId(), chunkId, (short)1));
+        final int jobId = newPersistedJobEntity().getId();
+        newPersistedChunkEntity(new ChunkEntity.Key(0, jobId));
+        newPersistedItemEntity(new ItemEntity.Key(jobId, chunkId, (short)0));
+        newPersistedItemEntity(new ItemEntity.Key(jobId, chunkId, (short)1));
 
         // When...
-        final EntityTransaction transaction = entityManager.getTransaction();
-        transaction.begin();
-        final JobEntity purgedJob = pgJobStoreRepository.resetJob(job.getId());
-        transaction.commit();
+        final JobEntity purgedJob = persistenceContext.run(() ->
+                pgJobStoreRepository.resetJob(jobId)
+        );
 
         // Then...
-        assertThat(purgedJob.getId(), is(job.getId()));
+        assertThat(purgedJob.getId(), is(jobId));
         // And...
         assertThat(findAllChunks().size(), is(0));
         // And..
@@ -319,11 +300,82 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("ItemEntity.workflowNote", itemEntity.getWorkflowNote(), is(workflowNote));
     }
 
+    /**
+     * Given: a job store containing one job with one chunk and one item that has completed partitioning
+     * When : attempting to retrieve chunks for existing job and chunk id with type PARTITIONING
+     * Then : one chunk containing the expected chunk item is returned
+     */
+    @Test
+    public void getChunk() {
+        // Given...
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final int jobId = jobEntity.getId();
+        final int chunkId = 0;
+        final short itemId = 0;
+        newPersistedChunkEntity(new ChunkEntity.Key(chunkId, jobId));
+        final ItemEntity itemEntity = newPersistedItemEntityWithChunkItemsSet(new ItemEntity.Key(jobId, chunkId, itemId));
+
+        // Then...
+        final Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobId, chunkId);
+        assertThat("chunk", chunk, is(notNullValue()));
+        assertThat("chunk.size()", chunk.size(), is(1));
+        assertThat("chunk.chunkItem.partitioningOutcome", chunk.getItems().get(0), is(itemEntity.getPartitioningOutcome()));
+    }
+
+    /**
+     * Given    : a job store containing one job with one chunk and one item that has successfully completed all phases.
+     * When     : requesting chunk item for phase: PARTITIONING
+     * Then     : the expected chunk item is returned
+     * And when : requesting chunk item for phase: PROCESSING
+     * Then     : the expected chunk item is returned
+     * And when : requesting chunk item for phase: DELIVERING
+     * Then     : the expected chunk item is returned
+     */
+    @Test
+    public void getChunkItemForPhase() throws InvalidInputException {
+        final int jobId = newPersistedJobEntity().getId();
+        final int chunkId = 0;
+        final short itemId = 0;
+        newPersistedChunkEntity(new ChunkEntity.Key(chunkId, jobId));
+        final ItemEntity itemEntity = newPersistedItemEntityWithChunkItemsSet(new ItemEntity.Key(jobId, chunkId, itemId));
+
+        // When...
+        final ChunkItem partitionedChunkItem = pgJobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.PARTITIONING);
+
+        // Then...
+        assertThat("partitionedChunkItem", partitionedChunkItem, is(itemEntity.getPartitioningOutcome()));
+
+        // And When...
+        final ChunkItem processedChunkItem = pgJobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.PROCESSING);
+
+        // Then...
+        assertThat("processedChunkItem", processedChunkItem, is(itemEntity.getProcessingOutcome()));
+
+        // And When...
+        final ChunkItem deliveredChunkItem = pgJobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, State.Phase.DELIVERING);
+
+        // Then...
+        assertThat("deliveredChunkItem", deliveredChunkItem, is(itemEntity.getDeliveringOutcome()));
+    }
+
 
     /*
      * private methods
      */
 
+    private ItemEntity newPersistedItemEntityWithChunkItemsSet(ItemEntity.Key key) {
+        final ItemEntity itemEntity = newItemEntityWithChunkItemsSet(key);
+        persist(itemEntity);
+        return itemEntity;
+    }
+
+    private ItemEntity newItemEntityWithChunkItemsSet(ItemEntity.Key key) {
+        final ItemEntity itemEntity = newItemEntity(key);
+        itemEntity.setPartitioningOutcome(new ChunkItemBuilder().setData(StringUtil.asBytes("Partitioning outcome data")).build());
+        itemEntity.setProcessingOutcome(new ChunkItemBuilder().setData(StringUtil.asBytes("Processing outcome data")).build());
+        itemEntity.setDeliveringOutcome(new ChunkItemBuilder().setData(StringUtil.asBytes("Delivering outcome data")).build());
+        return itemEntity;
+    }
 
     private JobEntity newPersistedJobEntityWithSinkAndFlowCache() {
         final JobEntity jobEntity = newJobEntityWithSinkAndFlowCache();

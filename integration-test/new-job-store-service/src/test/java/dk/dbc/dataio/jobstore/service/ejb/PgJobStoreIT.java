@@ -51,8 +51,10 @@ import javax.ws.rs.ProcessingException;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -364,59 +366,43 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     /**
      * Given: a job store where a job is added
      * When : a chunk is added
-     * Then : the job info snapshot is updated
-     * And  : the referenced entities are updated
+     * Then : the referenced entities are updated
      */
     @Test
-    public void addChunk() throws JobStoreException, SQLException, FileStoreServiceConnectorException {
+    public void addChunk() throws FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
-        final int chunkId = 1;                   // second chunk is used, hence the chunk id is 1.
-        final short itemId = 0;                  // The second chunk contains only one item, hence the item id is 0.
+        final JobEntity jobEntity = newPersistedJobEntity();
+        final int jobId = jobEntity.getId();
+        final int chunkId = 0;
+        final short itemId = 0;
+        final ChunkEntity chunkEntity = newPersistedChunkEntityWithPartitioningCompleted(new ChunkEntity.Key(chunkId, jobId));
+        final ItemEntity itemEntity = newPersistedItemEntityWithPartitioningCompleted(new ItemEntity.Key(jobId, chunkId, itemId));
+        final Timestamp currentTime = new Timestamp(System.currentTimeMillis());
 
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final JobInfoSnapshot jobInfoSnapshotNewJob = addJobs(1, pgJobStore).get(0);
-
-        assertThat(jobInfoSnapshotNewJob, not(nullValue()));
-
-        // Validate that nothing has been processed on job level
-        assertThat(jobInfoSnapshotNewJob.getState().getPhase(PROCESSING).getSucceeded(), is(0));
-
-        // Validate that nothing has been processed on chunk level
-        assertAndReturnChunkState(jobInfoSnapshotNewJob.getJobId(), chunkId, 0, PROCESSING, false);
-
-        // Validate that nothing has been processed on item level
-        assertAndReturnItemState(jobInfoSnapshotNewJob.getJobId(), chunkId, itemId, 0, PROCESSING, false);
-
-        Chunk chunk = buildChunk(
-                jobInfoSnapshotNewJob.getJobId(),
-                chunkId, 1,
-                Chunk.Type.PROCESSED,
-                ChunkItem.Status.SUCCESS);
+        final Chunk chunk = buildChunk(jobId, chunkId, 1, Chunk.Type.PROCESSED, ChunkItem.Status.SUCCESS);
 
         // When...
-        final EntityTransaction chunkTransaction = entityManager.getTransaction();
-        chunkTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapShotUpdatedJob = pgJobStore.addChunk(chunk);
-        chunkTransaction.commit();
+        persistenceContext.run(() ->
+                pgJobStore.addChunk(chunk)
+        );
 
         // Then...
-        assertThat(jobInfoSnapShotUpdatedJob, not(nullValue()));
-
         // Validate that one chunk has been processed on job level
-        assertThat(jobInfoSnapShotUpdatedJob.getState().getPhase(PROCESSING).getSucceeded(), is(1));
-        LOGGER.info("new-job: {} updated-job: {}", jobInfoSnapshotNewJob.getTimeOfLastModification().getTime(), jobInfoSnapShotUpdatedJob.getTimeOfLastModification().getTime());
-        assertThat(jobInfoSnapShotUpdatedJob.getTimeOfLastModification().after(jobInfoSnapshotNewJob.getTimeOfLastModification()), is(true));
-
-        // And...
+        assertThat(jobEntity.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        assertThat(jobEntity.getTimeOfLastModification().after(currentTime), is(true));
 
         // Validate that one chunk has been processed on chunk level
-        assertAndReturnChunkState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, 1, PROCESSING, true);
+        State chunkState = chunkEntity.getState();
+        assertThat(chunkState.getPhase(PROCESSING).getSucceeded(), is(1));
+        assertThat(chunkState.phaseIsDone(State.Phase.PROCESSING), is(true));
 
         // Validate that one chunk has been processed on item level
-        assertAndReturnItemState(jobInfoSnapShotUpdatedJob.getJobId(), chunkId, itemId, 1, PROCESSING, true);
+        State itemState = itemEntity.getState();
+        assertThat(itemState.getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        assertThat(itemState.phaseIsDone(PROCESSING), is(true));
+        assertThat(StringUtil.asString(itemEntity.getProcessingOutcome().getData()), is (getData(Chunk.Type.PROCESSED)));
     }
-
 
     /**
      * Given: a job store where a job is added
@@ -551,63 +537,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
 
             for(int i = 0; i < numberOfItems; i++) {
                     final ItemEntity itemEntitySecondAddChunk = entityManager.find(ItemEntity.class, new ItemEntity.Key(jobEntityFirstAddChunk.getId(), chunkId, (short) i));
-                    assertThat("ItemEmtity not updated", itemEntitySecondAddChunk, is(itemEntities.get(i)));
+                    assertThat("ItemEntity not updated", itemEntitySecondAddChunk, is(itemEntities.get(i)));
             }
         }
-    }
-
-    /**
-     * Given: a non-empty jobstore
-     * Then : a chunks can be retrieved
-     */
-    @Test
-    public void getChunk() throws JobStoreException, FileStoreServiceConnectorException {
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-        final EntityTransaction transaction = entityManager.getTransaction();
-
-        final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder().build();
-        setupExpectationOnGetByteSize(testableAddJobParam.getRecords().getBytes().length);
-        transaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
-        transaction.commit();
-
-        // Then...
-        final Chunk chunk0 = pgJobStore.jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 0);
-        assertThat("chunk0", chunk0, is(notNullValue()));
-        assertThat("chunk0.size()", chunk0.size(), is(10));
-        final Chunk chunk1 = pgJobStore.jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobInfoSnapshot.getJobId(), 1);
-        assertThat("chunk1", chunk1, is(notNullValue()));
-        assertThat("chunk1.size()", chunk1.size(), is(1));
-    }
-
-    /**
-     * Given: a job store where a job exists and where:
-     *          10 items have been successfully partitioned.
-     * When : requesting item data for the existing job for phase: PARTITIONING
-     * Then : the item data is returned and contains the the correct data.
-     */
-    @Test
-    public void getItemDataPartitioned() throws JobStoreException, FileStoreServiceConnectorException {
-        final int chunkId = 0;                  // first chunk is used, hence the chunk id is 0.
-        final short itemId = 3;
-        // Given...
-        final PgJobStore pgJobStore = newPgJobStore();
-
-        setupExpectationOnGetByteSize(defaultByteSize);
-        final JobInfoSnapshot jobInfoSnapshot = addJobs(1, pgJobStore).get(0);
-
-        assertThat(jobInfoSnapshot, not(nullValue()));
-
-        final ItemEntity.Key itemKey = new ItemEntity.Key(jobInfoSnapshot.getJobId(), chunkId, itemId);
-        final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
-
-        // When...
-        ChunkItem chunkItem = pgJobStore.jobStoreRepository.getChunkItemForPhase(itemKey.getJobId(), itemKey.getChunkId(), itemKey.getId(), State.Phase.PARTITIONING);
-
-        // Then...
-        assertThat("chunkItem", chunkItem, not(nullValue()));
-        assertThat("chunkItem.data", chunkItem.getData(), is(itemEntity.getPartitioningOutcome().getData()));
     }
 
     /**
@@ -782,6 +714,32 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * Private methods
      */
 
+
+    private ChunkEntity newPersistedChunkEntityWithPartitioningCompleted(ChunkEntity.Key key) {
+        final ChunkEntity chunkEntity = newChunkEntityWithPartitioningCompleted(key);
+        persist(chunkEntity);
+        return chunkEntity;
+    }
+
+    private ChunkEntity newChunkEntityWithPartitioningCompleted(ChunkEntity.Key key) {
+        final ChunkEntity chunkEntity = newChunkEntity(key);
+        chunkEntity.getState().getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+        chunkEntity.setNumberOfItems((short)1);
+        return chunkEntity;
+    }
+
+    private ItemEntity newPersistedItemEntityWithPartitioningCompleted(ItemEntity.Key key) {
+        final ItemEntity itemEntity = newItemEntityWithPartitioningCompleted(key);
+        persist(itemEntity);
+        return itemEntity;
+    }
+
+    private ItemEntity newItemEntityWithPartitioningCompleted(ItemEntity.Key key) {
+        final ItemEntity itemEntity = newItemEntity(key);
+        itemEntity.getState().getPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+        return itemEntity;
+    }
+
     private JobInfoSnapshot waitForJobCompletion(long jobId, PgJobStore pgJobStore) {
         final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));
         JobInfoSnapshot jobInfoSnapshot = null;
@@ -864,11 +822,9 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     private JobInfoSnapshot commitJob(PgJobStore pgJobStore, TestableAddJobParam testableAddJobParam) throws JobStoreException {
-        final EntityTransaction jobTransaction = entityManager.getTransaction();
-        jobTransaction.begin();
-        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.addJob(testableAddJobParam);
-        jobTransaction.commit();
-        return jobInfoSnapshot;
+        return persistenceContext.run(() ->
+                pgJobStore.addJob(testableAddJobParam)
+        );
     }
 
     private void setupSuccessfulMockedReturnsFromFlowStore(TestableAddJobParam testableAddJobParam) throws FlowStoreServiceConnectorException {

@@ -122,7 +122,7 @@ public class JobSpecificationFactory {
     private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line, byte[] rawTransfile) {
         final String datafileName = getFieldValue(line, "f", Constants.MISSING_FIELD_VALUE);
         final String batchId = getBatchId(datafileName);
-        return new JobSpecification.Ancestry(transfileName, datafileName, batchId, rawTransfile);
+        return new JobSpecification.Ancestry(transfileName, datafileName, batchId, rawTransfile, null);
     }
 
     private static String getBatchId(String datafileName) {

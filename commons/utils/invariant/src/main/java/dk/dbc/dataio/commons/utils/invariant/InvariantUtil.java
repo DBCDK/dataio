@@ -53,6 +53,27 @@ public class InvariantUtil {
     }
 
     /**
+     * Simple convenience method to check that a string is not empty
+     * If the string is empty then a IllegalArgumentException is thrown.
+     * If the argument is other than that the string is returned as is.
+     *
+     * @param stringObject string to test for {@code null} or empty.
+     * @param parameterName name of the tested parameter. This name is used in the exception message.
+     *
+     * @return the empty tested object
+     *
+     * @throws IllegalArgumentException if {@code stringObject} is empty
+     */
+    public static String checkNotEmptyOrThrow(String stringObject, String parameterName)
+            throws IllegalArgumentException {
+        if (stringObject != null && stringObject.trim().isEmpty()) {
+            final String message = "Value of parameter '" + parameterName + "' cannot be empty";
+            throw new IllegalArgumentException(message);
+        }
+        return stringObject;
+    }
+
+    /**
      * Simple convenience method to check that a string is not null or empty
      * If the string is {@code null} then a NullPointerException is thrown.
      * If the string is empty  then a IllegalArgumentException is thrown.

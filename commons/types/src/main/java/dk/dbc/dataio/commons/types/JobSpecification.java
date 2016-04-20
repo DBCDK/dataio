@@ -226,6 +226,7 @@ public class JobSpecification implements Serializable {
         private final String datafile;
         private final String batchId;
         private final byte[] details;
+        private final String previousJobId;
 
 
         @JsonCreator
@@ -233,12 +234,14 @@ public class JobSpecification implements Serializable {
                 @JsonProperty("transfile") String transfile,
                 @JsonProperty("datafile") String datafile,
                 @JsonProperty("batchId") String batchId,
-                @JsonProperty("details") byte[] details) {
+                @JsonProperty("details") byte[] details,
+                @JsonProperty("previousJobId") String previousJobId) {
 
-            this.transfile = InvariantUtil.checkNotNullNotEmptyOrThrow(transfile, "transfile");
-            this.datafile = InvariantUtil.checkNotNullNotEmptyOrThrow(datafile, "datafile");
+            this.transfile = InvariantUtil.checkNotEmptyOrThrow(transfile, "transfile");
+            this.datafile = InvariantUtil.checkNotEmptyOrThrow(datafile, "datafile");
             this.batchId = batchId;
             this.details = details;
+            this.previousJobId = InvariantUtil.checkNotEmptyOrThrow(previousJobId, "previousJobId");
         }
 
         public String getTransfile() {
@@ -255,6 +258,10 @@ public class JobSpecification implements Serializable {
 
         public byte[] getDetails() {
             return details;
+        }
+
+        public String getPreviousJobId() {
+            return previousJobId;
         }
 
         @Override

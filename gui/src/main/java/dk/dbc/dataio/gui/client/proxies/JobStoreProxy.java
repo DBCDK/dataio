@@ -50,6 +50,7 @@ public interface JobStoreProxy extends RemoteService {
     List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException;
 
     JobModel addJob(JobModel jobModel) throws ProxyException;
+    JobModel reRunJob(JobModel jobModel) throws ProxyException;
 
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;
 

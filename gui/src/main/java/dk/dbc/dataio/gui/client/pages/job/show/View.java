@@ -25,7 +25,6 @@ import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.ClickableTextCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.cell.client.TextInputCell;
@@ -65,12 +64,7 @@ public class View extends ViewWidget {
     private boolean workFlowColumnsVisible = true;
 
     public AsyncJobViewDataProvider dataProvider;
-    ProvidesKey<JobModel> keyProvider = new ProvidesKey<JobModel>() {
-        @Override
-        public Object getKey(JobModel jobModel) {
-            return (jobModel == null) ? null : jobModel.getJobId();
-        }
-    };
+    ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
 
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>(keyProvider);
 
@@ -228,21 +222,18 @@ public class View extends ViewWidget {
             }
         };
 
-        assigneeColumn.setFieldUpdater(new FieldUpdater<JobModel, String>() {
-            @Override
-            public void update(int index, JobModel selectedRowModel, String value) {
-                WorkflowNoteModel updatedWorkflowNoteModel = presenter.preProcessAssignee(value);
-                if(updatedWorkflowNoteModel != null) {
-                    presenter.setWorkflowNote(updatedWorkflowNoteModel, selectedRowModel.getJobId());
+        assigneeColumn.setFieldUpdater((index, selectedRowModel, value) -> {
+            WorkflowNoteModel updatedWorkflowNoteModel = presenter.preProcessAssignee(value);
+            if(updatedWorkflowNoteModel != null) {
+                presenter.setWorkflowNote(updatedWorkflowNoteModel, selectedRowModel.getJobId());
 
-                    // Update the TextInputCell value after save in order to display assignee with capital letters
-                    // without reloading all table data.
-                    TextInputCell.ViewData updatedViewData = new TextInputCell.ViewData(updatedWorkflowNoteModel.getAssignee());
-                    TextInputCell updatedTextInputCell = (TextInputCell) jobsTable.getColumn(ASSIGNEE_COLUMN).getCell();
-                    updatedTextInputCell.setViewData(currentContext[0].getKey(), updatedViewData);
-                    selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
-                    jobsTable.redraw();
-                }
+                // Update the TextInputCell value after save in order to display assignee with capital letters
+                // without reloading all table data.
+                TextInputCell.ViewData updatedViewData = new TextInputCell.ViewData(updatedWorkflowNoteModel.getAssignee());
+                TextInputCell updatedTextInputCell = (TextInputCell) jobsTable.getColumn(ASSIGNEE_COLUMN).getCell();
+                updatedTextInputCell.setViewData(currentContext[0].getKey(), updatedViewData);
+                selectedRowModel.setWorkflowNoteModel(updatedWorkflowNoteModel);
+                jobsTable.redraw();
             }
         });
         return assigneeColumn;
@@ -406,12 +397,9 @@ public class View extends ViewWidget {
                 return workFlowColumnsVisible ? "visible" : "invisible";
             }
         };
-        rerunButtonColumn.setFieldUpdater(new FieldUpdater<JobModel, String>() {
-            @Override
-            public void update(int index, JobModel selectedRowModel, String value) {
-                if(selectedRowModel != null) {
-                    presenter.editJob(selectedRowModel);
-                }
+        rerunButtonColumn.setFieldUpdater((index, selectedRowModel, value) -> {
+            if(selectedRowModel != null) {
+                presenter.editJob(selectedRowModel);
             }
         });
         return rerunButtonColumn;
@@ -435,13 +423,10 @@ public class View extends ViewWidget {
      * @return the double click handler
      */
     private DoubleClickHandler getDoubleClickHandler(){
-        return new DoubleClickHandler() {
-            @Override
-            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                JobModel selected = selectionModel.getSelectedObject();
-                if(selected != null) {
-                    presenter.itemSelected(selected);
-                }
+        return doubleClickEvent -> {
+            JobModel selected = selectionModel.getSelectedObject();
+            if(selected != null) {
+                presenter.itemSelected(selected);
             }
         };
     }

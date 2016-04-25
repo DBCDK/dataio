@@ -111,7 +111,14 @@ public class JobModelMapper {
                 jobModel.getMailForNotificationAboutProcessing(),
                 jobModel.getResultmailInitials(),
                 jobModel.getDataFile(),
-                getType(jobModel.getType())
+                getType(jobModel.getType()),
+                new JobSpecification.Ancestry(
+                        jobModel.getTransFileAncestry(),
+                        jobModel.getDataFileAncestry(),
+                        jobModel.getBatchIdAncestry(),
+                        jobModel.getDetailsAncestry().getBytes(),
+                        jobModel.getPreviousJobIdAncestry()
+                )
         );
         return new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());
     }

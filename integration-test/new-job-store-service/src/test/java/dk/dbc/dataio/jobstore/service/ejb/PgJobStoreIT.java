@@ -566,17 +566,17 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertSucceededItemEntity(succeededItemEntity, State.Phase.PROCESSING, Chunk.Type.PROCESSED);
 
         // And...
-        assertThat(chunkEntity.getState().getPhase(State.Phase.PROCESSING).getFailed(), is(1));
-        assertThat(chunkEntity.getState().getPhase(State.Phase.PROCESSING).getIgnored(), is(1));
-        assertThat(chunkEntity.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
-        assertThat(chunkEntity.getState().phaseIsDone(State.Phase.PROCESSING), is(true));
-        assertThat(chunkEntity.getTimeOfCompletion(), is(nullValue()));
-        assertThat(chunkEntity.getState().allPhasesAreDone(), is(false));
+        assertThat("chunkEntity -> number of items failed in processing", chunkEntity.getState().getPhase(State.Phase.PROCESSING).getFailed(), is(1));
+        assertThat("chunkEntity -> number of items ignored in processing", chunkEntity.getState().getPhase(State.Phase.PROCESSING).getIgnored(), is(1));
+        assertThat("chunkEntity -> number of items succeeded in processing", chunkEntity.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        assertThat("chunkEntity processing completed", chunkEntity.getState().phaseIsDone(State.Phase.PROCESSING), is(true));
+        assertThat("chunkEntity.timeOfCompletion", chunkEntity.getTimeOfCompletion(), is(nullValue()));
+        assertThat("chunkEntity.allPhasesAreDone", chunkEntity.getState().allPhasesAreDone(), is(false));
 
-        assertThat(jobEntity.getState().getPhase(State.Phase.PROCESSING).getFailed(), is(1));
-        assertThat(jobEntity.getState().getPhase(State.Phase.PROCESSING).getIgnored(), is(1));
-        assertThat(jobEntity.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
-        assertThat(jobEntity.getTimeOfLastModification().after(currentTime), is(true));
+        assertThat("jobEntity -> number of items failed in processing", jobEntity.getState().getPhase(State.Phase.PROCESSING).getFailed(), is(1));
+        assertThat("jobEntity -> number of items ignored in processing", jobEntity.getState().getPhase(State.Phase.PROCESSING).getIgnored(), is(1));
+        assertThat("jobEntity -> number of items succeeded in processing", jobEntity.getState().getPhase(State.Phase.PROCESSING).getSucceeded(), is(1));
+        assertThat("jobEntity.timeOfLastModification", jobEntity.getTimeOfLastModification().after(currentTime), is(true));
         currentTime = jobEntity.getTimeOfLastModification();
 
         // And When...
@@ -590,16 +590,17 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
         assertSucceededItemEntity(succeededItemEntity, State.Phase.DELIVERING, Chunk.Type.DELIVERED);
 
         // And...
-        assertThat(chunkEntity.getState().getPhase(State.Phase.DELIVERING).getFailed(), is(1));
-        assertThat(chunkEntity.getState().getPhase(State.Phase.DELIVERING).getIgnored(), is(1));
-        assertThat(chunkEntity.getState().getPhase(State.Phase.DELIVERING).getSucceeded(), is(1));
-        assertThat(chunkEntity.getTimeOfCompletion(), is(notNullValue()));
-        assertThat(chunkEntity.getState().allPhasesAreDone(), is(true));
+        assertThat("chunkEntity -> number of items failed in delivering", chunkEntity.getState().getPhase(State.Phase.DELIVERING).getFailed(), is(1));
+        assertThat("chunkEntity -> number of items ignored in delivering", chunkEntity.getState().getPhase(State.Phase.DELIVERING).getIgnored(), is(1));
+        assertThat("chunkEntity -> number of items succeeded in delivering", chunkEntity.getState().getPhase(State.Phase.DELIVERING).getSucceeded(), is(1));
+        assertThat("chunkEntity delivering completed", chunkEntity.getState().phaseIsDone(State.Phase.DELIVERING), is(true));
+        assertThat("chunkEntity.timeOfCompletion", chunkEntity.getTimeOfCompletion(), is(notNullValue()));
+        assertThat("chunkEntity.allPhasesAreDone", chunkEntity.getState().allPhasesAreDone(), is(true));
 
-        assertThat(jobEntity.getState().getPhase(State.Phase.DELIVERING).getFailed(), is(1));
-        assertThat(jobEntity.getState().getPhase(State.Phase.DELIVERING).getIgnored(), is(1));
-        assertThat(jobEntity.getState().getPhase(State.Phase.DELIVERING).getSucceeded(), is(1));
-        assertThat(jobEntity.getTimeOfLastModification().after(currentTime), is(true));
+        assertThat("jobEntity -> number of items failed in delivering", jobEntity.getState().getPhase(State.Phase.DELIVERING).getFailed(), is(1));
+        assertThat("jobEntity -> number of items ignored in delivering", jobEntity.getState().getPhase(State.Phase.DELIVERING).getIgnored(), is(1));
+        assertThat("jobEntity -> number of items succeeded in delivering", jobEntity.getState().getPhase(State.Phase.DELIVERING).getSucceeded(), is(1));
+        assertThat("jobEntity.timeOfLastModification", jobEntity.getTimeOfLastModification().after(currentTime), is(true));
     }
 
     /**
@@ -857,21 +858,21 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
     }
 
     private void assertFailedItemEntity(ItemEntity itemEntity, State.Phase phase, Chunk.Type type) {
-        assertThat(itemEntity.getState().getPhase(phase).getFailed(), is(1));
-        assertThat(itemEntity.getState().phaseIsDone(phase), is(true));
-        assertThat(StringUtil.asString(getChunkItemOutcome(itemEntity, type).getData()), is(getData(type)));
+        assertThat("itemEntity -> number of failed items", itemEntity.getState().getPhase(phase).getFailed(), is(1));
+        assertThat("itemEntity phase completed", itemEntity.getState().phaseIsDone(phase), is(true));
+        assertThat("itemEntity.data", StringUtil.asString(getChunkItemOutcome(itemEntity, type).getData()), is(getData(type)));
     }
 
     private void assertIgnoredItemEntity(ItemEntity itemEntity, State.Phase phase, Chunk.Type type) {
-        assertThat(itemEntity.getState().getPhase(phase).getIgnored(), is(1));
-        assertThat(itemEntity.getState().phaseIsDone(phase), is(true));
-        assertThat(StringUtil.asString(getChunkItemOutcome(itemEntity, type).getData()), is(getData(type)));
+        assertThat("itemEntity -> number of ignored items", itemEntity.getState().getPhase(phase).getIgnored(), is(1));
+        assertThat("itemEntity phase completed", itemEntity.getState().phaseIsDone(phase), is(true));
+        assertThat("itemEntity.data", StringUtil.asString(getChunkItemOutcome(itemEntity, type).getData()), is(getData(type)));
     }
 
     private void assertSucceededItemEntity(ItemEntity itemEntity, State.Phase phase, Chunk.Type type) {
-        assertThat(itemEntity.getState().getPhase(phase).getSucceeded(), is(1));
-        assertThat(itemEntity.getState().phaseIsDone(phase), is(true));
-        assertThat(StringUtil.asString(getChunkItemOutcome(itemEntity, type).getData()), is(getData(type)));
+        assertThat("itemEntity -> number of succeeded items", itemEntity.getState().getPhase(phase).getSucceeded(), is(1));
+        assertThat("itemEntity phase completed", itemEntity.getState().phaseIsDone(phase), is(true));
+        assertThat("itemEntity.data", StringUtil.asString(getChunkItemOutcome(itemEntity, type).getData()), is(getData(type)));
     }
 
     ChunkItem getChunkItemOutcome(ItemEntity itemEntity, Chunk.Type type) {

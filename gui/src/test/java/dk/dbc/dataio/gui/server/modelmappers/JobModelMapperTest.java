@@ -24,10 +24,12 @@ package dk.dbc.dataio.gui.server.modelmappers;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.gui.client.model.JobModel;
+import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateElement;
 import org.junit.Before;
@@ -40,6 +42,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.dataio.gui.server.modelmappers.JobModelMapper.toJobInputStream;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.when;
@@ -76,6 +79,7 @@ public class JobModelMapperTest {
     JobSpecification testJobSpecification2;
     JobInfoSnapshot testJobInfoSnapshot2;
     List<JobInfoSnapshot> testJobInfoSnapshots;
+    JobModel testJobModel;
 
     @Before
     public void setupMocksAndTestData() {
@@ -93,12 +97,12 @@ public class JobModelMapperTest {
                 .setSubmitterId(64646L)
                 .setAncestry(
                         new JobSpecificationBuilder.AncestryBuilder()
-                        .setTransfile("anc transfilE")
-                        .setDatafile("anc datafilE")
-                        .setBatchId("anc batchiD")
-                        .setDetails("anc detailS".getBytes())
-                        .setPreviousJobId("anc previousjobiD")
-                        .build()
+                                .setTransfile("anc transfilE")
+                                .setDatafile("anc datafilE")
+                                .setBatchId("anc batchiD")
+                                .setDetails("anc detailS".getBytes())
+                                .setPreviousJobId("anc previousjobiD")
+                                .build()
                 )
                 .build();
         testJobInfoSnapshot = new JobInfoSnapshotBuilder()
@@ -192,18 +196,40 @@ public class JobModelMapperTest {
         when(mockedSinkFlowStoreReference2.getName()).thenReturn("sinK2");
         when(mockedSubmitterFlowStoreReference2.getName()).thenReturn("submitteR2");
         testJobInfoSnapshots = Arrays.asList(testJobInfoSnapshot, testJobInfoSnapshot2);
+
+        testJobModel = new JobModelBuilder().
+                setJobId("1848").
+                setSubmitterNumber("65646").
+                setSubmitterName("submitteRr").
+                setFlowBinderName("flowbindeRr").
+                setSinkName("sinKk").
+                setPackaging("packagingg").
+                setFormat("formaTt").
+                setCharset("charseTt").
+                setDestination("destinatioNn").
+                setMailForNotificationAboutVerification("mail4VerificatioNn").
+                setMailForNotificationAboutProcessing("mail4ProcessinGg").
+                setResultMailInitials("mailInitialSs").
+                setDataFile("dataFilEe").
+                setType(JobModel.Type.TEST).
+                setTransFileAncestry("anc transfilEe").
+                setDataFileAncestry("anc datafilEe").
+                setBatchIdAncestry("anc batchiDd").
+                setDetailsAncestry("anc detailSs").
+                setPreviousJobIdAncestry("4321").
+                build();
     }
 
 
 
     /*
-     * Tests start here...
+     * Test toJobInputStream
      */
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullInput_throws() {
         // Subject Under Test
-        JobModelMapper.toModel((JobInfoSnapshot)null);
+        JobModelMapper.toModel((JobInfoSnapshot) null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -407,7 +433,167 @@ public class JobModelMapperTest {
     }
 
 
-//    Todo: Add test of toJobInputStream
+    /*
+     * Test toJobInputStream
+     */
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullInput_throws() {
+        // Subject Under Test
+        toJobInputStream(null);
+    }
+
+    @Test
+    public void toJobInputStream_validInput_validOutput() {
+        // Subject Under Test
+        JobInputStream jobInputStream = JobModelMapper.toJobInputStream(testJobModel);
+
+        // Verify Test
+        JobSpecification jobSpecification = jobInputStream.getJobSpecification();
+        assertThat(jobSpecification.getPackaging(), is("packagingg"));
+        assertThat(jobSpecification.getFormat(), is("formaTt"));
+        assertThat(jobSpecification.getCharset(), is("charseTt"));
+        assertThat(jobSpecification.getDestination(), is("destinatioNn"));
+        assertThat(jobSpecification.getSubmitterId(), is(65646L));
+        assertThat(jobSpecification.getMailForNotificationAboutVerification(), is("mail4VerificatioNn"));
+        assertThat(jobSpecification.getMailForNotificationAboutProcessing(), is("mail4ProcessinGg"));
+        assertThat(jobSpecification.getResultmailInitials(), is("mailInitialSs"));
+        assertThat(jobSpecification.getDataFile(), is("dataFilEe"));
+        assertThat(jobSpecification.getType(), is(JobSpecification.Type.TEST));
+        assertThat(jobSpecification.getAncestry().getTransfile(), is("anc transfilEe"));
+        assertThat(jobSpecification.getAncestry().getDatafile(), is("anc datafilEe"));
+        assertThat(jobSpecification.getAncestry().getBatchId(), is("anc batchiDd"));
+        assertThat(jobSpecification.getAncestry().getDetails(), is("anc detailSs".getBytes()));
+        assertThat(jobSpecification.getAncestry().getPreviousJobId(), is("4321"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullPackaging_throws() {
+        testJobModel.setPackaging(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullFormat_throws() {
+        testJobModel.setPackaging(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullCharset_throws() {
+        testJobModel.setCharset(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullDestination_throws() {
+        testJobModel.setDestination(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullMailForNotificationAboutVerification_throws() {
+        testJobModel.setMailForNotificationvoidAboutVerification(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullMailForNotificationAboutProcessing_throws() {
+        testJobModel.setMailForNotificationvoidAboutProcessing(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullResultMailInitials_throws() {
+        testJobModel.setResultmailInitials(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullDataFile_throws() {
+        testJobModel.setDataFile(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void toJobInputStream_nullType_throws() {
+        testJobModel.setType(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test
+    public void toJobInputStream_nullAncestryTransFile_throwsNOT() {
+        testJobModel.setTransFileAncestry(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toJobInputStream_emptyAncestryTransFile_throws() {
+        testJobModel.setTransFileAncestry("");
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test
+    public void toJobInputStream_nullAncestryDataFile_throwsNOT() {
+        testJobModel.setDataFileAncestry(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toJobInputStream_nullAncestryDataFile_throws() {
+        testJobModel.setDataFileAncestry("");
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test
+    public void toJobInputStream_nullAncestryPreviousJobId_throwsNOT() {
+        testJobModel.setPreviousJobIdAncestry(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void toJobInputStream_nullAncestryPreviousJobId_throws() {
+        testJobModel.setPreviousJobIdAncestry("");
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void toJobInputStream_nullSubmitterNumber_throws() {
+        testJobModel.setSubmitterNumber(null);
+
+        // Subject Under Test
+        JobModelMapper.toJobInputStream(testJobModel);
+    }
 
     /*
      * Private methods

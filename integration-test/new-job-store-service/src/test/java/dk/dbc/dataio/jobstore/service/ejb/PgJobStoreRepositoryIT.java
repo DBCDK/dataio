@@ -61,7 +61,6 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
      * Then : all the chunks associated with the given job are deleted
      * And  : the remaining chunks do not belong to the purged job
      */
-
     @Test
     public void purgeChunks() {
         // Given...
@@ -315,8 +314,10 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         newPersistedChunkEntity(new ChunkEntity.Key(chunkId, jobId));
         final ItemEntity itemEntity = newPersistedItemEntityWithChunkItemsSet(new ItemEntity.Key(jobId, chunkId, itemId));
 
-        // Then...
+        // When...
         final Chunk chunk = pgJobStoreRepository.getChunk(Chunk.Type.PARTITIONED, jobId, chunkId);
+
+        // Then...
         assertThat("chunk", chunk, is(notNullValue()));
         assertThat("chunk.size()", chunk.size(), is(1));
         assertThat("chunk.chunkItem.partitioningOutcome", chunk.getItems().get(0), is(itemEntity.getPartitioningOutcome()));

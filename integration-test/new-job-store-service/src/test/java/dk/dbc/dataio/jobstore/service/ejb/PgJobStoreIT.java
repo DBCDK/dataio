@@ -519,7 +519,7 @@ public class PgJobStoreIT extends AbstractJobStoreIT {
      * And  : The chunk and job entity are updated correctly
      */
     @Test
-    public void addChunk_entitiesAreUpdated() throws FileStoreServiceConnectorException, JobStoreException {
+    public void addChunk_entitiesAreUpdated() throws FileStoreServiceConnectorException {
         // Given...
         final PgJobStore pgJobStore = newPgJobStore();
         final JobEntity jobEntity = newPersistedJobEntity();

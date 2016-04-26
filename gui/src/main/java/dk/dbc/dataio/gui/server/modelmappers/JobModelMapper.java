@@ -91,7 +91,7 @@ public class JobModelMapper {
                 ancestry != null ? ancestry.getDatafile() : null,
                 ancestry != null ? ancestry.getBatchId() : "",
                 ancestry != null && ancestry.getDetails() != null ? new String(ancestry.getDetails()) : "",
-                ancestry != null ? ancestry.getPreviousJobId() : null);
+                ancestry != null ? String.valueOf(ancestry.getPreviousJobId()) : null);
     }
 
     /**
@@ -117,7 +117,7 @@ public class JobModelMapper {
                         jobModel.getDataFileAncestry(),
                         jobModel.getBatchIdAncestry(),
                         jobModel.getDetailsAncestry().getBytes(),
-                        jobModel.getPreviousJobIdAncestry()
+                        Integer.parseInt(jobModel.getPreviousJobIdAncestry())
                 )
         );
         return new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());

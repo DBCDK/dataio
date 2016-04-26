@@ -101,7 +101,7 @@ public class JobModelMapperTest {
                                 .setDatafile("anc datafilE")
                                 .setBatchId("anc batchiD")
                                 .setDetails("anc detailS".getBytes())
-                                .setPreviousJobId("anc previousjobiD")
+                                .setPreviousJobId(531)
                                 .build()
                 )
                 .build();
@@ -157,7 +157,7 @@ public class JobModelMapperTest {
                                 .setDatafile("anc datafilE2")
                                 .setBatchId("anc batchiD2")
                                 .setDetails("anc detailS2".getBytes())
-                                .setPreviousJobId("anc previousjobiD2")
+                                .setPreviousJobId(532)
                                 .build()
                 )
                 .build();
@@ -271,7 +271,7 @@ public class JobModelMapperTest {
         assertThat(jobModel.getDataFileAncestry(), is("anc datafilE"));
         assertThat(jobModel.getBatchIdAncestry(), is("anc batchiD"));
         assertThat(jobModel.getDetailsAncestry(), is("anc detailS"));
-        assertThat(jobModel.getPreviousJobIdAncestry(), is("anc previousjobiD"));
+        assertThat(jobModel.getPreviousJobIdAncestry(), is("531"));
     }
 
     @Test
@@ -429,7 +429,7 @@ public class JobModelMapperTest {
         assertThat(jobModels.get(1).getDataFileAncestry(), is("anc datafilE2"));
         assertThat(jobModels.get(1).getBatchIdAncestry(), is("anc batchiD2"));
         assertThat(jobModels.get(1).getDetailsAncestry(), is("anc detailS2"));
-        assertThat(jobModels.get(1).getPreviousJobIdAncestry(), is("anc previousjobiD2"));
+        assertThat(jobModels.get(1).getPreviousJobIdAncestry(), is("532"));
     }
 
 
@@ -464,7 +464,7 @@ public class JobModelMapperTest {
         assertThat(jobSpecification.getAncestry().getDatafile(), is("anc datafilEe"));
         assertThat(jobSpecification.getAncestry().getBatchId(), is("anc batchiDd"));
         assertThat(jobSpecification.getAncestry().getDetails(), is("anc detailSs".getBytes()));
-        assertThat(jobSpecification.getAncestry().getPreviousJobId(), is("4321"));
+        assertThat(jobSpecification.getAncestry().getPreviousJobId(), is(4321));
     }
 
     @Test(expected = NullPointerException.class)
@@ -566,22 +566,6 @@ public class JobModelMapperTest {
     @Test(expected = IllegalArgumentException.class)
     public void toJobInputStream_nullAncestryDataFile_throws() {
         testJobModel.setDataFileAncestry("");
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test
-    public void toJobInputStream_nullAncestryPreviousJobId_throwsNOT() {
-        testJobModel.setPreviousJobIdAncestry(null);
-
-        // Subject Under Test
-        JobModelMapper.toJobInputStream(testJobModel);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void toJobInputStream_nullAncestryPreviousJobId_throws() {
-        testJobModel.setPreviousJobIdAncestry("");
 
         // Subject Under Test
         JobModelMapper.toJobInputStream(testJobModel);

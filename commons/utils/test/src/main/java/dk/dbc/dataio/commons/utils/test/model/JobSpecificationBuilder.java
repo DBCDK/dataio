@@ -103,7 +103,7 @@ public class JobSpecificationBuilder {
         private String datafile = "datafile";
         private String batchId = "";
         private byte[] details = {};
-        private String previousJobId = null;
+        private int previousJobId = 0;
 
         public AncestryBuilder setTransfile(String transfile) {
             this.transfile = transfile;
@@ -125,7 +125,7 @@ public class JobSpecificationBuilder {
             return this;
         }
 
-        public AncestryBuilder setPreviousJobId(String previousJobId) {
+        public AncestryBuilder setPreviousJobId(int previousJobId) {
             this.previousJobId = previousJobId;
             return this;
         }

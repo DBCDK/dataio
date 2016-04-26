@@ -49,7 +49,7 @@ public class JobSpecificationTest {
     private static final String DATA_FILE = "uri";
     private static final String BATCH_ID = "1234";
     private static final byte[] DETAILS = "abcdefghijklmnop".getBytes();
-    private static final String PREVIOUS_JOB_ID = "1233";
+    private static final int PREVIOUS_JOB_ID = 1233;
     private static final JobSpecification.Type TYPE = JobSpecification.Type.TEST;
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -182,16 +182,6 @@ public class JobSpecificationTest {
     @Test
     public void constructor_ancestryHasEmptyValuedDetails_throwsNot() {
         new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, BATCH_ID, "".getBytes(), PREVIOUS_JOB_ID);
-    }
-
-    @Test
-    public void constructor_ancestryHasNullValuedPreviousJobId_throwsNot() {
-        new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, BATCH_ID, DETAILS, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_ancestryHasEmptyValuedPreviousJobId_throws() {
-        new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, BATCH_ID, DETAILS, "");
     }
 
     public static JobSpecification newJobSpecificationInstance() {

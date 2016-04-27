@@ -42,16 +42,13 @@ public class ClickableImageResourceCell extends AbstractCell<ImageResource> {
     @Override
     public void onBrowserEvent(Context context, final Element parent, ImageResource value, NativeEvent event, ValueUpdater<ImageResource> valueUpdater) {
         super.onBrowserEvent(context, parent, value, event, valueUpdater);
-        if (event.getType().equals("click")) {
-            if(valueUpdater != null) {
-                valueUpdater.update(value);
-            }
+        if (event.getType().equals("click") && valueUpdater != null) {
+            valueUpdater.update(value);
         }
     }
 
     @Override
-    public void render(com.google.gwt.cell.client.Cell.Context context,
-                       ImageResource value, final SafeHtmlBuilder sb) {
+    public void render(com.google.gwt.cell.client.Cell.Context context, ImageResource value, final SafeHtmlBuilder sb) {
         sb.append(renderer.render(value));
     }
 }

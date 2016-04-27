@@ -158,4 +158,12 @@ public interface Resources extends ClientBundle {
     @Source("img/calendar-icon.png")
     ImageResource calendarIcon();
 
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/recycle.png")
+    ImageResource recycleIcon();
+
+    @ImageResource.ImageOptions(preventInlining=true)
+    @Source("img/empty.png")
+    ImageResource emptyIcon();
+
 }

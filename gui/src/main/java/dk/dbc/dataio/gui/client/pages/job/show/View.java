@@ -36,6 +36,7 @@ import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
+import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -44,8 +45,10 @@ import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import com.google.gwt.view.client.SingleSelectionModel;
+import dk.dbc.dataio.gui.client.components.ClickableImageResourceCell;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 
@@ -154,7 +157,7 @@ public class View extends ViewWidget {
      * @return the constructed Hide/Show Workflow column
      */
     Column constructHideShowWorkflow() {
-        return new HideShowCell();
+        return new HideShowCell(commonInjector.getResources(), new ClickableImageResourceCell());
     }
 
     /**
@@ -457,7 +460,7 @@ public class View extends ViewWidget {
     }
 
     /**
-     * Toggles the visiblity of a hideable column
+     * Toggles the visibility of a hideable column
      */
     private void HideOrShowColumn() {
         HideColumn(workFlowColumnsVisible);
@@ -520,18 +523,21 @@ public class View extends ViewWidget {
     /**
      * Hide/Show Cell class
      */
-    class HideShowCell extends Column<JobModel, String> {
-        public HideShowCell(Cell<String> cell) {
-            super(cell);
-        }
+    class HideShowCell extends Column<JobModel, ImageResource> {
+        private final Resources resources;
 
-        public HideShowCell() {
-            this(new ClickableTextCell());
+        public HideShowCell(Resources resources, Cell<ImageResource> cell) {
+            super(cell);
+            this.resources = resources;
         }
 
         @Override
-        public String getValue(JobModel model) {
-            return "";
+        public ImageResource getValue(JobModel model) {
+            if (model.getPreviousJobIdAncestry() != null) {
+                return resources.recycleIcon();
+            } else {
+                return resources.emptyIcon();
+            }
         }
 
         @Override
@@ -547,4 +553,6 @@ public class View extends ViewWidget {
             }
         }
     }
+
+
 }

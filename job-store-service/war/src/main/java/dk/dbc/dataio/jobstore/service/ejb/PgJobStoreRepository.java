@@ -218,7 +218,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                     LOGGER.info("Forcing diff sink on ACCTEST job");
                     sinkJson = jsonbContext.marshall(
                             new Sink(1, 1,
-                                    new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality")));
+                                    new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality", SinkContent.SequenceAnalysisOption.ID_ONLY)));
                 } else {
                     flowJson = new FlowTrimmer(jsonbContext).trim(flowJson);
                     sinkJson = jsonbContext.marshall(addJobParam.getSink());

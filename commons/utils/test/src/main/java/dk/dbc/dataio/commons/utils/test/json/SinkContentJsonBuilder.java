@@ -29,6 +29,7 @@ public class SinkContentJsonBuilder extends JsonBuilder {
     private String description = "defaultDescription";
     private SinkContent.SinkType sinkType = null;
     private String sinkConfig = null;
+    private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     public SinkContentJsonBuilder setName(String name) {
         this.name = name;
@@ -55,6 +56,11 @@ public class SinkContentJsonBuilder extends JsonBuilder {
         return this;
     }
 
+    public SinkContentJsonBuilder setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+        this.sequenceAnalysisOption = sequenceAnalysisOption;
+        return this;
+    }
+
     public String build() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(START_OBJECT);
@@ -67,6 +73,8 @@ public class SinkContentJsonBuilder extends JsonBuilder {
         stringBuilder.append(asTextMember("sinkType", sinkType == null? null : sinkType.name()));
         stringBuilder.append(MEMBER_DELIMITER);
         stringBuilder.append(asObjectMember("sinkConfig", sinkConfig));
+        stringBuilder.append(MEMBER_DELIMITER);
+        stringBuilder.append(asTextMember("sequenceAnalysisOption", sequenceAnalysisOption.name()));
         stringBuilder.append(END_OBJECT);
         return stringBuilder.toString();
     }

@@ -107,13 +107,15 @@ public class SinkModelMapper {
                             model.getOpenUpdateUserId(),
                             model.getOpenUpdatePassword(),
                             model.getOpenUpdateEndpoint(),
-                            model.getOpenUpdateAvailableQueueProviders()));
+                            model.getOpenUpdateAvailableQueueProviders()),
+                    SinkContent.SequenceAnalysisOption.ALL); // FIXME: 27/04/16 temporary default value
         } else {
             return new SinkContent(
                     model.getSinkName(),
                     model.getResourceName(),
                     model.getDescription(),
-                    model.getSinkType());
+                    model.getSinkType(),
+                    SinkContent.SequenceAnalysisOption.ALL); // FIXME: 27/04/16 temporary default value
         }
     }
 

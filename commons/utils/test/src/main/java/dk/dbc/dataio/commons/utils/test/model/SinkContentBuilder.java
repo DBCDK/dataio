@@ -30,6 +30,7 @@ public class SinkContentBuilder {
     private String description = "description";
     private SinkContent.SinkType sinkType = null;
     private SinkConfig sinkConfig = null;
+    private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     public SinkContentBuilder setName(String name) {
         this.name = name;
@@ -57,6 +58,6 @@ public class SinkContentBuilder {
     }
 
     public SinkContent build() {
-        return new SinkContent(name, resource, description, sinkType, sinkConfig);
+        return new SinkContent(name, resource, description, sinkType, sinkConfig, sequenceAnalysisOption);
     }
 }

@@ -124,7 +124,7 @@ public class JPATestUtils {
         manager.getTransaction().commit();
     }
 
-    static String readResource(Object testClass, String resourceName) throws IOException, URISyntaxException {
+    public static String readResource(Object testClass, String resourceName) throws IOException, URISyntaxException {
         final StringBuilder buffer = new StringBuilder();
         final int buffSize=1024;
         final char[] buff=new char[buffSize];

@@ -1,6 +1,8 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -10,8 +12,10 @@ import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jsonb.JSONBException;
 import static org.eclipse.persistence.expressions.ExpressionOperator.Sin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.ejb.Stateless;
+import javax.ejb.*;
 import javax.inject.Inject;
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -20,13 +24,23 @@ import java.util.Set;
 
 /**
  * Created by ja7 on 11-04-16.
+ *
+ * Handle Chunk Scheduling.
  */
 @Stateless
 public class NewJobSchedulerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NewJobSchedulerBean.class);
 
     @Inject
     @JobstoreDB
     EntityManager entityManager;
+
+    @EJB
+    JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+    @EJB
+    private PgJobStoreRepository jobStoreRepository;
+
+
     /**
      * ScheduleChunk
 
@@ -37,9 +51,39 @@ public class NewJobSchedulerBean {
      * @throws NullPointerException if given any null-valued argument
      * @throws JobStoreException if unable to setup monitoring
      */
+    @Stopwatch
     public void scheduleChunk(ChunkEntity chunk, Sink sink) throws  JobStoreException{
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
+
+        persistDependencyEntity(chunk, sink);
+        submitIfPosibleForProcessing( chunk, sink );
+
+    }
+
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
+        int sinkId=(int)sink.getId();
+
+        DependencyTrackingEntity e=new DependencyTrackingEntity( chunk, sinkId );
+        e.setWaitingOn( findChunksToWaitFor( sinkId, e.getMatchKeys()));
+        entityManager.persist( e );
+    }
+
+    @Asynchronous
+    @Stopwatch
+    void submitIfPosibleForProcessing(ChunkEntity chunk, Sink sink) {
+        try {
+            jobProcessorMessageProducerBean.send( getChunkFromChunkEntity(chunk));
+        } catch (JobStoreException e) {
+            LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);
+        }
+    }
+
+    private Chunk getChunkFromChunkEntity(ChunkEntity chunk) {
+        ChunkEntity.Key chunkKey=chunk.getKey();
+        return jobStoreRepository.getChunk( Chunk.Type.PARTITIONED, chunkKey.getJobId(), chunkKey.getId() );
     }
 
 

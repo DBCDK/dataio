@@ -22,6 +22,8 @@
 package dk.dbc.dataio.jobstore.service.entity;
 
 import javax.persistence.*;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -45,6 +47,15 @@ import java.util.Set;
     }
 )
 public class DependencyTrackingEntity {
+    public DependencyTrackingEntity(ChunkEntity chunk, int sinkId) {
+        this.key = new Key( chunk.getKey());
+        this.sinkid= sinkId;
+        this.matchKeys =  chunk.getSequenceAnalysisData().getData();
+    }
+
+    public DependencyTrackingEntity() {
+    }
+
     /* Be advised that updating the internal state of a 'json' column
        will not mark the field as dirty and therefore not result in a
        database update. The only way to achieve an update is to replace
@@ -115,6 +126,11 @@ public class DependencyTrackingEntity {
         this.waitingOn = waitingOn;
     }
 
+    public void setWaitingOn(List<Key> chunksToWaitFor) {
+        this.waitingOn = new HashSet<>(chunksToWaitFor);
+    }
+
+
     public Set<Key> getBlocking() {
         return blocking;
     }
@@ -146,6 +162,11 @@ public class DependencyTrackingEntity {
         public Key(int jobId, int chunkId ) {
             this.jobId = jobId;
             this.chunkId = chunkId;
+        }
+
+        public Key(ChunkEntity.Key chunkKey) {
+            this.jobId=chunkKey.getJobId();
+            this.chunkId=chunkKey.getId();
         }
 
         public int getChunkId() {

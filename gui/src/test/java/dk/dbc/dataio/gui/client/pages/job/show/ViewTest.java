@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.ImageResourceCell;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.dom.client.DomEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
+import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.view.client.CellPreviewEvent;
 import com.google.gwt.view.client.Range;
@@ -75,8 +78,10 @@ public class ViewTest {
     @Mock CellPreviewEvent<JobModel> mockedCellPreviewEvent;
     @Mock NativeEvent mockedNativeEvent;
     @Mock dk.dbc.dataio.gui.client.pages.navigation.Texts mockedMenuTexts;
-
     @Mock AsyncJobViewDataProvider mockedDataProvider;
+    @Mock ImageResource mockedImageResource;
+    @Mock Cell.Context mockedContext;
+
 
     // Test Data
     private JobModel testModel1 = new JobModelBuilder()
@@ -115,6 +120,7 @@ public class ViewTest {
     final static String MOCKED_COLUMN_HEADER_IS_FIXED = "Mocked Column Header Fixed";
     final static String MOCKED_COLUMN_HEADER_ASSIGNEE = "Mocked Column Header Assignee";
     final static String MOCKED_BUTTON_RERUN_JOB = "Mocked Button Rerun Job";
+    final static String MOCKED_LABEL_RERUN_JOB_NO = "Mocked Label Rerun Job No";
 
 
     public class ViewConcrete extends View {
@@ -152,6 +158,7 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Fixed()).thenReturn(MOCKED_COLUMN_HEADER_IS_FIXED);
         when(mockedTexts.columnHeader_Assignee()).thenReturn(MOCKED_COLUMN_HEADER_ASSIGNEE);
         when(mockedTexts.button_RerunJob()).thenReturn(MOCKED_BUTTON_RERUN_JOB);
+        when(mockedTexts.label_ReRunJobNo()).thenReturn(MOCKED_LABEL_RERUN_JOB_NO);
     }
 
     //Testing starts here...
@@ -240,6 +247,89 @@ public class ViewTest {
         // Verify test
         verify(view.jobsTable, times(1)).setVisibleRangeAndClearData(any(Range.class), eq(true));
         verifyNoMoreInteractions(view.jobsTable);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructHideShowColumn_jobModelIsNull_calculateCorrectHtmlSnippet() {
+        view = new ViewConcrete();
+
+        View.HideShowCell hideShowCell = (View.HideShowCell) view.constructHideShowWorkflow();
+        when(mockedContext.getKey()).thenReturn(null);
+        Cell<ImageResource> cell = hideShowCell.getCell();
+        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+        when(mockedImageResource.getWidth()).thenReturn(11);
+        when(mockedImageResource.getHeight()).thenReturn(22);
+        when(mockedImageResource.getSafeUri()).thenReturn(() -> "[Test Image]");
+
+        // Subject Under Test
+        cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
+
+        // Verify Test
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("image([Test Image], 11, 22)"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructHideShowColumn_jobModelIsValidWithNullPreviousJobId_calculateCorrectHtmlSnippet() {
+        view = new ViewConcrete();
+
+        View.HideShowCell hideShowCell = (View.HideShowCell) view.constructHideShowWorkflow();
+        when(mockedContext.getKey()).thenReturn(testModel1);
+        testModel1.setPreviousJobIdAncestry(null);
+        Cell<ImageResource> cell = hideShowCell.getCell();
+        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+        when(mockedImageResource.getWidth()).thenReturn(11);
+        when(mockedImageResource.getHeight()).thenReturn(22);
+        when(mockedImageResource.getSafeUri()).thenReturn(() -> "[Test Image]");
+
+        // Subject Under Test
+        cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
+
+        // Verify Test
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("image([Test Image], 11, 22)"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructHideShowColumn_jobModelIsValidWithEmptyPreviousJobId_calculateCorrectHtmlSnippet() {
+        view = new ViewConcrete();
+
+        View.HideShowCell hideShowCell = (View.HideShowCell) view.constructHideShowWorkflow();
+        when(mockedContext.getKey()).thenReturn(testModel1);
+        testModel1.setPreviousJobIdAncestry("");
+        Cell<ImageResource> cell = hideShowCell.getCell();
+        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+        when(mockedImageResource.getWidth()).thenReturn(11);
+        when(mockedImageResource.getHeight()).thenReturn(22);
+        when(mockedImageResource.getSafeUri()).thenReturn(() -> "[Test Image]");
+
+        // Subject Under Test
+        cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
+
+        // Verify Test
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("<span title='Mocked Label Rerun Job No '>image([Test Image], 11, 22)</span>"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructHideShowColumn_jobModelIsValidWithValidPreviousJobId_calculateCorrectHtmlSnippet() {
+        view = new ViewConcrete();
+
+        View.HideShowCell hideShowCell = (View.HideShowCell) view.constructHideShowWorkflow();
+        when(mockedContext.getKey()).thenReturn(testModel1);
+        testModel1.setPreviousJobIdAncestry("1234");
+        Cell<ImageResource> cell = hideShowCell.getCell();
+        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+        when(mockedImageResource.getWidth()).thenReturn(11);
+        when(mockedImageResource.getHeight()).thenReturn(22);
+        when(mockedImageResource.getSafeUri()).thenReturn(() -> "[Test Image]");
+
+        // Subject Under Test
+        cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
+
+        // Verify Test
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("<span title='Mocked Label Rerun Job No 1234'>image([Test Image], 11, 22)</span>"));
     }
 
     @Test

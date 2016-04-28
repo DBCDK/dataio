@@ -29,8 +29,9 @@ import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.client.ui.ImageResourceRenderer;
 
+
 public class ClickableImageResourceCell extends AbstractCell<ImageResource> {
-    private static ImageResourceRenderer renderer;
+    public static ImageResourceRenderer renderer;
 
     public ClickableImageResourceCell() {
         super("click");

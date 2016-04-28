@@ -37,6 +37,8 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.resources.client.ImageResource;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
+import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -157,7 +159,26 @@ public class View extends ViewWidget {
      * @return the constructed Hide/Show Workflow column
      */
     Column constructHideShowWorkflow() {
-        return new HideShowCell(commonInjector.getResources(), new ClickableImageResourceCell());
+        return new HideShowCell(
+                commonInjector.getResources(),
+                new ClickableImageResourceCell() {
+                    @Override
+                    public void render(Cell.Context context, ImageResource value, final SafeHtmlBuilder sb) {
+                        String previousId = null;
+                        JobModel jobModel = (JobModel) context.getKey();
+                        if (jobModel != null) {
+                            previousId = jobModel.getPreviousJobIdAncestry();
+                        }
+                        if (previousId != null) {
+                            sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_ReRunJobNo() + " " + previousId + "'>"));
+                        }
+                        sb.append(renderer.render(value));
+                        if (previousId != null) {
+                            sb.append(SafeHtmlUtils.fromSafeConstant("</span>"));
+                        }
+                    }
+                }
+        );
     }
 
     /**

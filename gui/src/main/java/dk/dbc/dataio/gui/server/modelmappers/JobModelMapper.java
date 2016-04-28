@@ -117,7 +117,7 @@ public class JobModelMapper {
                         jobModel.getDataFileAncestry(),
                         jobModel.getBatchIdAncestry(),
                         jobModel.getDetailsAncestry().getBytes(),
-                        Integer.parseInt(jobModel.getPreviousJobIdAncestry())
+                        jobModel.getPreviousJobIdAncestry() == null ? 0 : Integer.parseInt(jobModel.getPreviousJobIdAncestry())
                 )
         );
         return new JobInputStream(jobSpecification, jobModel.isJobDone(), jobModel.getPartNumber());

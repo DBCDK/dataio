@@ -44,6 +44,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.sql.DataSource;
@@ -110,6 +111,7 @@ public class NewJobSchedulerBeanArquillianIT {
             //        .from(new File("src/main/resources/META-INF/persistence.xml"));
 
 
+            //Persistence
 
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobscheduler-test.war")
                     .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
@@ -121,7 +123,6 @@ public class NewJobSchedulerBeanArquillianIT {
                     .addClasses(JobProcessorMessageProducerBean.class)
                     .addClasses(DmqMessageConsumerBean.class)
                     .addClasses(SinkMessageProducerBean.class)
-
                     .addClasses(NewJobSchedulerBean.class)
                     ;
 

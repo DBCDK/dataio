@@ -110,7 +110,14 @@ public class NewJobSchedulerBeanArquillianIT {
             //PersistenceDescriptor persistenceXml = Descriptors.importAs(PersistenceDescriptor.class)
             //        .from(new File("src/main/resources/META-INF/persistence.xml"));
 
+                     /*
+                     <dependency>
+                     	<groupId>org.jboss.shrinkwrap.descriptors</groupId>
+                     	<artifactId>shrinkwrap-descriptors-api-javaee</artifactId>
+                     	<version>2.0.0-alpha-4</version>
+                     </dependency>
 
+                      */
             //Persistence
 
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobscheduler-test.war")

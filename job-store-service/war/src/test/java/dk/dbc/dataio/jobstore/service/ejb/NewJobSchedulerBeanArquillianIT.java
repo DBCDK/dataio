@@ -36,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import dk.dbc.commons.addi.AddiReader;
 
 
 import javax.annotation.Resource;
@@ -82,6 +83,8 @@ public class NewJobSchedulerBeanArquillianIT {
     DataSource dataSource;
 
     int fisk=12;
+    String fisk;
+
     @Inject
     UserTransaction utx;
 

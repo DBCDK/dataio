@@ -81,6 +81,7 @@ public class NewJobSchedulerBeanArquillianIT {
     )
     DataSource dataSource;
 
+    int fisk=12;
     @Inject
     UserTransaction utx;
 

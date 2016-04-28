@@ -123,11 +123,13 @@ public class NewJobSchedulerBeanArquillianIT {
 
             // Add DB Migrations
             for (File file : new File("src/main/resources/db/migration").listFiles()) {
+                if( file.getName().equals(".svn") ) { continue; };
                 String fileNameAdded="classes/db/migration/"+file.getName();
                 war.addAsWebInfResource(file, fileNameAdded);
             }
 
             for (File file : new File("src/main/resources/META-INF/").listFiles() ) {
+                if( file.getName().equals(".svn") ) { continue; };
                 String fileNameAdded="META-INF/"+file.getName();
                 war.addAsResource(file, fileNameAdded);
             }

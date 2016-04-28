@@ -64,7 +64,7 @@ public class ESTaskPackageUtilTest {
         AddiUtil.getAddiRecordsFromChunk(processedChunk);
     }
 
-    @Test(expected = NumberFormatException.class)
+    @Test(expected = IOException.class)
     public void getAddiRecordsFromChunk_notAddi_throws() throws Exception {
         final String notAddi = "string";
         final Chunk processedChunk = newProcessedChunk(notAddi);
@@ -95,7 +95,7 @@ public class ESTaskPackageUtilTest {
         assertThat("second Addi record", addiRecords.get(1), is(notNullValue()));
     }
 
-    @Test(expected = NumberFormatException.class)
+    @Test(expected = IOException.class)
     public void getAddiRecordsFromChunkItem_chunkItemArgContainsNonAddiData_throws() throws Exception {
         final ChunkItem chunkItem = newChunkItem("non-addi");
         AddiUtil.getAddiRecordsFromChunkItem(chunkItem);

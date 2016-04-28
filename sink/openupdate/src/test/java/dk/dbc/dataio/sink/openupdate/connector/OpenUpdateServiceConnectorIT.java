@@ -225,9 +225,8 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void updateRecord_callsServiceWithInvalidSchema_validationFailedWithInvalidSchema() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(
-                getAddi(getMeta(INVALID_SCHEMA),
-                        StringUtil.asString(readTestRecord(FAILED_UPDATE_MARC), StandardCharsets.UTF_8)));
+        final AddiRecord addiRecord = newAddiRecord(
+                getMeta(INVALID_SCHEMA), StringUtil.asString(readTestRecord(FAILED_UPDATE_MARC), StandardCharsets.UTF_8));
 
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord, QUEUE_PROVIDER);
         final OpenUpdateServiceConnector connector = getConnector();
@@ -244,7 +243,7 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void updateRecord_callsServiceWithInvalidMarc_validationFailedWithValidationError() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), getMarcExchangeCausingWebserviceValidationErrors()));
+        final AddiRecord addiRecord = newAddiRecord(getMeta(SCHEMA_NAME), getMarcExchangeCausingWebserviceValidationErrors());
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord, QUEUE_PROVIDER);
         final OpenUpdateServiceConnector connector = getConnector();
 
@@ -269,9 +268,8 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void updateRecord_callsServiceWithInsufficientRights_validationFailedWithFailedUpdateInternalError() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(
-                getMeta(SCHEMA_NAME),
-                StringUtil.asString(readTestRecord(FAILED_UPDATE_MARC), StandardCharsets.UTF_8)));
+        final AddiRecord addiRecord = newAddiRecord(
+                getMeta(SCHEMA_NAME), StringUtil.asString(readTestRecord(FAILED_UPDATE_MARC), StandardCharsets.UTF_8));
 
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord, QUEUE_PROVIDER);
         final OpenUpdateServiceConnector connector = getConnector();
@@ -296,7 +294,7 @@ public class OpenUpdateServiceConnectorIT extends AbstractOpenUpdateSinkTestBase
 
     @Test
     public void updateRecord_callsServiceWithAllArgsAreValid_validationOk() throws IOException, URISyntaxException {
-        final AddiRecord addiRecord = toAddiRecord(getAddi(getMeta(SCHEMA_NAME), getMarcExchangeValidatedOkByWebservice()));
+        final AddiRecord addiRecord = newAddiRecord(getMeta(SCHEMA_NAME), getMarcExchangeValidatedOkByWebservice());
         final AddiRecordPreprocessor.Result preprocessingResult = new AddiRecordPreprocessor().preprocess(addiRecord, QUEUE_PROVIDER);
         final OpenUpdateServiceConnector connector = getConnector();
 

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.diff;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
@@ -30,8 +31,8 @@ import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.types.SinkException;
@@ -39,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -328,13 +330,9 @@ public class DiffMessageProcessorBeanTest {
     }
 
     private byte[] getAddi(String metaXml, String contentXml) {
-        return (metaXml.trim().getBytes().length +
-                System.lineSeparator() +
-                metaXml +
-                System.lineSeparator() +
-                contentXml.trim().getBytes().length +
-                System.lineSeparator() +
-                contentXml).getBytes();
+        return new AddiRecord(
+                metaXml.trim().getBytes(StandardCharsets.UTF_8),
+                contentXml.trim().getBytes(StandardCharsets.UTF_8)).getBytes();
     }
 
 }

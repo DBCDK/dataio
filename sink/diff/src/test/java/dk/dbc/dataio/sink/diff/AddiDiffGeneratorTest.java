@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -133,13 +134,9 @@ public class AddiDiffGeneratorTest {
     }
 
     private byte[] getAddi(String metaXml, String contentXml) {
-        return (metaXml.trim().getBytes().length +
-                System.lineSeparator() +
-                metaXml +
-                System.lineSeparator() +
-                contentXml.trim().getBytes().length +
-                System.lineSeparator() +
-                contentXml).getBytes();
+        return new AddiRecord(
+                metaXml.trim().getBytes(StandardCharsets.UTF_8),
+                contentXml.trim().getBytes(StandardCharsets.UTF_8)).getBytes();
     }
 
 }

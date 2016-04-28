@@ -43,7 +43,7 @@ import static org.junit.Assert.fail;
 public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
-    private final AddiRecord addiRecord = toAddiRecord(getAddi(getMetaXml(), getContentXml()));
+    private final AddiRecord addiRecord = newAddiRecord(getMetaXml(), getContentXml());
     private final String queueProvider = null;
 
     @Test(expected = NullPointerException.class)
@@ -53,7 +53,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Test(expected = IllegalArgumentException.class)
     public void preprocess_addiArgIsInvalid_throws() {
-        final AddiRecord addiRecord = toAddiRecord(getAddi("", getContentXml()));
+        final AddiRecord addiRecord = newAddiRecord("", getContentXml());
         addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
     }
 
@@ -61,7 +61,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     public void preprocess_esInfoElementNotFound_throws() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>");
-        final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
+        final AddiRecord addiRecord = newAddiRecord(invalidMetaXml, getContentXml());
         try {
             addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
             fail();
@@ -75,7 +75,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     public void preprocess_updateElementNotFound_throws() {
         final String invalidMetaXml = getInvalidMetaXml(
                 "<es:info submitter=\"870970\"/>");
-        final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
+        final AddiRecord addiRecord = newAddiRecord(invalidMetaXml, getContentXml());
         try {
             addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
             fail();
@@ -109,7 +109,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
                 "<es:info/>" +
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
         );
-        final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
+        final AddiRecord addiRecord = newAddiRecord(invalidMetaXml, getContentXml());
 
         // Subject under test
         final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
@@ -124,7 +124,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
                 "<es:info submitter=\"870970\"/>" +
                 "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\"/>"
         );
-        final AddiRecord addiRecord = toAddiRecord(getAddi(invalidMetaXml, getContentXml()));
+        final AddiRecord addiRecord = newAddiRecord(invalidMetaXml, getContentXml());
 
         // Subject under test
         final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);

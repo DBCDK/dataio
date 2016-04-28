@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
@@ -31,8 +32,6 @@ import org.junit.Test;
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.WebServiceException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
@@ -59,7 +58,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private final String queueProvider = "queue";
 
     private final ChunkItem processedChunkItemValid = new ChunkItemBuilder()
-            .setData(getAddi(getMetaXml(), getMarcExchangeValidatedOkByWebservice()))
+            .setData(newAddiRecord(getMetaXml(), getMarcExchangeValidatedOkByWebservice()).getBytes())
             .setStatus(SUCCESS).build();
 
 
@@ -202,14 +201,11 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     }
 
     private ChunkItem buildChunkItemWithMultipleValidAddiRecords() {
-        return new ChunkItemBuilder().setData(getAddi(buildListOfAddRecords())).setTrackingId(DBC_TRACKING_ID_VALUE).setStatus(SUCCESS).build();
-    }
-
-    private List<AddiRecordWrapper> buildListOfAddRecords() {
-        List<AddiRecordWrapper> addiRecordWrappers = new ArrayList<>();
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), getMarcExchangeValidatedOkByWebservice()));
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), getMarcExchangeValidatedOkByWebservice()));
-        addiRecordWrappers.add(new AddiRecordWrapper(getMetaXml(), getMarcExchangeValidatedOkByWebservice()));
-        return addiRecordWrappers;
+        final AddiRecord addiRecord = newAddiRecord(getMetaXml(), getMarcExchangeValidatedOkByWebservice());
+        return new ChunkItemBuilder()
+                .setData(addiToBytes(addiRecord, addiRecord, addiRecord))
+                .setTrackingId(DBC_TRACKING_ID_VALUE)
+                .setStatus(SUCCESS)
+                .build();
     }
 }

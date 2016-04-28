@@ -20,7 +20,6 @@
  */
 package dk.dbc.dataio.sink.openupdate;
 
-import dk.dbc.commons.addi.AddiReader;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResponse;
@@ -30,17 +29,16 @@ import org.xmlunit.matchers.CompareMatcher;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class AbstractOpenUpdateSinkTestBase {
@@ -93,21 +91,22 @@ public class AbstractOpenUpdateSinkTestBase {
                 "    </marcx:record>";
     }
 
-    protected AddiRecord toAddiRecord(byte[] data) {
-        final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(data));
-        try {
-            return addiReader.getNextRecord();
-        } catch (IOException e) {
-            throw new IllegalArgumentException(e);
-        }
+    protected AddiRecord newAddiRecord(String meta, String content) {
+        return new AddiRecord(
+                meta.trim().getBytes(StandardCharsets.UTF_8),
+                content.trim().getBytes(StandardCharsets.UTF_8));
     }
 
-    protected byte[] getAddi(String metaXml, String contentXml) {
-        return new AddiRecordWrapper(metaXml, contentXml).getAddiRecordAsString().getBytes();
-    }
-    protected byte[] getAddi(List<AddiRecordWrapper> addiRecords) {
-        return addiRecords.stream().map(AddiRecordWrapper::getAddiRecordAsString)
-                .collect(Collectors.joining(System.lineSeparator())).getBytes();
+    protected byte[] addiToBytes(AddiRecord... addiRecords) {
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try {
+            for (AddiRecord addiRecord : addiRecords) {
+                baos.write(addiRecord.getBytes());
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return baos.toByteArray();
     }
 
     protected UpdateRecordResult getWebserviceResultValidatedOk() throws JAXBException {
@@ -137,43 +136,9 @@ public class AbstractOpenUpdateSinkTestBase {
         }
     }
 
-    /*
-     * Private methods
-     */
-
     protected static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
         final Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
         StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
         return (UpdateRecordResponse) unmarshaller.unmarshal(reader);
-    }
-
-    /*
-     * Protected classes
-     */
-
-    protected class AddiRecordWrapper {
-        private String metaXml;
-        private String contentXml;
-
-        public AddiRecordWrapper(String metaXml, String contentXml) {
-            this.metaXml = metaXml;
-            this.contentXml = contentXml;
-        }
-
-        public String getMetaXml() {return this.metaXml;}
-        public String getContentXml() {return this.contentXml;}
-
-        private byte[] getMetaXmlAsBytes() {return this.metaXml.trim().getBytes();}
-        private byte[] getContentXmlAsBytes() {return this.contentXml.trim().getBytes();}
-
-        public String getAddiRecordAsString() {
-            return this.getMetaXmlAsBytes().length
-                    + System.lineSeparator()
-                    + this.getMetaXml()
-                    + System.lineSeparator()
-                    + this.getContentXmlAsBytes().length
-                    + System.lineSeparator()
-                    + this.getContentXml();
-        }
     }
 }

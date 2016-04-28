@@ -102,13 +102,11 @@ public class AddJobParam {
         boolean isJobSpecificationValid = true;
         String message = null;
         if (ancestry != null) {
-            if (ancestry.getDatafile().equals(Constants.MISSING_FIELD_VALUE)) {
+            if (Constants.MISSING_FIELD_VALUE.equals(ancestry.getDatafile())) {
                 message = String.format("Datafil angivelse mangler i transfilen: %s", ancestry.getTransfile());
                 isJobSpecificationValid = false;
-            }
-            else if (jobSpecification.getDataFile().equals(Constants.MISSING_FIELD_VALUE)) {
-                message = String.format("Kan ikke finde datafilen. I transfilen: %s var den forventede datafil angivet som: %s"
-                        , ancestry.getTransfile(), ancestry.getDatafile());
+            } else if (jobSpecification.getDataFile().equals(Constants.MISSING_FIELD_VALUE)) {
+                message = String.format("Kan ikke finde datafilen. I transfilen: %s var den forventede datafil angivet som: %s", ancestry.getTransfile(), ancestry.getDatafile());
                 isJobSpecificationValid = false;
             }
 
@@ -117,7 +115,7 @@ public class AddJobParam {
                 isJobSpecificationValid = false;
         }
 
-        if(!isJobSpecificationValid) {
+        if (!isJobSpecificationValid) {
             diagnostics.add(ObjectFactory.buildFatalDiagnostic(message));
         }
         return isJobSpecificationValid;

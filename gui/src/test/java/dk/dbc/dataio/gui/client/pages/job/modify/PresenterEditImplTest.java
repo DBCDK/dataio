@@ -113,7 +113,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.doRerunJobInJobStore();
 
         // Verifications
-        verify(mockedJobStore).addJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.RerunJobFilteredAsyncCallback.class));
+        verify(mockedJobStore).reRunJob(eq(presenterEditImpl.jobModel), any(PresenterEditImpl.RerunJobFilteredAsyncCallback.class));
     }
 
     @SuppressWarnings("unchecked")

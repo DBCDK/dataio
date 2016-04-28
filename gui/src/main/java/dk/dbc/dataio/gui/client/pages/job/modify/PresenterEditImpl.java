@@ -74,7 +74,7 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void doRerunJobInJobStore() {
-        commonInjector.getJobStoreProxyAsync().addJob(this.jobModel, new RerunJobFilteredAsyncCallback() );
+        commonInjector.getJobStoreProxyAsync().reRunJob(this.jobModel, new RerunJobFilteredAsyncCallback() );
     }
 
     // Private methods
@@ -92,12 +92,11 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "jobId: " + jobId;
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override
         public void onSuccess(List<JobModel> jobModels) {
-
             if (jobModels != null  && jobModels.size() > 0) {
                 setJobModel(jobModels.get(0));
                 updateAllFieldsAccordingToCurrentState();
@@ -106,13 +105,13 @@ public class PresenterEditImpl <Place extends EditPlace> extends PresenterImpl {
     }
 
     /**
-     * Call back class to be instantiated in the call to listJobs in jobstore proxy
+     * Call back class to be instantiated in the call to reRunJob in jobstore proxy
      */
     class RerunJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
         @Override
         public void onFilteredFailure(Throwable e) {
             String msg = "jobId: " + jobId;
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
 
         @Override

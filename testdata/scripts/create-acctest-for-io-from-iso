@@ -1,0 +1,42 @@
+#!/bin/sh
+
+# This script takes an input a file with marc records in iso2709 
+# and converts them to marcXchange and copies them to the testdata 
+# input folder with harvester wrapping tags.
+
+if [ $# -ne 1 ]
+then
+    echo ""
+    echo " USAGE: $0 <ISO-INPUT-FILE>"
+    echo ""
+    echo "This script converts marc records in ISO2709 to MarcXchange and wraps it in Raw Repo Harvester output xml"
+    echo "If the iso file contains more than one record it will be split first and then each record will be processed"
+    exit 1
+fi
+echo "Input file: " $1
+
+INPUT=$1
+
+#check if iso file has more than one record
+if [ $(cat $INPUT | spltmarc -c) -ne 1 ]
+then 
+    echo "iso file contains" $(cat $INPUT | spltmarc -c) "records" 
+else
+    echo "iso file has one record"
+fi
+
+
+# Convert records
+#cd ~/datawell-convert/trunk/shell/
+
+
+#echo '<dataio-harvester-datafile><data-container><data-supplementary><creationDate>20140101</creationDate></data-supplementary><data>' >  ~/dataio-testposter/tmp1
+#echo " - converting record to marXchange"
+#./dm2ToMarcxchange "true" "sebasis/sebasis@dora11.dbc.dk" < ~/dataio-testposter/iso/$RECID.iso >  ~/dataio-testposter/tmp2
+#echo '</data></data-container></dataio-harvester-datafile>' >  ~/dataio-testposter//tmp3
+#cat  ~/dataio-testposter/tmp* |sed 's/<?xml version="1.0" encoding="UTF-8"?>//g'|sed -e :a -e '$!N;s/\n//;ta' -e 'P;D' > ~/dataio-testposter/xml/$RECID.xml
+
+#done
+#echo "... done"
+
+

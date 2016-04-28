@@ -478,6 +478,13 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.jobInfoTabContent.type.setText(jobModel.getType().name());
         view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
         view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
+        String previousJobId = jobModel.getPreviousJobIdAncestry();
+        if (previousJobId == null || previousJobId.isEmpty()) {
+            view.jobInfoTabContent.previousJobId.setVisible(false);
+        } else {
+            view.jobInfoTabContent.previousJobId.setText(previousJobId);
+            view.jobInfoTabContent.previousJobId.setVisible(true);
+        }
 
         setFileStoreUrl(view.jobInfoTabContent.fileStore, jobModel);
 

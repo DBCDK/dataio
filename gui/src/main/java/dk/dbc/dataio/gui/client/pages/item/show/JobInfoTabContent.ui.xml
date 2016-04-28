@@ -51,6 +51,7 @@
         <li><comp:PromptedLabel ui:field="type" guiId="typePanel" prompt="{txt.promptJobInfo_Type}" /></li>
         <li><comp:PromptedLabel ui:field="jobCreationTime" guiId="jobCreationTimePanel" prompt="{txt.promptJobInfo_JobCreationTime}" /></li>
         <li><comp:PromptedLabel ui:field="jobCompletionTime" guiId="jobCompletionTimePanel" prompt="{txt.promptJobInfo_JobCompletionTime}" /></li>
+        <li><comp:PromptedLabel ui:field="previousJobId" guiId="previousJobIdPanel" prompt="{txt.promptJobInfo_PreviousJobId}" /></li>
         <li><comp:PromptedAnchor ui:field="fileStore" guiId="fileStorePanel" prompt="{txt.promptJobInfo_Filestore}" target="_blank" /></li>
         <li><g:Label ui:field="exportLinksHeader" text= "{txt.promptJobInfo_ExportLinksHeader}" addStyleNames="{style.exportLinksHeader}"/></li>
         <li><comp:PromptedLabel ui:field="exportLinkItemsFailedInPartitioning" guiId="exportLinkItemsFailedInPartitioningPanel" prompt="{txt.promptJobInfo_ExportLinkItemFailedInPartitioning}" /></li>

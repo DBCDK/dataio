@@ -117,6 +117,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedLabel mockedType;
     @Mock PromptedLabel mockedJobCreationTime;
     @Mock PromptedLabel mockedJobCompletionTime;
+    @Mock PromptedLabel mockedPreviousJobId;
     @Mock Label mockedExportLinksHeader;
     @Mock PromptedLabel mockedExportLinkItemFailedInPartitioning;
     @Mock PromptedLabel mockedExportLinkItemFailedInProcessing;
@@ -184,6 +185,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.jobInfoTabContent.type = mockedType;
         mockedView.jobInfoTabContent.jobCreationTime = mockedJobCreationTime;
         mockedView.jobInfoTabContent.jobCompletionTime = mockedJobCompletionTime;
+        mockedView.jobInfoTabContent.previousJobId = mockedPreviousJobId;
         mockedView.jobInfoTabContent.exportLinksHeader = mockedExportLinksHeader;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInPartitioning = mockedExportLinkItemFailedInPartitioning;
         mockedView.jobInfoTabContent.exportLinkItemsFailedInProcessing = mockedExportLinkItemFailedInProcessing;

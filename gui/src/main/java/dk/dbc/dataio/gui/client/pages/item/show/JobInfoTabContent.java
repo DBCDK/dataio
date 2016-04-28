@@ -54,6 +54,7 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel type;
     @UiField PromptedLabel jobCreationTime;
     @UiField PromptedLabel jobCompletionTime;
+    @UiField PromptedLabel previousJobId;
     @UiField Label exportLinksHeader;
     @UiField PromptedLabel exportLinkItemsFailedInPartitioning;
     @UiField PromptedLabel exportLinkItemsFailedInProcessing;

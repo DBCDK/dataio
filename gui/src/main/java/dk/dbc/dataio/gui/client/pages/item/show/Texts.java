@@ -187,6 +187,9 @@ public interface Texts extends Constants {
     String promptJobInfo_JobCompletionTime();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String promptJobInfo_PreviousJobId();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String promptJobInfo_Filestore();
 
 

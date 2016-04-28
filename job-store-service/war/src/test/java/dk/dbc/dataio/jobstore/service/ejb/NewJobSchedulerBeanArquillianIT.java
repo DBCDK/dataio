@@ -121,6 +121,7 @@ public class NewJobSchedulerBeanArquillianIT {
             war.addAsLibraries(files);
 
 
+
             // Add DB Migrations
             for (File file : new File("src/main/resources/db/migration").listFiles()) {
                 if( file.getName().equals(".svn") ) { continue; };

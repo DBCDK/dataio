@@ -139,6 +139,7 @@ public class NewJobSchedulerBeanArquillianIT {
                     .importRuntimeDependencies().resolve().withTransitivity().asFile();
             war.addAsLibraries(files);
 
+            int smalle=1;
 
             // Add DB Migrations
             for (File file : new File("src/main/resources/db/migration").listFiles()) {

@@ -6,9 +6,11 @@ import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreCdiProducer;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import static java.lang.ProcessBuilder.Redirect.from;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import static org.jboss.shrinkwrap.resolver.impl.maven.task.LoadPomTask.loadPomFromFile;
 import static org.junit.Assert.assertThat;
@@ -100,6 +102,15 @@ public class NewJobSchedulerBeanArquillianIT {
     public static WebArchive createDeployment() {
         LOGGER.warn( "in public static WebArchive createDeployment() ");
         try {
+            // Load the project's persistence.xml. As with beans.xml we could alter
+            // it to, eg, switch to a testing-only JNDI datasource, but in this example
+            // we're just going to copy it.
+            //
+            //PersistenceDescriptor persistenceXml = Descriptors.importAs(PersistenceDescriptor.class)
+            //        .from(new File("src/main/resources/META-INF/persistence.xml"));
+
+
+
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobscheduler-test.war")
                     .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
                             "dk/dbc/dataio/jobstore/service/cdi", "dk/dbc/dataio/jobstore/service/param",

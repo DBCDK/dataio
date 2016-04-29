@@ -36,7 +36,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import dk.dbc.commons.addi.AddiReader;
 
 
 import javax.annotation.Resource;
@@ -81,9 +80,6 @@ public class NewJobSchedulerBeanArquillianIT {
         lookup = "jdbc/dataio/jobstore"
     )
     DataSource dataSource;
-
-    int fisk=12;
-    String fisk;
 
     @Inject
     UserTransaction utx;
@@ -142,8 +138,6 @@ public class NewJobSchedulerBeanArquillianIT {
             File[] files = Maven.configureResolver().loadPomFromFile("pom.xml")
                     .importRuntimeDependencies().resolve().withTransitivity().asFile();
             war.addAsLibraries(files);
-
-            int smalle=1;
 
             // Add DB Migrations
             for (File file : new File("src/main/resources/db/migration").listFiles()) {

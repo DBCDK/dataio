@@ -13,6 +13,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import static org.jboss.shrinkwrap.resolver.impl.maven.task.LoadPomTask.loadPomFromFile;
+import org.junit.After;
 import static org.junit.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import dk.dbc.dataio.commons.types.Sink;
@@ -97,6 +98,16 @@ public class NewJobSchedulerBeanArquillianIT {
             LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }
         flyway.migrate();
+    }
+
+
+    @After
+    public void dbCleanUp() throws Exception {
+        utx.begin();
+        entityManager.joinTransaction();
+
+        entityManager.createNativeQuery("delete from job").executeUpdate();
+        utx.commit();;
     }
 
     @Deployment

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
 import dk.dbc.marc.binding.DataField;
 import dk.dbc.marc.binding.MarcRecord;
@@ -42,6 +43,7 @@ public class MarcRecordInfoBuilderTest {
     private final DataField f001 = get001(id);
     private final DataField f004 = get004("e", "c");    // produces non-delete, standalone
     private final DataField f014 = get014(parent);
+    private final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     @Test
     public void parse_marcRecordArgIsNull_returnsEmpty() {
@@ -58,7 +60,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getId()", recordInfo.getId(), is(id));
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
-        assertThat(recordInfo.getKeys(), is(newSet(id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -72,7 +74,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(), is(newSet(id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -86,7 +88,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.HEAD));
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(false));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(), is(newSet(id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -101,7 +103,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(parent));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(), is(newSet(parent, id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(parent, id)));
     }
 
     @Test
@@ -116,7 +118,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("hasParentRelation()", recordInfo.hasParentRelation(), is(true));
         assertThat("getParentRelation()", recordInfo.getParentRelation(), is(parent));
         assertThat("isDelete()", recordInfo.isDelete(), is(false));
-        assertThat(recordInfo.getKeys(), is(newSet(parent, id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(parent, id)));
     }
 
     @Test
@@ -127,7 +129,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         final MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("getType()", recordInfo.getType(), is(MarcRecordInfo.RecordType.STANDALONE));
-        assertThat(recordInfo.getKeys(), is(newSet(id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     @Test
@@ -138,7 +140,7 @@ public class MarcRecordInfoBuilderTest {
         assertThat("Optional is present", recordInfoOptional.isPresent(), is(true));
         final MarcRecordInfo recordInfo = recordInfoOptional.get();
         assertThat("isDelete()", recordInfo.isDelete(), is(true));
-        assertThat(recordInfo.getKeys(), is(newSet(id)));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(newSet(id)));
     }
 
     public static MarcRecord getMarcRecord(DataField... dataFields) {

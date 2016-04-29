@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
@@ -73,7 +74,9 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         // Setup preconditions
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
+        final JobEntity jobEntity = getJobEntity(0);
 
+        when(jobEntity.getCachedSink().getSink()).thenReturn(new SinkBuilder().build());
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(testablePartitioningParam.getJobEntity());
         when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenThrow(fileStoreUnexpectedException);
@@ -101,6 +104,8 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         pgJobStore.jobQueueRepository = newJobQueueRepository();
 
         final TestablePartitioningParam testablePartitioningParam = new TestablePartitioningParamBuilder().build();
+        final JobEntity jobEntity = getJobEntity(0);
+        when(jobEntity.getCachedSink().getSink()).thenReturn(new SinkBuilder().build());
 
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(testablePartitioningParam.getJobEntity());
         when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
@@ -161,7 +166,9 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         when(testablePartitioningParam.getJobEntity().getCachedSink().getSink()).thenReturn(mock(Sink.class));
 
         final TestableJobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(testablePartitioningParam.getJobEntity().getSpecification()).build();
+        when(jobEntity.getCachedSink().getSink()).thenReturn(new SinkBuilder().build());
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(LockModeType.PESSIMISTIC_WRITE))).thenReturn(jobEntity);
+        when(entityManager.find(eq(JobEntity.class), anyInt())).thenReturn(jobEntity);
 
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
 

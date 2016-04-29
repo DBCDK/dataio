@@ -29,6 +29,7 @@ package dk.dbc.dataio.jobstore.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import dk.dbc.dataio.commons.types.SinkContent;
 
 import java.util.Set;
 
@@ -67,9 +68,9 @@ public class MarcRecordInfo extends RecordInfo {
     }
 
     @Override
-    public Set<String> getKeys() {
-        final Set<String> keys = super.getKeys();
-        if(parentRelation != null) {
+    public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+        final Set<String> keys = super.getKeys(sequenceAnalysisOption);
+        if(sequenceAnalysisOption == SinkContent.SequenceAnalysisOption.ALL && parentRelation != null) {
             keys.add(parentRelation);
         }
         return keys;

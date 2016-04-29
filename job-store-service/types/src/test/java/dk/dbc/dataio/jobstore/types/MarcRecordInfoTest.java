@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
@@ -108,33 +109,63 @@ public class MarcRecordInfoTest {
     @Test
     public void getKeys_idIsNullAndParentRelationIsNull_returnsEmptySet() {
         final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, null);
-        Set<String> keys = recordInfo.getKeys();
+        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys", keys, is(Collections.emptySet()));
     }
 
     @Test
-    public void getKeys_idIsNullAndParentRelationIsNotNull_returnsSetWithParentRelationAsKey() {
+    public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsAll_returnsSetWithParentRelationAsKey() {
         final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys();
+        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.parentRelation", keys.contains(parentRelation), is(true));
+    }
+
+    @Test
+    public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisIsNull_returnsEmptySet() {
+        final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
+        Set<String> keys = recordInfo.getKeys(null);
+        assertThat("keys", keys, is(Collections.emptySet()));
+    }
+
+    @Test
+    public void getKeys_idIsNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsIdOnly_returnsEmptySet() {
+        final MarcRecordInfo recordInfo = new MarcRecordInfo(null, type, false, parentRelation);
+        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ID_ONLY);
+        assertThat("keys", keys, is(Collections.emptySet()));
     }
 
     @Test
     public void getKeys_idIsNotNullAndParentRelationIsNull_returnsSetWithIdAsKey() {
         final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, null);
-        Set<String> keys = recordInfo.getKeys();
+        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys.size", keys.size(), is(1));
         assertThat("keys.id", keys.contains(id), is(true));
     }
 
     @Test
-    public void getKeys_idIsNotNullAndParentRelationIsNotNull_returnsSetWithIdAndParentRelationAsKeys() {
+    public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsAll_returnsSetWithIdAndParentRelationAsKeys() {
         final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
-        Set<String> keys = recordInfo.getKeys();
+        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ALL);
         assertThat("keys.size", keys.size(), is(2));
         assertThat("keys.id", keys.contains(id), is(true));
         assertThat("keys.parentRelation", keys.contains(parentRelation), is(true));
+    }
+
+    @Test
+    public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsIdOnly_returnsSetWithIdAsKey() {
+        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
+        Set<String> keys = recordInfo.getKeys(SinkContent.SequenceAnalysisOption.ID_ONLY);
+        assertThat("keys.size", keys.size(), is(1));
+        assertThat("keys.id", keys.contains(id), is(true));
+    }
+
+    @Test
+    public void getKeys_idIsNotNullAndParentRelationIsNotNullAndSequenceAnalysisOptionIsNull_returnsSetWithIdAsKey() {
+        final MarcRecordInfo recordInfo = new MarcRecordInfo(id, type, false, parentRelation);
+        Set<String> keys = recordInfo.getKeys(null);
+        assertThat("keys.size", keys.size(), is(1));
+        assertThat("keys.id", keys.contains(id), is(true));
     }
 
     @Test

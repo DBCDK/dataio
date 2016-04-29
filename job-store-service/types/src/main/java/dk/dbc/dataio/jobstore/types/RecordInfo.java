@@ -25,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import dk.dbc.dataio.commons.types.SinkContent;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,7 +48,7 @@ public class RecordInfo {
     }
 
     @JsonIgnore
-    public Set<String> getKeys() {
+    public Set<String> getKeys(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
         final Set<String> keys = new HashSet<>();
         if(id != null) {
             keys.add(id);

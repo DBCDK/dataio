@@ -95,6 +95,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     public void createChunkItemEntities() throws JobStoreException {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final Params params = new Params();
+        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        final Sink sink = new SinkBuilder().build();
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
         assertThat("First chunk: items", chunkItemEntities, is(notNullValue()));
@@ -127,6 +130,10 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         params.dataPartitioner = DefaultXmlDataPartitioner.newInstance(new ByteArrayInputStream(invalidXml.getBytes(StandardCharsets.UTF_8)),
                 StandardCharsets.UTF_8.name());
 
+        final Sink sink = new SinkBuilder().build();
+        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
+
         final PgJobStoreRepository.ChunkItemEntities chunkItemEntities = pgJobStore.jobStoreRepository.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
         assertThat("Chunk: items", chunkItemEntities, is(notNullValue()));
         assertThat("Chunk: number of items", chunkItemEntities.size(), is((short) 2));
@@ -153,9 +160,12 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
     public void createChunkEntity() throws JobStoreException {
         final Params params = new Params();
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
-        final JobEntity jobEntity = new JobEntity();
+
+        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
         jobEntity.setState(new State());
 
+        final Sink sink = new SinkBuilder().build();
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
         when(entityManager.find(eq(JobEntity.class), anyInt(), eq(PESSIMISTIC_WRITE))).thenReturn(jobEntity);
 
         ChunkEntity chunkEntity = pgJobStore.jobStoreRepository.createChunkEntity(1, 0, params.maxChunkSize, params.dataPartitioner, params.sequenceAnalyserKeyGenerator, params.dataFileId);
@@ -643,6 +653,9 @@ public class PgJobStore_ChunksTest extends PgJobStoreBaseTest {
         params.dataPartitioner = DanMarc2LineFormatDataPartitioner.newInstance(
                 new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)), "latin1");
 
+        final JobEntity jobEntity = getJobEntity(DEFAULT_JOB_ID);
+        final Sink sink = new SinkBuilder().build();
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
         return pgJobStore.jobStoreRepository.createChunkItemEntities(1, 0, params.maxChunkSize, params.dataPartitioner);
     }
 }

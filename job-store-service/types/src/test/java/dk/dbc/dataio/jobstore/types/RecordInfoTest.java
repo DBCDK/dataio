@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.types;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
@@ -33,6 +34,7 @@ import static org.junit.Assert.assertThat;
 public class RecordInfoTest {
 
     private final String id = "42";
+    private final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     @Test
     public void marshalling() throws JSONBException {
@@ -45,13 +47,13 @@ public class RecordInfoTest {
     @Test
     public void getKeys_idIsNull_returnsEmptySet() {
         RecordInfo recordInfo = new RecordInfo(null);
-        assertThat(recordInfo.getKeys(), is(Collections.emptySet()));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption), is(Collections.emptySet()));
     }
 
     @Test
     public void getKeys_idIsNotNull_returnsSetContainingId() {
         RecordInfo recordInfo = new RecordInfo(id);
-        assertThat(recordInfo.getKeys().size(), is(1));
-        assertThat(recordInfo.getKeys().contains(id), is(true));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption).size(), is(1));
+        assertThat(recordInfo.getKeys(sequenceAnalysisOption).contains(id), is(true));
     }
 }

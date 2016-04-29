@@ -22,7 +22,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
@@ -69,6 +71,10 @@ public class PgJobStore_AddAndScheduleJobTest extends PgJobStoreBaseTest {
                 .setDataFile(FILE_STORE_URN.toString())
                 .setAncestry(new JobSpecificationBuilder.AncestryBuilder().build())
                 .build();
+
+        final JobEntity jobEntity = getJobEntity(0);
+        final Sink sink = new SinkBuilder().build();
+        when(jobEntity.getCachedSink().getSink()).thenReturn(sink);
 
         final JobInputStream jobInputStream = getJobInputStream(jobSpecification.getDataFile());
         final String xml = getXml();

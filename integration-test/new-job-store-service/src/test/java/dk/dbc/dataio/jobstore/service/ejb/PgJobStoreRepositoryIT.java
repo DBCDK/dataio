@@ -163,7 +163,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     @Test
     public void createChunkItemEntities_setsRecordInfo() {
         // Given...
-        final JobEntity jobEntity = newPersistedJobEntity();
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
         final DataPartitioner dataPartitioner = getDanMarc2LineFormatDataPartitioner("/test-record-danmarc2.lin");
 
@@ -189,7 +189,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     @Test
     public void createChunkItemEntities_setsDataioTrackingId() throws UnknownHostException {
         // Given...
-        final JobEntity jobEntity = newPersistedJobEntity();
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
         final DataPartitioner dataPartitioner = getDanMarc2LineFormatDataPartitioner("/test-record-danmarc2.lin");
         final String expectedTrackingId = InetAddress.getLocalHost().getHostAddress()
@@ -214,7 +214,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
     @Test
     public void createChunkItemEntities_setsHarvestedTrackingId() throws UnknownHostException {
         // Given...
-        final JobEntity jobEntity = newPersistedJobEntity();
+        final JobEntity jobEntity = newPersistedJobEntityWithSinkAndFlowCache();
         final ChunkEntity chunkEntity = newPersistedChunkEntity(new ChunkEntity.Key(0, jobEntity.getId()));
         final DataPartitioner dataPartitioner = getRawRepoMarcXmlDataPartitioner("/datacontainer-with-tracking-id.xml");
 

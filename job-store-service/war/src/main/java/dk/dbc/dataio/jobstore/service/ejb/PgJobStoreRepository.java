@@ -642,6 +642,9 @@ public class PgJobStoreRepository extends RepositoryBase {
                In case a DataException is thrown by the extraction process a item entity
                is still created but with a serialized JobError as payload instead.
              */
+
+            final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+            final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = jobEntity.getCachedSink().getSink().getContent().getSequenceAnalysisOption();
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
                 if (dataPartitionerResult.isEmpty()) {
                     continue;
@@ -670,7 +673,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 chunkItem.setId(itemCounter);
                 chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem, dataPartitionerResult.getRecordInfo()));
                 if(dataPartitionerResult.getRecordInfo() != null) {
-                    chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys());
+                    chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys(sequenceAnalysisOption));
                 }
 
                 if (itemCounter == maxChunkSize) {

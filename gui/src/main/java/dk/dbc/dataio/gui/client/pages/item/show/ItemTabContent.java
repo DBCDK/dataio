@@ -62,7 +62,6 @@ public class ItemTabContent extends HTML{
      * This method replaces:
      * \n with <br></br> (new line)
      * \t with 8 times &nbsp (non-breaking spaces.)
-     * \&amp with &
      * This is done in order to make the log easier readable when presented in the view.
      *
      * @param data The text to be formatted
@@ -71,7 +70,6 @@ public class ItemTabContent extends HTML{
     private String formatXml(String data) {
         data = data.replace("\t", NBSP);
         data = data.replace("/\n/g", "<br />");
-        data = data.replace("&amp;", AMP);
         SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder().appendEscapedLines(data);
         return safeHtmlBuilder.toSafeHtml().asString();
     }

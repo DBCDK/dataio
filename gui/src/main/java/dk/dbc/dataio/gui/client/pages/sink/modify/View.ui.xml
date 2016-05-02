@@ -48,8 +48,8 @@
                 <g:Label ui:field="SequenceAnalysisLabel" addStyleNames="{style.sequenceAnalysisLabel}"><ui:text from="{txt.label_SequenceAnalysis}"/></g:Label>
             </g:cell>
             <g:VerticalPanel>
-                <g:RadioButton ui:field="sequenceAnalysisOptionAllButton" name="sequenceAnalysisOptionAllButton" text="{txt.button_SequenceAnalysisOptionAll}" />
-                <g:RadioButton ui:field="sequenceAnalysisOptionIdOnlyButton" name="sequenceAnalysisOptionIdOnlyButton" text="{txt.button_SequenceAnalysisOptionIdOnly}" />
+                <g:RadioButton ui:field="sequenceAnalysisOptionAllButton" name="sequenceAnalysisOptionButton" text="{txt.button_SequenceAnalysisOptionAll}" />
+                <g:RadioButton ui:field="sequenceAnalysisOptionIdOnlyButton" name="sequenceAnalysisOptionButton" text="{txt.button_SequenceAnalysisOptionIdOnly}" />
             </g:VerticalPanel>
         </g:HorizontalPanel>
 

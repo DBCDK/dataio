@@ -1,60 +1,37 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import static dk.dbc.commons.testutil.Assert.assertThat;
-import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
-import dk.dbc.dataio.jobstore.service.cdi.JobstoreCdiProducer;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
-import dk.dbc.dataio.jobstore.types.State;
-import static java.lang.ProcessBuilder.Redirect.from;
-import static java.lang.Thread.sleep;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.jboss.arquillian.test.spi.TestRunnerAdaptorBuilder.build;
-import org.jboss.shrinkwrap.descriptor.api.Descriptors;
-import org.jboss.shrinkwrap.impl.base.io.tar.TarHeader;
-import org.jboss.shrinkwrap.resolver.api.maven.Maven;
-import static org.jboss.shrinkwrap.resolver.impl.maven.task.LoadPomTask.loadPomFromFile;
-import org.junit.After;
-import static org.junit.Assert.assertThat;
-import static dk.dbc.commons.testutil.Assert.isThrowing;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
+import dk.dbc.dataio.jobstore.types.State;
+import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
-import org.jboss.shrinkwrap.api.importer.ZipImporter;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+import org.junit.After;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.jboss.arquillian.transaction.api.annotation.Transactional;
-import sun.tools.jar.resources.jar;
-
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
-import javax.ejb.TransactionAttribute;
-import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.Persistence;
-import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.sql.DataSource;
 import javax.transaction.*;
@@ -115,7 +92,7 @@ public class NewJobSchedulerBeanArquillianIT {
         entityManager.joinTransaction();
 
         entityManager.createNativeQuery("delete from job").executeUpdate();
-        utx.commit();;
+        utx.commit();
     }
 
     @Deployment
@@ -161,13 +138,19 @@ public class NewJobSchedulerBeanArquillianIT {
 
             // Add DB Migrations
             for (File file : new File("src/main/resources/db/migration").listFiles()) {
-                if( file.getName().equals(".svn") ) { continue; };
+                if( file.getName().equals(".svn") ) {
+                    continue;
+                }
+
                 String fileNameAdded="classes/db/migration/"+file.getName();
                 war.addAsWebInfResource(file, fileNameAdded);
             }
 
             for (File file : new File("src/main/resources/META-INF/").listFiles() ) {
-                if( file.getName().equals(".svn") ) { continue; };
+                if( file.getName().equals(".svn") ) {
+                    continue;
+                }
+
                 String fileNameAdded="META-INF/"+file.getName();
                 war.addAsResource(file, fileNameAdded);
             }

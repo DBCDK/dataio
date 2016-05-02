@@ -27,6 +27,7 @@ import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import org.junit.Test;
@@ -135,8 +136,8 @@ public class SinkJobFilterTest {
         // Test Preparation
         ConcreteSinkJobFilter jobFilter = new ConcreteSinkJobFilter(mockedTexts, mockedResources, mockedFlowStoreProxy);
         List<SinkModel> testModels = new ArrayList<SinkModel>();
-        testModels.add(new SinkModel(123L, 234L, "FirstName", "FirstResource", "FirstDescription"));
-        testModels.add(new SinkModel(321L, 432L, "SecondName", "SecondResource", "SecondDescription"));
+        testModels.add(new SinkModelBuilder().setId(123L).setName("FirstName").build());
+        testModels.add(new SinkModelBuilder().setId(321L).setName("SecondName").build());
 
         // Activate Subject Under Test
         jobFilter.fetchSinksCallback.onSuccess(testModels);

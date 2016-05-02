@@ -64,7 +64,8 @@ public class SinkModelMapper {
                     sinkConfig.getUserId(),
                     sinkConfig.getPassword(),
                     sinkConfig.getEndpoint(),
-                    queueProviders);
+                    queueProviders,
+                    sink.getContent().getSequenceAnalysisOption());
         } else {
             return new SinkModel(
                     sink.getId(),
@@ -72,7 +73,8 @@ public class SinkModelMapper {
                     sinkType,
                     sink.getContent().getName(),
                     sink.getContent().getResource(),
-                    sink.getContent().getDescription());
+                    sink.getContent().getDescription(),
+                    sink.getContent().getSequenceAnalysisOption());
         }
     }
 
@@ -108,14 +110,14 @@ public class SinkModelMapper {
                             model.getOpenUpdatePassword(),
                             model.getOpenUpdateEndpoint(),
                             model.getOpenUpdateAvailableQueueProviders()),
-                    SinkContent.SequenceAnalysisOption.ALL); // FIXME: 27/04/16 temporary default value
+                    model.getSequenceAnalysisOption());
         } else {
             return new SinkContent(
                     model.getSinkName(),
                     model.getResourceName(),
                     model.getDescription(),
                     model.getSinkType(),
-                    SinkContent.SequenceAnalysisOption.ALL); // FIXME: 27/04/16 temporary default value
+                    model.getSequenceAnalysisOption());
         }
     }
 

@@ -41,6 +41,7 @@ public class SinkModelBuilder {
     private String password = "password";
     private String endpoint = "endpoint";
     private List<String> availableQueueProviders = new ArrayList<>();
+    private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 
     /**
      * Sets the ID for the Sink
@@ -143,14 +144,24 @@ public class SinkModelBuilder {
     }
 
     /**
+     * Sets the SequenceAnalysisOption for the Sink
+     * @param sequenceAnalysisOption Sequence Analysis Option
+     * @return The SinkModelBuilder object itself (for chaining)
+     */
+    public SinkModelBuilder setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+        this.sequenceAnalysisOption = sequenceAnalysisOption;
+        return this;
+    }
+
+    /**
      * Build the SinkModel object
      * @return The SinkModel object
      */
     public SinkModel build() {
         if (sinkType == SinkContent.SinkType.OPENUPDATE) {
-            return new SinkModel(id, version, sinkType, name, resource, description, userId, password, endpoint, availableQueueProviders);
+            return new SinkModel(id, version, sinkType, name, resource, description, userId, password, endpoint, availableQueueProviders, sequenceAnalysisOption);
         } else {
-            return new SinkModel(id, version, sinkType, name, resource, description);
+            return new SinkModel(id, version, sinkType, name, resource, description, sequenceAnalysisOption);
         }
     }
 }

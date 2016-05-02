@@ -49,7 +49,7 @@ public class SinkModelTest {
 
     @Test
     public void createModel_oldStyleArgs_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(1L, 2L, "nam", "resou", "descri");
+        SinkModel model = new SinkModel(1L, 2L, "nam", "resou", "descri", SinkContent.SequenceAnalysisOption.ALL);
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(1L));
         assertThat(model.getVersion(), is(2L));
@@ -64,7 +64,7 @@ public class SinkModelTest {
 
     @Test
     public void createModel_nonOpenUpdateStyleArgs_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(3L, 4L, SinkContent.SinkType.FBS, "nam2", "resou2", "descri2");
+        SinkModel model = new SinkModel(3L, 4L, SinkContent.SinkType.FBS, "nam2", "resou2", "descri2", SinkContent.SequenceAnalysisOption.ALL);
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(3L));
         assertThat(model.getVersion(), is(4L));
@@ -79,7 +79,7 @@ public class SinkModelTest {
 
     @Test
     public void createModel_allArgs_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", "user", "pass", "url", null );
+        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", "user", "pass", "url", null,SinkContent.SequenceAnalysisOption.ALL);
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(5L));
         assertThat(model.getVersion(), is(6L));
@@ -194,15 +194,15 @@ public class SinkModelTest {
     }
 
     private SinkModel getOldStyleTestModel() {
-        return new SinkModel(1, 2, "Name", "Resource", "Description");
+        return new SinkModel(1, 2, "Name", "Resource", "Description", SinkContent.SequenceAnalysisOption.ALL);
     }
 
     private SinkModel getNewStyleESTestModel() {
-        return new SinkModel(3, 4, SinkContent.SinkType.ES, "Name1", "Resource1", "Description1");
+        return new SinkModel(3, 4, SinkContent.SinkType.ES, "Name1", "Resource1", "Description1", SinkContent.SequenceAnalysisOption.ALL);
     }
 
     private SinkModel getNewStyleOpenUpdateTestModel() {
-        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", "User2", "Pass2", "Endpoint2", null);
+        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", "User2", "Pass2", "Endpoint2", null, SinkContent.SequenceAnalysisOption.ALL);
     }
 
 }

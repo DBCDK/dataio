@@ -39,13 +39,14 @@ public class SinkModel extends GenericBackendModel {
     private String openUpdatePassword;
     private String openUpdateEndpoint;
     private List<String> openUpdateAvailableQueueProviders;
+    private SinkContent.SequenceAnalysisOption sequenceAnalysisOption;
 
 
     /**
      * Empty constructor
      */
     public SinkModel() {
-        this(0L, 0L, "", "", "");
+        this(0L, 0L, "", "", "", SinkContent.SequenceAnalysisOption.ALL);
     }
 
     /**
@@ -56,8 +57,8 @@ public class SinkModel extends GenericBackendModel {
      * @param resource Sink Resource
      * @param description Sink Description
      */
-    public SinkModel(long id, long version, String name, String resource, String description) {
-        this(id, version, SinkContent.SinkType.ES, name, resource, description);
+    public SinkModel(long id, long version, String name, String resource, String description, SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+        this(id, version, SinkContent.SinkType.ES, name, resource, description, sequenceAnalysisOption);
     }
 
     /**
@@ -68,9 +69,10 @@ public class SinkModel extends GenericBackendModel {
      * @param name Sink Name
      * @param resource Sink Resource
      * @param description Sink Description
+     * @param sequenceAnalysisOption Sequence Analysis Option
      */
-    public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description) {
-        this(id, version, sinkType, name, resource, description, "", "", "", new ArrayList<String>());
+    public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description, SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+        this(id, version, sinkType, name, resource, description, "", "", "", new ArrayList<String>(), sequenceAnalysisOption);
     }
 
     /**
@@ -85,6 +87,7 @@ public class SinkModel extends GenericBackendModel {
      * @param openUpdatePassword Open Update Sink Config Password
      * @param openUpdateEndpoint Open Update Sink Config Endpoint URL
      * @param openUpdateAvailableQueueProviders Open Update List of Available Queue Providers
+     * @param sequenceAnalysisOption deciding level of sequence analysis
      */
     public SinkModel(long id,
                      long version,
@@ -95,7 +98,8 @@ public class SinkModel extends GenericBackendModel {
                      String openUpdateUserId,
                      String openUpdatePassword,
                      String openUpdateEndpoint,
-                     List<String> openUpdateAvailableQueueProviders) {
+                     List<String> openUpdateAvailableQueueProviders,
+                     SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
         super(id, version);
         this.sinkType = sinkType;
         this.sinkName = name;
@@ -105,6 +109,7 @@ public class SinkModel extends GenericBackendModel {
         this.openUpdatePassword = openUpdatePassword;
         this.openUpdateEndpoint = openUpdateEndpoint;
         this.openUpdateAvailableQueueProviders = openUpdateAvailableQueueProviders;
+        this.sequenceAnalysisOption = sequenceAnalysisOption;
     }
 
     /**
@@ -236,6 +241,22 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
+     * Gets the Sequence Analysis Option
+     * @return Sequence Analysis Option
+     */
+    public SinkContent.SequenceAnalysisOption getSequenceAnalysisOption() {
+        return sequenceAnalysisOption;
+    }
+
+    /**
+     * Sets the Sequence Analysis Option
+     * @param sequenceAnalysisOption the Sequence Analysis Option
+     */
+    public void setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+        this.sequenceAnalysisOption = sequenceAnalysisOption;
+    }
+
+    /**
      * Checks for empty String values
      * NB: The list of Available Queue Providers is optional, and is therefore not considered here
      * @return true if no empty String values were found, otherwise false
@@ -276,7 +297,9 @@ public class SinkModel extends GenericBackendModel {
             return false;
         if (openUpdateEndpoint != null ? !openUpdateEndpoint.equals(sinkModel.openUpdateEndpoint) : sinkModel.openUpdateEndpoint != null)
             return false;
-        return openUpdateAvailableQueueProviders != null ? openUpdateAvailableQueueProviders.equals(sinkModel.openUpdateAvailableQueueProviders) : sinkModel.openUpdateAvailableQueueProviders == null;
+        if (openUpdateAvailableQueueProviders != null ? !openUpdateAvailableQueueProviders.equals(sinkModel.openUpdateAvailableQueueProviders) : sinkModel.openUpdateAvailableQueueProviders != null)
+            return false;
+        return sequenceAnalysisOption == sinkModel.sequenceAnalysisOption;
 
     }
 
@@ -290,6 +313,7 @@ public class SinkModel extends GenericBackendModel {
         result = 31 * result + (openUpdatePassword != null ? openUpdatePassword.hashCode() : 0);
         result = 31 * result + (openUpdateEndpoint != null ? openUpdateEndpoint.hashCode() : 0);
         result = 31 * result + (openUpdateAvailableQueueProviders != null ? openUpdateAvailableQueueProviders.hashCode() : 0);
+        result = 31 * result + (sequenceAnalysisOption != null ? sequenceAnalysisOption.hashCode() : 0);
         return result;
     }
 }

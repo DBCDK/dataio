@@ -2,15 +2,22 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreCdiProducer;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.types.State;
 import static java.lang.ProcessBuilder.Redirect.from;
+import static java.lang.Thread.sleep;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.jboss.arquillian.test.spi.TestRunnerAdaptorBuilder.build;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors;
+import org.jboss.shrinkwrap.impl.base.io.tar.TarHeader;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import static org.jboss.shrinkwrap.resolver.impl.maven.task.LoadPomTask.loadPomFromFile;
 import org.junit.After;
@@ -37,6 +44,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
+import sun.tools.jar.resources.jar;
 
 
 import javax.annotation.Resource;
@@ -142,6 +150,7 @@ public class NewJobSchedulerBeanArquillianIT {
                     .addClasses(DmqMessageConsumerBean.class)
                     .addClasses(SinkMessageProducerBean.class)
                     .addClasses(NewJobSchedulerBean.class)
+                    .addClasses(TestJobProcessorMessageConsumerBean.class)
                     ;
 
             // Add Maven Dependencyes  // .workOffline fejler med  mvnlocal ( .m2 i projectHome
@@ -163,18 +172,11 @@ public class NewJobSchedulerBeanArquillianIT {
                 war.addAsResource(file, fileNameAdded);
             }
 
-            /*
-            for (File file : new File("src/main/webapp/WEB-INF/").listFiles() ) {
-                String fName=file.getName();
-                if( fName.equals("glassfish-web.xml") ) {
-                    continue;
-                }
-                war.addAsWebInfResource(file);
-            } //*/
-
             war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/beans.xml"));
+            war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/glassfish-ejb-jar.xml"));
 
 
+            war.addAsWebInfResource(new File("src/test/resources/newjobschedulerbean-ejb-jar.xml"), "ejb-jar.xml");
             war.addAsWebInfResource( new File("src/test/resources/arquillian_logback.xml"), "classes/logback-test.xml");
             war.addAsResource(new File("src/test/resources/","JobSchedulerBeanIT_findWaitForChunks.sql"));
 
@@ -188,17 +190,22 @@ public class NewJobSchedulerBeanArquillianIT {
     }
 
     @Test
-    public void scheduleChunkSimple() throws IOException, URISyntaxException, HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException {
+    public void scheduleChunkSimple() throws IOException, URISyntaxException, HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException, JobStoreException, InterruptedException {
         runSqlFromResource( "JobSchedulerBeanIT_findWaitForChunks.sql");
         // Given
         ChunkEntity chunkEntity= new ChunkEntity();
         chunkEntity.setKey( new ChunkEntity.Key(0,3));
         chunkEntity.setSequenceAnalysisData( new SequenceAnalysisData( makeSet("f1")));
 
+        newItemEntity( 3,0,0);
+
         // when
-        newJobSchedulerBean.persistDependencyEntity( chunkEntity, new SinkBuilder().setId(3).build());
+        newJobSchedulerBean.scheduleChunk( chunkEntity, new SinkBuilder().setId(3).build());
 
         // Then
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+        assertThat( TestJobProcessorMessageConsumerBean.getChunksRetrived().size(),is(1));
+
         JPATestUtils.clearEntityManagerCache( entityManager );
         utx.begin();
         entityManager.joinTransaction();
@@ -207,6 +214,19 @@ public class NewJobSchedulerBeanArquillianIT {
 
         assertThat( dependencyTrackingEntity, notNullValue());
     }
+
+    protected void newItemEntity(int jobId, int chunkId, int itemId) throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
+        final ItemEntity itemEntity = new ItemEntity();
+        itemEntity.setKey( new ItemEntity.Key(jobId, chunkId, (short) itemId) );
+        itemEntity.setState(new State());
+        itemEntity.setPartitioningOutcome( new ChunkItemBuilder().setData("chunkItem").build());
+
+        utx.begin();
+        entityManager.joinTransaction();
+        entityManager.persist( itemEntity );
+        utx.commit();
+    }
+
 
 
     Set<String> makeSet(String... s) {

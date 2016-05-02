@@ -306,6 +306,34 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void sequenceAnalysisOptionIdOnlyButtonPressed_callSequenceAnalysisOptionIdOnlyButtonPressed_sequenceAnalysisOptionIsChangedAccordingly() {
+
+        // Setup
+        initializeAndStartPresenter();
+        presenterImpl.model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ID_ONLY);
+
+        // Subject Under Test
+        presenterImpl.sequenceAnalysisOptionIdOnlyButtonPressed();
+
+        // Verifications
+        assertThat(presenterImpl.model.getSequenceAnalysisOption(), is(SinkContent.SequenceAnalysisOption.ID_ONLY));
+    }
+
+    @Test
+    public void sequenceAnalysisOptionAllButtonPressed_callSequenceAnalysisOptionAllButtonPressed_sequenceAnalysisOptionIsChangedAccordingly() {
+
+        // Setup
+        initializeAndStartPresenter();
+        presenterImpl.model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ALL);
+
+        // Subject Under Test
+        presenterImpl.sequenceAnalysisOptionAllButtonPressed();
+
+        // Verifications
+        assertThat(presenterImpl.model.getSequenceAnalysisOption(), is(SinkContent.SequenceAnalysisOption.ALL));
+    }
+
+    @Test
     public void keyPressed_callKeyPressed_statusFieldIsCleared() {
 
         // Setup

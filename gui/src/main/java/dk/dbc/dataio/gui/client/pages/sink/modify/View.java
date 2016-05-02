@@ -31,6 +31,7 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.RadioButton;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PopupTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedList;
@@ -64,6 +65,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupTextBox popupTextBox;
+    @UiField RadioButton sequenceAnalysisOptionAllButton;
+    @UiField RadioButton sequenceAnalysisOptionIdOnlyButton;
 
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ValueChangeEvent<String> event) {
@@ -139,6 +142,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         if (queueProviders.isAddEvent(event)) {
             presenter.queueProvidersAddButtonPressed();
         }
+    }
+
+    @UiHandler("sequenceAnalysisOptionAllButton")
+    void sequenceAnalysisAllButtonPressed(ClickEvent event) {
+        presenter.sequenceAnalysisOptionAllButtonPressed();
+    }
+
+    @UiHandler("sequenceAnalysisOptionIdOnlyButton")
+    void setSequenceAnalysisIdOnlyButtonPressed(ClickEvent event) {
+        presenter.sequenceAnalysisOptionIdOnlyButtonPressed();
     }
 
     @UiHandler("popupTextBox")

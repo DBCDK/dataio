@@ -23,7 +23,15 @@
              xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
 
     <ui:with type="dk.dbc.dataio.gui.client.pages.sink.modify.Texts" field="txt"/>
-
+    <ui:style>
+        .sequenceAnalysisLabel {
+            margin-right: 0.5em;
+        }
+        .sequenceAnalysisPanel {
+            margin-top: 0.8em;
+            margin-bottom: 0.8em;
+        }
+    </ui:style>
     <g:HTMLPanel>
 
         <li><dio:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
@@ -35,6 +43,16 @@
         <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextArea ui:field="description" guiId="sinkdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
+        <g:HorizontalPanel addStyleNames="{style.sequenceAnalysisPanel}">
+            <g:cell horizontalAlignment="left">
+                <g:Label ui:field="SequenceAnalysisLabel" addStyleNames="{style.sequenceAnalysisLabel}"><ui:text from="{txt.label_SequenceAnalysis}"/></g:Label>
+            </g:cell>
+            <g:VerticalPanel>
+                <g:RadioButton ui:field="sequenceAnalysisOptionAllButton" name="sequenceAnalysisOptionAllButton" text="{txt.button_SequenceAnalysisOptionAll}" />
+                <g:RadioButton ui:field="sequenceAnalysisOptionIdOnlyButton" name="sequenceAnalysisOptionIdOnlyButton" text="{txt.button_SequenceAnalysisOptionIdOnly}" />
+            </g:VerticalPanel>
+        </g:HorizontalPanel>
+
         <g:HTMLPanel ui:field="updateSinkSection" visible="false">
             <li><dio:PromptedTextBox ui:field="url" guiId="sinkurl" prompt="{txt.label_SinkUrl}" maxLength="160" toolTip=""/></li>
             <li><dio:PromptedTextBox ui:field="userid" guiId="sinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>

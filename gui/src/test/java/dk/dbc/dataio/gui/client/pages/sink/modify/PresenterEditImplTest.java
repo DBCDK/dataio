@@ -22,9 +22,11 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,20 +130,25 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        final String SINK_NAME = "New Sink Name";
-        SinkModel sinkModel = new SinkModel();
-        sinkModel.setSinkName(SINK_NAME);
+        final SinkModel sinkModel = new SinkModelBuilder()
+                .setName("New Sink Name")
+                .setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ID_ONLY)
+                .build();
 
         assertThat(presenterEditImpl.model, is(notNullValue()));
         assertThat(presenterEditImpl.model.getSinkName(), is(""));
+        assertThat(presenterEditImpl.model.getSequenceAnalysisOption(), is(SinkContent.SequenceAnalysisOption.ALL));
 
         presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
 
         // Assert that the sink model has been updated correctly
         assertThat(presenterEditImpl.model.getSinkName(), is(sinkModel.getSinkName()));
+        assertThat(presenterEditImpl.model.getSequenceAnalysisOption(), is(sinkModel.getSequenceAnalysisOption()));
 
         // Assert that the view is displaying the correct values
-        verify(editView.name).setText(SINK_NAME);  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(editView.name).setText(sinkModel.getSinkName());  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(editView.sequenceAnalysisOptionAllButton).setValue(false);
+        verify(editView.sequenceAnalysisOptionIdOnlyButton).setValue(true);
     }
 
     @Test

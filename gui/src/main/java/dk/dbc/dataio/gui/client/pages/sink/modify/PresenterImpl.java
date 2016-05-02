@@ -130,6 +130,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the sequence analysis chosen is ALL
+     */
+    @Override
+    public void sequenceAnalysisOptionAllButtonPressed() {
+        model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ALL);
+    }
+
+    /**
+     * A signal to the presenter, saying that the sequence analysis chosen is ID_ONLY
+     */
+    @Override
+    public void sequenceAnalysisOptionIdOnlyButtonPressed() {
+        model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ID_ONLY);
+    }
+
+    /**
      * A signal to the presenter, saying that the endpoint field has been changed
      * @param endpoint, the new endpoint value
      */
@@ -232,6 +248,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
         view.queueProviders.setEnabled(true);
         view.status.setText("");
+        view.sequenceAnalysisOptionAllButton.setValue(model.getSequenceAnalysisOption() == SinkContent.SequenceAnalysisOption.ALL);
+        view.sequenceAnalysisOptionIdOnlyButton.setValue(model.getSequenceAnalysisOption() == SinkContent.SequenceAnalysisOption.ID_ONLY);
         view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 

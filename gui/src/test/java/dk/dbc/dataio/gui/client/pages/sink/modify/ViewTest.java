@@ -16,7 +16,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ *Sink
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -75,6 +75,8 @@ public class ViewTest {
         verifyNoMoreInteractions(view.userid);
         verifyNoMoreInteractions(view.password);
         verifyNoMoreInteractions(view.queueProviders);
+        verifyNoMoreInteractions(view.sequenceAnalysisOptionAllButton);
+        verifyNoMoreInteractions(view.sequenceAnalysisOptionIdOnlyButton);
         verifyNoMoreInteractions(view.deleteButton);
         verifyNoMoreInteractions(view.status);
         verifyNoMoreInteractions(view.popupTextBox);
@@ -185,7 +187,7 @@ public class ViewTest {
     }
 
     @Test
-    public void useridChanged_called_presenterNotified() {
+    public void userIdChanged_called_presenterNotified() {
         // Test preparation
         setupView();
         when(view.userid.getText()).thenReturn("-userid-");
@@ -282,6 +284,32 @@ public class ViewTest {
         view.availableQueueProvidersButtonClicked(mockedClickEvent);
 
         // Test Verification
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void sequenceAnalysisOptionAllButtonPressed_called_presenterNotified() {
+        // Test preparation
+        setupView();
+
+        // Subject Under Test
+        view.sequenceAnalysisAllButtonPressed(mockedClickEvent);
+
+        // Test Verification
+        verify(mockedPresenter).sequenceAnalysisOptionAllButtonPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void sequenceAnalysisOptionIdOnlyButtonPressed_called_presenterNotified() {
+        // Test preparation
+        setupView();
+
+        // Subject Under Test
+        view.setSequenceAnalysisIdOnlyButtonPressed(mockedClickEvent);
+
+        // Test Verification
+        verify(mockedPresenter).sequenceAnalysisOptionIdOnlyButtonPressed();
         verifyNoMoreInteractions(mockedPresenter);
     }
 

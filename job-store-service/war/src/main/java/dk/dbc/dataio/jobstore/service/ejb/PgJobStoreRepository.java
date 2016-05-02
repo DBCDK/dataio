@@ -643,8 +643,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                is still created but with a serialized JobError as payload instead.
              */
 
-            final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
-            final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = jobEntity.getCachedSink().getSink().getContent().getSequenceAnalysisOption();
+            final SinkContent.SequenceAnalysisOption sequenceAnalysisOption = getSequenceAnalysisOption(jobId);
             for (DataPartitionerResult dataPartitionerResult : dataPartitioner) {
                 if (dataPartitionerResult.isEmpty()) {
                     continue;
@@ -814,5 +813,10 @@ public class PgJobStoreRepository extends RepositoryBase {
         public short size() {
             return (short) entities.size();
         }
+    }
+
+    private SinkContent.SequenceAnalysisOption getSequenceAnalysisOption(int jobId) {
+        final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
+        return jobEntity.getCachedSink().getSink().getContent().getSequenceAnalysisOption();
     }
 }

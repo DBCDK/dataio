@@ -56,6 +56,7 @@ public class SinkModel extends GenericBackendModel {
      * @param name Sink Name
      * @param resource Sink Resource
      * @param description Sink Description
+     * @param sequenceAnalysisOption Sequence Analysis Option
      */
     public SinkModel(long id, long version, String name, String resource, String description, SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
         this(id, version, SinkContent.SinkType.ES, name, resource, description, sequenceAnalysisOption);

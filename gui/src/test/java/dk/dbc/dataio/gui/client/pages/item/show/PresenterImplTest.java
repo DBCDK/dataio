@@ -38,6 +38,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.JobNotificationPanel;
 import dk.dbc.dataio.gui.client.components.PromptedAnchor;
+import dk.dbc.dataio.gui.client.components.PromptedHyperlink;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -117,7 +118,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock PromptedLabel mockedType;
     @Mock PromptedLabel mockedJobCreationTime;
     @Mock PromptedLabel mockedJobCompletionTime;
-    @Mock PromptedLabel mockedPreviousJobId;
+    @Mock PromptedHyperlink mockedPreviousJobId;
     @Mock Label mockedExportLinksHeader;
     @Mock PromptedLabel mockedExportLinkItemFailedInPartitioning;
     @Mock PromptedLabel mockedExportLinkItemFailedInProcessing;

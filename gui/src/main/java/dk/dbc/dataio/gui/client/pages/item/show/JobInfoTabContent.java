@@ -32,6 +32,7 @@ import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.InlineHTML;
 import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PromptedAnchor;
+import dk.dbc.dataio.gui.client.components.PromptedHyperlink;
 import dk.dbc.dataio.gui.client.components.PromptedLabel;
 
 public class JobInfoTabContent extends Composite {
@@ -54,7 +55,7 @@ public class JobInfoTabContent extends Composite {
     @UiField PromptedLabel type;
     @UiField PromptedLabel jobCreationTime;
     @UiField PromptedLabel jobCompletionTime;
-    @UiField PromptedLabel previousJobId;
+    @UiField PromptedHyperlink previousJobId;
     @UiField Label exportLinksHeader;
     @UiField PromptedLabel exportLinkItemsFailedInPartitioning;
     @UiField PromptedLabel exportLinkItemsFailedInProcessing;

@@ -35,6 +35,7 @@ import dk.dbc.dataio.gui.util.ClientFactory;
  * Place
  */
 public class Place extends DataioPlace {
+    public static final String TOKEN = "ShowItems";
     private String jobId;
 
     public Place() {
@@ -58,7 +59,7 @@ public class Place extends DataioPlace {
                 commonInjector.getMenuTexts().menu_Items());
     }
 
-    @Prefix("ShowItems")
+    @Prefix(TOKEN)
     public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
         public String getToken(Place place) {

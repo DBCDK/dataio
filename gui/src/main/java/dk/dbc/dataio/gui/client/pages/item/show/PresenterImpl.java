@@ -483,6 +483,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
             view.jobInfoTabContent.previousJobId.setVisible(false);
         } else {
             view.jobInfoTabContent.previousJobId.setText(previousJobId);
+            view.jobInfoTabContent.previousJobId.setTargetHistoryToken(Place.TOKEN + ":" + previousJobId);
             view.jobInfoTabContent.previousJobId.setVisible(true);
         }
 

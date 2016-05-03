@@ -21,6 +21,10 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
+import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+
+import java.nio.charset.Charset;
+
 /**
  * Utility class for Encodings equivalence tests
  */
@@ -43,6 +47,14 @@ public class EncodingsUtil {
     public static boolean isEquivalent(String encoding1, String encoding2) {
         return !(encoding1 == null || encoding2 == null)
                 && normalizeEncoding(encoding1).equals(normalizeEncoding(encoding2));
+    }
+
+    public static Charset toEncoding(String encoding) throws InvalidEncodingException {
+        try {
+            return Charset.forName(encoding.trim());
+        } catch (Exception e) {
+            throw new InvalidEncodingException(String.format("Unable to create encoding from given name '%s'", encoding), e);
+        }
     }
 
     private static String normalizeEncoding(String encoding) {

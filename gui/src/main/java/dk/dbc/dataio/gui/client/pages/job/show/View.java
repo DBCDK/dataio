@@ -169,11 +169,11 @@ public class View extends ViewWidget {
                         if (jobModel != null) {
                             previousId = jobModel.getPreviousJobIdAncestry();
                         }
-                        if (previousId != null) {
+                        if (previousId != null && !previousId.equals("0")) {
                             sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_ReRunJobNo() + " " + previousId + "'>"));
                         }
                         sb.append(renderer.render(value));
-                        if (previousId != null) {
+                        if (previousId != null && !previousId.equals("0")) {
                             sb.append(SafeHtmlUtils.fromSafeConstant("</span>"));
                         }
                     }
@@ -554,7 +554,7 @@ public class View extends ViewWidget {
 
         @Override
         public ImageResource getValue(JobModel model) {
-            if (model.getPreviousJobIdAncestry() != null) {
+            if (model.getPreviousJobIdAncestry() != null && !model.getPreviousJobIdAncestry().equals("0")) {
                 return resources.recycleIcon();
             } else {
                 return resources.emptyIcon();

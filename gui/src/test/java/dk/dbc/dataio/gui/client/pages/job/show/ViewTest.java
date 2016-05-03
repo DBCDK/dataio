@@ -292,6 +292,27 @@ public class ViewTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    public void constructHideShowColumn_jobModelIsValidWithZeroValuedPreviousJobId_calculateCorrectHtmlSnippet() {
+        view = new ViewConcrete();
+
+        View.HideShowCell hideShowCell = (View.HideShowCell) view.constructHideShowWorkflow();
+        when(mockedContext.getKey()).thenReturn(testModel1);
+        testModel1.setPreviousJobIdAncestry("0");
+        Cell<ImageResource> cell = hideShowCell.getCell();
+        SafeHtmlBuilder safeHtmlBuilder = new SafeHtmlBuilder();
+        when(mockedImageResource.getWidth()).thenReturn(11);
+        when(mockedImageResource.getHeight()).thenReturn(22);
+        when(mockedImageResource.getSafeUri()).thenReturn(() -> "[Test Image]");
+
+        // Subject Under Test
+        cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
+
+        // Verify Test
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("image([Test Image], 11, 22)"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void constructHideShowColumn_jobModelIsValidWithEmptyPreviousJobId_calculateCorrectHtmlSnippet() {
         view = new ViewConcrete();
 

@@ -479,7 +479,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         view.jobInfoTabContent.jobCreationTime.setText(jobModel.getJobCreationTime());
         view.jobInfoTabContent.jobCompletionTime.setText(jobModel.getJobCompletionTime());
         String previousJobId = jobModel.getPreviousJobIdAncestry();
-        if (previousJobId == null || previousJobId.isEmpty()) {
+        if (previousJobId == null || previousJobId.isEmpty() || previousJobId.equals("0")) {
             view.jobInfoTabContent.previousJobId.setVisible(false);
         } else {
             view.jobInfoTabContent.previousJobId.setText(previousJobId);

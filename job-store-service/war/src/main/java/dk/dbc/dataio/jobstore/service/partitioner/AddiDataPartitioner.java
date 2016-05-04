@@ -134,6 +134,7 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
                     .withTrackingId(addiMetaData.trackingId().orElse(null))
                     .withData(addiRecord.getContentData())
                     .withEncoding(encoding)
+                    .withType(ChunkItem.Type.UNKNOWN);
                 recordInfo = getRecordInfo(addiMetaData);
             }
         } catch (JSONBException e) {

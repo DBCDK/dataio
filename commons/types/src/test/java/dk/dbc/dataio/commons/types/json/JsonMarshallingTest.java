@@ -54,6 +54,8 @@ import dk.dbc.dataio.commons.types.SubmitterTest;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
+
 public class JsonMarshallingTest {
 
     private final JSONBContext jsonbContext = new JSONBContext();
@@ -155,7 +157,11 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForChunkItemWithTypeAndEncoding() throws Exception {
-        final String json = jsonbContext.marshall(ChunkItemTest.newChunkItemInstanceWithTypeAndEncoding());
+        final String json = jsonbContext.marshall(ChunkItem.successfulChunkItem()
+                                                    .withId(42)
+                                                    .withData("data")
+                                                    .withType(ChunkItem.Type.UNKNOWN)
+                                                    .withEncoding(StandardCharsets.UTF_8));
         jsonbContext.unmarshall(json, ChunkItem.class);
     }
 

@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.types.exceptions.ServiceException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.log.DBCTrackedLogContext;
@@ -72,8 +71,12 @@ public class DummyMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 DBCTrackedLogContext.setTrackingId(trackingId);
                 // Set new-item-status to success if chunkResult-item was success - else set new-item-status to ignore:
                 ChunkItem.Status status = item.getStatus() == ChunkItem.Status.SUCCESS ? ChunkItem.Status.SUCCESS : ChunkItem.Status.IGNORE;
-                ChunkItem chunkItem = new ChunkItem(item.getId(), StringUtil.asBytes("Set by DummySink"), status);
-                chunkItem.setTrackingId(trackingId);
+                ChunkItem chunkItem = new ChunkItem()
+                    .withId(item.getId())
+                    .withStatus(status)
+                    .withTrackingId(item.getTrackingId())
+                    .withData("Set by DummySink")
+                    .withType(ChunkItem.Type.STRING);
                 deliveredChunk.insertItem(chunkItem);
                 LOGGER.debug("Handled chunk item {} for chunk {} in job {}",
                         chunkItem.getId(), processedChunk.getChunkId(),processedChunk.getJobId());

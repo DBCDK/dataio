@@ -86,7 +86,7 @@ public class ChunkItemBuilder {
 
     public ChunkItem build() {
         ChunkItem chunkItem = new ChunkItem(id, data, status, type, encoding);
-        chunkItem.setTrackingId(trackingId);
+        chunkItem.withTrackingId(trackingId);
         chunkItem.appendDiagnostics(diagnostics);
         return chunkItem;
     }

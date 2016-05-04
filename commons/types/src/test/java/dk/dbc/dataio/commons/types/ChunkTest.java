@@ -38,7 +38,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class ChunkTest {
-    private static final ChunkItem CHUNK_ITEM = new ChunkItem(0L, "data".getBytes(), ChunkItem.Status.SUCCESS);
+    private static final ChunkItem CHUNK_ITEM = ChunkItem.successfulChunkItem()
+                                                    .withId(0)
+                                                    .withData("data");
     private Chunk chunk;
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -72,7 +74,7 @@ public class ChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void insertItem_outOfOrderItemId_throws() {
-        chunk.insertItem(new ChunkItem(1L, "data".getBytes(), ChunkItem.Status.IGNORE));
+        chunk.insertItem(ChunkItem.ignoredChunkItem().withId(1).withData("data"));
     }
 
     @Test
@@ -105,7 +107,7 @@ public class ChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void insertItem_2arg_nextItemIdDiffersFromCurrentItemId_throws() {
-        final ChunkItem nextChunkItem = new ChunkItem(1L, "data".getBytes(), ChunkItem.Status.SUCCESS);
+        final ChunkItem nextChunkItem = ChunkItem.successfulChunkItem().withId(1).withData("data");
         chunk.insertItem(CHUNK_ITEM, nextChunkItem);
     }
 
@@ -135,16 +137,16 @@ public class ChunkTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void addAllItems_2arg_listsDifferInSize_throws() {
-        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
-        final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
+        final ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
+        final ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
         chunk.addAllItems(Arrays.asList(firstItem, secondItem), Collections.singletonList(firstItem));
     }
 
     @Test
     public void chunk_iterator() {
-        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE);
-        final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
-        final ChunkItem thirdItem = new ChunkItem(2L, "Third".getBytes(), ChunkItem.Status.FAILURE);
+        final ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
+        final ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
+        final ChunkItem thirdItem = ChunkItem.failedChunkItem().withId(2).withData("Third");
         chunk.insertItem(firstItem);
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);
@@ -163,9 +165,9 @@ public class ChunkTest {
 
     @Test
     public void convertToJsonAndBackAgain() throws JSONBException {
-        final ChunkItem firstItem = new ChunkItem(0L, "First".getBytes(), ChunkItem.Status.IGNORE );
-        final ChunkItem secondItem = new ChunkItem(1L, "Second".getBytes(), ChunkItem.Status.SUCCESS);
-        final ChunkItem thirdItem = new ChunkItem(2L, "Third".getBytes(), ChunkItem.Status.FAILURE);
+        final ChunkItem firstItem = ChunkItem.ignoredChunkItem().withId(0).withData("First");
+        final ChunkItem secondItem = ChunkItem.successfulChunkItem().withId(1).withData("Second");
+        final ChunkItem thirdItem = ChunkItem.failedChunkItem().withId(2).withData("Third");
         chunk.insertItem(firstItem);
         chunk.insertItem(secondItem);
         chunk.insertItem(thirdItem);

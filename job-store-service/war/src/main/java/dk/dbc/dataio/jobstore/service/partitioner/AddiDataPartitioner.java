@@ -125,17 +125,24 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
         Optional<RecordInfo> recordInfo = Optional.empty();
         try {
             if (addiRecord.getMetaData().length == 0 && addiRecord.getContentData().length == 0) {
-                chunkItem = ObjectFactory.buildIgnoredChunkItem(0, "Empty Record");
+                chunkItem = ChunkItem.ignoredChunkItem()
+                    .withData("Empty Record")
+                    .withType(ChunkItem.Type.STRING);
             } else {
                 final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
-                // TODO: 5/3/16 set correct encoding for chunk item + set tracking ID
-                chunkItem = ObjectFactory.buildSuccessfulChunkItem(0, addiRecord.getContentData(), getChunkItemType());
+                chunkItem = ChunkItem.successfulChunkItem()
+                    .withTrackingId(addiMetaData.trackingId().orElse(null))
+                    .withData(addiRecord.getContentData())
+                    .withEncoding(encoding)
                 recordInfo = getRecordInfo(addiMetaData);
             }
         } catch (JSONBException e) {
             LOGGER.error("Exception caught while processing AddiRecord", e);
-            chunkItem = ObjectFactory.buildFailedChunkItem(0, addiRecord.getBytes(), ChunkItem.Type.BYTES);
-            chunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+            chunkItem = ChunkItem.failedChunkItem()
+                .withData(addiRecord.getBytes())
+                .withEncoding(encoding)
+                .withType(ChunkItem.Type.BYTES)
+                .withDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
     }

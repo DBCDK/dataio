@@ -253,7 +253,10 @@ public class DefaultXmlDataPartitioner implements DataPartitioner {
      * @return DataPartitionerResult containing chunk item with baos as data and status SUCCESS
      */
     protected DataPartitionerResult nextDataPartitionerResult(ByteArrayOutputStream baos) {
-        final ChunkItem chunkItem = new ChunkItem(0, baos.toByteArray(), ChunkItem.Status.SUCCESS);
+        final ChunkItem chunkItem = ChunkItem.successfulChunkItem()
+            .withId(0)
+            .withData(baos.toByteArray())
+            .withType(ChunkItem.Type.UNKNOWN);
         return new DataPartitionerResult(chunkItem, null);
     }
 

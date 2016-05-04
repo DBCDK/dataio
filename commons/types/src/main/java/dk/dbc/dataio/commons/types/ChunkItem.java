@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
@@ -35,11 +36,13 @@ import java.util.List;
 
 /**
  * Chunk item DTO class.
+ *
+ * This class is NOT thread safe.
  */
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class ChunkItem implements Serializable {
     public static final ChunkItem UNDEFINED = null;
     private static final long serialVersionUID = -7214362358523195493L;
-
 
     public enum Status { SUCCESS, FAILURE, IGNORE }
     public enum Type { UNKNOWN,
@@ -53,128 +56,204 @@ public class ChunkItem implements Serializable {
     }
 
     private long id;
-    private final byte[] data;
+    private byte[] data;
     private Status status;
     private List<Type> type;
-    private ArrayList<Diagnostic> diagnostics = null;
-    private final Charset encoding;
-    private String trackingId = null;
+    private ArrayList<Diagnostic> diagnostics;
+    private Charset encoding;
+    private String trackingId;
 
+    public static ChunkItem successfulChunkItem() {
+        return new ChunkItem()
+                .withStatus(Status.SUCCESS);
+    }
+
+    public static ChunkItem failedChunkItem() {
+        return new ChunkItem()
+                .withStatus(Status.FAILURE);
+    }
+
+    public static ChunkItem ignoredChunkItem() {
+        return new ChunkItem()
+                .withStatus(Status.IGNORE);
+    }
+
+    public ChunkItem() {
+        this.encoding = StandardCharsets.UTF_8;
+    }
 
     /**
-     * Class constructor
-     *
+     * Class constructor (deprecated)
      * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
-     * @param data item data, can be empty
-     * @param status item status
-     * @param type item type as list to support Embeddable formats.
-     * @param encoding item charset encoding
-     * @throws NullPointerException when given null valued argument
-     * @throws IllegalArgumentException when given id value of {@value dk.dbc.dataio.commons.types.Constants#CHUNK_ITEM_ID_LOWER_BOUND} or less
+     * @param data item data, can be empty, but not null
+     * @param status item status can not be null
+     * @param type item type as list to support Embeddable formats, can also be null or empty
+     * @param encoding item charset encoding, can also be null or empty
+     */
+    public ChunkItem(long id, byte[] data, Status status, List<Type> type, Charset encoding) {
+        this(id, data, status);
+        if (type != null) {
+            withType(type.toArray(new Type[type.size()]));
+        }
+        if (encoding != null) {
+            withEncoding(encoding);
+        }
+    }
+
+    /**
+     * Class constructor (used to enforce invariant checks during deserialization)
+     * @param id item identifier, must be larger than {@value Constants#CHUNK_ITEM_ID_LOWER_BOUND}
+     * @param data item data, can be empty, but not null
+     * @param status item status can not be null
      */
     @JsonCreator
-    public ChunkItem(
+    private ChunkItem(
             @JsonProperty("id") long id,
             @JsonProperty("data") byte[] data,
-            @JsonProperty("status") Status status,
-            @JsonProperty("type") List<Type> type,
-            @JsonProperty("encoding") Charset encoding) {
+            @JsonProperty("status") Status status) {
+        this();
+        withId(id);
+        withData(data);
+        withStatus(status);
+    }
+
+    public ChunkItem withId(long id) throws IllegalArgumentException {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.CHUNK_ITEM_ID_LOWER_BOUND);
-        this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
-        this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
-        // ToDo: type and encoding must have invariant checks after a transition period
-        this.type = type == null ? null : new ArrayList<>(type);
-        this.encoding = encoding == null ? StandardCharsets.UTF_8 : encoding;
-    }
-
-    public ChunkItem(long id, byte[] data, Status status) {
-        this(id, data, status, Collections.singletonList(Type.UNKNOWN), StandardCharsets.UTF_8);
-    }
-
-    /**
-     * If diagnostic level is different from WARNING:
-     * Set Status to FAILURE and append Diagnostics to describe the reason
-     * for failing the item.
-     *
-     * @param diagnostic Description of the reason for the failure
-     */
-    public void appendDiagnostics(Diagnostic diagnostic) {
-        if(diagnostic.getLevel() != Diagnostic.Level.WARNING) {
-            this.status = Status.FAILURE;
-        }
-        if (diagnostics == null) {
-            diagnostics = new ArrayList<>();
-        }
-        diagnostics.add(diagnostic);
-    }
-
-    /**
-     * If given list of diagnostics is not null or empty:
-     *   - If diagnostic level is different from WARNING: Set Status to FAILURE.
-     *   - Append all input Diagnostics.
-     *
-     * @param diagnostics containing list of descriptions of the reasons for failure
-     */
-    public void appendDiagnostics(List<Diagnostic> diagnostics) {
-        if(diagnostics != null && !diagnostics.isEmpty()) {
-            if(diagnostics.stream().anyMatch(diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING)) {
-                this.status = Status.FAILURE;
-            }
-            if (this.diagnostics == null) {
-                this.diagnostics = new ArrayList<>(diagnostics);
-            } else {
-                this.diagnostics.addAll(diagnostics);
-            }
-        }
+        return this;
     }
 
     public long getId() {
         return id;
     }
 
-    // TODO: 13/01/16 Consider remaking partitioner to add correct itemId, thereby avoiding mutation
-    public void setId(long id) {
-        this.id = id;
+    public ChunkItem withTrackingId(String trackingId) {
+        this.trackingId = trackingId;
+        return this;
     }
 
     public String getTrackingId() {
         return trackingId;
     }
-    public void setTrackingId(String trackingId) {
-        this.trackingId = trackingId;
+
+    public ChunkItem withData(byte[] data) {
+        this.data = InvariantUtil.checkNotNullOrThrow(data, "data");
+        return this;
+    }
+
+    public ChunkItem withData(String data) {
+        InvariantUtil.checkNotNullOrThrow(data, "data");
+        return withData(data.getBytes(StandardCharsets.UTF_8));
     }
 
     public byte[] getData() {
         return data;
     }
 
+    public ChunkItem withStatus(Status status) {
+        this.status = InvariantUtil.checkNotNullOrThrow(status, "status");
+        return this;
+    }
+
     public Status getStatus() {
         return status;
+    }
+
+    public ChunkItem withType(Type... types) {
+        if (types != null && types.length != 0) {
+            if (this.type == null) {
+                this.type = new ArrayList<>(types.length);
+            }
+            Collections.addAll(this.type, types);
+        }
+        return this;
     }
 
     public List<Type> getType() {
         return type;
     }
 
+    /**
+     * If given list of diagnostics is not null or empty:
+     *   - If any one of the diagnostics has a level different from WARNING, then status of this chunk item is set to FAILURE.
+     *   - Given diagnostics are appended to this chunk item.
+     * @param diagnostics containing list of descriptions of the reasons for failure
+     * @return reference to self
+     */
+    public ChunkItem withDiagnostics(Diagnostic... diagnostics) {
+        if (diagnostics != null && diagnostics.length != 0) {
+            if (Arrays.stream(diagnostics).anyMatch(
+                    diagnostic -> diagnostic.getLevel() != Diagnostic.Level.WARNING)) {
+                this.status = Status.FAILURE;
+            }
+            if (this.diagnostics == null) {
+                this.diagnostics = new ArrayList<>(diagnostics.length);
+            }
+            Collections.addAll(this.diagnostics, diagnostics);
+        }
+        return this;
+    }
+
+    /**
+     * Alias for withDiagnostic() with a single diagnostic argument.
+     * @param diagnostic diagnostic to be appended to this chunk item
+     */
+    public void appendDiagnostics(Diagnostic diagnostic) {
+        withDiagnostics(diagnostic);
+    }
+
+    /**
+     * Alias for withDiagnostic() with a multiple diagnostic arguments.
+     * @param diagnostics diagnostics to be appended to this chunk item
+     */
+    public void appendDiagnostics(List<Diagnostic> diagnostics) {
+        if (diagnostics != null) {
+            withDiagnostics(diagnostics.toArray(new Diagnostic[diagnostics.size()]));
+        }
+    }
+
     public ArrayList<Diagnostic> getDiagnostics() {
         return diagnostics;
     }
 
-    public Charset getEncoding() { return encoding; }
+    public ChunkItem withEncoding(Charset encoding) {
+        this.encoding = encoding;
+        return this;
+    }
 
+    public Charset getEncoding() {
+        return encoding;
+    }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ChunkItem)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
         ChunkItem chunkItem = (ChunkItem) o;
-        return id == chunkItem.id &&
-                Arrays.equals(data, chunkItem.data) &&
-                status == chunkItem.status &&
-                (type != null ? type.equals(chunkItem.type) : chunkItem.type == null &&
-                        (diagnostics != null ? diagnostics.equals(chunkItem.diagnostics) : chunkItem.diagnostics == null &&
-                                (encoding != null ? encoding.equals(chunkItem.encoding) : chunkItem.encoding == null &&
-                                        (trackingId != null ? trackingId.equals(chunkItem.trackingId) : chunkItem.trackingId == null))));
+
+        if (id != chunkItem.id) {
+            return false;
+        }
+        if (!Arrays.equals(data, chunkItem.data)) {
+            return false;
+        }
+        if (status != chunkItem.status) {
+            return false;
+        }
+        if (type != null ? !type.equals(chunkItem.type) : chunkItem.type != null) {
+            return false;
+        }
+        if (diagnostics != null ? !diagnostics.equals(chunkItem.diagnostics) : chunkItem.diagnostics != null) {
+            return false;
+        }
+        if (encoding != null ? !encoding.equals(chunkItem.encoding) : chunkItem.encoding != null) {
+            return false;
+        }
+        return trackingId != null ? trackingId.equals(chunkItem.trackingId) : chunkItem.trackingId == null;
 
     }
 
@@ -192,13 +271,14 @@ public class ChunkItem implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("ChunkItem{");
-        sb.append("id=").append(id);
-        sb.append(", data=").append(Arrays.toString(data));
-        sb.append(", status=").append(status);
-        sb.append(", type=").append(type);
-        sb.append(", endoding=").append(encoding);
-        sb.append('}');
-        return sb.toString();
+        return "ChunkItem{" +
+                "id=" + id +
+                ", data=" + Arrays.toString(data) +
+                ", status=" + status +
+                ", type=" + type +
+                ", diagnostics=" + diagnostics +
+                ", encoding=" + encoding +
+                ", trackingId='" + trackingId + '\'' +
+                '}';
     }
 }

@@ -123,6 +123,17 @@ public class AddiDataPartitionerTest {
     }
 
     @Test
+    public void partitioner_MetaDataContainsTrackingId_returnsResultWithChunkItemWithTrackingId() {
+        final InputStream addiStream = StringUtil.asInputStream("27\n{\"trackingId\": \"trackedAs\"}\n7\ncontent\n");
+        final AddiDataPartitionerImpl partitioner = new AddiDataPartitionerImpl(addiStream, UTF_8_ENCODING);
+        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        assertThat("chunkItem", chunkItem, is(notNullValue()));
+        assertThat("chunkItem.getTrackingId()", chunkItem.getTrackingId(), is("trackedAs"));
+    }
+
+    @Test
     public void partitioner_multipleIterations() {
         final InputStream addiStream = StringUtil.asInputStream("2\n{}\n8\ncontent1\n2\n{}\n8\ncontent2\n");
         final AddiDataPartitionerImpl partitioner = new AddiDataPartitionerImpl(addiStream, UTF_8_ENCODING);

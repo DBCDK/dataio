@@ -73,7 +73,12 @@ public class DmqMessageConsumerBean extends AbstractMessageConsumerBean {
         final Chunk deadChunk = new Chunk(originatingChunk.getJobId(), originatingChunk.getChunkId(), chunkType);
         deadChunk.setEncoding(StandardCharsets.UTF_8);
         for (ChunkItem chunkItem : originatingChunk) {
-            deadChunk.insertItem(new ChunkItem(chunkItem.getId(), getDeadChunkData(originatingChunk, status), status));
+            deadChunk.insertItem(new ChunkItem()
+                    .withId(chunkItem.getId())
+                    .withData(getDeadChunkData(originatingChunk, status))
+                    .withStatus(status)
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(chunkItem.getTrackingId()));
         }
         return deadChunk;
     }

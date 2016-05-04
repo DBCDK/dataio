@@ -654,7 +654,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 if(trackingId == null || trackingId.trim().isEmpty()) {
                     // Generate dataio specific tracking id
                     trackingId = TrackingIdGenerator.getTrackingId(jobId, chunkId, itemCounter);
-                    chunkItem.setTrackingId(trackingId);
+                    chunkItem.withTrackingId(trackingId);
                 }
                 DBCTrackedLogContext.setTrackingId(trackingId);
                 LOGGER.info("Creating chunk item {} for chunk {} in job {}", itemCounter, chunkId, jobId);
@@ -669,7 +669,7 @@ public class PgJobStoreRepository extends RepositoryBase {
                 final State itemState = new State();
                 itemState.updateState(stateChange);
 
-                chunkItem.setId(itemCounter);
+                chunkItem.withId(itemCounter);
                 chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemCounter++, itemState, chunkItem, dataPartitionerResult.getRecordInfo()));
                 if(dataPartitionerResult.getRecordInfo() != null) {
                     chunkItemEntities.keys.addAll(dataPartitionerResult.getRecordInfo().getKeys(sequenceAnalysisOption));

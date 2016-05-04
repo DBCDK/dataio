@@ -190,7 +190,7 @@ public class ObjectFactory {
      */
     private static ChunkItem buildChunkItem(long itemId, byte[] data, ChunkItem.Status status, List<ChunkItem.Type> types, String trackingId) {
         ChunkItem chunkItem = new ChunkItem(itemId, data, status, types, StandardCharsets.UTF_8);
-        chunkItem.setTrackingId(trackingId);
+        chunkItem.withTrackingId(trackingId);
         return chunkItem;
     }
 }

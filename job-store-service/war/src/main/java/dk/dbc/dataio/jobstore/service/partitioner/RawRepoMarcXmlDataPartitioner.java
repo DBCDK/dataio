@@ -81,7 +81,7 @@ public class RawRepoMarcXmlDataPartitioner extends DefaultXmlDataPartitioner {
                 final ChunkItem chunkItem = new ChunkItem(0, baos.toByteArray(), ChunkItem.Status.SUCCESS,
                         Arrays.asList(ChunkItem.Type.DATACONTAINER, ChunkItem.Type.MARCXCHANGE), StandardCharsets.UTF_8);
 
-                chunkItem.setTrackingId(trackingId);
+                chunkItem.withTrackingId(trackingId);
                 result = new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
             }
         } catch (MarcReaderException e) {

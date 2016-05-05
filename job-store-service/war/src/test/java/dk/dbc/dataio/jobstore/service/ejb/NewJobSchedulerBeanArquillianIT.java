@@ -1,6 +1,9 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.types.Chunk;
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
+import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -18,7 +21,10 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
+import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.After;
 import static org.junit.Assert.assertThat;
@@ -62,9 +68,7 @@ public class NewJobSchedulerBeanArquillianIT {
     @JobstoreDB
     EntityManager entityManager;
 
-    @Resource(
-        lookup = "jdbc/dataio/jobstore"
-    )
+    @Resource( lookup = "jdbc/dataio/jobstore" )
     DataSource dataSource;
 
     @Inject
@@ -99,23 +103,19 @@ public class NewJobSchedulerBeanArquillianIT {
     public static WebArchive createDeployment() {
         LOGGER.warn( "in public static WebArchive createDeployment() ");
         try {
-            // Load the project's persistence.xml. As with beans.xml we could alter
-            // it to, eg, switch to a testing-only JNDI datasource, but in this example
-            // we're just going to copy it.
-            //
-            //PersistenceDescriptor persistenceXml = Descriptors.importAs(PersistenceDescriptor.class)
-            //        .from(new File("src/main/resources/META-INF/persistence.xml"));
 
-                     /*
-                     <dependency>
-                     	<groupId>org.jboss.shrinkwrap.descriptors</groupId>
-                     	<artifactId>shrinkwrap-descriptors-api-javaee</artifactId>
-                     	<version>2.0.0-alpha-4</version>
-                     </dependency>
+            // Change eclipse Link log level and destination
+            PersistenceDescriptor persistence = Descriptors.importAs(PersistenceDescriptor.class)
+                    .fromFile("src/main/resources/META-INF/persistence.xml")
+                    .getOrCreatePersistenceUnit().name("jobstorePU")
+                    .getOrCreateProperties()
+                    .createProperty().name("eclipselink.logging.file").value("../logs/eclipselink.log").up()
+                    .createProperty().name("eclipselink.logging.level").value("FINE").up()
+                    .createProperty().name("eclipselink.logging.logger").value("JavaLogger").up()
+                    .up() // update Properties */
+                    .up(); // update PersistenceUnit
 
-                      */
-            //Persistence
-
+            LOGGER.info("persistence.xml : {}", persistence.exportAsString());
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobscheduler-test.war")
                     .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
                             "dk/dbc/dataio/jobstore/service/cdi", "dk/dbc/dataio/jobstore/service/param",
@@ -146,14 +146,7 @@ public class NewJobSchedulerBeanArquillianIT {
                 war.addAsWebInfResource(file, fileNameAdded);
             }
 
-            for (File file : new File("src/main/resources/META-INF/").listFiles() ) {
-                if( file.getName().equals(".svn") ) {
-                    continue;
-                }
-
-                String fileNameAdded="META-INF/"+file.getName();
-                war.addAsResource(file, fileNameAdded);
-            }
+            war.addAsResource( new StringAsset(persistence.exportAsString()), "META-INF/persistence.xml");
 
             war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/beans.xml"));
             war.addAsWebInfResource(new File("src/main/webapp/WEB-INF/glassfish-ejb-jar.xml"));
@@ -163,7 +156,7 @@ public class NewJobSchedulerBeanArquillianIT {
             war.addAsWebInfResource( new File("src/test/resources/arquillian_logback.xml"), "classes/logback-test.xml");
             war.addAsResource(new File("src/test/resources/","JobSchedulerBeanIT_findWaitForChunks.sql"));
 
-            LOGGER.info("war {}", war.toString(true));
+            //LOGGER.info("war {}", war.toString(true));
 
             return war;
         } catch(Exception e) {
@@ -196,6 +189,20 @@ public class NewJobSchedulerBeanArquillianIT {
         utx.commit();
 
         assertThat( dependencyTrackingEntity, notNullValue());
+        assertThat( dependencyTrackingEntity.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS));
+
+
+        // Given a chunk Returned from Processing it moves to Sink
+        Chunk chunk=new ChunkBuilder(PROCESSED)
+                .setJobId(3)
+                .setChunkId(0).
+                appendItem( new ChunkItemBuilder().setData("ProcessdChunk").build() )
+                .build();
+
+        newJobSchedulerBean.chunkProcessingDoneScheduleForSink( chunk );
+
+
+
     }
 
     protected void newItemEntity(int jobId, int chunkId, int itemId) throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {

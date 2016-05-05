@@ -9,15 +9,16 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jsonb.JSONBException;
-import static org.eclipse.persistence.expressions.ExpressionOperator.Sin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Resource;
 import javax.ejb.*;
 import javax.inject.Inject;
-import javax.persistence.*;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +41,13 @@ public class NewJobSchedulerBean {
     @EJB
     private PgJobStoreRepository jobStoreRepository;
 
+    @Resource
+    private SessionContext sessionContext;
+
+
+    private NewJobSchedulerBean getProxyToSelf() {
+        return sessionContext.getBusinessObject(NewJobSchedulerBean.class);
+    }
 
     /**
      * ScheduleChunk
@@ -56,8 +64,8 @@ public class NewJobSchedulerBean {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
-        persistDependencyEntity(chunk, sink);
-        submitIfPosibleForProcessing( chunk, sink );
+        getProxyToSelf().persistDependencyEntity(chunk, sink);
+        getProxyToSelf().submitIfPosibleForProcessing( chunk, sink );
 
     }
 
@@ -73,7 +81,12 @@ public class NewJobSchedulerBean {
 
     @Asynchronous
     @Stopwatch
-    void submitIfPosibleForProcessing(ChunkEntity chunk, Sink sink) {
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
+    public void submitIfPosibleForProcessing(ChunkEntity chunk, Sink sink) {
+        LOGGER.info(" void submitIfPosibleForProcessing(ChunkEntity chunk, Sink sink)");
+        DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
+        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+        dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
             jobProcessorMessageProducerBean.send( getChunkFromChunkEntity(chunk));
         } catch (JobStoreException e) {
@@ -128,6 +141,22 @@ public class NewJobSchedulerBean {
             first=false;
         }
         builder.append(" )");
+        builder.append(" for update");
         return builder.toString();
+    }
+
+    public void chunkProcessingDoneScheduleForSink(Chunk chunk) {
+        DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
+        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+
+        if (dependencyTrackingEntity.getWaitingOn().size() == 0) {
+            dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_DELEVERING );
+        } else {
+            dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.BLOCKED);
+        }
+
+
+
+
     }
 }

@@ -169,6 +169,11 @@ public class DependencyTrackingEntity {
             this.chunkId=chunkKey.getId();
         }
 
+        public Key(long jobId, long chunkId) {
+            this.jobId = (int) jobId;
+            this.chunkId = (int) chunkId;
+        }
+
         public int getChunkId() {
             return chunkId;
         }

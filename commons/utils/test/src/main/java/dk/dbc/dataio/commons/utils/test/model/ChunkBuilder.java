@@ -54,6 +54,12 @@ public class ChunkBuilder {
         return this;
     }
 
+    public ChunkBuilder appendItem(ChunkItem item) {
+        item.setId( this.items.size() );
+        this.items.add( item );
+        return this;
+    }
+
     public ChunkBuilder setNextItems(List<ChunkItem> nextItems) {
         this.next = nextItems;
         return this;

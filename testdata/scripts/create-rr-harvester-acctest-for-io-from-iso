@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash -e
+
+#Adding the -e option to the bash shebang makes it exit if any command fails
 
 # This script takes as input a file with marc records in iso2709 
 # and converts them to marcXchange and adds them to the testdata/rr_harvester_output  
@@ -20,7 +22,7 @@ convert_record () {
         SINGLE_RECORD=$1
         PREFIX=$2
         #Get ID of record
-        ID=$(semarc $SINGLE_RECORD | grep "001" | sed -e 's/\*/\n\*/g' | grep "\*a" | cut -d "a" -f2 | tr -d '[:space:]')
+        ID=$(semarc $SINGLE_RECORD | grep "^001 " | head -1 | sed -e 's/*a/\t/g' | cut -f2 | cut -d "*" -f1 | sed 's/ //g')
         echo $ID
         OUTPUTFILE=$PREFIX.$ID.xml
 
@@ -31,7 +33,7 @@ convert_record () {
         echo " - converting record to marXchange"
         ~/datawell-convert/trunk/shell/dm2ToMarcxchange "true" "sebasis/sebasis@dora11.dbc.dk" < $SINGLE_RECORD > ~/dataio-testdata/scripts/tmp/tmp2
         echo '</data></data-container></dataio-harvester-datafile>' > ~/dataio-testdata/scripts/tmp/tmp3
-        cat  ~/dataio-testdata/scripts/tmp/tmp* |sed 's/<?xml version="1.0" encoding="UTF-8"?>//g'|sed -e :a -e '$!N;s/\n//;ta' -e 'P;D' | xmllint --format - > ~/dataio-testdata/rr_harvester_output/$OUTPUTFILE
+        cat  ~/dataio-testdata/scripts/tmp/tmp* |sed 's/<?xml version="1.0" encoding="UTF-8"?>//g'| xmllint --format - > ~/dataio-testdata/rr_harvester_output/$OUTPUTFILE
 	echo "output file added to ~/dataio-testdata/rr_harvester_output/$OUTPUTFILE"
         echo "" 
 }
@@ -50,7 +52,7 @@ then
     echo ""
     cd ~/dataio-testdata/scripts/tmp
     pwd
-    rm *
+    rm tmp*
     cat $INPUT | spltmarc -s 1 -f $PREFIX.
     for file in *
     do

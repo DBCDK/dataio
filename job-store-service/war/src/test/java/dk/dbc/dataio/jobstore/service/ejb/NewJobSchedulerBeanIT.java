@@ -1,15 +1,12 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.*;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntityIT;
-import static java.awt.PageAttributes.MediaType.C1;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -23,6 +20,25 @@ import java.util.Set;
 
 /**
  * Created by ja7 on 11-04-16.
+ *
+ * Dependency Tracker for chunks
+ *
+ * En chunk få gennem følgende trin.
+     1 ReadyToProcess ( marker chunk er petitioneret og analyseret
+            -> Async SubmitIfPosibleForProcessing( sink, chunkDescription )
+     2. QueuedToProcess ( markere den er send til Processing JMS kø )
+           ->  AddChunkProcessed(... )
+                     ASync SubmitIfPosibleForProcessing( sink, null )
+                     ASync SubmitIfPoribleForDelevering( sink, shunk )
+     3a. ReadyDelevering  ( marker Chunk er klar til Sink )
+     3b. Blocked  ( Chunk Venter på Chunk bliver klar fra sink )
+     4. QueuedToSink ( marker chunk er send til Sink )
+            -> AddChunkDelvering( ... )
+                   removes Waits for from All that waits for this chunk.
+                   Change state for chunks with no waits for
+
+ *
+ *
  */
 public class NewJobSchedulerBeanIT {
     private EntityManager em;

@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import org.eclipse.persistence.annotations.Mutable;
+
 import javax.persistence.*;
 import java.util.HashSet;
 import java.util.List;
@@ -83,6 +85,7 @@ public class DependencyTrackingEntity {
     private ChunkProcessStatus status = ChunkProcessStatus.READY_TO_PROCESS;
 
     @Column(columnDefinition = "jsonb" )
+    @Mutable
     @Convert(converter = KeySetJSONBConverter.class)
     private Set<Key> waitingOn;
 

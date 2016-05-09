@@ -28,6 +28,7 @@ import org.postgresql.util.PGobject;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 import java.sql.SQLException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @Converter
@@ -50,6 +51,7 @@ public class KeySetJSONBConverter implements AttributeConverter<Set<DependencyTr
     @Override
     public Set<DependencyTrackingEntity.Key> convertToEntityAttribute(PGobject pgObject) throws IllegalStateException {
         try {
+            if (pgObject == null) return new LinkedHashSet<>();
             return ConverterJSONBContext.getInstance().unmarshall(pgObject.getValue(), JSONSetKeyType);
         } catch (JSONBException e) {
             throw new IllegalStateException(e);

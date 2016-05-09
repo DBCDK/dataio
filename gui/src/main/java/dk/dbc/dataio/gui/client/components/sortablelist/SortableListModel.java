@@ -134,10 +134,7 @@ public class SortableListModel {
      * @param key  The key for the list item
      */
     void add(String text, String key) {
-        DraggableWidget<Label> draggableLabel = getLabelDraggableWidget(text);
-        list.add(draggableLabel);
-        setSelected(draggableLabel, false);
-        modelWidgets.add(new SortableWidget(key, text, false, draggableLabel));
+        addItem(text, key);
         sortIfNeeded();
     }
 
@@ -151,8 +148,9 @@ public class SortableListModel {
     void put(Map<String, String> items, boolean fireEvent) {
         clear();
         for (Map.Entry<String, String> item : items.entrySet()) {
-            add(item.getValue(), item.getKey());
+            addItem(item.getValue(), item.getKey());
         }
+        sortIfNeeded();
         if (fireEvent) {
             triggerValueChangeEvent();
         }
@@ -257,6 +255,20 @@ public class SortableListModel {
     /*
      * Private methods
      */
+
+    /**
+     * Adds one item to the bottom of the list
+     * It does not trigger a ValueChangedEvent
+     *
+     * @param text The text as it is displayed in the list
+     * @param key  The key for the list item
+     */
+    private void addItem(String text, String key) {
+        DraggableWidget<Label> draggableLabel = getLabelDraggableWidget(text);
+        list.add(draggableLabel);
+        setSelected(draggableLabel, false);
+        modelWidgets.add(new SortableWidget(key, text, false, draggableLabel));
+    }
 
     /**
      * This method constructs a Draggable Label Widget from a text

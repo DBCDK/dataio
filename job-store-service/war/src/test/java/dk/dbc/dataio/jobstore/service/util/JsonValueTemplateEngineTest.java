@@ -24,6 +24,9 @@ package dk.dbc.dataio.jobstore.service.util;
 import dk.dbc.dataio.commons.types.Constants;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -34,6 +37,8 @@ public class JsonValueTemplateEngineTest {
     final String expectedEmptyScalarOutput = "key=";
     final String expectedScalarOutput = "key=text";
     final String expectedArrayOutput = "key=text1\ntext2";
+    final String expectedOverwriteOutput = "key=overwriteText";
+    final Map<String, String> overwrites = new HashMap<>();
 
     @Test
     public void apply_templateArgIsNull_throws() {
@@ -110,11 +115,29 @@ public class JsonValueTemplateEngineTest {
     }
 
     @Test
+    public void apply_templateWithPropertyOverwritesValueAtZeroDepth() {
+        final String path = "field";
+        final String json = "{\"field\": \"text\"}";
+        overwrites.put("field", "overwriteText");
+        final String output = templateEngine.apply(String.format(template, path), json, overwrites);
+        assertThat(output, is(expectedOverwriteOutput));
+    }
+
+    @Test
     public void apply_templateWithPropertySelectingValueAtDepth() {
         final String path = "super.sub.field";
         final String json = "{\"super\": {\"sub\": {\"field\": \"text\"}}}";
         final String output = templateEngine.apply(String.format(template, path), json);
         assertThat(output, is(expectedScalarOutput));
+    }
+
+    @Test
+    public void apply_templateWithPropertyOverwritesValueAtDepth() {
+        final String path = "super.sub.field";
+        final String json = "{\"super\": {\"sub\": {\"field\": \"text\"}}}";
+        overwrites.put("super.sub.field", "overwriteText");
+        final String output = templateEngine.apply(String.format(template, path), json, overwrites);
+        assertThat(output, is(expectedOverwriteOutput));
     }
 
     @Test

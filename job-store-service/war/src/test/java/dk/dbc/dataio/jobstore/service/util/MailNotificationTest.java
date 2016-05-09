@@ -69,6 +69,7 @@ public class MailNotificationTest {
     private static final String JOB_COMPLETED_BODY = "/notifications/job_completed.body";
     private static final String JOB_COMPLETED_WITH_FAILURES_BODY = "/notifications/job_completed_with_failures.body";
     private static final String JOB_COMPLETED_WITH_FAILURES_APPENDED_BODY = "/notifications/job_completed_with_failures_appended.body";
+    private static final String JOB_COMPLETED_WITH_FAILURES_APPENDED_AND_ID_OVERWRITE_BODY = "/notifications/job_completed_with_failures_appended_and_id_overwrite.body";
     private static final String INVALID_TRANSFILE_BODY = "/notifications/invalid_transfile.body";
     private static final String JOB_CREATED_SUBJECT = "DANBIB:postmester";
     private static final String JOB_COMPLETED_SUBJECT = "DANBIB:baseindlaeg";
@@ -84,7 +85,8 @@ public class MailNotificationTest {
     @Test
     public void send_notificationWithNullDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INVALID_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE, getJobEntity());
+
         notification.setDestination(null);
         notification.setContext("{}");
 
@@ -98,7 +100,7 @@ public class MailNotificationTest {
     @Test
     public void send_notificationWithEmptyDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INVALID_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE, getJobEntity());
         notification.setDestination(" ");
         notification.setContext("{}");
 
@@ -112,7 +114,7 @@ public class MailNotificationTest {
     @Test
     public void send_notificationWithMissingDestination_usesDestinationFallback() throws JobStoreException, AddressException {
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INVALID_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE, getJobEntity());
         notification.setDestination(Constants.MISSING_FIELD_VALUE);
         notification.setContext("{}");
 
@@ -213,7 +215,7 @@ public class MailNotificationTest {
         final JSONBContext jsonbContext = new JSONBContext();
         final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("file.trans", "content", "Trans fil mangler slut markering");
         final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INVALID_TRANSFILE);
+                JobNotification.Type.INVALID_TRANSFILE, getJobEntity());
         notification.setDestination(destination);
         notification.setContext(jsonbContext.marshall(context));
 
@@ -307,6 +309,24 @@ public class MailNotificationTest {
         final Message message = inbox.get(0);
         assertThat("Notification subject", message.getSubject(), is(JOB_COMPLETED_SUBJECT));
         assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_APPENDED_BODY)));
+    }
+
+    @Test
+    public void send_appliesJobCompletedWithFailuresAppendedTemplateAndJobIdOverwrite() throws JobStoreException, MessagingException, IOException {
+        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
+                JobNotification.Type.JOB_COMPLETED, getJobEntity(123456));
+
+        updateStateForJobCompletedWithFailures(notification.getJob().getState());
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.append(bytes);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+        final Message message = inbox.get(0);
+        assertThat("Notification subject", message.getSubject(), is(JOB_COMPLETED_SUBJECT));
+        assertThat("Notification content", message.getContent(), is(getResourceContent(JOB_COMPLETED_WITH_FAILURES_APPENDED_AND_ID_OVERWRITE_BODY)));
     }
 
     @Test
@@ -408,11 +428,16 @@ public class MailNotificationTest {
     }
 
     private JobEntity getJobEntity() {
+        return getJobEntity(0);
+    }
+
+    private JobEntity getJobEntity(int previousJobId) {
         final JobSpecification.Ancestry ancestry = new JobSpecificationBuilder.AncestryBuilder()
                 .setTransfile("file.trans")
                 .setDatafile("file.dat")
                 .setBatchId("batch001")
                 .setDetails("details".getBytes())
+                .setPreviousJobId(previousJobId)
                 .build();
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                 .setSubmitterId(424242)

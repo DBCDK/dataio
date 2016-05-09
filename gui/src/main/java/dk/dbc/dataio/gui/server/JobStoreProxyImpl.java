@@ -278,20 +278,6 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         return jobNotifications;
     }
 
-
-    @Override
-    public JobModel addJob(JobModel jobModel) throws NullPointerException, ProxyException {
-        final String callerMethodName = "addJob";
-        JobInfoSnapshot jobInfoSnapshot = null;
-        log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", jobModel.getJobId());
-        try {
-            jobInfoSnapshot = jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel));
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-        }
-        return JobModelMapper.toModel(jobInfoSnapshot);
-    }
-
     @Override
     public JobModel reRunJob(JobModel jobModel) throws NullPointerException, ProxyException {
         final String callerMethodName = "reRunJob";

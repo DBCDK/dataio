@@ -1,0 +1,23 @@
+**************************
+Besked fra Baseindlæggeren
+**************************
+
+Bibliotek               :     424242
+Trans fil               :     file.trans
+Batchnummer             :     batch001
+Filnavn                 :     file.dat
+Initialer               :     TEST
+Job                     :     0 (genkørsel af job 123456)
+Antal poster            :     100
+  heraf ok              :     94
+  heraf not ok          :     6
+Besked                  :     Fejl i en eller flere poster
+Dato                    :     
+
+
+
+Følgende post/poster er blevet afvist (se også et eventuelt attachment med strukturfejl):
+
+
+
+Appended data

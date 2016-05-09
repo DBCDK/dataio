@@ -87,11 +87,6 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
-    public JobModel addJob(JobModel jobModel) throws ProxyException {
-        return jobStoreProxy.addJob(jobModel);
-    }
-
-    @Override
     public JobModel reRunJob(JobModel jobModel) throws ProxyException {
         return jobStoreProxy.reRunJob(jobModel);
     }

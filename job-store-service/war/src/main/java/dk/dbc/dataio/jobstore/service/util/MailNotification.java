@@ -45,6 +45,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
@@ -66,11 +68,17 @@ public class MailNotification {
     private final Session mailSession;
     private final NotificationEntity notification;
     private final StringBuilder builder;
+    private final JobSpecification.Ancestry ancestry;
+    private final Map<String, String> overwrites;
+
     private Attachment attachment;
+
 
     public MailNotification(Session mailSession, NotificationEntity notification) throws JobStoreException {
         this.mailSession = mailSession;
         this.notification = notification;
+        this.ancestry = notification.getJob().getSpecification().getAncestry();
+        this.overwrites = new HashMap<>();
         if (isUndefined(notification.getContent())) {
             format();
         }
@@ -152,8 +160,12 @@ public class MailNotification {
             switch (notification.getType()) {
                 case JOB_CREATED:
                 case JOB_COMPLETED:
+                    if(ancestry != null && ancestry.getPreviousJobId() > 0) {
+                        setJobIdOverwrite();
+                    }
                     notification.setContent(templateEngine.apply(getNotificationTemplate(),
-                            jsonbContext.marshall(toJobInfoSnapshot(notification.getJob()))));
+                            jsonbContext.marshall(toJobInfoSnapshot(notification.getJob())), overwrites));
+
                     break;
                 default:
                     notification.setContent(templateEngine.apply(getNotificationTemplate(),
@@ -162,6 +174,11 @@ public class MailNotification {
         } catch (JSONBException e) {
             throw new JobStoreException("Unable to marshall linked job", e);
         }
+    }
+
+    private void setJobIdOverwrite() {
+        final String overwrite = String.format("%d (genkørsel af job %d)", notification.getJobId(), ancestry.getPreviousJobId());
+        overwrites.put("jobId", overwrite);
     }
 
     private String getNotificationTemplate() {

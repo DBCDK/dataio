@@ -123,14 +123,18 @@ public class UshOaiHarvesterProperties {
 
         UshOaiHarvesterProperties that = (UshOaiHarvesterProperties) o;
 
-        return jobId == that.jobId
-                && (name != null ? name.equals(that.name) : that.name == null
-                && (scheduleString != null ? scheduleString.equals(that.scheduleString) : that.scheduleString == null
-                && (lastUpdated != null ? lastUpdated.equals(that.lastUpdated) : that.lastUpdated == null
-                && (lastHarvested != null ? lastHarvested.equals(that.lastHarvested) : that.lastHarvested == null
-                && (reportedStatus != null ? reportedStatus.equals(that.reportedStatus) : that.reportedStatus == null
-                && (latestStatus != null ? latestStatus.equals(that.latestStatus) : that.latestStatus == null
-                && (error != null ? error.equals(that.error) : that.error == null)))))));
+        if (jobId != that.jobId) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (scheduleString != null ? !scheduleString.equals(that.scheduleString) : that.scheduleString != null)
+            return false;
+        if (lastUpdated != null ? !lastUpdated.equals(that.lastUpdated) : that.lastUpdated != null) return false;
+        if (lastHarvested != null ? !lastHarvested.equals(that.lastHarvested) : that.lastHarvested != null)
+            return false;
+        if (reportedStatus != null ? !reportedStatus.equals(that.reportedStatus) : that.reportedStatus != null)
+            return false;
+        if (latestStatus != null ? !latestStatus.equals(that.latestStatus) : that.latestStatus != null) return false;
+        return error != null ? error.equals(that.error) : that.error == null;
+
     }
 
     @Override

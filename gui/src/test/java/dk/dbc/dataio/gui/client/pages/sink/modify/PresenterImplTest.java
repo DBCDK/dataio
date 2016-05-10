@@ -313,7 +313,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ID_ONLY);
 
         // Subject Under Test
-        presenterImpl.sequenceAnalysisOptionIdOnlyButtonPressed();
+        presenterImpl.sequenceAnalysisSelectionChanged("ID_ONLY");
 
         // Verifications
         assertThat(presenterImpl.model.getSequenceAnalysisOption(), is(SinkContent.SequenceAnalysisOption.ID_ONLY));
@@ -327,7 +327,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ALL);
 
         // Subject Under Test
-        presenterImpl.sequenceAnalysisOptionAllButtonPressed();
+        presenterImpl.sequenceAnalysisSelectionChanged("ALL");
 
         // Verifications
         assertThat(presenterImpl.model.getSequenceAnalysisOption(), is(SinkContent.SequenceAnalysisOption.ALL));

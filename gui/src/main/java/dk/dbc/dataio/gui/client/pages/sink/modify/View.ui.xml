@@ -23,36 +23,26 @@
              xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
 
     <ui:with type="dk.dbc.dataio.gui.client.pages.sink.modify.Texts" field="txt"/>
-    <ui:style>
-        .sequenceAnalysisLabel {
-            margin-right: 0.5em;
-        }
-        .sequenceAnalysisPanel {
-            margin-top: 0.8em;
-            margin-bottom: 0.8em;
-        }
-    </ui:style>
+
     <g:HTMLPanel>
 
-        <li><dio:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
-            <dio:item value="ES"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></dio:item>
-            <dio:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></dio:item>
-            <dio:item value="DUMMY"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></dio:item>
-            <dio:item value="FBS"><g:Label><ui:text from="{txt.selection_FBSWebserviceSink}"/></g:Label></dio:item>
-        </dio:PromptedList></li>
+        <li>
+            <dio:PromptedList ui:field="sinkTypeSelection" visibleItems="1" guiId="sinktypeselection" prompt="{txt.label_SinkType}" multiSelect="false" enabled="true">
+                <dio:item value="ES"><g:Label><ui:text from="{txt.selection_ESSink}"/></g:Label></dio:item>
+                <dio:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></dio:item>
+                <dio:item value="DUMMY"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></dio:item>
+                <dio:item value="FBS"><g:Label><ui:text from="{txt.selection_FBSWebserviceSink}"/></g:Label></dio:item>
+            </dio:PromptedList>
+        </li>
         <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}" maxLength="160" toolTip=""/></li>
         <li><dio:PromptedTextArea ui:field="description" guiId="sinkdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
-        <g:HorizontalPanel addStyleNames="{style.sequenceAnalysisPanel}">
-            <g:cell horizontalAlignment="left">
-                <g:Label ui:field="SequenceAnalysisLabel" addStyleNames="{style.sequenceAnalysisLabel}"><ui:text from="{txt.label_SequenceAnalysis}"/></g:Label>
-            </g:cell>
-            <g:VerticalPanel>
-                <g:RadioButton ui:field="sequenceAnalysisOptionAllButton" name="sequenceAnalysisOptionButton" text="{txt.button_SequenceAnalysisOptionAll}" />
-                <g:RadioButton ui:field="sequenceAnalysisOptionIdOnlyButton" name="sequenceAnalysisOptionButton" text="{txt.button_SequenceAnalysisOptionIdOnly}" />
-            </g:VerticalPanel>
-        </g:HorizontalPanel>
-
+        <li>
+            <dio:PromptedRadioButtons ui:field="sequenceAnalysisSelection" guiId="sequenceAnalysisSelection" prompt="{txt.label_SequenceAnalysis}">
+                <dio:button value="ALL"><g:Label><ui:text from="{txt.button_SequenceAnalysisOptionAll}"/></g:Label></dio:button>
+                <dio:button value="ID_ONLY"><g:Label><ui:text from="{txt.button_SequenceAnalysisOptionIdOnly}"/></g:Label></dio:button>
+            </dio:PromptedRadioButtons>
+        </li>
         <g:HTMLPanel ui:field="updateSinkSection" visible="false">
             <li><dio:PromptedTextBox ui:field="url" guiId="sinkurl" prompt="{txt.label_SinkUrl}" maxLength="160" toolTip=""/></li>
             <li><dio:PromptedTextBox ui:field="userid" guiId="sinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>

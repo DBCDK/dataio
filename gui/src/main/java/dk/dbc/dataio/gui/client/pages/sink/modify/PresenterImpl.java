@@ -130,19 +130,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * A signal to the presenter, saying that the sequence analysis chosen is ALL
+     * A signal to the presenter, saying that the sequence analysis selection has changed
+     * @param value Holds the value attribute of the selected Radio Button
      */
     @Override
-    public void sequenceAnalysisOptionAllButtonPressed() {
-        model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ALL);
-    }
-
-    /**
-     * A signal to the presenter, saying that the sequence analysis chosen is ID_ONLY
-     */
-    @Override
-    public void sequenceAnalysisOptionIdOnlyButtonPressed() {
-        model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ID_ONLY);
+    public void sequenceAnalysisSelectionChanged(String value) {
+        model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.valueOf(value));
     }
 
     /**
@@ -248,8 +241,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
         view.queueProviders.setEnabled(true);
         view.status.setText("");
-        view.sequenceAnalysisOptionAllButton.setValue(model.getSequenceAnalysisOption() == SinkContent.SequenceAnalysisOption.ALL);
-        view.sequenceAnalysisOptionIdOnlyButton.setValue(model.getSequenceAnalysisOption() == SinkContent.SequenceAnalysisOption.ID_ONLY);
+        view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
         view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 

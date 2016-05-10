@@ -31,12 +31,12 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
-import com.google.gwt.user.client.ui.RadioButton;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PopupTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
+import dk.dbc.dataio.gui.client.components.PromptedRadioButtons;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -65,8 +65,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupTextBox popupTextBox;
-    @UiField RadioButton sequenceAnalysisOptionAllButton;
-    @UiField RadioButton sequenceAnalysisOptionIdOnlyButton;
+    @UiField PromptedRadioButtons sequenceAnalysisSelection;
 
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ValueChangeEvent<String> event) {
@@ -144,14 +143,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         }
     }
 
-    @UiHandler("sequenceAnalysisOptionAllButton")
-    void sequenceAnalysisAllButtonPressed(ClickEvent event) {
-        presenter.sequenceAnalysisOptionAllButtonPressed();
-    }
-
-    @UiHandler("sequenceAnalysisOptionIdOnlyButton")
-    void setSequenceAnalysisIdOnlyButtonPressed(ClickEvent event) {
-        presenter.sequenceAnalysisOptionIdOnlyButtonPressed();
+    @UiHandler("sequenceAnalysisSelection")
+    void sequenceAnalysisSelectionChanged(ValueChangeEvent<String> event) {
+        presenter.sequenceAnalysisSelectionChanged(event.getValue());
     }
 
     @UiHandler("popupTextBox")

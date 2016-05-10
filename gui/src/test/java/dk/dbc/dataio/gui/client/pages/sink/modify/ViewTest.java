@@ -75,8 +75,8 @@ public class ViewTest {
         verifyNoMoreInteractions(view.userid);
         verifyNoMoreInteractions(view.password);
         verifyNoMoreInteractions(view.queueProviders);
-        verifyNoMoreInteractions(view.sequenceAnalysisOptionAllButton);
-        verifyNoMoreInteractions(view.sequenceAnalysisOptionIdOnlyButton);
+//        verifyNoMoreInteractions(view.sequenceAnalysisOptionAllButton);
+//        verifyNoMoreInteractions(view.sequenceAnalysisOptionIdOnlyButton);
         verifyNoMoreInteractions(view.deleteButton);
         verifyNoMoreInteractions(view.status);
         verifyNoMoreInteractions(view.popupTextBox);
@@ -288,28 +288,30 @@ public class ViewTest {
     }
 
     @Test
-    public void sequenceAnalysisOptionAllButtonPressed_called_presenterNotified() {
+    public void sequenceAnalysisSelectionChanged_all_presenterNotified() {
         // Test preparation
         setupView();
+        when(mockedValueChangeEvent.getValue()).thenReturn("ALL");
 
         // Subject Under Test
-        view.sequenceAnalysisAllButtonPressed(mockedClickEvent);
+        view.sequenceAnalysisSelectionChanged(mockedValueChangeEvent);
 
         // Test Verification
-        verify(mockedPresenter).sequenceAnalysisOptionAllButtonPressed();
+        verify(mockedPresenter).sequenceAnalysisSelectionChanged("ALL");
         verifyNoMoreInteractions(mockedPresenter);
     }
 
     @Test
-    public void sequenceAnalysisOptionIdOnlyButtonPressed_called_presenterNotified() {
+    public void sequenceAnalysisSelectionChanged_idOnly_presenterNotified() {
         // Test preparation
         setupView();
+        when(mockedValueChangeEvent.getValue()).thenReturn("ID_ONLY");
 
         // Subject Under Test
-        view.setSequenceAnalysisIdOnlyButtonPressed(mockedClickEvent);
+        view.sequenceAnalysisSelectionChanged(mockedValueChangeEvent);
 
         // Test Verification
-        verify(mockedPresenter).sequenceAnalysisOptionIdOnlyButtonPressed();
+        verify(mockedPresenter).sequenceAnalysisSelectionChanged("ID_ONLY");
         verifyNoMoreInteractions(mockedPresenter);
     }
 

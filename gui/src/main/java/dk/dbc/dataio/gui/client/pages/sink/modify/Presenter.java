@@ -38,6 +38,5 @@ public interface Presenter extends GenericPresenter {
     void saveButtonPressed();
     void deleteButtonPressed();
     void queueProvidersAddButtonPressed();
-    void sequenceAnalysisOptionAllButtonPressed();
-    void sequenceAnalysisOptionIdOnlyButtonPressed();
+    void sequenceAnalysisSelectionChanged(String value);
 }

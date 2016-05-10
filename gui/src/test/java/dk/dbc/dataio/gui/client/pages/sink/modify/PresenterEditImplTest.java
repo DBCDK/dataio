@@ -147,8 +147,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         // Assert that the view is displaying the correct values
         verify(editView.name).setText(sinkModel.getSinkName());  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
-        verify(editView.sequenceAnalysisOptionAllButton).setValue(false);
-        verify(editView.sequenceAnalysisOptionIdOnlyButton).setValue(true);
+        verify(editView.sequenceAnalysisSelection).setValue("ID_ONLY");
     }
 
     @Test

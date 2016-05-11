@@ -60,7 +60,7 @@
                   <Build-Tag>${BUILD_TAG}</Build-Tag>
                   <Build-Number>${BUILD_NUMBER}</Build-Number>
                   <Build-Id>${BUILD_ID}</Build-Id>
-                  <pom-version>${pom.version}</pom-version>
+                  <pom-version>${project.version}</pom-version>
                 </manifestEntries>
               </archive>
             </configuration>

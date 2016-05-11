@@ -25,11 +25,7 @@ import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinderContent;
-import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.types.SubmitterContent;
+import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.SubmitterContentJsonBuilder;
@@ -38,22 +34,6 @@ import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SubmitterContentBuilder;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.createSubmitter;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
@@ -61,10 +41,18 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import org.junit.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * Integration tests for the submitters collection part of the flow store service
@@ -358,7 +346,10 @@ public class SubmittersIT {
         try{
             // Given...
             final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-            flowStoreServiceConnector.getSubmitter(432L);
+            // Stupid hack to avoid JPA cache problem when testing
+            // @Before clears database outside but JPA don't know
+            Date d=new Date();
+            flowStoreServiceConnector.getSubmitter(14732L+d.getTime());
 
             fail("Invalid request to getSubmitter() was not detected.");
             // Then...
@@ -484,7 +475,10 @@ public class SubmittersIT {
         try{
             // When...
             final SubmitterContent newSubmitterContent = new SubmitterContentBuilder().build();
-            flowStoreServiceConnector.updateSubmitter(newSubmitterContent, 1234, 1L);
+            // Stupid hack to avoid JPA cache problem when testing
+            // @Before clears database outside but JPA don't know
+            Date d=new Date();
+            flowStoreServiceConnector.updateSubmitter(newSubmitterContent, 1234+d.getTime(), 1L);
 
             fail("Wrong submitter Id was not detected as input to updateSubmitter().");
             // Then...

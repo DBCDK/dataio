@@ -120,6 +120,18 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up USH Solr endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR}' system property.
+     * @return USH Solr URL as String
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getUshSolrEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_USH_SOLR);
+    }
+
+    /**
      * Builds service method response
      *
      * @param status HTTP status code of response

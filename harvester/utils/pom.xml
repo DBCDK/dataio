@@ -37,6 +37,7 @@
   <modules>
     <module>datafile-verifier</module>
     <module>rawrepo-connector</module>
+    <module>ush-solr-connector</module>
   </modules>
 
 </project>

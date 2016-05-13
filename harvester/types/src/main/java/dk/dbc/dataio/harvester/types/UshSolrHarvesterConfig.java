@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.types.Constants;
@@ -108,6 +109,7 @@ public class UshSolrHarvesterConfig implements Serializable {
         private String format;
         private String destination;
         private int ushOaiHarvesterJobId;
+        private UshOaiHarvesterProperties ushHarvesterProperties;
         private Date timeOfLastHarvest;
 
         public String getName() {
@@ -166,6 +168,16 @@ public class UshSolrHarvesterConfig implements Serializable {
 
         public Content withUshOaiHarvesterJobId(int jobId) {
             this.ushOaiHarvesterJobId = jobId;
+            return this;
+        }
+
+        @JsonIgnore
+        public UshOaiHarvesterProperties getUshHarvesterProperties() {
+            return ushHarvesterProperties;
+        }
+
+        public Content withUshHarvesterProperties(UshOaiHarvesterProperties ushHarvesterProperties) {
+            this.ushHarvesterProperties = ushHarvesterProperties;
             return this;
         }
 

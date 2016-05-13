@@ -36,6 +36,8 @@ public class UshSolrHarvesterConfigTest {
     private static final long VERSION = 1L;
     private static final UshSolrHarvesterConfig.Content CONTENT = new UshSolrHarvesterConfig.Content();
 
+    private final JSONBContext jsonbContext = new JSONBContext();
+
     @Test(expected = NullPointerException.class)
     public void constructor_contentArgIsNull_throws() {
         new UshSolrHarvesterConfig(ID, VERSION, null);
@@ -70,13 +72,18 @@ public class UshSolrHarvesterConfigTest {
 
     @Test
     public void canBeMarshalledAndUnmarshalled() throws JSONBException {
-        final JSONBContext jsonbContext = new JSONBContext();
         final UshSolrHarvesterConfig config = new UshSolrHarvesterConfig(1, 1, new UshSolrHarvesterConfig.Content()
                 .withName("testConfig"));
 
         final String marshalled = jsonbContext.marshall(config);
         final UshSolrHarvesterConfig unmarshalled = jsonbContext.unmarshall(marshalled, UshSolrHarvesterConfig.class);
         assertThat(unmarshalled, is(config));
+    }
+
+    @Test
+    public void ushHarvesterPropertiesFieldIsIgnoredWhenUnmarshalling() throws JSONBException {
+        final UshSolrHarvesterConfig unmarshalled = jsonbContext.unmarshall("{\"id\":1,\"version\":1,\"content\":{\"name\":\"testConfig\",\"ushOaiHarvesterJobId\":0,\"ushHarvesterProperties\":{\"jobId\":0}}}", UshSolrHarvesterConfig.class);
+        assertThat(unmarshalled.getContent().getUshHarvesterProperties(), is(nullValue()));
     }
 
 }

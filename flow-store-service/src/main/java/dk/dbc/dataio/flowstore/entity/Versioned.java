@@ -22,14 +22,7 @@ package dk.dbc.dataio.flowstore.entity;
 
 import com.fasterxml.jackson.annotation.JsonRawValue;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Lob;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.Version;
+import javax.persistence.*;
 
 /**
  * Base class for flow store entities where id is auto
@@ -54,6 +47,8 @@ public class Versioned {
     public Long getId() {
         return id;
     }
+
+    public void setId(Long id) { this.id = id; }
 
     public Long getVersion() {
         return version;

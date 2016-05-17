@@ -46,6 +46,9 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
     public static class Content {
         private static final long serialVersionUID = 2870875843923021216L;
 
+        /** ID of harvest operation */
+        private String id;
+
         /** Flag Indicating if the Configuation is enabled */
         private boolean isEnabled = false;
 
@@ -77,6 +80,26 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         private int batchSize = 10000;
 
         private OpenAgencyTarget openAgencyTarget;
+
+        public String getId() {
+            return id;
+        }
+
+        public Content withId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public boolean getIsEnabled() {
+            return isEnabled;
+        }
+
+
+
+        public Content withEnabled(boolean enabled) {
+            isEnabled = enabled;
+            return this;
+        }
 
         public Content withResource(String resource) {
             this.resource = resource;
@@ -164,11 +187,12 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (!(o instanceof Content)) return false;
             Content content = (Content) o;
             return isEnabled == content.isEnabled &&
                     includeRelations == content.includeRelations &&
                     batchSize == content.batchSize &&
+                    Objects.equals(id, content.id) &&
                     Objects.equals(resource, content.resource) &&
                     Objects.equals(consumerId, content.consumerId) &&
                     Objects.equals(destination, content.destination) &&
@@ -180,7 +204,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         @Override
         public int hashCode() {
-            return Objects.hash(isEnabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
+            return Objects.hash(id, isEnabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
         }
 
         @Override

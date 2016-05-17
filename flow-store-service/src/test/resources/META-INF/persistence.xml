@@ -23,8 +23,7 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
-    <persistence-unit name="flowStorePU" transaction-type="JTA">
-        <jta-data-source>jdbc/flowStoreDb</jta-data-source>
+    <persistence-unit name="flowStoreIT" transaction-type="RESOURCE_LOCAL">
         <class>dk.dbc.dataio.flowstore.entity.Flow</class>
         <class>dk.dbc.dataio.flowstore.entity.FlowBinder</class>
         <class>dk.dbc.dataio.flowstore.entity.FlowBinderSearchIndexEntry</class>
@@ -38,8 +37,9 @@
         <class>dk.dbc.dataio.flowstore.entity.Versioned</class>
         <class>dk.dbc.dataio.flowstore.entity.VersionedEntity</class>
         <properties>
+            <property name="javax.persistence.schema-generation.database.action" value="none"/>
             <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
-            <property name="eclipselink.logging.level" value="OFF"/>
+            <property name="eclipselink.logging.level" value="FINE"/>
         </properties>
     </persistence-unit>
 </persistence>

@@ -94,4 +94,14 @@ public abstract class HarvesterConfig<T> implements Serializable {
         result = 31 * result + (content != null ? content.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("HarvesterConfig{");
+        sb.append("id=").append(id);
+        sb.append(", version=").append(version);
+        sb.append(", content=").append(content);
+        sb.append('}');
+        return sb.toString();
+    }
 }

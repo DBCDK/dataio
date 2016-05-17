@@ -14,6 +14,7 @@ import javax.ejb.MessageDriven;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ja7 on 06-05-16.
@@ -35,8 +36,10 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
          return chunksRetrived;
      }
 
-     static void waitForProcessingOfChunks(int numberOfChunksToWaitFor) throws InterruptedException {
-         processBlocker.acquire( numberOfChunksToWaitFor );
+     static void waitForDeliveringOfChunks(int numberOfChunksToWaitFor) throws Exception {
+         if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
+             throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds");
+         }
      }
 
     @Override
@@ -48,5 +51,12 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
             processBlocker.release();
         }
 
+    }
+
+    public static void reset() {
+        synchronized ( chunksRetrived ) {
+            chunksRetrived.clear();
+            processBlocker.drainPermits();
+        }
     }
 }

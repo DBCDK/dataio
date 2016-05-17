@@ -19,8 +19,8 @@ public class ChunkProcessStatusConverter implements AttributeConverter<ChunkProc
             case READY_TO_PROCESS:     return 1;
             case QUEUED_TO_PROCESS:    return 2;
             case BLOCKED:              return 3;
-            case READY_DELEVERING:     return 4;
-            case QUEUED_TO_DELEVERING: return 5;
+            case READY_TO_DELIVER:     return 4;
+            case QUEUED_TO_DELIVERY: return 5;
             default:
         }
         return null;
@@ -32,8 +32,8 @@ public class ChunkProcessStatusConverter implements AttributeConverter<ChunkProc
             case 1: return READY_TO_PROCESS;
             case 2: return QUEUED_TO_PROCESS;
             case 3: return BLOCKED;
-            case 4: return READY_DELEVERING;
-            case 5: return QUEUED_TO_DELEVERING;
+            case 4: return READY_TO_DELIVER;
+            case 5: return QUEUED_TO_DELIVERY;
             default:
         }
         return null;

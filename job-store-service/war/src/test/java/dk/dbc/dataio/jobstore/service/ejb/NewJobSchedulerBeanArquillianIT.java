@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -10,11 +11,7 @@ import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
-import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
-import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
-import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
@@ -32,8 +29,10 @@ import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.After;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +60,7 @@ import java.util.Set;
  *
  */
 @RunWith(Arquillian.class)
+@FixMethodOrder(MethodSorters.JVM)
 public class NewJobSchedulerBeanArquillianIT {
     private static final Logger LOGGER = LoggerFactory.getLogger(NewJobSchedulerBeanArquillianIT.class);
 
@@ -97,6 +97,12 @@ public class NewJobSchedulerBeanArquillianIT {
         flyway.migrate();
     }
 
+    @Before
+    public void clearTestConsumers() {
+        TestJobProcessorMessageConsumerBean.reset();
+        TestSinkMessageConsumerBean.reset();
+    }
+
 
     @After
     public void dbCleanUp() throws Exception {
@@ -123,7 +129,6 @@ public class NewJobSchedulerBeanArquillianIT {
                     .up() // update Properties */
                     .up(); // update PersistenceUnit
 
-            LOGGER.info("persistence.xml : {}", persistence.exportAsString());
             WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobscheduler-test.war")
                     .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
                             "dk/dbc/dataio/jobstore/service/cdi", "dk/dbc/dataio/jobstore/service/param",
@@ -140,8 +145,8 @@ public class NewJobSchedulerBeanArquillianIT {
                     ;
 
             // Add Maven Dependencyes  // .workOffline fejler med  mvnlocal ( .m2 i projectHome
-            //File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(false).loadPomFromFile("pom.xml")
-            File[] files = Maven.configureResolver().loadPomFromFile("pom.xml")
+            File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(false).loadPomFromFile("pom.xml")
+            //File[] files = Maven.configureResolver().loadPomFromFile("pom.xml")
                     .importRuntimeDependencies().resolve().withTransitivity().asFile();
             war.addAsLibraries(files);
 
@@ -175,14 +180,13 @@ public class NewJobSchedulerBeanArquillianIT {
     }
 
     @Test
-    public void scheduleChunkSimple() throws IOException, URISyntaxException, HeuristicRollbackException, HeuristicMixedException, NotSupportedException, RollbackException, SystemException, JobStoreException, InterruptedException, JSONBException {
+    public void scheduleChunkSimple() throws Exception {
         runSqlFromResource( "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+        dbSingleUpdate("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 1, 1, 4, '[{\"jobId\": 3, \"chunkId\": 0}]', null, '[\"K8\", \"KK2\", \"C4\"]')");
         // Given
         ChunkEntity chunkEntity= new ChunkEntity();
         chunkEntity.setKey( new ChunkEntity.Key(0,3));
         chunkEntity.setSequenceAnalysisData( new SequenceAnalysisData( makeSet("f1")));
-
-        newItemEntity( 3,0,0);
 
         // when
         newJobSchedulerBean.scheduleChunk( chunkEntity, new SinkBuilder().setId(3).build());
@@ -192,11 +196,7 @@ public class NewJobSchedulerBeanArquillianIT {
 
         assertThat( TestJobProcessorMessageConsumerBean.getChunksRetrived().size(),is(1));
 
-        JPATestUtils.clearEntityManagerCache( entityManager );
-        utx.begin();
-        entityManager.joinTransaction();
-        DependencyTrackingEntity dependencyTrackingEntity=entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3,0));
-        utx.commit();
+        DependencyTrackingEntity dependencyTrackingEntity = getDependencyTrackingEntity(3,0);
 
         assertThat( dependencyTrackingEntity, notNullValue());
         assertThat( dependencyTrackingEntity.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS));
@@ -208,25 +208,22 @@ public class NewJobSchedulerBeanArquillianIT {
                 .setChunkId(0).
                 appendItem( new ChunkItemBuilder().setData("ProcessdChunk").build() )
                 .build();
-
+        // When
         newJobSchedulerBean.chunkProcessingDone( chunk );
 
-        TestSinkMessageConsumerBean.waitForProcessingOfChunks(1);
 
-        JPATestUtils.clearEntityManagerCache( entityManager );
-        utx.begin();
-        entityManager.joinTransaction();
-        dependencyTrackingEntity=entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3,0));
-        utx.commit();
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
+        // Then
+
+        dependencyTrackingEntity = getDependencyTrackingEntity( 3, 0 );
 
         assertThat( dependencyTrackingEntity, notNullValue());
-        assertThat( dependencyTrackingEntity.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELEVERING));
+        assertThat( dependencyTrackingEntity.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY));
 
-        // Added Tests for Chunk Status.
-        // TODO add Chunk Delivering Done Function.
+        // whenn chunk returns from Delivering
+        newJobSchedulerBean.chunkDeliveringDone( chunk );
 
-        newJobSchedulerBean.chunkDeleveringDone( chunk );
-
+        // Then
         JPATestUtils.clearEntityManagerCache( entityManager );
         //Check no chunks is waiting for chunk(3,0)
 
@@ -234,31 +231,71 @@ public class NewJobSchedulerBeanArquillianIT {
         Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingon @> '["+ keyAsJson +"]'" , "JobIdChunkIdResult");
         assertThat(query.getResultList().size(), is(0));
 
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks( 1 );
+
         DependencyTrackingEntity dep=entityManager.find( DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3,0));
         assertThat(dep, is( nullValue()));
 
         // Test that chunk 3.1 is ready for sink.
         dep=entityManager.find( DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3,1));
-        assertThat(dep.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELEVERING));
-
-
-
+        assertThat(dep.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY));
 
     }
 
-    protected void newItemEntity(int jobId, int chunkId, int itemId) throws SystemException, NotSupportedException, HeuristicRollbackException, HeuristicMixedException, RollbackException {
-        final ItemEntity itemEntity = new ItemEntity();
-        itemEntity.setKey( new ItemEntity.Key(jobId, chunkId, (short) itemId) );
-        itemEntity.setState(new State());
-        itemEntity.setPartitioningOutcome( new ChunkItemBuilder().setData("chunkItem").build());
 
-        utx.begin();
-        entityManager.joinTransaction();
-        entityManager.persist( itemEntity );
-        utx.commit();
+    @Test
+    public void proccessingLimit() throws Exception {
+
+        runSqlFromResource( "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+
+        // when threre is only space for one chunk to sink
+        Sink sink1 = new SinkBuilder().setId(1).build();
+        for(int i = 1; i< NewJobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK; ++i ) {
+            NewJobSchedulerBean.incrementAndReturnCurrentQueuedToProcessing(sink1.getId() );
+        }
+
+        ChunkEntity chunkEntity0= new ChunkEntity();
+        chunkEntity0.setKey( new ChunkEntity.Key(0,3));
+        chunkEntity0.setSequenceAnalysisData( new SequenceAnalysisData( makeSet("f1")));
+
+        ChunkEntity chunkEntity1= new ChunkEntity();
+        chunkEntity1.setKey( new ChunkEntity.Key(1,3));
+        chunkEntity1.setSequenceAnalysisData( new SequenceAnalysisData( makeSet("f1")));
+
+        // When 2 chunks is scheduled
+        newJobSchedulerBean.scheduleChunk( chunkEntity0, sink1);
+        newJobSchedulerBean.scheduleChunk( chunkEntity1, sink1);
+
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+
+        // then Sceond chunk is blocked in ready_to_process
+        DependencyTrackingEntity dependencyTrackingEntity0 = getDependencyTrackingEntity(3,0);
+
+        assertThat( dependencyTrackingEntity0, notNullValue());
+        assertThat( dependencyTrackingEntity0.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS));
+
+        DependencyTrackingEntity dependencyTrackingEntity1 = getDependencyTrackingEntity(3,1);
+
+        assertThat( dependencyTrackingEntity1, notNullValue());
+        assertThat( dependencyTrackingEntity1.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS));
+
+        // when chunk 3.0 is done..
+        newJobSchedulerBean.chunkProcessingDone( new ChunkBuilder(PROCESSED)
+                .setJobId(3)
+                .setChunkId(0)
+                .appendItem( new ChunkItemBuilder().setData("ProcessdChunk").build() )
+                .build()
+        );
+
+        // then chunk 3,1 is sent to processing
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+
+        dependencyTrackingEntity1 = getDependencyTrackingEntity(3,1);
+
+        assertThat( dependencyTrackingEntity1, notNullValue());
+        assertThat( dependencyTrackingEntity1.getStatus(), is(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS));
+
     }
-
-
 
     Set<String> makeSet(String... s) {
         Set<String> res= new HashSet<>();
@@ -278,5 +315,22 @@ public class NewJobSchedulerBeanArquillianIT {
 
     }
 
+    private DependencyTrackingEntity getDependencyTrackingEntity(int jobId, int chunkId) throws NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
+        JPATestUtils.clearEntityManagerCache( entityManager );
+        utx.begin();
+        entityManager.joinTransaction();
+        DependencyTrackingEntity dependencyTrackingEntity=entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId ));
+        utx.commit();
+        return dependencyTrackingEntity;
+    }
+
+
+    private void dbSingleUpdate(String update) throws Exception {
+        utx.begin();
+        entityManager.joinTransaction();
+
+        entityManager.createNativeQuery(update).executeUpdate();
+        utx.commit();
+    }
 
 }

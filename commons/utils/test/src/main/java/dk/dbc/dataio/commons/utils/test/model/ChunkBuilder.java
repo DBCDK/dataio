@@ -55,7 +55,7 @@ public class ChunkBuilder {
     }
 
     public ChunkBuilder appendItem(ChunkItem item) {
-        item.setId( this.items.size() );
+        item.withId( this.items.size() );
         this.items.add( item );
         return this;
     }

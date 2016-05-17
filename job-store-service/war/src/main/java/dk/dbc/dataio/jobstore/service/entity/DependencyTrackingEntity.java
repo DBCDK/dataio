@@ -68,8 +68,8 @@ public class DependencyTrackingEntity {
         READY_TO_PROCESS,  // Chunk is Ready for Processing
         QUEUED_TO_PROCESS, // Chunk is Send to JobProcessor JMS queue
         BLOCKED, // Chunk waits for Other Chunk to return from the Sink
-        READY_DELEVERING, // Ready for Sending to Sink JMS queue
-        QUEUED_TO_DELEVERING // Chunk is send to to the Sink JMS queue
+        READY_TO_DELIVER, // Ready for Sending to Sink JMS queue
+        QUEUED_TO_DELIVERY // Chunk is send to to the Sink JMS queue
     }
 
 
@@ -201,7 +201,7 @@ public class DependencyTrackingEntity {
 
         @Override
         public String toString() {
-            return "DependenT..Key{" +
+            return "DependencyTrackingEntity.Key{" +
                     "jobId=" + jobId +
                     ", chunkId=" + chunkId +
                     '}';

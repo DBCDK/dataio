@@ -34,10 +34,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
-import javax.ejb.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Handles Chunk messages received from the job-store
@@ -51,17 +51,19 @@ import java.util.concurrent.Semaphore;
 public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestJobProcessorMessageConsumerBean.class);
 
-    static private List<Chunk> ChunksRetrived=new ArrayList<>();
+    static private List<Chunk> chunksRetrived =new ArrayList<>();
     static Semaphore processBlocker=new Semaphore(0);
 
     JSONBContext jsonbContext = new JSONBContext();
 
     public static List<Chunk> getChunksRetrived() {
-        return ChunksRetrived;
+        return chunksRetrived;
     }
 
-    static void waitForProcessingOfChunks(int numberOfChunksToWaitFor) throws InterruptedException {
-        processBlocker.acquire( numberOfChunksToWaitFor );
+    static void waitForProcessingOfChunks(int numberOfChunksToWaitFor) throws Exception {
+        if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
+            throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds");
+        }
     }
 
     /**
@@ -83,9 +85,16 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
     }
 
     private void process(Chunk chunk) {
-        synchronized ( ChunksRetrived ) {
-            ChunksRetrived.add( chunk);
+        synchronized (chunksRetrived) {
+            chunksRetrived.add( chunk);
             processBlocker.release();
+        }
+    }
+
+    public static void reset() {
+        synchronized (chunksRetrived) {
+            chunksRetrived.clear();
+            processBlocker.drainPermits();
         }
     }
 }

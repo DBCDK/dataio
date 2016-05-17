@@ -1,5 +1,6 @@
 delete from job;
 delete from sinkcache;
+delete from dependencytracking;
 
 insert into sinkcache (id, checksum, sink ) values ( 0 , '927d164ba5baedff9e54cdb9a81fc5ce', '{"id":4,"version":3,"content":{"name":"FBS","resource":"url/dataio/fbs/ws","sequenceAnalysisOption":"ALL"}}'::JSON );
 
@@ -21,9 +22,24 @@ DECLARE
 BEGIN
 WHILE _counter < 5
 LOOP
-   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,_counter,'','{}'::JSON,'{}'::JSON);
-   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (2,_counter,'','{}'::JSON,'{}'::JSON);
-   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (3,_counter,'','{}'::JSON,'{}'::JSON);
+   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
+   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (2,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
+   insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (3,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
+
+    insert into item ( jobid, chunkid, id, state, partitioningoutcome, processingoutcome ) values
+        ( 1, _counter ,0, '{}'::JSON,
+          '{"id": 0, "data": "cGFydGl0aW9uaW5nT3V0Y29tZQo=", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB,
+          '{"id": 0, "data": "cHJvY2Vzc2luZ091dGNvbWUK", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB);
+
+    insert into item ( jobid, chunkid, id, state, partitioningoutcome, processingoutcome ) values
+        ( 2, _counter,0, '{}'::JSON,
+          '{"id": 0, "data": "cGFydGl0aW9uaW5nT3V0Y29tZQo=", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB,
+          '{"id": 0, "data": "cHJvY2Vzc2luZ091dGNvbWUK", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB);
+    insert into item ( jobid, chunkid, id, state, partitioningoutcome, processingoutcome ) values
+        ( 3, _counter,0, '{}'::JSON,
+          '{"id": 0, "data": "cGFydGl0aW9uaW5nT3V0Y29tZQo=", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB,
+          '{"id": 0, "data": "cHJvY2Vzc2luZ091dGNvbWUK", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB);
+
 
     _counter := _counter + 1;
 
@@ -32,11 +48,6 @@ END LOOP;
 END
 $do$;
 
-
-insert into item ( jobid, chunkid, id, state, processingoutcome ) values
-    ( 3,1,0, '{}'::JSON, '{"id": 0, "data": "SGVsbG8gZnJvbSBqYXZhc2NyaXB0IQo=", "type": ["UNKNOWN"], "status": "SUCCESS", "encoding": "UTF-8", "trackingId": "172.20.1.191-63087-0-0"}'::JSONB);
-
-INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 1, 1, 4, '[{"jobId": 3, "chunkId": 0}]', null, '["K8", "KK2", "C4"]');
 
 
 

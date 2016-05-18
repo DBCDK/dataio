@@ -54,6 +54,7 @@ public class FlowStoreServiceConstants {
 
     public static final String HARVESTERS_RR_CONFIG = "harvesters/rr/config";
     public static final String HARVESTER_CONFIGS_TYPED = "harvester/configs/{type}";
+    public static final String HARVESTER_CONFIGS_TYPED_ENABLED = "harvester/configs/{type}/enabled";
 
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
     public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";

@@ -35,6 +35,7 @@ import javax.ejb.Stateless;
 import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -45,6 +46,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.List;
 
 @Stateless
 @Path("/")
@@ -97,11 +99,50 @@ public class HarvestersBean extends AbstractResourceBean {
 
         final HarvesterConfig harvesterConfig = saveAsVersionedEntity(entityManager, HarvesterConfig.class, configContent);
         entityManager.flush();
-        return Response
-                .created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), harvesterConfig))
+        return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), harvesterConfig))
                 .entity(jsonbContext.marshall(harvesterConfig))
                 .tag(harvesterConfig.getVersion().toString())
                 .build();
+    }
+
+    /**
+     * Returns list of all harvester configs of given type
+     * @return a HTTP 200 OK response with result list as JSON.
+     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPED)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findAllHarvesterConfigsByType(@PathParam("type") String type) {
+        final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)
+                .setParameter("type", type);
+        final List<HarvesterConfig> results = query.getResultList();
+        try {
+            return Response.ok().entity(jsonbContext.marshall(results)).build();
+        } catch (JSONBException e) {
+            // Since JSONBException is mapped to BAD_REQUEST - note: this code will probably never be reached
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ServiceUtil.asJsonError(e)).build();
+        }
+    }
+
+    /**
+     * Returns list of all enabled harvester configs of given type
+     * @return a HTTP 200 OK response with result list as JSON.
+     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPED_ENABLED)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findEnabledHarvesterConfigsByType(@PathParam("type") String type) {
+        final Query query = entityManager.createNativeQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)
+                .setParameter(1, type);
+        final List<HarvesterConfig> results = query.getResultList();
+        try {
+            return Response.ok().entity(jsonbContext.marshall(results)).build();
+        } catch (JSONBException e) {
+            // Since JSONBException is mapped to BAD_REQUEST - note: this code will probably never be reached
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ServiceUtil.asJsonError(e)).build();
+        }
     }
 
     private void validateContent(String type, String content) throws ClassNotFoundException, JSONBException {

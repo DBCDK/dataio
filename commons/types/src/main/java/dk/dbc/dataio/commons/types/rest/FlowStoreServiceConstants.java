@@ -46,6 +46,7 @@ public class FlowStoreServiceConstants {
     public static final String QUERY_PARAMETER_REFRESH = "refresh";
 
     public static final String IF_MATCH_HEADER = "If-Match";
+    public static final String RESOURCE_TYPE_HEADER = "Resource-type";
 
     public static final String FLOW_BINDER_RESOLVE = "binders/resolve";
 
@@ -53,8 +54,9 @@ public class FlowStoreServiceConstants {
     public static final String SUBMITTER_NUMBER_VARIABLE = "number";
 
     public static final String HARVESTERS_RR_CONFIG = "harvesters/rr/config";
-    public static final String HARVESTER_CONFIGS_TYPED = "harvester/configs/{type}";
-    public static final String HARVESTER_CONFIGS_TYPED_ENABLED = "harvester/configs/{type}/enabled";
+    public static final String HARVESTER_CONFIGS_TYPE = "harvester-configs/types/{type}";
+    public static final String HARVESTER_CONFIGS_TYPE_ENABLED = "harvester-configs/types/{type}/enabled";
+    public static final String HARVESTER_CONFIG = "harvester-configs/{id}";
 
     public static final String GATEKEEPER_DESTINATIONS = "gatekeeper/destinations";
     public static final String GATEKEEPER_DESTINATION = "gatekeeper/destinations/{id}";

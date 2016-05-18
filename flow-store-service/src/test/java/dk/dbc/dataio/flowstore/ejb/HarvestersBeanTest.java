@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.flowstore.entity.HarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
@@ -58,6 +61,8 @@ public class HarvestersBeanTest {
     private final Query query = mock(Query.class);
     private final JSONBContext jsonbContext = new JSONBContext();
 
+    private final long id = 123;
+    private final long version = 42;
     private final String rrHarvesterConfigType = "dk.dbc.dataio.harvester.types.RRHarvesterConfig";
 
     @BeforeClass
@@ -126,6 +131,74 @@ public class HarvestersBeanTest {
     @Test(expected = JSONBException.class)
     public void createHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() throws JSONBException, ClassNotFoundException {
         newharvestersBeanWithMockedEntityManager().createHarvesterConfig(null, rrHarvesterConfigType, "{\"key\": \"value\"}");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void updateHarvesterConfig_configContentArgIsNull_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().updateHarvesterConfig(id, version, rrHarvesterConfigType, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void updateHarvesterConfig_configContentArgIsEmpty_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().updateHarvesterConfig(id, version, rrHarvesterConfigType, " ");
+    }
+
+    @Test
+    public void updateHarvesterConfig_configNotFound_returnsResponseWithHttpStatusNotFound() throws JSONBException, ClassNotFoundException {
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(null);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.updateHarvesterConfig(id, version, rrHarvesterConfigType, "{}");
+        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test(expected = ClassNotFoundException.class)
+    public void updateHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() throws JSONBException, ClassNotFoundException {
+        final HarvesterConfig harvesterConfig = new HarvesterConfig();
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        harvestersBean.updateHarvesterConfig(id, version, "dk.dbc.NoSuchClass", "{}");
+    }
+
+    @Test(expected = JSONBException.class)
+    public void updateHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() throws JSONBException, ClassNotFoundException {
+        final HarvesterConfig harvesterConfig = new HarvesterConfig();
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final TestHarvesterConfig newConfig = new TestHarvesterConfig(id, version, new TestHarvesterConfig.Content());
+        harvestersBean.updateHarvesterConfig(id, version, rrHarvesterConfigType, jsonbContext.marshall(newConfig));
+    }
+
+    @Test
+    public void updateHarvesterConfig_typeArgIsnullAndConfigIsFound_returnsResponseWithHttpStatusOkAndEntity() throws JSONBException, ClassNotFoundException {
+        final HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withType(rrHarvesterConfigType)
+                .withVersion(version);
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.updateHarvesterConfig(id, version, null, jsonbContext.marshall(new RRHarvesterConfig.Content()));
+
+        assertThat("response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("response has entity", response.hasEntity(), is(true));
+        assertThat("response has ETAG", response.getEntityTag().getValue(), is(Long.toString(version)));
+    }
+
+    @Test
+    public void updateHarvesterConfig_typeIsChangedAndConfigIsFound_returnsResponseWithHttpStatusOkAndEntity() throws JSONBException, ClassNotFoundException {
+        final HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withType(rrHarvesterConfigType)
+                .withVersion(version);
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.updateHarvesterConfig(id, version, TestHarvesterConfig.class.getName(), jsonbContext.marshall(new TestHarvesterConfig.Content()));
+
+        assertThat("response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("response has entity", response.hasEntity(), is(true));
+        assertThat("response has ETAG", response.getEntityTag().getValue(), is(Long.toString(version)));
     }
 
     @Test
@@ -202,5 +275,23 @@ public class HarvestersBeanTest {
         final HarvestersBean harvestersBean = new HarvestersBean();
         harvestersBean.entityManager = entityManager;
         return harvestersBean;
+    }
+
+    private static class TestHarvesterConfig extends dk.dbc.dataio.harvester.types.HarvesterConfig<TestHarvesterConfig.Content> {
+        private static final long serialVersionUID = 5750099468125210041L;
+
+        @JsonCreator
+        public TestHarvesterConfig(
+                @JsonProperty("id") long id,
+                @JsonProperty("version") long version,
+                @JsonProperty("content") Content content)
+                throws NullPointerException, IllegalArgumentException {
+            super(id, version, content);
+        }
+
+        public static class Content {
+            @JsonProperty
+            private String testHarvesterConfigContentString;
+        }
     }
 }

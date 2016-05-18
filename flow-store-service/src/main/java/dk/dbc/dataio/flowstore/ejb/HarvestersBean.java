@@ -38,6 +38,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -81,13 +82,13 @@ public class HarvestersBean extends AbstractResourceBean {
      * @param type type of config as class name with full path
      * @param configContent content of the created harvester config
      * @return a HTTP 201 CREATED response with created harvester config as JSON,
-     *         a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not of type.
+     *         a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not compatible with type.
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      * @throws ClassNotFoundException if type is unknown
-     * @throws JSONBException if content is invalid JSON or if content is not of type
+     * @throws JSONBException if content is invalid JSON or if content is not compatible with type
      */
     @POST
-    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPED)
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
     @Consumes({MediaType.APPLICATION_JSON})
     @Produces({MediaType.APPLICATION_JSON})
     public Response createHarvesterConfig(@Context UriInfo uriInfo, @PathParam("type") String type, String configContent)
@@ -106,13 +107,64 @@ public class HarvestersBean extends AbstractResourceBean {
     }
 
     /**
+     * Updates an existing harvester config
+     * @param id ID of the harvester config to be updated
+     * @param version current version of the harvester config to be updated (from "{@value dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants#IF_MATCH_HEADER}"-header)
+     * @param type type of the harvester config to be updated (from "{@value dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants#RESOURCE_TYPE_HEADER}"-header),
+     *             if not set the current type of the harvester config is retained.
+     * @param configContent content of the updated harvester config
+     * @return a HTTP 200 OK response with updated harvester config as JSON,
+     *         a HTTP 400 BAD REQUEST response if type is unknown, f content is invalid JSON or if content is not compatible with type,
+     *         a HTTP 404 NOT FOUND response if given ID does not exist,
+     *         a HTTP 409 CONFLICT response in case of concurrent-modification error,
+     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * @throws ClassNotFoundException if type is unknown
+     * @throws JSONBException if content is invalid JSON or if content is not compatible with type
+     */
+    @POST
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIG)
+    @Consumes({MediaType.APPLICATION_JSON})
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response updateHarvesterConfig(
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version,
+            @HeaderParam(FlowStoreServiceConstants.RESOURCE_TYPE_HEADER) String type, String configContent)
+            throws ClassNotFoundException, JSONBException {
+
+        LOGGER.trace("Called with id='{}', version='{}' type='{}', content='{}'", id, version, type, configContent);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(configContent, "configContent");
+
+        final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        if (harvesterConfig == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(null).build();
+        }
+
+        entityManager.detach(harvesterConfig);
+        if (type != null && !type.trim().isEmpty()) {
+            // Update type if given as header parameter
+            harvesterConfig.withType(type);
+        }
+        validateContent(harvesterConfig.getType(), configContent);
+
+        harvesterConfig.setContent(configContent);
+        harvesterConfig.setVersion(version);
+        entityManager.merge(harvesterConfig);
+        entityManager.flush();
+        entityManager.refresh(harvesterConfig);
+
+        return Response.ok().entity(jsonbContext.marshall(harvesterConfig))
+                .tag(harvesterConfig.getVersion().toString())
+                .build();
+    }
+
+    /**
      * Returns list of all harvester configs of given type
      * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @GET
-    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPED)
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findAllHarvesterConfigsByType(@PathParam("type") String type) {
         final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)
@@ -133,7 +185,7 @@ public class HarvestersBean extends AbstractResourceBean {
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
     @GET
-    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPED_ENABLED)
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findEnabledHarvesterConfigsByType(@PathParam("type") String type) {
         final Query query = entityManager.createNativeQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)

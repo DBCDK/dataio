@@ -54,6 +54,7 @@ public class FlowStoreApplication extends Application {
         classes.add(SubmittersBean.class);
         classes.add(HarvestersBean.class);
         classes.add(GatekeeperDestinationsBean.class);
+        classes.add(ClassNotFoundExceptionMapper.class);
         classes.add(JsonExceptionMapper.class);
         classes.add(PersistenceExceptionMapper.class);
         classes.add(ReferencedEntityNotFoundExceptionMapper.class);

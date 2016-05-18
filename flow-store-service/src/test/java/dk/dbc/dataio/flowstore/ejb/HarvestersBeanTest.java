@@ -23,19 +23,34 @@ package dk.dbc.dataio.flowstore.ejb;
 
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
+import javax.persistence.EntityManager;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 public class HarvestersBeanTest {
+    private final EntityManager entityManager = mock(EntityManager.class);
+    private final UriInfo uriInfo = mock(UriInfo.class);
+    private final UriBuilder uriBuilder = mock(UriBuilder.class);
+
+    private final String rrHarvesterConfigType = "dk.dbc.dataio.harvester.types.RRHarvesterConfig";
 
     @BeforeClass
     public static void setInitialContextFactory() {
@@ -46,6 +61,13 @@ public class HarvestersBeanTest {
     @After
     public void clearInitialContext() {
         InMemoryInitialContextFactory.clear();
+    }
+
+    @Before
+    public void setup() throws URISyntaxException {
+        when(uriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
+        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
+        when(uriBuilder.build()).thenReturn(new URI("location"));
     }
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -73,5 +95,34 @@ public class HarvestersBeanTest {
         assertThat(result.getEntity(), is(HARVESTER_CONFIG));
     }
 
+    @Test(expected = NullPointerException.class)
+    public void createHarvesterConfig_configContentArgIsNull_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().createHarvesterConfig(null, rrHarvesterConfigType, null);
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void createHarvesterConfig_configContentArgIsEmpty_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().createHarvesterConfig(null, rrHarvesterConfigType, " ");
+    }
+
+    @Test(expected = JSONBException.class)
+    public void createHarvesterConfig_configContentArgIsInvalidJson_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().createHarvesterConfig(null, rrHarvesterConfigType, "invalid json");
+    }
+
+    @Test(expected = ClassNotFoundException.class)
+    public void createHarvesterConfig_typeArgCanNotBeResolvedAsClass_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().createHarvesterConfig(null, "dk.dbc.NoSuchClass", "{}");
+    }
+
+    @Test(expected = JSONBException.class)
+    public void createHarvesterConfig_contentArgIsNotCompatibleWithTypeArg_throws() throws JSONBException, ClassNotFoundException {
+        newharvestersBeanWithMockedEntityManager().createHarvesterConfig(null, rrHarvesterConfigType, "{\"key\": \"value\"}");
+    }
+
+    public HarvestersBean newharvestersBeanWithMockedEntityManager() {
+        final HarvestersBean harvestersBean = new HarvestersBean();
+        harvestersBean.entityManager = entityManager;
+        return harvestersBean;
+    }
 }

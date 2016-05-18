@@ -107,6 +107,7 @@ public class HarvestersBean extends AbstractResourceBean {
 
     /**
      * Returns list of all harvester configs of given type
+     * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */
@@ -127,6 +128,7 @@ public class HarvestersBean extends AbstractResourceBean {
 
     /**
      * Returns list of all enabled harvester configs of given type
+     * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      */

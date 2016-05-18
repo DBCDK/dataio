@@ -23,10 +23,10 @@ package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OldRRHarvesterConfig extends RRHarvesterConfig {
+public class OLDRRHarvesterConfig extends RRHarvesterConfig {
     private static final long serialVersionUID = -4621168600864059745L;
 
-    public OldRRHarvesterConfig(
+    public OLDRRHarvesterConfig(
             @JsonProperty("id") long id,
             @JsonProperty("version") long version,
             @JsonProperty("content") Content content)

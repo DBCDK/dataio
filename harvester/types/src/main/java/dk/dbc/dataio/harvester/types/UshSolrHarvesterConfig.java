@@ -109,7 +109,7 @@ public class UshSolrHarvesterConfig implements Serializable {
         private String format;
         private String destination;
         private int ushOaiHarvesterJobId;
-        private UshOaiHarvesterProperties ushHarvesterProperties;
+        private UshHarvesterProperties ushHarvesterProperties;
         private Date timeOfLastHarvest;
 
         public String getName() {
@@ -172,11 +172,11 @@ public class UshSolrHarvesterConfig implements Serializable {
         }
 
         @JsonIgnore
-        public UshOaiHarvesterProperties getUshHarvesterProperties() {
+        public UshHarvesterProperties getUshHarvesterProperties() {
             return ushHarvesterProperties;
         }
 
-        public Content withUshHarvesterProperties(UshOaiHarvesterProperties ushHarvesterProperties) {
+        public Content withUshHarvesterProperties(UshHarvesterProperties ushHarvesterProperties) {
             this.ushHarvesterProperties = ushHarvesterProperties;
             return this;
         }

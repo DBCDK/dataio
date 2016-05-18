@@ -132,6 +132,18 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up USH Harvester endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_HARVESTER}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_HARVESTER}' system property.
+     * @return USH Harvester URL as String
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getUshHarvesterEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_USH_HARVESTER);
+    }
+
+    /**
      * Builds service method response
      *
      * @param status HTTP status code of response

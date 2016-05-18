@@ -38,5 +38,7 @@ public class JndiConstants {
 
     public static final String MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS = "mail/dataio/jobstore/notifications";
 
+    public static final String URL_RESOURCE_USH_HARVESTER = "url/dataio/ush/harvester";
+
     private JndiConstants() { }
 }

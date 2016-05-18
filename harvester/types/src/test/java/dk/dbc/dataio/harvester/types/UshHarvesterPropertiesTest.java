@@ -31,89 +31,89 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 
 
-public class UshOaiHarvesterPropertiesTest {
+public class UshHarvesterPropertiesTest {
 
     @Test
     public void withWithName_nameArgCanBeNull() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withName(null);
-        assertThat(ushOaiHarvesterProperties.getName(), is(nullValue()));
+        assertThat(ushHarvesterProperties.getName(), is(nullValue()));
     }
 
     @Test
     public void withWithName_nameArgCanBeEmpty() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withName("");
-        assertThat(ushOaiHarvesterProperties.getName(), is(""));
+        assertThat(ushHarvesterProperties.getName(), is(""));
     }
 
     @Test
     public void withWithScheduleString_scheduleStringArgCanBeNull() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withScheduleString(null);
-        assertThat(ushOaiHarvesterProperties.getName(), is(nullValue()));
+        assertThat(ushHarvesterProperties.getName(), is(nullValue()));
     }
 
     @Test
     public void withWithScheduleString_scheduleStringArgCanBeEmpty() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withScheduleString("");
-        assertThat(ushOaiHarvesterProperties.getScheduleString(), is(""));
+        assertThat(ushHarvesterProperties.getScheduleString(), is(""));
     }
 
     @Test
     public void withWithLastUpdatedDate_lastUpdatedArgCanBeNull() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withLastUpdatedDate(null);
-        assertThat(ushOaiHarvesterProperties.getLastUpdated(), is(nullValue()));
+        assertThat(ushHarvesterProperties.getLastUpdated(), is(nullValue()));
     }
 
     @Test
     public void withWithLastHarvestedDate_lastHarvestedDateArgCanBeNull() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withLastHarvestedDate(null);
-        assertThat(ushOaiHarvesterProperties.getLastHarvested(), is(nullValue()));
+        assertThat(ushHarvesterProperties.getLastHarvested(), is(nullValue()));
     }
 
     @Test
     public void withWithReportedStatus_reportedStatusArgCanBeNull() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withReportedStatus(null);
-        assertThat(ushOaiHarvesterProperties.getReportedStatus(), is(nullValue()));
+        assertThat(ushHarvesterProperties.getReportedStatus(), is(nullValue()));
     }
 
     @Test
     public void withWithReportedStatus_reportedStatusArgCanBeEmpty() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withReportedStatus("");
-        assertThat(ushOaiHarvesterProperties.getReportedStatus(), is(""));
+        assertThat(ushHarvesterProperties.getReportedStatus(), is(""));
     }
 
     @Test
     public void withLatestStatus_latestStatusArgCanBeNull() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withLatestStatus(null);
-        assertThat(ushOaiHarvesterProperties.getLatestStatus(), is(nullValue()));
+        assertThat(ushHarvesterProperties.getLatestStatus(), is(nullValue()));
     }
 
     @Test
     public void withLatestStatus_latestStatusArgCanBeEmpty() {
-        final UshOaiHarvesterProperties ushOaiHarvesterProperties = new UshOaiHarvesterProperties()
+        final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties()
                 .withLatestStatus("");
-        assertThat(ushOaiHarvesterProperties.getLatestStatus(), is(""));
+        assertThat(ushHarvesterProperties.getLatestStatus(), is(""));
     }
 
     @Test
     public void verify_jsonMarshallingForUshOaiHarvesterProperties() throws Exception {
         JSONBContext jsonbContext = new JSONBContext();
-        final String json = jsonbContext.marshall(newUshOaiHarvesterPropertiesInstance());
-        jsonbContext.unmarshall(json, UshOaiHarvesterProperties.class);
+        final String json = jsonbContext.marshall(newUshHarvesterPropertiesInstance());
+        jsonbContext.unmarshall(json, UshHarvesterProperties.class);
     }
 
-    private UshOaiHarvesterProperties newUshOaiHarvesterPropertiesInstance() {
-        return new UshOaiHarvesterProperties()
+    private UshHarvesterProperties newUshHarvesterPropertiesInstance() {
+        return new UshHarvesterProperties()
                 .withJobId(123456)
-                .withName("UshOaiHarvesterName")
+                .withName("UshHarvesterName")
                 .withLastHarvestedDate(new Date())
                 .withLatestStatus("OK");
     }

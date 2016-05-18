@@ -26,12 +26,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Date;
 
 /**
- * UshOaiHarvesterProperties DTO class.
+ * UshHarvesterProperties DTO class.
  *
  * This class is NOT thread safe.
  */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-public class UshOaiHarvesterProperties {
+public class UshHarvesterProperties {
 
     private int jobId;
     private String name;
@@ -42,13 +42,11 @@ public class UshOaiHarvesterProperties {
     private String latestStatus;
     private String error;
 
-    public UshOaiHarvesterProperties() { }
-
     public int getJobId() {
         return jobId;
     }
 
-    public UshOaiHarvesterProperties withJobId(int jobId) {
+    public UshHarvesterProperties withJobId(int jobId) {
         this.jobId = jobId;
         return this;
     }
@@ -57,7 +55,7 @@ public class UshOaiHarvesterProperties {
         return name;
     }
 
-    public UshOaiHarvesterProperties withName(String name) {
+    public UshHarvesterProperties withName(String name) {
         this.name = name;
         return this;
     }
@@ -66,7 +64,7 @@ public class UshOaiHarvesterProperties {
         return scheduleString;
     }
 
-    public UshOaiHarvesterProperties withScheduleString(String scheduleString) {
+    public UshHarvesterProperties withScheduleString(String scheduleString) {
         this.scheduleString = scheduleString;
         return this;
     }
@@ -75,7 +73,7 @@ public class UshOaiHarvesterProperties {
         return lastUpdated;
     }
 
-    public UshOaiHarvesterProperties withLastUpdatedDate(Date lastUpdated) {
+    public UshHarvesterProperties withLastUpdatedDate(Date lastUpdated) {
         this.lastUpdated = lastUpdated;
         return this;
     }
@@ -84,7 +82,7 @@ public class UshOaiHarvesterProperties {
         return lastHarvested;
     }
 
-    public UshOaiHarvesterProperties withLastHarvestedDate(Date lastHarvested) {
+    public UshHarvesterProperties withLastHarvestedDate(Date lastHarvested) {
         this.lastHarvested = lastHarvested;
         return this;
     }
@@ -93,7 +91,7 @@ public class UshOaiHarvesterProperties {
         return reportedStatus;
     }
 
-    public UshOaiHarvesterProperties withReportedStatus(String reportedStatus) {
+    public UshHarvesterProperties withReportedStatus(String reportedStatus) {
         this.reportedStatus = reportedStatus;
         return this;
     }
@@ -102,7 +100,7 @@ public class UshOaiHarvesterProperties {
         return latestStatus;
     }
 
-    public UshOaiHarvesterProperties withLatestStatus(String latestStatus) {
+    public UshHarvesterProperties withLatestStatus(String latestStatus) {
         this.latestStatus = latestStatus;
         return this;
     }
@@ -111,7 +109,7 @@ public class UshOaiHarvesterProperties {
         return error;
     }
 
-    public UshOaiHarvesterProperties withError(String error) {
+    public UshHarvesterProperties withError(String error) {
         this.error = error;
         return this;
     }
@@ -119,9 +117,9 @@ public class UshOaiHarvesterProperties {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof UshOaiHarvesterProperties)) return false;
+        if (!(o instanceof UshHarvesterProperties)) return false;
 
-        UshOaiHarvesterProperties that = (UshOaiHarvesterProperties) o;
+        UshHarvesterProperties that = (UshHarvesterProperties) o;
 
         if (jobId != that.jobId) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
@@ -148,5 +146,19 @@ public class UshOaiHarvesterProperties {
         result = 31 * result + (latestStatus != null ? latestStatus.hashCode() : 0);
         result = 31 * result + (error != null ? error.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "UshHarvesterProperties{" +
+                "jobId=" + jobId +
+                ", name=" + name +
+                ", scheduleString=" + scheduleString +
+                ", lastUpdated=" + lastUpdated +
+                ", lastHarvested=" + lastHarvested +
+                ", reportedStatus=" + reportedStatus +
+                ", latestStatus=" + latestStatus +
+                ", error=" + error +
+                '}';
     }
 }

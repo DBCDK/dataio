@@ -45,6 +45,7 @@
     <module>log-store-service-connector</module>
     <module>flow-store-service-connector</module>
     <module>job-store-service-connector</module>
+    <module>ush-harvester-connector</module>
     <module>io</module>
     <module>json-binding</module>
     <module>logback</module>

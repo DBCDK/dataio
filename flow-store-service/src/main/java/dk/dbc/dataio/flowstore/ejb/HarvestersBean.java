@@ -98,8 +98,9 @@ public class HarvestersBean extends AbstractResourceBean {
 
         validateContent(type, configContent);
 
-        final HarvesterConfig harvesterConfig = saveAsVersionedEntity(entityManager, HarvesterConfig.class, configContent);
-        entityManager.flush();
+        final HarvesterConfig harvesterConfig = saveAsVersionedEntity(entityManager, HarvesterConfig.class, configContent)
+                .withType(type);
+
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), harvesterConfig))
                 .entity(jsonbContext.marshall(harvesterConfig))
                 .tag(harvesterConfig.getVersion().toString())

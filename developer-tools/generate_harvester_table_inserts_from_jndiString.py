@@ -48,12 +48,12 @@ version = 1
 for entry in unpacked['entries']:
     entry['isEnabled'] = True
     content = {
-        "type": "dk.dbc.dataio.harvester.types.RRHarvesterConfig",
+        "type": "dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig",
         "id": count,
         "version": version,
         "content": entry,
     }
 
-    print("insert into harvester_config (id, version , type, content ) values ( %d, %d, '%s', '%s'::jsonb);" % (
+    print("insert into harvester_configs (id, version , type, content ) values ( %d, %d, '%s', '%s'::jsonb);" % (
     count, version, content['type'], json.dumps(content)))
     count += 1

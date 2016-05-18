@@ -42,7 +42,7 @@ public class HarvesterConfigIT {
 
         em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
         em.getTransaction().begin();
-        em.createNativeQuery("delete from harvester_config").executeUpdate();
+        em.createNativeQuery("delete from harvester_configs").executeUpdate();
         em.getTransaction().commit();
     }
 
@@ -50,7 +50,7 @@ public class HarvesterConfigIT {
     public void drop() {
         if( em.getTransaction().isActive() ) em.getTransaction().rollback();
         em.getTransaction().begin();
-        em.createNativeQuery("delete from harvester_config").executeUpdate();
+        em.createNativeQuery("delete from harvester_configs").executeUpdate();
         em.getTransaction().commit();
     }
 

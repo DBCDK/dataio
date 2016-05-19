@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 
 import javax.persistence.Column;
@@ -44,7 +44,7 @@ public class ChunkEntity {
      */
 
     @EmbeddedId
-    private Key key;
+    private Key key=new Key(-1,-1);
 
     @Column(nullable = false)
     private String dataFileId;
@@ -128,6 +128,34 @@ public class ChunkEntity {
         return new CollisionDetectionElement(key.toChunkIdentifier(), sequenceAnalysisData.getData(), numberOfItems);
     }
 
+
+    // builder api
+    public ChunkEntity withJobId(int jobId) {
+        this.key.setJobId(jobId );
+        return this;
+    }
+
+    public ChunkEntity withChunkId(int chunkId) {
+        this.key.setId( chunkId );
+        return this;
+    }
+
+    public ChunkEntity withSequenceAnalysisData(SequenceAnalysisData sequenceAnalysisData) {
+        this.sequenceAnalysisData = sequenceAnalysisData;
+        return this;
+    }
+
+    public ChunkEntity withState(State state) {
+        this.state = state;
+        return this;
+    }
+
+    public ChunkEntity withNumberOfItems(short numberOfItems) {
+        this.numberOfItems = numberOfItems;
+        return this;
+    }
+
+
     @Embeddable
     public static class Key {
         @Column(name = "id")
@@ -150,6 +178,14 @@ public class ChunkEntity {
 
         public int getJobId() {
             return jobId;
+        }
+
+        public void setId(int id) {
+            this.id = id;
+        }
+
+        public void setJobId(int jobId) {
+            this.jobId = jobId;
         }
 
         @Override

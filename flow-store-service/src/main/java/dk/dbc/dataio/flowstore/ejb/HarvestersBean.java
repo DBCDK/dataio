@@ -174,7 +174,7 @@ public class HarvestersBean {
     @Produces({MediaType.APPLICATION_JSON})
     public Response findAllHarvesterConfigsByType(@PathParam("type") String type) {
         final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)
-                .setParameter("type", type);
+                .setParameter(FlowStoreServiceConstants.TYPE_VARIABLE, type);
         final List<HarvesterConfig> results = query.getResultList();
         try {
             return Response.ok().entity(jsonbContext.marshall(results)).build();

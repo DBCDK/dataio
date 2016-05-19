@@ -30,6 +30,7 @@ public class FlowStoreServiceConstants {
     public static final String SINKS = "sinks";
 
     public static final String ID_VARIABLE = "id";
+    public static final String TYPE_VARIABLE = "type";
 
     public static final String SINK = "sinks/{id}";
     public static final String SUBMITTER = "submitters/{id}";

@@ -965,6 +965,56 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Returns list of all enabled harvester configs of given type
+     * @param type type of harvester configs to list
+     * @param <T> type parameter
+     * @return list of harvester configs
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve harvester configs
+     */
+    public <T> List<T> findEnabledHarvesterConfigsByType(Class<T> type) throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+
+        InvariantUtil.checkNotNullOrThrow(type, "type");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
+                .bind(FlowStoreServiceConstants.TYPE_VARIABLE, type.getName());
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<T>>() {
+            });
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: findEnabledHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Returns list of all harvester configs of given type
+     * @param type type of harvester configs to list
+     * @param <T> type parameter
+     * @return list of harvester configs
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve harvester configs
+     */
+    public <T> List<T> findHarvesterConfigsByType(Class<T> type) throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+
+        InvariantUtil.checkNotNullOrThrow(type, "type");
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+                .bind(FlowStoreServiceConstants.TYPE_VARIABLE, type.getName());
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<T>>() {
+            });
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: findHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     // ******************************************** Private helper methods ********************************************
 
     private void verifyResponseStatus(Response response, Response.Status expectedStatus) throws FlowStoreServiceConnectorUnexpectedStatusCodeException {

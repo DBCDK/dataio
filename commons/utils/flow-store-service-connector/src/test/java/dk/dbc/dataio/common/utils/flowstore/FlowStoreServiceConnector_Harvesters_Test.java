@@ -24,7 +24,9 @@ package dk.dbc.dataio.common.utils.flowstore;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -38,8 +40,13 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.newFlowStoreServiceConnector;
@@ -53,13 +60,103 @@ import static org.powermock.api.mockito.PowerMockito.when;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({HttpClient.class})
 public class FlowStoreServiceConnector_Harvesters_Test {
+    private final Class rrHarvesterConfig = dk.dbc.dataio.harvester.types.RRHarvesterConfig.class;
 
     @Before
     public void setup() throws Exception {
         mockStatic(HttpClient.class);
     }
 
-    
+    @Test
+    public void findHarvesterConfigsByType_typeArgIsNull_throws() throws FlowStoreServiceConnectorException {
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.findHarvesterConfigsByType(null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void findHarvesterConfigsByType_noHarvesterConfigsFound_returnsEmptyList() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), new ArrayList<RRHarvesterConfig>()));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(connector.findHarvesterConfigsByType(rrHarvesterConfig).isEmpty(), is(true));
+    }
+
+    @Test
+    public void findHarvesterConfigsByType_harvesterConfigsFound_returnsList() throws FlowStoreServiceConnectorException {
+        final List<RRHarvesterConfig> configs = Arrays.asList(
+                new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()),
+                new RRHarvesterConfig(2, 1, new RRHarvesterConfig.Content()));
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), configs));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(connector.findHarvesterConfigsByType(rrHarvesterConfig), is(configs));
+    }
+
+    @Test
+    public void findHarvesterConfigsByType_harvesterConfigsFound_throws() {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.findHarvesterConfigsByType(rrHarvesterConfig), isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
+    }
+
+    @Test
+    public void findHarvesterConfigsByType_serviceReturnsNullEntity_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.findHarvesterConfigsByType(rrHarvesterConfig), isThrowing(FlowStoreServiceConnectorException.class));
+    }
+
+    @Test
+    public void findEnabledHarvesterConfigsByType_typeArgIsNull_throws() throws FlowStoreServiceConnectorException {
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.findEnabledHarvesterConfigsByType(null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void findEnabledHarvesterConfigsByType_noHarvesterConfigsFound_returnsEmptyList() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindEnabledHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), new ArrayList<RRHarvesterConfig>()));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig).isEmpty(), is(true));
+    }
+
+    @Test
+    public void findEnabledHarvesterConfigsByType_harvesterConfigsFound_returnsList() throws FlowStoreServiceConnectorException {
+        final List<RRHarvesterConfig> configs = Arrays.asList(
+                new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()),
+                new RRHarvesterConfig(2, 1, new RRHarvesterConfig.Content()));
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindEnabledHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), configs));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig), is(configs));
+    }
+
+    @Test
+    public void findEnabledHarvesterConfigsByType_harvesterConfigsFound_throws() {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindEnabledHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ""));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig), isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
+    }
+
+    @Test
+    public void findEnabledHarvesterConfigsByType_serviceReturnsNullEntity_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, getfindEnabledHarvesterConfigsByTypePath(rrHarvesterConfig)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig), isThrowing(FlowStoreServiceConnectorException.class));
+    }
+
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void getHarvesterRrConfigs_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException, JSONBException {
         getHarvesterRrConfigs_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
@@ -208,6 +305,18 @@ public class FlowStoreServiceConnector_Harvesters_Test {
     }
 
     // Helper methods
+
+    private String[] getfindHarvesterConfigsByTypePath(Class type) {
+        return new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+                .bind(FlowStoreServiceConstants.TYPE_VARIABLE, type.getName())
+                .build();
+    }
+
+    private String[] getfindEnabledHarvesterConfigsByTypePath(Class type) {
+        return new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
+                .bind(FlowStoreServiceConstants.TYPE_VARIABLE, type.getName())
+                .build();
+    }
 
     private RawRepoHarvesterConfig getHarvesterRrConfigs_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException, JSONBException {
         when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, FlowStoreServiceConstants.HARVESTERS_RR_CONFIG)).thenReturn(new MockedResponse<>(statusCode, returnValue));

@@ -26,13 +26,16 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -66,6 +69,51 @@ public class FlowStoreServiceConnector_Harvesters_Test {
     public void setup() throws Exception {
         mockStatic(HttpClient.class);
     }
+
+    // ****************************************** create harvester config tests ******************************************
+
+    @Test
+    public void createHarvesterConfig_harvesterConfigContentArgIsNull_throws() throws FlowStoreServiceConnectorException {
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.createHarvesterConfig(null, RRHarvesterConfig.class), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void createHarvesterConfig_harvesterTypeArgIsNull_throws() throws FlowStoreServiceConnectorException {
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.createHarvesterConfig(new RRHarvesterConfig.Content(), null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void createHarvesterConfig_RRHarvesterConfigIsCreated_returnsHarvesterConfig() throws FlowStoreServiceConnectorException {
+        final RRHarvesterConfig.Content configContent = new RRHarvesterConfig.Content();
+        final HarvesterConfig expectedHarvesterConfig = new RRHarvesterConfig(42, 1, configContent);
+        final HarvesterConfig harvesterConfig = createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.CREATED.getStatusCode(),
+                expectedHarvesterConfig
+        );
+
+        Assert.assertThat(harvesterConfig, is(expectedHarvesterConfig));
+        Assert.assertThat(harvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void createHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void createHarvesterConfig_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CREATED.getStatusCode(), null);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void createHarvesterConfig_responseUnexpectedType_throws() throws FlowStoreServiceConnectorException {
+        createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.BAD_REQUEST.getStatusCode(), "");
+    }
+
+    // ************************************** find harvester configs by type tests ***************************************
 
     @Test
     public void findHarvesterConfigsByType_typeArgIsNull_throws() throws FlowStoreServiceConnectorException {
@@ -127,6 +175,8 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         assertThat(connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig).isEmpty(), is(true));
     }
 
+    // ********************************* find enabled harvester configs by type tests ************************************
+
     @Test
     public void findEnabledHarvesterConfigsByType_harvesterConfigsFound_returnsList() throws FlowStoreServiceConnectorException {
         final List<RRHarvesterConfig> configs = Arrays.asList(
@@ -156,6 +206,8 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
         assertThat(() -> connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig), isThrowing(FlowStoreServiceConnectorException.class));
     }
+
+    // *******************************************************************************************************************
 
     @Test(expected = FlowStoreServiceConnectorException.class)
     public void getHarvesterRrConfigs_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException, JSONBException {
@@ -304,7 +356,20 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         }
     }
 
-    // Helper methods
+    /*
+     * Private methods
+     */
+    
+    private HarvesterConfig createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
+        final RRHarvesterConfig.Content configContent = new RRHarvesterConfig.Content();
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+                .bind("type", RRHarvesterConfig.class.getName());
+        Mockito.when(HttpClient.doPostWithJson(CLIENT, configContent, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.createHarvesterConfig(configContent, RRHarvesterConfig.class);
+    }
 
     private String[] getfindHarvesterConfigsByTypePath(Class type) {
         return new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)

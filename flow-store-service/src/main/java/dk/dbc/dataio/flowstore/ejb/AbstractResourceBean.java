@@ -28,6 +28,9 @@ import javax.persistence.EntityManager;
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 
+/**
+ * This class is deprecated and should not be used by new beans.
+ */
 public abstract class AbstractResourceBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(AbstractResourceBean.class);

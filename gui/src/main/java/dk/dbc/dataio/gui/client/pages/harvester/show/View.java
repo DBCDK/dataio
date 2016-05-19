@@ -21,248 +21,48 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.show;
 
-
-import com.google.gwt.safehtml.shared.SafeHtml;
-import com.google.gwt.safehtml.shared.SafeHtmlUtils;
-import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.view.client.ListDataProvider;
-import com.google.gwt.view.client.SingleSelectionModel;
-import dk.dbc.dataio.gui.client.util.Format;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig.Entry;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+public class View extends ContentPanel<Presenter> implements IsWidget {
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
-/**
- * This class is the View class for the Harvesters Show View
- */
-public class View extends ViewWidget {
-    ListDataProvider<Entry> dataProvider;
-    SingleSelectionModel<Entry> selectionModel = new SingleSelectionModel<>();
+    // Instantiate UI Binder
+    interface MyUiBinder extends UiBinder<Widget, View> {}
+    private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
+    // UI Fields
+    @UiField(provided=true) HarvestersTable harvestersTable;
+
+
+    /**
+     * Default empty constructor
+     */
     public View() {
-        super("");
-        setupColumns();
+        this("");
     }
 
     /**
-     * This method is used to put data into the view
-     *
-     * @param harvesters The list of submitters to put into the view
+     * Default constructor
+     * @param header Header text
      */
+    public View(String header) {
+        super(header);
+        harvestersTable = new HarvestersTable();
+        add(uiBinder.createAndBindUi(this));
+    }
+
+    protected Texts getTexts() {
+        return this.viewInjector.getTexts();
+    }
+
     public void setHarvesters(RawRepoHarvesterConfig harvesters) {
-        dataProvider.getList().clear();
-        if (!harvesters.getEntries().isEmpty()) {
-            for (Entry entry: harvesters.getEntries()) {
-                dataProvider.getList().add(entry);
-            }
-        }
-        Collections.sort(dataProvider.getList(), new Comparator<Entry>() {
-            @Override
-            public int compare(Entry o1, Entry o2) {
-                return o1.getId().compareTo(o2.getId());
-            }
-        });
-
+        harvestersTable.setHarvesters(harvesters);
     }
-
-    /**
-     * This method sets up all columns in the view
-     * It is called before data has been applied to the view - data is being applied in the setSubmitters method
-     */
-    @SuppressWarnings("unchecked")
-    private void setupColumns() {
-        dataProvider = new ListDataProvider<>();
-        dataProvider.addDataDisplay(harvestersTable);
-
-        harvestersTable.addColumn(constructNameColumn(), textWithToolTip(getTexts().columnHeader_Name(), getTexts().help_Name()));
-        harvestersTable.addColumn(constructResourceColumn(), textWithToolTip(getTexts().columnHeader_Resource(), getTexts().help_Resource()));
-        harvestersTable.addColumn(constructTargetColumn(), textWithToolTip(getTexts().columnHeader_Target(), getTexts().help_Target()));
-        harvestersTable.addColumn(constructConsumerIdColumn(), textWithToolTip(getTexts().columnHeader_Id(), getTexts().help_Id()));
-        harvestersTable.addColumn(constructSizeColumn(), textWithToolTip(getTexts().columnHeader_Size(), getTexts().help_Size()));
-        harvestersTable.addColumn(constructFormatOverridesColumn(), textWithToolTip(getTexts().columnHeader_FormatOverrides(), getTexts().help_FormatOverrides()));
-        harvestersTable.addColumn(constructRelationsColumn(), textWithToolTip(getTexts().columnHeader_Relations(), getTexts().help_Relations()));
-        harvestersTable.addColumn(constructDestinationColumn(), textWithToolTip(getTexts().columnHeader_Destination(), getTexts().help_Destination()));
-        harvestersTable.addColumn(constructFormatColumn(), textWithToolTip(getTexts().columnHeader_Format(), getTexts().help_Format()));
-        harvestersTable.addColumn(constructTypeColumn(), textWithToolTip(getTexts().columnHeader_Type(), getTexts().help_Type()));
-
-        harvestersTable.setSelectionModel(selectionModel);
-    }
-
-    /**
-     * This method constructs the Name column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Name column
-     */
-    Column constructNameColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getId();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Resource column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Resource column
-     */
-    Column constructResourceColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getResource();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Target column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Target column
-     */
-    Column constructTargetColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getOpenAgencyTarget().getUrl();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the ConsumerId column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed ConsumerId column
-     */
-    Column constructConsumerIdColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getConsumerId();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Size column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Size column
-     */
-    Column constructSizeColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return String.valueOf(harvester.getBatchSize());
-            }
-        };
-    }
-
-    /**
-     * This method constructs the FormatOverrides column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed FormatOverrides column
-     */
-    Column constructFormatOverridesColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                List<String> formats = new ArrayList<>();
-                for (Map.Entry<Integer, String> entry : harvester.getFormatOverrides().entrySet()) {
-                    formats.add(entry.getKey().toString() + " - " + entry.getValue());
-                }
-                Collections.sort(formats);
-                return Format.commaSeparate(formats);
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Relations column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Relations column
-     */
-    Column constructRelationsColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.includeRelations() ? getTexts().includeRelationsTrue() : getTexts().includeRelationsFalse();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Destination column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Destination column
-     */
-    Column constructDestinationColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getDestination();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Format column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Format column
-     */
-    Column constructFormatColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getFormat();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Type column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Type column
-     */
-    Column constructTypeColumn() {
-        return new TextColumn<Entry>() {
-            @Override
-            public String getValue(Entry harvester) {
-                return harvester.getType().toString();
-            }
-        };
-    }
-
-
-    /**
-     * Private methods
-     */
-
-    /**
-     * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
-     * @param headerText The headertext to be displayed
-     * @param helpText The popup help text
-     * @return The SafeHtml snippet
-     */
-    private SafeHtml textWithToolTip(String headerText, String helpText) {
-        return SafeHtmlUtils.fromSafeConstant("<span title='" + helpText + "'>" + headerText + "</span>");
-    }
-
 
 }

@@ -55,6 +55,7 @@ public class ITUtil {
     public static final String SUBMITTERS_TABLE_NAME = "submitters";
     public static final String SINKS_TABLE_NAME = "sinks";
     public static final String GATEKEEPER_DESTINATIONS_TABLE_NAME = "gatekeeper_destinations";
+    public static final String HARVESTER_CONFIGS_TABLE_NAME = "harvester_configs";
 
     private ITUtil() { }
 
@@ -139,7 +140,8 @@ public class ITUtil {
                 FLOWS_TABLE_NAME,
                 SUBMITTERS_TABLE_NAME,
                 SINKS_TABLE_NAME,
-                GATEKEEPER_DESTINATIONS_TABLE_NAME);
+                GATEKEEPER_DESTINATIONS_TABLE_NAME,
+                HARVESTER_CONFIGS_TABLE_NAME);
     }
 
     public static void clearFileStore() {

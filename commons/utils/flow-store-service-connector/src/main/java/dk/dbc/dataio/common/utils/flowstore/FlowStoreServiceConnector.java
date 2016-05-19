@@ -965,6 +965,37 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    // ************************************************** HarvesterConfig *********************************************
+    /**
+     * Creates new harvester config defined by the harvester config content and type
+     *
+     * @param configContent harvester config content
+     * @param type of harvester config
+     * @return the created harvester config
+     * @throws NullPointerException                                   if given null-valued argument
+     * @throws ProcessingException                                    on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if harvester config creation failed due to invalid input data
+     * @throws FlowStoreServiceConnectorException                     on general failure to create harvester config
+     */
+    public <T> T createHarvesterConfig(Object configContent, Class<T> type) throws FlowStoreServiceConnectorException {
+        log.trace("FlowStoreServiceConnector: createHarvesterConfig called with content='{}', type='{}'", configContent, type);
+        InvariantUtil.checkNotNullOrThrow(configContent, "configContent");
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+                .bind("type", type.getName());
+
+        final Response response = doPostWithJson(httpClient, configContent, baseUrl, path.build());
+
+        try {
+            verifyResponseStatus(response, Response.Status.CREATED);
+            return readResponseEntity(response, type);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: createHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
     /**
      * Returns list of all enabled harvester configs of given type
      * @param type type of harvester configs to list

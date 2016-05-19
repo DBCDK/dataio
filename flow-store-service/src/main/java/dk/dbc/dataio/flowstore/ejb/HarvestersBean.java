@@ -46,12 +46,14 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.List;
 
 @Stateless
 @Path("/")
-public class HarvestersBean extends AbstractResourceBean {
+public class HarvestersBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestersBean.class);
 
     @PersistenceContext
@@ -98,8 +100,11 @@ public class HarvestersBean extends AbstractResourceBean {
 
         validateContent(type, configContent);
 
-        final HarvesterConfig harvesterConfig = saveAsVersionedEntity(entityManager, HarvesterConfig.class, configContent)
+        final HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withContent(configContent)
                 .withType(type);
+        entityManager.persist(harvesterConfig);
+        entityManager.flush();
 
         return Response.created(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), harvesterConfig))
                 .entity(jsonbContext.marshall(harvesterConfig))
@@ -205,6 +210,10 @@ public class HarvestersBean extends AbstractResourceBean {
         final Class<?> clazz = Class.forName(type + "$Content");
         // unmarshall to make sure the input is valid
         jsonbContext.unmarshall(content, clazz);
+    }
+
+    private URI getResourceUriOfVersionedEntity(UriBuilder uriBuilder, HarvesterConfig harvesterConfig) {
+        return uriBuilder.path(String.valueOf(harvesterConfig.getId())).build();
     }
 }
 

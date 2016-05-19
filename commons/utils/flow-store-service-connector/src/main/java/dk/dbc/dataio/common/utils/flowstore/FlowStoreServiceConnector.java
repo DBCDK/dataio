@@ -971,13 +971,14 @@ public class FlowStoreServiceConnector {
      *
      * @param configContent harvester config content
      * @param type of harvester config
+     * @param <T> type parameter
      * @return the created harvester config
      * @throws NullPointerException                                   if given null-valued argument
      * @throws ProcessingException                                    on general communication error
      * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if harvester config creation failed due to invalid input data
      * @throws FlowStoreServiceConnectorException                     on general failure to create harvester config
      */
-    public <T> T createHarvesterConfig(Object configContent, Class<T> type) throws FlowStoreServiceConnectorException {
+    public <T> T createHarvesterConfig(Object configContent, Class<T> type) throws ProcessingException, FlowStoreServiceConnectorException {
         log.trace("FlowStoreServiceConnector: createHarvesterConfig called with content='{}', type='{}'", configContent, type);
         InvariantUtil.checkNotNullOrThrow(configContent, "configContent");
         final StopWatch stopWatch = new StopWatch();

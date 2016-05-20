@@ -26,7 +26,6 @@
 #
 
 
-import json
 import requests
 import argparse
 import sys
@@ -34,15 +33,14 @@ import time
 
 
 def parse_arguments():
-    global args
     parser = argparse.ArgumentParser("")
     parser.add_argument("--host", help="host til dataio systemet dataio-be-s01:8080 for staging", required=True)
     parser.add_argument("--job", help="job to show", type=int)
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
 
-parse_arguments()
+args=parse_arguments()
 
 print()
 url="http://"+args.host+"/dataio/flow-store-service/flows"

@@ -35,10 +35,10 @@ def parse_arguments():
     parser = argparse.ArgumentParser("""tool to generate harvester_config tabel from jndi values
     usage: generate_harvester_table_inserts_from_jndi_string [file] > sqlfile.sql""")
     parser.add_argument("jndi_file", help="file med jndi_value")
-    args = parser.parse_args()
+    return parser.parse_args()
 
 
-parse_arguments()
+args = parse_arguments()
 
 json_data = open(args.jndi_file).read()
 unpacked = json.loads(json_data)
@@ -55,5 +55,5 @@ for entry in unpacked['entries']:
     }
 
     print("insert into harvester_configs (id, version , type, content ) values ( %d, %d, '%s', '%s'::jsonb);" % (
-    count, version, content['type'], json.dumps(content)))
+        count, version, content['type'], json.dumps(content)))
     count += 1

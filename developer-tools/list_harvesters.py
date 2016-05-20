@@ -26,28 +26,43 @@
 #
 
 
+import requests
 import argparse
+import sys
+import time
 import json
 
 
+
+
 def parse_arguments():
-    global args
-    parser = argparse.ArgumentParser("""tool to generate harvester_config tabel from jndi values
-    usage: generate_harvester_table_inserts_from_jndi_string [file] > sqlfile.sql""")
-    parser.add_argument("jndi_file", help="file med jndi_value")
+    parser = argparse.ArgumentParser("")
+    parser.add_argument("--host", help="host til dataio systemet dataio-be-s01:8080 for staging", required=True)
+    parser.add_argument("--type", help="type to show  eks dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig " )
+
+
     return parser.parse_args()
 
 
-args = parse_arguments()
+args=parse_arguments()
 
-json_data = open(args.jndi_file).read()
-unpacked = json.loads(json_data)
+print()
+url="http://"+args.host+"/dataio/flow-store-service/"
 
-count = 1
-version = 1
-for entry in unpacked['entries']:
-    entry['isEnabled'] = True
+if( args.type ) :
+    url+="harvester-configs/types/%s"%args.type
+else:
+    url+="harvesters/rr/config"
 
-    print("insert into harvester_configs (id, version , type, content ) values ( %d, %d, 'dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig', '%s'::jsonb);" % (
-        count, version, json.dumps(entry)))
-    count += 1
+print(url)
+
+start = time.time()
+
+response = requests.get( url )
+latency = time.time() - start
+if response.status_code == requests.codes.OK :
+    sys.stderr.write('Elapsed : %s  - %s'%(response.elapsed, latency))
+    print json.dumps(response.json(), indent=4, sort_keys=False )
+else :
+    print "Error from server : "+ str(response.status_code)
+    print response.content

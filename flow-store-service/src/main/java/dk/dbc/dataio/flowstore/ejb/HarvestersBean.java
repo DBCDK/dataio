@@ -140,7 +140,7 @@ public class HarvestersBean {
         LOGGER.trace("Called with id='{}', version='{}' type='{}', content='{}'", id, version, type, configContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(configContent, "configContent");
 
-        final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
         if (harvesterConfig == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(null).build();
         }
@@ -154,7 +154,7 @@ public class HarvestersBean {
 
         harvesterConfig.setContent(configContent);
         harvesterConfig.setVersion(version);
-        entityManager.merge(harvesterConfig);
+        harvesterConfig = entityManager.merge(harvesterConfig);
         entityManager.flush();
 
         return Response.ok().entity(jsonbContext.marshall(harvesterConfig))

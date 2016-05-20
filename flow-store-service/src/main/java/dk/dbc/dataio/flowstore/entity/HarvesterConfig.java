@@ -50,7 +50,6 @@ import java.util.Objects;
 public class HarvesterConfig extends Versioned {
     public static final String QUERY_FIND_ALL_OF_TYPE = "Harvester.findAllOfType";
     public static final String QUERY_FIND_ALL_ENABLED_OF_TYPE = "Harvester.findAllEnabledOfType";
-    static final String NAME_INDEX_COLUMN = "name_idx";
 
     @Column(name = "type", nullable = false)
     private String type;

@@ -156,7 +156,6 @@ public class HarvestersBean {
         harvesterConfig.setVersion(version);
         entityManager.merge(harvesterConfig);
         entityManager.flush();
-        entityManager.refresh(harvesterConfig);
 
         return Response.ok().entity(jsonbContext.marshall(harvesterConfig))
                 .tag(harvesterConfig.getVersion().toString())

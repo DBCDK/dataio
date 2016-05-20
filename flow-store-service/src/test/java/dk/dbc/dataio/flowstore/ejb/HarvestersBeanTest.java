@@ -52,7 +52,7 @@ import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Matchers.any;
 
 public class HarvestersBeanTest {
     private final EntityManager entityManager = mock(EntityManager.class);
@@ -177,6 +177,7 @@ public class HarvestersBeanTest {
                 .withType(rrHarvesterConfigType)
                 .withVersion(version);
         when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+        when(entityManager.merge(any(HarvesterConfig.class))).thenReturn(harvesterConfig);
 
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         final Response response = harvestersBean.updateHarvesterConfig(id, version, null, jsonbContext.marshall(new RRHarvesterConfig.Content()));
@@ -192,6 +193,7 @@ public class HarvestersBeanTest {
                 .withType(rrHarvesterConfigType)
                 .withVersion(version);
         when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+        when(entityManager.merge(any(HarvesterConfig.class))).thenReturn(harvesterConfig);
 
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         final Response response = harvestersBean.updateHarvesterConfig(id, version, TestHarvesterConfig.class.getName(), jsonbContext.marshall(new TestHarvesterConfig.Content()));

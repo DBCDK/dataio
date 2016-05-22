@@ -37,10 +37,13 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBException;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,13 +51,11 @@ import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
-import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 
 /**
@@ -1039,8 +1040,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<T>>() {
-            });
+            return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)) );
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
@@ -1093,4 +1093,21 @@ public class FlowStoreServiceConnector {
     public String getBaseUrl() {
         return baseUrl;
     }
+
+    /*
+     * Generate a specific ParameterizedType for use with GenericType(Type) for use with Generics
+     */
+    private <T> ParameterizedType createListGenericType(final Class<T> glazz) {
+           return new ParameterizedType() {
+               private final Type[] actualType={ glazz };
+
+               public Type[] getActualTypeArguments() { return actualType; }
+
+               public Type getRawType() { return List.class; }
+
+               public Type getOwnerType() { return null; }
+           };
+       }
+
+
 }

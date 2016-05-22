@@ -43,16 +43,16 @@ public class RRHarvesterConfigTest {
         RRHarvesterConfig rrFromString=jsonbContext.unmarshall( rrHarvestrConfigAsString, RRHarvesterConfig.class);
         assertThat( rrFromString, is( rrHarvesterConfig ));
 
-        rrFromString=jsonbContext.unmarshall("{\"type\":\"dk.dbc.dataio.harvester.types.RRHarvesterConfig\",\"id\":1,\"version\":2,\"content\":{\"resource\":\"Resource\",\"consumerId\":\"ConsumerId\",\"destination\":\"Destination\",\"type\":\"ACCTEST\",\"format\":\"format\",\"batchSize\":12,\"isEnabled\": true,\"openAgencyTarget\":{\"url\":null,\"group\":null,\"user\":null,\"password\":null},\"formatOverrides\":{\"12\":\"overwride 12\",\"191919\":\"must be 870970\"},\"includeRelations\":false, \"id\": \"harvest log id\"}}", RRHarvesterConfig.class);
+        rrFromString=jsonbContext.unmarshall("{\"type\":\"dk.dbc.dataio.harvester.types.RRHarvesterConfig\",\"id\":1,\"version\":2,\"content\":{\"resource\":\"Resource\",\"consumerId\":\"ConsumerId\",\"destination\":\"Destination\",\"type\":\"ACCTEST\",\"format\":\"format\",\"batchSize\":12,\"enabled\": true,\"openAgencyTarget\":{\"url\":null,\"group\":null,\"user\":null,\"password\":null},\"formatOverrides\":{\"12\":\"overwride 12\",\"191919\":\"must be 870970\"},\"includeRelations\":false, \"id\": \"harvest log id\"}}", RRHarvesterConfig.class);
 
         assertThat( rrFromString, is(rrHarvesterConfig));
     }
 
     @Test
     public void decodeTestFromLiveData() throws Exception {
-        RRHarvesterConfig rrHarvesterConfig=jsonbContext.unmarshall("{\"id\": 1, \"type\": \"dk.dbc.dataio.harvester.types.RRHarvesterConfig\", \"content\": {\"id\": \"broend-sync\",\"isEnabled\": false,\"type\": \"ACCTEST\", \"format\": \"katalog\", \"resource\": \"jdbc/dataio/rawrepo\", \"batchSize\": 10000, \"consumerId\": \"broend-sync\", \"destination\": \"testbroend-i01\", \"formatOverrides\": {\"870970\": \"basis\"}, \"includeRelations\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}}, \"version\": 1}", RRHarvesterConfig.class);
+        RRHarvesterConfig rrHarvesterConfig=jsonbContext.unmarshall("{\"id\": 1, \"type\": \"dk.dbc.dataio.harvester.types.RRHarvesterConfig\", \"content\": {\"id\": \"broend-sync\",\"enabled\": false,\"type\": \"ACCTEST\", \"format\": \"katalog\", \"resource\": \"jdbc/dataio/rawrepo\", \"batchSize\": 10000, \"consumerId\": \"broend-sync\", \"destination\": \"testbroend-i01\", \"formatOverrides\": {\"870970\": \"basis\"}, \"includeRelations\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}}, \"version\": 1}", RRHarvesterConfig.class);
         //RRHarvesterConfig rrOldHarvesterConfig=jsonbContext.unmarshall("{\"id\": 1, \"type\": \"dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig\", \"content\": {\"id\": \"broend-sync\",\"isEnabled\": true,\"type\": \"ACCTEST\", \"format\": \"katalog\", \"resource\": \"jdbc/dataio/rawrepo\", \"batchSize\": 10000, \"consumerId\": \"broend-sync\", \"destination\": \"testbroend-i01\", \"formatOverrides\": {\"870970\": \"basis\"}, \"includeRelations\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}}, \"version\": 1}", RRHarvesterConfig.class);
-        assertThat( rrHarvesterConfig.getContent().getIsEnabled(), is(false));
+        assertThat( rrHarvesterConfig.getContent().isEnabled(), is(false));
 
     }
 }

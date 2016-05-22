@@ -50,7 +50,8 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         private String id;
 
         /** Flag Indicating if the Configuation is enabled */
-        private boolean isEnabled = false;
+        @JsonProperty
+        private boolean enabled = false;
 
         /** JNDI name of rawrepo JDBC resource */
         private String resource;
@@ -71,6 +72,10 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         @JsonProperty
         private final Map<Integer, String> formatOverrides=new HashMap<>();
 
+        public boolean isEnabled() {
+            return enabled;
+        }
+
         /** Flag indicating whether or not to include
          record relations in marcXchange collections */
         @JsonProperty
@@ -90,14 +95,8 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
-        public boolean getIsEnabled() {
-            return isEnabled;
-        }
-
-
-
         public Content withEnabled(boolean enabled) {
-            isEnabled = enabled;
+            this.enabled = enabled;
             return this;
         }
 
@@ -151,6 +150,12 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         }
 
 
+        public Content withFormat(String format) {
+            this.format = format;
+            return this;
+        }
+
+
         public Content withFormatOverridesEntry( Integer formatKey, String formatOverride) {
             this.formatOverrides.put( formatKey, formatOverride );
             return this;
@@ -189,7 +194,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             if (this == o) return true;
             if (!(o instanceof Content)) return false;
             Content content = (Content) o;
-            return isEnabled == content.isEnabled &&
+            return enabled == content.enabled &&
                     includeRelations == content.includeRelations &&
                     batchSize == content.batchSize &&
                     Objects.equals(id, content.id) &&
@@ -204,14 +209,14 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, isEnabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
+            return Objects.hash(id, enabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
         }
 
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Content{");
             sb.append("batchSize=").append(batchSize);
-            sb.append(", isEnabled=").append(isEnabled);
+            sb.append(", isEnabled=").append(enabled);
             sb.append(", resource='").append(resource).append('\'');
             sb.append(", consumerId='").append(consumerId).append('\'');
             sb.append(", destination='").append(destination).append('\'');
@@ -223,5 +228,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             sb.append('}');
             return sb.toString();
         }
+
+
     }
 }

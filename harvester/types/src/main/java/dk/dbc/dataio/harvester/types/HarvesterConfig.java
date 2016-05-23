@@ -59,6 +59,7 @@ public abstract class HarvesterConfig<T> implements Serializable {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
+        InvariantUtil.checkNotNullOrThrow(ignoed, "ignoed");
     }
 
 

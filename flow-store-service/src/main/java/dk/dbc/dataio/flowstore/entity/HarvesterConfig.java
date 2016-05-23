@@ -48,7 +48,7 @@ import java.util.Objects;
 })
 @NamedNativeQueries(
     @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE,
-        query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>'{\"isEnabled\": true}'::jsonb",
+        query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>'{\"enabled\": true}'::jsonb",
         resultSetMapping = "HarvesterConfig.implicit"
     )
 )

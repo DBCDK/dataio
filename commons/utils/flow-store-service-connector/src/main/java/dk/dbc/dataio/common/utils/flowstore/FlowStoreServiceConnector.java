@@ -1047,8 +1047,7 @@ public class FlowStoreServiceConnector {
         final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
             verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<T>>() {
-            });
+            return readResponseGenericTypeEntity(response, new GenericType<>(createListGenericType(type)) );
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: findEnabledHarvesterConfigsByType took {} milliseconds", stopWatch.getElapsedTime());
@@ -1129,9 +1128,9 @@ public class FlowStoreServiceConnector {
     /*
      * Generate a specific ParameterizedType for use with GenericType(Type) for use with Generics
      */
-    private <T> ParameterizedType createListGenericType(final Class<T> glazz) {
+    private <T> ParameterizedType createListGenericType(final Class<T> clazz) {
            return new ParameterizedType() {
-               private final Type[] actualType={ glazz };
+               private final Type[] actualType={ clazz };
 
                public Type[] getActualTypeArguments() { return actualType; }
 

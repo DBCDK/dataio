@@ -36,8 +36,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
@@ -47,7 +53,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class HarvesterConfigsIT {
-
     private static Client restClient;
     private static Connection dbConnection;
     private static String baseUrl;
@@ -174,7 +179,6 @@ public class HarvesterConfigsIT {
         assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class).size(), is(1));
     }
 
-
     /**
      * Given: a deployed flow-store service where a harvester config has been stored and updated
      * When : attempting to update the stored harvester config with an outdated version
@@ -220,4 +224,26 @@ public class HarvesterConfigsIT {
         }
     }
 
+    @Test
+    public void findHarvesterConfigsByType() throws FlowStoreServiceConnectorException {
+        loadInitialState();
+        final List<RRHarvesterConfig> configs = flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class);
+        assertThat(configs.size(), is(6));
+    }
+
+    @Test
+    public void findEnabledHarvesterConfigsByType() throws FlowStoreServiceConnectorException {
+        loadInitialState();
+        final List<RRHarvesterConfig> configs = flowStoreServiceConnector.findEnabledHarvesterConfigsByType(RRHarvesterConfig.class);
+        assertThat(configs.size(), is(4));
+    }
+
+    private void loadInitialState() {
+        final URL resource = HarvesterConfigsIT.class.getResource("/initial_state.sql");
+        try {
+            JDBCUtil.executeScript(dbConnection, new File(resource.toURI()), StandardCharsets.UTF_8.name());
+        } catch (IOException | URISyntaxException | SQLException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 }

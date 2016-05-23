@@ -49,20 +49,6 @@ public abstract class HarvesterConfig<T> implements Serializable {
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
     }
 
-    @JsonCreator
-    public HarvesterConfig(
-            @JsonProperty("id") long id,
-            @JsonProperty("version") long version,
-            @JsonProperty("content") T content,
-            @JsonProperty("type") String ignoed)
-            throws NullPointerException, IllegalArgumentException {
-        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
-        this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
-        this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
-        InvariantUtil.checkNotNullOrThrow(ignoed, "ignoed");
-    }
-
-
     public long getId() {
         return id;
     }
@@ -75,13 +61,10 @@ public abstract class HarvesterConfig<T> implements Serializable {
         return content;
     }
 
-
-    @JsonProperty
+    @JsonIgnore
     public String getType() {
         return this.getClass().getName();
     }
-    @JsonIgnore
-    public void setType( String s) { }
 
     @Override
     public boolean equals(Object o) {

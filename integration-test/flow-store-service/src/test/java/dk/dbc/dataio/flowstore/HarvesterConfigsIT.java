@@ -157,7 +157,7 @@ public class HarvesterConfigsIT {
                 RRHarvesterConfig.class
         );
 
-        final RRHarvesterConfig.Content newConfigContent = new RRHarvesterConfig.Content().wihtFormat("someFormat");
+        final RRHarvesterConfig.Content newConfigContent = new RRHarvesterConfig.Content().withFormat("someFormat");
 
         final RRHarvesterConfig modifiedHarvesterConfig = new RRHarvesterConfig(
                 originalHarvesterConfig.getId(),
@@ -192,13 +192,13 @@ public class HarvesterConfigsIT {
         final RRHarvesterConfig firstModifiedHarvesterConfig = new RRHarvesterConfig(
                 harvesterConfig.getId(),
                 harvesterConfig.getVersion(),
-                new RRHarvesterConfig.Content().wihtFormat("someFormat")
+                new RRHarvesterConfig.Content().withFormat("someFormat")
         );
 
         final RRHarvesterConfig secondModifiedHarvesterConfig = new RRHarvesterConfig(
                 harvesterConfig.getId(),
                 harvesterConfig.getVersion(),
-                new RRHarvesterConfig.Content().wihtFormat("someOtherFormat")
+                new RRHarvesterConfig.Content().withFormat("someOtherFormat")
         );
 
         // update harvester config

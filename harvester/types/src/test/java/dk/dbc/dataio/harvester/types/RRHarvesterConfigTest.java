@@ -2,9 +2,10 @@ package dk.dbc.dataio.harvester.types;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import org.junit.Test;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
-import org.junit.Test;
 
 public class RRHarvesterConfigTest {
 
@@ -25,7 +26,7 @@ public class RRHarvesterConfigTest {
 
         RRHarvesterConfig rrHarvesterConfig=new RRHarvesterConfig(1,2,
                 new RRHarvesterConfig.Content()
-                        .wihtFormat("format")
+                        .withFormat("format")
                         .withBatchSize(12)
                 .withConsumerId("ConsumerId")
                 .withDestination("Destination")

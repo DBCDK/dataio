@@ -92,8 +92,6 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig {
             return isEnabled;
         }
 
-
-
         public Content withEnabled(boolean enabled) {
             isEnabled = enabled;
             return this;
@@ -139,7 +137,7 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig {
             return format;
         }
 
-        public Content wihtFormat(String format) {
+        public Content withFormat(String format) {
             this.format = format;
             return this;
         }

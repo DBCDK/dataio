@@ -140,27 +140,20 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return format;
         }
 
-        public Content wihtFormat(String format) {
-            this.format = format;
-            return this;
-        }
-
-        public Map<Integer, String> getFormatOverrides() {
-            return formatOverrides;
-        }
-
-
         public Content withFormat(String format) {
             this.format = format;
             return this;
         }
 
 
+        public Map<Integer, String> getFormatOverrides() {
+            return formatOverrides;
+        }
+
         public Content withFormatOverridesEntry( Integer formatKey, String formatOverride) {
             this.formatOverrides.put( formatKey, formatOverride );
             return this;
         }
-
 
         public boolean isIncludeRelations() {
             return includeRelations;
@@ -228,7 +221,5 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             sb.append('}');
             return sb.toString();
         }
-
-
     }
 }

@@ -23,14 +23,12 @@ package dk.dbc.dataio.flowstore;
 
 import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
-import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.integrationtest.ITUtil;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -38,7 +36,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.core.Response;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -47,6 +44,7 @@ import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class HarvesterConfigsIT {
 
@@ -54,7 +52,6 @@ public class HarvesterConfigsIT {
     private static Connection dbConnection;
     private static String baseUrl;
     private static FlowStoreServiceConnector flowStoreServiceConnector;
-    private static JSONBContext jsonbContext;
 
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
@@ -62,7 +59,6 @@ public class HarvesterConfigsIT {
         dbConnection = newIntegrationTestConnection();
         restClient = HttpClient.newClient();
         flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
-        jsonbContext = new JSONBContext();
     }
 
     @AfterClass
@@ -78,9 +74,11 @@ public class HarvesterConfigsIT {
     /**
      * Given   : a deployed flow-store service
      * When    : valid JSON is POSTed to the harvester configs type path with type as RRHarvesterConfig
-     * Then    : assert that the Harvester config created contains the expected information and is of type: RRHarvesterConfig
+     * Then    : assert that the harvester config created contains the expected information and is of type: RRHarvesterConfig
+     * And     : assert that one harvester config of type RRHarvesterConfig exist in the underlying database
      * And When: valid JSON is POSTed to the harvester configs type path with type as ODLRRHarvesterConfig
      * Then    : assert that the Harvester config created contains the expected information and is of type: OLDRRHarvesterConfig
+     * And     : assert that one harvester config of type OLDRRHarvesterConfig exist in the underlying database
      */
     @Test
     public void createHarvesterConfig_ok() throws Exception{
@@ -89,57 +87,137 @@ public class HarvesterConfigsIT {
         final OLDRRHarvesterConfig.Content oldRRConfigContent = new OLDRRHarvesterConfig.Content();
 
         // When...
-        HarvesterConfig newRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(newRRConfigContent, RRHarvesterConfig.class);
+        RRHarvesterConfig newRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(newRRConfigContent, RRHarvesterConfig.class);
 
         // Then...
         assertThat(newRRHarvesterConfig.getId(), is(notNullValue()));
         assertThat(newRRHarvesterConfig.getVersion(), is(notNullValue()));
         assertThat(newRRHarvesterConfig.getContent(), is(newRRConfigContent));
         assertThat(newRRHarvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
+        assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class).size(), is(1));
 
         // And When...
-        HarvesterConfig oldRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(oldRRConfigContent, OLDRRHarvesterConfig.class);
+        OLDRRHarvesterConfig oldRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(oldRRConfigContent, OLDRRHarvesterConfig.class);
 
         // Then...
         assertThat(oldRRHarvesterConfig.getId(), is(notNullValue()));
         assertThat(oldRRHarvesterConfig.getVersion(), is(notNullValue()));
         assertThat(oldRRHarvesterConfig.getContent(), is(oldRRConfigContent));
         assertThat(oldRRHarvesterConfig.getType(), is(OLDRRHarvesterConfig.class.getName()));
+        assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class).size(), is(1));
     }
 
     /**
-     * Given: a deployed flow-store service
-     * When : invalid JSON is posted to the configs type path
-     * Then : request returns with a BAD REQUEST http status code
+     * Given: a deployed flow-store service where a valid harvester config is stored
+     * When : valid JSON is POSTed to the harvester config path with an identifier (update) with a change to the harvester
+     *        config type
+     * Then : assert the harvester config has been updated correctly
+     * And  : assert that updated data can be found in the underlying database and only one harvester config of the expected type exists
      */
     @Test
-    public void createHarvesterConfig_invalidJson_BadRequest() {
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
-                .bind("type", RRHarvesterConfig.class.getName());
+    public void updateHarvesterConfigUpdateType_ok() throws FlowStoreServiceConnectorException, JSONBException {
+
+        // Given...
+        final OLDRRHarvesterConfig originalHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(
+                new OLDRRHarvesterConfig.Content(),
+                OLDRRHarvesterConfig.class
+        );
+
+        final RRHarvesterConfig.Content newConfigContent = new RRHarvesterConfig.Content();
+
+        final RRHarvesterConfig modifiedHarvesterConfig = new RRHarvesterConfig(
+                originalHarvesterConfig.getId(),
+                originalHarvesterConfig.getVersion(),
+                newConfigContent
+        );
 
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, "<invalid json />", baseUrl, path.build());
+        RRHarvesterConfig updatedHarvesterConfig = flowStoreServiceConnector.updateHarvesterConfig(modifiedHarvesterConfig);
 
         // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat(updatedHarvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
+        assertThat(updatedHarvesterConfig.getVersion(), is(originalHarvesterConfig.getVersion() + 1));
+        assertThat(updatedHarvesterConfig.getContent(), is(newConfigContent));
+
+        // And...
+        assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class).size(), is(1));
     }
 
     /**
-     * Given: a deployed flow-store service
-     * When : incompatible content and type is posted to the configs type path
-     * Then : request returns with a BAD REQUEST http status code
+     * Given: a deployed flow-store service where a valid harvester config is stored
+     * When : valid JSON is POSTed to the harvester config path with an identifier (update)
+     * Then : assert the harvester config has been updated correctly
+     * And  : assert that updated data can be found in the underlying database and only one harvester config exists
      */
     @Test
-    public void createHarvesterConfig_incompatibleContentAndType_BadRequest() throws JSONBException {
-        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
-                .bind("type", HarvesterConfig.class.getName());
+    public void updateHarvesterConfig_ok() throws FlowStoreServiceConnectorException, JSONBException {
 
-        final RRHarvesterConfig.Content configContent = new RRHarvesterConfig.Content();
+        final RRHarvesterConfig originalHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(
+                new RRHarvesterConfig.Content(),
+                RRHarvesterConfig.class
+        );
+
+        final RRHarvesterConfig.Content newConfigContent = new RRHarvesterConfig.Content().wihtFormat("someFormat");
+
+        final RRHarvesterConfig modifiedHarvesterConfig = new RRHarvesterConfig(
+                originalHarvesterConfig.getId(),
+                originalHarvesterConfig.getVersion(),
+                newConfigContent
+        );
 
         // When...
-        final Response response = HttpClient.doPostWithJson(restClient, jsonbContext.marshall(configContent), baseUrl, path.build());
+        RRHarvesterConfig updatedHarvesterConfig = flowStoreServiceConnector.updateHarvesterConfig(modifiedHarvesterConfig);
+        assertThat(updatedHarvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
+        assertThat(updatedHarvesterConfig.getVersion(), is(originalHarvesterConfig.getVersion() + 1));
+        assertThat(updatedHarvesterConfig.getContent(), is(newConfigContent));
 
-        // Then...
-        assertThat(response.getStatusInfo().getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class).size(), is(1));
     }
+
+
+    /**
+     * Given: a deployed flow-store service where a harvester config has been stored and updated
+     * When : attempting to update the stored harvester config with an outdated version
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a CONFLICT http status code
+     * And  : assert that only one harvester config of the expected type exists in the underlying database
+     */
+    @Test
+    public void updateHarvesterConfig_WrongVersion_Conflict() throws FlowStoreServiceConnectorException, JSONBException {
+
+        // Given...
+        // Create harvester config
+        final RRHarvesterConfig harvesterConfig = flowStoreServiceConnector.createHarvesterConfig(new RRHarvesterConfig.Content(), RRHarvesterConfig.class);
+
+        final RRHarvesterConfig firstModifiedHarvesterConfig = new RRHarvesterConfig(
+                harvesterConfig.getId(),
+                harvesterConfig.getVersion(),
+                new RRHarvesterConfig.Content().wihtFormat("someFormat")
+        );
+
+        final RRHarvesterConfig secondModifiedHarvesterConfig = new RRHarvesterConfig(
+                harvesterConfig.getId(),
+                harvesterConfig.getVersion(),
+                new RRHarvesterConfig.Content().wihtFormat("someOtherFormat")
+        );
+
+        // update harvester config
+        flowStoreServiceConnector.updateHarvesterConfig(firstModifiedHarvesterConfig);
+
+        try {
+            // When...
+            flowStoreServiceConnector.updateHarvesterConfig(secondModifiedHarvesterConfig);
+            fail("Edit conflict, in the case of multiple updates, was not detected as input to updateHarvesterConfig().");
+
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e) {
+
+            // And...
+            assertThat(e.getStatusCode(), is(409));
+
+            // And...
+            assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class).size(), is(1));
+        }
+    }
+
 }

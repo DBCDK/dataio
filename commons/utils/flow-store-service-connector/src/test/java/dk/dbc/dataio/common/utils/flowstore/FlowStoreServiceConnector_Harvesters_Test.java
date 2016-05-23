@@ -31,7 +31,6 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +44,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -93,8 +94,8 @@ public class FlowStoreServiceConnector_Harvesters_Test {
                 expectedHarvesterConfig
         );
 
-        Assert.assertThat(harvesterConfig, is(expectedHarvesterConfig));
-        Assert.assertThat(harvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
+        assertThat(harvesterConfig, is(expectedHarvesterConfig));
+        assertThat(harvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
     }
 
     @Test(expected = FlowStoreServiceConnectorException.class)
@@ -111,6 +112,42 @@ public class FlowStoreServiceConnector_Harvesters_Test {
     public void createHarvesterConfig_responseUnexpectedType_throws() throws FlowStoreServiceConnectorException {
         createHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(
                 Response.Status.BAD_REQUEST.getStatusCode(), "");
+    }
+
+    // ****************************************** update harvester config tests ******************************************
+
+    @Test
+    public void updateHarvesterConfig_harvesterConfigIsUpdated_returnsHarvesterConfig() throws FlowStoreServiceConnectorException, JSONBException {
+
+        final RRHarvesterConfig harvesterConfig = new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content());
+        HarvesterConfig updatedHarvesterConfig = updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(
+                Response.Status.OK.getStatusCode(), harvesterConfig);
+
+        assertThat(updatedHarvesterConfig, is(harvesterConfig));
+    }
+
+    @Test
+    public void updateHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException, JSONBException {
+        try {
+            updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");
+            fail("Exception not thrown");
+        } catch (FlowStoreServiceConnectorException ignored) { }
+    }
+
+    @Test
+    public void updateHarvesterConfig_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException, JSONBException {
+        try {
+            updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "");
+            fail("Exception not thrown");
+        } catch (FlowStoreServiceConnectorException ignored) { }
+    }
+
+    @Test
+    public void updateHarvesterConfig_responseWithHarvesterConfigIdNotFound_throws() throws FlowStoreServiceConnectorException, JSONBException {
+        try {
+            updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), "");
+            fail("Exception not thrown");
+        } catch (FlowStoreServiceConnectorException ignored) { }
     }
 
     // ************************************** find harvester configs by type tests ***************************************
@@ -369,6 +406,23 @@ public class FlowStoreServiceConnector_Harvesters_Test {
 
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.createHarvesterConfig(configContent, RRHarvesterConfig.class);
+    }
+
+    private HarvesterConfig updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException, JSONBException {
+        final RRHarvesterConfig.Content content = new RRHarvesterConfig.Content();
+        final HarvesterConfig config = new RRHarvesterConfig(1, 1, content);
+
+        final Map<String, String> headers = new HashMap<>(2);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(config.getVersion()));
+        headers.put(FlowStoreServiceConstants.RESOURCE_TYPE_HEADER, config.getType());
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(config.getId()));
+        when(HttpClient.doPostWithJson(CLIENT, headers, content, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.updateHarvesterConfig(config);
     }
 
     private String[] getfindHarvesterConfigsByTypePath(Class type) {

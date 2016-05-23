@@ -37,13 +37,11 @@ import dk.dbc.dataio.commons.types.SubmitterContent;
 import dk.dbc.dataio.commons.types.rest.FlowBinderFlowQuery;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
-import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBException;
-import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +54,10 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
+import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
 
 /**
@@ -995,6 +997,27 @@ public class FlowStoreServiceConnector {
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: createHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    public <T extends HarvesterConfig> T updateHarvesterConfig(T harvesterConfig) throws FlowStoreServiceConnectorException, JSONBException {
+        log.trace("FlowStoreServiceConnector: updateHarvesterConfig called with harvesterConfig='{}'", harvesterConfig);
+        InvariantUtil.checkNotNullOrThrow(harvesterConfig, "harvesterConfig");
+        final StopWatch stopWatch = new StopWatch();
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(harvesterConfig.getId()));
+
+        final Map<String, String> headers = new HashMap<>(2);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(harvesterConfig.getVersion()));
+        headers.put(FlowStoreServiceConstants.RESOURCE_TYPE_HEADER, harvesterConfig.getType());
+
+        final Response response = doPostWithJson(httpClient, headers, harvesterConfig.getContent(), baseUrl, path.build());
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return (T) readResponseEntity(response, harvesterConfig.getClass());
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: updateHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

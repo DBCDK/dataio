@@ -53,7 +53,8 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
         private String id;
 
         /** Flag Indicating if the Configuation is enabled */
-        private boolean isEnabled = false;
+        @JsonProperty
+        private boolean enabled = false;
 
         /** JNDI name of rawrepo JDBC resource */
         private String resource;
@@ -93,12 +94,12 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
             return this;
         }
 
-        public boolean getIsEnabled() {
-            return isEnabled;
+        public boolean isEnabled() {
+            return enabled;
         }
 
         public Content withEnabled(boolean enabled) {
-            isEnabled = enabled;
+            this.enabled = enabled;
             return this;
         }
 
@@ -190,7 +191,7 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
             if (this == o) return true;
             if (!(o instanceof Content)) return false;
             Content content = (OLDRRHarvesterConfig.Content) o;
-            return isEnabled == content.isEnabled &&
+            return enabled == content.enabled &&
                     includeRelations == content.includeRelations &&
                     batchSize == content.batchSize &&
                     Objects.equals(id, content.id) &&
@@ -205,14 +206,14 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, isEnabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
+            return Objects.hash(id, enabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
         }
 
         @Override
         public String toString() {
             final StringBuilder sb = new StringBuilder("Content{");
             sb.append("batchSize=").append(batchSize);
-            sb.append(", isEnabled=").append(isEnabled);
+            sb.append(", enabled=").append(enabled);
             sb.append(", resource='").append(resource).append('\'');
             sb.append(", consumerId='").append(consumerId).append('\'');
             sb.append(", destination='").append(destination).append('\'');

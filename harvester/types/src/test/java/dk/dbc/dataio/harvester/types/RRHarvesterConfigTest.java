@@ -52,8 +52,6 @@ public class RRHarvesterConfigTest {
     @Test
     public void decodeTestFromLiveData() throws Exception {
         RRHarvesterConfig rrHarvesterConfig=jsonbContext.unmarshall("{\"id\": 1, \"type\": \"dk.dbc.dataio.harvester.types.RRHarvesterConfig\", \"content\": {\"id\": \"broend-sync\",\"enabled\": false,\"type\": \"ACCTEST\", \"format\": \"katalog\", \"resource\": \"jdbc/dataio/rawrepo\", \"batchSize\": 10000, \"consumerId\": \"broend-sync\", \"destination\": \"testbroend-i01\", \"formatOverrides\": {\"870970\": \"basis\"}, \"includeRelations\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}}, \"version\": 1}", RRHarvesterConfig.class);
-        //RRHarvesterConfig rrOldHarvesterConfig=jsonbContext.unmarshall("{\"id\": 1, \"type\": \"dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig\", \"content\": {\"id\": \"broend-sync\",\"isEnabled\": true,\"type\": \"ACCTEST\", \"format\": \"katalog\", \"resource\": \"jdbc/dataio/rawrepo\", \"batchSize\": 10000, \"consumerId\": \"broend-sync\", \"destination\": \"testbroend-i01\", \"formatOverrides\": {\"870970\": \"basis\"}, \"includeRelations\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}}, \"version\": 1}", RRHarvesterConfig.class);
         assertThat( rrHarvesterConfig.getContent().isEnabled(), is(false));
-
     }
 }

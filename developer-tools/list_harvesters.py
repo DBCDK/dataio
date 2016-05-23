@@ -46,7 +46,6 @@ def parse_arguments():
 
 args=parse_arguments()
 
-print()
 url="http://"+args.host+"/dataio/flow-store-service/"
 
 if( args.type ) :
@@ -54,14 +53,14 @@ if( args.type ) :
 else:
     url+="harvesters/rr/config"
 
-print(url)
+sys.stderr.write(url + '\n')
 
 start = time.time()
 
 response = requests.get( url )
 latency = time.time() - start
 if response.status_code == requests.codes.OK :
-    sys.stderr.write('Elapsed : %s  - %s'%(response.elapsed, latency))
+    sys.stderr.write('Elapsed : %s  - %s\n'%(response.elapsed, latency))
     print json.dumps(response.json(), indent=4, sort_keys=False )
 else :
     print "Error from server : "+ str(response.status_code)

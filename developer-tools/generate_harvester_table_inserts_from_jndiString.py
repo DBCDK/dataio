@@ -34,6 +34,8 @@ def parse_arguments():
     global args
     parser = argparse.ArgumentParser("""tool to generate harvester_config tabel from jndi values
     usage: generate_harvester_table_inserts_from_jndi_string [file] > sqlfile.sql""")
+    parser.add_argument("--delete-before-insert", help="Generate a delete statement before insert", dest='generate_delete', action='store_const' , default=False, const=True)
+
     parser.add_argument("jndi_file", help="file med jndi_value")
     return parser.parse_args()
 
@@ -43,10 +45,14 @@ args = parse_arguments()
 json_data = open(args.jndi_file).read()
 unpacked = json.loads(json_data)
 
-count = 1
+if args.generate_delete :
+    print("delete from harvester_configs;")
+
+
+count = 100
 version = 1
 for entry in unpacked['entries']:
-    entry['isEnabled'] = True
+    entry['enabled'] = True
 
     print("insert into harvester_configs (id, version , type, content ) values ( %d, %d, 'dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig', '%s'::jsonb);" % (
         count, version, json.dumps(entry)))

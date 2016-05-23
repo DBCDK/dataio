@@ -999,8 +999,17 @@ public class FlowStoreServiceConnector {
             log.debug("FlowStoreServiceConnector: createHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
-
-    public <T extends HarvesterConfig> T updateHarvesterConfig(T harvesterConfig) throws FlowStoreServiceConnectorException, JSONBException {
+    
+    /**
+     * Updates an existing harvester config from the flow-store
+     *
+     * @param harvesterConfig holding the updated information
+     * @param <T> type parameter
+     * @return the updated harvester config
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to update the harvester config
+     */
+    public <T extends HarvesterConfig> T updateHarvesterConfig(T harvesterConfig) throws ProcessingException, FlowStoreServiceConnectorException {
         log.trace("FlowStoreServiceConnector: updateHarvesterConfig called with harvesterConfig='{}'", harvesterConfig);
         InvariantUtil.checkNotNullOrThrow(harvesterConfig, "harvesterConfig");
         final StopWatch stopWatch = new StopWatch();

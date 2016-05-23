@@ -49,8 +49,7 @@ if args.generate_delete :
     print("delete from harvester_configs;")
 
 
-count = 100
-version = 1
+count = version = 1
 for entry in unpacked['entries']:
     entry['enabled'] = True
 

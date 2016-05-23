@@ -241,7 +241,7 @@ public class HarvestersBeanTest {
     @Test
     @SuppressWarnings("unchecked")
     public void findEnabledHarvesterConfigsByType_noConfigsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException {
-        when(entityManager.createNativeQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)).thenReturn(query);
+        when(entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)).thenReturn(query);
         when(query.setParameter(1, rrHarvesterConfigType)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
@@ -259,7 +259,7 @@ public class HarvestersBeanTest {
         final HarvesterConfig firstConfig = new HarvesterConfig().withId(1L);
         final HarvesterConfig secondConfig = new HarvesterConfig().withId(2L);
 
-        when(entityManager.createNativeQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)).thenReturn(query);
+        when(entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)).thenReturn(query);
         when(query.setParameter(1, rrHarvesterConfigType)).thenReturn(query);
         when(query.getResultList()).thenReturn(Arrays.asList(firstConfig, secondConfig));
 

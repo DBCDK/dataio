@@ -193,7 +193,7 @@ public class HarvestersBean {
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
     @Produces({MediaType.APPLICATION_JSON})
     public Response findEnabledHarvesterConfigsByType(@PathParam("type") String type) {
-        final Query query = entityManager.createNativeQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)
+        final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE)
                 .setParameter(1, type);
         final List<HarvesterConfig> results = query.getResultList();
         try {

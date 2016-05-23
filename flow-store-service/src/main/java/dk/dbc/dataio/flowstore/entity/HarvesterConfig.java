@@ -23,10 +23,12 @@ package dk.dbc.dataio.flowstore.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityResult;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 import java.util.Objects;
 
@@ -37,15 +39,18 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "harvester_configs")
+@SqlResultSetMapping(name="HarvesterConfig.implicit", entities = {
+        @EntityResult(entityClass = HarvesterConfig.class)}
+)
 @NamedQueries({
-    @NamedQuery(name = HarvesterConfig.QUERY_FIND_ALL_OF_TYPE, query = "SELECT harvesterConfig FROM HarvesterConfig harvesterConfig where harvesterConfig.type = :type"),
+    @NamedQuery(name = HarvesterConfig.QUERY_FIND_ALL_OF_TYPE,
+        query = "SELECT harvesterConfig FROM HarvesterConfig harvesterConfig where harvesterConfig.type = :type"),
 })
 @NamedNativeQueries(
-        @NamedNativeQuery(
-                name=HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE,
-                resultClass = HarvesterConfig.class,
-                query = "Select * from harvester_configs where type = ? and content @>'{\"content\": { \"isEnabled\": true } }'::jsonb"
-        )
+    @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE,
+        query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>'{\"isEnabled\": true}'::jsonb",
+        resultSetMapping = "HarvesterConfig.implicit"
+    )
 )
 public class HarvesterConfig extends Versioned {
     public static final String QUERY_FIND_ALL_OF_TYPE = "Harvester.findAllOfType";

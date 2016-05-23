@@ -1,23 +1,20 @@
 package dk.dbc.dataio.common.utils.flowstore;
 
+import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.glassfish.jersey.client.ClientConfig;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -26,82 +23,75 @@ import javax.ws.rs.core.MediaType;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by ja7 on 20-05-16.
- */
-
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
-
     private static final int WIREMOCK_PORT = Integer.valueOf(System.getProperty("wiremock.port", "8998"));
-    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(WIREMOCK_PORT);
+
     private final String baseURL = "http://localhost:" + WIREMOCK_PORT + "/";
-
-
-    @Before
-    public void setUp() throws Exception {
-
-    }
-
-    @After
-    public void tearDown() throws Exception {
-
-    }
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Test
     public void findHarvesterConfigsByTypeForOldRRType() throws Exception {
+        final FlowStoreServiceConnector connector = createTestConnector();
+        final String path = "/" + String.join("/", (CharSequence[]) new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+                .bind(FlowStoreServiceConstants.TYPE_VARIABLE, OLDRRHarvesterConfig.class.getName())
+                .build());
 
-        FlowStoreServiceConnector connector = createTestConnector();
-        // TODO: use FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE
-        stubFor(get(urlEqualTo("/harvester-configs/types/dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig"))
+        stubFor(get(urlEqualTo(path))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .withBody(jsonbContext.marshall(buildOLDRRList()))
+                        .withBody(marshall(buildOLDRRList()))
                 )
         );
 
-        List<OLDRRHarvesterConfig> res = connector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class);
+        final List<OLDRRHarvesterConfig> response = connector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class);
 
-        assertThat(res.size(), is(1));
-        assertThat(res.get(0).getId(),is( 1L ));
-        List<OLDRRHarvesterConfig> r=buildOLDRRList();
-        assertThat(res.get(0),is( r.get(0)) );
+        assertThat(response.size(), is(1));
+        assertThat(response.get(0).getId(),is(1L));
+        final List<OLDRRHarvesterConfig> expectedList = buildOLDRRList();
+        assertThat(response.get(0), is(expectedList.get(0)));
     }
 
 
     @Test
     public void findHarvesterConfigsByTypeForRRType() throws Exception {
+        final FlowStoreServiceConnector connector = createTestConnector();
+        final String path = "/" + String.join("/", (CharSequence[]) new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)
+                .bind(FlowStoreServiceConstants.TYPE_VARIABLE, RRHarvesterConfig.class.getName())
+                .build());
 
-        FlowStoreServiceConnector connector = createTestConnector();
-        // TODO: use FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE
-        stubFor(get(urlEqualTo("/harvester-configs/types/dk.dbc.dataio.harvester.types.RRHarvesterConfig"))
-                //.withHeader("Accept", equalTo(MediaType.APPLICATION_JSON) )
+        stubFor(get(urlEqualTo(path))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", MediaType.APPLICATION_JSON)
-                        .withBody(jsonbContext.marshall(buildRRList()))
+                        .withBody(marshall(buildRRList()))
                 )
         );
 
-        List<RRHarvesterConfig> res = connector.findHarvesterConfigsByType(RRHarvesterConfig.class);
+        final List<RRHarvesterConfig> response = connector.findHarvesterConfigsByType(RRHarvesterConfig.class);
 
-        assertThat(res.size(), is(1));
-        assertThat(res.get(0).getId(),is( 1L ));
-        List<RRHarvesterConfig> r=buildRRList();
-        assertThat(res.get(0),is( r.get(0)) );
+        assertThat(response.size(), is(1));
+        assertThat(response.get(0).getId(), is(1L));
+        final List<RRHarvesterConfig> expectedList = buildRRList();
+        assertThat(response.get(0),is(expectedList.get(0)));
 
 
     }
 
     private List<OLDRRHarvesterConfig> buildOLDRRList() {
-
-        OLDRRHarvesterConfig rrHarvesterConfig = new OLDRRHarvesterConfig(1, 2,
+        final OLDRRHarvesterConfig rrHarvesterConfig = new OLDRRHarvesterConfig(1, 2,
                 new OLDRRHarvesterConfig.Content()
-                        .wihtFormat("format")
+                        .withFormat("format")
                         .withBatchSize(12)
                         .withConsumerId("ConsumerId")
                         .withDestination("Destination")
@@ -114,16 +104,15 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
                         .withId("harvest log id")
                         .withEnabled(true)
         );
-        List<OLDRRHarvesterConfig> lres = new ArrayList<>();
-        lres.add(rrHarvesterConfig);
-        return lres;
+        final List<OLDRRHarvesterConfig> list = new ArrayList<>();
+        list.add(rrHarvesterConfig);
+        return list;
     }
 
     private List<RRHarvesterConfig> buildRRList() {
-
-        RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1, 2,
+        final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(1, 2,
                 new RRHarvesterConfig.Content()
-                        .wihtFormat("format")
+                        .withFormat("format")
                         .withBatchSize(12)
                         .withConsumerId("ConsumerId")
                         .withDestination("Destination")
@@ -136,20 +125,21 @@ public class FlowStoreServiceConnector_Harvesters_WireMock_Test {
                         .withId("harvest log id")
                         .withEnabled(true)
         );
-        List<RRHarvesterConfig> lres = new ArrayList<>();
-        lres.add(rrHarvesterConfig);
-        return lres;
-
+        final List<RRHarvesterConfig> list = new ArrayList<>();
+        list.add(rrHarvesterConfig);
+        return list;
     }
 
-
     private FlowStoreServiceConnector createTestConnector() {
-        ClientConfig cfg = new ClientConfig();
+        final ClientConfig cfg = new ClientConfig();
         cfg.register(JacksonJsonProvider.class);
         cfg.register(JacksonJaxbJsonProvider.class);
-        Client client = HttpClient.newClient();
-
+        final Client client = HttpClient.newClient();
         return new FlowStoreServiceConnector(client, baseURL);
     }
 
+    private <T extends HarvesterConfig> String marshall(List<T> list) throws JSONBException {
+        final CollectionType collectionType = jsonbContext.getTypeFactory().constructCollectionType(List.class, HarvesterConfig.class);
+        return jsonbContext.marshall(list, collectionType);
+    }
 }

@@ -62,6 +62,25 @@ public class JSONBContext {
     }
 
     /**
+     * Marshalls given value type into corresponding JSON string representation using using specified withType,
+     * instead of actual runtime type of object
+     * @param object object to marshall
+     * @param withType root type
+     * @return JSON representation
+     * @throws JSONBException if unable to marshall value type into its JSON representation
+     */
+    public String marshall(Object object, JavaType withType) throws JSONBException {
+        final StringWriter stringWriter = new StringWriter();
+        try {
+            new ObjectMapper().writerWithType(withType).writeValue(stringWriter, object);
+        } catch (IOException e) {
+            throw new JSONBException(String.format(
+                    "Exception caught when trying to marshall %s object to JSON", object.getClass().getName()), e);
+        }
+        return stringWriter.toString();
+    }
+
+    /**
      * Unmarshalls JSON string into value type
      * @param json JSON representation of value type
      * @param tClass value type class

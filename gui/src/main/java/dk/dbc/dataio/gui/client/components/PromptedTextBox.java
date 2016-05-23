@@ -36,26 +36,29 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     @UiField final TextBox textBox = new TextBox();
 
-    
-    public PromptedTextBox(String guiId, String prompt, int maxLength) {
-        this(guiId, prompt);
-        textBox.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
+
+    /**
+     * Default empty constructor
+     */
+    public PromptedTextBox() {
+        this("");
     }
-    
-    public PromptedTextBox(String guiId, String prompt) {
-        super(guiId, prompt);
+
+    /**
+     * Constructor to be used in UI Binder
+     * @param prompt The prompt text
+     */
+    public @UiConstructor
+    PromptedTextBox(String prompt) {
+        super(prompt);
         textBox.addStyleName(PromptedData.PROMPTED_DATA_DATA_CLASS);
         add(textBox);
     }
 
-    public @UiConstructor
-    PromptedTextBox(String guiId, String prompt, String maxLength) {
-        this(guiId, prompt);
-        if (!maxLength.isEmpty()) {
-            textBox.getElement().setAttribute("Maxlength", maxLength);
-        }
-    }
-
+    /**
+     * Sets the Tool Tip to be used. Tool Tips will be shown, whenever the user hovers over the component
+     * @param toolTip The Tool Tip to be shown to the user
+     */
     public void setToolTip(String toolTip) {
         if (!toolTip.isEmpty()) {
             new Tooltip(textBox, toolTip);
@@ -63,16 +66,37 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
 
     }
 
+    /**
+     * Sets the Max Length of the text box in number of characters that can be entered
+     * @param maxLength The Max Length of the text box
+     */
+    public void setMaxLength(String maxLength) {
+        textBox.getElement().setAttribute("Maxlength", String.valueOf(maxLength));
+    }
+
+    /**
+     * Gets the value of the entered text as a String
+     * @return The value of the entered text
+     */
     @Override
     public String getValue() {
         return textBox.getValue();
     }
 
+    /**
+     * Sets the text in the Text box in the component
+     * @param value The text to be set in the textbox
+     */
     @Override
     public void setValue(String value) {
         textBox.setValue(value, false);
     }
 
+    /**
+     * Sets the text in the Text box in the component
+     * @param value The text to be set in the textbox
+     * @param fireEvents If true, an event is fired to signal that the value has changed
+     */
     @Override
     public void setValue(String value, boolean fireEvents) {
         textBox.setValue(value, fireEvents);
@@ -89,43 +113,84 @@ public class PromptedTextBox extends PromptedData implements HasValue<String> {
         return textBox.addValueChangeHandler(handler);
     }
 
+    /**
+     * Clears the text in the textbox
+     */
     public void clearText() {
         textBox.setText("");
     }
-    
+
+    /**
+     * Sets the text in the textbox. No event will be fired.
+     * @param value The text to be set in the textbox
+     */
     public void setText(String value) {
         textBox.setText(value);
     }
-    
+
+    /**
+     * Gets the value of the entered text as a String
+     * @return The value of the entered text
+     */
     public String getText() {
         return textBox.getText();
     }
 
+    /**
+     * Enables or disables the component
+     * @param enabled True: Enables the component, False: Disables the component
+     */
     public void setEnabled(boolean enabled) {
         textBox.setEnabled(enabled);
     }
 
+    /**
+     * Tells, whether the component is enabled or disabled
+     * @return True: Enabled, False: Disabled
+     */
     public boolean isEnabled() {
         return textBox.isEnabled();
     }
 
+    /**
+     * Sets the focus on this component
+     * @param focused If true, the component is focused, if false, the component is de-focused (blurred)
+     */
     public void setFocus(boolean focused) {
         textBox.setFocus(focused);
     }
 
+    /**
+     * Adds a KeyDownHandler
+     * @param handler The KeyDownHandler
+     * @return The HandlerRegistration object to be used to remove the handler
+     */
     public HandlerRegistration addKeyDownHandler(KeyDownHandler handler) {
         return textBox.addKeyDownHandler(handler);
     }
 
+    /**
+     * Fires a Change event
+     */
     public void fireChangeEvent() {
         class TextBoxChangedEvent extends ChangeEvent {}
         textBox.fireEvent(new TextBoxChangedEvent());
     }
-    
+
+    /**
+     * Adds a ChangeHandler to this component
+     * @param handler The ChangeHandler
+     * @return The HandlerRegistration object to be used to remove the handler
+     */
     public HandlerRegistration addChangeHandler(ChangeHandler handler) {
         return textBox.addChangeHandler(handler);
     }
 
+    /**
+     * Adds a BlurHandler to this component
+     * @param handler The BlurHandler
+     * @return The HandlerRegistration object to be used to remove the handler
+     */
     public HandlerRegistration addBlurHandler(BlurHandler handler){
         return textBox.addBlurHandler(handler);
     }

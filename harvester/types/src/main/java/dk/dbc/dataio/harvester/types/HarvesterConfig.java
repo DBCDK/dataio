@@ -34,9 +34,9 @@ import java.io.Serializable;
 public abstract class HarvesterConfig<T> implements Serializable {
     private static final long serialVersionUID = 4610025048980946641L;
 
-    private final long id;
-    private final long version;
-    private final T content;
+    private /* final */ long id;
+    private /* final */ long version;
+    private /* final */ T content;
 
     @JsonCreator
     public HarvesterConfig(
@@ -47,6 +47,9 @@ public abstract class HarvesterConfig<T> implements Serializable {
         this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
         this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
         this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
+    }
+
+    protected HarvesterConfig() {
     }
 
     public long getId() {

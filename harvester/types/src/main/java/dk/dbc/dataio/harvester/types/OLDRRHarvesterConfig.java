@@ -25,11 +25,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.types.JobSpecification;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class OLDRRHarvesterConfig extends RRHarvesterConfig {
+public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializable {
     private static final long serialVersionUID = -4621168600864059745L;
 
     public OLDRRHarvesterConfig(
@@ -40,8 +41,12 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig {
         super(id, version, content);
     }
 
+    private OLDRRHarvesterConfig() { }
+
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-    public static class Content extends RRHarvesterConfig.Content {
+    public static class Content extends RRHarvesterConfig.Content implements Serializable {
+        public Content() { }
+
         private static final long serialVersionUID = 2870875843923021216L;
 
         /** ID of harvest operation */

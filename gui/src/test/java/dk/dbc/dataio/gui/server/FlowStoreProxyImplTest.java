@@ -59,25 +59,16 @@ import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
-import dk.dbc.dataio.harvester.test.types.RawRepoHarvesterConfigEntryBuilder;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.naming.NamingException;
-import javax.ws.rs.client.Client;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -86,6 +77,14 @@ import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.naming.NamingException;
+import javax.ws.rs.client.Client;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -1687,7 +1686,8 @@ public class FlowStoreProxyImplTest {
     public void getHarvesterRrConfigs_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        when(flowStoreServiceConnector.getHarvesterRrConfigs()).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
+
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class)).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", 500));
         try {
             flowStoreProxy.getHarvesterRrConfigs();
             fail("No INTERNAL_SERVER_ERROR was thrown by getHarvesterRrConfigs()");
@@ -1701,17 +1701,25 @@ public class FlowStoreProxyImplTest {
 
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final RawRepoHarvesterConfig rawRepoHarvesterConfig = new RawRepoHarvesterConfig();
-        rawRepoHarvesterConfig.addEntry(new RawRepoHarvesterConfigEntryBuilder().setId("Id-1").build());
-        rawRepoHarvesterConfig.addEntry(new RawRepoHarvesterConfigEntryBuilder().setId("Id-2").build());
-        when(flowStoreServiceConnector.getHarvesterRrConfigs()).thenReturn(rawRepoHarvesterConfig);
+        final List<RRHarvesterConfig> rrHarvesterConfigs = new ArrayList<>();
+        rrHarvesterConfigs.add( new RRHarvesterConfig(1,1,
+                new RRHarvesterConfig.Content().withId("Id-1")
+        ) );
 
-        final RawRepoHarvesterConfig result = flowStoreProxy.getHarvesterRrConfigs();
+        final List<OLDRRHarvesterConfig> oldRrHarvesterConfigs = new ArrayList<>();
+        oldRrHarvesterConfigs.add( new OLDRRHarvesterConfig(2,1,
+                new OLDRRHarvesterConfig.Content().withId("Id-2")
+        ) );
+
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class)).thenReturn(rrHarvesterConfigs);
+        when(flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class)).thenReturn(oldRrHarvesterConfigs);
+
+        final List<RRHarvesterConfig> result = flowStoreProxy.getHarvesterRrConfigs();
 
         assertNotNull(result);
-        assertThat(result.getEntries().size(), is(2));
-        for (RawRepoHarvesterConfig.Entry entry: result.getEntries()) {
-            switch(entry.getId()) {
+        assertThat(result.size(), is(2));
+        for ( RRHarvesterConfig entry: result ) {
+            switch(entry.getContent().getId()) {
                 case "Id-1":
                 case "Id-2":
                     break;

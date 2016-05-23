@@ -25,22 +25,22 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.harvester.test.types.RawRepoHarvesterConfigEntryBuilder;
+import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit test of HarvestersTable
@@ -52,27 +52,27 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class HarvestersTableTest {
 
-    @Mock ListDataProvider<RawRepoHarvesterConfig.Entry> mockedDataProvider;
-    @Mock List<RawRepoHarvesterConfig.Entry> mockedHarvesterList;
+    @Mock ListDataProvider<RRHarvesterConfig> mockedDataProvider;
+    @Mock List<RRHarvesterConfig> mockedHarvesterList;
     @Mock Texts mockedTexts;
 
     // Test Data
-    private RawRepoHarvesterConfig testHarvesterConfig = new RawRepoHarvesterConfig();
+    private List<RRHarvesterConfig> testHarvesterConfig = new ArrayList<>();
     private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
-    private RawRepoHarvesterConfig.Entry testHarvesterConfigEntry1 = new RawRepoHarvesterConfigEntryBuilder().
-            setId("ID1").
-            setResource("Resource1").
-            setConsumerId("ConsumerId1").
-            setDestination("Destination1").
-            setType(JobSpecification.Type.TRANSIENT).
-            setFormat("Format1").
-            setFormatOverrides(234567, "FormatOverride2").
-            setFormatOverrides(123456, "FormatOverride1").
-            setIncludeRelations(true).
-            setBatchSize(321).
-            setOpenAgencyTarget(testOpenAgencyTarget).
-            build();
-    private RawRepoHarvesterConfig.Entry testHarvesterConfigEntry2 = new RawRepoHarvesterConfigEntryBuilder().setId("ID2").build();
+    private RRHarvesterConfig testHarvesterConfigEntry1 = new RRHarvesterConfig(1,2, new RRHarvesterConfig.Content()
+            .withId("ID1")
+            .withResource("Resource1")
+            .withConsumerId("ConsumerId1")
+            .withDestination("Destination1")
+            .withType(JobSpecification.Type.TRANSIENT)
+            .withFormat("Format1")
+            .withFormatOverridesEntry(234567, "FormatOverride2")
+            .withFormatOverridesEntry(123456, "FormatOverride1")
+            .withIncludeRelations(true)
+            .withBatchSize(321)
+            .withOpenAgencyTarget(testOpenAgencyTarget)
+    );
+    private OLDRRHarvesterConfig testHarvesterConfigEntry2 = new OLDRRHarvesterConfig(2,3, new OLDRRHarvesterConfig.Content().withId("ID2") );
 
     @Before
     public void setupTestHarvesterConfig() {
@@ -80,8 +80,10 @@ public class HarvestersTableTest {
         testOpenAgencyTarget.setGroup("Group1");
         testOpenAgencyTarget.setUser("User1");
         testOpenAgencyTarget.setPassword("Password1");
-        testHarvesterConfig.addEntry(testHarvesterConfigEntry2);
-        testHarvesterConfig.addEntry(testHarvesterConfigEntry1);
+
+
+        testHarvesterConfig.add(testHarvesterConfigEntry2);
+        testHarvesterConfig.add(testHarvesterConfigEntry1);
     }
 
     @Before
@@ -122,7 +124,7 @@ public class HarvestersTableTest {
         when(mockedDataProvider.getList()).thenReturn(mockedHarvesterList);
 
         // Subject Under Test
-        harvestersTable.setHarvesters(testHarvesterConfig);
+        harvestersTable.setHarvesters( testHarvesterConfig);
 
         // Verify Test
         verify(mockedDataProvider, times(4)).getList();

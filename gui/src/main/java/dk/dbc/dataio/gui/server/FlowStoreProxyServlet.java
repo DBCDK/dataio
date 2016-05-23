@@ -24,9 +24,13 @@ package dk.dbc.dataio.gui.server;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
-import dk.dbc.dataio.gui.client.model.*;
+import dk.dbc.dataio.gui.client.model.FlowBinderModel;
+import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.model.SinkModel;
+import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import javax.naming.NamingException;
 import javax.servlet.ServletException;
@@ -202,7 +206,7 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
      */
 
     @Override
-    public RawRepoHarvesterConfig getHarvesterRrConfigs() throws ProxyException {
+    public List<RRHarvesterConfig> getHarvesterRrConfigs() throws ProxyException {
         return flowStoreProxy.getHarvesterRrConfigs();
     }
 

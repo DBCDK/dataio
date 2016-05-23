@@ -49,7 +49,8 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -510,16 +511,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      */
 
     @Override
-    public RawRepoHarvesterConfig getHarvesterRrConfigs() throws ProxyException {
+    public List<RRHarvesterConfig> getHarvesterRrConfigs() throws ProxyException {
         final String callerMethodName = "getHarvesterRrConfigs";
-        RawRepoHarvesterConfig rawRepoHarvesterConfig = null;
+        List<RRHarvesterConfig> rrHarvesterConfigs=null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
-            rawRepoHarvesterConfig = flowStoreServiceConnector.getHarvesterRrConfigs();
+            rrHarvesterConfigs = new ArrayList<>();
+
+            rrHarvesterConfigs.addAll( flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class));
+            rrHarvesterConfigs.addAll( flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class));
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
-        return rawRepoHarvesterConfig;
+        return rrHarvesterConfigs;
     }
 
     /*

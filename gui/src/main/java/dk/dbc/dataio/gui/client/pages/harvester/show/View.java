@@ -27,7 +27,9 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+
+import java.util.List;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
@@ -61,7 +63,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return this.viewInjector.getTexts();
     }
 
-    public void setHarvesters(RawRepoHarvesterConfig harvesters) {
+    public void setHarvesters(List<RRHarvesterConfig> harvesters) {
         harvestersTable.setHarvesters(harvesters);
     }
 

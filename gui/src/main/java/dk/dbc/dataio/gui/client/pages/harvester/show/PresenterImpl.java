@@ -28,7 +28,9 @@ import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+
+import java.util.List;
 
 
 /**
@@ -88,14 +90,15 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the findAllFlows method in the Flow Store
      */
-    protected class GetHarvestersCallback extends FilteredAsyncCallback<RawRepoHarvesterConfig> {
+    protected class GetHarvestersCallback extends FilteredAsyncCallback<List<RRHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
+
         @Override
-        public void onSuccess(RawRepoHarvesterConfig rawRepoHarvesterConfig) {
-            getView().setHarvesters(rawRepoHarvesterConfig);
+        public void onSuccess(List<RRHarvesterConfig> rrHarvesterConfigs) {
+            getView().setHarvesters(rrHarvesterConfigs);
         }
     }
 

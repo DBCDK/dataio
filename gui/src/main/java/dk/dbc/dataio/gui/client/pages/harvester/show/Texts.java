@@ -58,6 +58,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Type();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Status();
+
 
     // Help texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -90,6 +93,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Type();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_Status();
+
 
     // Include Relation values
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -97,4 +103,12 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String includeRelationsFalse();
+
+    // Enabled values
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String harvesterEnabled();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String harvesterDisabled();
+
 }

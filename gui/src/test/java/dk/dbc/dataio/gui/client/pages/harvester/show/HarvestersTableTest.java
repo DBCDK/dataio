@@ -28,19 +28,20 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Unit test of HarvestersTable
@@ -70,9 +71,10 @@ public class HarvestersTableTest {
             .withFormatOverridesEntry(123456, "FormatOverride1")
             .withIncludeRelations(true)
             .withBatchSize(321)
+            .withEnabled(false)
             .withOpenAgencyTarget(testOpenAgencyTarget)
     );
-    private OLDRRHarvesterConfig testHarvesterConfigEntry2 = new OLDRRHarvesterConfig(2,3, new OLDRRHarvesterConfig.Content().withId("ID2") );
+    private OLDRRHarvesterConfig testHarvesterConfigEntry2 = new OLDRRHarvesterConfig(2,3, new OLDRRHarvesterConfig.Content().withId("ID2"));
 
     @Before
     public void setupTestHarvesterConfig() {
@@ -90,6 +92,8 @@ public class HarvestersTableTest {
     public void setupTexts() {
         when(mockedTexts.includeRelationsTrue()).thenReturn("includeRelationsTrue");
         when(mockedTexts.includeRelationsFalse()).thenReturn("includeRelationsFalse");
+        when(mockedTexts.harvesterEnabled()).thenReturn("enabled");
+        when(mockedTexts.harvesterDisabled()).thenReturn("disabled");
     }
 
 
@@ -141,7 +145,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(10));
+        assertThat(harvestersTable.getColumnCount(), is(11));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Resource1"));
@@ -153,6 +157,7 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Destination1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Format1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("TRANSIENT"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("disabled"));
     }
 
     @Test

@@ -64,6 +64,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDestinationColumn(), textWithToolTip(texts.columnHeader_Destination(), texts.help_Destination()));
         addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format(), texts.help_Format()));
         addColumn(constructTypeColumn(), textWithToolTip(texts.columnHeader_Type(), texts.help_Type()));
+        addColumn(constructStatusColumn(), textWithToolTip(texts.columnHeader_Status(), texts.help_Status()));
 
         setSelectionModel(selectionModel);
     }
@@ -100,6 +101,19 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
                 return harvester.getContent().getId();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Name column
+     * @return the constructed Name column
+     */
+    private Column constructStatusColumn() {
+        return new TextColumn<RRHarvesterConfig>() {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                return harvester.getContent().isEnabled() ? texts.harvesterEnabled() : texts.harvesterDisabled();
             }
         };
     }

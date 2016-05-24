@@ -206,6 +206,16 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
      */
 
     @Override
+    public RRHarvesterConfig createHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createHarvesterRrConfig(config);
+    }
+
+    @Override
+    public RRHarvesterConfig updateHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.updateHarvesterRrConfig(config);
+    }
+
+    @Override
     public List<RRHarvesterConfig> getHarvesterRrConfigs() throws ProxyException {
         return flowStoreProxy.getHarvesterRrConfigs();
     }

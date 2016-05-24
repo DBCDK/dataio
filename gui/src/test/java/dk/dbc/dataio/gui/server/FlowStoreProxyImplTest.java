@@ -62,21 +62,9 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.powermock.api.mockito.PowerMockito.doThrow;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import static org.powermock.api.mockito.PowerMockito.when;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -85,6 +73,19 @@ import javax.ws.rs.client.Client;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -1677,6 +1678,161 @@ public class FlowStoreProxyImplTest {
 
 
     // Harvesters tests
+
+    /*
+     * Test createHarvesterRrConfig
+     */
+
+    @Test
+    public void createHarvesterRrConfig_remoteServiceReturnsHttpStatusCreated_returnsRRHarvesterConfigEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
+        final OLDRRHarvesterConfig oldConfig = new OLDRRHarvesterConfig(124L, 235L, new OLDRRHarvesterConfig.Content().withId("old-created-content-id"));
+        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
+        try {
+            final RRHarvesterConfig createdConfig = flowStoreProxy.createHarvesterRrConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            assertNotNull(createdConfig);
+            assertThat(createdConfig.getContent().getId(), is("created-content-id"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createHarvesterRrConfig()");
+        }
+    }
+
+    @Test
+    public void createHarvesterRrConfig_old_remoteServiceReturnsHttpStatusCreated_returnsRRHarvesterConfigEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
+        final OLDRRHarvesterConfig oldConfig = new OLDRRHarvesterConfig(124L, 235L, new OLDRRHarvesterConfig.Content().withId("old-created-content-id"));
+        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
+        try {
+            final RRHarvesterConfig createdConfig = flowStoreProxy.createHarvesterRrConfig(new OLDRRHarvesterConfig(346L, 457L, new OLDRRHarvesterConfig.Content().withId("content-id")));
+            assertNotNull(createdConfig);
+            assertThat(createdConfig.getContent().getId(), is("old-created-content-id"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createHarvesterRrConfig()");
+        }
+    }
+
+    @Test
+    public void createHarvesterRrConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createHarvesterRrConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void createHarvesterRrConfig_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        createHarvesterRrConfig_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void createHarvesterRrConfig_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
+        createHarvesterRrConfig_testForProxyError(config, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void createHarvesterRrConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.createHarvesterRrConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            fail("No " + expectedErrorName + " error was thrown by createHarvesterRrConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void createHarvesterRrConfig_testForProxyError(RRHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenThrow(exception);
+
+        try {
+            flowStoreProxy.createHarvesterRrConfig(config);
+            fail("No " + expectedErrorName + " error was thrown by createHarvesterRrConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    /*
+     * Test updateHarvesterRrConfig
+     */
+
+    @Test
+    public void updateHarvesterRrConfig_remoteServiceReturnsHttpStatusOk_returnsRRHarvesterConfigEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
+        when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class))).thenReturn(config);
+
+        try {
+            final RRHarvesterConfig updatedConfig = flowStoreProxy.updateHarvesterRrConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
+            assertNotNull(updatedConfig);
+            assertThat(updatedConfig, is(config));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: updateHarvesterRrConfig()");
+        }
+    }
+
+    @Test
+    public void updateHarvesterRrConfig_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        updateHarvesterRrConfig_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void updateHarvesterRrConfig_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        updateHarvesterRrConfig_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void updateHarvesterRrConfig_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        updateHarvesterRrConfig_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void updateHarvesterRrConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        updateHarvesterRrConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void updateHarvesterRrConfig_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        RRHarvesterConfig config = new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id"));
+        updateHarvesterRrConfig_testForProxyError(config, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void updateHarvesterRrConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+        try {
+            flowStoreProxy.updateHarvesterRrConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
+            fail("No " + expectedErrorName + " error was thrown by updateHarvesterRrConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void updateHarvesterRrConfig_testForProxyError(RRHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class))).thenThrow(exception);
+        try {
+            flowStoreProxy.updateHarvesterRrConfig(config);
+            fail("No " + expectedErrorName + " error was thrown by updateHarvesterRrConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
 
     /*
      * Test getHarvesterRrConfigs

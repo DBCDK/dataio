@@ -69,6 +69,8 @@ public interface FlowStoreProxyAsync {
     void getSink(Long id, AsyncCallback<SinkModel> async);
 
     // Harvesters
+    void createHarvesterRrConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
+    void updateHarvesterRrConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
     void getHarvesterRrConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
 
     // Gatekeeper destinations

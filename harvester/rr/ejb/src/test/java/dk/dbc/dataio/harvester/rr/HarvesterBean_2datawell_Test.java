@@ -68,22 +68,22 @@ import static org.mockito.Mockito.when;
 
 public class HarvesterBean_2datawell_Test {
     private static final String CONSUMER_ID = "consumerId";
-    private static final int COMMUNITY_ID = 870970;
+    private static final int DBC_COMMON_AGENCY_ID = 191919;
     private static final int LOCAL_ID = 700000;
 
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
     private final static RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
 
-    private final static RecordId FIRST_RECORD_ID = new RecordId("first", COMMUNITY_ID);
+    private final static RecordId FIRST_RECORD_ID = new RecordId("first", DBC_COMMON_AGENCY_ID);
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
     private final static QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID);
 
-    private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", COMMUNITY_ID);
+    private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", DBC_COMMON_AGENCY_ID);
     private final static String FIRST_RECORD_HEAD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_HEAD_ID);
     private final static Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
 
-    private final static RecordId FIRST_RECORD_SECTION_ID = new RecordId("first-section", COMMUNITY_ID);
+    private final static RecordId FIRST_RECORD_SECTION_ID = new RecordId("first-section", DBC_COMMON_AGENCY_ID);
     private final static String FIRST_RECORD_SECTION_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_SECTION_ID);
     private final static Record FIRST_RECORD_SECTION = new MockedRecord(FIRST_RECORD_SECTION_ID, true);
 
@@ -92,26 +92,27 @@ public class HarvesterBean_2datawell_Test {
     private final static Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID, true);
     private final static QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID);
 
-    private final static RecordId THIRD_RECORD_ID = new RecordId("third", COMMUNITY_ID);
+    private final static RecordId THIRD_RECORD_ID = new RecordId("third", DBC_COMMON_AGENCY_ID);
     private final static String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
-    private final static Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID, true);
+    private final static MockedRecord THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID, true);
     private final static QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID);
 
     static {
         FIRST_RECORD_HEAD.setContent(FIRST_RECORD_HEAD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD_SECTION.setContent(FIRST_RECORD_SECTION_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
-        FIRST_RECORD.setEnrichmentTrail("trail");
+        FIRST_RECORD.setEnrichmentTrail("191919,870970");
         FIRST_RECORD.setTrackingId("tracking id");
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
+        THIRD_RECORD.setEnrichmentTrail("191919,870970");
     }
 
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
-    private File harvesterDataFileWithCommunityRecords;
+    private File harvesterDataFileWithDbcRecords;
     private File harvesterDataFileWithLocalRecords;
-    private List<DataFileExpectation> harvesterDataFileWithCommunityRecordsExpectations;
+    private List<DataFileExpectation> harvesterDataFileWithDbcRecordsExpectations;
     private List<DataFileExpectation> harvesterDataFileWithLocalRecordsExpectations;
 
     @Rule
@@ -137,10 +138,10 @@ public class HarvesterBean_2datawell_Test {
                 .thenReturn(null);
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
-        harvesterDataFileWithCommunityRecords = tmpFolder.newFile();
+        harvesterDataFileWithDbcRecords = tmpFolder.newFile();
         harvesterDataFileWithLocalRecords = tmpFolder.newFile();
         mockedFileStoreServiceConnector = new MockedFileStoreServiceConnector();
-        mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithCommunityRecords.toPath());
+        mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithDbcRecords.toPath());
         mockedFileStoreServiceConnector.destinations.add(harvesterDataFileWithLocalRecords.toPath());
 
         // Intercept harvester job specifications with mocked JobStoreServiceConnectorBean
@@ -148,7 +149,7 @@ public class HarvesterBean_2datawell_Test {
         mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
         mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
 
-        harvesterDataFileWithCommunityRecordsExpectations = new ArrayList<>();
+        harvesterDataFileWithDbcRecordsExpectations = new ArrayList<>();
         harvesterDataFileWithLocalRecordsExpectations = new ArrayList<>();
     }
 
@@ -174,19 +175,20 @@ public class HarvesterBean_2datawell_Test {
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_HEAD_ID));
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_SECTION_ID));
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
-        final DataContainerExpectation communityExpectation1 = new DataContainerExpectation();
-        communityExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
-        communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
-        communityExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
-        communityExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
-        harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
+        final DataContainerExpectation dbcExpectation1 = new DataContainerExpectation();
+        dbcExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
+        dbcExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
+        dbcExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
+        dbcExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
+        harvesterDataFileWithDbcRecordsExpectations.add(dbcExpectation1);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        final DataContainerExpectation communityExpectation2 = new DataContainerExpectation();
-        communityExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
-        communityExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
-        harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation2);
+        final DataContainerExpectation dbcExpectation2 = new DataContainerExpectation();
+        dbcExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
+        dbcExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        dbcExpectation2.supplementaryDataExpectation.put("enrichmentTrail", THIRD_RECORD.getEnrichmentTrail());
+        harvesterDataFileWithDbcRecordsExpectations.add(dbcExpectation2);
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
@@ -231,10 +233,11 @@ public class HarvesterBean_2datawell_Test {
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        final DataContainerExpectation communityExpectation1 = new DataContainerExpectation();
-        communityExpectation1.dataExpectation = marcExchangeCollectionExpectation2;
-        communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
-        harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
+        final DataContainerExpectation dbcExpectation1 = new DataContainerExpectation();
+        dbcExpectation1.dataExpectation = marcExchangeCollectionExpectation2;
+        dbcExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        dbcExpectation1.supplementaryDataExpectation.put("enrichmentTrail", THIRD_RECORD.getEnrichmentTrail());
+        harvesterDataFileWithDbcRecordsExpectations.add(dbcExpectation1);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -250,20 +253,20 @@ public class HarvesterBean_2datawell_Test {
         config.getContent()
             .withConsumerId(CONSUMER_ID)
             .withFormat("katalog")
-            .withFormatOverridesEntry(COMMUNITY_ID, "basis")
+            .withFormatOverridesEntry(DBC_COMMON_AGENCY_ID, "basis")
             .withIncludeRelations(true);
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }
 
     private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException {
         final HarvesterXmlDataFileVerifier harvesterXmlDataFileVerifier = new HarvesterXmlDataFileVerifier();
-        harvesterXmlDataFileVerifier.verify(harvesterDataFileWithCommunityRecords, harvesterDataFileWithCommunityRecordsExpectations);
+        harvesterXmlDataFileVerifier.verify(harvesterDataFileWithDbcRecords, harvesterDataFileWithDbcRecordsExpectations);
         harvesterXmlDataFileVerifier.verify(harvesterDataFileWithLocalRecords, harvesterDataFileWithLocalRecordsExpectations);
     }
 
     private void verifyJobSpecifications() {
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newHarvestOperation().getJobSpecificationTemplate(COMMUNITY_ID));
+                newHarvestOperation().getJobSpecificationTemplate(870970));
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 newHarvestOperation().getJobSpecificationTemplate(LOCAL_ID));
     }

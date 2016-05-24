@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
@@ -63,6 +64,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
+    private final static RecordId DBC_COMMON_RECORD_ID = new RecordId("record", 191919);
     private final static RecordId RECORD_ID = new RecordId("record", 12345678);
     private final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
     private final static Record RECORD = new MockedRecord(RECORD_ID, true);
@@ -243,25 +245,6 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoRecordHasAgencyIdMatchingCommunityLibraryNumber_recordIsSkipped()
-            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
-        final RecordId recordId = new RecordId("record", HarvestOperation.COMMUNITY_LIBRARY_NUMBER);
-        final String recordContent = getRecordContent(recordId);
-        final QueueJob queueJob = getQueueJob(recordId);
-        final Record record = new MockedRecord(recordId, true);
-        record.setContent(recordContent.getBytes(StandardCharsets.UTF_8));
-
-        when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
-                .thenReturn(null);
-
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
-
-        verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class));
-    }
-
-    @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
         final int agencyId = 424242;
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
@@ -344,6 +327,42 @@ public class HarvestOperationTest {
         } finally {
             InMemoryInitialContextFactory.clear();
         }
+    }
+
+    @Test
+    public void getAgencyId_nonDBC_returnsRecordIdArgAgencyId() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(harvestOperation.getAgencyId(RECORD_ID, null), is(RECORD_ID.getAgencyId()));
+    }
+
+    @Test
+    public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, null), isThrowing(HarvesterInvalidRecordException.class));
+    }
+
+    @Test
+    public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, " "), isThrowing(HarvesterInvalidRecordException.class));
+    }
+
+    @Test
+    public void getAgencyId_DBC_no870TrailFound_throws() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,123456"), isThrowing(HarvesterInvalidRecordException.class));
+    }
+
+    @Test
+    public void getAgencyId_DBC_invalid870TrailFound_throws() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870abc"), isThrowing(HarvesterInvalidRecordException.class));
+    }
+
+    @Test
+    public void getAgencyId_DBC_returnsAgencyIdFromEnrichmentTrail() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870970"), is(870970));
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {

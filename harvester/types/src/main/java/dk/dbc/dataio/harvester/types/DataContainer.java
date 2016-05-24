@@ -131,6 +131,10 @@ public class DataContainer implements HarvesterXmlRecord {
         this.enrichmentTrail = enrichmentTrail;
     }
 
+    public String getEnrichmentTrail() {
+        return enrichmentTrail;
+    }
+
     /**
      * Sets container data
      * @param data data as DOM element

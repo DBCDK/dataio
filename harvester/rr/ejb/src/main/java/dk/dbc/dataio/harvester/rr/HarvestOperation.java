@@ -28,7 +28,6 @@ import dk.dbc.dataio.harvester.types.DataContainer;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.HarvesterSourceException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -54,12 +53,14 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class HarvestOperation {
-    public static final int COMMUNITY_LIBRARY_NUMBER = 191919;
+    public static final int DBC_COMMON_LIBRARY_NUMBER = 191919;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
@@ -87,20 +88,17 @@ public class HarvestOperation {
         while (nextQueuedItem != null) {
             LOGGER.info("{} ready for harvesting", nextQueuedItem);
             final RecordId queuedRecordId = nextQueuedItem.getJob();
-            if (queuedRecordId.getAgencyId() != COMMUNITY_LIBRARY_NUMBER) {
-                try {
-                    final HarvesterXmlRecord harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
-                    getHarvesterJobBuilder(queuedRecordId.getAgencyId()).addHarvesterRecord(harvesterRecord);
-                } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                    LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
-                    markAsFailure(nextQueuedItem, e.getMessage());
-                }
+            try {
+                final DataContainer harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                final int agencyId = getAgencyId(queuedRecordId, harvesterRecord.getEnrichmentTrail());
+                getHarvesterJobBuilder(agencyId).addHarvesterRecord(harvesterRecord);
+            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+                LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                markAsFailure(nextQueuedItem, e.getMessage());
+            }
 
-                if (++itemsHarvested == config.getBatchSize()) {
-                    break;
-                }
-            } else {
-                LOGGER.debug("Skipped {}", queuedRecordId);
+            if (++itemsHarvested == config.getBatchSize()) {
+                break;
             }
             nextQueuedItem = getNextQueuedItem();
         }
@@ -115,6 +113,30 @@ public class HarvestOperation {
     JobSpecification getJobSpecificationTemplate(int agencyId) {
         return new JobSpecification("xml", getFormat(agencyId), "utf8", config.getDestination(), agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder", config.getType());
+    }
+
+    int getAgencyId(RecordId recordId, String enrichmentTrail) throws HarvesterInvalidRecordException {
+        if (recordId.getAgencyId() != DBC_COMMON_LIBRARY_NUMBER) {
+            return recordId.getAgencyId();
+        }
+        if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
+            throw new HarvesterInvalidRecordException(String.format(
+                    "Record with ID %s has no enrichment trail '%s'", recordId, enrichmentTrail));
+        }
+        final Optional<String> agencyIdAsString = Arrays.stream(enrichmentTrail.split(","))
+                .filter(agencyId -> agencyId.startsWith("870"))
+                .findFirst();
+        try {
+            if (agencyIdAsString.isPresent()) {
+                return Integer.parseInt(agencyIdAsString.get());
+            } else {
+                throw new HarvesterInvalidRecordException(String.format(
+                        "Record with ID %s has no 870* in its enrichment trail '%s'", recordId, enrichmentTrail));
+            }
+        } catch (NumberFormatException e) {
+            throw new HarvesterInvalidRecordException(String.format(
+                    "Record with ID %s has invalid 870* agency ID in its enrichment trail '%s'", recordId, enrichmentTrail));
+        }
     }
 
     private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {
@@ -166,7 +188,7 @@ public class HarvestOperation {
        Returns data container harvester record containing MARC exchange collection as data
        and record creation date as supplementary data.
      */
-    private HarvesterXmlRecord getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
+    private DataContainer getHarvesterRecordForQueuedRecord(RecordId recordId) throws HarvesterException {
         try {
             final Map<String, Record> records;
             final String trackingId;

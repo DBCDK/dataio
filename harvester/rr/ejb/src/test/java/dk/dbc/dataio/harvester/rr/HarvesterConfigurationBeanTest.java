@@ -21,110 +21,91 @@
 
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBException;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.ejb.EJBException;
-import javax.naming.Context;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class HarvesterConfigurationBeanTest {
-    @BeforeClass
-    public static void setup() {
-        // sets up the InMemoryInitialContextFactory as default factory.
-        System.setProperty(Context.INITIAL_CONTEXT_FACTORY, InMemoryInitialContextFactory.class.getName());
+    private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+    private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    private final Class rrHarvesterConfigurationType = OLDRRHarvesterConfig.class;
+
+    @Before
+    public void setupMocks() {
+        when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
     }
 
     @Test
-    public void initialize_jndiLookupThrowsNamingException_throws() {
-        InMemoryInitialContextFactory.clear();
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        try {
-            bean.initialize();
-            fail("No exception thrown");
-        } catch (EJBException e) {
-        }
+    public void initialize_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException {
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
+                .thenThrow(new FlowStoreServiceConnectorException("Died"));
+
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        assertThat(bean::initialize, isThrowing(EJBException.class));
     }
 
     @Test
-    public void initialize_jndiLookupReturnsInvalidJson_throws() {
-        InMemoryInitialContextFactory.bind(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR, "");
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        try {
-            bean.initialize();
-            fail("No exception thrown");
-        } catch (EJBException e) {
-        }
-    }
+    public void initialize_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException {
+        final List<RRHarvesterConfig> configs = HarvesterTestUtil.getRRHarvesterConfigs(HarvesterTestUtil.getRRHarvestConfigContent());
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
+                .thenReturn(configs);
 
-    @Test
-    public void initialize_jndiLookupReturnsValidJson_setsConfig() throws JSONBException {
-        final RawRepoHarvesterConfig rawRepoHarvesterConfig = new RawRepoHarvesterConfig();
-        InMemoryInitialContextFactory.bind(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR,
-                new JSONBContext().marshall(rawRepoHarvesterConfig));
-
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        assertThat("config before initialize", bean.config, is(nullValue()));
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        assertThat("config size before initialize", bean.configs.size(), is(0));
         bean.initialize();
-        assertThat("config after initialize", bean.config, is(notNullValue()));
+        assertThat("config size after initialize", bean.configs.size(), is(configs.size()));
     }
 
     @Test
-    public void reload_jndiLookupThrowsNamingException_throws() {
-        InMemoryInitialContextFactory.clear();
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        try {
-            bean.reload();
-            fail("No exception thrown");
-        } catch (HarvesterException e) {
-        }
+    public void reload_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException, HarvesterException {
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
+                .thenThrow(new FlowStoreServiceConnectorException("Died"));
+
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        assertThat(bean::reload, isThrowing(HarvesterException.class));
     }
 
     @Test
-    public void reload_jndiLookupReturnsInvalidJson_throws() {
-        InMemoryInitialContextFactory.bind(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR, "");
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        try {
-            bean.reload();
-            fail("No exception thrown");
-        } catch (HarvesterException e) {
-        }
-    }
+    public void reload_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException, HarvesterException {
+        final List<RRHarvesterConfig> configs = new ArrayList<>(0);
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(rrHarvesterConfigurationType))
+                .thenReturn(configs);
 
-    @Test
-    public void reload_jndiLookupReturnsValidJson_setsConfig() throws JSONBException, HarvesterException {
-        final RawRepoHarvesterConfig rawRepoHarvesterConfig = new RawRepoHarvesterConfig();
-        InMemoryInitialContextFactory.bind(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR,
-                new JSONBContext().marshall(rawRepoHarvesterConfig));
-
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        assertThat("config before reload", bean.config, is(nullValue()));
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        bean.configs = new ArrayList<>(Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content())));
         bean.reload();
-        assertThat("config after reload", bean.config, is(notNullValue()));
+        assertThat("config after initialize", bean.configs, is(configs));
     }
 
     @Test
-    public void get_returnsConfig() throws JSONBException {
-        final RawRepoHarvesterConfig rawRepoHarvesterConfig = new RawRepoHarvesterConfig();
-        InMemoryInitialContextFactory.bind(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR,
-                new JSONBContext().marshall(rawRepoHarvesterConfig));
-        final HarvesterConfigurationBean bean = getHarvesterConfigurationBean();
-        bean.initialize();
-        assertThat(bean.get(), is(bean.config));
+    public void get_returnsConfigs() throws JSONBException {
+        final List<RRHarvesterConfig> configs = Collections.singletonList(new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()));
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        bean.configs = configs;
+        assertThat(bean.get(), is(configs));
     }
 
-    private HarvesterConfigurationBean getHarvesterConfigurationBean() {
-        return new HarvesterConfigurationBean();
+    private HarvesterConfigurationBean newHarvesterConfigurationBean() {
+        final HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
+        harvesterConfigurationBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
+        return harvesterConfigurationBean;
     }
 }

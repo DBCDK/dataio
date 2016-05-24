@@ -31,7 +31,7 @@ import dk.dbc.dataio.harvester.types.HarvesterSourceException;
 import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.harvester.types.MarcExchangeCollection;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marcxmerge.MarcXMergerException;
@@ -63,16 +63,16 @@ public class HarvestOperation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
-    private final RawRepoHarvesterConfig.Entry config;
+    private final RRHarvesterConfig.Content config;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
     private final DocumentBuilder documentBuilder;
     private final Transformer transformer;
     private final RawRepoConnector rawRepoConnector;
 
-    public HarvestOperation(RawRepoHarvesterConfig.Entry config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
+    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
+        this.config = InvariantUtil.checkNotNullOrThrow(config, "config").getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         documentBuilder = getDocumentBuilder();
         transformer = getTransformer();
@@ -113,7 +113,7 @@ public class HarvestOperation {
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
-        return new JobSpecification("xml", config.getFormat(agencyId), "utf8", config.getDestination(), agencyId,
+        return new JobSpecification("xml", getFormat(agencyId), "utf8", config.getDestination(), agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder", config.getType());
     }
 
@@ -201,7 +201,7 @@ public class HarvestOperation {
     private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records)
             throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
-        if (config.includeRelations()) {
+        if (config.isIncludeRelations()) {
             for (Record record : records.values()) {
                 LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
                 marcExchangeCollection.addMember(getRecordContent(record));
@@ -263,9 +263,9 @@ public class HarvestOperation {
 
     /* Stand-alone methods to enable easy override during testing */
 
-    RawRepoConnector getRawRepoConnector(RawRepoHarvesterConfig.Entry config)
+    RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        final OpenAgencyTarget openAgencyTarget = config.getOpenAgencyTarget();
+        final OpenAgencyTarget openAgencyTarget = config.getContent().getOpenAgencyTarget();
         if (openAgencyTarget == null) {
             throw new IllegalArgumentException("No OpenAgency target configured");
         }
@@ -285,7 +285,7 @@ public class HarvestOperation {
         final AgencySearchOrder agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyService);
         final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
 
-        return new RawRepoConnector(config.getResource(), agencySearchOrder, relationHints);
+        return new RawRepoConnector(config.getContent().getResource(), agencySearchOrder, relationHints);
     }
 
     private DocumentBuilder getDocumentBuilder() {
@@ -305,5 +305,10 @@ public class HarvestOperation {
         } catch (TransformerConfigurationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    private String getFormat(int agencyId) {
+        final String formatOverride = config.getFormatOverrides().get(agencyId);
+        return formatOverride != null ? formatOverride : config.getFormat();
     }
 }

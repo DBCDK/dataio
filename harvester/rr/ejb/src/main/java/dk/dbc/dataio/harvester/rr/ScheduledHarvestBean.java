@@ -21,7 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,10 +128,11 @@ public class ScheduledHarvestBean {
                 }
             }
 
-            for (RawRepoHarvesterConfig.Entry configEntry : config.get().getEntries()) {
-                if (!runningHarvests.containsKey(configEntry.getId())) {
-                    runningHarvests.put(configEntry.getId(), harvester.harvest(configEntry));
-                    LOGGER.debug("Scheduling harvest for '{}'", configEntry.getId());
+            for (RRHarvesterConfig rrHarvesterConfig : config.get()) {
+                final String harvesterId = rrHarvesterConfig.getContent().getId();
+                if (!runningHarvests.containsKey(harvesterId)) {
+                    runningHarvests.put(harvesterId, harvester.harvest(rrHarvesterConfig));
+                    LOGGER.debug("Scheduling harvest for '{}'", harvesterId);
                 }
             }
         } catch (Exception e) {

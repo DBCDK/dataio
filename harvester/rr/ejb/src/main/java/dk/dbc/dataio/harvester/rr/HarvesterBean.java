@@ -25,7 +25,7 @@ import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -74,16 +74,13 @@ public class HarvesterBean {
     @Asynchronous
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Future<Integer> harvest(RawRepoHarvesterConfig.Entry config) throws HarvesterException {
+    public Future<Integer> harvest(RRHarvesterConfig config) throws HarvesterException {
         LOGGER.debug("Called with config {}", config);
         try {
-            MDC.put(HARVESTER_MDC_KEY, config.getId());
+            MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
             final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
             final HarvestOperation harvestOperation = getHarvestOperation(config);
-            int itemsHarvested = 0, itemsInBatch;
-            do {
-                itemsHarvested += itemsInBatch = businessObject.execute(harvestOperation);
-            } while (itemsInBatch == config.getBatchSize());
+            int itemsHarvested = businessObject.execute(harvestOperation);
             return new AsyncResult<>(itemsHarvested);
         } finally {
             MDC.remove(HARVESTER_MDC_KEY);
@@ -105,7 +102,7 @@ public class HarvesterBean {
 
     /* Stand-alone method to enable easy injection during testing (via partial mocking)
      */
-    public HarvestOperation getHarvestOperation(RawRepoHarvesterConfig.Entry config) {
+    public HarvestOperation getHarvestOperation(RRHarvesterConfig config) {
         return new HarvestOperation(config, new HarvesterJobBuilderFactory(
                 binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector()));
     }

@@ -22,12 +22,11 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ejb.SessionContext;
-
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -44,26 +43,10 @@ public class HarvesterBeanTest {
     @Test
     public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested() throws HarvesterException, ExecutionException, InterruptedException {
         final HarvesterBean harvesterBean = getHarvesterBean();
-        final RawRepoHarvesterConfig.Entry config = getConfig("id");
+        final RRHarvesterConfig config = getConfig("id");
         final int expectedNumberOfItemsHarvested = 42;
         doReturn(harvestOperation).when(harvesterBean).getHarvestOperation(config);
         when(harvestOperation.execute()).thenReturn(expectedNumberOfItemsHarvested);
-
-        final Future<Integer> harvestResult = harvesterBean.harvest(config);
-        assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
-    }
-
-    @Test
-    public void harvest_availableItemsExceedsBatchSize_multipleExecutionsOfHarvestOperation() throws HarvesterException, ExecutionException, InterruptedException {
-        final HarvesterBean harvesterBean = getHarvesterBean();
-        final RawRepoHarvesterConfig.Entry config = getConfig("id");
-        final int expectedNumberOfItemsHarvested = config.getBatchSize()*3 - 1;
-        doReturn(harvestOperation).when(harvesterBean).getHarvestOperation(config);
-        when(harvestOperation.execute())
-                .thenReturn(config.getBatchSize())
-                .thenReturn(config.getBatchSize())
-                .thenReturn(config.getBatchSize() - 1);
-
 
         final Future<Integer> harvestResult = harvesterBean.harvest(config);
         assertThat("Items harvested", harvestResult.get(), is(expectedNumberOfItemsHarvested));
@@ -76,10 +59,10 @@ public class HarvesterBeanTest {
         return harvesterBean;
     }
 
-    private RawRepoHarvesterConfig.Entry getConfig(String id) {
-        return new RawRepoHarvesterConfig.Entry()
-                .setId(id)
-                .setResource("resource");
+    private RRHarvesterConfig getConfig(String id) {
+        return new RRHarvesterConfig(1, 1, new RRHarvesterConfig.Content()
+                .withId(id)
+                .withResource("resource"));
     }
 
 }

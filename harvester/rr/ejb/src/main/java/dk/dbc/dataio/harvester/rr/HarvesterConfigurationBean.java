@@ -21,40 +21,39 @@
 
 package dk.dbc.dataio.harvester.rr;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.naming.NamingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * This Enterprise Java Bean is responsible for retrieval of harvester configuration via JNDI lookup
- * of {@value dk.dbc.dataio.commons.types.jndi.JndiConstants#CONFIG_RESOURCE_HARVESTER_RR} resource.
+ * This Enterprise Java Bean is responsible for retrieval of harvester configurations via flow-store lookup
  */
 @Singleton
 @Startup
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
-    JSONBContext jsonbContext = new JSONBContext();
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
-    RawRepoHarvesterConfig config;
+    List<RRHarvesterConfig> configs = new ArrayList<>();
 
     /**
      * Initializes configuration
-     * @throws javax.ejb.EJBException on failure to lookup configuration resource or failure to
-     * unmarshall returned value returned by lookup to configuration POJO.
+     * @throws javax.ejb.EJBException on failure to lookup configuration resource
      */
     @PostConstruct
     public void initialize() {
@@ -67,22 +66,22 @@ public class HarvesterConfigurationBean {
 
     /**
      * Reloads configuration
-     * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to lookup configuration resource or failure to
-     * unmarshall returned value returned by lookup to configuration POJO.
+     * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to lookup configuration resource
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void reload() throws HarvesterException {
         LOGGER.debug("Retrieving configuration");
         try {
-            final String jsonConfig = ServiceUtil.getStringValueFromResource(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR);
-            config = jsonbContext.unmarshall(jsonConfig, RawRepoHarvesterConfig.class);
-            LOGGER.info("Applying configuration: {}", config);
-        } catch (NamingException | JSONBException e) {
+            configs.clear();
+            configs.addAll(flowStoreServiceConnectorBean.getConnector()
+                    .findEnabledHarvesterConfigsByType(dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig.class));
+            LOGGER.info("Applying configuration: {}", configs);
+        } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);
         }
     }
 
-    public RawRepoHarvesterConfig get() {
-        return config;
+    public List<RRHarvesterConfig> get() {
+        return configs;
     }
 }

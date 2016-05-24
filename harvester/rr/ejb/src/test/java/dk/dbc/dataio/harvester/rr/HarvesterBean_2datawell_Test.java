@@ -28,7 +28,7 @@ import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
+import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
 import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
@@ -195,7 +195,7 @@ public class HarvesterBean_2datawell_Test {
         localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
         harvesterDataFileWithLocalRecordsExpectations.add(localExpectation1);
 
-        final HarvestOperation harvestOperation = getHarvestOperation();
+        final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
         verifyHarvesterDataFiles();
@@ -236,24 +236,24 @@ public class HarvesterBean_2datawell_Test {
         communityExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
         harvesterDataFileWithCommunityRecordsExpectations.add(communityExpectation1);
 
-        final HarvestOperation harvestOperation = getHarvestOperation();
+        final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
     }
 
-    private HarvestOperation getHarvestOperation() {
+    private HarvestOperation newHarvestOperation() {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
-        final RawRepoHarvesterConfig.Entry config = HarvesterTestUtil.getHarvestOperationConfigEntry();
-        config.setConsumerId(CONSUMER_ID);
-        config.setFormat("katalog");
-        config.setFormatOverride(COMMUNITY_ID, "basis");
-        config.setIncludeRelations(true);
+        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        config.getContent()
+            .withConsumerId(CONSUMER_ID)
+            .withFormat("katalog")
+            .withFormatOverridesEntry(COMMUNITY_ID, "basis")
+            .withIncludeRelations(true);
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }
-
 
     private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException {
         final HarvesterXmlDataFileVerifier harvesterXmlDataFileVerifier = new HarvesterXmlDataFileVerifier();
@@ -263,9 +263,9 @@ public class HarvesterBean_2datawell_Test {
 
     private void verifyJobSpecifications() {
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                getHarvestOperation().getJobSpecificationTemplate(COMMUNITY_ID));
+                newHarvestOperation().getJobSpecificationTemplate(COMMUNITY_ID));
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                getHarvestOperation().getJobSpecificationTemplate(LOCAL_ID));
+                newHarvestOperation().getJobSpecificationTemplate(LOCAL_ID));
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {
@@ -285,11 +285,11 @@ public class HarvesterBean_2datawell_Test {
     }
 
     private class ClassUnderTest extends HarvestOperation {
-        public ClassUnderTest(RawRepoHarvesterConfig.Entry config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
+        public ClassUnderTest(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
             super(config, harvesterJobBuilderFactory);
         }
         @Override
-        RawRepoConnector getRawRepoConnector(RawRepoHarvesterConfig.Entry config) {
+        RawRepoConnector getRawRepoConnector(RRHarvesterConfig config) {
             return RAW_REPO_CONNECTOR;
         }
     }

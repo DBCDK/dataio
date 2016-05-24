@@ -244,13 +244,10 @@ public class NewJobSchedulerBeanArquillianIT {
 
         // when threre is only space for one chunk to sink
         Sink sink1 = new SinkBuilder().setId(1).build();
-        for(int i = 1; i< NewJobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK; ++i ) {
-            NewJobSchedulerBean.incrementAndReturnCurrentQueuedToProcessing(sink1.getId() );
-        }
 
-        for(int i = 1; i< NewJobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK; ++i ) {
-            NewJobSchedulerBean.incrementAndReturnCurrentQueuedToDelivering(sink1.getId() );
-        }
+        // Fake queue size is 1.
+        forceCurrentQueuedToProcessingCountIs(sink1.getId(), NewJobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - 1 );
+        forceCurrentQueuedToDeliveringCountIs(sink1.getId(), NewJobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - 1 );
 
         newJobSchedulerBean.scheduleChunk( new ChunkEntity()
                 .withJobId(3).withChunkId(0)
@@ -307,6 +304,30 @@ public class NewJobSchedulerBeanArquillianIT {
         // Then chunk 3.1 is released to Sink
         assertThat( getDependencyTrackingEntity(3,1).getStatus(), is( ChunkProcessStatus.QUEUED_TO_DELIVERY ));
 
+    }
+
+    private void forceCurrentQueuedToDeliveringCountIs(long sink1Id, int numberQueuedTarget) {
+        long current_count=NewJobSchedulerBean.incrementAndReturnCurrentQueuedToDelivering(sink1Id);
+        if( current_count == numberQueuedTarget ) return;
+        if ( current_count < numberQueuedTarget ) {
+            while( current_count != numberQueuedTarget )
+                current_count = NewJobSchedulerBean.incrementAndReturnCurrentQueuedToDelivering(sink1Id);
+        }  else {
+            while( current_count != numberQueuedTarget )
+                current_count = NewJobSchedulerBean.decrementAndReturnCurrentQueuedToDelivering(sink1Id);
+        }
+    }
+
+    private void forceCurrentQueuedToProcessingCountIs(long sink1Id, int numberQueuedTarget) {
+        long current_count=NewJobSchedulerBean.incrementAndReturnCurrentQueuedToProcessing(sink1Id);
+        if( current_count == numberQueuedTarget ) return;
+        if ( current_count < numberQueuedTarget ) {
+            while( current_count != numberQueuedTarget )
+                current_count = NewJobSchedulerBean.incrementAndReturnCurrentQueuedToProcessing(sink1Id);
+        }  else {
+            while( current_count != numberQueuedTarget )
+                current_count = NewJobSchedulerBean.decrementAndReturnCurrentQueuedToProcessing(sink1Id);
+        }
     }
 
     Set<String> makeSet(String... s) {

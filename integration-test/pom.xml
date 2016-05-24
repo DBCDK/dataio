@@ -47,7 +47,6 @@
         <module>job-store</module>
         <module>jms-queue-service</module>
         <module>glassfish</module>
-        <module>h2</module>
         <module>postgresql</module>
       </modules>
     </profile>
@@ -75,7 +74,6 @@
             <file-store-service.context>${file-store-service.context}</file-store-service.context>
             <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
             <glassfish.port>${container.http.port}</glassfish.port>
-            <h2.port>${h2.port}</h2.port>
             <job-store-service.context>${job-store-service.context}</job-store-service.context>
             <postgresql.port>${postgresql.port}</postgresql.port>
             <rawrepo.db.name>${rawrepo.db.name}</rawrepo.db.name>

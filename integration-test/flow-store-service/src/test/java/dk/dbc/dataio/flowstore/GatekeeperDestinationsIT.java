@@ -65,7 +65,7 @@ public class GatekeeperDestinationsIT {
     @BeforeClass
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
-        dbConnection = newIntegrationTestConnection();
+        dbConnection = newIntegrationTestConnection("flowstore");
         restClient = HttpClient.newClient();
         flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
         jsonbContext = new JSONBContext();

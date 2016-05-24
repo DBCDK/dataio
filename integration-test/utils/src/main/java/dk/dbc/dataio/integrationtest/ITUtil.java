@@ -83,11 +83,11 @@ public class ITUtil {
         return conn;
     }
 
-    public static Connection newIntegrationTestConnection() throws SQLException, ClassNotFoundException {
+    public static Connection newIntegrationTestConnection(String dbName) throws SQLException, ClassNotFoundException {
         Class.forName("org.postgresql.Driver");
 
         final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
-                System.getProperty("postgresql.port"), "integrationtest");
+                System.getProperty("postgresql.port"), dbName);
         final Connection connection = DriverManager.getConnection(dbUrl,
                 System.getProperty("user.name"), System.getProperty("user.name"));
         connection.setAutoCommit(true);
@@ -146,7 +146,7 @@ public class ITUtil {
 
     public static void clearFileStore() {
         FileUtils.deleteQuietly(new File(System.getProperty("file.store.basepath")));
-        try (final Connection connection = newDbConnection("file_store")) {
+        try (final Connection connection = newIntegrationTestConnection("filestore")) {
             clearDbTables(connection, "file_attributes");
         } catch (ClassNotFoundException | SQLException e) {
             throw new IllegalStateException(e);
@@ -154,7 +154,7 @@ public class ITUtil {
     }
 
     public static void clearFlowStore() {
-        try (final Connection connection = ITUtil.newIntegrationTestConnection()) {
+        try (final Connection connection = ITUtil.newIntegrationTestConnection("flowstore")) {
             clearAllDbTables(connection);
         } catch (ClassNotFoundException | SQLException e) {
             throw new IllegalStateException(e);

@@ -96,13 +96,23 @@
                 </configuration>
               </execution>
               <execution>
-                <id>integrationtest</id>
+                <id>flowstore</id>
                 <phase>pre-integration-test</phase>
                 <goals>
                   <goal>start</goal>
                 </goals>
                 <configuration>
-                  <pgDbName>integrationtest</pgDbName>
+                  <pgDbName>flowstore</pgDbName>
+                </configuration>
+              </execution>
+              <execution>
+                <id>filestore</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>start</goal>
+                </goals>
+                <configuration>
+                  <pgDbName>filestore</pgDbName>
                 </configuration>
               </execution>
               <execution>

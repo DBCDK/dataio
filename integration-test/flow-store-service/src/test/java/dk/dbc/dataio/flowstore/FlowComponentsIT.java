@@ -62,7 +62,7 @@ public class FlowComponentsIT {
     public static void setUpClass() throws ClassNotFoundException, SQLException {
         baseUrl = ITUtil.FLOW_STORE_BASE_URL;
         restClient = HttpClient.newClient();
-        dbConnection = newIntegrationTestConnection();
+        dbConnection = newIntegrationTestConnection("flowstore");
     }
 
     @AfterClass

@@ -95,7 +95,7 @@ public class NewJobSchedulerBeanIT {
     }
 
     @Test
-    public void MultibleCallesToxxDoneIsIgnored() throws Exception {
+    public void multipleCallesToChunkXxxxxxDoneIsIgnored() throws Exception {
         JPATestUtils.runSqlFromResource(em, NewJobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
 
         em.getTransaction().begin();

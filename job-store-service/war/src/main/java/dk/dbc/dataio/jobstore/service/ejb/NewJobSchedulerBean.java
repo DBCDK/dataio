@@ -48,12 +48,12 @@ public class NewJobSchedulerBean {
     static final int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
     static final int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 100;
 
-    // Hash use to keep a count of pending jobs in JMS queus pr sink.
-    // Smalle EJB virolation for performance.
-    // If the Application is run in multible jvm's the limiter is pr jvm not pr application
+    // Hash use to keep a count of pending jobs in JMS queues pr sink.
+    // Small EJB violation for performance.
+    // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
 
     static final ConcurrentHashMap<Long,AtomicInteger> queuedToProcessingCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
-    static final ConcurrentHashMap<Long,AtomicInteger> queudToDeliveringCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
+    static final ConcurrentHashMap<Long,AtomicInteger> queuedToDeliveringCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
 
 
     @Inject
@@ -83,23 +83,22 @@ public class NewJobSchedulerBean {
      * @param chunk next chunk element to enter into sequence analysis
      * @param sink sink associated with chunk
      * @throws NullPointerException if given any null-valued argument
-     * @throws JobStoreException if unable to setup monitoring
      */
     @Stopwatch
-    public void scheduleChunk(ChunkEntity chunk, Sink sink) throws  JobStoreException{
+    public void scheduleChunk(ChunkEntity chunk, Sink sink) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
         getProxyToSelf().persistDependencyEntity(chunk, sink);
-        getProxyToSelf().submitToProcessingIfPosibleAsync( chunk, sink.getId() );
+        getProxyToSelf().submitToProcessingIfPossibleAsync( chunk, sink.getId() );
 
     }
 
     /**
-     * Force new Chunk to Store before Async SubmitIfPosibleForProcessing.
-     * New Tranaction to ensure Record is on Disk before async submit
+     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
+     * New Transaction to ensure Record is on Disk before async submit
      * @param chunk new Chunk
-     * @param sink Destination Skink
+     * @param sink Destination Sink
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
@@ -119,7 +118,7 @@ public class NewJobSchedulerBean {
     @Asynchronous
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
-    public void submitToProcessingIfPosibleAsync(ChunkEntity chunk, long sinkId ) {
+    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId ) {
         submitToProcessingIfPossible( chunk, sinkId );
     }
 
@@ -170,12 +169,12 @@ public class NewJobSchedulerBean {
         submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
 
         // Check for more READY_TO_PROCESS chunks.
-        int sinkid = dependencyTrackingEntity.getSinkid();
-        int queuedToProcessing=decrementAndReturnCurrentQueuedToProcessing(sinkid);
+        int sinkId = dependencyTrackingEntity.getSinkid();
+        int queuedToProcessing=decrementAndReturnCurrentQueuedToProcessing(sinkId);
         if( queuedToProcessing < MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
             LOGGER.info("Space for more jobs");
-            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkid and e.status=:state")
-            .setParameter("sinkid", sinkid)
+            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
+            .setParameter("sinkId", sinkId)
             .setParameter("state", ChunkProcessStatus.READY_TO_PROCESS)
             .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK -queuedToProcessing);
             List<DependencyTrackingEntity> chunks=query.getResultList();
@@ -183,7 +182,7 @@ public class NewJobSchedulerBean {
                 DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
                 LOGGER.info(" Chunk ready to schedule {} to Processing",toScheduleKey);
                 ChunkEntity ch=entityManager.find( ChunkEntity.class, new ChunkEntity.Key( toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                submitToProcessingIfPossible(ch, sinkid);
+                submitToProcessingIfPossible(ch, sinkId);
             }
         }
     }
@@ -191,7 +190,7 @@ public class NewJobSchedulerBean {
     /**
      * Send JMS message to Sink with chunk.
      *
-     * @param chunk chunk tp submit
+
      * @param dependencyTrackingEntity Tracking Entity for chunk*
      * @throws JobStoreException if unable to
      */
@@ -209,21 +208,19 @@ public class NewJobSchedulerBean {
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
         // Chunk is ready for Sink
         sinkMessageProducerBean.send( chunk, jobEntity );
-        LOGGER.info("chunk {} submited to Delivering", dependencyTrackingEntity.getKey());
+        LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
         dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_DELIVERY);
     }
 
 
     /**
-     * Register a chunk is Delivered.
-     *
-     * Chunk is Deleted.
+     * Register a chunk as Delivered, and remove it from dependency tracking.
      *
      * If called Multiple times with the same chunk, or chunk not in QUEUED_TO_DELIVERY the chunk is ignored
      *
-     * @param chunk ???
-     * @throws JSONBException ???
-     * @throws JobStoreException ???
+     * @param chunk Chunk Done
+     * @throws JSONBException on failure to queue other chunks
+     * @throws JobStoreException on failure to queue other chunks
      */
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
@@ -240,7 +237,7 @@ public class NewJobSchedulerBean {
             return ;
         }
 
-        // Decrement early to make space for in queue.  -- most importen when queue size is 1, when unit testing
+        // Decrement early to make space for in queue.  -- most important when queue size is 1, when unit testing
 
         long doneChunkSinkId=doneChunk.getSinkid();
         int queuedToDelivering=decrementAndReturnCurrentQueuedToDelivering( doneChunkSinkId );
@@ -263,8 +260,8 @@ public class NewJobSchedulerBean {
 
         if( queuedToDelivering <= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
             LOGGER.info("Space for more jobs");
-            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkid and e.status=:state")
-            .setParameter("sinkid", doneChunkSinkId )
+            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
+            .setParameter("sinkId", doneChunkSinkId )
             .setParameter("state", ChunkProcessStatus.READY_TO_DELIVER)
             .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering+1);
             List<DependencyTrackingEntity> chunks=query.getResultList();
@@ -295,8 +292,8 @@ public class NewJobSchedulerBean {
 
     /**
      * Finding lists with which contains any of chunks keys
-     * @param matchKeys
-     * @return Retuens List of Chunks To wait for.
+     * @param matchKeys Set of match keys
+     * @return Returns List of Chunks To wait for.
      */
     List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys ) {
         if( matchKeys.isEmpty() ) return new ArrayList<>();
@@ -308,7 +305,7 @@ public class NewJobSchedulerBean {
 
     List<DependencyTrackingEntity.Key> findChunksWaitingForMe( DependencyTrackingEntity.Key key ) throws JSONBException {
         String keyAsJson= ConverterJSONBContext.getInstance().marshall(key);
-        Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingon @> '["+ keyAsJson +"]'" , "JobIdChunkIdResult");
+        Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '["+ keyAsJson +"]'" , "JobIdChunkIdResult");
         return query.getResultList();
     }
 
@@ -319,7 +316,7 @@ public class NewJobSchedulerBean {
      */
     String buildFindChunksToWaitForQuery( int sinkId, Set<String> matchKeys ) {
         StringBuilder builder= new StringBuilder(1000);
-        builder.append("select jobid, chunkid from dependencyTracking where sinkId=");
+        builder.append("select jobId, chunkId from dependencyTracking where sinkId=");
         builder.append( sinkId );
         builder.append(" and ( ");
 
@@ -327,7 +324,7 @@ public class NewJobSchedulerBean {
         Boolean first=true;
         for( String key: matchKeys ) {
             if( ! first ) builder.append(" or ");
-            builder.append("matchkeys @> '[\"");
+            builder.append("matchKeys @> '[\"");
             builder.append(key);
             builder.append("\"]'");
             first=false;
@@ -338,22 +335,22 @@ public class NewJobSchedulerBean {
     }
 
     static int incrementAndReturnCurrentQueuedToDelivering(long sinkId) {
-        AtomicInteger sinkCounter=queudToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
         return sinkCounter.incrementAndGet();
     }
 
     static int decrementAndReturnCurrentQueuedToDelivering(long sinkId) {
-        AtomicInteger sinkCounter=queudToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
         return sinkCounter.decrementAndGet();
     }
 
     static int lookupQueuedToDelivering( long sinkId) {
-        AtomicInteger sinkCounter=queudToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
         return sinkCounter.intValue();
     }
 
     static void resetQueuedToDelivering( long sinkId, int newValue) {
-        AtomicInteger sinkCounter=queudToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
         sinkCounter.set( newValue );
     }
 

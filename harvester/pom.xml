@@ -36,7 +36,6 @@
 
   <modules>
     <module>rr</module>
-    <module>test</module>
     <module>types</module>
     <module>ush-solr</module>
     <module>utils</module>

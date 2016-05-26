@@ -40,8 +40,6 @@ import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
-import dk.dbc.dataio.harvester.types.RawRepoHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -836,30 +834,6 @@ public class FlowStoreServiceConnector {
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: getFlowBinder took {} milliseconds", stopWatch.getElapsedTime());
-        }
-    }
-
-
-    // ************************************************** RR Harvester Configs *****************************************
-
-    /**
-     * Retrieves all RR harvester configs
-     *
-     * @return a list containing the RR harvester configs found
-     * @throws ProcessingException on general communication error
-     * @throws FlowStoreServiceConnectorException on failure to retrieve the RR harvester configs
-     * @throws JSONBException upon error in unmarshall
-     */
-    public RawRepoHarvesterConfig getHarvesterRrConfigs() throws FlowStoreServiceConnectorException, JSONBException {
-        log.trace("FlowStoreServiceConnector: getHarvesterRrConfigs();");
-        final StopWatch stopWatch = new StopWatch();
-        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.HARVESTERS_RR_CONFIG);
-        try {
-            verifyResponseStatus(response, Response.Status.OK);
-            return readResponseEntity(response, RawRepoHarvesterConfig.class);
-        } finally {
-            response.close();
-            log.debug("FlowStoreServiceConnector: getHarvesterRrConfigs took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

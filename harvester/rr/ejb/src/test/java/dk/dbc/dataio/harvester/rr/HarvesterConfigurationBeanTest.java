@@ -25,7 +25,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
@@ -39,6 +38,8 @@ import java.util.List;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,7 +47,7 @@ import static org.mockito.Mockito.when;
 public class HarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class rrHarvesterConfigurationType = OLDRRHarvesterConfig.class;
+    private final Class rrHarvesterConfigurationType = RRHarvesterConfig.class;
 
     @Before
     public void setupMocks() {
@@ -69,9 +70,9 @@ public class HarvesterConfigurationBeanTest {
                 .thenReturn(configs);
 
         final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        assertThat("config size before initialize", bean.configs.size(), is(0));
+        assertThat("config before initialize", bean.configs, is(nullValue()));
         bean.initialize();
-        assertThat("config size after initialize", bean.configs.size(), is(configs.size()));
+        assertThat("config after initialize", bean.configs, is(notNullValue()));
     }
 
     @Test

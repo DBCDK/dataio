@@ -25,7 +25,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,7 +47,7 @@ import static org.mockito.Mockito.when;
 public class ScheduledHarvestBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final Class rrHarvesterConfigurationType = OLDRRHarvesterConfig.class;
+    private final Class rrHarvesterConfigurationType = RRHarvesterConfig.class;
     private final HarvesterBean harvesterBean = mock(HarvesterBean.class);
     private final Timer timer = null;
 

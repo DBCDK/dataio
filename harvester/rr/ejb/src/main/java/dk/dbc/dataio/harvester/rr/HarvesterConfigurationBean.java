@@ -35,7 +35,6 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,7 +48,7 @@ public class HarvesterConfigurationBean {
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
-    List<RRHarvesterConfig> configs = new ArrayList<>();
+    List<RRHarvesterConfig> configs;
 
     /**
      * Initializes configuration
@@ -72,9 +71,7 @@ public class HarvesterConfigurationBean {
     public void reload() throws HarvesterException {
         LOGGER.debug("Retrieving configuration");
         try {
-            configs.clear();
-            configs.addAll(flowStoreServiceConnectorBean.getConnector()
-                    .findEnabledHarvesterConfigsByType(dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig.class));
+            configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(RRHarvesterConfig.class);
             LOGGER.info("Applying configuration: {}", configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);

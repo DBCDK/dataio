@@ -88,19 +88,17 @@ public class HarvestOperation {
         while (nextQueuedItem != null) {
             LOGGER.info("{} ready for harvesting", nextQueuedItem);
             final RecordId queuedRecordId = nextQueuedItem.getJob();
-            if (queuedRecordId.getAgencyId() != DBC_COMMON_LIBRARY_NUMBER) {
-                try {
-                    final DataContainer harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
-                    final int agencyId = getAgencyId(queuedRecordId, harvesterRecord.getEnrichmentTrail());
-                    getHarvesterJobBuilder(agencyId).addHarvesterRecord(harvesterRecord);
-                } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                    LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
-                    markAsFailure(nextQueuedItem, e.getMessage());
-                }
+            try {
+                final DataContainer harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                final int agencyId = getAgencyId(queuedRecordId, harvesterRecord.getEnrichmentTrail());
+                getHarvesterJobBuilder(agencyId).addHarvesterRecord(harvesterRecord);
+            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+                LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                markAsFailure(nextQueuedItem, e.getMessage());
+            }
 
-                if (++itemsHarvested == config.getBatchSize()) {
-                    break;
-                }
+            if (++itemsHarvested == config.getBatchSize()) {
+                break;
             }
             nextQueuedItem = getNextQueuedItem();
         }

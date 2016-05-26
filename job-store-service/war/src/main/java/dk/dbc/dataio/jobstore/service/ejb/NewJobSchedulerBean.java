@@ -113,8 +113,8 @@ public class NewJobSchedulerBean {
 
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     * @param chunk
-     * @param sinkId
+     * @param chunk ???
+     * @param sinkId ???
      */
     @Asynchronous
     @Stopwatch
@@ -221,9 +221,9 @@ public class NewJobSchedulerBean {
      *
      * If called Multiple times with the same chunk, or chunk not in QUEUED_TO_DELIVERY the chunk is ignored
      *
-     * @param chunk
-     * @throws JSONBException
-     * @throws JobStoreException
+     * @param chunk ???
+     * @throws JSONBException ???
+     * @throws JobStoreException ???
      */
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRED )

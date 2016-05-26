@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 
 import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
+import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doGet;
 import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
@@ -1027,6 +1028,35 @@ public class FlowStoreServiceConnector {
         } finally {
             response.close();
             log.debug("FlowStoreServiceConnector: updateHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves harvester config identified by given id as given type
+     * @param id harvester config ID
+     * @param type of harvester config
+     * @param <T> type parameter
+     * @return the retrieved harvester config
+     * @throws NullPointerException if given null-valued tyoe argument
+     * @throws ProcessingException on general transport protocol error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if harvester config retrieval failed
+     * @throws FlowStoreServiceConnectorException on connector internal error
+     */
+    public <T> T getHarvesterConfig(long id, Class<T> type) throws NullPointerException, ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        log.trace("FlowStoreServiceConnector: getHarvesterConfig called with id={}, type='{}'", id, type);
+        InvariantUtil.checkNotNullOrThrow(type, "type");
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
+
+        final Response response = doGet(httpClient, baseUrl, path.build());
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseEntity(response, type);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: getHarvesterConfig took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

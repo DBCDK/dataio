@@ -99,7 +99,7 @@ public class HarvesterConfigsIT {
         assertThat(newRRHarvesterConfig.getVersion(), is(notNullValue()));
         assertThat(newRRHarvesterConfig.getContent(), is(newRRConfigContent));
         assertThat(newRRHarvesterConfig.getType(), is(RRHarvesterConfig.class.getName()));
-        assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(RRHarvesterConfig.class).size(), is(1));
+        assertThat(flowStoreServiceConnector.getHarvesterConfig(newRRHarvesterConfig.getId(), RRHarvesterConfig.class), is(notNullValue()));
 
         // And When...
         OLDRRHarvesterConfig oldRRHarvesterConfig = flowStoreServiceConnector.createHarvesterConfig(oldRRConfigContent, OLDRRHarvesterConfig.class);
@@ -109,7 +109,7 @@ public class HarvesterConfigsIT {
         assertThat(oldRRHarvesterConfig.getVersion(), is(notNullValue()));
         assertThat(oldRRHarvesterConfig.getContent(), is(oldRRConfigContent));
         assertThat(oldRRHarvesterConfig.getType(), is(OLDRRHarvesterConfig.class.getName()));
-        assertThat(flowStoreServiceConnector.findHarvesterConfigsByType(OLDRRHarvesterConfig.class).size(), is(1));
+        assertThat(flowStoreServiceConnector.getHarvesterConfig(oldRRHarvesterConfig.getId(), OLDRRHarvesterConfig.class), is(notNullValue()));
     }
 
     /**

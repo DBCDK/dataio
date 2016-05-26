@@ -212,6 +212,32 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         assertThat(connector.findEnabledHarvesterConfigsByType(rrHarvesterConfig).isEmpty(), is(true));
     }
 
+    // **************************************** get harvester config tests ***********************************************
+
+    @Test
+    public void getHarvesterConfig_typeArgIsNull_throws() throws FlowStoreServiceConnectorException {
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.getHarvesterConfig(42L, null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void getHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, pathForGetHarvesterConfig(42L)))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.getHarvesterConfig(42L, RRHarvesterConfig.class), isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
+    }
+
+    @Test
+    public void getHarvesterConfig_responseWithNullEntity_throws() throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, pathForGetHarvesterConfig(42L)))
+                .thenReturn(new MockedResponse<>(Response.Status.OK.getStatusCode(), null));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.getHarvesterConfig(42L, RRHarvesterConfig.class), isThrowing(FlowStoreServiceConnectorException.class));
+    }
+
     // ********************************* find enabled harvester configs by type tests ************************************
 
     @Test
@@ -434,6 +460,12 @@ public class FlowStoreServiceConnector_Harvesters_Test {
     private String[] getfindEnabledHarvesterConfigsByTypePath(Class type) {
         return new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE_ENABLED)
                 .bind(FlowStoreServiceConstants.TYPE_VARIABLE, type.getName())
+                .build();
+    }
+
+    private String[] pathForGetHarvesterConfig(long id) {
+        return new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id)
                 .build();
     }
 

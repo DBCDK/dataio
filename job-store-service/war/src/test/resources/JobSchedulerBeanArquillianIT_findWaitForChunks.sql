@@ -20,7 +20,7 @@ $do$
 DECLARE
  _counter int := 0;
 BEGIN
-WHILE _counter < 5
+WHILE _counter < 10
 LOOP
    insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (1,_counter,'','{"data":[]}'::JSON,'{}'::JSON);
    insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (2,_counter,'','{"data":[]}'::JSON,'{}'::JSON);

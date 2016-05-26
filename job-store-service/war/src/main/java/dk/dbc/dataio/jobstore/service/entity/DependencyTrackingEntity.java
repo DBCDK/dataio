@@ -23,7 +23,15 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import org.eclipse.persistence.annotations.Mutable;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.ColumnResult;
+import javax.persistence.ConstructorResult;
+import javax.persistence.Convert;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.SqlResultSetMapping;
+import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -148,6 +156,36 @@ public class DependencyTrackingEntity {
 
     public void setMatchKeys(Set<String> matchKeys) {
         this.matchKeys = matchKeys;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DependencyTrackingEntity that = (DependencyTrackingEntity) o;
+
+        if (getSinkid() != that.getSinkid()) return false;
+        if (!getKey().equals(that.getKey())) return false;
+        if (getStatus() != that.getStatus()) return false;
+        if (getWaitingOn() != null ? !getWaitingOn().equals(that.getWaitingOn()) : that.getWaitingOn() != null)
+            return false;
+        if (getBlocking() != null ? !getBlocking().equals(that.getBlocking()) : that.getBlocking() != null)
+            return false;
+        return getMatchKeys() != null ? getMatchKeys().equals(that.getMatchKeys()) : that.getMatchKeys() == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = getKey().hashCode();
+        result = 31 * result + getSinkid();
+        result = 31 * result + getStatus().hashCode();
+        result = 31 * result + (getWaitingOn() != null ? getWaitingOn().hashCode() : 0);
+        result = 31 * result + (getBlocking() != null ? getBlocking().hashCode() : 0);
+        result = 31 * result + (getMatchKeys() != null ? getMatchKeys().hashCode() : 0);
+        return result;
     }
 
     @Embeddable

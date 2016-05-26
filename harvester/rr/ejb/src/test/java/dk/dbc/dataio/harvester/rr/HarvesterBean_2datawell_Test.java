@@ -68,7 +68,7 @@ import static org.mockito.Mockito.when;
 
 public class HarvesterBean_2datawell_Test {
     private static final String CONSUMER_ID = "consumerId";
-    private static final int DBC_COMMON_AGENCY_ID = 191919;
+    private static final int DBC_COMMON_AGENCY_ID = 870970;
     private static final int LOCAL_ID = 700000;
 
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";

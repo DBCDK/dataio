@@ -56,7 +56,6 @@ import java.util.List;
 import java.util.Map;
 
 import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doDelete;
-import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doGet;
 import static dk.dbc.dataio.commons.utils.httpclient.HttpClient.doPostWithJson;
 import static javax.ws.rs.core.Response.Status.NO_CONTENT;
 
@@ -1050,7 +1049,7 @@ public class FlowStoreServiceConnector {
         final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
                 .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
 
-        final Response response = doGet(httpClient, baseUrl, path.build());
+        final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
         try {
             verifyResponseStatus(response, Response.Status.OK);
             return readResponseEntity(response, type);

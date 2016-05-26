@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.naming.NamingException;
@@ -45,7 +46,7 @@ public class UshSolrConnectorBean {
         LOGGER.debug("Initializing connector");
         try {
             final String endpoint = ServiceUtil.getUshSolrEndpoint();
-            ushSolrConnector = new UshSolrConnector(/* endpoint */);
+            ushSolrConnector = new UshSolrConnector(endpoint);
             LOGGER.info("Using solr endpoint {}", endpoint);
         } catch (NamingException e) {
             throw new EJBException(e);
@@ -54,5 +55,12 @@ public class UshSolrConnectorBean {
 
     public UshSolrConnector getConnector() {
         return ushSolrConnector;
+    }
+
+    @PreDestroy
+    public void tearDownConnector() {
+        if (ushSolrConnector != null) {
+            ushSolrConnector.close();
+        }
     }
 }

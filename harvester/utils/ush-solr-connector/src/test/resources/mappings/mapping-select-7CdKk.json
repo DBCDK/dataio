@@ -1,0 +1,16 @@
+{
+  "request" : {
+    "url" : "/select?q=database%3A10002+AND+harvest-timestamp%3A%7B*+TO+2016-05-25T06%3A59%3A13.740Z%5D&rows=10&start=0&wt=javabin&version=2",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-select-7CdKk.json",
+    "headers" : {
+      "Server" : "Apache-Coyote/1.1",
+      "Content-Type" : "application/octet-stream",
+      "Content-Length" : "6648",
+      "Date" : "Wed, 25 May 2016 12:20:05 GMT"
+    }
+  }
+}

@@ -21,8 +21,141 @@
 
 package dk.dbc.dataio.harvester.utils.ush;
 
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.response.QueryResponse;
+
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
 /**
- * This class provides an API to a USH Solr server
+ * This class provides an API to an USH Solr server.
+ * This class is thread safe.
  */
 public class UshSolrConnector {
+    private static final int DEFAULT_DOCUMENT_BUFFER_MAX_SIZE = 500;
+
+    private final SolrServer server;
+    private final int documentBufferMaxSize;
+    private final DateTimeFormatter utcDateTimeFormatter = DateTimeFormatter.ISO_INSTANT;
+
+    public UshSolrConnector(String solrServerEndpoint) throws NullPointerException, IllegalArgumentException {
+        this(solrServerEndpoint, DEFAULT_DOCUMENT_BUFFER_MAX_SIZE);
+    }
+
+    public UshSolrConnector(String solrServerEndpoint, int documentBufferMaxSize) throws NullPointerException, IllegalArgumentException {
+        this(new HttpSolrServer(InvariantUtil.checkNotNullNotEmptyOrThrow(solrServerEndpoint, "solrServerEndpoint")),
+                documentBufferMaxSize);
+    }
+
+    private UshSolrConnector(SolrServer solrServer, int documentBufferMaxSize) throws NullPointerException, IllegalArgumentException {
+        this.server = InvariantUtil.checkNotNullOrThrow(solrServer, "solrServer");
+        if (documentBufferMaxSize <= 0) {
+            throw new IllegalArgumentException("Value of parameter 'documentBufferMaxSize' must be larger than 0");
+        }
+        this.documentBufferMaxSize = documentBufferMaxSize;
+    }
+
+    public void close() {
+        server.shutdown();
+    }
+
+    /**
+     * Finds all documents in specified database harvested in interval given by from and until timestamps
+     * @param database name of database for which to retrieve documents
+     * @param from all documents harvested after this timestamp (non-inclusive), can be null for open-ended
+     * @param until all documents harvested before this timestamp (inclusive), can be null for open-ended
+     * @return iterable result set
+     * @throws NullPointerException if given null-valued database
+     * @throws IllegalArgumentException if given empty-valued database
+     * @throws UshSolrConnectorException on error during Solr server communication
+     */
+    public ResultSet findDatabaseDocumentsHarvestedInInterval(String database, Date from, Date until)
+            throws NullPointerException, IllegalArgumentException, UshSolrConnectorException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(database, "database");
+        final SolrQuery query = new SolrQuery()
+            .setQuery(String.format("database:%s AND harvest-timestamp:{%s TO %s]",
+                    database, asQueryDateTime(from), asQueryDateTime(until)));
+        return new ResultSet(query, documentBufferMaxSize);
+    }
+
+    private String asQueryDateTime(Date date) {
+        if (date == null) {
+            return "*";
+        }
+        return utcDateTimeFormatter.format(date.toInstant());
+    }
+
+    /**
+     * This class represents a one-time iteration of Solr search result set
+     */
+    public class ResultSet implements Iterable<UshSolrDocument> {
+        private final SolrQuery query;
+        private final int documentBufferMaxSize;
+        private final int size;
+        private int cursor;
+        private Iterator<UshSolrDocument> documentBuffer;
+
+        public ResultSet(SolrQuery query, int documentBufferMaxSize) throws UshSolrConnectorException {
+            this.query = query;
+            this.documentBufferMaxSize = documentBufferMaxSize;
+            this.size = getResultSetSize();
+            this.cursor = 0;
+            this.documentBuffer = fillDocumentBuffer();
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        @Override
+        public Iterator<UshSolrDocument> iterator() {
+            return new Iterator<UshSolrDocument>() {
+                @Override
+                public boolean hasNext() throws UshSolrConnectorException {
+                    if (!documentBuffer.hasNext() && cursor < size) {
+                        documentBuffer = fillDocumentBuffer();
+                    }
+                    return documentBuffer.hasNext();
+                }
+
+                @Override
+                public UshSolrDocument next() {
+                    try {
+                        final UshSolrDocument document = documentBuffer.next();
+                        if (document != null) {
+                            cursor++;
+                        }
+                        return document;
+                    } catch (NoSuchElementException e) {
+                        return null;
+                    }
+                }
+            };
+        }
+
+        private int getResultSetSize() throws UshSolrConnectorException {
+            query.setRows(0);
+            return (int) getQueryResponse(query).getResults().getNumFound();
+        }
+
+        private Iterator<UshSolrDocument> fillDocumentBuffer() throws UshSolrConnectorException {
+            query.setStart(cursor);
+            query.setRows(documentBufferMaxSize);
+            return getQueryResponse(query).getBeans(UshSolrDocument.class).iterator();
+        }
+
+        private QueryResponse getQueryResponse(SolrQuery query) throws UshSolrConnectorException {
+            try {
+                return server.query(query);
+            } catch (SolrServerException e) {
+                throw new UshSolrConnectorException(e);
+            }
+        }
+    }
 }

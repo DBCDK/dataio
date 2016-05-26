@@ -163,6 +163,29 @@ public class HarvestersBean {
     }
 
     /**
+     * Retrieves harvester config from underlying data store
+     * @param id harvester config identifier
+     * @return a HTTP 200 response with harvester config content as JSON,
+     *         a HTTP 404 response if not found,
+     *         a HTTP 500 response in case of general error.
+     * @throws JSONBException on failure to marshall found harvester config
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIG)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response getHarvesterConfig(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
+        final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        if (harvesterConfig == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(null).build();
+        }
+        return Response
+                .ok()
+                .entity(jsonbContext.marshall(harvesterConfig))
+                .tag(harvesterConfig.getVersion().toString())
+                .build();
+    }
+
+    /**
      * Returns list of all harvester configs of given type
      * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.

@@ -48,11 +48,12 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.any;
 
 public class HarvestersBeanTest {
     private final EntityManager entityManager = mock(EntityManager.class);
@@ -271,6 +272,30 @@ public class HarvestersBeanTest {
         assertThat("response entity size", entityNode.size(), is(2));
         assertThat("1st entry in entity list", entityNode.get(0).get("id").asLong(), is(firstConfig.getId()));
         assertThat("2nd entry in entity list", entityNode.get(1).get("id").asLong(), is(secondConfig.getId()));
+    }
+
+    @Test
+    public void getHarvesterConfig_notFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.getHarvesterConfig(42L);
+        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response entity tag", response.getEntityTag(), is(nullValue()));
+    }
+
+    @Test
+    public void getHarvesterConfig_found_returnsResponseWithHttpStatusOkAndConfigEntity() throws JSONBException {
+        final long id = 42;
+        final long version = 2;
+        final HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withId(id)
+                .withVersion(version);
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.getHarvesterConfig(id);
+        assertThat("Response status", response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat("Response has entity", response.hasEntity(), is(true));
+        assertThat("Response entity tag", response.getEntityTag().getValue(), is(Long.toString(version)));
     }
 
     public HarvestersBean newharvestersBeanWithMockedEntityManager() {

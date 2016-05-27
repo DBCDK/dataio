@@ -25,8 +25,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import dk.dbc.dataio.commons.types.Constants;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -34,70 +32,16 @@ import java.util.Date;
 /**
  * DTO class for USH-Solr harvester configuration
  */
-public class UshSolrHarvesterConfig implements Serializable {
+public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = 5981757061573803169L;
 
-    private final long id;
-    private final long version;
-    private final Content content;
-
     @JsonCreator
-    public UshSolrHarvesterConfig(@JsonProperty("id") long id,
-                @JsonProperty("version") long version,
-                @JsonProperty("content") Content content) {
-        this.id = InvariantUtil.checkLowerBoundOrThrow(id, "id", Constants.PERSISTENCE_ID_LOWER_BOUND);
-        this.version = InvariantUtil.checkLowerBoundOrThrow(version, "version", Constants.PERSISTENCE_VERSION_LOWER_BOUND);
-        this.content = InvariantUtil.checkNotNullOrThrow(content, "content");
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public long getVersion() {
-        return version;
-    }
-
-    public Content getContent() {
-        return content;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        UshSolrHarvesterConfig that = (UshSolrHarvesterConfig) o;
-
-        if (id != that.id) {
-            return false;
-        }
-        if (version != that.version) {
-            return false;
-        }
-        return content.equals(that.content);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + (int) (version ^ (version >>> 32));
-        result = 31 * result + content.hashCode();
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "UshSolrHarvesterConfig{" +
-                "id=" + id +
-                ", version=" + version +
-                ", content=" + content +
-                '}';
+    public UshSolrHarvesterConfig(
+            @JsonProperty("id") long id,
+            @JsonProperty("version") long version,
+            @JsonProperty("content") Content content)
+            throws NullPointerException, IllegalArgumentException {
+        super(id, version, content);
     }
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

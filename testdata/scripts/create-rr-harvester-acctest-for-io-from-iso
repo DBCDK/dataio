@@ -45,9 +45,9 @@ INPUT=$1
 PREFIX=$(basename $INPUT | cut -c 1-6 )
 
 #check for multiple records in iso file 
-if [ $(cat $INPUT | spltmarc -c) -ne 1 ]
+if [ $(cat $INPUT | countmarc ) -ne 1 ]
 then 
-    echo "Iso file contains" $(cat $INPUT | spltmarc -c) "records"
+    echo "Iso file contains" $(cat $INPUT | countmarc ) "records"
     echo "The input file will be split into individual records and processed from tmp dir"
     echo ""
     cd ~/dataio-testdata/scripts/tmp

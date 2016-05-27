@@ -37,6 +37,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -165,9 +166,9 @@ public class HarvestersBean {
     /**
      * Retrieves harvester config from underlying data store
      * @param id harvester config identifier
-     * @return a HTTP 200 response with harvester config content as JSON,
-     *         a HTTP 404 response if not found,
-     *         a HTTP 500 response in case of general error.
+     * @return a HTTP 200 OK response with harvester config content as JSON,
+     *         a HTTP 404 NOT FOUND response if not found,
+     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
      * @throws JSONBException on failure to marshall found harvester config
      */
     @GET
@@ -183,6 +184,35 @@ public class HarvestersBean {
                 .entity(jsonbContext.marshall(harvesterConfig))
                 .tag(harvesterConfig.getVersion().toString())
                 .build();
+    }
+
+    /**
+     * Deletes an existing harvester config
+     * @param id ID of config to be deleted
+     * @param version current version of config at the time of deletion
+     * @return a HTTP 204 NO CONTENT response with no content if config is deleted,
+     *         a HTTP 404 NOT FOUND response in case of ID not found,
+     *         a HTTP 409 CONFLICT response in case of version conflict,
+     *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     */
+    @DELETE
+    @Path(FlowStoreServiceConstants.HARVESTER_CONFIG)
+    public Response deleteHarvesterConfig(
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
+        final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
+        if (harvesterConfig == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(null).build();
+        }
+
+        // First we need to update the version to ensure that an OptimisticLockingException
+        // is triggered if a conflict exists
+        entityManager.detach(harvesterConfig);
+        harvesterConfig.setVersion(version);
+        entityManager.remove(entityManager.merge(harvesterConfig));
+        entityManager.flush();
+
+        return Response.noContent().build();
     }
 
     /**

@@ -298,6 +298,29 @@ public class HarvestersBeanTest {
         assertThat("Response entity tag", response.getEntityTag().getValue(), is(Long.toString(version)));
     }
 
+    @Test
+    public void deleteHarvesterConfig_notFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.deleteHarvesterConfig(42L, 1L);
+        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response entity tag", response.getEntityTag(), is(nullValue()));
+    }
+
+    @Test
+    public void deleteHarvesterConfig_deleted_returnsResponseWithHttpStatusNoContent() throws JSONBException {
+        final long id = 42;
+        final long version = 2;
+        final HarvesterConfig harvesterConfig = new HarvesterConfig()
+                .withId(id)
+                .withVersion(version);
+        when(entityManager.find(HarvesterConfig.class, id)).thenReturn(harvesterConfig);
+
+        final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
+        final Response response = harvestersBean.deleteHarvesterConfig(id, version);
+        assertThat("Response status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
+        assertThat("Response has entity", response.hasEntity(), is(false));
+    }
+
     public HarvestersBean newharvestersBeanWithMockedEntityManager() {
         final HarvestersBean harvestersBean = new HarvestersBean();
         harvestersBean.entityManager = entityManager;

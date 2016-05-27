@@ -73,7 +73,7 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
 
         /** Optional format overrides for specific agencyIds */
         @JsonProperty
-        private final Map<Integer, String> formatOverrides=new HashMap<>();
+        private final Map<Integer, String> formatOverrides = new HashMap<>();
 
         /** Flag indicating whether or not to include
          record relations in marcXchange collections */
@@ -158,6 +158,13 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
             return this;
         }
 
+        public Content withFormatOverrides(HashMap<Integer, String> formatOverrides) {
+            if (formatOverrides != null) {
+                this.formatOverrides.clear();
+                this.formatOverrides.putAll(formatOverrides);
+            }
+            return this;
+        }
 
         public boolean isIncludeRelations() {
             return includeRelations;

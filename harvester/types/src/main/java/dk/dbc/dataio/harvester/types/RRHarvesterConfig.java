@@ -75,7 +75,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         /** Optional format overrides for specific agencyIds */
         @JsonProperty
-        private final Map<Integer, String> formatOverrides=new HashMap<>();
+        private final Map<Integer, String> formatOverrides = new HashMap<>(); // We need a map implementation with putAll()
 
         public boolean isEnabled() {
             return enabled;
@@ -156,7 +156,15 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         }
 
         public Content withFormatOverridesEntry( Integer formatKey, String formatOverride) {
-            this.formatOverrides.put( formatKey, formatOverride );
+            this.formatOverrides.put(formatKey, formatOverride);
+            return this;
+        }
+
+        public Content withFormatOverrides(HashMap<Integer, String> formatOverrides) {
+            if (formatOverrides != null) {
+                this.formatOverrides.clear();
+                this.formatOverrides.putAll(formatOverrides);
+            }
             return this;
         }
 

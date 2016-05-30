@@ -23,7 +23,25 @@ package dk.dbc.dataio.harvester.utils.ush;
 
 import org.apache.solr.client.solrj.beans.Field;
 
+import java.nio.charset.StandardCharsets;
+
 public class UshSolrDocument {
     @Field("id")
     public String id;
+
+    @Field("_version_")
+    public long version;
+
+    @Field("submitter_s")
+    public String submitter;
+
+    @Field("content_format_s")
+    public String contentFormat;
+
+    @Field("frame_s")
+    public String frame;
+
+    public byte[] recordBytes() {
+        return "dummy record".getBytes(StandardCharsets.UTF_8);
+    }
 }

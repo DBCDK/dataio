@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.harvester.modify;
 
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -109,6 +110,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(RRHarvesterConfig rrHarvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
+            History.back();
         }
     }
 

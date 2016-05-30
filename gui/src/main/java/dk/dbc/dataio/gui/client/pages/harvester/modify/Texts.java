@@ -74,6 +74,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String prompt_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_Enabled();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String prompt_OverrideSubmitter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

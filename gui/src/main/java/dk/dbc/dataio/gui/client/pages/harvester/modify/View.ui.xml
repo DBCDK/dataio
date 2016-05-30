@@ -39,6 +39,7 @@
         <li><dio:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}"/></li>
         <li><dio:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>
         <li><dio:PromptedTextBox ui:field="type" guiId="harvestertypepanel" prompt="{txt.prompt_Type}"/></li>
+        <li><dio:PromptedCheckBox ui:field="enabled" guiId="harvesterenabledpanel" prompt="{txt.prompt_Enabled}"/></li>
 
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

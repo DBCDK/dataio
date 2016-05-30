@@ -218,6 +218,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
+    /**
+     * A signal to the presenter, saying that the enabled field has been changed
+     * @param enabled, the new enabled value
+     */
+    @Override
+    public void enabledChanged(Boolean enabled) {
+        if (config != null) {
+            config.getContent().withEnabled(enabled);
+        }
+    }
 
     /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
@@ -314,7 +324,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields(
-            Boolean enabled,
+            Boolean viewEnabled,
             String name,
             String resource,
             String targetUrl,
@@ -327,40 +337,43 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Boolean relations,
             String destination,
             String format,
-            String type) {
+            String type,
+            Boolean enabled) {
         View view = getView();
         view.name.setText(name);
-        view.name.setEnabled(enabled);
+        view.name.setEnabled(viewEnabled);
         view.resource.setText(resource);
-        view.resource.setEnabled(enabled);
+        view.resource.setEnabled(viewEnabled);
         view.targetUrl.setText(targetUrl);
-        view.targetUrl.setEnabled(enabled);
+        view.targetUrl.setEnabled(viewEnabled);
         view.targetGroup.setText(targetGroup);
-        view.targetGroup.setEnabled(enabled);
+        view.targetGroup.setEnabled(viewEnabled);
         view.targetUser.setText(targetUser);
-        view.targetUser.setEnabled(enabled);
+        view.targetUser.setEnabled(viewEnabled);
         view.targetPassword.setText(targetPassword);
-        view.targetPassword.setEnabled(enabled);
+        view.targetPassword.setEnabled(viewEnabled);
         view.consumerId.setText(consumerId);
-        view.consumerId.setEnabled(enabled);
+        view.consumerId.setEnabled(viewEnabled);
         view.size.setText(size);
-        view.size.setEnabled(enabled);
+        view.size.setEnabled(viewEnabled);
         view.setFormatOverrides(formatOverrides);
-        view.formatOverrides.setEnabled(enabled);
+        view.formatOverrides.setEnabled(viewEnabled);
         view.relations.setValue(relations);
-        view.relations.setEnabled(enabled);
+        view.relations.setEnabled(viewEnabled);
         view.destination.setText(destination);
-        view.destination.setEnabled(enabled);
+        view.destination.setEnabled(viewEnabled);
         view.format.setText(format);
-        view.format.setEnabled(enabled);
+        view.format.setEnabled(viewEnabled);
         view.type.setText(type);
-        view.type.setEnabled(enabled);
+        view.type.setEnabled(viewEnabled);
+        view.enabled.setValue(enabled);
+        view.enabled.setEnabled(viewEnabled);
         view.status.setText("");
         view.popupFormatOverrideEntry.hide();
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, "", "", "");
+        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, "", "", "", false);
     }
 
     /**
@@ -382,7 +395,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().isIncludeRelations(),
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
-                config.getContent().getType().toString());
+                config.getContent().getType().toString(),
+                config.getContent().isEnabled());
     }
 
     protected View getView() {

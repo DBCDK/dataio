@@ -22,17 +22,20 @@
 package dk.dbc.dataio.harvester.ush.solr;
 
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.ejb.Timer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -60,7 +63,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_nonEmptyConfig_resultsInRunningHarvests() {
-        injectConfigs(new UshSolrHarvesterConfig.Content());
+        injectConfigs(newConfigEligibleForExecution());
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
@@ -69,7 +72,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_harvestCompletes_reschedulesHarvest() throws HarvesterException {
-        injectConfigs(new UshSolrHarvesterConfig.Content());
+        injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletes();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -80,7 +83,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_harvestCompletesAndIsNoLongerConfigured_removesHarvest() throws HarvesterException {
-        injectConfigs(new UshSolrHarvesterConfig.Content());
+        injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletes();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -94,7 +97,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_harvestCompletesWithException_reschedulesHarvest() throws HarvesterException {
-        injectConfigs(new UshSolrHarvesterConfig.Content());
+        injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletesWithException();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -105,7 +108,7 @@ public class ScheduledHarvestBeanTest {
 
     @Test
     public void scheduleHarvests_harvestCompletesWithExceptionAndIsNoLongerConfigured_removesHarvest() throws HarvesterException {
-        injectConfigs(new UshSolrHarvesterConfig.Content());
+        injectConfigs(newConfigEligibleForExecution());
         mockedHarvestCompletesWithException();
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -113,6 +116,69 @@ public class ScheduledHarvestBeanTest {
 
         configs.clear();
 
+        scheduledHarvestBean.scheduleHarvests(timer);
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
+    }
+
+    @Test
+    public void scheduleHarvests_configHasNullValuedUshHarvesterProperties_harvestIsNotEligibleForExecution() {
+        final UshSolrHarvesterConfig config = newConfig();
+        config.getContent().withUshHarvesterProperties(null);
+        injectConfigs(config);
+
+        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        scheduledHarvestBean.scheduleHarvests(timer);
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
+    }
+
+    @Test
+    public void scheduleHarvests_ushHarvesterPropertiesHasNonOkLastStatus_harvestIsNotEligibleForExecution() {
+        final UshSolrHarvesterConfig config = newConfig();
+        config.getContent()
+                .withUshHarvesterProperties(
+                        new UshHarvesterProperties()
+                            .withLatestStatus("FAILED"));
+        injectConfigs(config);
+
+        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        scheduledHarvestBean.scheduleHarvests(timer);
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
+    }
+
+    @Test
+    public void scheduleHarvests_ushHarvesterPropertiesHasNoLastHarvested_harvestIsNotEligibleForExecution() {
+        final UshSolrHarvesterConfig config = newConfig();
+        config.getContent()
+                .withUshHarvesterProperties(
+                        new UshHarvesterProperties()
+                            .withLastHarvestedDate(null));
+        injectConfigs(config);
+
+        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        scheduledHarvestBean.scheduleHarvests(timer);
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
+    }
+
+    @Test
+    public void scheduleHarvests_24HoursHasNotPassedSinceLastSolrHarvest_harvestIsNotEligibleForExecution() {
+        final UshSolrHarvesterConfig config = newConfigEligibleForExecution();
+        config.getContent().withTimeOfLastHarvest(new Date());
+        injectConfigs(config);
+
+        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
+        scheduledHarvestBean.scheduleHarvests(timer);
+        assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
+    }
+
+    @Test
+    public void scheduleHarvests_lastUshHarvestIsNotNewerThanLastSolrHarvest_harvestIsNotEligibleForExecution() {
+        final Date timeOfLastHarvest = new Date();
+        final UshSolrHarvesterConfig config = newConfigEligibleForExecution();
+        config.getContent().withTimeOfLastHarvest(timeOfLastHarvest);
+        config.getContent().getUshHarvesterProperties().withLastHarvestedDate(timeOfLastHarvest);
+        injectConfigs(config);
+
+        final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
         scheduledHarvestBean.scheduleHarvests(timer);
         assertThat("Number of running harvests", scheduledHarvestBean.runningHarvests.size(), is(0));
     }
@@ -126,13 +192,31 @@ public class ScheduledHarvestBeanTest {
         return scheduledHarvestBean;
     }
 
-    private void injectConfigs(UshSolrHarvesterConfig.Content... entries) {
+    private void injectConfigs(UshSolrHarvesterConfig... entries) {
         configs.clear();
-        int id = 1;
-        for (UshSolrHarvesterConfig.Content content : entries) {
-            configs.add(new UshSolrHarvesterConfig(id, 1, content));
-            id++;
-        }
+        Collections.addAll(configs, entries);
+    }
+
+    private UshSolrHarvesterConfig newConfig() {
+        return newConfig(1);
+    }
+
+    private UshSolrHarvesterConfig newConfig(long id) {
+       return new UshSolrHarvesterConfig(id, 1,
+                new UshSolrHarvesterConfig.Content());
+    }
+
+    private UshSolrHarvesterConfig newConfigEligibleForExecution() {
+        return newConfigEligibleForExecution(1);
+    }
+
+    private UshSolrHarvesterConfig newConfigEligibleForExecution(long id) {
+        return new UshSolrHarvesterConfig(id, 1,
+                new UshSolrHarvesterConfig.Content()
+                    .withUshHarvesterProperties(
+                            new UshHarvesterProperties()
+                                .withLatestStatus("OK")
+                                .withLastHarvestedDate(new Date())));
     }
 
     private void mockedHarvestCompletes() throws HarvesterException {

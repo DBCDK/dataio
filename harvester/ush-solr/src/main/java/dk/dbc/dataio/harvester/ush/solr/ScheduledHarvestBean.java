@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.ush.solr;
 
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,20 +39,22 @@ import javax.ejb.Timeout;
 import javax.ejb.Timer;
 import javax.ejb.TimerConfig;
 import javax.ejb.TimerService;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Future;
 
 /**
  * This singleton Enterprise Java Bean (EJB) class executes scheduled harvest operations
  */
-@SuppressWarnings("PMD") // TODO: 5/11/16 Remove suppression when ready
 @Singleton
 @Startup
 @DependsOn("HarvesterConfigurationBean")
 public class ScheduledHarvestBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(ScheduledHarvestBean.class);
+    private static final long TWENTY_FOUR_HOURS_IN_MS = 24 * 60 * 60 * 1000;
 
     private Timer timer = null;
 
@@ -67,15 +70,14 @@ public class ScheduledHarvestBean {
     HarvesterBean harvester;
 
     /**
-     * Starts daily harvest at 01:00.
+     * Starts hourly harvest.
      */
     @PostConstruct
     public void bootstrap() {
         final ScheduleExpression scheduleExpression = new ScheduleExpression();
         scheduleExpression.second(0);
         scheduleExpression.minute(0);
-        scheduleExpression.hour(1);
-        scheduleExpression.dayOfWeek("*");
+        scheduleExpression.hour("*");
         start(scheduleExpression);
     }
 
@@ -113,13 +115,47 @@ public class ScheduledHarvestBean {
             }
 
             for (UshSolrHarvesterConfig config : configs.get()) {
-                if (!runningHarvests.containsKey(config.getId())) {
-                    runningHarvests.put(config.getId(), harvester.harvest(config));
-                    LOGGER.debug("Scheduling harvest for '{}'", config.getId());
+                try {
+                    if (!runningHarvests.containsKey(config.getId()) && isEligibleForExecution(config)) {
+                        runningHarvests.put(config.getId(), harvester.harvest(config));
+                        LOGGER.debug("Scheduling harvest for '{}'", config.getId());
+                    }
+                } catch (IllegalStateException e) {
+                    LOGGER.warn("Exception caught while scheduling harvest", e);
                 }
             }
         } catch (Exception e) {
             LOGGER.warn("Exception caught while scheduling harvests", e);
         }
+    }
+
+    private boolean isEligibleForExecution(UshSolrHarvesterConfig config) throws IllegalStateException {
+        final UshHarvesterProperties ushHarvesterProperties = config.getContent().getUshHarvesterProperties();
+        if (ushHarvesterProperties == null) {
+            throw new IllegalStateException(String.format("Config with ID %d for USH harvester '%d' contained no properties",
+                    config.getId(), config.getContent().getUshOaiHarvesterJobId()));
+        }
+        if (!"OK".equals(ushHarvesterProperties.getLatestStatus())) {
+            LOGGER.warn("Latest status of '{}' USH harvest was {}",
+                    ushHarvesterProperties.getJobId(), ushHarvesterProperties.getLatestStatus());
+            return false;
+        }
+        final Date now = new Date();
+        final Date epoch = new Date(0);
+        // Currently we only wish to execute a harvest operation once in a 24 hours period,
+        // and only if the USH has been updated since last operation.
+        // (.orElse() parts are set so as to ensure a false return value from this method when not present)
+        final Date ushSolrTimeOfLastHarvest = getUshSolrTimeOfLastHarvest(config).orElse(epoch);
+        final Date ushTimeOfLastHarvest = getUshTimeOfLastHarvest(ushHarvesterProperties).orElse(ushSolrTimeOfLastHarvest);
+        return now.getTime() - ushSolrTimeOfLastHarvest.getTime() > TWENTY_FOUR_HOURS_IN_MS
+                && ushTimeOfLastHarvest.getTime() > ushSolrTimeOfLastHarvest.getTime();
+    }
+
+    private Optional<Date> getUshTimeOfLastHarvest(UshHarvesterProperties ushHarvesterProperties) {
+        return Optional.ofNullable(ushHarvesterProperties.getLastHarvested());
+    }
+
+    private Optional<Date> getUshSolrTimeOfLastHarvest(UshSolrHarvesterConfig config) {
+        return Optional.ofNullable(config.getContent().getTimeOfLastHarvest());
     }
 }

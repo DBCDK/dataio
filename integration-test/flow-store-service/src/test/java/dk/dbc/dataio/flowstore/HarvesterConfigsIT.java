@@ -45,6 +45,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
 import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -110,6 +112,14 @@ public class HarvesterConfigsIT {
         assertThat(oldRRHarvesterConfig.getContent(), is(oldRRConfigContent));
         assertThat(oldRRHarvesterConfig.getType(), is(OLDRRHarvesterConfig.class.getName()));
         assertThat(flowStoreServiceConnector.getHarvesterConfig(oldRRHarvesterConfig.getId(), OLDRRHarvesterConfig.class), is(notNullValue()));
+    }
+
+    @Test
+    public void deleteHarvesterConfig() throws Exception {
+        loadInitialState();
+        assertThat(flowStoreServiceConnector.getHarvesterConfig(1, RRHarvesterConfig.class), is(notNullValue()));
+        flowStoreServiceConnector.deleteHarvesterConfig(1, 1);
+        assertThat(() -> flowStoreServiceConnector.getHarvesterConfig(1, RRHarvesterConfig.class), isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     /**

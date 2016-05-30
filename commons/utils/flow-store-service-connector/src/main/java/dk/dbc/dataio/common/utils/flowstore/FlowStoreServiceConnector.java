@@ -1034,6 +1034,33 @@ public class FlowStoreServiceConnector {
     }
 
     /**
+     * Deletes an existing harvester config
+     * @param id ID of config to be deleted
+     * @param version current version of config at the time of deletion
+     * @throws ProcessingException on general transport protocol error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if harvester config deletion failed
+     * @throws FlowStoreServiceConnectorException on connector internal error
+     */
+    public void deleteHarvesterConfig(long id, long version) throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        log.trace("deleteHarvesterConfig({}, {})", id, version);
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.HARVESTER_CONFIG)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, id);
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Response response = doDelete(httpClient, headers, baseUrl, path.build());
+        try {
+            verifyResponseStatus(response, NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Returns list of all enabled harvester configs of given type
      * @param type type of harvester configs to list
      * @param <T> type parameter

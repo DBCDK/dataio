@@ -55,6 +55,8 @@ import java.util.List;
 @Stateless
 @Path("/")
 public class HarvestersBean {
+    public static final String NO_CONTENT = "";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestersBean.class);
 
     @PersistenceContext
@@ -143,7 +145,7 @@ public class HarvestersBean {
 
         HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
         if (harvesterConfig == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(null).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }
 
         entityManager.detach(harvesterConfig);
@@ -177,7 +179,7 @@ public class HarvestersBean {
     public Response getHarvesterConfig(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
         final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
         if (harvesterConfig == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(null).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }
         return Response
                 .ok()
@@ -202,7 +204,7 @@ public class HarvestersBean {
             @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
         final HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, id);
         if (harvesterConfig == null) {
-            return Response.status(Response.Status.NOT_FOUND).entity(null).build();
+            return Response.status(Response.Status.NOT_FOUND).entity(NO_CONTENT).build();
         }
 
         // First we need to update the version to ensure that an OptimisticLockingException

@@ -230,6 +230,20 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         assertThat(() -> connector.getHarvesterConfig(42L, RRHarvesterConfig.class), isThrowing(FlowStoreServiceConnectorException.class));
     }
 
+    // ************************************* delete harvester config tests ***********************************************
+
+    @Test
+    public void deleteHarvesterConfig_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, pathForGetHarvesterConfig(42L)))
+                .thenReturn(new MockedResponse<>(Response.Status.NOT_FOUND.getStatusCode(), null));
+
+        final FlowStoreServiceConnector connector = newFlowStoreServiceConnector();
+        assertThat(() -> connector.deleteHarvesterConfig(42, 1), isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
+    }
+
     // ********************************* find enabled harvester configs by type tests ************************************
 
     @Test

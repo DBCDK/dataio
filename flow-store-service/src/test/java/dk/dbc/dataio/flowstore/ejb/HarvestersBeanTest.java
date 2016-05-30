@@ -150,7 +150,8 @@ public class HarvestersBeanTest {
 
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         final Response response = harvestersBean.updateHarvesterConfig(id, version, rrHarvesterConfigType, "{}");
-        assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+        assertThat("Response has no content entity", response.getEntity(), is(HarvestersBean.NO_CONTENT));
     }
 
     @Test(expected = ClassNotFoundException.class)
@@ -280,6 +281,7 @@ public class HarvestersBeanTest {
         final Response response = harvestersBean.getHarvesterConfig(42L);
         assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat("Response entity tag", response.getEntityTag(), is(nullValue()));
+        assertThat("Response has no content entity", response.getEntity(), is(HarvestersBean.NO_CONTENT));
     }
 
     @Test
@@ -299,15 +301,16 @@ public class HarvestersBeanTest {
     }
 
     @Test
-    public void deleteHarvesterConfig_notFound_returnsResponseWithHttpStatusNotFound() throws JSONBException {
+    public void deleteHarvesterConfig_notFound_returnsResponseWithHttpStatusNotFound() {
         final HarvestersBean harvestersBean = newharvestersBeanWithMockedEntityManager();
         final Response response = harvestersBean.deleteHarvesterConfig(42L, 1L);
         assertThat("Response status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
         assertThat("Response entity tag", response.getEntityTag(), is(nullValue()));
+        assertThat("Response has no content entity", response.getEntity(), is(HarvestersBean.NO_CONTENT));
     }
 
     @Test
-    public void deleteHarvesterConfig_deleted_returnsResponseWithHttpStatusNoContent() throws JSONBException {
+    public void deleteHarvesterConfig_deleted_returnsResponseWithHttpStatusNoContent() {
         final long id = 42;
         final long version = 2;
         final HarvesterConfig harvesterConfig = new HarvesterConfig()

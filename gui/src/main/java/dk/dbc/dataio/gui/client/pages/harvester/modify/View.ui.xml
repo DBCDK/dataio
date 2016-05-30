@@ -43,6 +43,7 @@
 
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="updateButton" visible="false"><ui:text from="{txt.button_Update}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"></g:Label></li>

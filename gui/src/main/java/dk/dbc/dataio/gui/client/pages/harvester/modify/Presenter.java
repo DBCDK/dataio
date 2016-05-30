@@ -41,6 +41,7 @@ public interface Presenter extends GenericPresenter {
     void enabledChanged(Boolean value);
     void keyPressed();
     void saveButtonPressed();
+    void updateButtonPressed();
     void formatOverridesAddButtonPressed();
     void formatOverridesRemoveButtonPressed(String item);
 

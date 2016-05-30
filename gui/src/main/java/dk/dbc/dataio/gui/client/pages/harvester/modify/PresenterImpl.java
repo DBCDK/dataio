@@ -27,6 +27,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.HashMap;
@@ -252,6 +253,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the update button has been pressed
+     */
+    @Override
+    public void updateButtonPressed() {
+        /*
+         * As input, we do have an instance of the OLDRRHarvesterConfig object (in the member data: config)
+         * We want to change this to a RRHarvesterConfig object, therfore we create a new instance, and copy the dato from the old one into it.
+         */
+        config = new RRHarvesterConfig(config.getId(), config.getVersion(), config.getContent()); // Overwrite the old config with an RRHarvesterConfig - not an OLDRRHarvesterConfig object
+        saveButtonPressed(); // Now do save it - simulate a push on the save button
+    }
+
+    /**
      * A signal to the presenter, saying that the add button on the Format Overrides list has been pressed
      */
     @Override
@@ -338,7 +352,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             String destination,
             String format,
             String type,
-            Boolean enabled) {
+            Boolean enabled,
+            Boolean updateButtonVisible) {
         View view = getView();
         view.name.setText(name);
         view.name.setEnabled(viewEnabled);
@@ -368,12 +383,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.type.setEnabled(viewEnabled);
         view.enabled.setValue(enabled);
         view.enabled.setEnabled(viewEnabled);
+        view.updateButton.setVisible(updateButtonVisible);
         view.status.setText("");
         view.popupFormatOverrideEntry.hide();
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, "", "", "", false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, "", "", "", false, false);
     }
 
     /**
@@ -396,7 +412,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
                 config.getContent().getType().toString(),
-                config.getContent().isEnabled());
+                config.getContent().isEnabled(),
+                config.getType().equals(OLDRRHarvesterConfig.class.getName()));
     }
 
     protected View getView() {

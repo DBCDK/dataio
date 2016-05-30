@@ -19,13 +19,32 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.utils.ush;import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+package dk.dbc.dataio.commons.utils.ush;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.ush.bindings.UshHarvesterJob;
+import dk.dbc.dataio.commons.utils.ush.bindings.UshHarvesterJobs;
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class UshHarvesterConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UshHarvesterConnector.class);
     private final Client httpClient;
     private final String baseUrl;
+    private final XmlMapper mapper;
 
     /**
      * Class constructor
@@ -38,6 +57,8 @@ public class UshHarvesterConnector {
     public UshHarvesterConnector(Client httpClient, String baseUrl) throws NullPointerException, IllegalArgumentException {
         this.httpClient = InvariantUtil.checkNotNullOrThrow(httpClient, "httpClient");
         this.baseUrl = InvariantUtil.checkNotNullNotEmptyOrThrow(baseUrl, "baseUrl");
+        this.mapper = new XmlMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     public Client getHttpClient() {
@@ -48,4 +69,72 @@ public class UshHarvesterConnector {
         return baseUrl;
     }
 
+    /**
+     * Retrieves list of ush harvester jobs from the harvester service and converts each job to instance of ush harvester properties
+     * @return list of selected ush harvester properties
+     * @throws UshHarvesterConnectorException on general failure to produce ush harvester properties listing
+     */
+    public List<UshHarvesterProperties> listUshHarvesterJobs() throws UshHarvesterConnectorException {
+        LOGGER.trace("UshHarvesterConnector: listUshHarvesterJobs();");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final Response response = HttpClient.doGet(httpClient, baseUrl);
+            try {
+                verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
+                String stringEntity = readResponseEntity(response, String.class);
+                return toUshHarvesterProperties(stringEntity);
+            } catch (UshHarvesterConnectorException e) {
+                throw e;
+            } catch (Exception e) {
+                throw new UshHarvesterConnectorException("Unexpected error caught: " + e.toString());
+            } finally {
+                response.close();
+            }
+        } finally {
+            LOGGER.debug("UshHarvesterConnector: listUshHarvesterJobs took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Indexes retrieved list of ush harvester properties by (key)jobId - (value)UshHarvesterProperties
+     * @return indexed map
+     * @throws UshHarvesterConnectorException on general failure to produce ush harvester properties listing
+     */
+    public Map<Integer, UshHarvesterProperties> listIndexedUshHarvesterJobs() throws UshHarvesterConnectorException {
+        return Collections.unmodifiableMap(listUshHarvesterJobs().stream().collect(Collectors.toMap(UshHarvesterProperties::getJobId, c -> c)));
+    }
+
+    /*
+     * Private methods
+     */
+
+    private void verifyResponseStatus(Response.Status actualStatus, Response.Status expectedStatus) throws UshHarvesterConnectorUnexpectedStatusCodeException {
+        if (actualStatus != expectedStatus) {
+            throw new UshHarvesterConnectorUnexpectedStatusCodeException(
+                    String.format("ush-harvester returned with unexpected status code: %s", actualStatus),
+                    actualStatus.getStatusCode());
+        }
+    }
+
+    private <T> T readResponseEntity(Response response, Class<T> tClass) throws UshHarvesterConnectorException {
+        response.bufferEntity(); // must be done in order to possible avoid a timeout-exception from readEntity.
+        final T entity = response.readEntity(tClass);
+        if (entity == null) {
+            throw new UshHarvesterConnectorException(
+                    String.format("ush harvester service returned with null-valued %s entity", tClass.getName()));
+        }
+        return entity;
+    }
+
+    private List<UshHarvesterProperties> toUshHarvesterProperties(String entityString) throws UshHarvesterConnectorException {
+        try {
+            final UshHarvesterJobs ushHarvesterJobs = mapper.readValue(entityString, UshHarvesterJobs.class);
+            return ushHarvesterJobs.getUshHarvesterJobs()
+                    .stream()
+                    .map(UshHarvesterJob::toUshHarvesterProperties)
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new UshHarvesterConnectorException(String.format("invalid input xml:{%s} could not be read", entityString));
+        }
+    }
 }

@@ -133,7 +133,7 @@ public class ScheduledHarvestBean {
         final UshHarvesterProperties ushHarvesterProperties = config.getContent().getUshHarvesterProperties();
         if (ushHarvesterProperties == null) {
             throw new IllegalStateException(String.format("Config with ID %d for USH harvester '%d' contained no properties",
-                    config.getId(), config.getContent().getUshOaiHarvesterJobId()));
+                    config.getId(), config.getContent().getUshHarvesterJobId()));
         }
         if (!"OK".equals(ushHarvesterProperties.getLatestStatus())) {
             LOGGER.warn("Latest status of '{}' USH harvest was {}",

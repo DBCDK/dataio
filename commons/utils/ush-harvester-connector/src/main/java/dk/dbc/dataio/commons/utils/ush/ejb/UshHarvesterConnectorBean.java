@@ -24,8 +24,6 @@ package dk.dbc.dataio.commons.utils.ush.ejb;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.commons.utils.ush.UshHarvesterConnector;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +45,7 @@ public class UshHarvesterConnectorBean {
     @PostConstruct
     public void initializeConnector() {
         LOGGER.debug("Initializing connector");
-        final Client client = HttpClient.newClient(new ClientConfig().register(new JacksonFeature()));
+        final Client client = HttpClient.newClient();
         try {
             final String endpoint = ServiceUtil.getUshHarvesterEndpoint();
             ushHarvesterConnector = new UshHarvesterConnector(client, endpoint);

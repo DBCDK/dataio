@@ -52,7 +52,7 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
         private String description;
         private String format;
         private String destination;
-        private int ushOaiHarvesterJobId;
+        private int ushHarvesterJobId;
         private UshHarvesterProperties ushHarvesterProperties;
         private Date timeOfLastHarvest;
 
@@ -106,12 +106,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return this;
         }
 
-        public int getUshOaiHarvesterJobId() {
-            return ushOaiHarvesterJobId;
+        public int getUshHarvesterJobId() {
+            return ushHarvesterJobId;
         }
 
-        public Content withUshOaiHarvesterJobId(int jobId) {
-            this.ushOaiHarvesterJobId = jobId;
+        public Content withUshHarvesterJobId(int jobId) {
+            this.ushHarvesterJobId = jobId;
             return this;
         }
 
@@ -136,7 +136,7 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
 
             Content content = (Content) o;
 
-            if (ushOaiHarvesterJobId != content.ushOaiHarvesterJobId) {
+            if (ushHarvesterJobId != content.ushHarvesterJobId) {
                 return false;
             }
             if (name != null ? !name.equals(content.name) : content.name != null) {
@@ -162,7 +162,7 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
-            result = 31 * result + ushOaiHarvesterJobId;
+            result = 31 * result + ushHarvesterJobId;
             return result;
         }
 
@@ -173,7 +173,7 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
                     ", description='" + description + '\'' +
                     ", format='" + format + '\'' +
                     ", destination='" + destination + '\'' +
-                    ", ushOaiHarvesterJobId=" + ushOaiHarvesterJobId +
+                    ", ushHarvesterJobId=" + ushHarvesterJobId +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
                     '}';
         }

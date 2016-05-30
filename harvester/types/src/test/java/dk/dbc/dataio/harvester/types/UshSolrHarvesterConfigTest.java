@@ -82,7 +82,7 @@ public class UshSolrHarvesterConfigTest {
 
     @Test
     public void ushHarvesterPropertiesFieldIsIgnoredWhenUnmarshalling() throws JSONBException {
-        final UshSolrHarvesterConfig unmarshalled = jsonbContext.unmarshall("{\"id\":1,\"version\":1, \"type\": \"dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig\", \"content\":{\"name\":\"testConfig\",\"ushOaiHarvesterJobId\":0,\"ushHarvesterProperties\":{\"jobId\":0}}}", UshSolrHarvesterConfig.class);
+        final UshSolrHarvesterConfig unmarshalled = jsonbContext.unmarshall("{\"id\":1,\"version\":1, \"type\": \"dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig\", \"content\":{\"name\":\"testConfig\",\"ushHarvesterJobId\":0,\"ushHarvesterProperties\":{\"jobId\":0}}}", UshSolrHarvesterConfig.class);
         assertThat(unmarshalled.getContent().getUshHarvesterProperties(), is(nullValue()));
     }
 

@@ -64,7 +64,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     public void setHarvesters(List<RRHarvesterConfig> harvesters) {
-        harvestersTable.setHarvesters(harvesters);
+        harvestersTable.setHarvesters(presenter, harvesters);
     }
 
 }

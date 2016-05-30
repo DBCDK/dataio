@@ -34,7 +34,7 @@ public class Place extends DataioPlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl();
+        return new PresenterImpl(clientFactory.getPlaceController());
     }
 
     @Prefix("ShowHarvesters")

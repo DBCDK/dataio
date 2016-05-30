@@ -21,7 +21,11 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.show;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
@@ -44,6 +48,7 @@ import java.util.Map;
 public class HarvestersTable extends CellTable {
     ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
     Texts texts = viewGinjector.getTexts();
+    Presenter presenter;
     ListDataProvider<RRHarvesterConfig> dataProvider;
     SingleSelectionModel<RRHarvesterConfig> selectionModel = new SingleSelectionModel<>();
 
@@ -65,8 +70,10 @@ public class HarvestersTable extends CellTable {
         addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format(), texts.help_Format()));
         addColumn(constructTypeColumn(), textWithToolTip(texts.columnHeader_Type(), texts.help_Type()));
         addColumn(constructStatusColumn(), textWithToolTip(texts.columnHeader_Status(), texts.help_Status()));
+        addColumn(constructActionColumn(), textWithToolTip(texts.columnHeader_Action(), texts.help_Action()));
 
         setSelectionModel(selectionModel);
+        addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
 
 
@@ -74,7 +81,8 @@ public class HarvestersTable extends CellTable {
      * This method sets the harvester data for the table
      * @param harvesters The harvester data
      */
-    public void setHarvesters(List<RRHarvesterConfig> harvesters) {
+    public void setHarvesters(Presenter presenter, List<RRHarvesterConfig> harvesters) {
+        this.presenter = presenter;
         dataProvider.getList().clear();
 
         if (!harvesters.isEmpty()) {
@@ -101,19 +109,6 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
                 return harvester.getContent().getId();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Name column
-     * @return the constructed Name column
-     */
-    private Column constructStatusColumn() {
-        return new TextColumn<RRHarvesterConfig>() {
-            @Override
-            public String getValue(RRHarvesterConfig harvester) {
-                return harvester.getContent().isEnabled() ? texts.harvesterEnabled() : texts.harvesterDisabled();
             }
         };
     }
@@ -259,6 +254,40 @@ public class HarvestersTable extends CellTable {
     }
 
     /**
+     * This method constructs the Status column
+     * @return the constructed Status column
+     */
+    private Column constructStatusColumn() {
+        return new TextColumn<RRHarvesterConfig>() {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                return harvester.getContent().isEnabled() ? texts.harvesterEnabled() : texts.harvesterDisabled();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Action column
+     * @return The constructed Action column
+     */
+    private Column constructActionColumn() {
+        Column column = new Column<RRHarvesterConfig, String>(new ButtonCell()) {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                // The value to display in the button.
+                return texts.button_Edit();
+            }
+        };
+        column.setFieldUpdater(new FieldUpdater<RRHarvesterConfig, String>() {
+            @Override
+            public void update(int index, RRHarvesterConfig config, String buttonText) {
+                presenter.editHarvesterConfig(String.valueOf(config.getId()));
+            }
+        });
+        return column;
+    }
+
+    /**
      * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
      * @param headerText The headertext to be displayed
      * @param helpText The popup help text
@@ -268,5 +297,18 @@ public class HarvestersTable extends CellTable {
         return SafeHtmlUtils.fromSafeConstant("<span title='" + helpText + "'>" + headerText + "</span>");
     }
 
+    /**
+     * This method constructs a double click event handler. On double click event, the method calls
+     * the presenter with the selection model selected value.
+     * @return the double click handler
+     */
+    DoubleClickHandler getDoubleClickHandler(){
+        return doubleClickEvent -> {
+            RRHarvesterConfig selected = selectionModel.getSelectedObject();
+            if (selected != null) {
+                presenter.editHarvesterConfig(String.valueOf(selected.getId()));
+            }
+        };
+    }
 
 }

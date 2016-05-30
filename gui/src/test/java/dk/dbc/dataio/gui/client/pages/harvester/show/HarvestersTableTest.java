@@ -21,8 +21,11 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.show;
 
+import com.google.gwt.event.dom.client.DoubleClickEvent;
+import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.view.client.ListDataProvider;
+import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
@@ -53,9 +56,12 @@ import static org.mockito.Mockito.when;
 @RunWith(GwtMockitoTestRunner.class)
 public class HarvestersTableTest {
 
+    @Mock Presenter mockedPresenter;
     @Mock ListDataProvider<RRHarvesterConfig> mockedDataProvider;
     @Mock List<RRHarvesterConfig> mockedHarvesterList;
     @Mock Texts mockedTexts;
+    @Mock DoubleClickEvent mockedDoubleClickEvent;
+    @Mock SingleSelectionModel<RRHarvesterConfig> mockedSelectionModel;
 
     // Test Data
     private List<RRHarvesterConfig> testHarvesterConfig = new ArrayList<>();
@@ -94,6 +100,7 @@ public class HarvestersTableTest {
         when(mockedTexts.includeRelationsFalse()).thenReturn("includeRelationsFalse");
         when(mockedTexts.harvesterEnabled()).thenReturn("enabled");
         when(mockedTexts.harvesterDisabled()).thenReturn("disabled");
+        when(mockedTexts.button_Edit()).thenReturn("editButton");
     }
 
 
@@ -117,7 +124,7 @@ public class HarvestersTableTest {
         harvestersTable = new HarvestersTable();
 
         // Subject Under Test
-        harvestersTable.setHarvesters(null);
+        harvestersTable.setHarvesters(mockedPresenter, null);
     }
 
     @Test
@@ -128,7 +135,7 @@ public class HarvestersTableTest {
         when(mockedDataProvider.getList()).thenReturn(mockedHarvesterList);
 
         // Subject Under Test
-        harvestersTable.setHarvesters( testHarvesterConfig);
+        harvestersTable.setHarvesters(mockedPresenter, testHarvesterConfig);
 
         // Verify Test
         verify(mockedDataProvider, times(4)).getList();
@@ -145,7 +152,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(11));
+        assertThat(harvestersTable.getColumnCount(), is(12));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Resource1"));
@@ -158,6 +165,7 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Format1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("TRANSIENT"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("disabled"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("editButton"));
     }
 
     @Test
@@ -196,4 +204,21 @@ public class HarvestersTableTest {
         assertThat(result.toString(), is("safe: \"<span title='elephant'>monkey</span>\""));
     }
 
+    @Test
+    public void getDoubleClickHandler__ok() {
+        // Test preparation
+        harvestersTable = new HarvestersTable();
+        harvestersTable.presenter = mockedPresenter;
+        harvestersTable.setSelectionModel(mockedSelectionModel);
+        harvestersTable.selectionModel = mockedSelectionModel;
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(testHarvesterConfigEntry1);
+        DoubleClickHandler handler = harvestersTable.getDoubleClickHandler();
+
+        // Subject Under Test
+        handler.onDoubleClick(mockedDoubleClickEvent);
+
+        // Verify Test
+        verify(mockedSelectionModel).getSelectedObject();
+        verify(mockedPresenter).editHarvesterConfig("1");
+    }
 }

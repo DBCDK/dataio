@@ -23,6 +23,7 @@
 package dk.dbc.dataio.gui.client.pages.harvester.show;
 
 
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
@@ -31,15 +32,16 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.any;
 import org.mockito.Mock;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * PresenterImpl unit tests
@@ -50,6 +52,7 @@ import java.util.List;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
+    @Mock PlaceController mockedPlaceController;
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
     @Mock ViewGinjector mockedViewGinjector;
@@ -74,7 +77,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     // Test specialization of Presenter to enable test of callback's
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete() {
-            super();
+            super(mockedPlaceController);
             viewInjector = mockedViewGinjector;
             commonInjector = mockedCommonGinjector;
         }

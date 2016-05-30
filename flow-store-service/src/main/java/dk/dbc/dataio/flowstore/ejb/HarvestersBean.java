@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -32,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
-import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
@@ -63,23 +61,6 @@ public class HarvestersBean {
     EntityManager entityManager;
 
     JSONBContext jsonbContext = new JSONBContext();
-
-    /**
-     * Returns list of all stored harvester RR configs
-     *
-     * @return a HTTP OK response with result list as JSON
-     * @throws NamingException on failure to create result list as JSON
-     */
-    @GET
-    @Path(FlowStoreServiceConstants.HARVESTERS_RR_CONFIG)
-    @Produces({MediaType.APPLICATION_JSON})
-    public Response getHarvesterRrConfigs() throws NamingException {
-        final String jsonConfig = ServiceUtil.getStringValueFromResource(JndiConstants.CONFIG_RESOURCE_HARVESTER_RR);
-        return Response
-                .ok()
-                .entity(jsonConfig)
-                .build();
-    }
 
     /**
      * Creates a new harvester config

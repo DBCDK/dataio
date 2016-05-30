@@ -22,22 +22,25 @@
 package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.uibinder.client.UiConstructor;
-import com.google.gwt.user.client.ui.TextBox;
+
+import java.util.Map;
 
 /**
  * Popup box for entering a text string in a popup window
  */
-public class PopupTextBox extends PopupBox<TextBox, String> {
+public class PopupMapEntry extends PopupBox<MapEntry, Map.Entry<String, String>> {
 
     /**
      * Constructor
      *
-     * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
-     * @param okButtonText The text to be displayed in the OK Button (mandatory)
+     * @param keyPrompt The prompt for the text box for the key entry
+     * @param valuePrompt The prompt for the text box for the value entry
+     * @param dialogTitle The title text to display on the Dialog Box
+     * @param okButtonText The text to be displayed in the OK Button
      */
     @UiConstructor
-    public PopupTextBox(String dialogTitle, String okButtonText) {
-        super(new TextBox(), dialogTitle, okButtonText);
+    public PopupMapEntry(String keyPrompt, String valuePrompt, String dialogTitle, String okButtonText) {
+        super(new MapEntry(keyPrompt, valuePrompt), dialogTitle, okButtonText);
     }
 
 }

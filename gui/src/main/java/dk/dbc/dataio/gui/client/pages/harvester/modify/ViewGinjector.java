@@ -18,26 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.harvester.modify;
 
-package dk.dbc.dataio.gui.client.components;
-
-import com.google.gwt.uibinder.client.UiConstructor;
-import com.google.gwt.user.client.ui.TextBox;
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
 
 /**
- * Popup box for entering a text string in a popup window
+ * Ginjector for the Harvester Modify module
  */
-public class PopupTextBox extends PopupBox<TextBox, String> {
-
-    /**
-     * Constructor
-     *
-     * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
-     * @param okButtonText The text to be displayed in the OK Button (mandatory)
-     */
-    @UiConstructor
-    public PopupTextBox(String dialogTitle, String okButtonText) {
-        super(new TextBox(), dialogTitle, okButtonText);
-    }
-
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
 }

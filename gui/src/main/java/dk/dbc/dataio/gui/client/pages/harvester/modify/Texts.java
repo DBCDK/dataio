@@ -19,84 +19,90 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.navigation;
+package dk.dbc.dataio.gui.client.pages.harvester.modify;
 
-import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
-public interface Texts extends Constants {
-
-    // Menu texts
+public interface Texts extends com.google.gwt.i18n.client.Constants {
+    // Labels
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowCreation();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowEdit();
+    String label_Harvester();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Flows();
+    String label_EnterFormatOverride();
+
+
+    // Prompts
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String prompt_Name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowBinderCreation();
+    String prompt_Resource();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowBinderEdit();
+    String prompt_TargetUrl();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowBinders();
-
-    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowComponentCreation();
+    String prompt_TargetGroup();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowComponentEdit();
+    String prompt_TargetUser();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_FlowComponents();
+    String prompt_TargetPassword();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Jobs();
+    String prompt_Id();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_TestJobs();
+    String prompt_Size();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SinkCreation();
+    String prompt_FormatOverrides();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SinkEdit();
+    String prompt_Relations();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Sinks();
+    String prompt_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SubmitterCreation();
+    String prompt_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_SubmitterEdit();
+    String prompt_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Submitters();
+    String prompt_OverrideSubmitter();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_JobEdit();
+    String prompt_OverrideFormat();
+
+
+    // Buttons
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Save();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Items();
+    String button_Ok();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_HarvesterEdit();
+    String button_Cancel();
+
+
+    // Status messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_ConfigSuccessfullySaved();
+
+
+    // Error messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_InputFieldValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Harvesters();
+    String error_HarvesterNotFound();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Gatekeeper();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_IoTraffic();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String menu_Ftp();
+    String error_NumericSubmitterValidationError();
 }

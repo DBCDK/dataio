@@ -50,6 +50,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.item.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.ftp.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.harvester.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.iotraffic.Place.Tokenizer.class
 })
 

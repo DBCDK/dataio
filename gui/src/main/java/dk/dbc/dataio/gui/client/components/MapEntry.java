@@ -29,6 +29,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.FlowPanel;
+import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.HasValue;
 
 import java.util.AbstractMap;
@@ -38,7 +39,7 @@ import java.util.Map;
  * <p>This class implements a component, that allows the user to enter map of type Map.Entry&lt;key, value&gt;</p>
  * <p>The orientation on the display can be chosen between vertical and horisontal</p>
  */
-public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, String>>, HasValueChangeHandlers<Map.Entry<String, String>> {
+public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, String>>, HasValueChangeHandlers<Map.Entry<String, String>>, Focusable {
     ValueChangeHandler<Map.Entry<String, String>> valueChangeHandler = null;
 
     @UiField final PromptedTextBox keyBox;
@@ -108,6 +109,9 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
      */
     @Override
     public void setValue(Map.Entry<String, String> value) {
+        if (value == null) {
+            value = new AbstractMap.SimpleEntry<>("", "");
+        }
         setValue(value, false);
     }
 
@@ -135,6 +139,47 @@ public class MapEntry extends FlowPanel implements HasValue<Map.Entry<String, St
         valueBox.addValueChangeHandler(event -> triggerValueChangeEvent(true));
         return () -> valueChangeHandler = null;
     }
+
+
+    /*
+     * Focusable Overrides
+     */
+
+
+    /**
+     * Gets the widget's position in the tab index
+     * No implementation needed
+     * @return the widget's tab index
+     */
+    @Override
+    public int getTabIndex() {
+        return 0;
+    }
+
+    /**
+     * Sets the widget's 'access key'. This key is used (in conjunction with a browser-specific modifier key) to automatically focus the widget.
+     * No implementation needed
+     * @param key the widget's access key
+     */
+    @Override
+    public void setAccessKey(char key) {}
+
+    /**
+     * Explicitly focus/unfocus this widget. Only one widget can have focus at a time, and the widget that does will receive all keyboard events.
+     * @param focused whether this widget should take focus or release it
+     */
+    @Override
+    public void setFocus(boolean focused) {
+        keyBox.setFocus(focused);
+    }
+
+    /**
+     * Sets the widget's position in the tab index. If more than one widget has the same tab index, each such widget will receive focus in an arbitrary order. Setting the tab index to -1 will cause this widget to be removed from the tab order.
+     * No implementation needed
+     * @param index the widget's tab index
+     */
+    @Override
+    public void setTabIndex(int index) {}
 
 
     /*

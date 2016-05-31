@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.ush.solr;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -59,6 +60,9 @@ public class HarvesterBean {
 
     @EJB
     public FileStoreServiceConnectorBean fileStoreServiceConnectorBean;
+
+    @EJB
+    public FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     @EJB
     public JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
@@ -103,7 +107,7 @@ public class HarvesterBean {
     /* Stand-alone method to enable easy injection during testing (via partial mocking)
      */
     public HarvestOperation getHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config, new HarvesterJobBuilder(
+        return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(), new HarvesterJobBuilder(
                 binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(), null));
     }
 

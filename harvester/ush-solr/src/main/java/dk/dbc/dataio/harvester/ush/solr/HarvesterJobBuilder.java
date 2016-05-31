@@ -58,6 +58,14 @@ public class HarvesterJobBuilder implements AutoCloseable {
         LOGGER.debug("No-op instance created");
     }
 
+    public BinaryFileStore getBinaryFileStore() {
+        return binaryFileStore;
+    }
+
+    public JobStoreServiceConnector getJobStoreServiceConnector() {
+        return jobStoreServiceConnector;
+    }
+
     @Override
     public void close() throws Exception {}
 }

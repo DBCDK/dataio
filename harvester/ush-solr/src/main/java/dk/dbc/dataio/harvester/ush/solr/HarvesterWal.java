@@ -97,9 +97,14 @@ public class HarvesterWal {
 
     /**
      * Commits this WAL
+     * @throws HarvesterException on failure to commit
      */
-    public void commit() {
-        walFile.delete();
+    public void commit() throws HarvesterException {
+        try {
+            walFile.delete();
+        } catch (IllegalStateException e) {
+            throw new HarvesterException("Commit failed for wal file: " + walFile.getPath().toString(), e);
+        }
     }
 
     private BinaryFile getWalFile() {

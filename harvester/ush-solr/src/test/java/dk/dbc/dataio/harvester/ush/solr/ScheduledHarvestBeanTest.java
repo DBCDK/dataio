@@ -184,8 +184,8 @@ public class ScheduledHarvestBeanTest {
     }
 
     private ScheduledHarvestBean getScheduledHarvestBean() {
-        final HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
-        harvesterConfigurationBean.configs = configs;
+        final HarvesterConfigurationBean harvesterConfigurationBean = mock(HarvesterConfigurationBean.class);
+        when(harvesterConfigurationBean.get()).thenReturn(configs);
         final ScheduledHarvestBean scheduledHarvestBean = new ScheduledHarvestBean();
         scheduledHarvestBean.harvester = harvesterBean;
         scheduledHarvestBean.configs = harvesterConfigurationBean;

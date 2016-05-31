@@ -21,38 +21,46 @@
 
 package dk.dbc.dataio.harvester.ush.solr;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.ush.UshHarvesterConnectorException;
+import dk.dbc.dataio.commons.utils.ush.ejb.UshHarvesterConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This Enterprise Java Bean is responsible for retrieval of harvester configuration
  */
-@SuppressWarnings("PMD") // TODO: 5/11/16 Remove suppression when ready
 @Singleton
 @Startup
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 
-    JSONBContext jsonbContext = new JSONBContext();
+    List<UshSolrHarvesterConfig> configs;
 
-    List<UshSolrHarvesterConfig> configs = new ArrayList<>();
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+
+    @EJB
+    UshHarvesterConnectorBean ushHarvesterConnectorBean;
+
 
     /**
      * Initializes configuration
-     * @throws EJBException on failure to lookup configuration or failure to
-     * unmarshall returned value returned by lookup to configuration POJO.
+     * @throws EJBException on failure to lookup configuration resource
      */
     @PostConstruct
     public void initialize() {
@@ -65,12 +73,25 @@ public class HarvesterConfigurationBean {
 
     /**
      * Reloads configuration
-     * @throws HarvesterException on failure to lookup configuration or failure to
-     * unmarshall returned value returned by lookup to configuration POJO.
+     * @throws HarvesterException on failure to lookup configuration resource
      */
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
     public void reload() throws HarvesterException {
         LOGGER.debug("Retrieving configuration");
+        Map<Integer, UshHarvesterProperties> ushHarvesterPropertiesMap;
+        try {
+            configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(UshSolrHarvesterConfig.class);
+            ushHarvesterPropertiesMap = ushHarvesterConnectorBean.getConnector().listIndexedUshHarvesterJobs();
+            for(UshSolrHarvesterConfig config : configs) {
+                final int ushHarvesterJobId = config.getContent().getUshHarvesterJobId();
+                if(ushHarvesterPropertiesMap.containsKey(ushHarvesterJobId)) {
+                    config.getContent().withUshHarvesterProperties(ushHarvesterPropertiesMap.get(ushHarvesterJobId));
+                }
+            }
+            LOGGER.info("Applying configuration: {}", configs);
+        } catch (FlowStoreServiceConnectorException | UshHarvesterConnectorException e) {
+            throw new HarvesterException("Exception caught while refreshing configuration", e);
+        }
     }
 
     public List<UshSolrHarvesterConfig> get() {

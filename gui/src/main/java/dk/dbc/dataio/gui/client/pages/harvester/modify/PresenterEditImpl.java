@@ -65,6 +65,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     public void initializeModel() {
+        // TODO: Remove the call to getHarvesterRrConfigs, and establish a new getHarvesterRrConfig instead, fetching only ONE config
+        // Right now, it is not easy to implement, since the Connector call requires a Class parameter (either OLDRRHarvesterConfig or RRHarvesterConfig,
+        // and that is not known at this stage. Whenever OLDRRHarvesterConfig has been removed, it will however be a piece of cake...
         commonInjector.getFlowStoreProxyAsync().getHarvesterRrConfigs(new GetHarvesterRrConfigsAsyncCallback());
     }
 

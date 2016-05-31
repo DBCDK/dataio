@@ -79,6 +79,7 @@ public class HarvestersTable extends CellTable {
 
     /**
      * This method sets the harvester data for the table
+     * @param presenter The presenter
      * @param harvesters The harvester data
      */
     public void setHarvesters(Presenter presenter, List<RRHarvesterConfig> harvesters) {

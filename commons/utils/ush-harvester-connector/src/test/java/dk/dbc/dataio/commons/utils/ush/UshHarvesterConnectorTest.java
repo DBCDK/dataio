@@ -42,6 +42,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -120,25 +122,20 @@ public class UshHarvesterConnectorTest {
 
     @Test
     public void listUshHarvesterJobs_serviceReturnsResultWhichCausesUnexpectedFailure_throws() throws UshHarvesterConnectorException {
-        // Setup
         setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<jobs><job></job></jobs>");
-        try {
-            // Subject under test
-            connector.listUshHarvesterJobs();
-            fail("No exception thrown");
-        } catch (UshHarvesterConnectorException e) {
-        }
+        assertThat(() -> connector.listUshHarvesterJobs(), isThrowing(UshHarvesterConnectorException.class));
     }
 
     @Test
     public void listUshHarvesterJobs_serviceReturnsInvalidXml_throws() throws UshHarvesterConnectorException {
-        // Setup
         setupUshHarvesterMockedHttpResponse(Response.Status.OK, "invalidXml");
-        try {
-            // Subject under test
-            connector.listUshHarvesterJobs();
-            fail("No exception thrown");
-        } catch (UshHarvesterConnectorException e) {}
+        assertThat(() -> connector.listUshHarvesterJobs(), isThrowing(UshHarvesterConnectorException.class));
+    }
+
+    @Test
+    public void listUshHarvesterJobs_serviceReturnsNullEntity_throws() throws UshHarvesterConnectorException {
+        setupUshHarvesterMockedHttpResponse(Response.Status.OK, null);
+        assertThat(() -> connector.listUshHarvesterJobs(), isThrowing(UshHarvesterConnectorException.class));
     }
 
     @Test
@@ -152,17 +149,6 @@ public class UshHarvesterConnectorTest {
         } catch (UshHarvesterConnectorUnexpectedStatusCodeException e) {
             assertThat(e.getStatusCode(), is(500));
         }
-    }
-
-    @Test
-    public void listUshHarvesterJobs_serviceReturnsNullEntity_throws() throws UshHarvesterConnectorException {
-        // Setup
-        setupUshHarvesterMockedHttpResponse(Response.Status.OK, null);
-        try {
-            // Subject under test
-            connector.listUshHarvesterJobs();
-            fail("No exception thrown");
-        } catch (UshHarvesterConnectorException e) {}
     }
 
     @Test
@@ -192,14 +178,14 @@ public class UshHarvesterConnectorTest {
     }
 
 
+    /*
+     * Private methods
+     */
+
     private void setupUshHarvesterMockedHttpResponse(Response.Status statusCode, Object returnValue) {
         when(HttpClient.doGet(CLIENT, USH_HARVESTER_URL))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
     }
-
-    /*
-     * Private methods
-     */
 
     private UshHarvesterConnector newUshHarvesterConnector() {
         try {
@@ -211,7 +197,6 @@ public class UshHarvesterConnectorTest {
     }
 
     private String readTestRecordAsString(String resourceName) {
-        StringUtil.asString(readTestRecord(resourceName));
         return StringUtil.asString(readTestRecord(resourceName), StandardCharsets.UTF_8);
     }
 

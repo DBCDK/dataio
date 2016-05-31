@@ -31,6 +31,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Optional;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -70,7 +71,7 @@ public class HarvesterWalTest {
     @Test
     public void write_walFileExists_throws() throws HarvesterException, IOException {
         folder.newFile(ushHarvesterJobId + ".wal");
-        assertThat(() -> harvesterWal.write("entry"), isThrowing(HarvesterException.class));
+        assertThat(() -> harvesterWal.write(HarvesterWal.WalEntry.create(1, 2, new Date(3), new Date(4))), isThrowing(HarvesterException.class));
     }
 
     @Test
@@ -82,7 +83,7 @@ public class HarvesterWalTest {
 
     @Test
     public void wal_operations() throws HarvesterException {
-        final String walEntry = "entry";
+        final HarvesterWal.WalEntry walEntry = HarvesterWal.WalEntry.create(1, 2, new Date(3), new Date(4));
         harvesterWal.write(walEntry);
         assertThat("First read before commit", harvesterWal.read().orElse(null), is(walEntry));
         assertThat("Second read before commit", harvesterWal.read().orElse(null), is(walEntry));

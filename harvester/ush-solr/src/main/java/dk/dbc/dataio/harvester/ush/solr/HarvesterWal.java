@@ -31,6 +31,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -62,16 +63,16 @@ public class HarvesterWal {
 
     /**
      * Reads non-committed entry from this WAL if it exists
-     * @return WAL entry as string, otherwise empty
+     * @return WalEntry, otherwise empty
      * @throws HarvesterException on error while reading WAL entry
      */
-    public Optional<String> read() throws HarvesterException {
+    public Optional<WalEntry> read() throws HarvesterException {
         if (walFile.exists()) {
             try {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 walFile.read(baos);
-                return Optional.of(new String(baos.toByteArray(), StandardCharsets.UTF_8));
-            } catch (IllegalStateException e) {
+                return Optional.of(new WalEntry(new String(baos.toByteArray(), StandardCharsets.UTF_8)));
+            } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
                 throw new HarvesterException("Unexpected exception caught while reading wal file: " + walFile.getPath().toString(), e);
             }
         }
@@ -80,15 +81,15 @@ public class HarvesterWal {
 
     /**
      * Writes WAL entry
-     * @param logEntry WAL entry to be written
+     * @param walEntry WalEntry to be written
      * @throws HarvesterException on attempting to write to WAL already containing non-committed entry, or on general error writing WAL
      */
-    public void write(String logEntry) throws HarvesterException {
+    public void write(WalEntry walEntry) throws HarvesterException {
         if (walFile.exists()) {
             throw new HarvesterException("Attempting to write already existing wal file: " + walFile.getPath().toString());
         }
         try {
-            walFile.write(new ByteArrayInputStream(logEntry.getBytes(StandardCharsets.UTF_8)));
+            walFile.write(new ByteArrayInputStream(walEntry.toString().getBytes(StandardCharsets.UTF_8)));
         } catch (NullPointerException | IllegalStateException e) {
             throw new HarvesterException("Unexpected exception caught while writing wal file: " + walFile.getPath().toString(), e);
         }
@@ -103,5 +104,98 @@ public class HarvesterWal {
 
     private BinaryFile getWalFile() {
         return binaryFileStore.getBinaryFile(Paths.get(config.getContent().getUshHarvesterJobId() + ".wal"));
+    }
+
+    public static class WalEntry {
+        final long id;
+        final long version;
+        final long from;
+        final long until;
+
+        public static WalEntry create(long id, long version, Date from, Date until) throws NullPointerException {
+            return new WalEntry(id, version, from.getTime(), until.getTime());
+        }
+
+        public WalEntry(String walEntry) throws NullPointerException, IllegalArgumentException {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(walEntry, "walEntry");
+            final String[] parts = walEntry.split(":", 4);
+            if (parts.length != 4) {
+                throw new IllegalArgumentException("Invalid syntax of WalEntry: " + walEntry);
+            }
+            id = parseLong(parts[0], "id");
+            version = parseLong(parts[1], "version");
+            from = parseLong(parts[2], "from");
+            until = parseLong(parts[3], "until");
+        }
+
+        private WalEntry(long id, long version, long from, long until) {
+            this.id = id;
+            this.version = version;
+            this.from = from;
+            this.until = until;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public long getVersion() {
+            return version;
+        }
+
+        public Date getFrom() {
+            return new Date(from);
+        }
+
+        public Date getUntil() {
+            return new Date(until);
+        }
+
+        @Override
+        public String toString() {
+            return id + ":" + version + ":" + from + ":" + until;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            WalEntry walEntry = (WalEntry) o;
+
+            if (id != walEntry.id) {
+                return false;
+            }
+            if (version != walEntry.version) {
+                return false;
+            }
+            if (from != walEntry.from) {
+                return false;
+            }
+            return until == walEntry.until;
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = (int) (id ^ (id >>> 32));
+            result = 31 * result + (int) (version ^ (version >>> 32));
+            result = 31 * result + (int) (from ^ (from >>> 32));
+            result = 31 * result + (int) (until ^ (until >>> 32));
+            return result;
+        }
+
+        private long parseLong(String s, String fieldName) throws IllegalArgumentException {
+            try {
+                return Long.parseLong(s);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(String.format(
+                        "WalEntry: string value '%s' of parameter '%s' can not be converted into a long", s, fieldName), e);
+            }
+        }
     }
 }

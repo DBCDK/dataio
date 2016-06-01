@@ -55,6 +55,16 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
         private int ushHarvesterJobId;
         private UshHarvesterProperties ushHarvesterProperties;
         private Date timeOfLastHarvest;
+        @JsonProperty private boolean enabled = false;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public Content withEnabled(boolean enabled) {
+            this.enabled = enabled;
+            return this;
+        }
 
         public String getName() {
             return name;

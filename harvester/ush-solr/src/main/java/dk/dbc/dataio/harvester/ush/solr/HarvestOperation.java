@@ -63,7 +63,7 @@ public class HarvestOperation {
     }
 
     /**
-     * Runs this harvest operation, re(doing) configuration updates as needed.
+     * Runs this harvest operation, (re)doing configuration updates as needed.
      * @return number of records harvested
      * @throws HarvesterException if unable to complete harvest operation
      */

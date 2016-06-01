@@ -55,7 +55,7 @@ public class HarvesterWal {
     private final BinaryFile walFile;
 
     public HarvesterWal(UshSolrHarvesterConfig config,
-                        BinaryFileStore binaryFileStore) throws NullPointerException {
+                        BinaryFileStore binaryFileStore) throws NullPointerException, HarvesterException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.binaryFileStore = InvariantUtil.checkNotNullOrThrow(binaryFileStore, "binaryFileStore");
         this.walFile = getWalFile();
@@ -72,7 +72,7 @@ public class HarvesterWal {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 walFile.read(baos);
                 return Optional.of(new WalEntry(new String(baos.toByteArray(), StandardCharsets.UTF_8)));
-            } catch (NullPointerException | IllegalArgumentException | IllegalStateException e) {
+            } catch (RuntimeException e) {
                 throw new HarvesterException("Unexpected exception caught while reading wal file: " + walFile.getPath().toString(), e);
             }
         }
@@ -90,7 +90,7 @@ public class HarvesterWal {
         }
         try {
             walFile.write(new ByteArrayInputStream(walEntry.toString().getBytes(StandardCharsets.UTF_8)));
-        } catch (NullPointerException | IllegalStateException e) {
+        } catch (RuntimeException e) {
             throw new HarvesterException("Unexpected exception caught while writing wal file: " + walFile.getPath().toString(), e);
         }
     }
@@ -102,13 +102,17 @@ public class HarvesterWal {
     public void commit() throws HarvesterException {
         try {
             walFile.delete();
-        } catch (IllegalStateException e) {
+        } catch (RuntimeException e) {
             throw new HarvesterException("Commit failed for wal file: " + walFile.getPath().toString(), e);
         }
     }
 
-    private BinaryFile getWalFile() {
-        return binaryFileStore.getBinaryFile(Paths.get(config.getContent().getUshHarvesterJobId() + ".wal"));
+    private BinaryFile getWalFile() throws HarvesterException {
+        try {
+            return binaryFileStore.getBinaryFile(Paths.get(config.getContent().getUshHarvesterJobId() + ".wal"));
+        } catch (RuntimeException e) {
+            throw new HarvesterException("Error getting wal file for " + config.getContent().getUshHarvesterJobId(), e);
+        }
     }
 
     public static class WalEntry {

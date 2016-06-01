@@ -49,17 +49,17 @@ public class HarvesterWalTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Before
-    public void setObjectUnderTest() {
+    public void setObjectUnderTest() throws HarvesterException {
         harvesterWal = new HarvesterWal(ushSolrHarvesterConfig, new BinaryFileStoreFsImpl(folder.getRoot().toPath()));
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructor_configArgIsNull_throw() {
+    public void constructor_configArgIsNull_throw() throws HarvesterException {
         new HarvesterWal(null, new BinaryFileStoreFsImpl(folder.getRoot().toPath()));
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructor_binaryFileStoreArgIsNull_throw() {
+    public void constructor_binaryFileStoreArgIsNull_throw() throws HarvesterException {
         new HarvesterWal(ushSolrHarvesterConfig, null);
     }
 

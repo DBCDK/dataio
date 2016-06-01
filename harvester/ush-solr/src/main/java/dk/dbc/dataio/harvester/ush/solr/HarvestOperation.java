@@ -52,10 +52,11 @@ public class HarvestOperation {
      * @param flowStoreServiceConnector connector used to update configuration
      * @param harvesterJobBuilder builder used to create dataIO job
      * @throws NullPointerException if given any null-valued argument
+     * @throws HarvesterException on low-level binary wal file failure
      */
     public HarvestOperation(UshSolrHarvesterConfig config,
                             FlowStoreServiceConnector flowStoreServiceConnector,
-                            HarvesterJobBuilder harvesterJobBuilder) throws NullPointerException {
+                            HarvesterJobBuilder harvesterJobBuilder) throws NullPointerException, HarvesterException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.harvesterJobBuilder = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilder, "harvesterJobBuilder");

@@ -65,17 +65,17 @@ public class HarvestOperationTest {
     public TemporaryFolder folder = new TemporaryFolder();
 
     @Test(expected = NullPointerException.class)
-    public void constructor_configArgIsNull_throws() {
+    public void constructor_configArgIsNull_throws() throws HarvesterException {
         new HarvestOperation(null, flowStoreServiceConnector, newHarvesterJobBuilder());
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructor_flowStoreServiceConnectorArgIsNull_throws() {
+    public void constructor_flowStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
         new HarvestOperation(newUshSolrHarvesterConfig(), null, newHarvesterJobBuilder());
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructor_harvesterJobBuilderArgIsNull_throws() {
+    public void constructor_harvesterJobBuilderArgIsNull_throws() throws HarvesterException {
         new HarvestOperation(newUshSolrHarvesterConfig(), flowStoreServiceConnector, null);
     }
 
@@ -144,11 +144,11 @@ public class HarvestOperationTest {
         assertThat(harvestOperation.harvesterTokenExistsInDataIo("token"), is(true));
     }
 
-    private HarvestOperation newHarvestOperation() {
+    private HarvestOperation newHarvestOperation() throws HarvesterException {
         return newHarvestOperation(newUshSolrHarvesterConfig());
     }
 
-    private HarvestOperation newHarvestOperation(UshSolrHarvesterConfig config) {
+    private HarvestOperation newHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
         return new HarvestOperation(config, flowStoreServiceConnector, newHarvesterJobBuilder());
     }
 

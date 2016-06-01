@@ -34,6 +34,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
+/**
+ * Class representing a single harvest operation
+ */
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
@@ -43,6 +46,13 @@ public class HarvestOperation {
 
     private UshSolrHarvesterConfig config;
 
+    /**
+     * Class constructor
+     * @param config configuration used for this harvest
+     * @param flowStoreServiceConnector connector used to update configuration
+     * @param harvesterJobBuilder builder used to create dataIO job
+     * @throws NullPointerException if given any null-valued argument
+     */
     public HarvestOperation(UshSolrHarvesterConfig config,
                             FlowStoreServiceConnector flowStoreServiceConnector,
                             HarvesterJobBuilder harvesterJobBuilder) throws NullPointerException {
@@ -52,6 +62,11 @@ public class HarvestOperation {
         this.wal = new HarvesterWal(config, harvesterJobBuilder.getBinaryFileStore());
     }
 
+    /**
+     * Runs this harvest operation, re(doing) configuration updates as needed.
+     * @return number of records harvested
+     * @throws HarvesterException if unable to complete harvest operation
+     */
     public int execute() throws HarvesterException {
         redoConfigUpdateIfUncommitted();
         wal.write(getWalEntry());  // Write new WAL entry
@@ -62,7 +77,7 @@ public class HarvestOperation {
         return 0;
     }
 
-    private void redoConfigUpdateIfUncommitted() throws HarvesterException {
+    void redoConfigUpdateIfUncommitted() throws HarvesterException {
         final Optional<HarvesterWal.WalEntry> walEntry = wal.read();
         if (walEntry.isPresent() && harvesterTokenExistsInDataIo(walEntry.get().toString())) {
             LOGGER.info("Found uncommitted WAL entry for existing dataIO job - updating config");
@@ -72,7 +87,7 @@ public class HarvestOperation {
         wal.commit();
     }
 
-    private boolean harvesterTokenExistsInDataIo(String harvesterToken) throws HarvesterException {
+    boolean harvesterTokenExistsInDataIo(String harvesterToken) throws HarvesterException {
         final String harvesterTokenJson = String.format("{\"ancestry\": {\"harvesterToken\": \"%s\"}}", harvesterToken);
         final JobListCriteria criteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, harvesterTokenJson));

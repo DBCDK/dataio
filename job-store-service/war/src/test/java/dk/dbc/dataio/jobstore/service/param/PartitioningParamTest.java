@@ -162,7 +162,7 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isDanMarc2LineFormatReorderingDataPartitioner() {
-        final JobSpecification.Ancestry ancestry = new JobSpecificationBuilder.AncestryBuilder().setTransfile("file").build();
+        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
         final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(ancestry).build());
         final PartitioningParam partitioningParam = newPartitioningParamForDanMarc2LineFormat(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();
@@ -181,7 +181,7 @@ public class PartitioningParamTest extends ParamBaseTest {
 
     @Test
     public void typeOfDataPartitioner_whenJobSpecificationAncestryTransfileIsSet_isIso2709ReorderingDataPartitioner() {
-        final JobSpecification.Ancestry ancestry = new JobSpecificationBuilder.AncestryBuilder().setTransfile("file").build();
+        final JobSpecification.Ancestry ancestry = new JobSpecification.Ancestry().withTransfile("file");
         final JobEntity jobEntity = getJobEntity(jobSpecificationBuilder.setAncestry(ancestry).build());
         final PartitioningParam partitioningParam = newPartitioningParamForIso2709(jobEntity);
         final DataPartitioner dataPartitioner = partitioningParam.getDataPartitioner();

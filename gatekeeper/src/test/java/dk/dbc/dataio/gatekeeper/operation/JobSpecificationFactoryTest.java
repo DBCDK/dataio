@@ -77,12 +77,11 @@ public class JobSpecificationFactoryTest {
                 .setMailForNotificationAboutVerification("verification@company.com")
                 .setMailForNotificationAboutProcessing("processing@company.com")
                 .setResultmailInitials("ABC")
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(String.format("%d.%s.dat", submitter, batchId))
-                                .setBatchId(batchId)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                        .withTransfile(transfileName)
+                        .withDatafile(String.format("%d.%s.dat", submitter, batchId))
+                        .withBatchId(batchId)
+                        .withDetails(rawTransfile)
                 )
                 .build();
         final String rawTransfileLine = String.format("b=%s,f=%d.%s.dat,t=%s,c=%s,o=%s,m=%s,M=%s,i=%s",
@@ -100,7 +99,6 @@ public class JobSpecificationFactoryTest {
                 .createJobSpecification(new TransFile.Line(rawTransfileLine), transfileName, "42", rawTransfile);
 
         assertThat("JobSpecification", jobSpecification, is(jobSpecificationTemplate));
-        assertThat("JobSpecification.getAncestry().getDetails()", jobSpecification.getAncestry().getDetails(), is(rawTransfile));
     }
 
     @Test
@@ -116,11 +114,10 @@ public class JobSpecificationFactoryTest {
                 .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(Constants.MISSING_FIELD_VALUE)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
                 )
                 .build();
         final JobSpecification jobSpecification = JobSpecificationFactory
@@ -142,11 +139,10 @@ public class JobSpecificationFactoryTest {
                 .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(Constants.MISSING_FIELD_VALUE)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
                 )
                 .build();
         final JobSpecification jobSpecification = JobSpecificationFactory
@@ -168,11 +164,10 @@ public class JobSpecificationFactoryTest {
                 .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(Constants.MISSING_FIELD_VALUE)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
                 )
                 .build();
         final JobSpecification jobSpecification = JobSpecificationFactory
@@ -194,11 +189,10 @@ public class JobSpecificationFactoryTest {
                 .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(Constants.MISSING_FIELD_VALUE)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
                 )
                 .build();
         final JobSpecification jobSpecification = JobSpecificationFactory
@@ -220,11 +214,10 @@ public class JobSpecificationFactoryTest {
                 .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(Constants.MISSING_FIELD_VALUE)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
                 )
                 .build();
         final JobSpecification jobSpecification = JobSpecificationFactory
@@ -246,11 +239,10 @@ public class JobSpecificationFactoryTest {
                 .setResultmailInitials(Constants.MISSING_FIELD_VALUE)
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .setType(JobSpecification.Type.PERSISTENT)
-                .setAncestry(
-                        new JobSpecificationBuilder.AncestryBuilder()
-                                .setTransfile(transfileName)
-                                .setDatafile(Constants.MISSING_FIELD_VALUE)
-                                .build()
+                .setAncestry(new JobSpecification.Ancestry()
+                                .withTransfile(transfileName)
+                                .withDatafile(Constants.MISSING_FIELD_VALUE)
+                                .withDetails(rawTransfile)
                 )
                 .build();
         final JobSpecification jobSpecification = JobSpecificationFactory

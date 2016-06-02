@@ -24,9 +24,11 @@ package dk.dbc.dataio.commons.types;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * Job specification DTO class.
@@ -220,48 +222,60 @@ public class JobSpecification implements Serializable {
                 '}';
     }
 
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Ancestry implements Serializable {
         private static final long serialVersionUID = 7924802481866401011L;
-        private final String transfile;
-        private final String datafile;
-        private final String batchId;
-        private final byte[] details;
-        private final int previousJobId;
+        private String transfile;
+        private String datafile;
+        private String batchId;
+        private byte[] details;
+        private int previousJobId;
 
-
-        @JsonCreator
-        public Ancestry(
-                @JsonProperty("transfile") String transfile,
-                @JsonProperty("datafile") String datafile,
-                @JsonProperty("batchId") String batchId,
-                @JsonProperty("details") byte[] details,
-                @JsonProperty("previousJobId") int previousJobId) {
-
-            this.transfile = InvariantUtil.checkNotEmptyOrThrow(transfile, "transfile");
-            this.datafile = InvariantUtil.checkNotEmptyOrThrow(datafile, "datafile");
-            this.batchId = batchId;
-            this.details = details;
-            this.previousJobId = previousJobId;
-        }
+        public Ancestry() {}
 
         public String getTransfile() {
             return transfile;
+        }
+
+        public Ancestry withTransfile(String transfile) throws IllegalArgumentException {
+            this.transfile = InvariantUtil.checkNotEmptyOrThrow(transfile, "transfile");
+            return this;
         }
 
         public String getDatafile() {
             return datafile;
         }
 
+        public Ancestry withDatafile(String datafile) throws IllegalArgumentException {
+            this.datafile = InvariantUtil.checkNotEmptyOrThrow(datafile, "datafile");
+            return this;
+        }
+
         public String getBatchId() {
             return batchId;
+        }
+
+        public Ancestry withBatchId(String batchId) {
+            this.batchId = batchId;
+            return this;
         }
 
         public byte[] getDetails() {
             return details;
         }
 
+        public Ancestry withDetails(byte[] details) {
+            this.details = details;
+            return this;
+        }
+
         public int getPreviousJobId() {
             return previousJobId;
+        }
+
+        public Ancestry withPreviousJobId(int previousJobId) {
+            this.previousJobId = previousJobId;
+            return this;
         }
 
         @Override
@@ -275,9 +289,20 @@ public class JobSpecification implements Serializable {
 
             Ancestry ancestry = (Ancestry) o;
 
-            return !(transfile != null ? !transfile.equals(ancestry.transfile) : ancestry.transfile != null)
-                    && !(datafile != null ? !datafile.equals(ancestry.datafile) : ancestry.datafile != null)
-                    && !(batchId != null ? !batchId.equals(ancestry.batchId) : ancestry.batchId != null);
+            if (previousJobId != ancestry.previousJobId) {
+                return false;
+            }
+            if (transfile != null ? !transfile.equals(ancestry.transfile) : ancestry.transfile != null) {
+                return false;
+            }
+            if (datafile != null ? !datafile.equals(ancestry.datafile) : ancestry.datafile != null) {
+                return false;
+            }
+            if (batchId != null ? !batchId.equals(ancestry.batchId) : ancestry.batchId != null) {
+                return false;
+            }
+            return Arrays.equals(details, ancestry.details);
+
         }
 
         @Override
@@ -285,6 +310,8 @@ public class JobSpecification implements Serializable {
             int result = transfile != null ? transfile.hashCode() : 0;
             result = 31 * result + (datafile != null ? datafile.hashCode() : 0);
             result = 31 * result + (batchId != null ? batchId.hashCode() : 0);
+            result = 31 * result + Arrays.hashCode(details);
+            result = 31 * result + previousJobId;
             return result;
         }
 
@@ -294,6 +321,8 @@ public class JobSpecification implements Serializable {
                     "transfile='" + transfile + '\'' +
                     ", datafile='" + datafile + '\'' +
                     ", batchId='" + batchId + '\'' +
+                    ", details=" + Arrays.toString(details) +
+                    ", previousJobId=" + previousJobId +
                     '}';
         }
     }

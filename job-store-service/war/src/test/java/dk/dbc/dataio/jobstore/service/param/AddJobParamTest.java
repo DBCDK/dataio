@@ -94,7 +94,7 @@ public class AddJobParamTest extends ParamBaseTest {
     @Test
     public void isDatafileValid_ancestryHasDataFileWithMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
         JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setAncestry(new JobSpecificationBuilder.AncestryBuilder().setDatafile(Constants.MISSING_FIELD_VALUE).build())
+                .setAncestry(new JobSpecification.Ancestry().withDatafile(Constants.MISSING_FIELD_VALUE))
                 .build();
 
         final AddJobParam addJobParam = constructAddJobParam(jobSpecification);
@@ -104,7 +104,7 @@ public class AddJobParamTest extends ParamBaseTest {
     @Test
     public void isDatafileValid_dataFileHasMissingValue_diagnosticLevelFatalAdded() throws FlowStoreServiceConnectorException {
         JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setAncestry(new JobSpecificationBuilder.AncestryBuilder().build())
+                .setAncestry(new JobSpecification.Ancestry())
                 .setDataFile(Constants.MISSING_FIELD_VALUE)
                 .build();
 

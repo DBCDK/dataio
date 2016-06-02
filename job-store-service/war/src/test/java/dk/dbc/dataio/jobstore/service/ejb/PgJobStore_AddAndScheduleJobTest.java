@@ -69,7 +69,7 @@ public class PgJobStore_AddAndScheduleJobTest extends PgJobStoreBaseTest {
         final PgJobStore pgJobStore = newPgJobStore(newPgJobStoreReposity());
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                 .setDataFile(FILE_STORE_URN.toString())
-                .setAncestry(new JobSpecificationBuilder.AncestryBuilder().build())
+                .setAncestry(new JobSpecification.Ancestry())
                 .build();
 
         final JobEntity jobEntity = getJobEntity(0);

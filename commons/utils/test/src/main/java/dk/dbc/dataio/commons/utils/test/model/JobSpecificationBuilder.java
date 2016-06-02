@@ -97,41 +97,4 @@ public class JobSpecificationBuilder {
                 mailForNotificationAboutVerification, mailForNotificationAboutProcessing, resultmailInitials,
                 dataFile, type, ancestry);
     }
-
-    public static class AncestryBuilder {
-        private String transfile = "transfile";
-        private String datafile = "datafile";
-        private String batchId = "";
-        private byte[] details = {};
-        private int previousJobId = 0;
-
-        public AncestryBuilder setTransfile(String transfile) {
-            this.transfile = transfile;
-            return this;
-        }
-
-        public AncestryBuilder setDatafile(String datafile) {
-            this.datafile = datafile;
-            return this;
-        }
-
-        public AncestryBuilder setBatchId(String batchId) {
-            this.batchId = batchId;
-            return this;
-        }
-
-        public AncestryBuilder setDetails(byte[] details) {
-            this.details = details;
-            return this;
-        }
-
-        public AncestryBuilder setPreviousJobId(int previousJobId) {
-            this.previousJobId = previousJobId;
-            return this;
-        }
-
-        public JobSpecification.Ancestry build() {
-            return new JobSpecification.Ancestry(transfile, datafile, batchId, details, previousJobId);
-        }
-    }
 }

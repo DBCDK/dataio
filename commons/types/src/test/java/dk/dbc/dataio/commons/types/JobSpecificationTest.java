@@ -45,11 +45,7 @@ public class JobSpecificationTest {
     private static final String VERIFICATION_MAILADDR = "verify@dbc.dk";
     private static final String PROCESSING_MAILADDR = "processing@dbc.dk";
     private static final String RESULT_MAIL_INITIALS = "abc";
-    private static final String TRANS_FILE = "820040.stark.trans";
     private static final String DATA_FILE = "uri";
-    private static final String BATCH_ID = "1234";
-    private static final byte[] DETAILS = "abcdefghijklmnop".getBytes();
-    private static final int PREVIOUS_JOB_ID = 1233;
     private static final JobSpecification.Type TYPE = JobSpecification.Type.TEST;
     private final JSONBContext jsonbContext = new JSONBContext();
 
@@ -144,44 +140,16 @@ public class JobSpecificationTest {
         assertThat(jobSpecification.hasNotificationDestination(), is(false));
     }
 
-    @Test
-    public void constructor_ancestryHasNullValuedTransFile_throwsNot() {
-        new JobSpecification.Ancestry(null, DATA_FILE, BATCH_ID, DETAILS, PREVIOUS_JOB_ID);
+    @Test(expected = IllegalArgumentException.class)
+    public void ancestryWithEmptyValuedTransFile_throws() {
+        new JobSpecification.Ancestry()
+                .withTransfile(" ");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void constructor_ancestryHasEmptyValuedTransFile_throws() {
-        new JobSpecification.Ancestry("", DATA_FILE, BATCH_ID, DETAILS, PREVIOUS_JOB_ID);
-    }
-
-    @Test
-    public void constructor_ancestryHasNullValuedDataFile_throwsNot() {
-        new JobSpecification.Ancestry(TRANS_FILE, null, BATCH_ID, DETAILS, PREVIOUS_JOB_ID);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_ancestryHasEmptyValuedDataFile_throws() {
-        new JobSpecification.Ancestry(TRANS_FILE, "", BATCH_ID, DETAILS, PREVIOUS_JOB_ID);
-    }
-
-    @Test
-    public void constructor_ancestryHasNullValuedBatchId_throwsNot() {
-        new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, null, DETAILS, PREVIOUS_JOB_ID);
-    }
-
-    @Test
-    public void constructor_ancestryHasEmptyValuedBatchId_throwsNot() {
-        new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, "", DETAILS, PREVIOUS_JOB_ID);
-    }
-
-    @Test
-    public void constructor_ancestryHasNullValuedDetails_throwsNot() {
-        new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, BATCH_ID, null, PREVIOUS_JOB_ID);
-    }
-
-    @Test
-    public void constructor_ancestryHasEmptyValuedDetails_throwsNot() {
-        new JobSpecification.Ancestry(TRANS_FILE, DATA_FILE, BATCH_ID, "".getBytes(), PREVIOUS_JOB_ID);
+    public void ancestryWithEmptyValuedDataFile_throws() {
+        new JobSpecification.Ancestry()
+                .withDatafile(" ");
     }
 
     public static JobSpecification newJobSpecificationInstance() {

@@ -205,8 +205,11 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
                     ", description='" + description + '\'' +
                     ", format='" + format + '\'' +
                     ", destination='" + destination + '\'' +
+                    ", submitterNumber=" + submitterNumber +
                     ", ushHarvesterJobId=" + ushHarvesterJobId +
+                    ", ushHarvesterProperties=" + ushHarvesterProperties +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +
+                    ", enabled=" + enabled +
                     '}';
         }
     }

@@ -51,7 +51,7 @@ public class ChunkItemTest {
     @Test
     public void withDiagnostics_diagnosticsArgCanBeNull() {
         final ChunkItem chunkItem = new ChunkItem()
-                .withDiagnostics(null);
+                .withDiagnostics((Diagnostic[]) null);
         assertThat(chunkItem.getDiagnostics(), is(nullValue()));
     }
 
@@ -106,7 +106,7 @@ public class ChunkItemTest {
     @Test
     public void withType_typeArgCanBeNull() {
         final ChunkItem chunkItem = new ChunkItem()
-            .withType(null);
+            .withType((Type[]) null);
         assertThat(chunkItem.getType(), is(nullValue()));
     }
 

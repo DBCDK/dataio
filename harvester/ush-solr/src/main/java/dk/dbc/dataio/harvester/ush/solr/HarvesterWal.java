@@ -50,6 +50,8 @@ import java.util.Optional;
  * </pre>
  */
 public class HarvesterWal {
+    public static String HARVESTER_ID = "ush-solr";
+
     private final UshSolrHarvesterConfig config;
     private final BinaryFileStore binaryFileStore;
     private final BinaryFile walFile;
@@ -127,14 +129,14 @@ public class HarvesterWal {
 
         public WalEntry(String walEntry) throws NullPointerException, IllegalArgumentException {
             InvariantUtil.checkNotNullNotEmptyOrThrow(walEntry, "walEntry");
-            final String[] parts = walEntry.split(":", 4);
-            if (parts.length != 4) {
+            final String[] parts = walEntry.split(":");
+            if (parts.length != 5) {
                 throw new IllegalArgumentException("Invalid syntax of WalEntry: " + walEntry);
             }
-            id = parseLong(parts[0], "id");
-            version = parseLong(parts[1], "version");
-            from = parseLong(parts[2], "from");
-            until = parseLong(parts[3], "until");
+            id = parseLong(parts[1], "id");
+            version = parseLong(parts[2], "version");
+            from = parseLong(parts[3], "from");
+            until = parseLong(parts[4], "until");
         }
 
         private WalEntry(long id, long version, long from, long until) {
@@ -162,7 +164,7 @@ public class HarvesterWal {
 
         @Override
         public String toString() {
-            return id + ":" + version + ":" + from + ":" + until;
+            return HARVESTER_ID + ":" + id + ":" + version + ":" + from + ":" + until;
         }
 
         @Override

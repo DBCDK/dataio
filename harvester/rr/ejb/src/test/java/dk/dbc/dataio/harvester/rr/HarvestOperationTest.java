@@ -245,6 +245,26 @@ public class HarvestOperationTest {
     }
 
     @Test
+    public void execute_rawRepoRecordHasAgencyIdContainedInExcludedSet_recordIsSkipped()
+            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        final RecordId recordId = new RecordId("record", 870970);
+        final String recordContent = getRecordContent(recordId);
+        final QueueJob queueJob = getQueueJob(recordId);
+        final Record record = new MockedRecord(recordId, true);
+        record.setContent(recordContent.getBytes(StandardCharsets.UTF_8));
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
+        verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class));
+    }
+
+    @Test
     public void getJobSpecificationTemplate_interpolatesConfigValues() {
         final int agencyId = 424242;
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()

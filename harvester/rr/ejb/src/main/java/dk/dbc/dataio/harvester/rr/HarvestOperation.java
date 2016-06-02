@@ -58,11 +58,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class HarvestOperation {
-    public static final int DBC_COMMON_LIBRARY_NUMBER = 191919;
+    public static final int DBC_LIBRARY_NUMBER = 191919;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
+    private static final Set<Integer> AGENCY_ID_EXCLUDES = Stream.of(870970).collect(Collectors.toSet());
 
     private final RRHarvesterConfig.Content config;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
@@ -88,17 +92,19 @@ public class HarvestOperation {
         while (nextQueuedItem != null) {
             LOGGER.info("{} ready for harvesting", nextQueuedItem);
             final RecordId queuedRecordId = nextQueuedItem.getJob();
-            try {
-                final DataContainer harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
-                final int agencyId = getAgencyId(queuedRecordId, harvesterRecord.getEnrichmentTrail());
-                getHarvesterJobBuilder(agencyId).addHarvesterRecord(harvesterRecord);
-            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
-                markAsFailure(nextQueuedItem, e.getMessage());
-            }
+            if (!AGENCY_ID_EXCLUDES.contains(queuedRecordId.getAgencyId())) {
+                try {
+                    final DataContainer harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
+                    final int agencyId = getAgencyId(queuedRecordId, harvesterRecord.getEnrichmentTrail());
+                    getHarvesterJobBuilder(agencyId).addHarvesterRecord(harvesterRecord);
+                } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+                    LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                    markAsFailure(nextQueuedItem, e.getMessage());
+                }
 
-            if (++itemsHarvested == config.getBatchSize()) {
-                break;
+                if (++itemsHarvested == config.getBatchSize()) {
+                    break;
+                }
             }
             nextQueuedItem = getNextQueuedItem();
         }
@@ -116,7 +122,7 @@ public class HarvestOperation {
     }
 
     int getAgencyId(RecordId recordId, String enrichmentTrail) throws HarvesterInvalidRecordException {
-        if (recordId.getAgencyId() != DBC_COMMON_LIBRARY_NUMBER) {
+        if (recordId.getAgencyId() != DBC_LIBRARY_NUMBER) {
             return recordId.getAgencyId();
         }
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {

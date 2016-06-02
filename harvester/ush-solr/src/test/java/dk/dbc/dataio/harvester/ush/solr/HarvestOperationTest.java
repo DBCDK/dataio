@@ -81,7 +81,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_redoesAnyUncommitttedConfigUpdatesAndLeavesNoWalBehind() throws HarvesterException {
+    public void execute_redoesAnyUncommittedConfigUpdatesAndLeavesNoWalBehind() throws HarvesterException {
         final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
         harvestOperation.execute();
 

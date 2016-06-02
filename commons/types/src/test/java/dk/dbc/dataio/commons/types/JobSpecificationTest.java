@@ -155,7 +155,7 @@ public class JobSpecificationTest {
     @Test(expected = IllegalArgumentException.class)
     public void ancestryWithEmptyValuedHarvesterToken_throws() {
         new JobSpecification.Ancestry()
-                .withDatafile(" ");
+                .withHarvesterToken(" ");
     }
 
     public static JobSpecification newJobSpecificationInstance() {

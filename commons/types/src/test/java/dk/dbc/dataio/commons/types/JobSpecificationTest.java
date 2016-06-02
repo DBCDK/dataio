@@ -152,6 +152,12 @@ public class JobSpecificationTest {
                 .withDatafile(" ");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void ancestryWithEmptyValuedHarvesterToken_throws() {
+        new JobSpecification.Ancestry()
+                .withDatafile(" ");
+    }
+
     public static JobSpecification newJobSpecificationInstance() {
         return new JobSpecification(PACKAGING, FORMAT, CHARSET, DESTINATION, SUBMITTER_ID, VERIFICATION_MAILADDR, PROCESSING_MAILADDR, RESULT_MAIL_INITIALS, DATA_FILE, TYPE);
     }

@@ -225,6 +225,7 @@ public class JobSpecification implements Serializable {
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Ancestry implements Serializable {
         private static final long serialVersionUID = 7924802481866401011L;
+        private String harvesterToken;
         private String transfile;
         private String datafile;
         private String batchId;
@@ -232,6 +233,15 @@ public class JobSpecification implements Serializable {
         private int previousJobId;
 
         public Ancestry() {}
+
+        public String getHarvesterToken() {
+            return harvesterToken;
+        }
+
+        public Ancestry withHarvesterToken(String harvesterToken) throws IllegalArgumentException {
+            this.harvesterToken = InvariantUtil.checkNotEmptyOrThrow(harvesterToken, "harvesterToken");
+            return this;
+        }
 
         public String getTransfile() {
             return transfile;

@@ -25,6 +25,7 @@ import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -142,6 +143,33 @@ public class HarvestOperationTest {
         when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()));
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.harvesterTokenExistsInDataIo("token"), is(true));
+    }
+
+    @Test
+    public void getJobSpecificationTemplate_interpolatesConfigValues() throws HarvesterException {
+        final JobSpecification expectedJobSpecificationTemplate = new JobSpecificationBuilder()
+                .setSubmitterId(424242)
+                .setDestination("testbase")
+                .setPackaging("xml")
+                .setFormat("marc2")
+                .setCharset("utf8")
+                .setMailForNotificationAboutVerification("placeholder")
+                .setMailForNotificationAboutProcessing("placeholder")
+                .setResultmailInitials("placeholder")
+                .setDataFile("placeholder")
+                .setType(JobSpecification.Type.TRANSIENT)
+                .setAncestry(new JobSpecification.Ancestry()
+                    .withHarvesterToken("ush-solr:1:1:0:1"))
+                .build();
+
+        final UshSolrHarvesterConfig ushSolrHarvesterConfig = newUshSolrHarvesterConfig();
+        ushSolrHarvesterConfig.getContent()
+                .withSubmitterNumber((int) expectedJobSpecificationTemplate.getSubmitterId())
+                .withDestination(expectedJobSpecificationTemplate.getDestination())
+                .withFormat(expectedJobSpecificationTemplate.getFormat());
+
+        final HarvestOperation harvestOperation = newHarvestOperation(ushSolrHarvesterConfig);
+        assertThat(harvestOperation.getJobSpecificationTemplate(), is(expectedJobSpecificationTemplate));
     }
 
     private HarvestOperation newHarvestOperation() throws HarvesterException {

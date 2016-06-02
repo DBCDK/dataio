@@ -302,6 +302,9 @@ public class JobSpecification implements Serializable {
             if (previousJobId != ancestry.previousJobId) {
                 return false;
             }
+            if (harvesterToken != null ? !harvesterToken.equals(ancestry.harvesterToken) : ancestry.harvesterToken != null) {
+                return false;
+            }
             if (transfile != null ? !transfile.equals(ancestry.transfile) : ancestry.transfile != null) {
                 return false;
             }
@@ -317,7 +320,8 @@ public class JobSpecification implements Serializable {
 
         @Override
         public int hashCode() {
-            int result = transfile != null ? transfile.hashCode() : 0;
+            int result = harvesterToken != null ? harvesterToken.hashCode() : 0;
+            result = 31 * result + (transfile != null ? transfile.hashCode() : 0);
             result = 31 * result + (datafile != null ? datafile.hashCode() : 0);
             result = 31 * result + (batchId != null ? batchId.hashCode() : 0);
             result = 31 * result + Arrays.hashCode(details);
@@ -328,7 +332,8 @@ public class JobSpecification implements Serializable {
         @Override
         public String toString() {
             return "Ancestry{" +
-                    "transfile='" + transfile + '\'' +
+                    "harvesterToken='" + harvesterToken + '\'' +
+                    ", transfile='" + transfile + '\'' +
                     ", datafile='" + datafile + '\'' +
                     ", batchId='" + batchId + '\'' +
                     ", details=" + Arrays.toString(details) +

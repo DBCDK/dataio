@@ -239,6 +239,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
                 JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING,
                 JobSpecification.EMPTY_RESULT_MAIL_INITIALS,
                 fileStoreUrn.toString(),
-                jobSpecificationTemplate.getType());
+                jobSpecificationTemplate.getType(),
+                jobSpecificationTemplate.getAncestry());
     }
 }

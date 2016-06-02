@@ -23,6 +23,7 @@ package dk.dbc.dataio.harvester.ush.solr;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -73,6 +74,12 @@ public class HarvestOperation {
         wal.write(getWalEntry());  // Write new WAL entry
 
         // do harvest...
+        /*try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(,,, getJobSpecificationTemplate())) {
+            for (UshSolrDocument solrDocument : resultset) {
+                jobBuilder.addRecord(addiRecord);
+            }
+            jobBuilder.build();
+        }*/
 
         wal.commit();
         return 0;
@@ -96,6 +103,18 @@ public class HarvestOperation {
             return !harvesterJobBuilder.getJobStoreServiceConnector().listJobs(criteria).isEmpty();
         } catch (JobStoreServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("Failed to query dataIO job-store for harvester token: " + harvesterToken, e);
+        }
+    }
+
+    JobSpecification getJobSpecificationTemplate() throws HarvesterException {
+        try {
+            final UshSolrHarvesterConfig.Content configFields = config.getContent();
+            return new JobSpecification("xml", configFields.getFormat(), "utf8", configFields.getDestination(), configFields.getSubmitterNumber(),
+                    "placeholder", "placeholder", "placeholder", "placeholder", JobSpecification.Type.TRANSIENT,
+                    new JobSpecification.Ancestry()
+                            .withHarvesterToken(getWalEntry().toString()));
+        } catch (RuntimeException e) {
+            throw new HarvesterException("Unable to create job specification template", e);
         }
     }
 

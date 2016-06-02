@@ -32,7 +32,6 @@
 
   <artifactId>dataio-harvester-utils-ush-solr-connector</artifactId>
   <name>dataio-harvester-utils-ush-solr-connector</name>
-  <packaging>ejb</packaging>
 
   <properties>
     <ush-solr.version>4.9.1</ush-solr.version>
@@ -40,14 +39,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>javax</groupId>
-      <artifactId>javaee-api</artifactId>
-      <version>${javaee.api.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-service</artifactId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -82,15 +75,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-ejb-plugin</artifactId>
-        <version>${maven.ejb.plugin.version}</version>
-        <configuration>
-          <ejbVersion>${ejb.version}</ejbVersion>
-          <filterDeploymentDescriptor>true</filterDeploymentDescriptor>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>

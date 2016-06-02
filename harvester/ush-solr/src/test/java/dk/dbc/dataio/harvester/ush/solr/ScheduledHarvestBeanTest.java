@@ -137,7 +137,7 @@ public class ScheduledHarvestBeanTest {
         config.getContent()
                 .withUshHarvesterProperties(
                         new UshHarvesterProperties()
-                            .withLatestStatus("FAILED"));
+                            .withCurrentStatus("FAILED"));
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -151,7 +151,7 @@ public class ScheduledHarvestBeanTest {
         config.getContent()
                 .withUshHarvesterProperties(
                         new UshHarvesterProperties()
-                            .withLastHarvestedDate(null));
+                            .withLastHarvestFinishedDate(null));
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -175,7 +175,7 @@ public class ScheduledHarvestBeanTest {
         final Date timeOfLastHarvest = new Date();
         final UshSolrHarvesterConfig config = newConfigEligibleForExecution();
         config.getContent().withTimeOfLastHarvest(timeOfLastHarvest);
-        config.getContent().getUshHarvesterProperties().withLastHarvestedDate(timeOfLastHarvest);
+        config.getContent().getUshHarvesterProperties().withLastHarvestFinishedDate(timeOfLastHarvest);
         injectConfigs(config);
 
         final ScheduledHarvestBean scheduledHarvestBean = getScheduledHarvestBean();
@@ -215,8 +215,8 @@ public class ScheduledHarvestBeanTest {
                 new UshSolrHarvesterConfig.Content()
                     .withUshHarvesterProperties(
                             new UshHarvesterProperties()
-                                .withLatestStatus("OK")
-                                .withLastHarvestedDate(new Date())));
+                                .withCurrentStatus("OK")
+                                .withLastHarvestFinishedDate(new Date())));
     }
 
     private void mockedHarvestCompletes() throws HarvesterException {

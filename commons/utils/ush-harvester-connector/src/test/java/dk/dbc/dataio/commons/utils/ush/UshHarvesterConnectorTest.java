@@ -24,7 +24,6 @@ package dk.dbc.dataio.commons.utils.ush;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
-import dk.dbc.dataio.commons.utils.ush.bindings.UshHarvesterJob;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -62,7 +62,11 @@ public class UshHarvesterConnectorTest {
 
     private final UshHarvesterProperties expectedUshHarvesterProperties = getExpectedUshHarvesterProperties();
     private final String ushHarvesterJobXml = readTestRecordAsString("/ush-harvester-job.xml");
-    private final int jobId = 10001;
+    private static final int ID = 10002;
+    private static final Date Tue_May_31_00_00_05_CEST_2016 = new Date(1464645605419L); //lastHarvestFinished
+    private static final Date Tue_May_31_00_00_00_CEST_2016 = new Date(1464645600239L); //lastHarvestStarted
+    private static final Date Mon_May_23_13_13_32_CEST_2016 = new Date(1464002012515L); //lastUpdated
+    private static final Date Mon_Jun_06_02_00_00_CEST_2016 = new Date(1465171200000L); //nextHarvestSchedule
 
     private UshHarvesterConnector connector;
 
@@ -101,29 +105,24 @@ public class UshHarvesterConnectorTest {
         setupUshHarvesterMockedHttpResponse(Response.Status.OK, ushHarvesterJobXml);
 
         // Subject under test
-        final List<UshHarvesterProperties> ushHarvesterProperties = connector.listUshHarvesterJobs();
+        final List<UshHarvesterProperties> ushHarvesterPropertiesList = connector.listUshHarvesterJobs();
 
         // Verification
-        assertThat(ushHarvesterProperties.size(), is(1));
-        assertThat(ushHarvesterProperties.get(0), is(expectedUshHarvesterProperties));
+
+        assertThat(ushHarvesterPropertiesList.size(), is(1));
+        assertThat(ushHarvesterPropertiesList.get(0), is(expectedUshHarvesterProperties));
     }
 
     @Test
     public void listUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsEmptyList() throws UshHarvesterConnectorException {
         // Setup
-        setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<jobs/>");
+        setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<harvestables/>");
 
         // Subject under test
         final List<UshHarvesterProperties> ushHarvesterProperties = connector.listUshHarvesterJobs();
 
         // Verification
         assertThat(ushHarvesterProperties.isEmpty(), is(true));
-    }
-
-    @Test
-    public void listUshHarvesterJobs_serviceReturnsResultWhichCausesUnexpectedFailure_throws() throws UshHarvesterConnectorException {
-        setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<jobs><job></job></jobs>");
-        assertThat(() -> connector.listUshHarvesterJobs(), isThrowing(UshHarvesterConnectorException.class));
     }
 
     @Test
@@ -160,15 +159,15 @@ public class UshHarvesterConnectorTest {
         Map<Integer, UshHarvesterProperties> indexedUshHarvesterJobs = connector.listIndexedUshHarvesterJobs();
 
         // Verification
-        assertThat(indexedUshHarvesterJobs.containsKey(jobId), is(true));
-        assertThat(indexedUshHarvesterJobs.get(jobId), is(expectedUshHarvesterProperties));
+        assertThat(indexedUshHarvesterJobs.containsKey(ID), is(true));
+        assertThat(indexedUshHarvesterJobs.get(ID), is(expectedUshHarvesterProperties));
 
     }
 
     @Test
     public void listIndexedUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsEmptyMap() throws UshHarvesterConnectorException {
         // Setup
-        setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<jobs/>");
+        setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<harvestables/>");
 
         // Subject under test
         Map<Integer, UshHarvesterProperties> indexedUshHarvesterJobs = connector.listIndexedUshHarvesterJobs();
@@ -210,13 +209,18 @@ public class UshHarvesterConnectorTest {
 
     private UshHarvesterProperties getExpectedUshHarvesterProperties() {
         return new UshHarvesterProperties()
-                .withJobId(jobId)
-                .withName("A Celebration of Women Writers")
-                .withScheduleString("0 0 * * *")
-                .withLastUpdatedDate(UshHarvesterJob.toDate("Mon May 09 10:28:33 CEST 2016"))
-                .withLastHarvestedDate(UshHarvesterJob.toDate("Mon May 09 10:28:34 CEST 2016"))
-                .withReportedStatus("OK")
-                .withLatestStatus("OK");
+                .withUri("http://dataio-ush-s01.dbc.dk:8080/harvester/records/harvestables/10002/")
+                .withAmountHarvested(25)
+                .withCurrentStatus("OK")
+                .withEnabled(true)
+                .withId(10002)
+                .withJobClass("OaiPmhResource")
+                .withLastHarvestFinishedDate(Tue_May_31_00_00_05_CEST_2016)
+                .withLastHarvestStartedDate(Tue_May_31_00_00_00_CEST_2016)
+                .withLastUpdatedDate(Mon_May_23_13_13_32_CEST_2016)
+                .withMessage("Stop requested after 25 records")
+                .withName("KB 810010 test")
+                .withNextHarvestSchedule(Mon_Jun_06_02_00_00_CEST_2016)
+                .withStorageUrl("http://dataio-ush-s01.dbc.dk:8080/solr4/");
     }
-
 }

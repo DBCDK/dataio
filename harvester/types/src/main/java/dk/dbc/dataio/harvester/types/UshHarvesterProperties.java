@@ -22,50 +22,98 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.Date;
 
-/**
- * UshHarvesterProperties DTO class.
- *
- * This class is NOT thread safe.
- */
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class UshHarvesterProperties {
 
-    private int jobId;
-    private String name;
-    private String scheduleString;
+    @JacksonXmlProperty(isAttribute = true)
+    private String uri;
+
+    private int amountHarvested;
+    private String currentStatus;
+    private boolean enabled;
+    private int id;
+    private String jobClass;
+    private Date lastHarvestFinished;
+    private Date lastHarvestStarted;
     private Date lastUpdated;
-    private Date lastHarvested;
-    private String reportedStatus;
-    private String latestStatus;
-    private String error;
+    private String message;
+    private String name;
+    private Date nextHarvestSchedule;
+    private String storageUrl;
 
-    public int getJobId() {
-        return jobId;
+    public String getUri() {
+        return uri;
     }
 
-    public UshHarvesterProperties withJobId(int jobId) {
-        this.jobId = jobId;
+    public UshHarvesterProperties withUri(String uri) {
+        this.uri = uri;
         return this;
     }
 
-    public String getName() {
-        return name;
+    public int getAmountHarvested() {
+        return amountHarvested;
     }
 
-    public UshHarvesterProperties withName(String name) {
-        this.name = name;
+    public UshHarvesterProperties withAmountHarvested(int amountHarvested) {
+        this.amountHarvested = amountHarvested;
         return this;
     }
 
-    public String getScheduleString() {
-        return scheduleString;
+    public String getCurrentStatus() {
+        return currentStatus;
     }
 
-    public UshHarvesterProperties withScheduleString(String scheduleString) {
-        this.scheduleString = scheduleString;
+    public UshHarvesterProperties withCurrentStatus(String currentStatus) {
+        this.currentStatus = currentStatus;
+        return this;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    public UshHarvesterProperties withEnabled(boolean enabled) {
+        this.enabled = enabled;
+        return this;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public UshHarvesterProperties withId(int id) {
+        this.id = id;
+        return this;
+    }
+
+    public String getJobClass() {
+        return jobClass;
+    }
+
+    public UshHarvesterProperties withJobClass(String jobClass) {
+        this.jobClass = jobClass;
+        return this;
+    }
+
+    public Date getLastHarvestFinished() {
+        return lastHarvestFinished;
+    }
+
+    public UshHarvesterProperties withLastHarvestFinishedDate(Date lastHarvestFinished) {
+        this.lastHarvestFinished = lastHarvestFinished;
+        return this;
+    }
+
+    public Date getLastHarvestStarted() {
+        return lastHarvestStarted;
+    }
+
+    public UshHarvesterProperties withLastHarvestStartedDate(Date lastHarvestStarted) {
+        this.lastHarvestStarted = lastHarvestStarted;
         return this;
     }
 
@@ -78,39 +126,39 @@ public class UshHarvesterProperties {
         return this;
     }
 
-    public Date getLastHarvested() {
-        return lastHarvested;
+    public String getMessage() {
+        return message;
     }
 
-    public UshHarvesterProperties withLastHarvestedDate(Date lastHarvested) {
-        this.lastHarvested = lastHarvested;
+    public UshHarvesterProperties withMessage(String message) {
+        this.message = message;
         return this;
     }
 
-    public String getReportedStatus() {
-        return reportedStatus;
+    public String getName() {
+        return name;
     }
 
-    public UshHarvesterProperties withReportedStatus(String reportedStatus) {
-        this.reportedStatus = reportedStatus;
+    public UshHarvesterProperties withName(String name) {
+        this.name = name;
         return this;
     }
 
-    public String getLatestStatus() {
-        return latestStatus;
+    public Date getNextHarvestSchedule() {
+        return nextHarvestSchedule;
     }
 
-    public UshHarvesterProperties withLatestStatus(String latestStatus) {
-        this.latestStatus = latestStatus;
+    public UshHarvesterProperties withNextHarvestSchedule(Date nextHarvestSchedule) {
+        this.nextHarvestSchedule = nextHarvestSchedule;
         return this;
     }
 
-    public String getError() {
-        return error;
+    public String getStorageUrl() {
+        return storageUrl;
     }
 
-    public UshHarvesterProperties withError(String error) {
-        this.error = error;
+    public UshHarvesterProperties withStorageUrl(String storageUrl) {
+        this.storageUrl = storageUrl;
         return this;
     }
 
@@ -121,44 +169,60 @@ public class UshHarvesterProperties {
 
         UshHarvesterProperties that = (UshHarvesterProperties) o;
 
-        if (jobId != that.jobId) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (scheduleString != null ? !scheduleString.equals(that.scheduleString) : that.scheduleString != null)
+        if (amountHarvested != that.amountHarvested) return false;
+        if (enabled != that.enabled) return false;
+        if (id != that.id) return false;
+        if (uri != null ? !uri.equals(that.uri) : that.uri != null) return false;
+        if (currentStatus != null ? !currentStatus.equals(that.currentStatus) : that.currentStatus != null)
+            return false;
+        if (jobClass != null ? !jobClass.equals(that.jobClass) : that.jobClass != null) return false;
+        if (lastHarvestFinished != null ? !lastHarvestFinished.equals(that.lastHarvestFinished) : that.lastHarvestFinished != null)
+            return false;
+        if (lastHarvestStarted != null ? !lastHarvestStarted.equals(that.lastHarvestStarted) : that.lastHarvestStarted != null)
             return false;
         if (lastUpdated != null ? !lastUpdated.equals(that.lastUpdated) : that.lastUpdated != null) return false;
-        if (lastHarvested != null ? !lastHarvested.equals(that.lastHarvested) : that.lastHarvested != null)
+        if (message != null ? !message.equals(that.message) : that.message != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (nextHarvestSchedule != null ? !nextHarvestSchedule.equals(that.nextHarvestSchedule) : that.nextHarvestSchedule != null)
             return false;
-        if (reportedStatus != null ? !reportedStatus.equals(that.reportedStatus) : that.reportedStatus != null)
-            return false;
-        if (latestStatus != null ? !latestStatus.equals(that.latestStatus) : that.latestStatus != null) return false;
-        return error != null ? error.equals(that.error) : that.error == null;
+        return storageUrl != null ? storageUrl.equals(that.storageUrl) : that.storageUrl == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = jobId;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (scheduleString != null ? scheduleString.hashCode() : 0);
+        int result = uri != null ? uri.hashCode() : 0;
+        result = 31 * result + amountHarvested;
+        result = 31 * result + (currentStatus != null ? currentStatus.hashCode() : 0);
+        result = 31 * result + (enabled ? 1 : 0);
+        result = 31 * result + id;
+        result = 31 * result + (jobClass != null ? jobClass.hashCode() : 0);
+        result = 31 * result + (lastHarvestFinished != null ? lastHarvestFinished.hashCode() : 0);
+        result = 31 * result + (lastHarvestStarted != null ? lastHarvestStarted.hashCode() : 0);
         result = 31 * result + (lastUpdated != null ? lastUpdated.hashCode() : 0);
-        result = 31 * result + (lastHarvested != null ? lastHarvested.hashCode() : 0);
-        result = 31 * result + (reportedStatus != null ? reportedStatus.hashCode() : 0);
-        result = 31 * result + (latestStatus != null ? latestStatus.hashCode() : 0);
-        result = 31 * result + (error != null ? error.hashCode() : 0);
+        result = 31 * result + (message != null ? message.hashCode() : 0);
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (nextHarvestSchedule != null ? nextHarvestSchedule.hashCode() : 0);
+        result = 31 * result + (storageUrl != null ? storageUrl.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
         return "UshHarvesterProperties{" +
-                "jobId=" + jobId +
-                ", name=" + name +
-                ", scheduleString=" + scheduleString +
+                "uri='" + uri + '\'' +
+                ", amountHarvested=" + amountHarvested +
+                ", currentStatus='" + currentStatus + '\'' +
+                ", enabled=" + enabled +
+                ", id=" + id +
+                ", jobClass='" + jobClass + '\'' +
+                ", lastHarvestFinished=" + lastHarvestFinished +
+                ", lastHarvestStarted=" + lastHarvestStarted +
                 ", lastUpdated=" + lastUpdated +
-                ", lastHarvested=" + lastHarvested +
-                ", reportedStatus=" + reportedStatus +
-                ", latestStatus=" + latestStatus +
-                ", error=" + error +
+                ", message='" + message + '\'' +
+                ", name='" + name + '\'' +
+                ", nextHarvestSchedule=" + nextHarvestSchedule +
+                ", storageUrl='" + storageUrl + '\'' +
                 '}';
     }
 }

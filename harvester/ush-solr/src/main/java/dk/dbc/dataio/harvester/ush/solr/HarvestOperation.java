@@ -131,6 +131,6 @@ public class HarvestOperation {
                 config.getId(),
                 config.getVersion(),
                 config.getContent().getTimeOfLastHarvest(),
-                config.getContent().getUshHarvesterProperties().getLastHarvested());
+                config.getContent().getUshHarvesterProperties().getLastHarvestFinished());
     }
 }

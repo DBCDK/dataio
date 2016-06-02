@@ -25,19 +25,20 @@ package dk.dbc.dataio.commons.utils.ush.bindings;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 
 import java.util.Collections;
 import java.util.List;
 
-@JacksonXmlRootElement(localName = "jobs")
-public class UshHarvesterJobs {
+@JacksonXmlRootElement(localName = "harvestables")
+public class Harvestables {
 
-        @JacksonXmlProperty(localName = "job")
+        @JacksonXmlProperty(localName = "harvestableBrief")
         @JacksonXmlElementWrapper(useWrapping = false)
-        private List<UshHarvesterJob> ushHarvesterJobs = Collections.emptyList(); // default value
+        private List<UshHarvesterProperties> ushHarvesterProperties = Collections.emptyList(); // default value
 
-    public List<UshHarvesterJob> getUshHarvesterJobs() {
-        return ushHarvesterJobs;
+    public List<UshHarvesterProperties> getUshHarvesterProperties() {
+        return ushHarvesterProperties;
     }
 }
 

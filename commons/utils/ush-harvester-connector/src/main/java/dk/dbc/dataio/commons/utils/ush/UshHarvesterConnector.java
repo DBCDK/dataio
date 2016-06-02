@@ -26,8 +26,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.ush.bindings.UshHarvesterJob;
-import dk.dbc.dataio.commons.utils.ush.bindings.UshHarvesterJobs;
+import dk.dbc.dataio.commons.utils.ush.bindings.Harvestables;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +69,7 @@ public class UshHarvesterConnector {
     }
 
     /**
-     * Retrieves list of ush harvester jobs from the harvester service and converts each job to instance of ush harvester properties
+     * Retrieves list of ush harvester properties from the harvester service
      * @return list of selected ush harvester properties
      * @throws UshHarvesterConnectorException on general failure to produce ush harvester properties listing
      */
@@ -82,7 +81,7 @@ public class UshHarvesterConnector {
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
                 String stringEntity = readResponseEntity(response, String.class);
-                return toUshHarvesterProperties(stringEntity);
+                return getUshHarvesterProperties(stringEntity);
             } catch (UshHarvesterConnectorException e) {
                 throw e;
             } catch (Exception e) {
@@ -101,7 +100,7 @@ public class UshHarvesterConnector {
      * @throws UshHarvesterConnectorException on general failure to produce ush harvester properties listing
      */
     public Map<Integer, UshHarvesterProperties> listIndexedUshHarvesterJobs() throws UshHarvesterConnectorException {
-        return Collections.unmodifiableMap(listUshHarvesterJobs().stream().collect(Collectors.toMap(UshHarvesterProperties::getJobId, c -> c)));
+        return Collections.unmodifiableMap(listUshHarvesterJobs().stream().collect(Collectors.toMap(UshHarvesterProperties::getId, c -> c)));
     }
 
     /*
@@ -126,13 +125,10 @@ public class UshHarvesterConnector {
         return entity;
     }
 
-    private List<UshHarvesterProperties> toUshHarvesterProperties(String entityString) throws UshHarvesterConnectorException {
+
+    private List<UshHarvesterProperties> getUshHarvesterProperties(String entityString) throws UshHarvesterConnectorException {
         try {
-            final UshHarvesterJobs ushHarvesterJobs = mapper.readValue(entityString, UshHarvesterJobs.class);
-            return ushHarvesterJobs.getUshHarvesterJobs()
-                    .stream()
-                    .map(UshHarvesterJob::toUshHarvesterProperties)
-                    .collect(Collectors.toList());
+            return mapper.readValue(entityString, Harvestables.class).getUshHarvesterProperties();
         } catch (IOException e) {
             throw new UshHarvesterConnectorException(String.format("invalid input xml:{%s} could not be read", entityString));
         }

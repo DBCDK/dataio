@@ -135,9 +135,9 @@ public class ScheduledHarvestBean {
             throw new IllegalStateException(String.format("Config with ID %d for USH harvester '%d' contained no properties",
                     config.getId(), config.getContent().getUshHarvesterJobId()));
         }
-        if (!"OK".equals(ushHarvesterProperties.getLatestStatus())) {
-            LOGGER.warn("Latest status of '{}' USH harvest was {}",
-                    ushHarvesterProperties.getJobId(), ushHarvesterProperties.getLatestStatus());
+        if (!"OK".equals(ushHarvesterProperties.getCurrentStatus())) {
+            LOGGER.warn("Current status of '{}' USH harvest is {}",
+                    ushHarvesterProperties.getId(), ushHarvesterProperties.getCurrentStatus());
             return false;
         }
         final Date now = new Date();
@@ -152,7 +152,7 @@ public class ScheduledHarvestBean {
     }
 
     private Optional<Date> getUshTimeOfLastHarvest(UshHarvesterProperties ushHarvesterProperties) {
-        return Optional.ofNullable(ushHarvesterProperties.getLastHarvested());
+        return Optional.ofNullable(ushHarvesterProperties.getLastHarvestFinished());
     }
 
     private Optional<Date> getUshSolrTimeOfLastHarvest(UshSolrHarvesterConfig config) {

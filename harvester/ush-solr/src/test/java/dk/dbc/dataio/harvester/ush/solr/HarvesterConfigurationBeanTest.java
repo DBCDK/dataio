@@ -180,6 +180,6 @@ public class HarvesterConfigurationBeanTest {
 
     public static UshHarvesterProperties getUshHarvesterProperties(int jobId) {
         return new UshHarvesterProperties()
-                .withJobId(jobId);
+                .withId(jobId);
     }
 }

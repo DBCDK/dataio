@@ -19,24 +19,19 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<jobs>
-  <job id="10001">
-    <name>A Celebration of Women Writers</name>
-    <scheduleString>0 0 * * *</scheduleString>
-    <lastUpdated>Mon May 09 10:28:33 CEST 2016</lastUpdated>
-    <lastHarvested>Mon May 09 10:28:34 CEST 2016</lastHarvested>
-    <reportedStatus>OK</reportedStatus>
-    <latestStatus>OK</latestStatus>
-    <error/>
-    <typeSpecific type="OaiPmhResource">
-      <url>
-        http://digital.library.upenn.edu/webbin/OAI-celebration
-      </url>
-      <metadataPrefix>oai_dc</metadataPrefix>
-      <setName>aquifer:americana</setName>
-      <fromDate>Mon May 09 10:28:34 CEST 2016</fromDate>
-      <untilDate/>
-      <dateFormat>yyyy-MM-dd</dateFormat>
-    </typeSpecific>
-  </job>
-</jobs>
+<harvestables count="3" max="100" uri="http://dataio-ush-s01.dbc.dk:8080/harvester/records/harvestables" start="0">
+<harvestableBrief uri="http://dataio-ush-s01.dbc.dk:8080/harvester/records/harvestables/10002/">
+  <amountHarvested>25</amountHarvested>
+  <currentStatus>OK</currentStatus>
+  <enabled>true</enabled>
+  <id>10002</id>
+  <jobClass>OaiPmhResource</jobClass>
+  <lastHarvestFinished>2016-05-31T00:00:05.419+02:00</lastHarvestFinished>
+  <lastHarvestStarted>2016-05-31T00:00:00.239+02:00</lastHarvestStarted>
+  <lastUpdated>2016-05-23T13:13:32.515+02:00</lastUpdated>
+  <message>Stop requested after 25 records</message>
+  <name>KB 810010 test</name>
+  <nextHarvestSchedule>2016-06-06T02:00:00+02:00</nextHarvestSchedule>
+  <storageUrl>http://dataio-ush-s01.dbc.dk:8080/solr4/</storageUrl>
+</harvestableBrief>
+</harvestables>

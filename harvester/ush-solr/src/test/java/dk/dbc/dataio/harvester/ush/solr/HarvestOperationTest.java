@@ -195,7 +195,7 @@ public class HarvestOperationTest {
             .withTimeOfLastHarvest(solrTimeOfLastHarvest)
             .withUshHarvesterProperties(
                     new UshHarvesterProperties()
-                        .withLastHarvestedDate(ushTimeOfLastHarvest)));
+                        .withLastHarvestFinishedDate(ushTimeOfLastHarvest)));
     }
 
     private void createWalWithUncommittedEntry() throws HarvesterException {

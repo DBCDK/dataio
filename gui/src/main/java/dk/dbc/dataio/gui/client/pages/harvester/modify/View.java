@@ -183,10 +183,10 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.updateButtonPressed();
     }
 
-    public void setFormatOverrides(Map<String, String> formatOverrides) {
+    public void setFormatOverrides(Map<String, String> formats) {
         this.formatOverrides.clear();
-        for (String key: formatOverrides.keySet()) {
-            this.formatOverrides.addValue(prepareFormatOverride(key, formatOverrides.get(key)), key);
+        for (String key: formats.keySet()) {
+            this.formatOverrides.addValue(prepareFormatOverride(key, formats.get(key)), key);
         }
     }
 

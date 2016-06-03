@@ -259,7 +259,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void updateButtonPressed() {
         /*
          * As input, we do have an instance of the OLDRRHarvesterConfig object (in the member data: config)
-         * We want to change this to a RRHarvesterConfig object, therfore we create a new instance, and copy the dato from the old one into it.
+         * We want to change this to a RRHarvesterConfig object, therefore we create a new instance, and copy the dato from the old one into it.
          */
         config = new RRHarvesterConfig(config.getId(), config.getVersion(), config.getContent()); // Overwrite the old config with an RRHarvesterConfig - not an OLDRRHarvesterConfig object
         saveButtonPressed(); // Now do save it - simulate a push on the save button

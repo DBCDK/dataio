@@ -1,5 +1,3 @@
-package dk.dbc.dataio.gui.client.pages.sink.modify;
-
 /*
  * DataIO - Data IO
  * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
@@ -16,10 +14,12 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *Sink
+ *
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;

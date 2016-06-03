@@ -66,7 +66,8 @@ public class HarvestOperation {
     public static final int DBC_LIBRARY_NUMBER = 191919;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
-    private static final Set<Integer> AGENCY_ID_EXCLUDES = Stream.of(870970).collect(Collectors.toSet());
+    private static final Set<Integer> AGENCY_ID_EXCLUDES = Stream.of(
+            870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private final RRHarvesterConfig.Content config;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;

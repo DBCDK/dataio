@@ -32,15 +32,6 @@ public class UshSolrDocument {
     @Field("_version_")
     public long version;
 
-    @Field("submitter_s")
-    public String submitter;
-
-    @Field("content_format_s")
-    public String contentFormat;
-
-    @Field("frame_s")
-    public String frame;
-
     public byte[] recordBytes() {
         return "dummy record".getBytes(StandardCharsets.UTF_8);
     }

@@ -22,6 +22,7 @@
 package dk.dbc.dataio.filestore.service.rest;
 
 import dk.dbc.dataio.filestore.service.ejb.FilesBean;
+import dk.dbc.dataio.filestore.service.ejb.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,7 @@ public class FileStoreApplication extends Application {
     public Set<Class<?>> getClasses() {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(FilesBean.class);
+        classes.add(StatusBean.class);
         for (Class<?> clazz : classes) {
             LOGGER.info("Registered {} resource", clazz.getName());
         }

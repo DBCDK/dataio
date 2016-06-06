@@ -50,6 +50,9 @@ public class NavigationPanel extends FlowPanel {
     @UiField TreeItem flowBinders;
     @UiField TreeItem sinks;
     @UiField TreeItem harvesters;
+    @UiField TreeItem rrHarvesters;
+    @UiField TreeItem ushHarvesters;
+    @UiField TreeItem gatekeeper;
     @UiField TreeItem ioTraffic;
     @UiField TreeItem ftp;
 
@@ -68,9 +71,12 @@ public class NavigationPanel extends FlowPanel {
         flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
         flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());
-        harvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.show.Place());
+        harvesters.setUserObject(rrHarvesters);
+        rrHarvesters.setUserObject(new dk.dbc.dataio.gui.client.pages.harvester.show.Place());
+        ushHarvesters.setUserObject(null);
         submitters.setUserObject(new dk.dbc.dataio.gui.client.pages.submitter.show.Place());
         sinks.setUserObject(new dk.dbc.dataio.gui.client.pages.sink.show.Place());
+        gatekeeper.setUserObject(ioTraffic);
         ioTraffic.setUserObject(new dk.dbc.dataio.gui.client.pages.iotraffic.Place());
         ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
     }
@@ -82,10 +88,75 @@ public class NavigationPanel extends FlowPanel {
      */
     @UiHandler("menu")
     void menuPressed(SelectionEvent<TreeItem> event) {
-        Place place = (Place) event.getSelectedItem().getUserObject();
-        if (placeController != null && place != null) {
-            placeController.goTo(place);
+        doSelect(event.getSelectedItem());
+    }
+
+    /**
+     * Make a selection
+     * An action is activated, based on the type of the user object, embedded in the TreeItem passed as a parameter in the call to the method
+     * If the user object is Place type, activate the Place
+     * If the user object is a TreeItem, the tree item does not have a direct action
+     * Instead, select the first item in the sub list (if any), and do the selection on this item instead - meaning
+     * call this method recursively with the new object as parameter
+     * @param item The item to do the selection upon
+     */
+    private void doSelect(TreeItem item) {
+        clearAllSelected(menu);
+        Object object = item.getUserObject();
+        if (placeController != null && object != null) {
+            if (object instanceof TreeItem) {
+                doSelect((TreeItem) object);
+            } else if (object instanceof Place) {
+                placeController.goTo((Place) object);
+                setSelection(item);
+            }
         }
     }
 
+    /**
+     * Traverses through all tree items in the tree, and clears the selection on each of them
+     * @param tree The tree, containing the tree items
+     */
+    private void clearAllSelected(Tree tree) {
+        int count = tree.getItemCount();
+        for (int i=0; i<count; i++) {
+            clearTreeItemSelection(tree.getItem(i));
+        }
+    }
+
+    /**
+     * Clears the selection. If the item contains children, each one of them are cleared also (using recursion)
+     * @param item The tree item to clear the selection
+     */
+    private void clearTreeItemSelection(TreeItem item) {
+        item.setSelected(false);
+        int count = item.getChildCount();
+        for (int i=0; i<count; i++) {
+            clearTreeItemSelection(item.getChild(i));
+        }
+    }
+
+    /**
+     * Sets the selection on the item, passed as a parameter
+     * If the item has parents, it is checked, whether the item is displayed
+     * @param item The item to set as selected
+     */
+    private void setSelection(TreeItem item) {
+        item.setSelected(true);
+        setParentUncovered(item);
+    }
+
+    /**
+     * Assure that the item is visible - ie. its parent is not folded
+     * @param item The item to check for visibility
+     */
+    private void setParentUncovered(TreeItem item) {
+        if (item != null) {
+            TreeItem parent = item.getParentItem();
+            if (parent != null) {
+                parent.setState(true);
+                setParentUncovered(parent);  // Assure that the grand-parent is also uncovered
+            }
+        }
+    }
 }

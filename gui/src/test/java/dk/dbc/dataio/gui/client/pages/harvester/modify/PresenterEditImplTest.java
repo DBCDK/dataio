@@ -105,13 +105,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                     withDestination("Destination123").
                     withFormat("Format123").
                     withType(JobSpecification.Type.TEST).
-                    withEnabled(true).
-                    withResource("resource").
-                    withResource("resource").
-                    withResource("resource").
-                    withResource("resource").
-                    withResource("resource").
-                    withResource("resource");
+                    withEnabled(true);
     private final RRHarvesterConfig rrHarvesterConfig1 = new RRHarvesterConfig(111L, 222L, content1);
     private final RRHarvesterConfig rrHarvesterConfig2 = new RRHarvesterConfig(112L, 223L, content2);
     private final RRHarvesterConfig rrHarvesterConfig123 = new RRHarvesterConfig(123L, 234L, content123);
@@ -248,7 +242,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verify(mockedName).setText("id123");
         verify(mockedName).setEnabled(true);
-        verify(mockedResource).setText("resource");
+        verify(mockedResource).setText("resource123");
         verify(mockedResource).setEnabled(true);
         verify(mockedTargetUrl).setText("Url123");
         verify(mockedTargetUrl).setEnabled(true);

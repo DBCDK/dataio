@@ -93,6 +93,7 @@ public class HarvestOperationTest {
                 .thenReturn(new HashMap<String, Record>() {{
                     put(RECORD_ID.getBibliographicRecordId(), RECORD);
                 }});
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(RECORD);
         when(harvesterJobBuilderFactory.newHarvesterJobBuilder(any(JobSpecification.class))).thenReturn(harvesterJobBuilder);
     }
 
@@ -151,6 +152,56 @@ public class HarvestOperationTest {
     @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsSqlException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void execute_rawRepoConnectorFetchRecordThrowsSqlException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
+        final RecordId recordId = new RecordId("record", 870970);
+        final QueueJob queueJob = getQueueJob(recordId);
+        final Record record = new MockedRecord(recordId, true);
+        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        record.setDeleted(true);
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(recordId.getBibliographicRecordId(), record);
+                }});
+
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute();
+
+        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+    }
+
+    @Test
+    public void execute_rawRepoConnectorFetchRecordThrowsRawRepoException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
+        final RecordId recordId = new RecordId("record", 870970);
+        final QueueJob queueJob = getQueueJob(recordId);
+        final Record record = new MockedRecord(recordId, true);
+        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        record.setDeleted(true);
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(recordId.getBibliographicRecordId(), record);
+                }});
+
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -248,19 +299,65 @@ public class HarvestOperationTest {
     public void execute_rawRepoRecordHasAgencyIdContainedInExcludedSet_recordIsSkipped()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final RecordId recordId = new RecordId("record", 870970);
-        final String recordContent = getRecordContent(recordId);
         final QueueJob queueJob = getQueueJob(recordId);
-        final Record record = new MockedRecord(recordId, true);
-        record.setContent(recordContent.getBytes(StandardCharsets.UTF_8));
 
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
                 .thenReturn(null);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        assertThat(harvestOperation.execute(), is(0));
+    }
 
-        verify(rawRepoConnector, times(0)).fetchRecord(any(RecordId.class));
+    @Test
+    public void execute_rawRepoDeleteRecordHasAgencyIdContainedInExcludedSet_recordIsProcessed()
+            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        final RecordId recordId = new RecordId("record", 870970);
+        final QueueJob queueJob = getQueueJob(recordId);
+        final Record record = new MockedRecord(recordId, true);
+        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        record.setDeleted(true);
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(recordId.getBibliographicRecordId(), record);
+                }});
+
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(harvestOperation.execute(), is(1));
+        verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
+        verify(rawRepoConnector, times(1)).fetchRecordCollection(any(RecordId.class));
+    }
+
+    @Test
+    public void execute_rawRepoDeleteRecordDbcCommonsAgencyId_recordIsSkipped()
+            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
+        final RecordId recordId = new RecordId("record", DBC_COMMON_RECORD_ID.getAgencyId());
+        final QueueJob queueJob = getQueueJob(recordId);
+        final Record record = new MockedRecord(recordId, true);
+        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        record.setDeleted(true);
+
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(queueJob)
+                .thenReturn(null);
+
+        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
+                .thenReturn(new HashMap<String, Record>() {{
+                    put(recordId.getBibliographicRecordId(), record);
+                }});
+
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(harvestOperation.execute(), is(0));
+        verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
         verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class));
     }
 
@@ -352,37 +449,43 @@ public class HarvestOperationTest {
     @Test
     public void getAgencyId_nonDBC_returnsRecordIdArgAgencyId() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.getAgencyId(RECORD_ID, null), is(RECORD_ID.getAgencyId()));
+        assertThat(harvestOperation.getAgencyId(RECORD_ID, null, false), is(RECORD_ID.getAgencyId()));
+    }
+
+    @Test
+    public void getAgencyId_nonDBC_deleteRecordReturnsRecordIdArgAgencyId() throws HarvesterInvalidRecordException {
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        assertThat(harvestOperation.getAgencyId(RECORD_ID, null, true), is(RECORD_ID.getAgencyId()));
     }
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, null), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, null, false), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, " "), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, " ", false), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_no870TrailFound_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,123456"), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,123456", false), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_invalid870TrailFound_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870abc"), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870abc", false), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_returnsAgencyIdFromEnrichmentTrail() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870970"), is(870970));
+        assertThat(harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870970", false), is(870970));
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
@@ -420,6 +523,21 @@ public class HarvestOperationTest {
                 "</marcx:datafield>" +
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                     "<marcx:subfield code=\"a\">title</marcx:subfield>" +
+                "</marcx:datafield>" +
+            "</marcx:record>" +
+        "</marcx:collection>";
+    }
+
+    public static String getDeleteRecordContent(RecordId recordId) {
+        return
+        "<marcx:collection xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">" +
+            "<marcx:record format=\"danMARC2\">" +
+                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">" +
+                    "<marcx:subfield code=\"a\">" + recordId.getBibliographicRecordId() + "</marcx:subfield>" +
+                    "<marcx:subfield code=\"b\">" + recordId.getAgencyId() + "</marcx:subfield>" +
+                "</marcx:datafield>" +
+                "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"004\">" +
+                    "<marcx:subfield code=\"r\">d</marcx:subfield>" +
                 "</marcx:datafield>" +
             "</marcx:record>" +
         "</marcx:collection>";

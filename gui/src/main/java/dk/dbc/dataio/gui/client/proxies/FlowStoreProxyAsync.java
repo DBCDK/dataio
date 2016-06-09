@@ -29,6 +29,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
 
@@ -72,6 +73,7 @@ public interface FlowStoreProxyAsync {
     void createHarvesterRrConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
     void updateHarvesterRrConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
     void getHarvesterRrConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
+    void getHarvesterUshConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

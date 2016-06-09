@@ -32,6 +32,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
 
@@ -79,6 +80,7 @@ public interface FlowStoreProxy extends RemoteService {
     RRHarvesterConfig createHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException;
     RRHarvesterConfig updateHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException;
     List<RRHarvesterConfig> getHarvesterRrConfigs() throws ProxyException;
+    List<UshSolrHarvesterConfig> getHarvesterUshConfigs() throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

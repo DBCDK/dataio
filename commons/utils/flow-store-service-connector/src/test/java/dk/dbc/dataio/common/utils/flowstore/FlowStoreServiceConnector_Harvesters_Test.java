@@ -126,22 +126,6 @@ public class FlowStoreServiceConnector_Harvesters_Test {
         } catch (FlowStoreServiceConnectorException ignored) { }
     }
 
-    @Test
-    public void updateHarvesterConfig_responseWithMultipleUpdatesConflict_throws() throws FlowStoreServiceConnectorException, JSONBException {
-        try {
-            updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException ignored) { }
-    }
-
-    @Test
-    public void updateHarvesterConfig_responseWithHarvesterConfigIdNotFound_throws() throws FlowStoreServiceConnectorException, JSONBException {
-        try {
-            updateHarvesterConfig_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), "");
-            fail("Exception not thrown");
-        } catch (FlowStoreServiceConnectorException ignored) { }
-    }
-
     // ************************************** find harvester configs by type tests ***************************************
 
     @Test

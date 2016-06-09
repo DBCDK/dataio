@@ -18,11 +18,17 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.harvester.rr.show;
 
-package dk.dbc.dataio.gui.client.pages.harvester.show;
+import com.google.gwt.inject.client.AbstractGinModule;
+import com.google.inject.Singleton;
 
-import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
-public interface Presenter extends GenericPresenter {
-    void editHarvesterConfig(String id);
+public class ViewModule extends AbstractGinModule {
+
+    @Override
+    protected void configure() {
+        bind(View.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
+    }
 }

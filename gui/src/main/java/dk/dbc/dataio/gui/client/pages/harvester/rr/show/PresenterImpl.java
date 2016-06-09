@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.show;
+package dk.dbc.dataio.gui.client.pages.harvester.rr.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
@@ -28,7 +28,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.pages.harvester.modify.EditPlace;
+import dk.dbc.dataio.gui.client.pages.harvester.rr.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 

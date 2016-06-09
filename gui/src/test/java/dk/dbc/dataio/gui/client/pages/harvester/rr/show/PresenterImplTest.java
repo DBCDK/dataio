@@ -20,7 +20,7 @@
  */
 
 
-package dk.dbc.dataio.gui.client.pages.harvester.show;
+package dk.dbc.dataio.gui.client.pages.harvester.rr.show;
 
 
 import com.google.gwt.place.shared.PlaceController;

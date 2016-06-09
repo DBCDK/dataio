@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dbc.dataio.gui.client.pages.harvester.modify;
+package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import com.google.gwt.inject.client.AbstractGinModule;
 import com.google.inject.Singleton;

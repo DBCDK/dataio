@@ -22,7 +22,7 @@
              xmlns:g='urn:import:com.google.gwt.user.client.ui'
              xmlns:dio='urn:import:dk.dbc.dataio.gui.client.components'>
 
-    <ui:with type="dk.dbc.dataio.gui.client.pages.harvester.modify.Texts" field="txt"/>
+    <ui:with type="dk.dbc.dataio.gui.client.pages.harvester.rr.modify.Texts" field="txt"/>
 
     <g:HTMLPanel>
 

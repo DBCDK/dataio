@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.modify;
+package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 

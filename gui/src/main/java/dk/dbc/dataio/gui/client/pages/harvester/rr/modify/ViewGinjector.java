@@ -18,11 +18,14 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
-package dk.dbc.dataio.gui.client.pages.harvester.show;
+package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
 
 import com.google.gwt.inject.client.GinModules;
 import com.google.gwt.inject.client.Ginjector;
 
+/**
+ * Ginjector for the Harvester Modify module
+ */
 @GinModules(ViewModule.class)
 public interface ViewGinjector extends Ginjector {
     View getView();

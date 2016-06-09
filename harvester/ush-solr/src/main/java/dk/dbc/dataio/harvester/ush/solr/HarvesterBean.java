@@ -107,8 +107,8 @@ public class HarvesterBean {
     /* Stand-alone method to enable easy injection during testing (via partial mocking)
      */
     public HarvestOperation getHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(), new HarvesterJobBuilder(
-                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(), null));
+        return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
+                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
     }
 
     private HarvesterBean self() {

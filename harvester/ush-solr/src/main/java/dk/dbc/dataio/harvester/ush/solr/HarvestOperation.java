@@ -21,18 +21,29 @@
 
 package dk.dbc.dataio.harvester.ush.solr;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
+import dk.dbc.dataio.harvester.utils.ush.UshSolrConnector;
+import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -41,48 +52,77 @@ import java.util.Optional;
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
-    private final HarvesterJobBuilder harvesterJobBuilder;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
+    private final BinaryFileStore binaryFileStore;
+    private final FileStoreServiceConnector fileStoreServiceConnector;
+    private final JobStoreServiceConnector jobStoreServiceConnector;
     private final HarvesterWal wal;
 
     private UshSolrHarvesterConfig config;
+    private final UshHarvesterProperties ushHarvesterProperties;
+    private final JSONBContext jsonbContext;
+
+    UshSolrConnector ushSolrConnector;
 
     /**
      * Class constructor
      * @param config configuration used for this harvest
      * @param flowStoreServiceConnector connector used to update configuration
-     * @param harvesterJobBuilder builder used to create dataIO job
+     * @param binaryFileStore used to create HarvesterJobBuilder in order to create dataIO job
+     * @param fileStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
+     * @param jobStoreServiceConnector used to look up harvester token in dataIO
      * @throws NullPointerException if given any null-valued argument
      * @throws HarvesterException on low-level binary wal file failure
      */
     public HarvestOperation(UshSolrHarvesterConfig config,
                             FlowStoreServiceConnector flowStoreServiceConnector,
-                            HarvesterJobBuilder harvesterJobBuilder) throws NullPointerException, HarvesterException {
+                            BinaryFileStore binaryFileStore,
+                            FileStoreServiceConnector fileStoreServiceConnector,
+                            JobStoreServiceConnector jobStoreServiceConnector) throws NullPointerException, HarvesterException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
-        this.harvesterJobBuilder = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilder, "harvesterJobBuilder");
-        this.wal = new HarvesterWal(config, harvesterJobBuilder.getBinaryFileStore());
+        this.binaryFileStore = InvariantUtil.checkNotNullOrThrow(binaryFileStore, "binaryFileStore");
+        this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
+        this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
+        this.wal = new HarvesterWal(config, binaryFileStore);
+        this.ushHarvesterProperties = config.getContent().getUshHarvesterProperties();
+        this.ushSolrConnector = new UshSolrConnector(ushHarvesterProperties.getStorageUrl());
+        this.jsonbContext = new JSONBContext();
     }
 
     /**
      * Runs this harvest operation, (re)doing configuration updates as needed.
      * @return number of records harvested
      * @throws HarvesterException if unable to complete harvest operation
-     */
+    */
     public int execute() throws HarvesterException {
         redoConfigUpdateIfUncommitted();
         wal.write(getWalEntry());  // Write new WAL entry
 
         // do harvest...
-        /*try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(,,, getJobSpecificationTemplate())) {
-            for (UshSolrDocument solrDocument : resultset) {
-                jobBuilder.addRecord(addiRecord);
-            }
-            jobBuilder.build();
-        }*/
+        int recordsAdded;
+        try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(
+                binaryFileStore,
+                fileStoreServiceConnector,
+                jobStoreServiceConnector,
+                getJobSpecificationTemplate()))
+        {
+            final UshSolrConnector.ResultSet resultSet = ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(
+                    config.getContent().getUshHarvesterJobId().toString(),
+                    config.getContent().getTimeOfLastHarvest(),
+                    ushHarvesterProperties.getLastHarvestFinished());
 
+            for (UshSolrDocument solrDocument : resultSet) {
+                jobBuilder.addRecord(toAddiRecord(solrDocument));
+            }
+            recordsAdded = jobBuilder.getRecordsAdded();
+
+            // update config in flow store
+            config.getContent().withTimeOfLastHarvest(ushHarvesterProperties.getLastHarvestFinished());
+            updateHarvesterConfig(config);
+        }
         wal.commit();
-        return 0;
+        return recordsAdded;
     }
 
     void redoConfigUpdateIfUncommitted() throws HarvesterException {
@@ -100,7 +140,7 @@ public class HarvestOperation {
         final JobListCriteria criteria = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, harvesterTokenJson));
         try {
-            return !harvesterJobBuilder.getJobStoreServiceConnector().listJobs(criteria).isEmpty();
+            return !jobStoreServiceConnector.listJobs(criteria).isEmpty();
         } catch (JobStoreServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("Failed to query dataIO job-store for harvester token: " + harvesterToken, e);
         }
@@ -115,6 +155,22 @@ public class HarvestOperation {
                             .withHarvesterToken(getWalEntry().toString()));
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);
+        }
+    }
+
+    private AddiRecord toAddiRecord(UshSolrDocument document) throws HarvesterException {
+        AddiMetaData addiMetaData = new AddiMetaData()
+                .withSubmitterNumber(config.getContent().getSubmitterNumber())
+                .withFormat(config.getContent().getFormat())
+                .withBibliographicRecordId(document.id)
+                .withTrackingId(document.id + "." + document.version);
+
+        try {
+            jsonbContext.marshall(addiMetaData);
+            String addiMetaDataString = jsonbContext.marshall(addiMetaData);
+            return new AddiRecord(addiMetaDataString.getBytes(StandardCharsets.UTF_8), document.recordBytes());
+        } catch (JSONBException e) {
+            throw new HarvesterException(e);
         }
     }
 

@@ -30,11 +30,15 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
+import dk.dbc.dataio.harvester.utils.ush.UshSolrConnector;
+import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -43,12 +47,14 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -58,6 +64,10 @@ public class HarvestOperationTest {
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private final JobStoreServiceConnector jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+    private final UshSolrConnector ushSolrConnector = mock(UshSolrConnector.class);
+    private final UshSolrConnector.ResultSet resultSet = mock(UshSolrConnector.ResultSet.class);
+
+    private BinaryFileStore binaryFileStore;
     private final int ushHarvesterJobId = 42;
     private final Date solrTimeOfLastHarvest = new Date(0);
     private final Date ushTimeOfLastHarvest = new Date(1);
@@ -65,28 +75,61 @@ public class HarvestOperationTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
+    @Before
+    public void setup() {
+        binaryFileStore = new BinaryFileStoreFsImpl(folder.getRoot().toPath());
+    }
+
     @Test(expected = NullPointerException.class)
     public void constructor_configArgIsNull_throws() throws HarvesterException {
-        new HarvestOperation(null, flowStoreServiceConnector, newHarvesterJobBuilder());
+        new HarvestOperation(null, flowStoreServiceConnector, binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_flowStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
-        new HarvestOperation(newUshSolrHarvesterConfig(), null, newHarvesterJobBuilder());
+        new HarvestOperation(newUshSolrHarvesterConfig(), null, binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
     }
 
     @Test(expected = NullPointerException.class)
-    public void constructor_harvesterJobBuilderArgIsNull_throws() throws HarvesterException {
-        new HarvestOperation(newUshSolrHarvesterConfig(), flowStoreServiceConnector, null);
+    public void constructor_binaryFileStoreArgIsNull_throws() throws HarvesterException {
+        new HarvestOperation(newUshSolrHarvesterConfig(), flowStoreServiceConnector, null, fileStoreServiceConnector, jobStoreServiceConnector);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_fileStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
+        new HarvestOperation(newUshSolrHarvesterConfig(), flowStoreServiceConnector, binaryFileStore, null, jobStoreServiceConnector);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void constructor_jobStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
+        new HarvestOperation(newUshSolrHarvesterConfig(), flowStoreServiceConnector, binaryFileStore, fileStoreServiceConnector, null);
     }
 
     @Test
     public void execute_redoesAnyUncommittedConfigUpdatesAndLeavesNoWalBehind() throws HarvesterException {
         final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
+        when(resultSet.iterator()).thenReturn(Collections.singletonList(new UshSolrDocument()).iterator());
         harvestOperation.execute();
-
         assertThat(walFileExists(), is(false));
         verify(harvestOperation).redoConfigUpdateIfUncommitted();
+    }
+
+    @Test
+    public void execute_returnsNumberOfRecordsAdded() throws HarvesterException, FlowStoreServiceConnectorException {
+        final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
+        when(resultSet.iterator()).thenReturn(Arrays.asList(new UshSolrDocument(), new UshSolrDocument()).iterator());
+
+        assertThat(harvestOperation.execute(), is(2));
+    }
+
+    @Test
+    public void execute_updatesHarvesterConfigInFlowStore() throws HarvesterException, FlowStoreServiceConnectorException {
+        final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
+        when(resultSet.iterator()).thenReturn(Collections.singletonList(new UshSolrDocument()).iterator());
+
+        harvestOperation.execute();
+
+        verify(flowStoreServiceConnector, times(1)).updateHarvesterConfig(any(HarvesterConfig.class));
     }
 
     @Test
@@ -177,25 +220,24 @@ public class HarvestOperationTest {
     }
 
     private HarvestOperation newHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
-        return new HarvestOperation(config, flowStoreServiceConnector, newHarvesterJobBuilder());
-    }
+        HarvestOperation harvestOperation = new HarvestOperation(config, flowStoreServiceConnector, binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
+        harvestOperation.ushSolrConnector = ushSolrConnector;
+        when(ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(anyString(), any(Date.class), any(Date.class))).thenReturn(resultSet);
 
-    private HarvesterJobBuilder newHarvesterJobBuilder() {
-        try {
-            final BinaryFileStore binaryFileStore = new BinaryFileStoreFsImpl(folder.getRoot().toPath());
-            return new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, new JobSpecificationBuilder().build());
-        } catch (HarvesterException e) {
-            throw new IllegalStateException(e);
-        }
+        return harvestOperation;
     }
 
     private UshSolrHarvesterConfig newUshSolrHarvesterConfig() {
         return new UshSolrHarvesterConfig(1, 1, new UshSolrHarvesterConfig.Content()
             .withUshHarvesterJobId(ushHarvesterJobId)
             .withTimeOfLastHarvest(solrTimeOfLastHarvest)
-            .withUshHarvesterProperties(
+                .withFormat("format")
+                .withDestination("destination")
+                .withSubmitterNumber(42)
+                .withUshHarvesterProperties(
                     new UshHarvesterProperties()
-                        .withLastHarvestFinishedDate(ushTimeOfLastHarvest)));
+                        .withLastHarvestFinishedDate(ushTimeOfLastHarvest)
+                .withStorageUrl("url")));
     }
 
     private void createWalWithUncommittedEntry() throws HarvesterException {

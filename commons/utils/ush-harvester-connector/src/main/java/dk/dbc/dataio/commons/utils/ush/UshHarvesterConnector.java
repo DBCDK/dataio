@@ -77,7 +77,7 @@ public class UshHarvesterConnector {
         LOGGER.trace("UshHarvesterConnector: listUshHarvesterJobs();");
         final StopWatch stopWatch = new StopWatch();
         try {
-            final Response response = HttpClient.doGet(httpClient, baseUrl);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, "records", "harvestables");
             try {
                 verifyResponseStatus(Response.Status.fromStatusCode(response.getStatus()), Response.Status.OK);
                 String stringEntity = readResponseEntity(response, String.class);

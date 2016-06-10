@@ -182,7 +182,7 @@ public class UshHarvesterConnectorTest {
      */
 
     private void setupUshHarvesterMockedHttpResponse(Response.Status statusCode, Object returnValue) {
-        when(HttpClient.doGet(CLIENT, USH_HARVESTER_URL))
+        when(HttpClient.doGet(CLIENT, USH_HARVESTER_URL, "records", "harvestables"))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
     }
 

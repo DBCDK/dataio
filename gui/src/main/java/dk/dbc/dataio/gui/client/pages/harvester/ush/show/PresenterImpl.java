@@ -19,18 +19,18 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.rr.show;
+package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
 
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
-import dk.dbc.dataio.gui.client.pages.harvester.rr.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
 
@@ -65,7 +65,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         getView().setPresenter(this);
-        getView().setHeader(commonInjector.getMenuTexts().menu_RrHarvesters());
+        getView().setHeader(commonInjector.getMenuTexts().menu_UshHarvesters());
         containerWidget.setWidget(getView().asWidget());
         fetchHarvesters();
     }
@@ -81,7 +81,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void editHarvesterConfig(String id) {
-        this.placeController.goTo(new EditPlace(id));
+//        this.placeController.goTo(new EditPlace(id));
+        Window.alert("Redigering af Ush Solr Høster: " + id);
     }
 
 
@@ -93,7 +94,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all harvesters, and sends them to the view
      */
     private void fetchHarvesters() {
-        commonInjector.getFlowStoreProxyAsync().getHarvesterRrConfigs(new GetHarvestersCallback());
+        commonInjector.getFlowStoreProxyAsync().getHarvesterUshConfigs(new GetHarvestersCallback());
     }
 
     private View getView() {
@@ -104,15 +105,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the findAllFlows method in the Flow Store
      */
-    protected class GetHarvestersCallback extends FilteredAsyncCallback<List<RRHarvesterConfig>> {
+    protected class GetHarvestersCallback extends FilteredAsyncCallback<List<UshSolrHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
         }
-
         @Override
-        public void onSuccess(List<RRHarvesterConfig> rrHarvesterConfigs) {
-            getView().setHarvesters(rrHarvesterConfigs);
+        public void onSuccess(List<UshSolrHarvesterConfig> ushHarvesterConfigs) {
+            getView().setHarvesters(ushHarvesterConfigs);
         }
     }
 

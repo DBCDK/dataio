@@ -19,44 +19,35 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.rr.modify;
+package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
 
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.gui.client.places.DataioPlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
-import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
-public class EditPlace extends DataioPlace {
-    private Long harvesterId;
+public class Place extends DataioPlace {
 
-    public EditPlace(String url) {
-        this.harvesterId = Long.valueOf(url);
-    }
-
-    public EditPlace(RRHarvesterConfig config) {
-        this.harvesterId = config.getId();
-    }
-
-    public Long getHarvesterId() {
-        return harvesterId;
+    public Place() {
     }
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterEditImpl(this, commonInjector.getMenuTexts().menu_HarvesterEdit());
+        return new PresenterImpl(clientFactory.getPlaceController());
     }
 
-    @Prefix("EditRrHarvester")
-    public static class Tokenizer implements PlaceTokenizer<EditPlace> {
+    @Prefix("ShowUshHarvesters")
+    public static class Tokenizer implements PlaceTokenizer<Place> {
         @Override
-        public String getToken(EditPlace place) {
-            return String.valueOf(place.getHarvesterId());
+        public String getToken(Place place) {
+            return "";
         }
         @Override
-        public EditPlace getPlace(String token) {
-            return new EditPlace(token);
+        public Place getPlace(String token) {
+            return new Place();
         }
     }
+
 }
+

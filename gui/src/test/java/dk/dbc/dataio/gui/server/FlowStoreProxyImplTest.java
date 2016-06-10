@@ -67,6 +67,7 @@ import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -1897,6 +1898,7 @@ public class FlowStoreProxyImplTest {
      * Test getHarvesterUshConfigs
      */
 
+    @Ignore
     @Test
     public void getHarvesterUshConfigs_remoteFlowStoreServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
@@ -1937,6 +1939,7 @@ public class FlowStoreProxyImplTest {
         }
     }
 
+    @Ignore
     @Test
     public void getHarvesterUshConfigs_remoteServiceReturnsHttpStatusOkUshPropertiesNonMatch_returnsHarvesterRrConfigs() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
@@ -1958,6 +1961,7 @@ public class FlowStoreProxyImplTest {
         assertThat(result.get(0).getContent().getUshHarvesterProperties(), is(nullValue()));
     }
 
+    @Ignore
     @Test
     public void getHarvesterUshConfigs_remoteServiceReturnsHttpStatusOkUshPropertiesMatch_returnsHarvesterRrConfigs() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);

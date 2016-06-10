@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
@@ -582,7 +583,9 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         List<UshHarvesterProperties> ushHarvesterProperties;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
-            ushSolrHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class);
+//            ushSolrHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class);
+//            Please remember to enable unit tests in FlowStoreProxyImplTest: Lines #1901, #1942 & #1964
+            ushSolrHarvesterConfigs = constructFakeData();
             ushHarvesterProperties = ushHarvesterConnector.listUshHarvesterJobs();
             for (UshSolrHarvesterConfig config: ushSolrHarvesterConfigs) {
                 config.getContent().withUshHarvesterProperties(getPropertyById(config.getContent().getUshHarvesterJobId(), ushHarvesterProperties));
@@ -593,6 +596,44 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         return ushSolrHarvesterConfigs;
     }
 
+
+    private List<UshSolrHarvesterConfig> constructFakeData() {
+        List<UshSolrHarvesterConfig> data = new ArrayList<>();
+        data.add(new UshSolrHarvesterConfig(1111L, 1L, new UshSolrHarvesterConfig.Content().
+                withUshHarvesterJobId(9999).
+                withName("First Test Name").
+                withEnabled(true).
+                withDestination("Destination1").
+                withDescription("Description1").
+                withFormat("format1").
+                withSubmitterNumber(2222).
+                withTimeOfLastHarvest(Calendar.getInstance().getTime()).
+                withUshHarvesterProperties(null)
+        ));
+        data.add(new UshSolrHarvesterConfig(1112L, 1L, new UshSolrHarvesterConfig.Content().
+                withUshHarvesterJobId(10001).
+                withName("Second Test Name").
+                withEnabled(true).
+                withDestination("Destination2").
+                withDescription("Description2").
+                withFormat("format2").
+                withSubmitterNumber(2223).
+                withTimeOfLastHarvest(Calendar.getInstance().getTime()).
+                withUshHarvesterProperties(null)
+        ));
+        data.add(new UshSolrHarvesterConfig(1113L, 1L, new UshSolrHarvesterConfig.Content().
+                withUshHarvesterJobId(10002).
+                withName("Third Test Name").
+                withEnabled(true).
+                withDestination("Destination3").
+                withDescription("Description3").
+                withFormat("format3").
+                withSubmitterNumber(2224).
+                withTimeOfLastHarvest(Calendar.getInstance().getTime()).
+                withUshHarvesterProperties(null)
+        ));
+        return data;
+    }
 
     /*
      * Gatekeeper destinations

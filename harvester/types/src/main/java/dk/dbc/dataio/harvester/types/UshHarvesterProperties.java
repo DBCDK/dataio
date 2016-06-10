@@ -24,10 +24,12 @@ package dk.dbc.dataio.harvester.types;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-public class UshHarvesterProperties {
+public class UshHarvesterProperties implements Serializable {
+    private static final long serialVersionUID = 6417312131744403415L;
 
     @JacksonXmlProperty(isAttribute = true)
     private String uri;
@@ -44,6 +46,8 @@ public class UshHarvesterProperties {
     private String name;
     private Date nextHarvestSchedule;
     private String storageUrl;
+
+    public UshHarvesterProperties() {}
 
     public String getUri() {
         return uri;

@@ -18,36 +18,17 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
 
-package dk.dbc.dataio.gui.client.pages.harvester.rr.show;
+import com.google.gwt.inject.client.AbstractGinModule;
+import com.google.inject.Singleton;
 
-import com.google.gwt.activity.shared.Activity;
-import com.google.gwt.place.shared.PlaceTokenizer;
-import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
-import dk.dbc.dataio.gui.util.ClientFactory;
 
-public class Place extends DataioPlace {
-
-    public Place() {
-    }
+public class ViewModule extends AbstractGinModule {
 
     @Override
-    public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(clientFactory.getPlaceController());
+    protected void configure() {
+        bind(View.class).in(Singleton.class);
+        bind(Texts.class).in(Singleton.class);
     }
-
-    @Prefix("ShowRrHarvesters")
-    public static class Tokenizer implements PlaceTokenizer<Place> {
-        @Override
-        public String getToken(Place place) {
-            return "";
-        }
-        @Override
-        public Place getPlace(String token) {
-            return new Place();
-        }
-    }
-
 }
-

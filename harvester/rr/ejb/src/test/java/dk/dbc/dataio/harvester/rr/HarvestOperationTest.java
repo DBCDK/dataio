@@ -447,45 +447,33 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getAgencyId_nonDBC_returnsRecordIdArgAgencyId() throws HarvesterInvalidRecordException {
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.getAgencyId(RECORD_ID, null, false), is(RECORD_ID.getAgencyId()));
-    }
-
-    @Test
-    public void getAgencyId_nonDBC_deleteRecordReturnsRecordIdArgAgencyId() throws HarvesterInvalidRecordException {
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.getAgencyId(RECORD_ID, null, true), is(RECORD_ID.getAgencyId()));
-    }
-
-    @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, null, false), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, null), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, " ", false), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, " "), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_no870TrailFound_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,123456", false), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, "191919,123456"), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_invalid870TrailFound_throws() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870abc", false), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, "191919,870abc"), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_returnsAgencyIdFromEnrichmentTrail() throws HarvesterInvalidRecordException {
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.getAgencyId(DBC_COMMON_RECORD_ID, "191919,870970", false), is(870970));
+        assertThat(harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, "191919,870970"), is(870970));
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {

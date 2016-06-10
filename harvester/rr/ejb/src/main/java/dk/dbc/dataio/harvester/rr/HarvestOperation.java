@@ -66,6 +66,8 @@ public class HarvestOperation {
     public static final int DBC_LIBRARY_NUMBER = 191919;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
+
+    /* Currently only 87097x agency id's should be added to excludes or else execute functionality will break */
     private static final Set<Integer> AGENCY_ID_EXCLUDES = Stream.of(
             870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
@@ -85,6 +87,31 @@ public class HarvestOperation {
         rawRepoConnector = getRawRepoConnector(config);
     }
 
+    /**
+     * Creates harvester records.
+     * ----------------------------------------------------------------------------------------
+     * SPECIAL CASE HANDLING FOR DBC RECORDS:
+     * ----------------------------------------------------------------------------------------
+     * If the agency id is either excluded or is equal to 191919:
+     *      If the record IS marked as DELETED in RR:
+     *          skip any record with agency id 191919.
+     *      If the record is NOT marked as DELETED in RR:
+     *          skip any record with excluded agency id
+     *          look up agency id through enrichment trail for records with agency id 191919.
+     *
+     * If failure occurs while looking up record in RR or while extracting agency id from
+     * enrichment trail, the record is marked as failed and added to the queue.
+     * ----------------------------------------------------------------------------------------
+     * ADD RECORD:
+     * ----------------------------------------------------------------------------------------
+     * Add harvester record.
+     * If an error occurs while looking up record collection in RR or if the record is invalid,
+     * the record is marked as failed and added to the queue.
+     * ----------------------------------------------------------------------------------------
+     *
+     * @return number of items harvested
+     * @throws HarvesterException on failure to create harvester record
+     */
     public int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
         int itemsHarvested = 0;
@@ -94,40 +121,39 @@ public class HarvestOperation {
             LOGGER.info("{} ready for harvesting", nextQueuedItem);
             final RecordId queuedRecordId = nextQueuedItem.getJob();
             int agencyId = queuedRecordId.getAgencyId();
-            boolean addRecord = true;      // Default value
-            boolean isDeletedInRR = false; // Default value
+            boolean addRecord = true; // Default value
 
-            if(AGENCY_ID_EXCLUDES.contains(agencyId) || DBC_LIBRARY_NUMBER == agencyId) {
-                try {
+            try {
+                // Special case handling for DBC records
+                if (AGENCY_ID_EXCLUDES.contains(agencyId) || DBC_LIBRARY_NUMBER == agencyId) {
                     final Record record = fetchRecordFromRR(queuedRecordId);
-                    addRecord = checkIfHarvesterRecordShouldBeAdded(agencyId, record);
-                    isDeletedInRR = record.isDeleted();
-                } catch (HarvesterSourceException e) {
-                    LOGGER.error("Marking queue item {} as failure without knowing if record has been deleted in rr", nextQueuedItem, e);
-                    markAsFailure(nextQueuedItem, e.getMessage());
-                    addRecord = false;
 
-                    if (++itemsHarvested == config.getBatchSize()) {
-                        break;
+                    if(record.isDeleted()) {
+                        if(agencyId == DBC_LIBRARY_NUMBER) {
+                            addRecord = false;
+                        }
+                    } else {
+                        if(AGENCY_ID_EXCLUDES.contains(agencyId)) {
+                            addRecord = false;
+                        }
+                        else if(agencyId == DBC_LIBRARY_NUMBER) {
+                            agencyId = getAgencyIdFromEnrichmentTrail(queuedRecordId, record.getEnrichmentTrail());
+                        }
                     }
                 }
-            }
-
-            if(addRecord) {
-                try {
+                if (addRecord) {
                     final DataContainer harvesterRecord = getHarvesterRecordForQueuedRecord(queuedRecordId);
-                    agencyId = getAgencyId(queuedRecordId, harvesterRecord.getEnrichmentTrail(), isDeletedInRR);
                     getHarvesterJobBuilder(agencyId).addHarvesterRecord(harvesterRecord);
-                } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                    LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
-                    markAsFailure(nextQueuedItem, e.getMessage());
                 }
 
-                if (++itemsHarvested == config.getBatchSize()) {
-                    break;
-                }
+            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+                LOGGER.error("Marking queue item {} as failure", nextQueuedItem, e);
+                markAsFailure(nextQueuedItem, e.getMessage());
             }
-            nextQueuedItem = getNextQueuedItem();
+            if(addRecord && ++itemsHarvested == config.getBatchSize()) {
+                break;
+            }
+                nextQueuedItem = getNextQueuedItem();
         }
         flushHarvesterJobBuilders();
 
@@ -142,10 +168,7 @@ public class HarvestOperation {
                 "placeholder", "placeholder", "placeholder", "placeholder", config.getType());
     }
 
-    int getAgencyId(RecordId recordId, String enrichmentTrail, boolean isDeletedInRR) throws HarvesterInvalidRecordException {
-        if (recordId.getAgencyId() != DBC_LIBRARY_NUMBER || isDeletedInRR) {
-            return recordId.getAgencyId();
-        }
+    int getAgencyIdFromEnrichmentTrail(RecordId recordId, String enrichmentTrail) throws HarvesterInvalidRecordException {
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
             throw new HarvesterInvalidRecordException(String.format(
                     "Record with ID %s has no enrichment trail '%s'", recordId, enrichmentTrail));
@@ -172,15 +195,6 @@ public class HarvestOperation {
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId.toString(), e);
         }
-    }
-
-    private boolean checkIfHarvesterRecordShouldBeAdded(int agencyId, Record record) {
-        if (!record.isDeleted() && AGENCY_ID_EXCLUDES.contains(agencyId)) {
-            return false;
-        } else if(record.isDeleted() && DBC_LIBRARY_NUMBER == agencyId) {
-            return false;
-        }
-        return true;
     }
 
     private HarvesterJobBuilder getHarvesterJobBuilder(int agencyId) throws HarvesterException {

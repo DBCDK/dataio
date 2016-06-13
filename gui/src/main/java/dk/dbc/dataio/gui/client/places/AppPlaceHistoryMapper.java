@@ -52,6 +52,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.rr.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.harvester.ush.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.iotraffic.Place.Tokenizer.class
 })
 

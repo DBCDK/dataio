@@ -25,10 +25,10 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.harvester.ush.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
@@ -81,8 +81,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void editHarvesterConfig(String id) {
-//        this.placeController.goTo(new EditPlace(id));
-        Window.alert("Redigering af Ush Solr Høster: " + id);
+        this.placeController.goTo(new EditPlace(id));
     }
 
 

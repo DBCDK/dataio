@@ -75,6 +75,10 @@ h3 {
     font-style: italic;
 }
 
+input:disabled {
+    background-color: lightgray;
+}
+
 #main-panel {
     background-color: backgroundLightGrey;
 }

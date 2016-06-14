@@ -40,6 +40,10 @@
     <servlet-name>JndiProxy</servlet-name>
     <servlet-class>dk.dbc.dataio.gui.server.JndiProxyServlet</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>StatusServlet</servlet-name>
+    <servlet-class>dk.dbc.dataio.gui.server.StatusServlet</servlet-class>
+  </servlet>
 
   <servlet-mapping>
     <servlet-name>FlowStoreProxyServlet</servlet-name>
@@ -60,6 +64,10 @@
   <servlet-mapping>
     <servlet-name>JndiProxy</servlet-name>
     <url-pattern>/dk.dbc.dataio.gui.Main/JndiProxy</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>StatusServlet</servlet-name>
+    <url-pattern>/status</url-pattern>
   </servlet-mapping>
 
   <session-config>

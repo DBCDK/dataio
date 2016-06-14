@@ -22,7 +22,6 @@
 package dk.dbc.dataio.filestore.service.rest;
 
 import dk.dbc.dataio.filestore.service.ejb.FilesBean;
-import dk.dbc.dataio.filestore.service.ejb.StatusBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

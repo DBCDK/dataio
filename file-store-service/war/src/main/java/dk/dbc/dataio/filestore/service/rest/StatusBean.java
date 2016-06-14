@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.filestore.service.ejb;
+package dk.dbc.dataio.filestore.service.rest;
 
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 

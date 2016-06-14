@@ -51,6 +51,7 @@ public class FlowStoreApplication extends Application {
         classes.add(FlowBindersBean.class);
         classes.add(FlowComponentsBean.class);
         classes.add(SinksBean.class);
+        classes.add(StatusBean.class);
         classes.add(SubmittersBean.class);
         classes.add(HarvestersBean.class);
         classes.add(GatekeeperDestinationsBean.class);

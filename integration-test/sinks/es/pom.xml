@@ -82,9 +82,9 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-job-processor-ejb</artifactId>
+      <artifactId>dataio-job-processor</artifactId>
       <version>${project.version}</version>
-      <type>ejb</type>
+      <type>war</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

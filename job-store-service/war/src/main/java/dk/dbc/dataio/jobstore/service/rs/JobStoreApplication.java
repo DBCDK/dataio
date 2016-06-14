@@ -45,6 +45,7 @@ public class JobStoreApplication extends Application {
         final Set<Class<?>> classes = new HashSet<>();
         classes.add(JobsBean.class);
         classes.add(NotificationsBean.class);
+        classes.add(StatusBean.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());
         }

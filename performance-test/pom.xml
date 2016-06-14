@@ -97,9 +97,9 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-sink-dummy-ear</artifactId>
+      <artifactId>dataio-sink-dummy</artifactId>
       <version>${project.version}</version>
-      <type>ear</type>
+      <type>war</type>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -237,8 +237,8 @@
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>
-                  <artifactId>dataio-sink-dummy-ear</artifactId>
-                  <type>ear</type>
+                  <artifactId>dataio-sink-dummy</artifactId>
+                  <type>war</type>
                 </deployable>
                 <deployable>
                   <groupId>dk.dbc</groupId>

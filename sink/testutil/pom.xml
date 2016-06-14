@@ -31,7 +31,7 @@
   </parent>
 
   <artifactId>dataio-sink-testutil</artifactId>
-  <name>dataio-sink-dummy-testutil</name>
+  <name>dataio-sink-testutil</name>
   <packaging>jar</packaging>
 
   <dependencies>

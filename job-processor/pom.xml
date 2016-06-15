@@ -49,6 +49,16 @@
       <groupId>dk.dbc</groupId>
       <artifactId>dbc-jslib</artifactId>
       <version>1.0-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>oracle</groupId>
+          <artifactId>ojdbc7</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>

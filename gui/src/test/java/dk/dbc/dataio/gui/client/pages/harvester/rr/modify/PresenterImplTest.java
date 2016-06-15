@@ -984,7 +984,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyInitializeViewFields(statusCount);
         verify(mockedContainerWidget).setWidget(mockedWidget);
         assertThat(initializeModelCalled, is(true));
-        assertThat(saveModelCalled, is(saveModelCalled));
+        assertThat(this.saveModelCalled, is(saveModelCalled));
     }
 
     private void verifyStart() {

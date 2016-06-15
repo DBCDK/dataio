@@ -45,8 +45,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -232,7 +230,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void GetHarvesterRrConfigsAsyncCallback_onSuccessFound_errorMessage() {
+    public void GetHarvesterRrConfigsAsyncCallback_onSuccessFound_ok() {
         // Test preparation
         PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback callback = presenter.new GetHarvesterRrConfigsAsyncCallback();
 
@@ -309,15 +307,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
      * Private methods
      */
 
-    private void verifyStart(int statusCount, Boolean saveModelCalled) {
-        verifyInitializeViewMocks();
-        verifyInitializeViewFields(statusCount);
-        verify(mockedContainerWidget).setWidget(mockedWidget);
-        assertThat(saveModelCalled, is(saveModelCalled));
-    }
-
     private void verifyStart() {
-        verifyStart(1, false);
+        verifyInitializeViewMocks();
+        verifyInitializeViewFields();
+        verify(mockedContainerWidget).setWidget(mockedWidget);
     }
 
     private void verifyInitializeViewMocks() {
@@ -325,7 +318,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedView).setPresenter(presenter);
     }
 
-    private void verifyInitializeViewFields(int statusCount) {
+    private void verifyInitializeViewFields() {
         verify(mockedName).setText("");
         verify(mockedName).setEnabled(false);
         verify(mockedResource).setText("");
@@ -354,7 +347,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedType).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
-        verify(mockedStatus, times(statusCount)).setText("");
+        verify(mockedStatus).setText("");
         verify(mockedUpdateButton).setVisible(false);
         verify(mockedPopupFormatOverrideEntry).hide();
     }

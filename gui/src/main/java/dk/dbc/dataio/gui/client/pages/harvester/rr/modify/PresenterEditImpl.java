@@ -26,6 +26,7 @@ import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.List;
@@ -77,7 +78,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void saveModel() {
-        commonInjector.getFlowStoreProxyAsync().updateHarvesterRrConfig(config, new UpdateHarvesterRrConfigAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(config, new UpdateHarvesterConfigAsyncCallback());
     }
 
 
@@ -104,14 +105,14 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         }
     }
 
-    class UpdateHarvesterRrConfigAsyncCallback implements AsyncCallback<RRHarvesterConfig> {
+    class UpdateHarvesterConfigAsyncCallback implements AsyncCallback<HarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
-            String msg = "RRHarvesterConfig.id: " + id;
+            String msg = "HarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
-        public void onSuccess(RRHarvesterConfig rrHarvesterConfig) {
+        public void onSuccess(HarvesterConfig harvesterConfig) {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
             History.back();
         }

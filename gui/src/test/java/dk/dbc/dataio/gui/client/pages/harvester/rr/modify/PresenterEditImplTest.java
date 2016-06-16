@@ -196,7 +196,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(presenter.commonInjector, times(2)).getFlowStoreProxyAsync();
         verify(mockedFlowStore).getHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
-        verify(mockedFlowStore).updateHarvesterRrConfig(eq(presenter.config), any(PresenterEditImpl.UpdateHarvesterRrConfigAsyncCallback.class));
+        verify(mockedFlowStore).updateHarvesterConfig(eq(presenter.config), any(PresenterEditImpl.UpdateHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
 
@@ -275,7 +275,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void UpdateHarvesterRrConfigAsyncCallback_onFailure_errorMessage() {
         // Test preparation
-        PresenterEditImpl.UpdateHarvesterRrConfigAsyncCallback callback = presenter.new UpdateHarvesterRrConfigAsyncCallback();
+        PresenterEditImpl.UpdateHarvesterConfigAsyncCallback callback = presenter.new UpdateHarvesterConfigAsyncCallback();
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.PRECONDITION_FAILED);
 
         // Test
@@ -291,7 +291,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void UpdateHarvesterRrConfigAsyncCallback_onSuccessNotFound_errorMessage() {
         // Test preparation
-        PresenterEditImpl.UpdateHarvesterRrConfigAsyncCallback callback = presenter.new UpdateHarvesterRrConfigAsyncCallback();
+        PresenterEditImpl.UpdateHarvesterConfigAsyncCallback callback = presenter.new UpdateHarvesterConfigAsyncCallback();
 
         // Test
         callback.onSuccess(rrHarvesterConfig1);

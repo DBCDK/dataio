@@ -42,6 +42,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -170,7 +171,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
 
         // Test validation
         verifyStart();
-        verify(presenter.commonInjector).getFlowStoreProxyAsync();
+        verify(presenter.commonInjector, times(2)).getFlowStoreProxyAsync();
         commonPostVerification();
     }
 

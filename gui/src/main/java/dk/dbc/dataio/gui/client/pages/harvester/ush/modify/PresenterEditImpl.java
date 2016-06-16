@@ -22,10 +22,11 @@
 package dk.dbc.dataio.gui.client.pages.harvester.ush.modify;
 
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
@@ -75,8 +76,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     void saveModel() {
-//        commonInjector.getFlowStoreProxyAsync().updateHarvesterUshConfig(config, new UpdateHarvesterUshConfigAsyncCallback());
-        Window.alert("Gem høster: " + config.getContent().getName());
+        commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(config, new UpdateHarvesterUshConfigAsyncCallback());
     }
 
 
@@ -103,18 +103,18 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         }
     }
 
-//    class UpdateHarvesterUshConfigAsyncCallback implements AsyncCallback<UshSolrHarvesterConfig> {
-//        @Override
-//        public void onFailure(Throwable e) {
-//            String msg = "UshSolrHarvesterConfig.id: " + id;
-//            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
-//        }
-//        @Override
-//        public void onSuccess(UshSolrHarvesterConfig ushSolrHarvesterConfig) {
-//            getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
-//            History.back();
-//        }
-//    }
+    class UpdateHarvesterUshConfigAsyncCallback implements AsyncCallback<HarvesterConfig> {
+        @Override
+        public void onFailure(Throwable e) {
+            String msg = "UshSolrHarvesterConfig.id: " + id;
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+        }
+        @Override
+        public void onSuccess(HarvesterConfig harvesterConfig) {
+            getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
+            History.back();
+        }
+    }
 
 
     /*

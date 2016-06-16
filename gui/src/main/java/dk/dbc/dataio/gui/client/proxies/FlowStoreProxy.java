@@ -31,6 +31,7 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
@@ -77,8 +78,8 @@ public interface FlowStoreProxy extends RemoteService {
     SinkModel getSink(Long id) throws ProxyException;
 
     // Harvesters
-    RRHarvesterConfig createHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException;
-    RRHarvesterConfig updateHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException;
+    HarvesterConfig createHarvesterConfig(HarvesterConfig config) throws ProxyException;
+    HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException;
     List<RRHarvesterConfig> getHarvesterRrConfigs() throws ProxyException;
     List<UshSolrHarvesterConfig> getHarvesterUshConfigs() throws ProxyException;
 

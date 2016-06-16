@@ -51,6 +51,7 @@ import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SinkModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
@@ -538,8 +539,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      */
 
     @Override
-    public RRHarvesterConfig createHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException {
-        final String callerMethodName = "createHarvesterRrConfig";
+    public HarvesterConfig createHarvesterConfig(HarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createHarvesterConfig";
         log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
         try {
             return flowStoreServiceConnector.createHarvesterConfig(config, config.getClass());
@@ -550,8 +551,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public RRHarvesterConfig updateHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException {
-        final String callerMethodName = "createHarvesterRrConfig";
+    public HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createHarvesterConfig";
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", config.getId(), config.getVersion());
         try {
             return flowStoreServiceConnector.updateHarvesterConfig(config);

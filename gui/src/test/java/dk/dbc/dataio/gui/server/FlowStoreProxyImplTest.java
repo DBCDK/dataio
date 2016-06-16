@@ -1700,7 +1700,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
         try {
-            final RRHarvesterConfig createdConfig = flowStoreProxy.createHarvesterRrConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(createdConfig);
             assertThat(createdConfig.getContent().getId(), is("created-content-id"));
         } catch (ProxyException e) {
@@ -1717,7 +1717,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
         try {
-            final RRHarvesterConfig createdConfig = flowStoreProxy.createHarvesterRrConfig(new OLDRRHarvesterConfig(346L, 457L, new OLDRRHarvesterConfig.Content().withId("content-id")));
+            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createHarvesterConfig(new OLDRRHarvesterConfig(346L, 457L, new OLDRRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(createdConfig);
             assertThat(createdConfig.getContent().getId(), is("old-created-content-id"));
         } catch (ProxyException e) {
@@ -1749,7 +1749,7 @@ public class FlowStoreProxyImplTest {
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
 
         try {
-            flowStoreProxy.createHarvesterRrConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            flowStoreProxy.createHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
             fail("No " + expectedErrorName + " error was thrown by createHarvesterRrConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1762,7 +1762,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenThrow(exception);
 
         try {
-            flowStoreProxy.createHarvesterRrConfig(config);
+            flowStoreProxy.createHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createHarvesterRrConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1770,7 +1770,7 @@ public class FlowStoreProxyImplTest {
     }
 
     /*
-     * Test updateHarvesterRrConfig
+     * Test updateHarvesterConfig
      */
 
     @Test
@@ -1781,7 +1781,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class))).thenReturn(config);
 
         try {
-            final RRHarvesterConfig updatedConfig = flowStoreProxy.updateHarvesterRrConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
+            final RRHarvesterConfig updatedConfig = (RRHarvesterConfig) flowStoreProxy.updateHarvesterConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(updatedConfig);
             assertThat(updatedConfig, is(config));
         } catch (ProxyException e) {
@@ -1822,7 +1822,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class)))
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
         try {
-            flowStoreProxy.updateHarvesterRrConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
+            flowStoreProxy.updateHarvesterConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
             fail("No " + expectedErrorName + " error was thrown by updateHarvesterRrConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1834,7 +1834,7 @@ public class FlowStoreProxyImplTest {
         final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
         when(flowStoreServiceConnector.updateHarvesterConfig(any(RRHarvesterConfig.class))).thenThrow(exception);
         try {
-            flowStoreProxy.updateHarvesterRrConfig(config);
+            flowStoreProxy.updateHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by updateHarvesterRrConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));

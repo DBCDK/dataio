@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
+import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
@@ -207,13 +208,13 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
      */
 
     @Override
-    public RRHarvesterConfig createHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException {
-        return flowStoreProxy.createHarvesterRrConfig(config);
+    public HarvesterConfig createHarvesterConfig(HarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createHarvesterConfig(config);
     }
 
     @Override
-    public RRHarvesterConfig updateHarvesterRrConfig(RRHarvesterConfig config) throws ProxyException {
-        return flowStoreProxy.updateHarvesterRrConfig(config);
+    public HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.updateHarvesterConfig(config);
     }
 
     @Override

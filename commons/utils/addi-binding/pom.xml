@@ -25,35 +25,34 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons</artifactId>
+    <artifactId>dataio-commons-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils</artifactId>
-  <name>dataio-commons-utils</name>
-  <packaging>pom</packaging>
+  <artifactId>dataio-commons-utils-addi-binding</artifactId>
+  <name>dataio-commons-utils-addi-binding</name>
 
-  <modules>
-    <module>addi-binding</module>
-    <module>binary-file-store</module>
-    <module>cache</module>
-    <module>file-store-service-connector</module>
-    <module>httpclient</module>
-    <module>invariant</module>
-    <module>javascript</module>
-    <module>lang</module>
-    <module>log-store-service-connector</module>
-    <module>flow-store-service-connector</module>
-    <module>job-store-service-connector</module>
-    <module>ush-harvester-connector</module>
-    <module>io</module>
-    <module>json-binding</module>
-    <module>logback</module>
-    <module>svn</module>
-    <module>service</module>
-    <module>stopwatch</module>
-    <module>test</module>
-  </modules>
-
+  <dependencies>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-addi</artifactId>
+      <version>1.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dbc-commons-testutil-assert</artifactId>
+      <version>1.3-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
 </project>

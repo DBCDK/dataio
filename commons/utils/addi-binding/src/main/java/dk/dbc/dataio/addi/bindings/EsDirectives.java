@@ -26,6 +26,7 @@ public class EsDirectives {
     public String format;
     public String language;
     public String contentFrom;
+    public String trackingId;
 
     public EsDirectives withSubmitter(String submitter) {
         this.submitter = submitter;
@@ -44,6 +45,11 @@ public class EsDirectives {
 
     public EsDirectives withContentFrom(String contentFrom) {
         this.contentFrom = contentFrom;
+        return this;
+    }
+
+    public EsDirectives withTrackingId(String trackingId) {
+        this.trackingId = trackingId;
         return this;
     }
 }

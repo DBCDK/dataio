@@ -75,6 +75,9 @@ public class EsReferenceData {
             if (esDirectives.contentFrom != null) {
                 content.append(" contentFrom=\"").append(esDirectives.contentFrom).append("\"");
             }
+            if (esDirectives.trackingId != null) {
+                content.append(" DBCTrackingId=\"").append(esDirectives.trackingId).append("\"");
+            }
             content.append("/>");
         }
         return String.format(ES_REFERENCE_DATA_XML_TEMPLATE, content.toString());

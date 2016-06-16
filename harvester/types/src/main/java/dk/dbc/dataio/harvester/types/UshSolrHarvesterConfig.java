@@ -35,7 +35,7 @@ import java.util.Date;
 public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConfig.Content> implements Serializable {
     private static final long serialVersionUID = 5981757061573803169L;
 
-    public UshSolrHarvesterConfig() {}
+    private UshSolrHarvesterConfig() {}
 
     @JsonCreator
     public UshSolrHarvesterConfig(

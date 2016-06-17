@@ -79,7 +79,7 @@ public class HarvestersTableTest {
             withStorageUrl("UshPropStorageUrl");
     private UshSolrHarvesterConfig testHarvesterConfigEntry1 = new UshSolrHarvesterConfig(1,2, new UshSolrHarvesterConfig.Content().
             withName("UshName").
-            withDescription("UshDescritpion").
+            withDescription("UshDescription").
             withFormat("UshFormat").
             withDestination("UshDestination").
             withSubmitterNumber(432).
@@ -94,6 +94,9 @@ public class HarvestersTableTest {
         when(mockedTexts.value_Enabled()).thenReturn("UshEnabled");
         when(mockedTexts.value_Disabled()).thenReturn("UshDisabled");
         when(mockedTexts.button_Edit()).thenReturn("UshEditButton");
+        when(mockedTexts.pre_First()).thenReturn("PreFirst");
+        when(mockedTexts.pre_Second()).thenReturn("PreSecond");
+        when(mockedTexts.help_ColumnHeader()).thenReturn("Help ColumnHeader");
     }
 
 
@@ -143,16 +146,20 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(9));
+        assertThat(harvestersTable.getColumnCount(), is(13));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("22"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshName"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshDescription"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshPropStatus"));
-        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("1970-01-01 01:00:01"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1).toString(), is("safe: \"PreFirst1970-01-01 01:00:01<br>PreSecond1970-01-01 01:00:05\""));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("555"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("1970-01-01 01:00:04"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshPropMessage"));
-        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshEnabled"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("432"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshFormat"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshDestination"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1).toString(), is("safe: \"UshEnabled<br>UshEnabled\""));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshEditButton"));
     }
 
@@ -160,36 +167,39 @@ public class HarvestersTableTest {
     public void textWithToolTip_nullInput_nullValuedOutput() {
         // Test preparation
         harvestersTable = new HarvestersTable();
+        harvestersTable.texts = mockedTexts;
 
         // Subject Under Test
-        SafeHtml result = harvestersTable.textWithToolTip(null, null);
+        SafeHtml result = harvestersTable.textWithToolTip(null);
 
         // Verify Test
-        assertThat(result.toString(), is("safe: \"<span title='null'>null</span>\""));
+        assertThat(result.toString(), is("safe: \"<span title='Help ColumnHeader'>null</span>\""));
     }
 
     @Test
     public void textWithToolTip_emptyInput_emptyOutput() {
         // Test preparation
         harvestersTable = new HarvestersTable();
+        harvestersTable.texts = mockedTexts;
 
         // Subject Under Test
-        SafeHtml result = harvestersTable.textWithToolTip("", "");
+        SafeHtml result = harvestersTable.textWithToolTip("");
 
         // Verify Test
-        assertThat(result.toString(), is("safe: \"<span title=''></span>\""));
+        assertThat(result.toString(), is("safe: \"<span title='Help ColumnHeader'></span>\""));
     }
 
     @Test
     public void textWithToolTip_nonEmptyInput_nonEmptyOutput() {
         // Test preparation
         harvestersTable = new HarvestersTable();
+        harvestersTable.texts = mockedTexts;
 
         // Subject Under Test
-        SafeHtml result = harvestersTable.textWithToolTip("monkey", "elephant");
+        SafeHtml result = harvestersTable.textWithToolTip("monkey");
 
         // Verify Test
-        assertThat(result.toString(), is("safe: \"<span title='elephant'>monkey</span>\""));
+        assertThat(result.toString(), is("safe: \"<span title='Help ColumnHeader'>monkey</span>\""));
     }
 
     @Test

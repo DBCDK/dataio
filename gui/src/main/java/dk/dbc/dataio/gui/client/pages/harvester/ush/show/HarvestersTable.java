@@ -23,10 +23,12 @@ package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
 
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.cell.client.SafeHtmlCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.safehtml.shared.SafeHtmlUtils;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
@@ -44,6 +46,8 @@ import java.util.List;
  * Harvesters Table for the Harvester View
  */
 public class HarvestersTable extends CellTable {
+    private final String LINE_BREAK = "<br>";
+
     ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
     Texts texts = viewGinjector.getTexts();
     Presenter presenter;
@@ -57,15 +61,19 @@ public class HarvestersTable extends CellTable {
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
 
-        addColumn(constructJobIdColumn(), textWithToolTip(texts.columnHeader_JobId(), texts.help_JobId()));
-        addColumn(constructNameColumn(), textWithToolTip(texts.columnHeader_Name(), texts.help_Name()));
-        addColumn(constructStatusColumn(), textWithToolTip(texts.columnHeader_Status(), texts.help_Status()));
-        addColumn(constructLatestHarvestColumn(), textWithToolTip(texts.columnHeader_LatestHarvest(), texts.help_LatestHarvest()));
-        addColumn(constructCountColumn(), textWithToolTip(texts.columnHeader_Count(), texts.help_Count()));
-        addColumn(constructNextHarverstColumn(), textWithToolTip(texts.columnHeader_NextHarverst(), texts.help_NextHarverst()));
-        addColumn(constructStatusMessageColumn(), textWithToolTip(texts.columnHeader_StatusMessage(), texts.help_StatusMessage()));
-        addColumn(constructEnabledColumn(), textWithToolTip(texts.columnHeader_Enabled(), texts.help_Enabled()));
-        addColumn(constructActionColumn(), textWithToolTip(texts.columnHeader_Action(), texts.help_Action()));
+        addColumn(constructJobIdColumn(), textWithToolTip(texts.columnHeader_JobId()));
+        addColumn(constructNameColumn(), textWithToolTip(texts.columnHeader_Name()));
+        addColumn(constructDescriptionColumn(), textWithToolTip(texts.columnHeader_Description()));
+        addColumn(constructStatusColumn(), textWithToolTip(texts.columnHeader_Status()));
+        addColumn(constructLatestHarvestColumn(), textWithToolTip(texts.columnHeader_LatestHarvest()));
+        addColumn(constructCountColumn(), textWithToolTip(texts.columnHeader_Count()));
+        addColumn(constructNextHarverstColumn(), textWithToolTip(texts.columnHeader_NextHarverst()));
+        addColumn(constructStatusMessageColumn(), textWithToolTip(texts.columnHeader_StatusMessage()));
+        addColumn(constructSubmitterColumn(), textWithToolTip(texts.columnHeader_Submitter()));
+        addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format()));
+        addColumn(constructDestinationColumn(), textWithToolTip(texts.columnHeader_Destination()));
+        addColumn(constructEnabledColumn(), textWithToolTip(texts.columnHeader_Enabled()));
+        addColumn(constructActionColumn(), textWithToolTip(texts.columnHeader_Action()));
 
         setSelectionModel(selectionModel);
         addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
@@ -125,6 +133,21 @@ public class HarvestersTable extends CellTable {
     }
 
     /**
+     * This method constructs the Description column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Description column
+     */
+    private Column constructDescriptionColumn() {
+        return new TextColumn<UshSolrHarvesterConfig>() {
+            @Override
+            public String getValue(UshSolrHarvesterConfig harvester) {
+                return harvester.getContent().getDescription();
+            }
+        };
+    }
+
+    /**
      * This method constructs the Status column
      * Should have been private, but is package-private to enable unit test
      *
@@ -146,10 +169,13 @@ public class HarvestersTable extends CellTable {
      * @return the constructed LatestHarvest column
      */
     private Column constructLatestHarvestColumn() {
-        return new TextColumn<UshSolrHarvesterConfig>() {
+        return new Column<UshSolrHarvesterConfig, SafeHtml>(new SafeHtmlCell()) {
             @Override
-            public String getValue(UshSolrHarvesterConfig harvester) {
-                return Format.formatLongDate(harvester.getContent().getUshHarvesterProperties().getLastHarvestFinished());
+            public SafeHtml getValue(UshSolrHarvesterConfig harvester) {
+                return twoLiner(true,
+                        Format.formatLongDate(harvester.getContent().getUshHarvesterProperties().getLastHarvestFinished()),
+                        Format.formatLongDate(harvester.getContent().getTimeOfLastHarvest())
+                );
             }
         };
     }
@@ -200,16 +226,64 @@ public class HarvestersTable extends CellTable {
     }
 
     /**
+     * This method constructs the Submitter column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Submitter column
+     */
+    private Column constructSubmitterColumn() {
+        return new TextColumn<UshSolrHarvesterConfig>() {
+            @Override
+            public String getValue(UshSolrHarvesterConfig harvester) {
+                return String.valueOf(harvester.getContent().getSubmitterNumber());
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Format column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Format column
+     */
+    private Column constructFormatColumn() {
+        return new TextColumn<UshSolrHarvesterConfig>() {
+            @Override
+            public String getValue(UshSolrHarvesterConfig harvester) {
+                return harvester.getContent().getFormat();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Destination column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Destination column
+     */
+    private Column constructDestinationColumn() {
+        return new TextColumn<UshSolrHarvesterConfig>() {
+            @Override
+            public String getValue(UshSolrHarvesterConfig harvester) {
+                return harvester.getContent().getDestination();
+            }
+        };
+    }
+
+    /**
      * This method constructs the Enabled column
      * Should have been private, but is package-private to enable unit test
      *
      * @return the constructed Enabled column
      */
     private Column constructEnabledColumn() {
-        return new TextColumn<UshSolrHarvesterConfig>() {
+        return new Column<UshSolrHarvesterConfig, SafeHtml>(new SafeHtmlCell()) {
             @Override
-            public String getValue(UshSolrHarvesterConfig harvester) {
-                return harvester.getContent().getUshHarvesterProperties().getEnabled() ? texts.value_Enabled() : texts.value_Disabled();
+            public SafeHtml getValue(UshSolrHarvesterConfig harvester) {
+                return twoLiner(false,
+                        harvester.getContent().getUshHarvesterProperties().getEnabled() ? texts.value_Enabled() : texts.value_Disabled(),
+                        harvester.getContent().isEnabled() ? texts.value_Enabled() : texts.value_Disabled()
+                );
             }
         };
     }
@@ -238,11 +312,10 @@ public class HarvestersTable extends CellTable {
     /**
      * This metods constructs a SafeHtml snippet, that constitutes a text with a popup mouseover help text
      * @param headerText The headertext to be displayed
-     * @param helpText The popup help text
      * @return The SafeHtml snippet
      */
-    SafeHtml textWithToolTip(String headerText, String helpText) {
-        return SafeHtmlUtils.fromSafeConstant("<span title='" + helpText + "'>" + headerText + "</span>");
+    SafeHtml textWithToolTip(String headerText) {
+        return SafeHtmlUtils.fromSafeConstant("<span title='" + texts.help_ColumnHeader() + "'>" + headerText + "</span>");
     }
 
     /**
@@ -254,10 +327,35 @@ public class HarvestersTable extends CellTable {
         return doubleClickEvent -> editUshHarvester(selectionModel.getSelectedObject());
     }
 
+    /**
+     * Sends a request to the presenter for editing the harvester, passed as a parameter in the call
+     * @param harvester The harvester to edit
+     */
     private void editUshHarvester(UshSolrHarvesterConfig harvester) {
         if (harvester != null) {
             presenter.editHarvesterConfig(String.valueOf(harvester.getId()));
         }
+    }
+
+    /**
+     * Constructs a two line representation of the two strings, passed as parameters in the call
+     * @param pre A boolean determining, whether a pre-text should be included for the two lines
+     * @param first First string
+     * @param second Second string
+     * @return The constructed two liner representation of the two strings
+     */
+    private SafeHtml twoLiner(Boolean pre, String first, String second) {
+        SafeHtmlBuilder sb = new SafeHtmlBuilder();
+        if (pre) {
+            sb.appendHtmlConstant(texts.pre_First());
+        }
+        sb.appendEscaped(first);
+        sb.appendHtmlConstant(LINE_BREAK);
+        if (pre) {
+            sb.appendHtmlConstant(texts.pre_Second());
+        }
+        sb.appendEscaped(second);
+        return sb.toSafeHtml();
     }
 
 }

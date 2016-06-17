@@ -60,26 +60,9 @@ public class EsReferenceData {
      * @return XML string without any dataIO specific directives
      */
     public String toXmlString() {
-        final StringBuilder content = new StringBuilder();
         if (esDirectives != null) {
-            content.append("<es:info");
-            if (esDirectives.submitter != null) {
-                content.append(" submitter=\"").append(esDirectives.submitter).append("\"");
-            }
-            if (esDirectives.format != null) {
-                content.append(" format=\"").append(esDirectives.format).append("\"");
-            }
-            if (esDirectives.language != null) {
-                content.append(" language=\"").append(esDirectives.language).append("\"");
-            }
-            if (esDirectives.contentFrom != null) {
-                content.append(" contentFrom=\"").append(esDirectives.contentFrom).append("\"");
-            }
-            if (esDirectives.trackingId != null) {
-                content.append(" DBCTrackingId=\"").append(esDirectives.trackingId).append("\"");
-            }
-            content.append("/>");
+            return String.format(ES_REFERENCE_DATA_XML_TEMPLATE, esDirectives.toXmlString("es"));
         }
-        return String.format(ES_REFERENCE_DATA_XML_TEMPLATE, content.toString());
+        return String.format(ES_REFERENCE_DATA_XML_TEMPLATE, "");
     }
 }

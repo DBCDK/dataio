@@ -30,14 +30,13 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.testutil.MockedMessageDrivenContext;
 import dk.dbc.dataio.sink.types.SinkException;
-import dk.dbc.log.DBCTrackedLogContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -203,6 +202,7 @@ public class EsMessageProcessorBeanTest {
                 .setId(6)
                 .setData(validAddiProcessingFalse)
                 .setStatus(ChunkItem.Status.SUCCESS)
+                .setTrackingId(trackingId)
                 .build());
         chunkItems.add(new ChunkItemBuilder()               //sink processing removed from meta data, content data converted to iso2709 and processed successfully
                 .setId(7)
@@ -271,7 +271,8 @@ public class EsMessageProcessorBeanTest {
         assertThat("chunkItem 6 status", item6.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 6 diagnostics", item6.getDiagnostics(), is(nullValue()));
         assertThat("chunkItem 6 data", asString(item6.getData()), is("1"));
-        assertThat("chunkItem 6 trackingId", item6.getTrackingId(), is(nullValue()));
+        //assertThat("chunkItem 6 trackingId", item6.getTrackingId(), is(nullValue()));
+        assertThat("chunkItem 6 trackingId", item6.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item7 = iterator.next();
         assertThat("chunkItem 7 ID", item7.getId(), is(7L));
@@ -292,13 +293,11 @@ public class EsMessageProcessorBeanTest {
         String addiRecord3Metadata = StringUtil.asString(addiRecord3.getMetaData());
         assertThat("processing tag removed", addiRecord3Metadata.contains(PROCESSING_TAG), is(false));
         // assert that the tracking id attribute has been added.
-        assertThat("tracking id added", addiRecord3Metadata.contains(DBCTrackedLogContext.DBC_TRACKING_ID_KEY), is(true));
+        assertThat("tracking id added", addiRecord3Metadata.contains(trackingId), is(true));
 
         AddiRecord addiRecord4 = esWorkloadFromChunkResult.getAddiRecords().get(3);
         String addiRecord4Metadata = StringUtil.asString(addiRecord4.getMetaData());
         assertThat("processing tag removed", addiRecord4Metadata.contains(PROCESSING_TAG), is(false));
-        // assert that the tracking id attribute has been added.
-        assertThat("tracking id added", addiRecord4Metadata.contains(DBCTrackedLogContext.DBC_TRACKING_ID_KEY), is(true));
     }
 
     private TestableMessageConsumerBean getInitializedBean() {

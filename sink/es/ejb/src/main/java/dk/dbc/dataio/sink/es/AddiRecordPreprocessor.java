@@ -22,59 +22,44 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
-import dk.dbc.dataio.sink.util.DocumentTransformer;
-import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.dataio.addi.AddiContext;
+import dk.dbc.dataio.addi.AddiException;
+import dk.dbc.dataio.addi.bindings.EsReferenceData;
+import dk.dbc.dataio.commons.utils.lang.XmlUtil;
 import dk.dbc.marc.DanMarc2Charset;
 import dk.dbc.marc.Iso2709Packer;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.transform.TransformerException;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-public class AddiRecordPreprocessor extends DocumentTransformer {
-
-    static final String ENCODE_AS_2709_ATTRIBUTE  = "encodeAs2709";
+public class AddiRecordPreprocessor {
+    private final AddiContext addiContext = new AddiContext();
+    private final XmlUtil xmlUtil = new XmlUtil();
 
     /**
      * This method pre-processes an addi record according to the following rules:
      *
-     * If processing tag is found with attribute encodeAs2709 value FALSE, the tag is removed from the meta data.
-     *
-     * If processing tag is found with attribute encodeAs2709 value TRUE, the tag is removed from the meta data
-     * and the content data is converted to iso2709.
-     *
-     * DBCTrackingId is added as attribute with given value on info element
+     * If metadata contains sink-processing element with attribute encodeAs2709 set to true, the content data is converted to iso2709.
+     * DBCTrackingId is added as attribute to metadata info element if a non-null tracking ID value is given.
+     * All dataIO specific elements are stripped from the metadata of the returned addi record.
      *
      * @param addiRecord Addi record to pre-process
-     * @param trackingId of chunk item
-     * @return the pre-processed Addi record
+     * @param trackingId tracking ID
+     * @return pre-processed Addi record
      * @throws IllegalArgumentException on invalid metadata or content
      */
     public AddiRecord execute(AddiRecord addiRecord, String trackingId) throws IllegalArgumentException {
         try {
-            final Document metaDataDocument = byteArrayToDocument(addiRecord.getMetaData());
-            final NodeList processingNodeList = metaDataDocument.getElementsByTagNameNS(DATAIO_PROCESSING_NAMESPACE_URI, DATAIO_PROCESSING_ELEMENT);
             byte[] content = addiRecord.getContentData();
-
-            if (processingNodeList.getLength() > 0) { // The processing tag has been located
-                final Node processingNode = processingNodeList.item(0);
-
-                if (Boolean.valueOf(((Element) processingNode).getAttribute(ENCODE_AS_2709_ATTRIBUTE))) {
-                    final Document contentDataDocument = byteArrayToDocument(addiRecord.getContentData());
-                    content = Iso2709Packer.create2709FromMarcXChangeRecord(contentDataDocument, new DanMarc2Charset());
-                }
-                removeFromDom(processingNodeList);
+            final EsReferenceData esReferenceData = addiContext.getEsReferenceData(addiRecord);
+            if (esReferenceData.sinkDirectives != null && esReferenceData.sinkDirectives.encodeAs2709) {
+                content = Iso2709Packer.create2709FromMarcXChangeRecord(
+                        xmlUtil.toDocument(addiRecord.getContentData()), new DanMarc2Charset());
             }
-            final NodeList infoNodeList = metaDataDocument.getElementsByTagNameNS(ES_NAMESPACE_URI, ES_INFO_ELEMENT);
-            final Element infoElement = (Element) infoNodeList.item(0);
-            infoElement.setAttribute(DBCTrackedLogContext.DBC_TRACKING_ID_KEY, trackingId);
-
-            return new AddiRecord(documentToByteArray(metaDataDocument), content);
-        } catch (IOException | SAXException | TransformerException e) {
+            esReferenceData.esDirectives.withTrackingId(trackingId);
+            return new AddiRecord(esReferenceData.toXmlString().getBytes(StandardCharsets.UTF_8), content);
+        } catch (AddiException | IOException | SAXException e) {
             throw new IllegalArgumentException(e);
         }
     }

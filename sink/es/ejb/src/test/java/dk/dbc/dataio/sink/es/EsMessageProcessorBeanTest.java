@@ -271,7 +271,6 @@ public class EsMessageProcessorBeanTest {
         assertThat("chunkItem 6 status", item6.getStatus(), is(ChunkItem.Status.SUCCESS));
         assertThat("chunkItem 6 diagnostics", item6.getDiagnostics(), is(nullValue()));
         assertThat("chunkItem 6 data", asString(item6.getData()), is("1"));
-        //assertThat("chunkItem 6 trackingId", item6.getTrackingId(), is(nullValue()));
         assertThat("chunkItem 6 trackingId", item6.getTrackingId(), is(trackingId));
         assertThat(iterator.hasNext(), is(true));
         ChunkItem item7 = iterator.next();

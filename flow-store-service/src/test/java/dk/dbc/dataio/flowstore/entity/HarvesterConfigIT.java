@@ -1,12 +1,10 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
-import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
-import static org.hamcrest.core.Is.is;
 import org.junit.After;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -16,6 +14,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.util.List;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
+
 /**
  * Created by ja7 on 17-05-16.
  * Integration tests depends on localhost postgresql for development mode.
@@ -24,9 +25,6 @@ import java.util.List;
 public class HarvesterConfigIT {
     private EntityManager em;
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigIT.class);
-
-    private final JSONBContext jsonbContext = new JSONBContext();
-
 
     @Before
     public void setUp() throws Exception {
@@ -104,6 +102,23 @@ public class HarvesterConfigIT {
 
         assertThat( result.get(0), is( new HarvesterConfig().withId(14L).withVersion(1L).withType("dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig")
                 .withContent("{\"content\": {\"includeRelations\": true, \"resource\": \"jdbc/dataio/rawrepo-cisterne\", \"format\": \"katalog\", \"batchSize\": 10000, \"destination\": \"broend-aqua\", \"consumerId\": \"broend30-sync\", \"isEnabled\": true, \"openAgencyTarget\": {\"url\": \"http://openagency.addi.dk/2.25/\"}, \"formatOverrides\": {\"870970\": \"basis\"}, \"type\": \"TRANSIENT\", \"id\": \"broend30-sync-cisterne\"}, \"version\": 1, \"type\": \"dk.dbc.dataio.harvester.types.RRHarvesterConfig\", \"id\": 13}")
+        ));
+    }
+
+    @Test
+    public void getByUshHarvesterJobIdQuery() throws Exception {
+        JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");
+
+        Query q = em.createNamedQuery(HarvesterConfig.QUERY_FIND_BY_USH_HARVESTER_JOB_ID);
+        q.setParameter(1, UshSolrHarvesterConfig.class.getName());
+        q.setParameter(2, "{\"ushHarvesterJobId\": 10002}");
+
+        List<HarvesterConfig> result= q.getResultList();
+
+        assertThat(result.size(), is(1));
+
+        assertThat(result.get(0), is(new HarvesterConfig().withId(15L).withVersion(1L).withType(UshSolrHarvesterConfig.class.getName())
+                .withContent("{\"content\": {\"name\": \"testName\", \"description\": \"testDescription\", \"format\": \"katalog\", \"destination\": \"broend-aqua\", \"submitterNumber\": \"1234566\", \"ushHarvesterJobId\": 10002, \"ushHarvesterProperties\": null, \"timeOfLastHarvest\": \"2016-05-23T13:13:32.515+02:00\", \"enabled\": false")
         ));
     }
 }

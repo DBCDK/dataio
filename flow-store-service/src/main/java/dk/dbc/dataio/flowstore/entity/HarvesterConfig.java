@@ -46,15 +46,20 @@ import java.util.Objects;
     @NamedQuery(name = HarvesterConfig.QUERY_FIND_ALL_OF_TYPE,
         query = "SELECT harvesterConfig FROM HarvesterConfig harvesterConfig where harvesterConfig.type = :type"),
 })
-@NamedNativeQueries(
-    @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE,
-        query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>'{\"enabled\": true}'::jsonb",
-        resultSetMapping = "HarvesterConfig.implicit"
-    )
-)
+@NamedNativeQueries({
+        @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_ALL_ENABLED_OF_TYPE,
+                query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>'{\"enabled\": true}'::jsonb",
+                resultSetMapping = "HarvesterConfig.implicit"
+        ),
+        @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_BY_USH_HARVESTER_JOB_ID,
+                query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>?::jsonb",
+                resultSetMapping = "HarvesterConfig.implicit"
+        )
+})
 public class HarvesterConfig extends Versioned {
     public static final String QUERY_FIND_ALL_OF_TYPE = "Harvester.findAllOfType";
     public static final String QUERY_FIND_ALL_ENABLED_OF_TYPE = "Harvester.findAllEnabledOfType";
+    public static final String QUERY_FIND_BY_USH_HARVESTER_JOB_ID = "Harvester.findByUshHarvesterJobId";
 
     @Column(name = "type", nullable = false)
     private String type;

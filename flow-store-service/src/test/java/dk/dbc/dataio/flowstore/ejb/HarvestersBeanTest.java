@@ -24,6 +24,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import dk.dbc.dataio.flowstore.FlowStoreException;
 import dk.dbc.dataio.flowstore.entity.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -176,7 +177,7 @@ public class HarvestersBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void findAllHarvesterConfigsByType_noConfigsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException {
+    public void findAllHarvesterConfigsByType_noConfigsFound_returnsResponseWithHttpStatusOkAndEmptyList() throws JSONBException, FlowStoreException {
         when(entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)).thenReturn(query);
         when(query.setParameter("type", rrHarvesterConfigType)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -191,7 +192,7 @@ public class HarvestersBeanTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void findAllHarvesterConfigsByType_configsFound_returnsResponseWithHttpStatusOkAndConfigEntities() throws JSONBException {
+    public void findAllHarvesterConfigsByType_configsFound_returnsResponseWithHttpStatusOkAndConfigEntities() throws JSONBException, FlowStoreException {
         final HarvesterConfig firstConfig = new HarvesterConfig().withId(1L);
         final HarvesterConfig secondConfig = new HarvesterConfig().withId(2L);
 

@@ -22,7 +22,6 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -139,7 +138,6 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return this;
         }
 
-        @JsonIgnore
         public UshHarvesterProperties getUshHarvesterProperties() {
             return ushHarvesterProperties;
         }

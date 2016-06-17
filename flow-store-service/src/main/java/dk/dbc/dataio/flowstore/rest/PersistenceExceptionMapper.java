@@ -37,6 +37,8 @@ import javax.ws.rs.ext.Provider;
 @Produces(MediaType.APPLICATION_JSON)
 public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceException> {
 
+    public static final String UNIQUE_CONSTRAINT_VIOLATION = "duplicate key value violates unique constraint";
+
     private static final Logger log = LoggerFactory.getLogger(PersistenceExceptionMapper.class);
 
     @Override
@@ -52,8 +54,7 @@ public class PersistenceExceptionMapper implements ExceptionMapper<PersistenceEx
 
             final String message = e.getMessage().toLowerCase();
 
-            if (message.contains("duplicate key value violates unique constraint")      // postgresql
-                    || message.contains("unique index or primary key violation")) {     // h2
+            if (message.contains(UNIQUE_CONSTRAINT_VIOLATION)) {
 
                 return ServiceUtil.buildResponse(Response.Status.NOT_ACCEPTABLE, ServiceUtil.asJsonError(e));
             }

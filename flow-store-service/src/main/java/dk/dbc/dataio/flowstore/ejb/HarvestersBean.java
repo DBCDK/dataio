@@ -208,6 +208,7 @@ public class HarvestersBean {
      * @param type type of config as class name with full path
      * @return a HTTP 200 OK response with result list as JSON.
      *         a HTTP 500 INTERNAL SERVER ERROR response in case of general error.
+     * @throws FlowStoreException on failure to retrieve UshSolrHarvesterConfigs
      */
     @GET
     @Path(FlowStoreServiceConstants.HARVESTER_CONFIGS_TYPE)

@@ -124,7 +124,7 @@ public class DataContainer implements HarvesterXmlRecord {
      */
     public void setCreationDate(Date creationDate) throws NullPointerException {
         InvariantUtil.checkNotNullOrThrow(creationDate, "creationDate");
-        this.creationDate = new SimpleDateFormat("YYYYMMdd").format(creationDate);
+        this.creationDate = new SimpleDateFormat("yyyyMMdd").format(creationDate);
     }
 
     public void setEnrichmentTrail(String enrichmentTrail) {

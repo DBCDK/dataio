@@ -135,7 +135,7 @@ public class DataContainerTest {
         Map<String, String> expectedSupplementaryData = new HashMap<>();
         final Date expectedDate = new Date();
 
-        expectedSupplementaryData.put("creationDate", new SimpleDateFormat("YYYYMMdd").format(expectedDate));
+        expectedSupplementaryData.put("creationDate", new SimpleDateFormat("yyyyMMdd").format(expectedDate));
         expectedSupplementaryData.put("enrichmentTrail", enrichmentTrail);
         expectedSupplementaryData.put("trackingId", trackingId);
 
@@ -168,7 +168,7 @@ public class DataContainerTest {
 
         Map<String, String> expectedSupplementaryData = new HashMap<>();
         final Date expectedDate = new Date();
-        expectedSupplementaryData.put("creationDate", new SimpleDateFormat("YYYYMMdd").format(expectedDate));
+        expectedSupplementaryData.put("creationDate", new SimpleDateFormat("yyyyMMdd").format(expectedDate));
         expectedSupplementaryData.put("enrichmentTrail", enrichmentTrail);
         expectedSupplementaryData.put("trackingId", trackingId);
 

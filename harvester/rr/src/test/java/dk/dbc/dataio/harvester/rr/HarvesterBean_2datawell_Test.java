@@ -287,7 +287,7 @@ public class HarvesterBean_2datawell_Test {
     }
 
     private String getRecordCreationDate(Record record) {
-        return new SimpleDateFormat("YYYYMMdd").format(record.getCreated());
+        return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
     private class ClassUnderTest extends HarvestOperation {

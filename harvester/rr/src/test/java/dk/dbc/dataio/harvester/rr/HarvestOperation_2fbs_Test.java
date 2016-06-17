@@ -252,7 +252,7 @@ public class HarvestOperation_2fbs_Test {
     }
 
     private String getRecordCreationDate(Record record) {
-        return new SimpleDateFormat("YYYYMMdd").format(record.getCreated());
+        return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
     private HarvestOperation newHarvestOperation() {

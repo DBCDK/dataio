@@ -135,9 +135,9 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
                     .withData(addiRecord.getContentData())
                     .withEncoding(encoding)
                     .withType(getChunkItemType());
-                recordInfo = getRecordInfo(addiMetaData);
+                recordInfo = getRecordInfo(addiMetaData, addiRecord.getContentData());
             }
-        } catch (JSONBException e) {
+        } catch (JSONBException | RuntimeException e) {
             LOGGER.error("Exception caught while processing AddiRecord", e);
             chunkItem = ChunkItem.failedChunkItem()
                 .withData(addiRecord.getBytes())
@@ -153,7 +153,7 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
                 new String(addiRecord.getMetaData(), encoding), AddiMetaData.class);
     }
 
-    private Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData) {
+    protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
         return Optional.of(new RecordInfo(addiMetaData.bibliographicRecordId().orElse(null)));
     }
 }

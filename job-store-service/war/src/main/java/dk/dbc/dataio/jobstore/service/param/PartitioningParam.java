@@ -36,6 +36,7 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709DataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.Iso2709ReorderingDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.JobItemReorderer;
+import dk.dbc.dataio.jobstore.service.partitioner.MarcXchangeAddiDataPartitioner;
 import dk.dbc.dataio.jobstore.service.partitioner.RawRepoMarcXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserDefaultKeyGenerator;
@@ -155,6 +156,8 @@ public class PartitioningParam {
                     return getDanMarc2LineFormatPartitioner();
                 case RR_MARC_XML:
                     return RawRepoMarcXmlDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
+                case ADDI_MARC_XML:
+                    return MarcXchangeAddiDataPartitioner.newInstance(dataFileInputStream, jobEntity.getSpecification().getCharset());
                 default:
                     diagnostics.add(ObjectFactory.buildFatalDiagnostic("unknown data partitioner: " + recordSplitterType));
             }

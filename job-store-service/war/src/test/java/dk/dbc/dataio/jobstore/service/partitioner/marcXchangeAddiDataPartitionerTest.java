@@ -21,10 +21,12 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -36,18 +38,18 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class RawRepoMarcXchangeAddiDataPartitionerTest {
+public class marcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestBase {
     private final static InputStream EMPTY_STREAM = StringUtil.asInputStream("");
     private final static String UTF_8_ENCODING = "UTF-8";
 
     @Test(expected = NullPointerException.class)
     public void newInstance_inputStreamArgIsNull_throws() {
-        RawRepoMarcXchangeAddiDataPartitioner.newInstance(null, UTF_8_ENCODING);
+        MarcXchangeAddiDataPartitioner.newInstance(null, UTF_8_ENCODING);
     }
 
     @Test
     public void newInstance_inputStreamArgIsInvalid_throws() {
-        assertThat(() -> RawRepoMarcXchangeAddiDataPartitioner.newInstance(
+        assertThat(() -> MarcXchangeAddiDataPartitioner.newInstance(
                 new InputStream() {
                     @Override public boolean markSupported() {return false;}
                     @Override public int read() throws IOException {return 0;}},
@@ -57,19 +59,21 @@ public class RawRepoMarcXchangeAddiDataPartitionerTest {
 
     @Test(expected = NullPointerException.class)
     public void newInstance_encodingArgIsNull_throws() {
-        RawRepoMarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, null);
+        MarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void newInstance_encodingArgIsEmpty_throws() {
-        RawRepoMarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, " ");
+        MarcXchangeAddiDataPartitioner.newInstance(EMPTY_STREAM, " ");
     }
 
     @Test
     public void partitioner_readingValidRecord_returnsResultWithChunkItemWithMarcXchangeType() {
-        final InputStream addiStream = StringUtil.asInputStream("2\n{}\n7\ncontent\n");
-        final RawRepoMarcXchangeAddiDataPartitioner partitioner =
-                RawRepoMarcXchangeAddiDataPartitioner.newInstance(addiStream, UTF_8_ENCODING);
+        byte[] contentData = AbstractPartitionerTestBase.getResourceAsByteArray("/test-record-1-danmarc2.marcXChange");
+        AddiRecord addiRecord = new AddiRecord("{}".getBytes(), contentData);
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(addiRecord.getBytes());
+        final MarcXchangeAddiDataPartitioner partitioner =
+                MarcXchangeAddiDataPartitioner.newInstance(byteArrayInputStream, UTF_8_ENCODING);
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
         final DataPartitionerResult dataPartitionerResult = iterator.next();
         final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();

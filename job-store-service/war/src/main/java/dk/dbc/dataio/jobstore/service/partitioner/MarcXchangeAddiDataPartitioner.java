@@ -21,31 +21,41 @@
 
 package dk.dbc.dataio.jobstore.service.partitioner;
 
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.jobstore.service.util.MarcRecordInfoBuilder;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
+import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.UnrecoverableDataException;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 /**
  * A partitioner of Addi records read from an {@link InputStream} containing MarcXchange documents from RawRepo
  * <pre>
  * {@code
  *
- * final DataPartitioner dataPartitioner = RawRepoMarcXchangeAddiDataPartitioner.newInstance(inputStream, encoding);
+ * final DataPartitioner dataPartitioner = MarcXchangeAddiDataPartitioner.newInstance(inputStream, encoding);
  * for(DataPartitionerResult recordWrapper : dataPartitioner) {
  *     // do something with record.
  * }
  * }
  * </pre>
- * As can be seen in the above example, the RawRepoMarcXchangeAddiDataPartitioner.newInstance() method returns
+ * As can be seen in the above example, the MarcXchangeAddiDataPartitioner.newInstance() method returns
  * a {@link DataPartitioner}, enabling you to step through the results one at a time.
  * Also note, that if a fatal error occurs while reading the input stream, a {@link UnrecoverableDataException} or
  * sub type thereof is thrown. {@link UnrecoverableDataException} is a {@link RuntimeException} since the
  * {@link Iterable} interface all DataPartitioner implementations must implement does not allow checked exceptions
  * to be thrown.
  */
-public class RawRepoMarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
+public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
     /**
      * Creates new instance of DataPartitioner for Addi records containing marcXchange content
      * @param inputStream stream from which addi records can be read
@@ -53,14 +63,14 @@ public class RawRepoMarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty valued encoding argument or if given stream is incompatible with AddiReader
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
-     * @return new instance of RawRepoMarcXchangeAddiDataPartitioner
+     * @return new instance of MarcXchangeAddiDataPartitioner
      */
-    public static RawRepoMarcXchangeAddiDataPartitioner newInstance(InputStream inputStream, String encodingName)
+    public static MarcXchangeAddiDataPartitioner newInstance(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
-        return new RawRepoMarcXchangeAddiDataPartitioner(inputStream, encodingName);
+        return new MarcXchangeAddiDataPartitioner(inputStream, encodingName);
     }
 
-    private RawRepoMarcXchangeAddiDataPartitioner(InputStream inputStream, String encodingName)
+    private MarcXchangeAddiDataPartitioner(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         super(inputStream, encodingName);
     }
@@ -69,4 +79,22 @@ public class RawRepoMarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
     protected ChunkItem.Type getChunkItemType() {
         return ChunkItem.Type.MARCXCHANGE;
     }
+
+    @Override
+    protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
+        final MarcXchangeV1Reader marcReader;
+        try {
+            marcReader = new MarcXchangeV1Reader(getInputStream(content), StandardCharsets.UTF_8);
+            final MarcRecordInfoBuilder marcRecordInfoBuilder = new MarcRecordInfoBuilder();
+            Optional<MarcRecordInfo> marcRecordInfo = marcRecordInfoBuilder.parse(marcReader.read());
+            return Optional.of(marcRecordInfo.get());
+        } catch (MarcReaderException e) {
+            throw new IllegalArgumentException("Marc record info could not be created. ", e);
+        }
+    }
+
+    private BufferedInputStream getInputStream(byte[] data) {
+        return new BufferedInputStream(new ByteArrayInputStream(data));
+    }
+
 }

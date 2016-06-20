@@ -51,7 +51,7 @@ import java.util.Objects;
                 query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>'{\"enabled\": true}'::jsonb",
                 resultSetMapping = "HarvesterConfig.implicit"
         ),
-        @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_BY_USH_HARVESTER_JOB_ID,
+        @NamedNativeQuery(name = HarvesterConfig.QUERY_FIND_TYPE_WITH_CONTENT,
                 query = "SELECT * FROM harvester_configs WHERE type = ? AND content @>?::jsonb",
                 resultSetMapping = "HarvesterConfig.implicit"
         )
@@ -59,7 +59,7 @@ import java.util.Objects;
 public class HarvesterConfig extends Versioned {
     public static final String QUERY_FIND_ALL_OF_TYPE = "Harvester.findAllOfType";
     public static final String QUERY_FIND_ALL_ENABLED_OF_TYPE = "Harvester.findAllEnabledOfType";
-    public static final String QUERY_FIND_BY_USH_HARVESTER_JOB_ID = "Harvester.findByUshHarvesterJobId";
+    public static final String QUERY_FIND_TYPE_WITH_CONTENT = "Harvester.findTypeWithContent";
 
     @Column(name = "type", nullable = false)
     private String type;

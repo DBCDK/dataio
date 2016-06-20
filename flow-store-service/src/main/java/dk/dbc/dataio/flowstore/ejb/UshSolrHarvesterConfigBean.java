@@ -216,7 +216,7 @@ public class UshSolrHarvesterConfigBean {
      * @throws FlowStoreException on failure to look up harvester config by ushHarvesterJobId
      */
     private HarvesterConfig findUshHarvesterConfigByUshHarvesterJobId (int ushHarvesterJobId) throws FlowStoreException {
-        final Query namedQuery = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_BY_USH_HARVESTER_JOB_ID);
+        final Query namedQuery = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_TYPE_WITH_CONTENT);
         namedQuery.setParameter(1, UshSolrHarvesterConfig.class);
         namedQuery.setParameter(2, ushHarvesterJobId);
         List<HarvesterConfig> result = namedQuery.getResultList();

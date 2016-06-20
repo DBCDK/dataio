@@ -109,7 +109,7 @@ public class HarvesterConfigIT {
     public void getByUshHarvesterJobIdQuery() throws Exception {
         JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");
 
-        Query q = em.createNamedQuery(HarvesterConfig.QUERY_FIND_BY_USH_HARVESTER_JOB_ID);
+        Query q = em.createNamedQuery(HarvesterConfig.QUERY_FIND_TYPE_WITH_CONTENT);
         q.setParameter(1, UshSolrHarvesterConfig.class.getName());
         q.setParameter(2, "{\"ushHarvesterJobId\": 10002}");
 

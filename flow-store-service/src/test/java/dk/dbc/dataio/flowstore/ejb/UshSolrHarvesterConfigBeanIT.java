@@ -186,7 +186,7 @@ public class UshSolrHarvesterConfigBeanIT {
         assertThat(toUshSolrHarvesterConfigContent(persistedHarvesterConfig.get(1).getContent()).getUshHarvesterProperties(), is(nullValue()));
     }
 
-    @Ignore
+    @Ignore("This must be tested through arquillian since we have multiple transactions in scope")
     @Test
     public void createIfAbsent_uniqueConstraintViolation_returnsExisting() throws IOException, URISyntaxException {
         JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");

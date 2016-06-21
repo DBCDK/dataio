@@ -64,10 +64,10 @@ public class UshSolrHarvesterConfigBean {
     JSONBContext jsonbContext = new JSONBContext();
 
     /**
-     * Compares ushHarvesterProperties from index data with UshSolrHarvesterConfigs created in flow store.
+     * Compares ushHarvesterProperties from the universal search system with UshSolrHarvesterConfigs created in flow store.
      *
      * If an ushHarvesterProperty does not have a matching UshSolrHarvester in flow store:
-     *      A new UshSolrHarvesterConfig is created with name as in index data and with ushHarvesterJobId referencing
+     *      A new UshSolrHarvesterConfig is created with name as in the universal search system and with ushHarvesterJobId referencing
      *      the UshHarvesterProperties.id.
      *      The newly created UshSolrHarvesterConfig is persisted without UshHarvesterProperties, but is enriched with
      *      matching UshHarvesterProperties before being added to the result list.
@@ -79,16 +79,17 @@ public class UshSolrHarvesterConfigBean {
      */
     public List<HarvesterConfig> findAllAndCreateIfAbsent() throws FlowStoreException {
         try {
-            // Retrieve ushHarvesterProperties from index data
+            // Retrieve ushHarvesterProperties from the universal search system
             final List<UshHarvesterProperties> ushHarvesterPropertiesList = ushHarvesterConnectorBean.getConnector().listUshHarvesterJobs();
 
             // Retrieve ushHarvesterConfigs from flow store
+            final Map<Integer, UshSolrHarvesterConfig> existingUshSolrHarvesterConfigs = getIndexedUshSolrHarvesterConfigs();
+
             final List<UshSolrHarvesterConfig> updatedUshSolrHarvesterConfigs = new ArrayList<>();
 
-            // Check if harvester configuration is present in flow store for each ushHarvesterProperties
+            // Check if UshSolrHarvester configuration is present in flow store for each ushHarvesterProperties
             for(UshHarvesterProperties ushHarvesterProperties : ushHarvesterPropertiesList) {
                 final UshSolrHarvesterConfig ushSolrHarvesterConfig;
-                final Map<Integer, UshSolrHarvesterConfig> existingUshSolrHarvesterConfigs = getIndexedUshSolrHarvesterConfigs();
 
                 if (existingUshSolrHarvesterConfigs.containsKey(ushHarvesterProperties.getId())) {
                     ushSolrHarvesterConfig = existingUshSolrHarvesterConfigs.get(ushHarvesterProperties.getId());

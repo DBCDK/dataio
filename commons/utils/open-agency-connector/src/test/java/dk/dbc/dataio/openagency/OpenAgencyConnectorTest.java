@@ -21,9 +21,28 @@
 
 package dk.dbc.dataio.openagency;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import dk.dbc.oss.ns.openagency.Information;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+
 public class OpenAgencyConnectorTest {
+    /* See OpenAgencyWireMockRecorder class for info on how to repeat wiremock recordings */
+
+    private static final String WIREMOCK_PORT = System.getProperty("wiremock.port", "8998");
+    private static final long AGENCY_ID = 100300;
+
+    @Rule
+    public WireMockRule wireMockRule = new WireMockRule(Integer.valueOf(WIREMOCK_PORT));
+
+    String openAgencyEndpoint = String.format("http://localhost:%s/", WIREMOCK_PORT);
+    OpenAgencyConnector openAgencyConnector = new OpenAgencyConnector(openAgencyEndpoint);
+
     @Test(expected = NullPointerException.class)
     public void constructor_endpointArgIsNull_throws() {
         new OpenAgencyConnector(null);
@@ -32,5 +51,31 @@ public class OpenAgencyConnectorTest {
     @Test(expected = IllegalArgumentException.class)
     public void constructor_endpointArgIsEmpty_throws() {
         new OpenAgencyConnector(" ");
+    }
+
+    @Test
+    public void getAgencyInformation_agencyIdExists_returnsInformation() throws OpenAgencyConnectorException {
+        final Information agencyInformation = getAgencyInformationForExistingAgency();
+        assertThat("Information", agencyInformation, is(notNullValue()));
+        assertThat("Information.getAgencyName()", agencyInformation.getAgencyName(), is("Integra Testbiblioteker"));
+    }
+
+    private Information getAgencyInformationForExistingAgency() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getAgencyInformation(AGENCY_ID).orElse(null);
+    }
+
+    @Test
+    public void getAgencyInformation_agencyIdDoesNotExist_returns() throws OpenAgencyConnectorException {
+        final Information agencyInformation = getAgencyInformationForNonExistingAgency();
+        assertThat("Information", agencyInformation, is(nullValue()));
+    }
+
+    private Information getAgencyInformationForNonExistingAgency() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getAgencyInformation(111111).orElse(null);
+    }
+
+    void recordServiceRequests() throws OpenAgencyConnectorException {
+        getAgencyInformationForExistingAgency();
+        getAgencyInformationForNonExistingAgency();
     }
 }

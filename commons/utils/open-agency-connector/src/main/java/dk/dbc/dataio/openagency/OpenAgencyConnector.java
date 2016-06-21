@@ -22,13 +22,18 @@
 package dk.dbc.dataio.openagency;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.oss.ns.openagency.ErrorType;
 import dk.dbc.oss.ns.openagency.Information;
+import dk.dbc.oss.ns.openagency.ServiceRequest;
+import dk.dbc.oss.ns.openagency.ServiceResponse;
+import dk.dbc.oss.ns.openagency.ServiceType;
 import dk.dbc.oss.ns.openagency_wsdl.OpenAgencyPortType;
 import dk.dbc.oss.ns.openagency_wsdl.OpenAgencyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
+import java.util.Optional;
 
 public class OpenAgencyConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenAgencyConnector.class);
@@ -59,8 +64,36 @@ public class OpenAgencyConnector {
         LOGGER.info("Using endpoint: {}", endpoint);
     }
 
-    public Information getAgencyInformation(long agencyId) {
-        return getProxy().service(null).getInformation();
+    /**
+     * Retrieves agency information for given agency ID
+     * @param agencyId agency ID
+     * @return agency information or empty if agency ID could not be found
+     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
+     */
+    public Optional<Information> getAgencyInformation(long agencyId) throws OpenAgencyConnectorException {
+        try {
+            final ServiceRequest serviceRequest = new ServiceRequest();
+            serviceRequest.setAgencyId(Long.toString(agencyId));
+            serviceRequest.setService(ServiceType.INFORMATION);
+            final ServiceResponse serviceResponse = getProxy().service(serviceRequest);
+
+            final Information information = serviceResponse.getInformation();
+            if (information != null) {
+                return Optional.of(information);
+            }
+
+            final ErrorType error = serviceResponse.getError();
+            if (error != null && error == ErrorType.AGENCY_NOT_FOUND) {
+                return Optional.empty();
+            }
+
+            throw new OpenAgencyConnectorException(
+                    "Information retrieval for agency ID " + agencyId + " returned error " + error);
+
+        } catch (RuntimeException e) {
+           throw new OpenAgencyConnectorException(
+                   "Exception caught during information retrieval for agency ID " + agencyId, e);
+        }
     }
 
     private OpenAgencyPortType getProxy() {

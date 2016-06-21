@@ -144,6 +144,18 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up Open Agency service endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_OPEN_AGENCY}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_OPEN_AGENCY}' system property.
+     * @return Open Agency service URL as String
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getOpenAgencyEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_OPEN_AGENCY);
+    }
+
+    /**
      * Builds service method response
      *
      * @param status HTTP status code of response

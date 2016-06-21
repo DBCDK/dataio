@@ -32,13 +32,11 @@ public class JndiConstants {
     public static final String URL_RESOURCE_LOGSTORE_RS = "url/dataio/logstore/rs";
     public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";
     public static final String URL_RESOURCE_GUI_FTP = "url/dataio/gui/ftp";
+    public static final String URL_RESOURCE_OPEN_AGENCY = "url/dataio/openagency";
     public static final String URL_RESOURCE_USH_SOLR = "url/dataio/ush/solr";
-
-    public static final String CONFIG_RESOURCE_HARVESTER_RR = "config/dataio/harvester/rr";
+    public static final String URL_RESOURCE_USH_HARVESTER = "url/dataio/ush/harvester";
 
     public static final String MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS = "mail/dataio/jobstore/notifications";
-
-    public static final String URL_RESOURCE_USH_HARVESTER = "url/dataio/ush/harvester";
 
     private JndiConstants() { }
 }

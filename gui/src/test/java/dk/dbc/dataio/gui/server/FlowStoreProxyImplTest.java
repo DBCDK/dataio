@@ -70,6 +70,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -88,6 +89,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -1803,6 +1805,35 @@ public class FlowStoreProxyImplTest {
         try {
             final RRHarvesterConfig updatedConfig = (RRHarvesterConfig) flowStoreProxy.updateHarvesterConfig(new RRHarvesterConfig(1, 2, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(updatedConfig);
+            assertThat(updatedConfig, is(config));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: updateHarvesterConfig()");
+        }
+    }
+
+    @Test
+    public void updateHarvesterConfig_remoteServiceReturnsHttpStatusOkWithUshConfigAndValidUshProperties_returnsUshHarvesterConfigEntityUpdatesNullProperties() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final UshSolrHarvesterConfig config = new UshSolrHarvesterConfig(123L, 234L, new UshSolrHarvesterConfig.Content().
+                withName("updated-content-name").
+                withUshHarvesterProperties(new UshHarvesterProperties().withId(567))
+        );
+        when(flowStoreServiceConnector.updateHarvesterConfig(any(UshSolrHarvesterConfig.class))).thenReturn(config);
+
+        try {
+            final UshSolrHarvesterConfig updatedConfig = (UshSolrHarvesterConfig) flowStoreProxy.updateHarvesterConfig(
+                    new UshSolrHarvesterConfig(124L, 235L, new UshSolrHarvesterConfig.Content().
+                            withName("content-name").
+                            withUshHarvesterProperties(new UshHarvesterProperties().withId(568))
+                    )
+            );
+            ArgumentCaptor<UshSolrHarvesterConfig> argument = ArgumentCaptor.forClass(UshSolrHarvesterConfig.class);
+            verify(flowStoreServiceConnector).updateHarvesterConfig(argument.capture());
+            assertThat(argument.getValue().getContent().getName(), is("content-name"));
+            assertThat(argument.getValue().getContent().getUshHarvesterProperties(), is(nullValue()));
+            assertNotNull(updatedConfig);
+            assertThat(updatedConfig.getContent().getName(), is("updated-content-name"));
             assertThat(updatedConfig, is(config));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: updateHarvesterConfig()");

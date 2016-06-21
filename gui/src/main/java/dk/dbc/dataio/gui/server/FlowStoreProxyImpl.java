@@ -552,9 +552,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     @Override
     public HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException {
-        final String callerMethodName = "createHarvesterConfig";
+        final String callerMethodName = "updateHarvesterConfig";
         log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", config.getId(), config.getVersion());
         try {
+            if (config instanceof UshSolrHarvesterConfig) {  // In this case, we will prevent the UshHarvesterProperties to be updated
+                ((UshSolrHarvesterConfig) config).getContent().withUshHarvesterProperties(null);
+            }
             return flowStoreServiceConnector.updateHarvesterConfig(config);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);

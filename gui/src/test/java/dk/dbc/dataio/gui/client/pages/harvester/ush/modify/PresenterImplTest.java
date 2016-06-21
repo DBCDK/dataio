@@ -133,6 +133,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Before
     public void prepareTexts() {
         when(mockedTexts.error_InputFieldValidationError()).thenReturn("InputFieldValidationError");
+        when(mockedTexts.error_SubmitterNumberValidationError()).thenReturn("SubmitterNumberValidationError");
     }
 
 
@@ -235,14 +236,21 @@ public class PresenterImplTest extends PresenterImplTestBase {
         commonPostVerification();
     }
 
-    @Test(expected = NumberFormatException.class)
-    public void submitterChanged_invalidSubmitter_submitterSet() {
+    @Test
+    public void submitterChanged_invalidSubmitter_submitterSetToZeroAndError() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setUshSolrHarvesterConfig(mockedConfig);
 
         // Test
         presenter.submitterChanged("xyz");
+
+        // Test verification
+        verifyStart();
+        verify(mockedTexts).error_SubmitterNumberValidationError();
+        verify(mockedView).setErrorText("SubmitterNumberValidationError");
+        verify(mockedConfig, times(2)).getContent();
+        commonPostVerification();
     }
 
     @Test
@@ -488,10 +496,10 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test verification
         verifyStart(1, true);
-        verify(mockedConfig, times(10)).getContent();
+        verify(mockedConfig, times(11)).getContent();
         verify(mockedContent, times(2)).getName();
         verify(mockedContent, times(2)).getDescription();
-        verify(mockedContent, times(1)).getSubmitterNumber();
+        verify(mockedContent, times(2)).getSubmitterNumber();
         verify(mockedContent, times(2)).getFormat();
         verify(mockedContent, times(2)).getDestination();
         commonPostVerification();

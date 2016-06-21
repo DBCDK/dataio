@@ -32,8 +32,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.Submitter;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.commons.utils.ush.UshHarvesterConnector;
-import dk.dbc.dataio.commons.utils.ush.UshHarvesterConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -54,7 +52,6 @@ import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
-import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -64,7 +61,6 @@ import org.slf4j.LoggerFactory;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class FlowStoreProxyImpl implements FlowStoreProxy {
@@ -74,7 +70,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     final String ushHarvesterUrl;
     final String subversionScmEndpoint;
     FlowStoreServiceConnector flowStoreServiceConnector;
-    UshHarvesterConnector ushHarvesterConnector;
     JavaScriptProjectFetcher javaScriptProjectFetcher;
 
     public FlowStoreProxyImpl() throws NamingException{
@@ -86,26 +81,12 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
         javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
         ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
-        ushHarvesterConnector = new UshHarvesterConnector(client, ushHarvesterUrl);
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
     FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector) throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
-        subversionScmEndpoint = null;
-        client = HttpClient.newClient(clientConfig);
-        baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
-        log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
-        ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
-        ushHarvesterConnector = new UshHarvesterConnector(client, ushHarvesterUrl);
-    }
-
-    //This constructor is intended for test purpose only with reference to dependency injection.
-    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, UshHarvesterConnector ushHarvesterConnector) throws NamingException{
-        final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
-        this.flowStoreServiceConnector = flowStoreServiceConnector;
-        this.ushHarvesterConnector = ushHarvesterConnector;
         subversionScmEndpoint = null;
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
@@ -123,7 +104,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
         this.subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
         ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
-        ushHarvesterConnector = new UshHarvesterConnector(client, ushHarvesterUrl);
     }
 
 
@@ -584,60 +564,15 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     public List<UshSolrHarvesterConfig> getHarvesterUshConfigs() throws ProxyException {
         final String callerMethodName = "getHarvesterUshConfigs";
         List<UshSolrHarvesterConfig> ushSolrHarvesterConfigs = null;
-        List<UshHarvesterProperties> ushHarvesterProperties;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
-//            ushSolrHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class);
-//            Please remember to enable unit tests in FlowStoreProxyImplTest: Lines #1901, #1942 & #1964
-            ushSolrHarvesterConfigs = constructFakeData();
-            ushHarvesterProperties = ushHarvesterConnector.listUshHarvesterJobs();
-            for (UshSolrHarvesterConfig config: ushSolrHarvesterConfigs) {
-                config.getContent().withUshHarvesterProperties(getPropertyById(config.getContent().getUshHarvesterJobId(), ushHarvesterProperties));
-            }
+            ushSolrHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(UshSolrHarvesterConfig.class);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
         return ushSolrHarvesterConfigs;
     }
 
-
-    private List<UshSolrHarvesterConfig> constructFakeData() {
-        List<UshSolrHarvesterConfig> data = new ArrayList<>();
-        data.add(new UshSolrHarvesterConfig(1111L, 1L, new UshSolrHarvesterConfig.Content().
-                withUshHarvesterJobId(9999).
-                withName("First Test Name").
-                withEnabled(true).
-                withDestination("Destination1").
-                withDescription("Description1").
-                withFormat("format1").
-                withSubmitterNumber(2222).
-                withTimeOfLastHarvest(Calendar.getInstance().getTime()).
-                withUshHarvesterProperties(null)
-        ));
-        data.add(new UshSolrHarvesterConfig(1112L, 1L, new UshSolrHarvesterConfig.Content().
-                withUshHarvesterJobId(10001).
-                withName("Second Test Name").
-                withEnabled(true).
-                withDestination("Destination2").
-                withDescription("Description2").
-                withFormat("format2").
-                withSubmitterNumber(2223).
-                withTimeOfLastHarvest(Calendar.getInstance().getTime()).
-                withUshHarvesterProperties(null)
-        ));
-        data.add(new UshSolrHarvesterConfig(1113L, 1L, new UshSolrHarvesterConfig.Content().
-                withUshHarvesterJobId(10002).
-                withName("Third Test Name").
-                withEnabled(true).
-                withDestination("Destination3").
-                withDescription("Description3").
-                withFormat("format3").
-                withSubmitterNumber(2224).
-                withTimeOfLastHarvest(Calendar.getInstance().getTime()).
-                withUshHarvesterProperties(null)
-        ));
-        return data;
-    }
 
     /*
      * Gatekeeper destinations
@@ -718,10 +653,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
             FlowStoreServiceConnectorUnexpectedStatusCodeException fsscusce = (FlowStoreServiceConnectorUnexpectedStatusCodeException) exception;
             log.error("FlowStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(fsscusce.getStatusCode()), fsscusce);
             throw new ProxyException(StatusCodeTranslator.toProxyError(fsscusce.getStatusCode()), fsscusce.getMessage());
-        } else if (exception instanceof UshHarvesterConnectorUnexpectedStatusCodeException) {
-            UshHarvesterConnectorUnexpectedStatusCodeException uhcusce = (UshHarvesterConnectorUnexpectedStatusCodeException) exception;
-            log.error("FlowStoreProxy: " + callerMethodName + " - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(uhcusce.getStatusCode()), uhcusce);
-            throw new ProxyException(StatusCodeTranslator.toProxyError(uhcusce.getStatusCode()), uhcusce.getMessage());
         } else if (exception instanceof FlowStoreServiceConnectorException) {
             FlowStoreServiceConnectorException fssce = (FlowStoreServiceConnectorException) exception;
             log.error("FlowStoreProxy: " + callerMethodName + " - Service Not Found", fssce);
@@ -847,21 +778,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
                 Long.valueOf(model.getSvnNext()),
                 model.getInvocationJavascript(),
                 model.getInvocationMethod());
-    }
-
-    /**
-     * Fetches a UshHarversterProperty with the same id as the passed parameter
-     * @param ushHarvesterJobId The Id to match
-     * @param ushHarvesterProperties The list of properties to search through
-     * @return The found Property
-     */
-    private UshHarvesterProperties getPropertyById(Integer ushHarvesterJobId, List<UshHarvesterProperties> ushHarvesterProperties) {
-        for (UshHarvesterProperties property: ushHarvesterProperties) {
-            if (property.getId() == ushHarvesterJobId) {
-                return property;
-            }
-        }
-        return null;
     }
 
 }

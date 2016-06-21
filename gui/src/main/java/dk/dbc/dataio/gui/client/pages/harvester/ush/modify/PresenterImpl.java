@@ -89,7 +89,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     @Override
     public void submitterChanged(String submitter) {
         if (config != null) {
-            config.getContent().withSubmitterNumber(Integer.valueOf(submitter));
+            try {
+                config.getContent().withSubmitterNumber(Integer.valueOf(submitter));
+            } catch (NumberFormatException e) {
+                config.getContent().withSubmitterNumber(0);
+                getView().setErrorText(getTexts().error_SubmitterNumberValidationError());
+            }
         }
     }
 
@@ -173,6 +178,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getName().isEmpty() ||
                 config.getContent().getDescription() == null ||
                 config.getContent().getDescription().isEmpty() ||
+                config.getContent().getSubmitterNumber() == null ||
                 config.getContent().getSubmitterNumber() == 0 ||
                 config.getContent().getFormat() == null ||
                 config.getContent().getFormat().isEmpty() ||
@@ -189,7 +195,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Boolean viewEnabled,
             String name,
             String description,
-            String submitter,
+            Integer submitter,
             String format,
             String destination,
             Boolean enabled) {
@@ -198,7 +204,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.name.setEnabled(false);  // The name should be hardcoded to disabled
         view.description.setText(description);
         view.description.setEnabled(viewEnabled);
-        view.submitter.setText(submitter);
+        view.submitter.setText(submitter == null ? "" : String.valueOf(submitter));
         view.submitter.setEnabled(viewEnabled);
         view.format.setText(format);
         view.format.setEnabled(viewEnabled);
@@ -210,7 +216,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", false);
+        initializeViewFields(false, "", "", null, "", "", false);
     }
 
     /**
@@ -221,7 +227,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 true, // Enable all fields
                 config.getContent().getName(),
                 config.getContent().getDescription(),
-                String.valueOf(config.getContent().getSubmitterNumber()),
+                config.getContent().getSubmitterNumber(),
                 config.getContent().getFormat(),
                 config.getContent().getDestination(),
                 config.getContent().isEnabled());

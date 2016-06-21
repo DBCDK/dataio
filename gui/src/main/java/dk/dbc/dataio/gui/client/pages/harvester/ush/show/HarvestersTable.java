@@ -235,7 +235,8 @@ public class HarvestersTable extends CellTable {
         return new TextColumn<UshSolrHarvesterConfig>() {
             @Override
             public String getValue(UshSolrHarvesterConfig harvester) {
-                return String.valueOf(harvester.getContent().getSubmitterNumber());
+                Integer submitter = harvester.getContent().getSubmitterNumber();
+                return submitter == null ? "" : String.valueOf(submitter);
             }
         };
     }

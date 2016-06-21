@@ -61,6 +61,9 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
     String error_InputFieldValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_SubmitterNumberValidationError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_HarvesterNotFound();
 
 }

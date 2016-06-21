@@ -22,6 +22,7 @@
 package dk.dbc.dataio.openagency;
 
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.oss.ns.openagency.Information;
 import dk.dbc.oss.ns.openagency_wsdl.OpenAgencyPortType;
 import dk.dbc.oss.ns.openagency_wsdl.OpenAgencyService;
 import org.slf4j.Logger;
@@ -56,6 +57,10 @@ public class OpenAgencyConnector {
         this.service = InvariantUtil.checkNotNullOrThrow(openAgencyService, "service");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
         LOGGER.info("Using endpoint: {}", endpoint);
+    }
+
+    public Information getAgencyInformation(long agencyId) {
+        return getProxy().service(null).getInformation();
     }
 
     private OpenAgencyPortType getProxy() {

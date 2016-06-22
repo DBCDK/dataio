@@ -22,7 +22,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
@@ -37,11 +36,13 @@ import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.Asynchronous;
+import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
@@ -49,7 +50,6 @@ import javax.ejb.TransactionAttributeType;
 import javax.mail.Session;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -74,6 +74,9 @@ public class JobNotificationRepository extends RepositoryBase {
 
     @Resource(lookup = JndiConstants.MAIL_RESOURCE_JOBSTORE_NOTIFICATIONS)
     Session mailSession;
+
+    @EJB
+    OpenAgencyConnectorBean openAgencyConnectorBean;
 
     /**
      * Gets all notifications associated with job

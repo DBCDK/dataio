@@ -36,13 +36,17 @@ import org.junit.Test;
 
 import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static org.hamcrest.Matchers.any;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doThrow;
@@ -59,17 +63,19 @@ public class UshSolrHarvesterConfigBeanTest {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final Query findTypeWithContent = mock(Query.class);
     private final Query findAllOfType = mock(Query.class);
-
+    // ----------------------------------------------------------------------------------------------------------------------
     private final JSONBContext jsonbContext = new JSONBContext();
+    private UshSolrHarvesterConfigBean ushSolrHarvesterConfigBean;
+    // ----------------------------------------------------------------------------------------------------------------------
     private final UshHarvesterProperties ushHarvesterProperties = new UshHarvesterProperties().withId(1).withName("name1");
     private final List<UshHarvesterProperties> ushHarvesterPropertiesList = Collections.singletonList(ushHarvesterProperties);
 
-    private final UshSolrHarvesterConfig.Content configContent = new UshSolrHarvesterConfig.Content()
-            .withName("name1")
-            .withUshHarvesterJobId(1)
-            .withUshHarvesterProperties(ushHarvesterProperties);
+    private final UshSolrHarvesterConfig.Content configContent = newUshSolrHarvesterConfigContent("name1", 1);
+    private final HarvesterConfig harvesterConfig = newHarvesterConfig(1, configContent);
 
-    private UshSolrHarvesterConfigBean ushSolrHarvesterConfigBean;
+    private final UshSolrHarvesterConfig.Content orphanedConfigContent = newUshSolrHarvesterConfigContent("name2", 2);
+    private final HarvesterConfig orphanedHarvesterConfig = newHarvesterConfig(2, orphanedConfigContent);
+    // ----------------------------------------------------------------------------------------------------------------------
 
 
     @Before
@@ -81,6 +87,10 @@ public class UshSolrHarvesterConfigBeanTest {
     public void setupMockedReturns() throws UshHarvesterConnectorException {
         when(ushHarvesterConnectorBean.getConnector()).thenReturn(ushHarvesterConnector);
         when(ushHarvesterConnector.listUshHarvesterJobs()).thenReturn(ushHarvesterPropertiesList);
+        when(ushHarvesterConnector.listIndexedUshHarvesterJobs()).thenReturn(ushHarvesterPropertiesList
+                .stream()
+                .collect(Collectors.toMap(UshHarvesterProperties::getId, c -> c))
+        );
 
         when(sessionContext.getBusinessObject(UshSolrHarvesterConfigBean.class)).thenReturn(newUshSolrHarvesterConfigBean());
 
@@ -90,56 +100,82 @@ public class UshSolrHarvesterConfigBeanTest {
 
 
     @Test
-    public void findAllAndCreateIfAbsent_queryFindByUshHarvesterJobIdReturnsEmpty_throwsFlowStoreException() {
+    public void findAllAndSyncWithUsh_queryFindByUshHarvesterJobIdReturnsEmpty_throwsFlowStoreException() {
         when(findTypeWithContent.getResultList()).thenReturn(Collections.emptyList());
-        assertThat(() -> ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent(), isThrowing(FlowStoreException.class));
+        assertThat(() -> ushSolrHarvesterConfigBean.findAllAndSyncWithUsh(), isThrowing(FlowStoreException.class));
     }
 
     @Test
-    public void createIfAbsent_persistenceExceptionIsThrownWithoutExpectedMessage_throwsFlowStoreException() {
+    public void createIfAbsentInFlowStore_persistenceExceptionIsThrownWithoutExpectedMessage_throwsFlowStoreException() {
         doThrow(new PersistenceException("msg")).when(entityManager).flush();
-        assertThat(() -> ushSolrHarvesterConfigBean.createIfAbsent(new UshHarvesterProperties()), isThrowing(FlowStoreException.class));
+        assertThat(() -> ushSolrHarvesterConfigBean.createIfAbsentInFlowStore(new UshHarvesterProperties()), isThrowing(FlowStoreException.class));
     }
 
     @Test
-    public void findAllAndCreateIfAbsent_allConfigsPresentInFlowStore_returns() throws JSONBException, FlowStoreException {
+    public void findAllAndSyncWithUsh_allConfigsPresentInFlowStore_returns() throws FlowStoreException {
 
-        when(findAllOfType.getResultList()).thenReturn(Collections.singletonList(newHarvesterConfig(1, configContent)));
+        when(findAllOfType.getResultList()).thenReturn(Collections.singletonList(harvesterConfig));
 
         // Subject under test
-        final List<HarvesterConfig> harvesterConfigList = ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent();
+        final List<HarvesterConfig> harvesterConfigList = ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
 
         // Verification
         assertThat("harvesterConfigList.size", harvesterConfigList.size(), is(1));
-        assertThat("UshSolrHarvesterConfig.Content", toUshHarvesterConfigContent(harvesterConfigList.get(0).getContent()), is(configContent));
+        assertThat("UshSolrHarvesterConfig.Content", toUshHarvesterConfigContent(harvesterConfigList.get(0).getContent()),
+                is(configContent.withUshHarvesterProperties(ushHarvesterProperties)));
     }
 
+    @Test
+    public void findAllAndSyncWithUsh_orphanedUshSolrHarvesterConfigDeleted_ok() throws FlowStoreException {
+        when(findAllOfType.getResultList()).thenReturn(Arrays.asList(harvesterConfig, orphanedHarvesterConfig));
+
+        // Subject under test
+        ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
+
+        // Verification
+        verify(entityManager, times(1)).remove(orphanedHarvesterConfig);
+    }
 
     @Test
-    public void findAllAndCreateIfAbsent_ushHarvesterConnectorExceptionIsThrown_throwsFlowStoreException() throws UshHarvesterConnectorException {
+    public void findAllAndSyncWithUsh_tryDeleteCausesUnexpectedException_throwsFlowStoreException() throws FlowStoreException {
+        doThrow(new IllegalArgumentException()).when(entityManager).refresh(any(HarvesterConfig.class));
+        assertThat(() -> ushSolrHarvesterConfigBean.findAllAndSyncWithUsh(), isThrowing(FlowStoreException.class));
+    }
+
+    @Test
+    public void findAllAndSyncWithUsh_ushHarvesterConnectorExceptionIsThrown_throwsFlowStoreException() throws UshHarvesterConnectorException {
         when(ushHarvesterConnector.listUshHarvesterJobs()).thenThrow(new UshHarvesterConnectorException("Error"));
-        assertThat(() -> ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent(), isThrowing(FlowStoreException.class));
+        assertThat(() -> ushSolrHarvesterConfigBean.findAllAndSyncWithUsh(), isThrowing(FlowStoreException.class));
     }
 
     @Test
-    public void createIfAbsent_persistenceExceptionThrownWithExpectedMessage_callsFindUshHarvesterConfigByUshHarvesterJobId() throws FlowStoreException, JSONBException {
+    public void createIfAbsentInFlowStore_tryCreateCausesPersistenceExceptionWithExpectedMessage_callsFindUshHarvesterConfigByUshHarvesterJobId() throws FlowStoreException, JSONBException {
         doThrow(new PersistenceException(PersistenceExceptionMapper.UNIQUE_CONSTRAINT_VIOLATION)).when(entityManager).flush();
         when(findTypeWithContent.getResultList()).thenReturn(Collections.singletonList(new HarvesterConfig()));
 
         // Subject under test
-        ushSolrHarvesterConfigBean.createIfAbsent(new UshHarvesterProperties());
+        ushSolrHarvesterConfigBean.createIfAbsentInFlowStore(new UshHarvesterProperties());
 
         // Verification
         verify(entityManager, times(1)).createNamedQuery(HarvesterConfig.QUERY_FIND_TYPE_WITH_CONTENT);
     }
 
     @Test
-    public void findAllAndCreateIfAbsent_persistenceExceptionIsThrownWithExpectedMessage_returns() throws FlowStoreException {
+    public void findAllAndSyncWithUsh_tryCreateCausesPersistenceExceptionWithExpectedMessage_returns() throws FlowStoreException {
         doThrow(new PersistenceException(PersistenceExceptionMapper.UNIQUE_CONSTRAINT_VIOLATION)).when(entityManager).flush();
-        when(findTypeWithContent.getResultList()).thenReturn(Collections.singletonList(newHarvesterConfig(1, configContent)));
+        when(findTypeWithContent.getResultList()).thenReturn(Collections.singletonList(harvesterConfig));
 
         // Subject under test
-        assertThat(ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent().size(), is(1));
+        assertThat(ushSolrHarvesterConfigBean.findAllAndSyncWithUsh().size(), is(1));
+    }
+
+    @Test
+    public void findAllAndSyncWithUsh_tryDeleteCausesEntityNotFoundException_returns() throws FlowStoreException {
+        doThrow(new EntityNotFoundException()).when(entityManager).refresh(any(HarvesterConfig.class));
+        when(findAllOfType.getResultList()).thenReturn(Arrays.asList(harvesterConfig, orphanedHarvesterConfig));
+
+        // Subject under test
+        assertThat(ushSolrHarvesterConfigBean.findAllAndSyncWithUsh().size(), is(1));
     }
 
     /*
@@ -172,5 +208,9 @@ public class UshSolrHarvesterConfigBeanTest {
         } catch (JSONBException e) {
             throw new IllegalStateException("Unable to marshal input");
         }
+    }
+
+    private UshSolrHarvesterConfig.Content newUshSolrHarvesterConfigContent(String name, int ushHarvesterJobId) {
+        return new UshSolrHarvesterConfig.Content().withName(name).withUshHarvesterJobId(ushHarvesterJobId);
     }
 }

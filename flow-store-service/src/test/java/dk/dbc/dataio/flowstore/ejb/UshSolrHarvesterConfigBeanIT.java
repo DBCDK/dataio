@@ -50,7 +50,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
@@ -111,7 +113,7 @@ public class UshSolrHarvesterConfigBeanIT {
      * Then : the existing UshSolrHarvesterConfig is returned
      */
     @Test
-    public void findAllAndCreateIfAbsent_isPresent_returnsExisting() throws IOException, URISyntaxException, FlowStoreException, UshHarvesterConnectorException {
+    public void findAllAndSyncWithUsh_isPresent_returnsExisting() throws IOException, URISyntaxException, FlowStoreException, UshHarvesterConnectorException {
         // Given...
         JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");
 
@@ -120,7 +122,7 @@ public class UshSolrHarvesterConfigBeanIT {
 
         // When...
         final List<HarvesterConfig> returnedHarvesterConfigs = persistenceContext.run(() ->
-                ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent()
+                ushSolrHarvesterConfigBean.findAllAndSyncWithUsh()
         );
 
         // Then...
@@ -139,7 +141,7 @@ public class UshSolrHarvesterConfigBeanIT {
      * Then : a new UshSolrHarvesterConfig is created and returned
      */
     @Test
-    public void findAllAndCreateIfAbsent_isAbsent_returnsNew() throws IOException, URISyntaxException, FlowStoreException, UshHarvesterConnectorException {
+    public void findAllAndSyncWithUsh_isAbsentInFlowStore_returnsNew() throws IOException, URISyntaxException, FlowStoreException, UshHarvesterConnectorException {
         // Given...
         UshHarvesterProperties ushHarvesterProperties = getAbsentUshHarvesterProperties();
 
@@ -147,7 +149,7 @@ public class UshSolrHarvesterConfigBeanIT {
 
         // When...
         final List<HarvesterConfig> returnedHarvesterConfigs = persistenceContext.run(() ->
-                ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent()
+                ushSolrHarvesterConfigBean.findAllAndSyncWithUsh()
         );
 
         // Then...
@@ -167,7 +169,7 @@ public class UshSolrHarvesterConfigBeanIT {
      * Then : neither the existing UshSolrHarvesterConfig nor the newly created is persisted with matching UshHarvesterProperties
      */
     @Test
-    public void findAllAndCreateIfAbsent_UshHarvesterPropertiesNotPersisted() throws IOException, URISyntaxException, UshHarvesterConnectorException {
+    public void findAllAndSyncWithUsh_UshHarvesterPropertiesNotPersisted() throws IOException, URISyntaxException, UshHarvesterConnectorException {
         // Given...
         JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");
 
@@ -175,7 +177,7 @@ public class UshSolrHarvesterConfigBeanIT {
                 getPresentUshHarvesterProperties(), getAbsentUshHarvesterProperties()));
 
         // When...
-        persistenceContext.run(() -> ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent());
+        persistenceContext.run(() -> ushSolrHarvesterConfigBean.findAllAndSyncWithUsh());
 
         // Then...
         Query q = em.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE).setParameter("type", UshSolrHarvesterConfig.class.getName());
@@ -188,14 +190,25 @@ public class UshSolrHarvesterConfigBeanIT {
 
     @Ignore("This must be tested through arquillian since we have multiple transactions in scope")
     @Test
-    public void createIfAbsent_uniqueConstraintViolation_returnsExisting() throws IOException, URISyntaxException {
+    public void createIfAbsentInFlowStore_uniqueConstraintViolation_returnsExisting() throws IOException, URISyntaxException {
         JPATestUtils.runSqlFromResource(em, this, "harvesterConfigIT_testdata.sql");
         UshSolrHarvesterConfigBean ushSolrHarvesterConfigBean = newUshSolrHarvesterConfigBean();
         final HarvesterConfig returnedHarvesterConfig = persistenceContext.run(() ->
-                ushSolrHarvesterConfigBean.createIfAbsent(getPresentUshHarvesterProperties())
+                ushSolrHarvesterConfigBean.createIfAbsentInFlowStore(getPresentUshHarvesterProperties())
         );
 
         assertThat(toUshSolrHarvesterConfigContent(returnedHarvesterConfig.getContent()).getName(), is("existing UshSolrHarvesterConfig"));
+    }
+
+
+    @Ignore("This must be tested through arquillian since we have multiple transactions in scope")
+    @Test
+    public void deleteIfAbsentInUsh_entityNotFoundException_ok() throws IOException, URISyntaxException, UshHarvesterConnectorException {
+
+        Map<Integer, UshSolrHarvesterConfig> ushSolrHarvesterConfigMap = new HashMap<>();
+        ushSolrHarvesterConfigMap.put(1, new UshSolrHarvesterConfig(1, 1, new UshSolrHarvesterConfig.Content()));
+
+        persistenceContext.run(() -> ushSolrHarvesterConfigBean.deleteIfAbsentInUsh(ushSolrHarvesterConfigMap));
     }
 
 

@@ -31,6 +31,8 @@ import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -39,6 +41,7 @@ import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
@@ -62,53 +65,83 @@ public class UshSolrHarvesterConfigBean {
 
 
     JSONBContext jsonbContext = new JSONBContext();
+    private static final Logger LOGGER = LoggerFactory.getLogger(UshSolrHarvesterConfigBean.class);
+
+    /**
+     * Retrieves all ushHarvesterProperties present in the universal search system and all ushSolrHarvester configs.
+     * present in flow store.
+     *  - New UshSolrHarvesterConfigs are created if absent in flow store but present in the universal search system.
+     *  - Existing UshSolrHarvesterConfigs are deleted if present in flow store but absent in the universal search system.
+     *
+     * @return list of harvesterConfigs, mirroring the induced synchronization between the universal search system and flow store.
+     * @throws FlowStoreException on failure
+     */
+    public List<HarvesterConfig> findAllAndSyncWithUsh() throws FlowStoreException {
+        try {
+            // Retrieve ushHarvesterProperties from the universal search system
+            final List<UshHarvesterProperties> existingUshHarvesterProperties = ushHarvesterConnectorBean.getConnector().listUshHarvesterJobs();
+
+            // Retrieve ushHarvesterConfigs from flow store
+            final Map<Integer, UshSolrHarvesterConfig> indexedUshSolrHarvesterConfigs = getIndexedUshSolrHarvesterConfigs();
+
+            // Synchronize with the universal search system
+            final List<UshSolrHarvesterConfig> updatedUshSolrHarvesterConfigs = syncWithUsh(existingUshHarvesterProperties, indexedUshSolrHarvesterConfigs);
+
+            // return list of harvesterConfigs each enriched with corresponding UshHarvesterProperties
+            return updatedUshSolrHarvesterConfigs.stream().map(this::toHarvesterConfig).collect(Collectors.toList());
+        } catch (UshHarvesterConnectorException | RuntimeException | JSONBException e) {
+            throw new FlowStoreException("Error occurred while retrieving harvesterConfigs", e);
+        }
+    }
 
     /**
      * Compares ushHarvesterProperties from the universal search system with UshSolrHarvesterConfigs created in flow store.
      *
-     * If an ushHarvesterProperty does not have a matching UshSolrHarvester in flow store:
+     * If an ushHarvesterProperty does not have a matching UshSolrHarvesterConfig in flow store:
      *      A new UshSolrHarvesterConfig is created with name as in the universal search system and with ushHarvesterJobId referencing
      *      the UshHarvesterProperties.id.
      *      The newly created UshSolrHarvesterConfig is persisted without UshHarvesterProperties, but is enriched with
      *      matching UshHarvesterProperties before being added to the result list.
      *
      * Otherwise the existing UshSolrHarvesterConfig enriched with matching UshHarvesterProperties and added to the result list.
-     * @return list of harvesterConfigs each enriched with corresponding UshHarvesterProperties
      *
-     * @throws FlowStoreException on failure
+     * Existing UshSolrHarvesterConfigs are deleted if present in flow store but absent in the universal search system.
+     *
+     * @param existingUshHarvesterProperties present in the universal search system
+     * @param indexedUshSolrHarvesterConfigs present in flow store
+     * @return updatedUshSolrHarvesterConfigs enriched with corresponding ushHarvesterProperties
+     *
+     * @throws FlowStoreException on PersistenceException
+     * @throws JSONBException on marshalling failure
      */
-    public List<HarvesterConfig> findAllAndCreateIfAbsent() throws FlowStoreException {
-        try {
-            // Retrieve ushHarvesterProperties from the universal search system
-            final List<UshHarvesterProperties> ushHarvesterPropertiesList = ushHarvesterConnectorBean.getConnector().listUshHarvesterJobs();
+    private List<UshSolrHarvesterConfig> syncWithUsh(
+            List<UshHarvesterProperties> existingUshHarvesterProperties,
+            Map<Integer, UshSolrHarvesterConfig> indexedUshSolrHarvesterConfigs) throws FlowStoreException, JSONBException {
 
-            // Retrieve ushHarvesterConfigs from flow store
-            final Map<Integer, UshSolrHarvesterConfig> existingUshSolrHarvesterConfigs = getIndexedUshSolrHarvesterConfigs();
+        final List<UshSolrHarvesterConfig> updatedUshSolrHarvesterConfigs = new ArrayList<>();
 
-            final List<UshSolrHarvesterConfig> updatedUshSolrHarvesterConfigs = new ArrayList<>();
+        // Check if UshSolrHarvester configuration is present in flow store for each ushHarvesterProperties
+        for(UshHarvesterProperties ushHarvesterProperties : existingUshHarvesterProperties) {
+            final UshSolrHarvesterConfig ushSolrHarvesterConfig;
 
-            // Check if UshSolrHarvester configuration is present in flow store for each ushHarvesterProperties
-            for(UshHarvesterProperties ushHarvesterProperties : ushHarvesterPropertiesList) {
-                final UshSolrHarvesterConfig ushSolrHarvesterConfig;
-
-                if (existingUshSolrHarvesterConfigs.containsKey(ushHarvesterProperties.getId())) {
-                    ushSolrHarvesterConfig = existingUshSolrHarvesterConfigs.get(ushHarvesterProperties.getId());
-
-                } else {
-                    HarvesterConfig harvesterConfig = createIfAbsent(ushHarvesterProperties);
-                    ushSolrHarvesterConfig = jsonbContext.unmarshall(jsonbContext.marshall(harvesterConfig), UshSolrHarvesterConfig.class);
-                }
-                ushSolrHarvesterConfig.getContent().withUshHarvesterProperties(ushHarvesterProperties);
-                updatedUshSolrHarvesterConfigs.add(ushSolrHarvesterConfig);
-
+            if (indexedUshSolrHarvesterConfigs.containsKey(ushHarvesterProperties.getId())) {
+                ushSolrHarvesterConfig = indexedUshSolrHarvesterConfigs.get(ushHarvesterProperties.getId());
+            } else {
+                // Create new UshSolrHarvesterConfig since absent in flow store but present in the universal search system
+                HarvesterConfig harvesterConfig = createIfAbsentInFlowStore(ushHarvesterProperties);
+                ushSolrHarvesterConfig = jsonbContext.unmarshall(jsonbContext.marshall(harvesterConfig), UshSolrHarvesterConfig.class);
             }
-            return updatedUshSolrHarvesterConfigs.stream().map(this::toHarvesterConfig).collect(Collectors.toList());
-
-        } catch (UshHarvesterConnectorException | RuntimeException | JSONBException e) {
-            throw new FlowStoreException("Error occurred while retrieving harvesterConfigs", e);
+            ushSolrHarvesterConfig.getContent().withUshHarvesterProperties(ushHarvesterProperties);
+            updatedUshSolrHarvesterConfigs.add(ushSolrHarvesterConfig);
+            indexedUshSolrHarvesterConfigs.remove(ushHarvesterProperties.getId());
         }
-    }
 
+        // Delete existing any UshSolrHarvesterConfig from flow store since absent in the universal search system
+        if(!indexedUshSolrHarvesterConfigs.isEmpty()) {
+            deleteIfAbsentInUsh(indexedUshSolrHarvesterConfigs);
+        }
+        return updatedUshSolrHarvesterConfigs;
+    }
 
     /**
      * Attempts to create a new HarvesterConfig in flow store
@@ -118,7 +151,7 @@ public class UshSolrHarvesterConfigBean {
      * @throws FlowStoreException if a PersistenceException occurs, that is not caused by unique constraint violation
      * @throws JSONBException on marshalling failure
      */
-    HarvesterConfig createIfAbsent(UshHarvesterProperties ushHarvesterProperties) throws FlowStoreException, JSONBException {
+    HarvesterConfig createIfAbsentInFlowStore(UshHarvesterProperties ushHarvesterProperties) throws FlowStoreException, JSONBException {
         try {
             return self().tryCreate(toHarvesterConfig(ushHarvesterProperties));
         } catch (PersistenceException e) {
@@ -132,7 +165,6 @@ public class UshSolrHarvesterConfigBean {
         }
     }
 
-
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public HarvesterConfig tryCreate(HarvesterConfig notYetPersisted) {
         notYetPersisted.withType(UshSolrHarvesterConfig.class.getName());
@@ -141,8 +173,33 @@ public class UshSolrHarvesterConfigBean {
         return notYetPersisted;
     }
 
+
+    /**
+     * Deletes orphaned ushSolrHarvesterConfigs in flow store
+     * @param indexedUshSolrHarvesterConfigs containing the orphaned UshSolrHarvesterConfigs
+     */
+    void deleteIfAbsentInUsh(Map<Integer, UshSolrHarvesterConfig> indexedUshSolrHarvesterConfigs) {
+        for (Map.Entry<Integer, UshSolrHarvesterConfig> entry : indexedUshSolrHarvesterConfigs.entrySet()) {
+            try {
+                self().tryDelete(toHarvesterConfig(entry.getValue()));
+            } catch (EntityNotFoundException e) {
+                LOGGER.debug("UshSolrHarvesterConfig previously deleted");
+            }
+        }
+    }
+
+
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void tryDelete(HarvesterConfig persisted) {
+        // Refresh to make sure the harvesterConfig still exists
+        entityManager.refresh(persisted);
+        entityManager.detach(persisted);
+        entityManager.remove(persisted);
+        entityManager.flush();
+    }
+
     /*
-     * Private methods
+     * Helper methods
      */
 
     private HarvesterConfig toHarvesterConfig(UshSolrHarvesterConfig ushSolrHarvesterConfig) {
@@ -162,16 +219,6 @@ public class UshSolrHarvesterConfigBean {
     }
 
     /**
-     * Retrieves all SolrHarvesterConfigs present in flow store
-     * @return list of Harvester configs
-     */
-    private List<HarvesterConfig> findAllUshSolrHarvesterConfigs() {
-        final Query namedQuery = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE);
-        namedQuery.setParameter("type", UshSolrHarvesterConfig.class.getName());
-        return namedQuery.getResultList();
-    }
-
-    /**
      * Retrieves all SolrHarvesterConfigs present in flow store and transforms the list into a map containing
      * key(ushHarvesterJobId) / value(harvesterConfig)
      * @return indexed list of ushHarvesterConfigs
@@ -183,6 +230,16 @@ public class UshSolrHarvesterConfigBean {
         final CollectionType javaType = jsonbContext.getTypeFactory().constructCollectionType(List.class, UshSolrHarvesterConfig.class);
         final List<UshSolrHarvesterConfig> ushHarvesterConfigs = jsonbContext.unmarshall(jsonbContext.marshall(harvesterConfigs), javaType);
         return ushHarvesterConfigs.stream().collect(Collectors.toMap(c -> c.getContent().getUshHarvesterJobId(), c -> c));
+    }
+
+    /**
+     * Retrieves all SolrHarvesterConfigs present in flow store
+     * @return list of Harvester configs
+     */
+    private List<HarvesterConfig> findAllUshSolrHarvesterConfigs() {
+        final Query namedQuery = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE);
+        namedQuery.setParameter("type", UshSolrHarvesterConfig.class.getName());
+        return namedQuery.getResultList();
     }
 
     /**
@@ -227,5 +284,4 @@ public class UshSolrHarvesterConfigBean {
             return result.get(0);
         }
     }
-
 }

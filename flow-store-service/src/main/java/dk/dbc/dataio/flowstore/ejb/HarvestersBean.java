@@ -216,7 +216,7 @@ public class HarvestersBean {
     public Response findAllHarvesterConfigsByType(@PathParam("type") String type) throws FlowStoreException {
         List<HarvesterConfig> results;
         if (UshSolrHarvesterConfig.class.getName().equals(type)) {
-            results = ushSolrHarvesterConfigBean.findAllAndCreateIfAbsent();
+            results = ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
         } else {
             final Query query = entityManager.createNamedQuery(HarvesterConfig.QUERY_FIND_ALL_OF_TYPE)
                     .setParameter(FlowStoreServiceConstants.TYPE_VARIABLE, type);

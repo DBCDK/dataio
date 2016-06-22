@@ -67,7 +67,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     @Override
     public void initializeModel() {
         // TODO: Remove the call to getHarvesterUshConfigs, and establish a new getHarvesterUshConfig instead, fetching only ONE config
-        commonInjector.getFlowStoreProxyAsync().getHarvesterUshConfigs(new GetHarvesterUshConfigsAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllHarvesterUshConfigs(new GetHarvesterUshConfigsAsyncCallback());
     }
 
     /**

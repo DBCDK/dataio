@@ -157,7 +157,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verifyStart();
         verify(presenter.commonInjector).getFlowStoreProxyAsync();
-        verify(mockedFlowStore).getHarvesterUshConfigs(any(PresenterEditImpl.GetHarvesterUshConfigsAsyncCallback.class));
+        verify(mockedFlowStore).findAllHarvesterUshConfigs(any(PresenterEditImpl.GetHarvesterUshConfigsAsyncCallback.class));
         commonPostVerification();
     }
 

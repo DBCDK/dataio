@@ -546,8 +546,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<RRHarvesterConfig> getHarvesterRrConfigs() throws ProxyException {
-        final String callerMethodName = "getHarvesterRrConfigs";
+    public List<RRHarvesterConfig> findAllHarvesterRrConfigs() throws ProxyException {
+        final String callerMethodName = "findAllHarvesterRrConfigs";
         List<RRHarvesterConfig> rrHarvesterConfigs=null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
@@ -561,8 +561,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<UshSolrHarvesterConfig> getHarvesterUshConfigs() throws ProxyException {
-        final String callerMethodName = "getHarvesterUshConfigs";
+    public List<UshSolrHarvesterConfig> findAllHarvesterUshConfigs() throws ProxyException {
+        final String callerMethodName = "findAllHarvesterUshConfigs";
         List<UshSolrHarvesterConfig> ushSolrHarvesterConfigs = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {

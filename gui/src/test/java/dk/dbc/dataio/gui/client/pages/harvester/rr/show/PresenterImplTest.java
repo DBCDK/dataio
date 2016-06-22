@@ -101,7 +101,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).setHeader(any(String.class));
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedFlowStore).getHarvesterRrConfigs(any(AsyncCallback.class));
+        verify(mockedFlowStore).findAllHarvesterRrConfigs(any(AsyncCallback.class));
         verifyNoMoreInteractions(mockedViewGinjector);
         verifyNoMoreInteractions(mockedView);
         verifyNoMoreInteractions(mockedContainerWidget);

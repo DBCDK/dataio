@@ -73,8 +73,8 @@ public interface FlowStoreProxyAsync {
     // Harvesters
     void createHarvesterConfig(HarvesterConfig config, AsyncCallback<HarvesterConfig> async);
     void updateHarvesterConfig(HarvesterConfig config, AsyncCallback<HarvesterConfig> async);
-    void getHarvesterRrConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
-    void getHarvesterUshConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
+    void findAllHarvesterRrConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
+    void findAllHarvesterUshConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

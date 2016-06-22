@@ -180,7 +180,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verifyStart();
         verify(presenter.commonInjector).getFlowStoreProxyAsync();
-        verify(mockedFlowStore).getHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
+        verify(mockedFlowStore).findAllHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
         commonPostVerification();
     }
 
@@ -195,7 +195,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verifyStart();
         verify(presenter.commonInjector, times(2)).getFlowStoreProxyAsync();
-        verify(mockedFlowStore).getHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
+        verify(mockedFlowStore).findAllHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
         verify(mockedFlowStore).updateHarvesterConfig(eq(presenter.config), any(PresenterEditImpl.UpdateHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }

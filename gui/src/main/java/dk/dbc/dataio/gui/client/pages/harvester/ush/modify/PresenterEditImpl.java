@@ -29,8 +29,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
-import java.util.List;
-
 
 /**
  * Concrete Presenter Implementation Class for Harvester Edit
@@ -66,8 +64,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     public void initializeModel() {
-        // TODO: Remove the call to getHarvesterUshConfigs, and establish a new getHarvesterUshConfig instead, fetching only ONE config
-        commonInjector.getFlowStoreProxyAsync().findAllHarvesterUshConfigs(new GetHarvesterUshConfigsAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getUshSolrHarvesterConfig(id, new GetUshSolrHarvesterConfigAsyncCallback());
     }
 
     /**
@@ -85,19 +82,18 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * Private classes
      */
 
-    class GetHarvesterUshConfigsAsyncCallback implements AsyncCallback<List<UshSolrHarvesterConfig>> {
+    class GetUshSolrHarvesterConfigAsyncCallback implements AsyncCallback<UshSolrHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
             String msg = "UshSolrHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
-        public void onSuccess(List<UshSolrHarvesterConfig> ushHarvesterConfigs) {
-            UshSolrHarvesterConfig config = fetchHarvesterConfig(id, ushHarvesterConfigs);
-            if (config == null) {
+        public void onSuccess(UshSolrHarvesterConfig ushSolrHarvesterConfig) {
+            if (ushSolrHarvesterConfig == null) {
                 getView().setErrorText(getTexts().error_HarvesterNotFound());
             } else {
-                setUshSolrHarvesterConfig(config);
+                setUshSolrHarvesterConfig(ushSolrHarvesterConfig);
                 updateAllFieldsAccordingToCurrentState();
             }
         }
@@ -114,20 +110,6 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
             getView().status.setText(getTexts().status_ConfigSuccessfullySaved());
             History.back();
         }
-    }
-
-
-    /*
-     * Private methods
-     */
-
-    private UshSolrHarvesterConfig fetchHarvesterConfig(long id, List<UshSolrHarvesterConfig> ushHarvesterConfigs) {
-        for (UshSolrHarvesterConfig config: ushHarvesterConfigs) {
-            if (config.getId() == id) {
-                return config;
-            }
-        }
-        return null;
     }
 
 }

@@ -218,13 +218,28 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<RRHarvesterConfig> findAllHarvesterRrConfigs() throws ProxyException {
-        return flowStoreProxy.findAllHarvesterRrConfigs();
+    public void deleteHarvesterConfig(long id, long version) throws ProxyException {
+        flowStoreProxy.deleteHarvesterConfig(id, version);
     }
 
     @Override
-    public List<UshSolrHarvesterConfig> findAllHarvesterUshConfigs() throws ProxyException {
-        return flowStoreProxy.findAllHarvesterUshConfigs();
+    public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllRRHarvesterConfigs();
+    }
+
+    @Override
+    public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllUshSolrHarvesterConfigs();
+    }
+
+    @Override
+    public RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getRRHarvesterConfig(id);
+    }
+
+    @Override
+    public UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getUshSolrHarvesterConfig(id);
     }
 
 

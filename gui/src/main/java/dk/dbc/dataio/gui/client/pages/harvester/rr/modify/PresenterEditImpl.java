@@ -29,8 +29,6 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
-import java.util.List;
-
 
 /**
  * Concrete Presenter Implementation Class for Harvester Edit
@@ -66,10 +64,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      */
     @Override
     public void initializeModel() {
-        // TODO: Remove the call to getHarvesterRrConfigs, and establish a new getHarvesterRrConfig instead, fetching only ONE config
-        // Right now, it is not easy to implement, since the Connector call requires a Class parameter (either OLDRRHarvesterConfig or RRHarvesterConfig,
-        // and that is not known at this stage. Whenever OLDRRHarvesterConfig has been removed, it will however be a piece of cake...
-        commonInjector.getFlowStoreProxyAsync().findAllHarvesterRrConfigs(new GetHarvesterRrConfigsAsyncCallback());
+        commonInjector.getFlowStoreProxyAsync().getRRHarvesterConfig(id, new GetRRHarvesterConfigAsyncCallback());
     }
 
     /**
@@ -87,19 +82,18 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * Private classes
      */
 
-    class GetHarvesterRrConfigsAsyncCallback implements AsyncCallback<List<RRHarvesterConfig>> {
+    class GetRRHarvesterConfigAsyncCallback implements AsyncCallback<RRHarvesterConfig> {
         @Override
         public void onFailure(Throwable e) {
             String msg = "RRHarvesterConfig.id: " + id;
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
         }
         @Override
-        public void onSuccess(List<RRHarvesterConfig> rrHarvesterConfigs) {
-            RRHarvesterConfig config = fetchHarvesterConfig(id, rrHarvesterConfigs);
-            if (config == null) {
+        public void onSuccess(RRHarvesterConfig rrHarvesterConfig) {
+            if (rrHarvesterConfig == null) {
                 getView().setErrorText(getTexts().error_HarvesterNotFound());
             } else {
-                setRRHarvesterConfig(config);
+                setRRHarvesterConfig(rrHarvesterConfig);
                 updateAllFieldsAccordingToCurrentState();
             }
         }
@@ -118,17 +112,4 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         }
     }
 
-
-    /*
-     * Private methods
-     */
-
-    private RRHarvesterConfig fetchHarvesterConfig(long id, List<RRHarvesterConfig> rrHarvesterConfigs) {
-        for (RRHarvesterConfig config: rrHarvesterConfigs) {
-            if (config.getId() == id) {
-                return config;
-            }
-        }
-        return null;
-    }
 }

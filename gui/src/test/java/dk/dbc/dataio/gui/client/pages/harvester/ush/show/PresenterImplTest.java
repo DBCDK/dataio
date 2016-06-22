@@ -106,7 +106,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).setHeader("UshHarvestersMenu");
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedFlowStore).findAllHarvesterUshConfigs(any(AsyncCallback.class));
+        verify(mockedFlowStore).findAllUshSolrHarvesterConfigs(any(AsyncCallback.class));
         verifyNoMoreInteractions(mockedViewGinjector);
         verifyNoMoreInteractions(mockedView);
         verifyNoMoreInteractions(mockedContainerWidget);

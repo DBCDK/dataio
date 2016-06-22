@@ -80,8 +80,11 @@ public interface FlowStoreProxy extends RemoteService {
     // Harvesters
     HarvesterConfig createHarvesterConfig(HarvesterConfig config) throws ProxyException;
     HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException;
-    List<RRHarvesterConfig> findAllHarvesterRrConfigs() throws ProxyException;
-    List<UshSolrHarvesterConfig> findAllHarvesterUshConfigs() throws ProxyException;
+    void deleteHarvesterConfig(long id, long version) throws ProxyException;
+    List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException;
+    List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException;
+    RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException;
+    UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

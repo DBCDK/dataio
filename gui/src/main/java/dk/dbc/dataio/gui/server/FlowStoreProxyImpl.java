@@ -546,8 +546,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<RRHarvesterConfig> findAllHarvesterRrConfigs() throws ProxyException {
-        final String callerMethodName = "findAllHarvesterRrConfigs";
+    public void deleteHarvesterConfig(long sinkId, long version) throws NullPointerException, ProxyException {
+        final String callerMethodName = "deleteHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", sinkId, version);
+        try {
+            flowStoreServiceConnector.deleteHarvesterConfig(sinkId, version);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
+    @Override
+    public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllRRHarvesterConfigs";
         List<RRHarvesterConfig> rrHarvesterConfigs=null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
@@ -561,8 +572,8 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public List<UshSolrHarvesterConfig> findAllHarvesterUshConfigs() throws ProxyException {
-        final String callerMethodName = "findAllHarvesterUshConfigs";
+    public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllUshSolrHarvesterConfigs";
         List<UshSolrHarvesterConfig> ushSolrHarvesterConfigs = null;
         log.trace("FlowStoreProxy: " + callerMethodName + "();");
         try {
@@ -572,6 +583,33 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
         return ushSolrHarvesterConfigs;
     }
+
+    @Override
+    public RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getRRHarvesterConfig";
+        RRHarvesterConfig harvesterConfig = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, RRHarvesterConfig.class);
+        } catch (Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return harvesterConfig;
+    }
+
+    @Override
+    public UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getUshSolrHarvesterConfig";
+        UshSolrHarvesterConfig harvesterConfig = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, UshSolrHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return harvesterConfig;
+    }
+
 
 
     /*

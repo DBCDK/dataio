@@ -37,9 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -74,7 +72,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
      * Test data
      */
 
-    private final UshSolrHarvesterConfig ushSolrHarvesterConfigWith123Content = new UshSolrHarvesterConfig(123L, 1,
+    private final UshSolrHarvesterConfig ushSolrHarvesterConfigContent = new UshSolrHarvesterConfig(123L, 1,
             new UshSolrHarvesterConfig.Content().
                     withName("Name").
                     withDescription("Description").
@@ -97,17 +95,6 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                             withStorageUrl("StorageUrl")
                     )
     );
-    private final UshSolrHarvesterConfig ushSolrHarvesterConfigContent1 = new UshSolrHarvesterConfig(1L, 1L, new UshSolrHarvesterConfig.Content().withName("Name1"));
-    private final UshSolrHarvesterConfig ushSolrHarvesterConfigContent2 = new UshSolrHarvesterConfig(2L, 1L, new UshSolrHarvesterConfig.Content().withName("Name2"));
-    private final List<UshSolrHarvesterConfig> ushSolrHarvesterConfigListWith123Content = Arrays.asList(
-            ushSolrHarvesterConfigContent1,
-            ushSolrHarvesterConfigWith123Content,
-            ushSolrHarvesterConfigContent2
-            );
-    private final List<UshSolrHarvesterConfig> ushSolrHarvesterConfigListWithout123Content = Arrays.asList(
-            ushSolrHarvesterConfigContent1,
-            ushSolrHarvesterConfigContent2
-            );
 
 
 
@@ -157,7 +144,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verifyStart();
         verify(presenter.commonInjector).getFlowStoreProxyAsync();
-        verify(mockedFlowStore).findAllHarvesterUshConfigs(any(PresenterEditImpl.GetHarvesterUshConfigsAsyncCallback.class));
+        verify(mockedFlowStore).getUshSolrHarvesterConfig(any(Long.class), any(PresenterEditImpl.GetUshSolrHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
 
@@ -165,7 +152,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     public void saveModel_ok_modelSaved() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setUshSolrHarvesterConfig(ushSolrHarvesterConfigWith123Content);
+        presenter.setUshSolrHarvesterConfig(ushSolrHarvesterConfigContent);
         // Test
         presenter.saveModel();
 
@@ -178,7 +165,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void GetHarvesterUshConfigsAsyncCallback_onFailure_errorMessage() {
         // Test preparation
-        PresenterEditImpl.GetHarvesterUshConfigsAsyncCallback callback = presenter.new GetHarvesterUshConfigsAsyncCallback();
+        PresenterEditImpl.GetUshSolrHarvesterConfigAsyncCallback callback = presenter.new GetUshSolrHarvesterConfigAsyncCallback();
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.PRECONDITION_FAILED);
         when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         when(mockedProxyErrorTexts.flowStoreProxy_preconditionFailedError()).thenReturn("PreconditionFailed");
@@ -197,10 +184,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void GetHarvesterUshConfigsAsyncCallback_onSuccessNotFound_errorMessage() {
         // Test preparation
-        PresenterEditImpl.GetHarvesterUshConfigsAsyncCallback callback = presenter.new GetHarvesterUshConfigsAsyncCallback();
+        PresenterEditImpl.GetUshSolrHarvesterConfigAsyncCallback callback = presenter.new GetUshSolrHarvesterConfigAsyncCallback();
 
         // Test
-        callback.onSuccess(ushSolrHarvesterConfigListWithout123Content);
+        callback.onSuccess(null);
 
         // Test validation
         verify(mockedTexts).error_HarvesterNotFound();
@@ -211,10 +198,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void GetHarvesterUshConfigsAsyncCallback_onSuccessFound_ok() {
         // Test preparation
-        PresenterEditImpl.GetHarvesterUshConfigsAsyncCallback callback = presenter.new GetHarvesterUshConfigsAsyncCallback();
+        PresenterEditImpl.GetUshSolrHarvesterConfigAsyncCallback callback = presenter.new GetUshSolrHarvesterConfigAsyncCallback();
 
         // Test
-        callback.onSuccess(ushSolrHarvesterConfigListWith123Content);
+        callback.onSuccess(ushSolrHarvesterConfigContent);
 
         // Test validation
         verify(mockedName).setText("Name");

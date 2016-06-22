@@ -93,7 +93,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all harvesters, and sends them to the view
      */
     private void fetchHarvesters() {
-        commonInjector.getFlowStoreProxyAsync().findAllHarvesterUshConfigs(new GetHarvestersCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllUshSolrHarvesterConfigs(new GetHarvestersCallback());
     }
 
     private View getView() {

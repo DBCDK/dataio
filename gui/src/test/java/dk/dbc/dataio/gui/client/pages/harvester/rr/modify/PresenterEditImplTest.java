@@ -40,9 +40,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.mockito.Matchers.any;
@@ -87,41 +85,30 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     /**
      * Test data
      */
-    private final OpenAgencyTarget openAgencyTarget123 = new OpenAgencyTarget();
-    private final HashMap<Integer, String> formatOverrides123 = new HashMap<>();
-    private final RRHarvesterConfig.Content content1 = new RRHarvesterConfig.Content().withId("id1");
-    private final RRHarvesterConfig.Content content2 = new RRHarvesterConfig.Content().withId("id2");
-    private final RRHarvesterConfig.Content content123 =
+    private final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+    private final HashMap<Integer, String> formatOverrides = new HashMap<>();
+    private final RRHarvesterConfig.Content content =
             new RRHarvesterConfig.Content().
                     withId("id123").
                     withResource("resource123").
-                    withOpenAgencyTarget(openAgencyTarget123).
+                    withOpenAgencyTarget(openAgencyTarget).
                     withConsumerId("ConsumerId123").
                     withBatchSize(1).
-                    withFormatOverrides(formatOverrides123).
+                    withFormatOverrides(formatOverrides).
                     withIncludeRelations(true).
                     withDestination("Destination123").
                     withFormat("Format123").
                     withType(JobSpecification.Type.TEST).
                     withEnabled(true);
-    private final RRHarvesterConfig rrHarvesterConfig1 = new RRHarvesterConfig(111L, 222L, content1);
-    private final RRHarvesterConfig rrHarvesterConfig2 = new RRHarvesterConfig(112L, 223L, content2);
-    private final RRHarvesterConfig rrHarvesterConfig123 = new RRHarvesterConfig(123L, 234L, content123);
-    private final List<RRHarvesterConfig> harvesterListWithout123Content = new ArrayList<>();
-    private final List<RRHarvesterConfig> harvesterListWith123Content = new ArrayList<>();
+    private final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(123L, 234L, content);
     @Before
     public void prepareTestData() {
-        openAgencyTarget123.setUrl("Url123");
-        openAgencyTarget123.setGroup("Group123");
-        openAgencyTarget123.setUser("User123");
-        openAgencyTarget123.setPassword("Password123");
-        formatOverrides123.put(123, "value123");
-        formatOverrides123.put(1234, "value1234");
-        harvesterListWith123Content.add(rrHarvesterConfig1);
-        harvesterListWith123Content.add(rrHarvesterConfig123);
-        harvesterListWith123Content.add(rrHarvesterConfig2);
-        harvesterListWithout123Content.add(rrHarvesterConfig1);
-        harvesterListWithout123Content.add(rrHarvesterConfig2);
+        openAgencyTarget.setUrl("Url123");
+        openAgencyTarget.setGroup("Group123");
+        openAgencyTarget.setUser("User123");
+        openAgencyTarget.setPassword("Password123");
+        formatOverrides.put(123, "value123");
+        formatOverrides.put(1234, "value1234");
     }
 
 
@@ -180,7 +167,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verifyStart();
         verify(presenter.commonInjector).getFlowStoreProxyAsync();
-        verify(mockedFlowStore).findAllHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
+        verify(mockedFlowStore).getRRHarvesterConfig(any(Long.class), any(PresenterEditImpl.GetRRHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
 
@@ -195,7 +182,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         // Test validation
         verifyStart();
         verify(presenter.commonInjector, times(2)).getFlowStoreProxyAsync();
-        verify(mockedFlowStore).findAllHarvesterRrConfigs(any(PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback.class));
+        verify(mockedFlowStore).getRRHarvesterConfig(any(Long.class), any(PresenterEditImpl.GetRRHarvesterConfigAsyncCallback.class));
         verify(mockedFlowStore).updateHarvesterConfig(eq(presenter.config), any(PresenterEditImpl.UpdateHarvesterConfigAsyncCallback.class));
         commonPostVerification();
     }
@@ -203,7 +190,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void GetHarvesterRrConfigsAsyncCallback_onFailure_errorMessage() {
         // Test preparation
-        PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback callback = presenter.new GetHarvesterRrConfigsAsyncCallback();
+        PresenterEditImpl.GetRRHarvesterConfigAsyncCallback callback = presenter.new GetRRHarvesterConfigAsyncCallback();
         when(mockedProxyException.getErrorCode()).thenReturn(ProxyError.PRECONDITION_FAILED);
 
         // Test
@@ -219,10 +206,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void GetHarvesterRrConfigsAsyncCallback_onSuccessNotFound_errorMessage() {
         // Test preparation
-        PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback callback = presenter.new GetHarvesterRrConfigsAsyncCallback();
+        PresenterEditImpl.GetRRHarvesterConfigAsyncCallback callback = presenter.new GetRRHarvesterConfigAsyncCallback();
 
         // Test
-        callback.onSuccess(harvesterListWithout123Content);
+        callback.onSuccess(null);
 
         // Test validation
         verify(mockedTexts).error_HarvesterNotFound();
@@ -232,10 +219,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Test
     public void GetHarvesterRrConfigsAsyncCallback_onSuccessFound_ok() {
         // Test preparation
-        PresenterEditImpl.GetHarvesterRrConfigsAsyncCallback callback = presenter.new GetHarvesterRrConfigsAsyncCallback();
+        PresenterEditImpl.GetRRHarvesterConfigAsyncCallback callback = presenter.new GetRRHarvesterConfigAsyncCallback();
 
         // Test
-        callback.onSuccess(harvesterListWith123Content);
+        callback.onSuccess(rrHarvesterConfig);
 
         // Test validation
         verify(mockedName).setText("id123");
@@ -289,12 +276,12 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void UpdateHarvesterRrConfigAsyncCallback_onSuccessNotFound_errorMessage() {
+    public void UpdateHarvesterRrConfigAsyncCallback_onSuccess_errorMessage() {
         // Test preparation
         PresenterEditImpl.UpdateHarvesterConfigAsyncCallback callback = presenter.new UpdateHarvesterConfigAsyncCallback();
 
         // Test
-        callback.onSuccess(rrHarvesterConfig1);
+        callback.onSuccess(rrHarvesterConfig);
 
         // Test validation
         verify(mockedTexts).status_ConfigSuccessfullySaved();

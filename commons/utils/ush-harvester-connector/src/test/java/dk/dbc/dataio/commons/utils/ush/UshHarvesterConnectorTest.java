@@ -169,14 +169,6 @@ public class UshHarvesterConnectorTest {
     public void listIndexedUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsNull() throws UshHarvesterConnectorException {
         setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<harvestables/>");
         assertThat(() -> connector.listIndexedUshHarvesterJobs(), isThrowing(NullPointerException.class));
-        // Setup
-//        setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<harvestables/>");
-//
-//        // Subject under test
-//        Map<Integer, UshHarvesterProperties> indexedUshHarvesterJobs = connector.listIndexedUshHarvesterJobs();
-//
-//        // Verification
-//        assertThat(indexedUshHarvesterJobs, is(nullValue()));
     }
 
 

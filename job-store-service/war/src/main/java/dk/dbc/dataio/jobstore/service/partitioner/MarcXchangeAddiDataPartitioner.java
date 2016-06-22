@@ -38,7 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
- * A partitioner of Addi records read from an {@link InputStream} containing MarcXchange documents from RawRepo
+ * A partitioner of Addi records read from an {@link InputStream} containing MarcXchange documents
  * <pre>
  * {@code
  *
@@ -82,9 +82,8 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
 
     @Override
     protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
-        final MarcXchangeV1Reader marcReader;
         try {
-            marcReader = new MarcXchangeV1Reader(getInputStream(content), StandardCharsets.UTF_8);
+            final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(content), StandardCharsets.UTF_8);
             final MarcRecordInfoBuilder marcRecordInfoBuilder = new MarcRecordInfoBuilder();
             Optional<MarcRecordInfo> marcRecordInfo = marcRecordInfoBuilder.parse(marcReader.read());
             return Optional.of(marcRecordInfo.get());

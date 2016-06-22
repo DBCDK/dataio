@@ -27,7 +27,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 
-import java.util.Collections;
 import java.util.List;
 
 @JacksonXmlRootElement(localName = "harvestables")
@@ -35,7 +34,8 @@ public class Harvestables {
 
         @JacksonXmlProperty(localName = "harvestableBrief")
         @JacksonXmlElementWrapper(useWrapping = false)
-        private List<UshHarvesterProperties> ushHarvesterProperties = Collections.emptyList(); // default value
+        private List<UshHarvesterProperties> ushHarvesterProperties;
+
 
     public List<UshHarvesterProperties> getUshHarvesterProperties() {
         return ushHarvesterProperties;

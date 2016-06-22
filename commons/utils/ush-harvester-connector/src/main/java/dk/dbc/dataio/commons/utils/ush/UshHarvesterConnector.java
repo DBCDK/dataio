@@ -128,7 +128,7 @@ public class UshHarvesterConnector {
 
     private List<UshHarvesterProperties> getUshHarvesterProperties(String entityString) throws UshHarvesterConnectorException {
         try {
-            return mapper.readValue(entityString, Harvestables.class).getUshHarvesterProperties();
+            return mapper.readValue(entityString, Harvestables.class).getUshHarvesterProperties(); // Returns null if no ushHarvesterJobs
         } catch (IOException e) {
             throw new UshHarvesterConnectorException(String.format("invalid input xml:{%s} could not be read", entityString));
         }

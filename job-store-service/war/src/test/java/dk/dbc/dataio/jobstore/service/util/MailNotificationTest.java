@@ -21,12 +21,10 @@
 
 package dk.dbc.dataio.jobstore.service.util;
 
-import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.DiagnosticBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
-import dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
@@ -46,6 +44,7 @@ import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -58,6 +57,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Properties;
 
+import static dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest.getNotificationEntity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -73,6 +73,8 @@ public class MailNotificationTest {
     private static final String JOB_CREATED_SUBJECT = "DANBIB:postmester";
     private static final String JOB_COMPLETED_SUBJECT = "DANBIB:baseindlaeg";
     private final String destination = "mail@example.com";
+    private final String mailFrom = "dataio@dbc.dk";
+    private final String mailFromName = "DANBIB Fællesbruger";
     private final String mailToFallback = "default@dbc.dk";
     private final byte[] bytes = "Appended data".getBytes();
 
@@ -82,17 +84,27 @@ public class MailNotificationTest {
     }
 
     @Test
-    public void send_typeJobCompletedWithoutMailForNotificationAboutProcessing_setsDestinationToMailForNotificationAboutVerification() throws JobStoreException {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setMailForNotificationAboutVerification("verification@company.com")
-                .setMailForNotificationAboutProcessing(Constants.MISSING_FIELD_VALUE)
-                .build();
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, jobSpecification);
+    public void send_setsNotificationDestination() throws JobStoreException, MessagingException, IOException {
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, getJobEntity());
+        notification.setDestination(null);
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
-        assertThat("notification destination", notification.getDestination(), is(jobSpecification.getMailForNotificationAboutVerification()));
+
+        assertThat(notification.getDestination(), is(destination));
+    }
+
+    @Test
+    public void send_setsFromAddress() throws JobStoreException, MessagingException, IOException {
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, getJobEntity());
+
+        final MailNotification mailNotification = getMailNotification(notification);
+        mailNotification.send();
+
+        final List<Message> inbox = Mailbox.get(destination);
+        assertThat("Number of notifications for destination", inbox.size(), is(1));
+        final Message message = inbox.get(0);
+        assertThat("Notification from address", message.getFrom(), is(new InternetAddress[]{new InternetAddress(mailFrom, mailFromName)}));
     }
 
     @Test
@@ -100,8 +112,7 @@ public class MailNotificationTest {
         final JobSpecification jobSpecification = new JobSpecificationBuilder()
                 .setMailForNotificationAboutVerification("verification@company.com")
                 .build();
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_CREATED, jobSpecification);
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
         final MailDestination mailDestination = new MailDestination(null, notification);
         final MailNotification mailNotification = new MailNotification(mailDestination, notification);
@@ -116,8 +127,7 @@ public class MailNotificationTest {
     public void send_appliesIncompleteTransfileTemplate() throws JobStoreException, MessagingException, IOException, JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final InvalidTransfileNotificationContext context = new InvalidTransfileNotificationContext("file.trans", "content", "Trans fil mangler slut markering");
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.INVALID_TRANSFILE, getJobEntity());
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.INVALID_TRANSFILE, getJobEntity());
         notification.setDestination(destination);
         notification.setContext(jsonbContext.marshall(context));
 
@@ -132,8 +142,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCreatedOkTemplate() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_CREATED, getJobEntity());
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, getJobEntity());
 
         final MailNotification mailNotification = getMailNotification(notification);
         mailNotification.send();
@@ -147,8 +156,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCreatedFailTemplate() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_CREATED, getJobEntity());
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, getJobEntity());
         notification.getJob().getState().getDiagnostics().add(new DiagnosticBuilder().setMessage("Job dannelse fejlet").build());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -163,9 +171,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCompletedTemplate() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, getJobEntity());
-
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, getJobEntity());
         updateStateForJobCompletedBody(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -180,9 +186,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCompletedWithFailuresTemplate() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, getJobEntity());
-
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, getJobEntity());
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -197,9 +201,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCompletedWithFailuresAppendedTemplate() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, getJobEntity());
-
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, getJobEntity());
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -215,9 +217,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCompletedWithFailuresAppendedTemplateAndJobIdOverwrite() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, getJobEntity(123456));
-
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, getJobEntity(123456));
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -233,9 +233,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCompletedWithFailuresAppendedTemplateAndUnreadableLineFormatAttachment() throws JobStoreException, IOException, MessagingException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, getJobEntity());
-
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, getJobEntity());
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -262,9 +260,7 @@ public class MailNotificationTest {
 
     @Test
     public void send_appliesJobCompletedWithFailuresTemplateUnreadableIsoAttachment() throws JobStoreException, MessagingException, IOException {
-        final NotificationEntity notification = JobNotificationRepositoryTest.getNotificationEntity(
-                JobNotification.Type.JOB_COMPLETED, getJobEntity());
-
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, getJobEntity());
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
@@ -323,7 +319,6 @@ public class MailNotificationTest {
 
     private MailNotification getMailNotification(NotificationEntity notification) throws JobStoreException {
         final Properties mailSessionProperties = new Properties();
-        String mailFrom = "dataio@dbc.dk";
         mailSessionProperties.setProperty("mail.from", mailFrom);
         mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
         final MailDestination mailDestination = new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification);

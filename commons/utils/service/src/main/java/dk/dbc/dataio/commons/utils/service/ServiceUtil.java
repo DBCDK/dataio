@@ -182,9 +182,10 @@ public class ServiceUtil {
 
     /**
      * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
-     * constructed from given exception and from the message describing the error given as input
+     * constructed from given exception and message
      *
      * @param ex exception to wrap
+     * @param message describing the error
      *
      * @return JSON string representation of ServiceError object
      */

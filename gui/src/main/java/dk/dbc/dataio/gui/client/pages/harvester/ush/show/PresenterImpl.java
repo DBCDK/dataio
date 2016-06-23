@@ -25,7 +25,10 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.harvester.ush.modify.EditPlace;
@@ -39,6 +42,8 @@ import java.util.List;
  * This class represents the show harvesters presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
+    private final String RELATIVE_USH_ADMIN_URL = "/../harvester-admin/jobs/edit_oaipmh.xhtml";
+    protected String ushAdminUrl = "";
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -68,6 +73,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().setHeader(commonInjector.getMenuTexts().menu_UshHarvesters());
         containerWidget.setWidget(getView().asWidget());
         fetchHarvesters();
+        fetchUshAdminUrl();
     }
 
 
@@ -84,6 +90,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.placeController.goTo(new EditPlace(id));
     }
 
+    /**
+     * Opens a new window, containing the USH Harvester Admin Page
+     */
+    @Override
+    public void openUshAdminPage() {
+        Window.open(ushAdminUrl, "_blank", "");
+    }
+
 
     /*
      * Private methods
@@ -93,7 +107,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all harvesters, and sends them to the view
      */
     private void fetchHarvesters() {
-        commonInjector.getFlowStoreProxyAsync().findAllUshSolrHarvesterConfigs(new GetHarvestersCallback());
+        commonInjector.getFlowStoreProxyAsync().findAllUshSolrHarvesterConfigs(new GetUshHarvestersCallback());
+    }
+
+    private void fetchUshAdminUrl() {
+        commonInjector.getJndiProxyAsync().getJndiResource(JndiConstants.URL_RESOURCE_USH_HARVESTER, new GetUshAdminUrlCallback());
     }
 
     private View getView() {
@@ -101,10 +119,26 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
 
+    // Local classes
+
+    /**
+     * This class is the callback class for the getJndiResource method in the JNDI Proxy
+     */
+    protected class GetUshAdminUrlCallback implements AsyncCallback<String> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            getView().setErrorText(viewInjector.getTexts().error_JndiFetchError());
+        }
+        @Override
+        public void onSuccess(String jndiUrl) {
+            ushAdminUrl = jndiUrl + RELATIVE_USH_ADMIN_URL;
+        }
+    }
+
     /**
      * This class is the callback class for the findAllFlows method in the Flow Store
      */
-    protected class GetHarvestersCallback extends FilteredAsyncCallback<List<UshSolrHarvesterConfig>> {
+    protected class GetUshHarvestersCallback extends FilteredAsyncCallback<List<UshSolrHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));

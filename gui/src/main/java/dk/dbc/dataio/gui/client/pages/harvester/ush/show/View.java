@@ -22,8 +22,10 @@
 package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -59,12 +61,36 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    protected Texts getTexts() {
-        return this.viewInjector.getTexts();
+
+    /*
+     * UI Handler Actions
+     */
+
+    @UiHandler("ushButton")
+    void ushButtonPressed(ClickEvent event) {
+        presenter.openUshAdminPage();
     }
 
+
+    /*
+     * Public access methods
+     */
+
+    /**
+     * Set the list of actual Harvesters in the view
+     * @param harvesters The list of Harvesters to show
+     */
     public void setHarvesters(List<UshSolrHarvesterConfig> harvesters) {
         harvestersTable.setHarvesters(presenter, harvesters);
+    }
+
+
+    /*
+     * Local methods
+     */
+
+    protected Texts getTexts() {
+        return this.viewInjector.getTexts();
     }
 
 }

@@ -27,7 +27,9 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
+import dk.dbc.dataio.gui.client.proxies.JndiProxyAsync;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +39,10 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -52,7 +57,9 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class PresenterImplTest extends PresenterImplTestBase {
+    @Mock JndiProxyAsync mockedJndiProxy;
     @Mock PlaceController mockedPlaceController;
+    @Mock Texts mockedTexts;
     @Mock View mockedView;
     @Mock Widget mockedViewWidget;
     @Mock ViewGinjector mockedViewGinjector;
@@ -61,15 +68,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Before
     public void setupMockedData() {
         when(mockedCommonGinjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
+        when(mockedCommonGinjector.getJndiProxyAsync()).thenReturn(mockedJndiProxy);
         when(mockedViewGinjector.getView()).thenReturn(mockedView);
+        when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
         when(mockedCommonGinjector.getMenuTexts()).thenReturn(mockedMenuTexts);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
-    public void setupMenuTexts() {
+    public void setupTexts() {
         when(mockedMenuTexts.menu_UshHarvesters()).thenReturn("UshHarvestersMenu");
+        when(mockedTexts.error_JndiFetchError()).thenReturn("JndiFetchError");
     }
 
     private List<UshSolrHarvesterConfig> testHarvesterConfig = new ArrayList<>();
@@ -86,7 +96,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
             viewInjector = mockedViewGinjector;
             commonInjector = mockedCommonGinjector;
         }
-        public GetHarvestersCallback getHarvestersCallback = new GetHarvestersCallback();
+        public String getUshAdminPage() {
+            return ushAdminUrl;
+        }
+        public GetUshHarvestersCallback getUshHarvestersCallback = new GetUshHarvestersCallback();
+        public GetUshAdminUrlCallback getUshAdminUrlCallback = new GetUshAdminUrlCallback();
     }
 
 
@@ -107,20 +121,26 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
         verify(mockedFlowStore).findAllUshSolrHarvesterConfigs(any(AsyncCallback.class));
+        verify(mockedJndiProxy).getJndiResource(eq(JndiConstants.URL_RESOURCE_USH_HARVESTER), any(AsyncCallback.class));
+        verify(mockedMenuTexts).menu_UshHarvesters();
         verifyNoMoreInteractions(mockedViewGinjector);
         verifyNoMoreInteractions(mockedView);
         verifyNoMoreInteractions(mockedContainerWidget);
         verifyNoMoreInteractions(mockedFlowStore);
+        verifyNoMoreInteractions(mockedJndiProxy);
+        verifyNoMoreInteractions(mockedMenuTexts);
+        verifyNoMoreInteractions(mockedTexts);
     }
 
 
     @Test
-    public void getHarvesterUshConfigs_callbackWithError_errorMessageInView() {
+    public void getUshHarvestersCallback_callbackWithError_errorMessageInView() {
+        // Test preparation
         setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getHarvestersCallback.onFilteredFailure(new Exception());
+        presenterImpl.getUshHarvestersCallback.onFilteredFailure(new Exception());
 
         // Verify Test
         // The following is called from start()
@@ -133,12 +153,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void getHarvesterUshConfigs_callbackWithSuccess_fetchHarvesterConfigs() {
+    public void getUshHarvestersCallback_callbackWithSuccess_fetchHarvesterConfigs() {
+        // Test preparation
         setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getHarvestersCallback.onSuccess(testHarvesterConfig);
+        presenterImpl.getUshHarvestersCallback.onSuccess(testHarvesterConfig);
 
         // Verify Test
         // The following is called from start()
@@ -150,6 +171,42 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedView);
     }
 
+    @Test
+    public void getUshAdminUrlCallback_callbackWithError_errorMessageInView() {
+        // Test preparation
+        setupPresenterImpl();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getUshAdminUrlCallback.onFailure(new Exception());
+
+        // Verify Test
+        // The following is called from start()
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).asWidget();
+        // The following is called from GetHarvestersCallback
+        verify(mockedTexts).error_JndiFetchError();
+        verify(mockedView).setErrorText("JndiFetchError");
+        verifyNoMoreInteractions(mockedView);
+    }
+
+    @Test
+    public void getUshAdminUrlCallback_callbackWithSuccess_fetchUshAdminUrl() {
+        // Test preparation
+        setupPresenterImpl();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getUshAdminUrlCallback.onSuccess("UshAdminUrl");
+
+        // Verify Test
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).asWidget();
+        assertThat(presenterImpl.getUshAdminPage(), is("UshAdminUrl/../harvester-admin/jobs/edit_oaipmh.xhtml"));
+        verifyNoMoreInteractions(mockedView);
+    }
 
     // Private methods
 

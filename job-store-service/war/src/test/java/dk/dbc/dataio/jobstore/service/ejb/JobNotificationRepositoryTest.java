@@ -88,7 +88,9 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void processNotification_sendingOfNotificationFails_failsNotificationAndReturnsFalse() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
+                .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
         final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
@@ -112,7 +114,9 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void flushNotifications_transportLayerFails_allNotificationsAreProcessed() {
-        final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
+                .build();
         final List<NotificationEntity> notifications = Arrays.asList(
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
                 getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),

@@ -29,6 +29,7 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.service.util.Attachment;
 import dk.dbc.dataio.jobstore.service.util.JobExporter;
+import dk.dbc.dataio.jobstore.service.util.MailDestination;
 import dk.dbc.dataio.jobstore.service.util.MailNotification;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
@@ -196,7 +197,8 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
-        final MailNotification mailNotification = new MailNotification(mailSession, notification);
+        final MailDestination mailDestination = createMailDestination(mailSession, notification);
+        final MailNotification mailNotification = new MailNotification(mailDestination, notification);
         final JobEntity job = notification.getJob();
         if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
             final JobExporter jobExporter = new JobExporter(entityManager);
@@ -209,6 +211,10 @@ public class JobNotificationRepository extends RepositoryBase {
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
         }
         return mailNotification;
+    }
+
+    private MailDestination createMailDestination(Session mailSession, NotificationEntity notification) {
+        return new MailDestination(mailSession, notification);
     }
 
     private Attachment createAttachment(JobEntity job, JobExporter jobExporter) throws JobStoreException {

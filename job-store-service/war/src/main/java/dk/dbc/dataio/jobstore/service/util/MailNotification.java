@@ -33,7 +33,6 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -47,7 +46,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
 import static dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter.toJobInfoSnapshot;
@@ -65,7 +63,7 @@ public class MailNotification {
     private static final String SUBJECT_FOR_JOB_COMPLETED = "DANBIB:baseindlaeg";
     private static final String FROM_ADDRESS_PERSONAL_NAME = "DANBIB Fællesbruger";
 
-    private final Session mailSession;
+    private final MailDestination mailDestination;
     private final NotificationEntity notification;
     private final StringBuilder builder;
     private final JobSpecification.Ancestry ancestry;
@@ -73,9 +71,12 @@ public class MailNotification {
 
     private Attachment attachment;
 
+    public static boolean isUndefined(String value) {
+        return value == null || value.trim().isEmpty() || value.equals(MISSING_FIELD_VALUE);
+    }
 
-    public MailNotification(Session mailSession, NotificationEntity notification) throws JobStoreException {
-        this.mailSession = mailSession;
+    public MailNotification(MailDestination mailDestination, NotificationEntity notification) throws JobStoreException {
+        this.mailDestination = mailDestination;
         this.notification = notification;
         this.ancestry = notification.getJob().getSpecification().getAncestry();
         this.overwrites = new HashMap<>();
@@ -83,24 +84,17 @@ public class MailNotification {
             format();
         }
         builder = new StringBuilder(notification.getContent());
+        notification.setDestination(mailDestination.toString());
     }
 
     /**
      * Formats and sends this email notification
-     *
      * @throws JobStoreException in case of error during formatting or sending
      */
     public void send() throws JobStoreException {
         try {
-            final String destination = notification.getDestination();
-            if (isUndefined(destination)) {
-                setDestination();
-            }
-            final InternetAddress fromAddress = new InternetAddress(mailSession.getProperty("mail.from"), FROM_ADDRESS_PERSONAL_NAME);
-            final InternetAddress[] toAddresses = {new InternetAddress(notification.getDestination())};
-
             // sends the e-mail
-            Transport.send(buildMimeMessage(fromAddress, toAddresses));
+            Transport.send(buildMimeMessage());
         } catch (Exception e) {
             throw new JobStoreException("Unable to send notification", e);
         }
@@ -112,45 +106,6 @@ public class MailNotification {
 
     public void attach(Attachment attachment) {
         this.attachment = attachment;
-    }
-
-    private void setDestination() {
-        final String destination = inferDestinationFromType().orElse(MISSING_FIELD_VALUE);
-        if (destination.equals(MISSING_FIELD_VALUE)) {
-            notification.setDestination(mailSession.getProperty("mail.to.fallback"));
-            notification.setStatusMessage("Destination fallback used");
-        } else {
-            notification.setDestination(destination);
-        }
-    }
-
-    private Optional<String> inferDestinationFromType() {
-        switch (notification.getType()) {
-            case JOB_CREATED:   return getDestinationForJobCreatedNotification(notification.getJob().getSpecification());
-            case JOB_COMPLETED: return getDestinationForJobCompletedNotification(notification.getJob().getSpecification());
-            default: return Optional.empty();
-        }
-    }
-
-    private Optional<String> getDestinationForJobCreatedNotification(JobSpecification jobSpecification) {
-        final String destination = jobSpecification.getMailForNotificationAboutVerification();
-        if (destination.trim().isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(destination);
-    }
-
-    private Optional<String> getDestinationForJobCompletedNotification(JobSpecification jobSpecification) {
-        final String destination = jobSpecification.getMailForNotificationAboutProcessing();
-        if (destination.trim().isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
-            // fall back to primary destination
-            return getDestinationForJobCreatedNotification(jobSpecification);
-        }
-        return Optional.of(destination);
-    }
-
-    private boolean isUndefined(String value) {
-        return value == null || value.trim().isEmpty() || value.equals(MISSING_FIELD_VALUE);
     }
 
     private void format() throws JobStoreException {
@@ -218,10 +173,11 @@ public class MailNotification {
         return buffer.toString();
     }
 
-    private MimeMessage buildMimeMessage(InternetAddress fromAddress, InternetAddress[] toAddresses) throws MessagingException, IOException {
-        final MimeMessage message = new MimeMessage(mailSession);
-        message.setFrom(fromAddress);
-        message.setRecipients(Message.RecipientType.TO, toAddresses);
+    private MimeMessage buildMimeMessage() throws MessagingException, IOException {
+        final MimeMessage message = new MimeMessage(mailDestination.getMailSession());
+        message.setFrom(new InternetAddress(
+                mailDestination.getMailSession().getProperty("mail.from"), FROM_ADDRESS_PERSONAL_NAME));
+        message.setRecipients(Message.RecipientType.TO, mailDestination.getToAddresses());
         message.setSentDate(new Date());
 
         switch (notification.getType()) {

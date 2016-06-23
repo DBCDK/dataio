@@ -22,23 +22,34 @@
 package dk.dbc.dataio.jobstore.service.util;
 
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
+import dk.dbc.oss.ns.openagency.Information;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import java.util.Optional;
 
+import static dk.dbc.dataio.commons.types.Constants.CALL_OPEN_AGENCY;
 import static dk.dbc.dataio.commons.types.Constants.MISSING_FIELD_VALUE;
 
 public class MailDestination {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MailDestination.class);
+
     private final Session mailSession;
     private final NotificationEntity notification;
+    private final OpenAgencyConnector openAgencyConnector;
     private final String destination;
 
-    public MailDestination(Session mailSession, NotificationEntity notification) {
+    public MailDestination(Session mailSession, NotificationEntity notification, OpenAgencyConnector openAgencyConnector) {
         this.mailSession = mailSession;
         this.notification = notification;
+        this.openAgencyConnector = openAgencyConnector;
         this.destination = setDestination();
     }
 
@@ -57,19 +68,33 @@ public class MailDestination {
 
     private String setDestination() {
         String destination = notification.getDestination();
-        if (MailNotification.isUndefined(destination)) {
-           destination = inferDestinationFromJobSpecification().orElse(MISSING_FIELD_VALUE);
-           if (destination.equals(MISSING_FIELD_VALUE)) {
-               destination = mailSession.getProperty("mail.to.fallback");
-           }
+        final JobEntity job = notification.getJob();
+        if (job != null) {
+            if (MailNotification.isUndefined(destination)) {
+                destination = inferDestinationFromJobSpecification(job.getSpecification()).orElse(MISSING_FIELD_VALUE);
+            }
+            if (CALL_OPEN_AGENCY.equals(destination)) {
+                final Optional<Information> agencyInformation;
+                try {
+                    agencyInformation = openAgencyConnector.getAgencyInformation(job.getSpecification().getSubmitterId());
+                    if (agencyInformation.isPresent()) {
+                        destination = inferDestinationFromAgencyInformation(agencyInformation.get()).orElse(MISSING_FIELD_VALUE);
+                    }
+                } catch (OpenAgencyConnectorException e) {
+                    LOGGER.error("Failed to get agency information for agency " + job.getSpecification().getSubmitterId(), e);
+                }
+            }
+        }
+        if (destination.equals(MISSING_FIELD_VALUE)) {
+            destination = mailSession.getProperty("mail.to.fallback");
         }
         return destination;
     }
 
-    private Optional<String> inferDestinationFromJobSpecification() {
+    private Optional<String> inferDestinationFromJobSpecification(JobSpecification jobSpecification) {
         switch (notification.getType()) {
-            case JOB_CREATED:   return getJobCreatedNotificationDestinationFromJobSpecification(notification.getJob().getSpecification());
-            case JOB_COMPLETED: return getJobCompletedNotificationDestinationFromJobSpecification(notification.getJob().getSpecification());
+            case JOB_CREATED: return getJobCreatedNotificationDestinationFromJobSpecification(jobSpecification);
+            case JOB_COMPLETED: return getJobCompletedNotificationDestinationFromJobSpecification(jobSpecification);
             default: return Optional.empty();
         }
     }
@@ -87,6 +112,30 @@ public class MailDestination {
         if (destination.trim().isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
             // fall back to primary destination
             return getJobCreatedNotificationDestinationFromJobSpecification(jobSpecification);
+        }
+        return Optional.of(destination);
+    }
+
+    private Optional<String> inferDestinationFromAgencyInformation(Information agencyInformation) {
+        switch (notification.getType()) {
+            case JOB_CREATED: return getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
+            case JOB_COMPLETED: return getJobCompletedNotificationDestinationFromAgencyInformation(agencyInformation);
+            default: return Optional.empty();
+        }
+    }
+
+    private Optional<String> getJobCreatedNotificationDestinationFromAgencyInformation(Information agencyInformation) {
+        final String destination = agencyInformation.getBranchTransReportEmail();
+        if (destination == null || destination.trim().isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(destination);
+    }
+
+    private Optional<String> getJobCompletedNotificationDestinationFromAgencyInformation(Information agencyInformation) {
+        final String destination = agencyInformation.getBranchRejectedRecordsEmail();
+        if (destination == null || destination.trim().isEmpty()) {
+            return getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
         }
         return Optional.of(destination);
     }

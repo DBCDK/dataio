@@ -116,7 +116,7 @@ public class MailNotificationTest {
                 .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
-        final MailDestination mailDestination = new MailDestination(null, notification);
+        final MailDestination mailDestination = new MailDestination(null, notification, null);
         final MailNotification mailNotification = new MailNotification(mailDestination, notification);
         try {
             mailNotification.send();
@@ -323,7 +323,7 @@ public class MailNotificationTest {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
         mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
-        final MailDestination mailDestination = new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification);
+        final MailDestination mailDestination = new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification, null);
         return new MailNotification(mailDestination, notification);
     }
 

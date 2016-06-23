@@ -31,6 +31,8 @@ import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import org.junit.Before;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -60,6 +62,8 @@ import static org.mockito.Mockito.when;
 public class JobNotificationRepositoryTest {
     private final SessionContext sessionContext = mock(SessionContext.class);
     private final EntityManager entityManager = mock(EntityManager.class);
+    private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
+    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
     private final JSONBContext jsonbContext = new JSONBContext();
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
@@ -72,6 +76,7 @@ public class JobNotificationRepositoryTest {
 
     @Before
     public void setupExpectations() {
+        when(openAgencyConnectorBean.getConnector()).thenReturn(openAgencyConnector);
         when(entityManager.merge(any(NotificationEntity.class))).then(returnsFirstArg());
     }
 
@@ -80,7 +85,7 @@ public class JobNotificationRepositoryTest {
         final NotificationEntity notification = new NotificationEntity();
         notification.setStatus(JobNotification.Status.COMPLETED);
 
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(false));
         assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
         assertThat("notification destination", notification.getDestination(), is(nullValue()));
@@ -93,7 +98,7 @@ public class JobNotificationRepositoryTest {
                 .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         jobNotificationRepository.mailSession = null; // force transport layer to fail
         assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(false));
         assertThat("notification status", notification.getStatus(), is(JobNotification.Status.FAILED));
@@ -107,7 +112,7 @@ public class JobNotificationRepositoryTest {
                 .build();
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
 
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         assertThat("processNotification() return value", jobNotificationRepository.processNotification(notification), is(true));
         assertThat("notification status", notification.getStatus(), is(JobNotification.Status.COMPLETED));
     }
@@ -129,7 +134,7 @@ public class JobNotificationRepositoryTest {
         when(query.setMaxResults(anyInt())).thenReturn(query);
         when(query.getResultList()).thenReturn(notifications);
 
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         jobNotificationRepository.mailSession = null; // force transport layer to fail
         jobNotificationRepository.flushNotifications();
 
@@ -145,7 +150,7 @@ public class JobNotificationRepositoryTest {
         when(query.setParameter(anyString(), any())).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(42);
         assertThat("Return value", notifications, is(notNullValue()));
         assertThat("Number of notifications", notifications.size(), is(0));
@@ -164,7 +169,7 @@ public class JobNotificationRepositoryTest {
         when(query.setParameter(anyString(), any())).thenReturn(query);
         when(query.getResultList()).thenReturn(entities);
 
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final List<JobNotification> notifications = jobNotificationRepository.getNotificationsForJob(42);
         assertThat("Return value", notifications, is(notNullValue()));
         assertThat("Number of notifications", notifications.size(), is(2));
@@ -179,7 +184,7 @@ public class JobNotificationRepositoryTest {
     @Test
     public void addNotification_withJob_persistsAndReturnsEntityInWaitingState() {
         final JobEntity jobEntity = new JobEntity();
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
                 JobNotification.Type.JOB_COMPLETED, jobEntity);
         assertThat("getStatus()", notificationEntity.getStatus(), is(JobNotification.Status.WAITING));
@@ -191,7 +196,7 @@ public class JobNotificationRepositoryTest {
 
     @Test
     public void addNotification_withContext_persistsAndReturnsEntityInWaitingState() throws JSONBException, JobStoreException {
-        final JobNotificationRepository jobNotificationRepository = getPgJobNotificationRepository();
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
         final NotificationEntity notificationEntity = jobNotificationRepository.addNotification(
                 JobNotification.Type.INVALID_TRANSFILE, destination, new NotificationContext() {});
 
@@ -204,7 +209,7 @@ public class JobNotificationRepositoryTest {
         verify(entityManager).persist(notificationEntity);
     }
 
-    private JobNotificationRepository getPgJobNotificationRepository() {
+    private JobNotificationRepository createJobNotificationRepository() {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.from", mailFrom);
         mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
@@ -213,6 +218,7 @@ public class JobNotificationRepositoryTest {
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.sessionContext = sessionContext;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
+        jobNotificationRepository.openAgencyConnectorBean = openAgencyConnectorBean;
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
 
         return jobNotificationRepository;

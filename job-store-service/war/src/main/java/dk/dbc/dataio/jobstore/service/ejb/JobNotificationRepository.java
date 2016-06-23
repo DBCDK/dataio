@@ -197,7 +197,7 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     private MailNotification newMailNotification(NotificationEntity notification) throws JobStoreException {
-        final MailDestination mailDestination = createMailDestination(mailSession, notification);
+        final MailDestination mailDestination = new MailDestination(mailSession, notification, openAgencyConnectorBean.getConnector());
         final MailNotification mailNotification = new MailNotification(mailDestination, notification);
         final JobEntity job = notification.getJob();
         if (notification.getType() == JobNotification.Type.JOB_COMPLETED && job.hasFailedItems() && !job.hasFatalDiagnostics()) {
@@ -211,10 +211,6 @@ public class JobNotificationRepository extends RepositoryBase {
                     ChunkItem.Type.DANMARC2LINEFORMAT, StandardCharsets.UTF_8).toByteArray());
         }
         return mailNotification;
-    }
-
-    private MailDestination createMailDestination(Session mailSession, NotificationEntity notification) {
-        return new MailDestination(mailSession, notification);
     }
 
     private Attachment createAttachment(JobEntity job, JobExporter jobExporter) throws JobStoreException {

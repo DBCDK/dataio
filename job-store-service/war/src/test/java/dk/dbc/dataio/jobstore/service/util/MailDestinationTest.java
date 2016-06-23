@@ -27,19 +27,27 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
+import dk.dbc.oss.ns.openagency.Information;
 import org.junit.Test;
 
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import java.util.Optional;
 import java.util.Properties;
 
 import static dk.dbc.dataio.jobstore.service.ejb.JobNotificationRepositoryTest.getNotificationEntity;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class MailDestinationTest {
     private final String mailToFallback = "default@dbc.dk";
+    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
 
     @Test
     public void toString_notificationWithoutJobSpecificationWithNullDestination_returnsFallback() {
@@ -126,6 +134,83 @@ public class MailDestinationTest {
     }
 
     @Test
+    public void toString_notificationWithOpenAgencyCallWhenAgencyInformationPropertyIsNull_returnsFallback() {
+        setOpenAgencyConnectorExpectation(new Information());
+
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
+                .setMailForNotificationAboutProcessing("processing@company.com")
+                .build();
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+
+        final MailDestination mailDestination = createMailDestination(notification);
+        assertThat(mailDestination.toString(), is(mailToFallback));
+    }
+
+    @Test
+    public void toString_notificationWithOpenAgencyCallWhenAgencyInformationPropertyIsEmpty_returnsFallback() {
+        final Information agencyInformation = new Information();
+        agencyInformation.setBranchTransReportEmail("  ");
+        setOpenAgencyConnectorExpectation(agencyInformation);
+
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
+                .setMailForNotificationAboutProcessing("processing@company.com")
+                .build();
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+
+        final MailDestination mailDestination = createMailDestination(notification);
+        assertThat(mailDestination.toString(), is(mailToFallback));
+    }
+
+    @Test
+    public void toString_notificationForTypeJobCreatedWithOpenAgencyCall_returnsBranchTransReportEmail() {
+        final Information agencyInformation = new Information();
+        agencyInformation.setBranchTransReportEmail("mail@company.com");
+        setOpenAgencyConnectorExpectation(agencyInformation);
+
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
+                .setMailForNotificationAboutProcessing("processing@company.com")
+                .build();
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification);
+
+        final MailDestination mailDestination = createMailDestination(notification);
+        assertThat(mailDestination.toString(), is(agencyInformation.getBranchTransReportEmail()));
+    }
+
+    @Test
+    public void toString_notificationForTypeJobCompletedWithOpenAgencyCall_returnsBranchRejectedRecordsEmail() {
+        final Information agencyInformation = new Information();
+        agencyInformation.setBranchRejectedRecordsEmail("mail@company.com");
+        setOpenAgencyConnectorExpectation(agencyInformation);
+
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
+                .setMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY)
+                .build();
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
+
+        final MailDestination mailDestination = createMailDestination(notification);
+        assertThat(mailDestination.toString(), is(agencyInformation.getBranchRejectedRecordsEmail()));
+    }
+
+    @Test
+    public void toString_notificationForTypeJobCompletedWithOpenAgencyCallWithoutBranchRejectedRecordsEmail_returnsBranchTransReportMail() {
+        final Information agencyInformation = new Information();
+        agencyInformation.setBranchTransReportEmail("mail@company.com");
+        setOpenAgencyConnectorExpectation(agencyInformation);
+
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY)
+                .build();
+        final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_COMPLETED, jobSpecification);
+
+        final MailDestination mailDestination = createMailDestination(notification);
+        assertThat(mailDestination.toString(), is(agencyInformation.getBranchTransReportEmail()));
+    }
+
+    @Test
     public void toAddresses() throws AddressException {
         final NotificationEntity notification = createNotificationEntity();
         notification.setDestination(null);
@@ -137,17 +222,25 @@ public class MailDestinationTest {
     @Test
     public void getMailSession() {
         final Session mailSession = Session.getDefaultInstance(new Properties());
-        final MailDestination mailDestination = new MailDestination(mailSession, createNotificationEntity());
+        final MailDestination mailDestination = new MailDestination(mailSession, createNotificationEntity(), openAgencyConnector);
         assertThat(mailDestination.getMailSession(), is(mailSession));
     }
 
     private MailDestination createMailDestination(NotificationEntity notification) {
         final Properties mailSessionProperties = new Properties();
         mailSessionProperties.setProperty("mail.to.fallback", mailToFallback);
-        return new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification);
+        return new MailDestination(Session.getDefaultInstance(mailSessionProperties), notification, openAgencyConnector);
     }
 
     private NotificationEntity createNotificationEntity() {
         return getNotificationEntity(JobNotification.Type.INVALID_TRANSFILE, new JobEntity());
+    }
+
+    public void setOpenAgencyConnectorExpectation(Information agencyInformation) {
+        try {
+            when(openAgencyConnector.getAgencyInformation(anyLong())).thenReturn(Optional.of(agencyInformation));
+        } catch (OpenAgencyConnectorException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

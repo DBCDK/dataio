@@ -33,6 +33,8 @@ import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
+import dk.dbc.dataio.openagency.OpenAgencyConnector;
+import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
@@ -62,6 +64,8 @@ import static org.mockito.Mockito.when;
 
 public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
     private final SessionContext sessionContext = mock(SessionContext.class);
+    private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
+    private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
 
     /**
      * Given: an empty notification repository
@@ -351,8 +355,10 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         jobNotificationRepository.entityManager = entityManager;
         jobNotificationRepository.mailSession = Session.getDefaultInstance(mailSessionProperties);
         jobNotificationRepository.sessionContext = sessionContext;
+        jobNotificationRepository.openAgencyConnectorBean = openAgencyConnectorBean;
 
         when(sessionContext.getBusinessObject(JobNotificationRepository.class)).thenReturn(jobNotificationRepository);
+        when(openAgencyConnectorBean.getConnector()).thenReturn(openAgencyConnector);
 
         return jobNotificationRepository;
     }

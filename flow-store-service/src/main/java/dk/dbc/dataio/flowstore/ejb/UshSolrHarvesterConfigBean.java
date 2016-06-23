@@ -118,6 +118,7 @@ public class UshSolrHarvesterConfigBean {
             List<UshHarvesterProperties> existingUshHarvesterProperties,
             Map<Integer, UshSolrHarvesterConfig> indexedUshSolrHarvesterConfigs) throws FlowStoreException, JSONBException {
 
+        final int numberOfExistingUshHarvesterConfigs = indexedUshSolrHarvesterConfigs.size();
         final List<UshSolrHarvesterConfig> updatedUshSolrHarvesterConfigs = new ArrayList<>();
 
         // Check if UshSolrHarvester configuration is present in flow store for each ushHarvesterProperties
@@ -138,6 +139,9 @@ public class UshSolrHarvesterConfigBean {
 
         // Delete existing any UshSolrHarvesterConfig from flow store since absent in the universal search system
         if(!indexedUshSolrHarvesterConfigs.isEmpty()) {
+            if(existingUshHarvesterProperties.isEmpty() && indexedUshSolrHarvesterConfigs.size() == numberOfExistingUshHarvesterConfigs) {
+                throw new FlowStoreException("Flowstore panic: Attempt to delete all existing ushSolrHarvesterConfigs detected");
+            }
             deleteIfAbsentInUsh(indexedUshSolrHarvesterConfigs);
         }
         return updatedUshSolrHarvesterConfigs;

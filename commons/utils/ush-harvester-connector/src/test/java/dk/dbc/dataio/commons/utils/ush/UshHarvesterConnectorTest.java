@@ -46,7 +46,6 @@ import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
@@ -115,7 +114,7 @@ public class UshHarvesterConnectorTest {
     }
 
     @Test
-    public void listUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsNull() throws UshHarvesterConnectorException {
+    public void listUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsEmptyList() throws UshHarvesterConnectorException {
         // Setup
         setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<harvestables/>");
 
@@ -123,7 +122,7 @@ public class UshHarvesterConnectorTest {
         final List<UshHarvesterProperties> ushHarvesterProperties = connector.listUshHarvesterJobs();
 
         // Verification
-        assertThat(ushHarvesterProperties, is(nullValue()));
+        assertThat(ushHarvesterProperties.isEmpty(), is(true));
     }
 
     @Test
@@ -166,9 +165,15 @@ public class UshHarvesterConnectorTest {
     }
 
     @Test
-    public void listIndexedUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsNull() throws UshHarvesterConnectorException {
+    public void listIndexedUshHarvesterJobs_serviceReturnsValidXmlContainingZeroJobs_returnsEmptyMap() throws UshHarvesterConnectorException {
+        // Setup
         setupUshHarvesterMockedHttpResponse(Response.Status.OK, "<harvestables/>");
-        assertThat(() -> connector.listIndexedUshHarvesterJobs(), isThrowing(NullPointerException.class));
+
+        // Subject under test
+        Map<Integer, UshHarvesterProperties> indexedUshHarvesterJobs = connector.listIndexedUshHarvesterJobs();
+
+        // Verification
+        assertThat(indexedUshHarvesterJobs.isEmpty(), is(true));
     }
 
 

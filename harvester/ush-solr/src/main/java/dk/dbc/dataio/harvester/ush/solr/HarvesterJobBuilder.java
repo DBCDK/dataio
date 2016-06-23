@@ -24,6 +24,7 @@ package dk.dbc.dataio.harvester.ush.solr;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -228,15 +229,14 @@ public class HarvesterJobBuilder implements AutoCloseable {
         } catch (URISyntaxException e) {
             throw new HarvesterException("Unable to create FileStoreUrn", e);
         }
-        // TODO: 6/1/16 What to use for email notifications?
         return new JobSpecification(
                 jobSpecificationTemplate.getPackaging(),
                 jobSpecificationTemplate.getFormat(),
                 jobSpecificationTemplate.getCharset(),
                 jobSpecificationTemplate.getDestination(),
                 jobSpecificationTemplate.getSubmitterId(),
-                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION,
-                JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING,
+                Constants.CALL_OPEN_AGENCY,
+                Constants.CALL_OPEN_AGENCY,
                 JobSpecification.EMPTY_RESULT_MAIL_INITIALS,
                 fileStoreUrn.toString(),
                 jobSpecificationTemplate.getType(),

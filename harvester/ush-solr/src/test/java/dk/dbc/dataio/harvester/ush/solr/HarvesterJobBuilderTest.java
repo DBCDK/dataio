@@ -24,6 +24,7 @@ package dk.dbc.dataio.harvester.ush.solr;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -230,5 +231,7 @@ public class HarvesterJobBuilderTest {
         assertThat("charset", jobSpecification.getCharset(), is(jobSpecificationTemplate.getCharset()));
         assertThat("destination", jobSpecification.getDestination(), is(jobSpecificationTemplate.getDestination()));
         assertThat("submitter", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
+        assertThat("mailForNotificationAboutVerification", jobSpecification.getMailForNotificationAboutVerification(), is(Constants.CALL_OPEN_AGENCY));
+        assertThat("mailForNotificationAboutProcessing", jobSpecification.getMailForNotificationAboutProcessing(), is(Constants.CALL_OPEN_AGENCY));
     }
 }

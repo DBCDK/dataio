@@ -95,7 +95,7 @@ public class MailNotificationTest {
         assertThat(notification.getDestination(), is(destination));
     }
 
-    @Ignore
+    @Ignore("Can't figure why this fails on is.dbc.dk")
     @Test
     public void send_setsFromAddress() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, getJobEntity());

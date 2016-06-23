@@ -50,6 +50,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -120,6 +121,14 @@ public class HarvestOperationTest {
         when(resultSet.iterator()).thenReturn(Arrays.asList(new UshSolrDocument(), new UshSolrDocument()).iterator());
 
         assertThat(harvestOperation.execute(), is(2));
+    }
+
+    @Test
+    public void executeTest_returnsOptional() throws HarvesterException, FlowStoreServiceConnectorException {
+        final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
+        when(resultSet.iterator()).thenReturn(Arrays.asList(new UshSolrDocument(), new UshSolrDocument()).iterator());
+
+        assertThat(harvestOperation.executeTest(), is(Optional.empty()));
     }
 
     @Test
@@ -212,7 +221,7 @@ public class HarvestOperationTest {
                 .withFormat(expectedJobSpecificationTemplate.getFormat());
 
         final HarvestOperation harvestOperation = newHarvestOperation(ushSolrHarvesterConfig);
-        assertThat(harvestOperation.getJobSpecificationTemplate(), is(expectedJobSpecificationTemplate));
+        assertThat(harvestOperation.getJobSpecificationTemplate(JobSpecification.Type.TRANSIENT), is(expectedJobSpecificationTemplate));
     }
 
     private HarvestOperation newHarvestOperation() throws HarvesterException {

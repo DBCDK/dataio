@@ -36,6 +36,7 @@ import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrConnector;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
+import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -105,12 +106,9 @@ public class HarvestOperation {
                 binaryFileStore,
                 fileStoreServiceConnector,
                 jobStoreServiceConnector,
-                getJobSpecificationTemplate()))
+                getJobSpecificationTemplate(JobSpecification.Type.TRANSIENT)))
         {
-            final UshSolrConnector.ResultSet resultSet = ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(
-                    config.getContent().getUshHarvesterJobId().toString(),
-                    config.getContent().getTimeOfLastHarvest(),
-                    ushHarvesterProperties.getLastHarvestFinished());
+            final UshSolrConnector.ResultSet resultSet = getDatabaseDocumentHarvestedInInterval();
 
             for (UshSolrDocument solrDocument : resultSet) {
                 jobBuilder.addRecord(toAddiRecord(solrDocument));
@@ -123,6 +121,39 @@ public class HarvestOperation {
         }
         wal.commit();
         return recordsAdded;
+    }
+
+    /**
+     * Runs this test harvest operation which will harvest a maximum of 100 records.
+     * @return Optional JobInfoSnapshot
+     * @throws HarvesterException if unable to complete harvest operation
+     */
+    public Optional<JobInfoSnapshot> executeTest() throws HarvesterException {
+        // do harvest 100 records...
+        int testRecordsAdded = 100;
+        try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(
+                binaryFileStore,
+                fileStoreServiceConnector,
+                jobStoreServiceConnector,
+                getJobSpecificationTemplate(JobSpecification.Type.TEST)))
+        {
+            final UshSolrConnector.ResultSet resultSet = getDatabaseDocumentHarvestedInInterval();
+
+            for (UshSolrDocument solrDocument : resultSet) {
+                jobBuilder.addRecord(toAddiRecord(solrDocument));
+                if(jobBuilder.getRecordsAdded() == testRecordsAdded) {
+                    break;
+                }
+            }
+            return jobBuilder.build();
+        }
+    }
+
+    private UshSolrConnector.ResultSet getDatabaseDocumentHarvestedInInterval() {
+        return ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(
+                config.getContent().getUshHarvesterJobId().toString(),
+                config.getContent().getTimeOfLastHarvest(),
+                ushHarvesterProperties.getLastHarvestFinished());
     }
 
     void redoConfigUpdateIfUncommitted() throws HarvesterException {
@@ -146,11 +177,11 @@ public class HarvestOperation {
         }
     }
 
-    JobSpecification getJobSpecificationTemplate() throws HarvesterException {
+    JobSpecification getJobSpecificationTemplate(JobSpecification.Type type) throws HarvesterException {
         try {
             final UshSolrHarvesterConfig.Content configFields = config.getContent();
             return new JobSpecification("xml", configFields.getFormat(), "utf8", configFields.getDestination(), configFields.getSubmitterNumber(),
-                    "placeholder", "placeholder", "placeholder", "placeholder", JobSpecification.Type.TRANSIENT,
+                    "placeholder", "placeholder", "placeholder", "placeholder", type,
                     new JobSpecification.Ancestry()
                             .withHarvesterToken(getWalEntry().toString()));
         } catch (RuntimeException e) {

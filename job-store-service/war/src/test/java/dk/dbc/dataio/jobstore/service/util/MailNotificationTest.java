@@ -36,6 +36,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
@@ -94,6 +95,7 @@ public class MailNotificationTest {
         assertThat(notification.getDestination(), is(destination));
     }
 
+    @Ignore
     @Test
     public void send_setsFromAddress() throws JobStoreException, MessagingException, IOException {
         final NotificationEntity notification = getNotificationEntity(JobNotification.Type.JOB_CREATED, getJobEntity());

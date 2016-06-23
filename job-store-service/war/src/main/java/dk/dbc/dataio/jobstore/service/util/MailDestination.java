@@ -117,11 +117,22 @@ public class MailDestination {
     }
 
     private Optional<String> inferDestinationFromAgencyInformation(Information agencyInformation) {
+        Optional<String> destination = Optional.empty();
         switch (notification.getType()) {
-            case JOB_CREATED: return getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
-            case JOB_COMPLETED: return getJobCompletedNotificationDestinationFromAgencyInformation(agencyInformation);
-            default: return Optional.empty();
+            case JOB_CREATED:
+                destination = getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
+                if (!destination.isPresent()) {
+                    destination = getJobCompletedNotificationDestinationFromAgencyInformation(agencyInformation);
+                }
+                break;
+            case JOB_COMPLETED:
+                destination = getJobCompletedNotificationDestinationFromAgencyInformation(agencyInformation);
+                if (!destination.isPresent()) {
+                    destination = getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
+                }
+                break;
         }
+        return destination;
     }
 
     private Optional<String> getJobCreatedNotificationDestinationFromAgencyInformation(Information agencyInformation) {
@@ -135,7 +146,7 @@ public class MailDestination {
     private Optional<String> getJobCompletedNotificationDestinationFromAgencyInformation(Information agencyInformation) {
         final String destination = agencyInformation.getBranchRejectedRecordsEmail();
         if (destination == null || destination.trim().isEmpty()) {
-            return getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
+            return Optional.empty();
         }
         return Optional.of(destination);
     }

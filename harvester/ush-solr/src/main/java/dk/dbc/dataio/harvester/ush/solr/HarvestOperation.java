@@ -108,7 +108,7 @@ public class HarvestOperation {
                 jobStoreServiceConnector,
                 getJobSpecificationTemplate(JobSpecification.Type.TRANSIENT)))
         {
-            final UshSolrConnector.ResultSet resultSet = getDatabaseDocumentHarvestedInInterval();
+            final UshSolrConnector.ResultSet resultSet = findDatabaseDocumentsHarvestedInInterval();
 
             for (UshSolrDocument solrDocument : resultSet) {
                 jobBuilder.addRecord(toAddiRecord(solrDocument));
@@ -137,7 +137,7 @@ public class HarvestOperation {
                 jobStoreServiceConnector,
                 getJobSpecificationTemplate(JobSpecification.Type.TEST)))
         {
-            final UshSolrConnector.ResultSet resultSet = getDatabaseDocumentHarvestedInInterval();
+            final UshSolrConnector.ResultSet resultSet = findDatabaseDocumentsHarvestedInInterval();
 
             for (UshSolrDocument solrDocument : resultSet) {
                 jobBuilder.addRecord(toAddiRecord(solrDocument));
@@ -147,13 +147,6 @@ public class HarvestOperation {
             }
             return jobBuilder.build();
         }
-    }
-
-    private UshSolrConnector.ResultSet getDatabaseDocumentHarvestedInInterval() {
-        return ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(
-                config.getContent().getUshHarvesterJobId().toString(),
-                config.getContent().getTimeOfLastHarvest(),
-                ushHarvesterProperties.getLastHarvestFinished());
     }
 
     void redoConfigUpdateIfUncommitted() throws HarvesterException {
@@ -187,6 +180,17 @@ public class HarvestOperation {
         } catch (RuntimeException e) {
             throw new HarvesterException("Unable to create job specification template", e);
         }
+    }
+
+    /*
+     * Private methods
+     */
+
+    private UshSolrConnector.ResultSet findDatabaseDocumentsHarvestedInInterval() {
+        return ushSolrConnector.findDatabaseDocumentsHarvestedInInterval(
+                config.getContent().getUshHarvesterJobId().toString(),
+                config.getContent().getTimeOfLastHarvest(),
+                ushHarvesterProperties.getLastHarvestFinished());
     }
 
     private AddiRecord toAddiRecord(UshSolrDocument document) throws HarvesterException {

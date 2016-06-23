@@ -28,23 +28,35 @@ public class ServiceError implements Serializable {
 
     private /* final */ String message;
     private /* final */ String details;
+    private /* final */ String stacktrace;
 
-    private ServiceError() { }
+    public ServiceError() { }
 
-    public ServiceError(String message, String details) {
+    public ServiceError withMessage(String message) {
         this.message = message;
-        this.details = details;
-    }
-
-    public ServiceError(String message) {
-        this(message, "");
+        return this;
     }
 
     public String getMessage() {
         return message;
     }
 
+    public ServiceError withDetails(String details) {
+        this.details = details;
+        return this;
+    }
+
     public String getDetails() {
         return details;
     }
+
+    public ServiceError withStacktrace(String stacktrace) {
+        this.stacktrace = stacktrace;
+        return this;
+    }
+
+    public String getStacktrace() {
+        return stacktrace;
+    }
+
 }

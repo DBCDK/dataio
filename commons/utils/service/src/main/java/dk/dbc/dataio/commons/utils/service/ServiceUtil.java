@@ -170,24 +170,6 @@ public class ServiceUtil {
 
     /**
      * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
-     * constructed from given error message
-     *
-     * @param errorMessage error message
-     *
-     * @return JSON string representation of ServiceError object
-     */
-    public static String asJsonError(String errorMessage) {
-        String error = null;
-        try {
-            error = jsonbContext.marshall(new ServiceError(errorMessage));
-        } catch (JSONBException e) {
-            log.error("Caught exception trying to create JSON representation of error", e);
-        }
-        return error;
-    }
-
-    /**
-     * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
      * constructed from given exception
      *
      * @param ex exception to wrap
@@ -195,10 +177,22 @@ public class ServiceUtil {
      * @return JSON string representation of ServiceError object
      */
     public static String asJsonError(Exception ex) {
+        return asJsonError(ex, null);
+    }
+
+    /**
+     * Returns JSON string representation of dk.dbc.dataio.commons.types.ServiceError object
+     * constructed from given exception and from the message describing the error given as input
+     *
+     * @param ex exception to wrap
+     *
+     * @return JSON string representation of ServiceError object
+     */
+    public static String asJsonError(Exception ex, String message) {
         String error = null;
         try {
             log.error("Generating error based on exception", ex);
-            error = jsonbContext.marshall(new ServiceError(ex.getMessage(), stackTraceToString(ex)));
+            error = jsonbContext.marshall(new ServiceError().withMessage(message).withDetails(ex.getMessage()).withStacktrace(stackTraceToString(ex)));
         } catch (JSONBException e) {
             log.error("Caught exception trying to create JSON representation of error", e);
         }

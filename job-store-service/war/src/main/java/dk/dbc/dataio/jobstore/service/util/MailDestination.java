@@ -92,62 +92,44 @@ public class MailDestination {
     }
 
     private Optional<String> inferDestinationFromJobSpecification(JobSpecification jobSpecification) {
-        switch (notification.getType()) {
-            case JOB_CREATED: return getJobCreatedNotificationDestinationFromJobSpecification(jobSpecification);
-            case JOB_COMPLETED: return getJobCompletedNotificationDestinationFromJobSpecification(jobSpecification);
-            default: return Optional.empty();
-        }
-    }
-
-    private Optional<String> getJobCreatedNotificationDestinationFromJobSpecification(JobSpecification jobSpecification) {
-        final String destination = jobSpecification.getMailForNotificationAboutVerification();
-        if (destination.trim().isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.of(destination);
-    }
-
-    private Optional<String> getJobCompletedNotificationDestinationFromJobSpecification(JobSpecification jobSpecification) {
-        final String destination = jobSpecification.getMailForNotificationAboutProcessing();
-        if (destination.trim().isEmpty() || destination.equals(MISSING_FIELD_VALUE)) {
-            // fall back to primary destination
-            return getJobCreatedNotificationDestinationFromJobSpecification(jobSpecification);
-        }
-        return Optional.of(destination);
-    }
-
-    private Optional<String> inferDestinationFromAgencyInformation(Information agencyInformation) {
         Optional<String> destination = Optional.empty();
         switch (notification.getType()) {
             case JOB_CREATED:
-                destination = getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
-                if (!destination.isPresent()) {
-                    destination = getJobCompletedNotificationDestinationFromAgencyInformation(agencyInformation);
-                }
+                destination = toOptional(jobSpecification.getMailForNotificationAboutVerification());
                 break;
             case JOB_COMPLETED:
-                destination = getJobCompletedNotificationDestinationFromAgencyInformation(agencyInformation);
+                destination = toOptional(jobSpecification.getMailForNotificationAboutProcessing());
                 if (!destination.isPresent()) {
-                    destination = getJobCreatedNotificationDestinationFromAgencyInformation(agencyInformation);
+                    destination = toOptional(jobSpecification.getMailForNotificationAboutVerification());
                 }
                 break;
         }
         return destination;
     }
 
-    private Optional<String> getJobCreatedNotificationDestinationFromAgencyInformation(Information agencyInformation) {
-        final String destination = agencyInformation.getBranchTransReportEmail();
-        if (destination == null || destination.trim().isEmpty()) {
-            return Optional.empty();
+    private Optional<String> inferDestinationFromAgencyInformation(Information agencyInformation) {
+        Optional<String> destination = Optional.empty();
+        switch (notification.getType()) {
+            case JOB_CREATED:
+                destination = toOptional(agencyInformation.getBranchTransReportEmail());
+                if (!destination.isPresent()) {
+                    destination = toOptional(agencyInformation.getBranchRejectedRecordsEmail());
+                }
+                break;
+            case JOB_COMPLETED:
+                destination = toOptional(agencyInformation.getBranchRejectedRecordsEmail());
+                if (!destination.isPresent()) {
+                    destination = toOptional(agencyInformation.getBranchTransReportEmail());
+                }
+                break;
         }
-        return Optional.of(destination);
+        return destination;
     }
 
-    private Optional<String> getJobCompletedNotificationDestinationFromAgencyInformation(Information agencyInformation) {
-        final String destination = agencyInformation.getBranchRejectedRecordsEmail();
-        if (destination == null || destination.trim().isEmpty()) {
+    private Optional<String> toOptional(String value) {
+        if (value == null || value.trim().isEmpty() || value.equals(MISSING_FIELD_VALUE)) {
             return Optional.empty();
         }
-        return Optional.of(destination);
+        return Optional.of(value);
     }
 }

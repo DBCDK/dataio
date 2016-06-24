@@ -204,7 +204,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedView).setHeader(any(String.class));
         verify(mockedView).asWidget();
-        assertThat(presenterImpl.getUshAdminPage(), is("UshAdminUrl/../harvester-admin/jobs/edit_oaipmh.xhtml"));
+        assertThat(presenterImpl.getUshAdminPage(), is("UshAdminUrl/../harvester-admin/"));
         verifyNoMoreInteractions(mockedView);
     }
 

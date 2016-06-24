@@ -40,6 +40,7 @@ public class ItemModelBuilder {
             new DiagnosticModelBuilder().build()));
     private boolean diagnosticFatal = false;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
+    private String trackingId;
 
     public ItemModelBuilder setItemNumber(String itemNumber) {
         this.itemNumber = itemNumber;
@@ -86,8 +87,13 @@ public class ItemModelBuilder {
         return this;
     }
 
+    public ItemModelBuilder setTrackingId(String trackingId) {
+        this.trackingId = trackingId;
+        return this;
+    }
+
     public ItemModel build() {
-        return new ItemModel(itemNumber, itemId, chunkId, jobId, recordId, lifeCycle, diagnosticModels, diagnosticFatal, workflowNoteModel);
+        return new ItemModel(itemNumber, itemId, chunkId, jobId, recordId, lifeCycle, diagnosticModels, diagnosticFatal, workflowNoteModel, trackingId);
     }
 
 }

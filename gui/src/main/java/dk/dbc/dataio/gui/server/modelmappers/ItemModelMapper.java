@@ -106,7 +106,8 @@ public final class ItemModelMapper {
                 searchFailed(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
                 hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
-                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()));
+                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()),
+                itemInfoSnapshot.getTrackingId());
     }
 
     /**
@@ -154,7 +155,8 @@ public final class ItemModelMapper {
                 searchIgnored(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
                 hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
-                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()));
+                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()),
+                itemInfoSnapshot.getTrackingId());
     }
 
     /**
@@ -173,7 +175,8 @@ public final class ItemModelMapper {
                 searchAll(itemInfoSnapshot.getState()),
                 toDiagnosticModels(itemInfoSnapshot.getState().getDiagnostics()),
                 hasFatalDiagnostic(itemInfoSnapshot.getState().getDiagnostics()),
-                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()));
+                WorkflowNoteModelMapper.toWorkflowNoteModel(itemInfoSnapshot.getWorkflowNote()),
+                itemInfoSnapshot.getTrackingId());
     }
 
     /**

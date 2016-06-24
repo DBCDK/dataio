@@ -54,7 +54,8 @@ public class ItemInfoSnapshotConverter {
                 toDate(itemEntity.getTimeOfCompletion()),
                 itemEntity.getState(),
                 itemEntity.getWorkflowNote(),
-                itemEntity.getRecordInfo());
+                itemEntity.getRecordInfo(),
+                itemEntity.getPartitioningOutcome() == null ? null : itemEntity.getPartitioningOutcome().getTrackingId());
     }
 
     private static int calculateItemNumber(ItemEntity.Key key) {

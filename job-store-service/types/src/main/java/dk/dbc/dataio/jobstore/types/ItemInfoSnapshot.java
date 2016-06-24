@@ -39,6 +39,7 @@ public class ItemInfoSnapshot {
     private State state;
     private WorkflowNote workflowNote;
     private RecordInfo recordInfo;
+    private String trackingId;
 
     @JsonCreator
     public ItemInfoSnapshot(@JsonProperty("itemNumber") int itemNumber,
@@ -50,7 +51,8 @@ public class ItemInfoSnapshot {
                             @JsonProperty("timeOfCompletion") Date timeOfCompletion,
                             @JsonProperty("state") State state,
                             @JsonProperty("workflowNote") WorkflowNote workflowNote,
-                            @JsonProperty("recordInfo") RecordInfo recordInfo) {
+                            @JsonProperty("recordInfo") RecordInfo recordInfo,
+                            @JsonProperty("trackingId") String trackingId) {
 
         this.itemNumber = itemNumber;
         this.itemId = itemId;
@@ -62,6 +64,7 @@ public class ItemInfoSnapshot {
         this.state = state;
         this.workflowNote = workflowNote;
         this.recordInfo = recordInfo;
+        this.trackingId = trackingId;
     }
 
     public int getItemNumber() {
@@ -104,6 +107,10 @@ public class ItemInfoSnapshot {
         return recordInfo;
     }
 
+    public String getTrackingId() {
+        return trackingId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -120,7 +127,8 @@ public class ItemInfoSnapshot {
                 && !(timeOfCompletion != null ? !timeOfCompletion.equals(that.timeOfCompletion) : that.timeOfCompletion != null)
                 && !(state != null ? !state.equals(that.state) : that.state != null)
                 && !(workflowNote != null ? !workflowNote.equals(that.workflowNote) : that.workflowNote != null)
-                && !(recordInfo != null ? !recordInfo.equals(that.recordInfo) : that.recordInfo != null);
+                && !(recordInfo != null ? !recordInfo.equals(that.recordInfo) : that.recordInfo != null)
+                && !(trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null);
     }
 
     @Override
@@ -135,6 +143,7 @@ public class ItemInfoSnapshot {
         result = 31 * result + (state != null ? state.hashCode() : 0);
         result = 31 * result + (workflowNote != null ? workflowNote.hashCode() : 0);
         result = 31 * result + (recordInfo != null ? recordInfo.hashCode() : 0);
+        result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
         return result;
     }
 }

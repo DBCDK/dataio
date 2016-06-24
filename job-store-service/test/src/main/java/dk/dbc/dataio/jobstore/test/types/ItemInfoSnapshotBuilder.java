@@ -40,6 +40,7 @@ public class ItemInfoSnapshotBuilder {
     private State state = new State();
     private WorkflowNote workflowNote = null;
     private RecordInfo recordInfo = new RecordInfo("42");
+    private String trackingId = "1";
 
     public ItemInfoSnapshotBuilder setItemId(short itemId) {
         this.itemId = itemId;
@@ -88,8 +89,13 @@ public class ItemInfoSnapshotBuilder {
         return this;
     }
 
+    public ItemInfoSnapshotBuilder setTrackingId(String trackingId) {
+        this.trackingId = trackingId;
+        return this;
+    }
+
     public ItemInfoSnapshot build() {
-        return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state, workflowNote, recordInfo);
+        return new ItemInfoSnapshot(itemNumber, itemId, chunkId, jobId, timeOfCreation, timeOfLastModification, timeOfCompletion, state, workflowNote, recordInfo, trackingId);
     }
 
     private int calculateItemNumber() {

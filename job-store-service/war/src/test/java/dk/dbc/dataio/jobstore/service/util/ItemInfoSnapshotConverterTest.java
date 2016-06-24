@@ -68,7 +68,6 @@ public class ItemInfoSnapshotConverterTest {
     }
 
     private void assertItemInfoSnapshotEquals(ItemInfoSnapshot itemInfoSnapshot, ItemEntity itemEntity) {
-        assertThat(itemInfoSnapshot.getState(), is(itemEntity.getState()));
         assertThat(itemInfoSnapshot.getItemId(), is(itemEntity.getKey().getId()));
         assertThat(itemInfoSnapshot.getChunkId(), is(itemEntity.getKey().getChunkId()));
         assertThat(itemInfoSnapshot.getJobId(), is(itemEntity.getKey().getJobId()));
@@ -76,5 +75,6 @@ public class ItemInfoSnapshotConverterTest {
         assertThat(itemInfoSnapshot.getTimeOfCompletion().getTime(), is(itemEntity.getTimeOfCompletion().getTime()));
         assertThat(itemInfoSnapshot.getWorkflowNote(), is(itemEntity.getWorkflowNote()));
         assertThat(itemInfoSnapshot.getRecordInfo(), is(itemEntity.getRecordInfo()));
+        assertThat(itemInfoSnapshot.getTrackingId(), is(itemEntity.getPartitioningOutcome().getTrackingId()));
     }
 }

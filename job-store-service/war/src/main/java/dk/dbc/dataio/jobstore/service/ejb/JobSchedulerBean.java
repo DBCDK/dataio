@@ -219,7 +219,6 @@ public class JobSchedulerBean {
      * If called Multiple times with the same chunk, or chunk not in QUEUED_TO_DELIVERY the chunk is ignored
      *
      * @param chunk Chunk Done
-     * @throws JSONBException on failure to queue other chunks
      * @throws JobStoreException on failure to queue other chunks
      */
     @Stopwatch

@@ -42,7 +42,7 @@ import java.util.List;
  * This class represents the show harvesters presenter implementation
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
-    private final String RELATIVE_USH_ADMIN_URL = "/../harvester-admin/jobs/edit_oaipmh.xhtml";
+    private final String RELATIVE_USH_ADMIN_URL = "/../harvester-admin/";
     protected String ushAdminUrl = "";
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);

@@ -38,7 +38,6 @@ import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
@@ -223,7 +222,7 @@ public class PgJobStore {
                     abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
                     break;
                 }
-                jobSchedulerBean.scheduleChunk(chunkEntity.toCollisionDetectionElement(), job.getCachedSink().getSink());
+                jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink());
             } while (true);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
@@ -297,7 +296,7 @@ public class PgJobStore {
             final State chunkState = updateChunkEntityState(chunkEntity, chunkStateChange);
             if(chunkState.allPhasesAreDone()) {
                 chunkEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
-                jobSchedulerBean.releaseChunk((ChunkIdentifier) chunkEntity.toCollisionDetectionElement().getIdentifier());
+                jobSchedulerBean.chunkDeliveringDone( chunk );
             }
 
             // update job

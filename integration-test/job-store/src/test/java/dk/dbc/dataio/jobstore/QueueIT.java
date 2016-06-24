@@ -36,11 +36,16 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jsonb.JSONBException;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
@@ -49,12 +54,10 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+/* Tests the connection from the JobStore bean and the JobScheduler bean
+ *
+ */
 public class QueueIT extends AbstractJobStoreTest {
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -89,8 +92,8 @@ public class QueueIT extends AbstractJobStoreTest {
 
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));
 
-        // Swallow 1st Chunk message
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
+        /* Chunks message send to processing queue */
+        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
         JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
 
         jobInfoSnapshot = getJob(jobInfoSnapshot.getJobId());
@@ -123,10 +126,6 @@ public class QueueIT extends AbstractJobStoreTest {
                 .setItems(chunkItems)
                 .build();
         jobStoreServiceConnector.addChunk(processedChunk, jobInfoSnapshot.getJobId(), 0);
-
-        // Swallow 2nd Chunk message
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 1, MAX_QUEUE_WAIT_IN_MS);
-        JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
 
         jobInfoSnapshot = getJob(jobInfoSnapshot.getJobId());
         assertThat("Processing phase complete", jobInfoSnapshot.getState().phaseIsDone(State.Phase.PROCESSING), is(false));

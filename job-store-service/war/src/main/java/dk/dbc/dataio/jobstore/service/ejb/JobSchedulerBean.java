@@ -1,277 +1,388 @@
-/*
- * DataIO - Data IO
- * Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
- * Denmark. CVR: 15149043
- *
- * This file is part of DataIO.
- *
- * DataIO is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * DataIO is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorBean;
-import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorMXBean;
-import dk.dbc.dataio.jobstore.service.ejb.monitoring.SequenceAnalyserMonitorSample;
-import dk.dbc.dataio.jobstore.service.sequenceanalyser.ChunkIdentifier;
+import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
+import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
+import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
-import dk.dbc.dataio.sequenceanalyser.SequenceAnalyser;
-import dk.dbc.dataio.sequenceanalyser.naive.NaiveSequenceAnalyser;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
+import javax.annotation.Resource;
+import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
-import javax.ejb.Singleton;
-import javax.ejb.Startup;
-import java.util.Collections;
-import java.util.Date;
+import javax.ejb.SessionContext;
+import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.Query;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * This Enterprise Java Bean (EJB) is responsible for chunk scheduling
- * via sequence analysis and for notifying the dataIO pipeline components of
- * available chunks.
+ * Created by ja7 on 11-04-16.
+ *
+ * Handle Chunk Scheduling. Chunks Travels thu the ChunkProcessStatus stages.
+ *
+ * HACK:
+ * Limits is pr jvm process.
  */
-@Singleton
-@Startup
-@ConcurrencyManagement(ConcurrencyManagementType.BEAN)
+@Stateless
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
-    static final int MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK = 10000;
-    static final int MAX_NUMBER_OF_ITEMS_PER_WORKLOAD = 100;
-    public static final boolean DO_PUBLISH_WORKLOAD = true;
-    public static final boolean NOT_PUBLISH_WORKLOAD = false;
 
-    ConcurrentHashMap<String, SequenceAnalyserComposite> sequenceAnalysers = new ConcurrentHashMap<>(16, 0.9F, 1);
-    ConcurrentHashMap<ChunkIdentifier, Sink> toSinkMapping = new ConcurrentHashMap<>(16, 0.9F, 1);
+    // Max JMS Size pr Sink
+    static final int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
+    static final int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 100;
 
-    @EJB PgJobStoreRepository jobStoreRepository;
+    // Hash use to keep a count of pending jobs in JMS queues pr sink.
+    // Small EJB violation for performance.
+    // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
 
-    @EJB
-    SequenceAnalyserMonitorBean sequenceAnalyserMonitorBean;
+    static final ConcurrentHashMap<Long,AtomicInteger> queuedToProcessingCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
+    static final ConcurrentHashMap<Long,AtomicInteger> queuedToDeliveringCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
+
+
+    @Inject
+    @JobstoreDB
+    EntityManager entityManager;
 
     @EJB
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
+    @EJB
+    SinkMessageProducerBean sinkMessageProducerBean;
+    @EJB
+    private PgJobStoreRepository jobStoreRepository;
+
+    @Resource
+    private SessionContext sessionContext;
+
+
+    private JobSchedulerBean getProxyToSelf() {
+        return sessionContext.getBusinessObject(JobSchedulerBean.class);
+    }
 
     /**
-     * Passes given chunk collision detection element and sink on to the
+     * ScheduleChunk
+
+     * Passes given detection element and sink on to the
      * sequence analyser and notifies pipeline of next available workload (if any)
-     * @param chunkCDE next chunk collision detection element to enter into sequence analysis
+     * @param chunk next chunk element to enter into sequence analysis
      * @param sink sink associated with chunk
      * @throws NullPointerException if given any null-valued argument
-     * @throws JobStoreException if unable to setup monitoring
-     */
-    public void scheduleChunk(CollisionDetectionElement chunkCDE, Sink sink) throws NullPointerException, JobStoreException {
-        scheduleChunk(chunkCDE, sink, DO_PUBLISH_WORKLOAD);
-    }
-
-    /**
-     * Passes given chunk collision detection element and sink on to the
-     * sequence analyser. If doPublishWorkload flag is true the pipeline
-     * is also notified of next available workload (if any)
-     * @param chunkCDE next chunk collision detection element to enter into sequence analysis
-     * @param sink sink associated with chunk
-     * @param doPublishWorkload publish next available workload flag
-     * @throws NullPointerException if given any null-valued argument
-     * @throws JobStoreException if unable to setup monitoring
      */
     @Stopwatch
-    public void scheduleChunk(CollisionDetectionElement chunkCDE, Sink sink, boolean doPublishWorkload) throws NullPointerException, JobStoreException {
-        InvariantUtil.checkNotNullOrThrow(chunkCDE, "cde");
+    public void scheduleChunk(ChunkEntity chunk, Sink sink) {
+        InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
-        final ChunkIdentifier chunkIdentifier = (ChunkIdentifier) chunkCDE.getIdentifier();
-        LOGGER.info("Scheduling chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
-        toSinkMapping.put(chunkIdentifier, sink);
-        final String lockObject = getLockObject(String.valueOf(sink.getId()));
-        final List<CollisionDetectionElement> workload;
-        synchronized (lockObject) {
-            final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
-            sac.sequenceAnalyser.add(chunkCDE);
-            updateMonitor(sac, sac.sequenceAnalyser.isHead(chunkIdentifier));
-            if (doPublishWorkload) {
-                workload = getWorkload(sac);
-            } else {
-                workload = Collections.emptyList();
-            }
-        }
-        publishWorkload(workload);
+
+        getProxyToSelf().persistDependencyEntity(chunk, sink);
+        getProxyToSelf().submitToProcessingIfPossibleAsync( chunk, sink.getId() );
+
     }
 
     /**
-     * Forces sequence analyser release of the identified chunk due to the
-     * chunk no longer being present in the pipeline and notifies pipeline of
-     * next available workload (if any)
-     * @param chunkIdentifier chunk identifier
-     * @throws JobStoreException if unable to setup monitoring
+     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
+     * New Transaction to ensure Record is on Disk before async submit
+     * @param chunk new Chunk
+     * @param sink Destination Sink
      */
     @Stopwatch
-    public void releaseChunk(ChunkIdentifier chunkIdentifier) throws JobStoreException {
-        if (chunkIdentifier != null) {
-            LOGGER.info("Releasing chunk.id {} of job.id {}", chunkIdentifier.getChunkId(), chunkIdentifier.getJobId());
-            List<CollisionDetectionElement> workload;
-            final Sink sink = toSinkMapping.get(chunkIdentifier);
-            if (sink != null) {
-                final String lockObject = getLockObject(String.valueOf(sink.getId()));
-                synchronized (lockObject) {
-                    final SequenceAnalyserComposite sac = getSequenceAnalyserComposite(lockObject, sink.getContent().getName());
-                    workload = releaseAndReturnWorkload(sac, chunkIdentifier);
-                }
-                publishWorkload(workload);
-                toSinkMapping.remove(chunkIdentifier);
-            } else {
-                // Somehow the toSinkMapping has gone out of sync with reality,
-                // so try to release chunk from all sequence analysers
-                for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
-                    synchronized (entry.getKey()) {
-                        workload = releaseAndReturnWorkload(entry.getValue(), chunkIdentifier);
-                    }
-                    publishWorkload(workload);
-                }
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
+        int sinkId=(int)sink.getId();
+
+        DependencyTrackingEntity e=new DependencyTrackingEntity( chunk, sinkId );
+        e.setWaitingOn( findChunksToWaitFor( sinkId, e.getMatchKeys()));
+        entityManager.persist( e );
+    }
+
+    /**
+     * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * @param chunk ???
+     * @param sinkId ???
+     */
+    @Asynchronous
+    @Stopwatch
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
+    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId ) {
+        submitToProcessingIfPossible( chunk, sinkId );
+    }
+
+    @Stopwatch
+    public void submitToProcessingIfPossible(ChunkEntity chunk, long sinkId) {
+        LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
+
+        if( incrementAndReturnCurrentQueuedToProcessing( sinkId ) > MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
+            decrementAndReturnCurrentQueuedToProcessing( sinkId );
+            return ;
+        }
+        DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
+        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+        dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_PROCESS);
+        try {
+            jobProcessorMessageProducerBean.send( getChunkFrom(chunk));
+        } catch (JobStoreException e) {
+            LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);
+        }
+    }
+
+    /**
+     * Register Chunk Processing is Done.
+     * Chunks not i state QUEUED_TO_PROCESS is ignored.
+     *
+     * @param chunk Chunk completed from processing
+     * @throws JobStoreException if Unable to Load Chunk
+     */
+    @Stopwatch
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    public void chunkProcessingDone( Chunk chunk ) throws JobStoreException {
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId() );
+        DependencyTrackingEntity dependencyTrackingEntity=entityManager.find( DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+
+        if( dependencyTrackingEntity.getStatus() != ChunkProcessStatus.QUEUED_TO_PROCESS ) {
+            LOGGER.info( "chunkProcessingDone called with chunk not in state QUEUED_TO_PROCESS {} was {} ", key, dependencyTrackingEntity.getStatus());
+            return ;
+        }
+
+
+        if( dependencyTrackingEntity.getWaitingOn().size() != 0) {
+            dependencyTrackingEntity.setStatus(ChunkProcessStatus.BLOCKED);
+            LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
+            return ;
+        }
+
+        // Send chunk to Delivering
+        submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
+
+        // Check for more READY_TO_PROCESS chunks.
+        int sinkId = dependencyTrackingEntity.getSinkid();
+        int queuedToProcessing=decrementAndReturnCurrentQueuedToProcessing(sinkId);
+        if( queuedToProcessing < MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
+            LOGGER.info("Space for more jobs");
+            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
+            .setParameter("sinkId", sinkId)
+            .setParameter("state", ChunkProcessStatus.READY_TO_PROCESS)
+            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK -queuedToProcessing);
+            List<DependencyTrackingEntity> chunks=query.getResultList();
+            for( DependencyTrackingEntity toSchedule : chunks ) {
+                DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
+                LOGGER.info(" Chunk ready to schedule {} to Processing",toScheduleKey);
+                ChunkEntity ch=entityManager.find( ChunkEntity.class, new ChunkEntity.Key( toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
+                submitToProcessingIfPossible(ch, sinkId);
             }
         }
     }
 
     /**
-     * Attempts to release a single chunk from each sequence analyser to jump
-     * start the pipeline
+     * Send JMS message to Sink with chunk.
+     *
+
+     * @param dependencyTrackingEntity Tracking Entity for chunk*
+     * @throws JobStoreException if unable to
      */
-    public void jumpStart() {
-        LOGGER.info("Jump starting pipeline");
-        List<CollisionDetectionElement> workload;
-        for (Map.Entry<String, SequenceAnalyserComposite> entry : sequenceAnalysers.entrySet()) {
-            synchronized (entry.getKey()) {
-                workload = getWorkload(entry.getValue(), 1);
-            }
-            publishWorkload(workload);
+    private void submitToDeliveringIfPossible(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity) throws JobStoreException {
+        LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
+        dependencyTrackingEntity.setStatus( ChunkProcessStatus.READY_TO_DELIVER );
+
+        int queuedToDelivering=incrementAndReturnCurrentQueuedToDelivering( dependencyTrackingEntity.getSinkid() );
+        if( queuedToDelivering > MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
+            decrementAndReturnCurrentQueuedToDelivering( dependencyTrackingEntity.getSinkid() );
+            LOGGER.info("chunk {} blocked by queue size {} ", dependencyTrackingEntity.getKey(), queuedToDelivering);
+            return ;
         }
+
+        final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
+        // Chunk is ready for Sink
+        sinkMessageProducerBean.send( chunk, jobEntity );
+        LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
+        dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_DELIVERY);
     }
 
-    String getLockObject(String id) {
-        // Add namespace to given string to avoid global locking issues.
-        // Use intern() method to get reference from String pool, so
-        // that the returned string can be used as a monitor object in
-        // a synchronized block.
-        return (this.getClass().getName() + "." + id).intern();
-    }
 
-    List<CollisionDetectionElement> getWorkload(SequenceAnalyserComposite sac, int maxNumberOfItems) {
-        // Creates workload (if available) of size maxNumberOfItems if less than
-        // the difference between MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK and actual number of
-        // items in progress, else difference between MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK
-        // and actual number of items in progress.
-        // If actual number of items in progress equals or exceeds MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK
-        // an empty workload is created.
-        final int optimalNumberOfItems = Math.min(maxNumberOfItems,
-                MAX_NUMBER_OF_ITEMS_IN_PROGRESS_PER_SINK - sac.itemsInProgress);
-        LOGGER.debug("Optimal number of items to release is {} when {} currently in progress",
-                optimalNumberOfItems, sac.itemsInProgress);
-        if (optimalNumberOfItems > 0) {
-            final List<CollisionDetectionElement> elements =
-                    sac.sequenceAnalyser.getInactiveIndependent(optimalNumberOfItems);
-            for (CollisionDetectionElement element : elements) {
-                sac.itemsInProgress += element.getSlotsConsumed();
-            }
-            LOGGER.debug("Number of items in progress is {}", sac.itemsInProgress);
-            return elements;
+    /**
+     * Register a chunk as Delivered, and remove it from dependency tracking.
+     *
+     * If called Multiple times with the same chunk, or chunk not in QUEUED_TO_DELIVERY the chunk is ignored
+     *
+     * @param chunk Chunk Done
+     * @throws JSONBException on failure to queue other chunks
+     * @throws JobStoreException on failure to queue other chunks
+     */
+    @Stopwatch
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    public void chunkDeliveringDone(Chunk chunk ) throws JobStoreException {
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId() );
+        DependencyTrackingEntity doneChunk=entityManager.find( DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+
+        if (doneChunk == null) {
+            LOGGER.info( "chunkDeliveringDone called with unknown Chunk {} - Assuming it is already completed ", key);
+            return ;
         }
-        return Collections.emptyList();
-    }
+        if( doneChunk.getStatus() != ChunkProcessStatus.QUEUED_TO_DELIVERY ) {
+            LOGGER.info( "chunkDeliveringDone called with chunk {}, not in state QUEUED_TO_DELIVERY {} -- chunk Ignored", key, doneChunk.getStatus());
+            return ;
+        }
 
-    private List<CollisionDetectionElement> getWorkload(SequenceAnalyserComposite sac) {
-        return getWorkload(sac, MAX_NUMBER_OF_ITEMS_PER_WORKLOAD);
-    }
+        // Decrement early to make space for in queue.  -- most important when queue size is 1, when unit testing
 
-    private void publishWorkload(List<CollisionDetectionElement> elements) {
-        for (final CollisionDetectionElement element : elements) {
-            final ChunkIdentifier identifier = (ChunkIdentifier) element.getIdentifier();
-            try {
-                final Chunk chunk = jobStoreRepository.getChunk(
-                        Chunk.Type.PARTITIONED,
-                        (int) identifier.getJobId(),
-                        (int) identifier.getChunkId());
+        long doneChunkSinkId=doneChunk.getSinkid();
+        int queuedToDelivering=decrementAndReturnCurrentQueuedToDelivering( doneChunkSinkId );
+        LOGGER.info("After chunk {} returned from delivering {} is queuedToDelivering", doneChunk.getKey(), queuedToDelivering);
 
-                if (chunk == null) {
-                    LOGGER.error("Unable to locate chunk.id {} for job.id {}", identifier.chunkId, identifier.jobId);
-                } else {
-                    try {
-                        jobProcessorMessageProducerBean.send(chunk);
-                    } catch (JobStoreException e) {
-                        LOGGER.error("Unable to send notification for chunk.id {} for job.id {}", identifier.chunkId, identifier.jobId, e);
-                    }
-                }
-            } catch (NullPointerException e) {
-                LOGGER.error("Unable to retrieve chunk.id {} for job.id {}", identifier.chunkId, identifier.jobId, e);
+        List<DependencyTrackingEntity.Key> chunksWaitingForMe=findChunksWaitingForMe( doneChunk.getKey());
+
+        for( DependencyTrackingEntity.Key blockChunkKey: chunksWaitingForMe) {
+            DependencyTrackingEntity blockedChunk=entityManager.find( DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
+
+            blockedChunk.getWaitingOn().remove( doneChunk.getKey());
+
+            if( blockedChunk.getWaitingOn().size() == 0 ) {
+                submitToDeliveringIfPossible( getProcessedChunkFrom( blockedChunk ),blockedChunk);
             }
         }
-    }
 
-    @SuppressFBWarnings({"AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"})
-    private SequenceAnalyserComposite getSequenceAnalyserComposite(String lockObject, String localName) throws JobStoreException {
-        SequenceAnalyserComposite sequenceAnalyserComposite = sequenceAnalysers.get(lockObject);
-        if (sequenceAnalyserComposite == null) {
-            try {
-                // Register new monitor in JMX with initial sample
-                sequenceAnalyserMonitorBean.registerInJmx(localName);
-            } catch (IllegalStateException e) {
-                throw new JobStoreException("Monitoring error", e);
+
+        entityManager.remove( doneChunk );
+
+        if( queuedToDelivering <= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
+            LOGGER.info("Space for more jobs");
+            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
+            .setParameter("sinkId", doneChunkSinkId )
+            .setParameter("state", ChunkProcessStatus.READY_TO_DELIVER)
+            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering+1);
+            List<DependencyTrackingEntity> chunks=query.getResultList();
+            for( DependencyTrackingEntity toSchedule : chunks ) {
+                DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
+                LOGGER.info(" Chunk ready to schedule {} for Delivering" ,toScheduleKey);
+
+                submitToDeliveringIfPossible( getProcessedChunkFrom( toSchedule ), toSchedule );
             }
-            sequenceAnalyserMonitorBean.getMBeans().get(localName).setSample(new SequenceAnalyserMonitorSample(0, new Date().getTime()));
-            sequenceAnalyserComposite = new SequenceAnalyserComposite(new NaiveSequenceAnalyser(), sequenceAnalyserMonitorBean.getMBeans().get(localName));
-            sequenceAnalysers.put(lockObject, sequenceAnalyserComposite);
         }
-        return sequenceAnalyserComposite;
+
     }
 
-    private List<CollisionDetectionElement> releaseAndReturnWorkload(SequenceAnalyserComposite sac, ChunkIdentifier chunkIdentifier) {
-        final boolean isHead = sac.sequenceAnalyser.isHead(chunkIdentifier);
-        sac.itemsInProgress -= sac.sequenceAnalyser.deleteAndRelease(chunkIdentifier);
-        updateMonitor(sac, isHead);
-        return getWorkload(sac);
+
+    private Chunk getChunkFrom(ChunkEntity chunk) {
+        ChunkEntity.Key chunkKey=chunk.getKey();
+        return jobStoreRepository.getChunk( Chunk.Type.PARTITIONED, chunkKey.getJobId(), chunkKey.getId() );
     }
 
-    private void updateMonitor(SequenceAnalyserComposite sac, boolean isHead) {
-        if (isHead) {
-            // Specified chunk is at the head of the sequence analysis "queue", so
-            // we update the sample with the current "queue" size and "now" timestamp
-            sac.sequenceAnalyserMonitorMXBean.setSample(new SequenceAnalyserMonitorSample(sac.sequenceAnalyser.size(), new Date().getTime()));
-        } else {
-            // Specified chunk is not at the head of the sequence analysis "queue", so
-            // we update the sample with the current "queue" size and keep the old timestamp
-            // since head of the "queue" still remains
-            final long headOfQueueMonitoringStartTime = sac.sequenceAnalyserMonitorMXBean.getSample().getHeadOfQueueMonitoringStartTime();
-            sac.sequenceAnalyserMonitorMXBean.setSample(new SequenceAnalyserMonitorSample(sac.sequenceAnalyser.size(), headOfQueueMonitoringStartTime));
+    private Chunk getProcessedChunkFrom(DependencyTrackingEntity dependencyTrackingEntity )
+    {
+        DependencyTrackingEntity.Key dtKey= dependencyTrackingEntity.getKey();
+        ChunkEntity.Key chunkKey=new ChunkEntity.Key( dtKey.getChunkId(), dtKey.getJobId() );
+
+        return jobStoreRepository.getChunk( Chunk.Type.PROCESSED, chunkKey.getJobId(), chunkKey.getId() );
+    }
+
+
+    /**
+     * Finding lists with which contains any of chunks keys
+     * @param matchKeys Set of match keys
+     * @return Returns List of Chunks To wait for.
+     */
+    List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys ) {
+        if( matchKeys.isEmpty() ) return new ArrayList<>();
+
+        Query query=entityManager.createNativeQuery( buildFindChunksToWaitForQuery( sinkId, matchKeys ), "JobIdChunkIdResult");
+        return query.getResultList();
+    }
+
+
+    List<DependencyTrackingEntity.Key> findChunksWaitingForMe( DependencyTrackingEntity.Key key ) throws JobStoreException {
+        try {
+            String keyAsJson= ConverterJSONBContext.getInstance().marshall(key);
+
+            Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '["+ keyAsJson +"]'" , "JobIdChunkIdResult");
+            return query.getResultList();
+
+        } catch (JSONBException e) {
+            LOGGER.error("Unable to serialize DependencyTrackingKey to JSON in JobSchedulerBean", e);
+            throw new JobStoreException("Unable to serialize DependencyTrackingKey to JSON", e);
         }
+
     }
 
-    static class SequenceAnalyserComposite {
-        public final SequenceAnalyser sequenceAnalyser;
-        public final SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean;
-        public int itemsInProgress = 0;
+    /**
+     * @param sinkId  Sink Id to find
+     * @param matchKeys  Set of keys any chunk with any key is returned
+     * @return  NativeQuery for find chunks to wait for using @>
+     */
+    String buildFindChunksToWaitForQuery( int sinkId, Set<String> matchKeys ) {
+        StringBuilder builder= new StringBuilder(1000);
+        builder.append("select jobId, chunkId from dependencyTracking where sinkId=");
+        builder.append( sinkId );
+        builder.append(" and ( ");
 
-        public SequenceAnalyserComposite(SequenceAnalyser sequenceAnalyser, SequenceAnalyserMonitorMXBean sequenceAnalyserMonitorMXBean) {
-            this.sequenceAnalyser = sequenceAnalyser;
-            this.sequenceAnalyserMonitorMXBean = sequenceAnalyserMonitorMXBean;
+
+        Boolean first=true;
+        for( String key: matchKeys ) {
+            if( ! first ) builder.append(" or ");
+            builder.append("matchKeys @> '[\"");
+            builder.append(key);
+            builder.append("\"]'");
+            first=false;
         }
+        builder.append(" )");
+        builder.append(" for update");
+        return builder.toString();
     }
+
+    static int incrementAndReturnCurrentQueuedToDelivering(long sinkId) {
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        return sinkCounter.incrementAndGet();
+    }
+
+    static int decrementAndReturnCurrentQueuedToDelivering(long sinkId) {
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        return sinkCounter.decrementAndGet();
+    }
+
+    static int lookupQueuedToDelivering( long sinkId) {
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        return sinkCounter.intValue();
+    }
+
+    static void resetQueuedToDelivering( long sinkId, int newValue) {
+        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        sinkCounter.set( newValue );
+    }
+
+
+    static int incrementAndReturnCurrentQueuedToProcessing(long sinkId) {
+        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        return sinkCounter.incrementAndGet();
+    }
+
+    static int decrementAndReturnCurrentQueuedToProcessing(long sinkId) {
+        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        return sinkCounter.decrementAndGet();
+    }
+
+    static int lookupQueuedToProcessing( long sinkId ) {
+        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+        return sinkCounter.intValue();
+    }
+
+    static void resetQueuedToProcessing( long sinkId, int newValue) {
+        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
+         sinkCounter.set( newValue );
+    }
+
+
+
 }

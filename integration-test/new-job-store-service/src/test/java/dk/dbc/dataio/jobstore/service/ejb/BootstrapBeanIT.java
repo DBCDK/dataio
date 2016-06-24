@@ -30,14 +30,12 @@ import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import javax.persistence.TypedQuery;
 import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class BootstrapBeanIT extends AbstractJobStoreIT {
     /**
@@ -113,7 +111,6 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobStoreRepository = newPgJobStoreRepository();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
-        bootstrapBean.jobSchedulerBean = mock(JobSchedulerBean.class);
         return bootstrapBean;
     }
 

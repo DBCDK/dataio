@@ -67,7 +67,7 @@ public class NewJobSchedulerBeanIT {
     @Test
     public void findChunksToWaitFor() throws Exception {
 
-        NewJobSchedulerBean bean= new NewJobSchedulerBean();
+        JobSchedulerBean bean= new JobSchedulerBean();
         bean.entityManager=em;
 
         assertThat(bean.findChunksToWaitFor( 0, createSet( )).size(), is(0));
@@ -84,7 +84,7 @@ public class NewJobSchedulerBeanIT {
     @Test
     public void findChunksWaitingForMe() throws Exception {
 
-        NewJobSchedulerBean bean= new NewJobSchedulerBean();
+        JobSchedulerBean bean= new JobSchedulerBean();
         bean.entityManager=em;
 
         assertThat(bean.findChunksWaitingForMe( new Key(1,1)), containsInAnyOrder( new Key(1,1)));
@@ -108,7 +108,7 @@ public class NewJobSchedulerBeanIT {
         em.getTransaction().commit();
 
 
-        NewJobSchedulerBean bean = new NewJobSchedulerBean();
+        JobSchedulerBean bean = new JobSchedulerBean();
         bean.entityManager = em;
 
         em.getTransaction().begin();

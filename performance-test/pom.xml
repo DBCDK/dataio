@@ -188,7 +188,6 @@
                 <file.store.basepath>${file.store.basepath}</file.store.basepath>
                 <file-store-service.context>${file-store-service.context}</file-store-service.context>
                 <flow-store-service.context>${flow-store-service.context}</flow-store-service.context>
-                <h2.port>${h2.port}</h2.port>
                 <job-store-service.context>${job-store-service.context}</job-store-service.context>
               </systemPropertyVariables>
             </configuration>

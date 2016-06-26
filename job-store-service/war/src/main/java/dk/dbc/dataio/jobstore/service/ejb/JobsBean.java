@@ -27,9 +27,7 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
-import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -44,6 +42,9 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import static javax.ws.rs.core.Response.Status.ACCEPTED;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,10 +68,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import static javax.ws.rs.core.Response.Status.ACCEPTED;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
  * exposed by the /{@value dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants#JOB_COLLECTION} entry point
@@ -93,7 +90,7 @@ public class JobsBean {
     JobNotificationRepository jobNotificationRepository;
 
     @EJB
-    SinkMessageProducerBean sinkMessageProducer;
+    JobSchedulerBean jobSchedulerBean;
 
     /**
      * Adds new job based on POSTed job input stream, and persists it in the underlying data store
@@ -243,7 +240,7 @@ public class JobsBean {
 
         final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
 
-        sendChunkAsMessageToSink(jobId, processedChunk);
+        jobSchedulerBean.chunkProcessingDone( processedChunk );
 
         return addChunkResponse;
     }
@@ -283,6 +280,8 @@ public class JobsBean {
         } catch (JSONBException e) {
             return buildBadRequestResponse(e);
         }
+
+        jobSchedulerBean.chunkDeliveringDone( deliveredChunk );
 
         return addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
     }
@@ -704,11 +703,6 @@ public class JobsBean {
         return Response.status(BAD_REQUEST).entity(
                 jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
                 .build();
-    }
-
-    private void sendChunkAsMessageToSink(long jobId, Chunk processedChunk) throws JobStoreException {
-        final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) jobId);
-        sinkMessageProducer.send(processedChunk, jobEntity);
     }
 
     private URI getUri(UriInfo uriInfo, String jobId) {

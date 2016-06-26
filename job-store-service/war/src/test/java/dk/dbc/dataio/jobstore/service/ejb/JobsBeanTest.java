@@ -61,11 +61,20 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import org.junit.After;
+import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import javax.ws.rs.core.Response;
@@ -82,19 +91,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyShort;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class JobsBeanTest {
     private final static String LOCATION = "location";
     private final static int PART_NUMBER = 2535678;
@@ -105,7 +101,7 @@ public class JobsBeanTest {
     private JobsBean jobsBean;
     private JSONBContext jsonbContext;
 
-    private ConnectionFactory jmsConnectionFactory = mock(ConnectionFactory.class);
+    private JobSchedulerBean jobSchedulerBean = mock(JobSchedulerBean.class);
     private JMSContext jmsContext = mock(JMSContext.class);
     private MockedJmsProducer jmsProducer = new MockedJmsProducer();
 
@@ -123,8 +119,6 @@ public class JobsBeanTest {
         final URI uri = new URI(LOCATION);
         when(mockedUriBuilder.build()).thenReturn(uri);
 
-        when(jmsConnectionFactory.createContext()).thenReturn(jmsContext);
-        when(jmsContext.createProducer()).thenReturn(jmsProducer);
     }
 
     @After
@@ -211,10 +205,7 @@ public class JobsBeanTest {
             message.setText((String) args[0]);
             return message;
         });
-
-        final SinkMessageProducerBean sinkMessageProducerBean = new SinkMessageProducerBean();
-        sinkMessageProducerBean.sinksQueueConnectionFactory = jmsConnectionFactory;
-        jobsBean.sinkMessageProducer = sinkMessageProducerBean;
+        jobsBean.jobSchedulerBean = jobSchedulerBean;
 
         final ChunkItem item = new ChunkItemBuilder().setData(StringUtil.asBytes("This is some data")).setStatus(ChunkItem.Status.SUCCESS).build();
         final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.singletonList(item)).build();
@@ -240,8 +231,7 @@ public class JobsBeanTest {
         assertThat(response.getLocation().toString(), is(LOCATION));
         assertThat(response.hasEntity(), is(true));
 
-        assertThat("Number of JMS messages", jmsProducer.messages.size(), is(1));
-        assertChunk(chunk, assertProcessorMessageForSink(jmsProducer.messages.pop(), sink.getContent().getResource()));
+        verify( jobSchedulerBean, atLeastOnce()).chunkProcessingDone( any( Chunk.class ));
     }
 
     private Chunk assertProcessorMessageForSink(MockedJmsTextMessage message, String resource) throws JMSException, JSONBException {

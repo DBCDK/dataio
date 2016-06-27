@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
@@ -89,9 +88,14 @@ public class JobSchedulerBean {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
-        getProxyToSelf().persistDependencyEntity(chunk, sink);
-        getProxyToSelf().submitToProcessingIfPossibleAsync( chunk, sink.getId() );
+        getProxyToSelf().persistDependencyEntityAndIfPossibleAsync( chunk, sink );
+    }
 
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    private void persistDependencyEntityAndIfPossibleAsync(ChunkEntity chunk, Sink sink) {
+        DependencyTrackingEntity dep=persistDependencyEntity(chunk, sink);
+        submitToProcessingIfPossible(dep, chunk, sink.getId() );
     }
 
     /**
@@ -100,14 +104,13 @@ public class JobSchedulerBean {
      * @param chunk new Chunk
      * @param sink Destination Sink
      */
-    @Stopwatch
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
+    public DependencyTrackingEntity persistDependencyEntity(ChunkEntity chunk, Sink sink) {
         int sinkId=(int)sink.getId();
 
         DependencyTrackingEntity e=new DependencyTrackingEntity( chunk, sinkId );
         e.setWaitingOn( findChunksToWaitFor( sinkId, e.getMatchKeys()));
         entityManager.persist( e );
+        return e;
     }
 
     /**
@@ -115,23 +118,15 @@ public class JobSchedulerBean {
      * @param chunk ???
      * @param sinkId ???
      */
-    @Asynchronous
     @Stopwatch
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
-    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId ) {
-        submitToProcessingIfPossible( chunk, sinkId );
-    }
-
-    @Stopwatch
-    public void submitToProcessingIfPossible(ChunkEntity chunk, long sinkId) {
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    public void submitToProcessingIfPossible(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, long sinkId) {
         LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
 
         if( incrementAndReturnCurrentQueuedToProcessing( sinkId ) > MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
             decrementAndReturnCurrentQueuedToProcessing( sinkId );
             return ;
         }
-        DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
-        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
         dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
             jobProcessorMessageProducerBean.send( getChunkFrom(chunk));
@@ -152,6 +147,11 @@ public class JobSchedulerBean {
     public void chunkProcessingDone( Chunk chunk ) throws JobStoreException {
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId() );
         DependencyTrackingEntity dependencyTrackingEntity=entityManager.find( DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+
+        if (dependencyTrackingEntity == null) {
+            LOGGER.info( "chunkProcessingDone called with unknown Chunk {} - Assuming it is already completed ", key);
+            return;
+        }
 
         if( dependencyTrackingEntity.getStatus() != ChunkProcessStatus.QUEUED_TO_PROCESS ) {
             LOGGER.info( "chunkProcessingDone called with chunk not in state QUEUED_TO_PROCESS {} was {} ", key, dependencyTrackingEntity.getStatus());
@@ -177,12 +177,13 @@ public class JobSchedulerBean {
             .setParameter("sinkId", sinkId)
             .setParameter("state", ChunkProcessStatus.READY_TO_PROCESS)
             .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK -queuedToProcessing);
+
             List<DependencyTrackingEntity> chunks=query.getResultList();
             for( DependencyTrackingEntity toSchedule : chunks ) {
                 DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
                 LOGGER.info(" Chunk ready to schedule {} to Processing",toScheduleKey);
                 ChunkEntity ch=entityManager.find( ChunkEntity.class, new ChunkEntity.Key( toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                submitToProcessingIfPossible(ch, sinkId);
+                submitToProcessingIfPossible(toSchedule, ch, sinkId);
             }
         }
     }
@@ -250,7 +251,10 @@ public class JobSchedulerBean {
             blockedChunk.getWaitingOn().remove( doneChunk.getKey());
 
             if( blockedChunk.getWaitingOn().size() == 0 ) {
-                submitToDeliveringIfPossible( getProcessedChunkFrom( blockedChunk ),blockedChunk);
+                if( blockedChunk.getStatus() == ChunkProcessStatus.BLOCKED ) {
+                    blockedChunk.setStatus( ChunkProcessStatus.READY_TO_DELIVER );
+                    submitToDeliveringIfPossible( getProcessedChunkFrom( blockedChunk ),blockedChunk);
+                }
             }
         }
 
@@ -276,16 +280,26 @@ public class JobSchedulerBean {
 
 
     private Chunk getChunkFrom(ChunkEntity chunk) {
-        ChunkEntity.Key chunkKey=chunk.getKey();
-        return jobStoreRepository.getChunk( Chunk.Type.PARTITIONED, chunkKey.getJobId(), chunkKey.getId() );
+        try {
+            ChunkEntity.Key chunkKey = chunk.getKey();
+            return jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, chunkKey.getJobId(), chunkKey.getId());
+        } catch( RuntimeException ex) {
+            LOGGER.error("Internal error Unable to get PARTITIONED items for {}", chunk.getKey());
+            throw ex;
+        }
     }
 
     private Chunk getProcessedChunkFrom(DependencyTrackingEntity dependencyTrackingEntity )
     {
-        DependencyTrackingEntity.Key dtKey= dependencyTrackingEntity.getKey();
-        ChunkEntity.Key chunkKey=new ChunkEntity.Key( dtKey.getChunkId(), dtKey.getJobId() );
+        try {
+            DependencyTrackingEntity.Key dtKey = dependencyTrackingEntity.getKey();
+            ChunkEntity.Key chunkKey = new ChunkEntity.Key(dtKey.getChunkId(), dtKey.getJobId());
 
-        return jobStoreRepository.getChunk( Chunk.Type.PROCESSED, chunkKey.getJobId(), chunkKey.getId() );
+            return jobStoreRepository.getChunk(Chunk.Type.PROCESSED, chunkKey.getJobId(), chunkKey.getId());
+        } catch( RuntimeException ex) {
+            LOGGER.error("Internal error Unable to get PROCESSED items for {}", dependencyTrackingEntity.getKey(), ex);
+            throw ex;
+        }
     }
 
 

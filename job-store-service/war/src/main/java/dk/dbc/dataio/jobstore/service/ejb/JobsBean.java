@@ -238,9 +238,9 @@ public class JobsBean {
             return buildBadRequestResponse(e);
         }
 
-        final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
-
         jobSchedulerBean.chunkProcessingDone( processedChunk );
+
+        final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
 
         return addChunkResponse;
     }

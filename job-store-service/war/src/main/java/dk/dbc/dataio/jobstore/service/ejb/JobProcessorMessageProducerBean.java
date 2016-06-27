@@ -59,7 +59,7 @@ public class JobProcessorMessageProducerBean {
      * @throws NullPointerException when given null-valued argument
      * @throws JobStoreException when unable to send given chunk to destination
      */
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
     public void send(Chunk chunk) throws NullPointerException, JobStoreException {
         LOGGER.info("Sending Chunk {} for job {}", chunk.getChunkId(), chunk.getJobId());
         try (JMSContext context = processorQueueConnectionFactory.createContext()) {

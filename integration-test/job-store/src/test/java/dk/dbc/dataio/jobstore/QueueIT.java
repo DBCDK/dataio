@@ -54,7 +54,6 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
-
 /* Tests the connection from the JobStore bean and the JobScheduler bean
  *
  */
@@ -92,7 +91,7 @@ public class QueueIT extends AbstractJobStoreTest {
 
         JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(getJobInputStream(jobSpecification));
 
-        /* Chunks message send to processing queue */
+        // Swallow 1st Chunk message
         JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 2, MAX_QUEUE_WAIT_IN_MS);
         JmsQueueConnector.emptyQueue(JmsQueueConnector.PROCESSOR_QUEUE_NAME);
 
@@ -113,6 +112,13 @@ public class QueueIT extends AbstractJobStoreTest {
                 new ChunkItemBuilder().setId(8).build(),
                 new ChunkItemBuilder().setId(9).build());
 
+        Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setJobId(jobInfoSnapshot.getJobId())
+                .setChunkId(0L)
+                .setItems(chunkItems)
+                .build();
+        jobStoreServiceConnector.addChunk(processedChunk, jobInfoSnapshot.getJobId(), 0);
+
         Chunk deliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED)
                 .setJobId(jobInfoSnapshot.getJobId())
                 .setChunkId(0L)
@@ -120,12 +126,6 @@ public class QueueIT extends AbstractJobStoreTest {
                 .build();
         jobStoreServiceConnector.addChunk(deliveredChunk, jobInfoSnapshot.getJobId(), 0);
 
-        Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED)
-                .setJobId(jobInfoSnapshot.getJobId())
-                .setChunkId(0L)
-                .setItems(chunkItems)
-                .build();
-        jobStoreServiceConnector.addChunk(processedChunk, jobInfoSnapshot.getJobId(), 0);
 
         jobInfoSnapshot = getJob(jobInfoSnapshot.getJobId());
         assertThat("Processing phase complete", jobInfoSnapshot.getState().phaseIsDone(State.Phase.PROCESSING), is(false));
@@ -145,7 +145,7 @@ public class QueueIT extends AbstractJobStoreTest {
                 .build();
         jobStoreServiceConnector.addChunk(deliveredChunk, jobInfoSnapshot.getJobId(), 1);
 
-        JmsQueueConnector.awaitQueueSize(JmsQueueConnector.PROCESSOR_QUEUE_NAME, 0, MAX_QUEUE_WAIT_IN_MS);
+
 
         jobInfoSnapshot = getJob(jobInfoSnapshot.getJobId());
         assertThat("Processing phase complete", jobInfoSnapshot.getState().phaseIsDone(State.Phase.PROCESSING), is(true));

@@ -103,6 +103,7 @@ public class JobSchedulerBean {
      * New Transaction to ensure Record is on Disk before async submit
      * @param chunk new Chunk
      * @param sink Destination Sink
+     * @return new DependencyTrackingEntity
      */
     public DependencyTrackingEntity persistDependencyEntity(ChunkEntity chunk, Sink sink) {
         int sinkId=(int)sink.getId();
@@ -115,8 +116,9 @@ public class JobSchedulerBean {
 
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     * @param chunk ???
-     * @param sinkId ???
+     * @param  dependencyTrackingEntity Tracking item
+     * @param chunk Chunk to send to JMS queu
+     * @param sinkId SinkId
      */
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRED )

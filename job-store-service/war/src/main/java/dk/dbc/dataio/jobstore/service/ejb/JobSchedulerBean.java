@@ -149,32 +149,32 @@ public class JobSchedulerBean {
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
     public void chunkProcessingDone( Chunk chunk ) throws JobStoreException {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId() );
-        DependencyTrackingEntity dependencyTrackingEntity=entityManager.find( DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
+        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
 
         if (dependencyTrackingEntity == null) {
-            LOGGER.info( "chunkProcessingDone called with unknown Chunk {} - Assuming it is already completed ", key);
+            LOGGER.info("chunkProcessingDone called with unknown Chunk {} - Assuming it is already completed ", key);
             return;
         }
 
-        if( dependencyTrackingEntity.getStatus() != ChunkProcessStatus.QUEUED_TO_PROCESS ) {
-            LOGGER.info( "chunkProcessingDone called with chunk not in state QUEUED_TO_PROCESS {} was {} ", key, dependencyTrackingEntity.getStatus());
-            return ;
+        if (dependencyTrackingEntity.getStatus() != ChunkProcessStatus.QUEUED_TO_PROCESS) {
+            LOGGER.info("chunkProcessingDone called with chunk not in state QUEUED_TO_PROCESS {} was {} ", key, dependencyTrackingEntity.getStatus());
+            return;
         }
 
 
-        if( dependencyTrackingEntity.getWaitingOn().size() != 0) {
+        if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(ChunkProcessStatus.BLOCKED);
             LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
-            return ;
+        } else {
+            // Send chunk to Delivering
+            submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
         }
-
-        // Send chunk to Delivering
-        submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
 
         // Check for more READY_TO_PROCESS chunks.
         int sinkId = dependencyTrackingEntity.getSinkid();
-        int queuedToProcessing=decrementAndReturnCurrentQueuedToProcessing(sinkId);
+        int queuedToProcessing = decrementAndReturnCurrentQueuedToProcessing(sinkId);
+
         if( queuedToProcessing < MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
             LOGGER.info("Space for more jobs to Processing {} < {}", queuedToProcessing, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
             Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")

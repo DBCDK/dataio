@@ -89,15 +89,11 @@ public class JobSchedulerBean {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
-        getProxyToSelf().persistDependencyEntityAndIfPossibleAsync( chunk, sink );
-    }
+        // Proxy to self to get new Transaction
+        getProxyToSelf().persistDependencyEntity(chunk, sink);
+        // Proxy to self to offload submit ot later..
+        getProxyToSelf().submitToProcessingIfPossibleAsync( chunk, sink.getId() );
 
-    @Stopwatch
-    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    @Asynchronous
-    private void persistDependencyEntityAndIfPossibleAsync(ChunkEntity chunk, Sink sink) {
-        DependencyTrackingEntity dep=persistDependencyEntity(chunk, sink);
-        submitToProcessingIfPossible(dep, chunk, sink.getId() );
     }
 
     /**
@@ -107,23 +103,40 @@ public class JobSchedulerBean {
      * @param sink Destination Sink
      * @return new DependencyTrackingEntity
      */
-    public DependencyTrackingEntity persistDependencyEntity(ChunkEntity chunk, Sink sink) {
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
+    @Stopwatch
+    public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
         int sinkId=(int)sink.getId();
 
         DependencyTrackingEntity e=new DependencyTrackingEntity( chunk, sinkId );
         e.setWaitingOn( findChunksToWaitFor( sinkId, e.getMatchKeys()));
         entityManager.persist( e );
-        return e;
     }
 
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     * @param  dependencyTrackingEntity Tracking item
      * @param chunk Chunk to send to JMS queu
      * @param sinkId SinkId
      */
     @Stopwatch
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
+    @Asynchronous
+    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId ) {
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
+        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+        if (dependencyTrackingEntity == null) {
+            LOGGER.error("Internale Error unable to lookup chunk {} in submitToProcessingIfPossibleAsync");
+            return;
+        }
+
+        submitToProcessingIfPossible( dependencyTrackingEntity, chunk, sinkId );
+    }
+
+    /**
+     * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * @param chunk Chunk to send to JMS queu
+     * @param sinkId SinkId
+     */
     public void submitToProcessingIfPossible(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, long sinkId) {
         LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
 

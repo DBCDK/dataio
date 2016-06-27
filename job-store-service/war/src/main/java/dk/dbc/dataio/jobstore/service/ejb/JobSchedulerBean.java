@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
@@ -93,6 +94,7 @@ public class JobSchedulerBean {
 
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Asynchronous
     private void persistDependencyEntityAndIfPossibleAsync(ChunkEntity chunk, Sink sink) {
         DependencyTrackingEntity dep=persistDependencyEntity(chunk, sink);
         submitToProcessingIfPossible(dep, chunk, sink.getId() );
@@ -174,13 +176,15 @@ public class JobSchedulerBean {
         int sinkId = dependencyTrackingEntity.getSinkid();
         int queuedToProcessing=decrementAndReturnCurrentQueuedToProcessing(sinkId);
         if( queuedToProcessing < MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            LOGGER.info("Space for more jobs");
+            LOGGER.info("Space for more jobs to Processing {} < {}", queuedToProcessing, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
             Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
             .setParameter("sinkId", sinkId)
             .setParameter("state", ChunkProcessStatus.READY_TO_PROCESS)
-            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK -queuedToProcessing);
+            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK -queuedToProcessing + 10);
 
             List<DependencyTrackingEntity> chunks=query.getResultList();
+
+            LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToProcessing + 10);
             for( DependencyTrackingEntity toSchedule : chunks ) {
                 DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
                 LOGGER.info(" Chunk ready to schedule {} to Processing",toScheduleKey);
@@ -264,12 +268,13 @@ public class JobSchedulerBean {
         entityManager.remove( doneChunk );
 
         if( queuedToDelivering <= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
-            LOGGER.info("Space for more jobs");
+            LOGGER.info("Space for more jobs for delivering {}<{} ", queuedToDelivering, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK);
             Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
             .setParameter("sinkId", doneChunkSinkId )
             .setParameter("state", ChunkProcessStatus.READY_TO_DELIVER)
-            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering+1);
+            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering + 10);
             List<DependencyTrackingEntity> chunks=query.getResultList();
+            LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering + 10);
             for( DependencyTrackingEntity toSchedule : chunks ) {
                 DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
                 LOGGER.info(" Chunk ready to schedule {} for Delivering" ,toScheduleKey);

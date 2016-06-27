@@ -101,7 +101,6 @@ public class JobSchedulerBean {
      * New Transaction to ensure Record is on Disk before async submit
      * @param chunk new Chunk
      * @param sink Destination Sink
-     * @return new DependencyTrackingEntity
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
@@ -134,6 +133,7 @@ public class JobSchedulerBean {
 
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
+     * @param dependencyTrackingEntity  ??
      * @param chunk Chunk to send to JMS queu
      * @param sinkId SinkId
      */
@@ -340,7 +340,7 @@ public class JobSchedulerBean {
         try {
             String keyAsJson= ConverterJSONBContext.getInstance().marshall(key);
 
-            Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '["+ keyAsJson +"]'" , "JobIdChunkIdResult");
+            Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '["+ keyAsJson +"]' ORDER BY jobid, chunkid " , "JobIdChunkIdResult");
             return query.getResultList();
 
         } catch (JSONBException e) {
@@ -371,7 +371,7 @@ public class JobSchedulerBean {
             first=false;
         }
         builder.append(" )");
-        builder.append(" for update");
+        builder.append(" ORDER BY jobid, chunkid for update");
         return builder.toString();
     }
 

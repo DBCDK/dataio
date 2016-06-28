@@ -184,22 +184,18 @@ public class UshSolrHarvesterConfigBean {
      */
     void deleteIfAbsentInUsh(Map<Integer, UshSolrHarvesterConfig> indexedUshSolrHarvesterConfigs) {
         for (Map.Entry<Integer, UshSolrHarvesterConfig> entry : indexedUshSolrHarvesterConfigs.entrySet()) {
-            try {
-                self().tryDelete(toHarvesterConfig(entry.getValue()));
-            } catch (EntityNotFoundException e) {
-                LOGGER.debug("UshSolrHarvesterConfig previously deleted");
-            }
+            self().tryDelete(toHarvesterConfig(entry.getValue()));
         }
     }
 
 
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void tryDelete(HarvesterConfig persisted) {
-        // Refresh to make sure the harvesterConfig still exists
-        entityManager.refresh(persisted);
-        entityManager.detach(persisted);
-        entityManager.remove(persisted);
-        entityManager.flush();
+        // Find harvester config to make sure it has not previously been deleted
+        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, persisted);
+        if(harvesterConfig != null) {
+            entityManager.remove(harvesterConfig);
+        }
     }
 
     /*

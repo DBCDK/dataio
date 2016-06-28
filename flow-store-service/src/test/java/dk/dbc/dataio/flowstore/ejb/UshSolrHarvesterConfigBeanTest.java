@@ -126,8 +126,9 @@ public class UshSolrHarvesterConfigBeanTest {
     }
 
     @Test
-    public void findAllAndSyncWithUsh_orphanedUshSolrHarvesterConfigDeleted_ok() throws FlowStoreException {
+    public void findAllAndSyncWithUsh_orphanedUshSolrHarvesterConfigFoundAndDeleted_ok() throws FlowStoreException {
         when(findAllOfType.getResultList()).thenReturn(Arrays.asList(harvesterConfig, orphanedHarvesterConfig));
+        when(entityManager.find(HarvesterConfig.class, orphanedHarvesterConfig)).thenReturn(orphanedHarvesterConfig);
 
         // Subject under test
         ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
@@ -137,10 +138,17 @@ public class UshSolrHarvesterConfigBeanTest {
     }
 
     @Test
-    public void findAllAndSyncWithUsh_tryDeleteCausesUnexpectedException_throwsFlowStoreException() throws FlowStoreException {
-        doThrow(new IllegalArgumentException()).when(entityManager).refresh(any(HarvesterConfig.class));
-        assertThat(() -> ushSolrHarvesterConfigBean.findAllAndSyncWithUsh(), isThrowing(FlowStoreException.class));
+    public void findAllAndSyncWithUsh_orphanedUshSolrHarvesterPreviouslyDeleted_ok() throws FlowStoreException {
+        when(findAllOfType.getResultList()).thenReturn(Arrays.asList(harvesterConfig, orphanedHarvesterConfig));
+        when(entityManager.find(HarvesterConfig.class, orphanedHarvesterConfig)).thenReturn(null);
+
+        // Subject under test
+        ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
+
+        // Verification
+        verify(entityManager, times(0)).remove(orphanedHarvesterConfig);
     }
+
 
     @Test
     public void findAllAndSyncWithUsh_ushHarvesterConnectorExceptionIsThrown_throwsFlowStoreException() throws UshHarvesterConnectorException {

@@ -1,0 +1,26 @@
+package dk.dbc.dataio.jobstore.service.ejb;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.ejb.Startup;
+
+/**
+ * Created by ja7 on 06-05-16.
+ *
+ *
+ */
+@Singleton
+@Startup
+public class TestJobSchedulerConfigOverWrite {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestJobSchedulerConfigOverWrite.class);
+
+    @PostConstruct
+    void do_startupQueueSizeOverWrite() {
+        LOGGER.info("in do_startupQueueSizeOverWrite()");
+        JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK=10;
+        JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK=10;
+    }
+}

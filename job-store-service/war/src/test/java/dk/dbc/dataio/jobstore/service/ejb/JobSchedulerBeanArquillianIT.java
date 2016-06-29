@@ -88,6 +88,13 @@ public class JobSchedulerBeanArquillianIT {
         TestJobProcessorMessageConsumerBean.reset();
         TestSinkMessageConsumerBean.reset();
         dbCleanUp();
+
+        JobSchedulerBean.resetQueuedToDelivering((long) 3, 0);
+        JobSchedulerBean.resetQueuedToDelivering((long) 3, 0);
+
+        JobSchedulerBean.resetQueuedToDelivering((long) 1, 0);
+        JobSchedulerBean.resetQueuedToDelivering((long) 1, 0);
+
     }
 
 
@@ -124,11 +131,13 @@ public class JobSchedulerBeanArquillianIT {
 
                     .addClasses(PgJobStoreRepository.class, RepositoryBase.class, StartupDBMigrator.class)
                     .addClasses(JobProcessorMessageProducerBean.class)
-                    .addClasses(DmqMessageConsumerBean.class)
+
                     .addClasses(SinkMessageProducerBean.class)
                     .addClasses(JobSchedulerBean.class)
                     .addClasses(TestJobProcessorMessageConsumerBean.class)
-                    .addClasses(TestSinkMessageConsumerBean.class);
+                    .addClasses(TestSinkMessageConsumerBean.class)
+                    .addClass(TestJobSchedulerConfigOverWrite.class)
+                    ;
 
             // Add Maven Dependencyes  // .workOffline fejler med  mvnlocal ( .m2 i projectHome
             File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(false).loadPomFromFile("pom.xml")
@@ -171,8 +180,6 @@ public class JobSchedulerBeanArquillianIT {
      */
     @Test
     public void scheduleChunkSimple() throws Exception {
-        JobSchedulerBean.resetQueuedToDelivering((long) 3, 0);
-        JobSchedulerBean.resetQueuedToDelivering((long) 3, 0);
 
 
         runSqlFromResource("JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
@@ -244,72 +251,87 @@ public class JobSchedulerBeanArquillianIT {
     }
 
 
+    /*
+
+     */
     @Test
     public void RateLimits() throws Exception {
 
         runSqlFromResource("JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
 
-        // when threre is only space for one chunk to sink
+        // when there is only space for 10 chunks to sink 1
         Sink sink1 = new SinkBuilder().setId(1).build();
 
-        // Fake queue size is 1.
-        JobSchedulerBean.resetQueuedToProcessing(sink1.getId(), JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - 1);
-        JobSchedulerBean.resetQueuedToDelivering(sink1.getId(), JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - 1);
+
+        // submit 3.[0-9]
+        for( int i=0; i<=9; ++i) {
+            jobSchedulerBean.scheduleChunk(new ChunkEntity()
+                            .withJobId(3).withChunkId(i)
+                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"+i))),
+                    sink1);
+        }
+        // Chunk 3.9 must take last slot before chunk is delayed.
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(10);
 
         jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                        .withJobId(3).withChunkId(0)
-                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
-                sink1);
-        // Chunk 3.0 must take last slot before chunk is delayed.
-
-        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
-
-        jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                        .withJobId(3).withChunkId(1)
-                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f2"))),
+                        .withJobId(3).withChunkId(10)
+                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f2 10"))),
                 sink1);
 
         // then Second chunk is blocked in ready_to_process
         assertThat(getDependencyTrackingEntity(3, 0).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
-        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
+        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
 
-        // when chunk 3.0 is done..
-        jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
-                .setJobId(3).setChunkId(0)
-                .appendItem(new ChunkItemBuilder().setData("ProcessdChunk").build())
-                .build()
-        );
+        // when chunk 3.[0-9] is done..
+        for( int i=0; i<=9; ++i) {
+            jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3).setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
+                    .build()
+            );
+        }
 
         // then chunk 3,1 is sent to processing
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
-        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
 
-        assertThat(getDependencyTrackingEntity(3, 0).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        for( int i=0; i<=9; i++ ) {
+            assertThat(getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        }
 
         // Chunk 3.0 sent to delivering
 
         // When chunk 3.1 is done processing
         jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                 .setJobId(3)
-                .setChunkId(1)
+                .setChunkId(10)
                 .appendItem(new ChunkItemBuilder().setData("ProcessdChunk").build())
                 .build()
         );
 
         JPATestUtils.clearEntityManagerCache(entityManager);
         // Then chunk 3.1 i blocked by 3.0 in sink -- It waits for space in queue to Delivering
-        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
+        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
 
 
-        // When 3.0 is returned from sink
+        // When 3.[0-9] is returned from sink
+        for( int i=0; i <= 9; ++i ) {
+            jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3)
+                    .setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
+                    .build());
+        }
+
+        // Then chunk 3.1 is released to Sink
+        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+
         jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
                 .setJobId(3)
-                .setChunkId(0)
+                .setChunkId(10)
                 .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
                 .build());
 
-        // Then chunk 3.1 is released to Sink
-        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
 
     }
 

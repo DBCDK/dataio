@@ -43,7 +43,6 @@ public class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
     static final int JOB_DIAGNOSTIC_TAB_CONTENT = 4;
     static final int JOB_NOTIFICATION_TAB_CONTENT = 5;
     static final int WORKFLOW_NOTE_TAB_CONTENT = 6;
-    static final int ITEM_FIXED_COLUMN_INDEX = 3;
 
     interface ViewUiBinder extends UiBinder<Widget, ViewWidget> {}
 

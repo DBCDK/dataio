@@ -139,6 +139,22 @@ public final class Format {
         return matches;
     }
 
+    /**
+     * Inserts the parameter in the targetString, using Macro substitution<br/>
+     * Example<br/>
+     * targetString: "Mary had a @SIZE@ lamb"<br/>
+     * parameterName: "SIZE"<br/>
+     * parameterValue: "little"<br/>
+     * ... gives: "Mary had a little lamb"
+     * @param targetString The string, where the parameter should be put into
+     * @param parameterName The name of the parameter
+     * @param parameterValue The value of the parameter
+     * @return The composed string
+     */
+    public static String macro(String targetString, String parameterName, String parameterValue) {
+        return targetString.replaceAll("@" + parameterName + "@", parameterValue);
+    }
+
     /*
      * Private methods
      */

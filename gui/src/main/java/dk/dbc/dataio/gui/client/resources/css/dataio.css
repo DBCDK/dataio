@@ -32,7 +32,7 @@
 @external .test-jobs-table;
 @external .application-panel;
 @external .hide-cell, .show-cell;
-@external .invisible;
+@external .invisible, .center;
 @external .clickable-submitter-column-style;
 @external .multilistremovebutton;
 @external .gray-box-container, .gray-box-content;
@@ -86,7 +86,7 @@ input:disabled {
 #header-panel {
     background-color: backgroundDarkGrey;
     color: headerTextColor;
-    font-family: Trebuchet MS;
+    font-family: Trebuchet MS, serif;
     font-size: 14px;
     padding: 0.4em;
 }
@@ -305,6 +305,10 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .invisible {
     display: none;
+}
+
+.center {
+    text-align: center;
 }
 
 .test-jobs-table thead th {

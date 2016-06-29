@@ -36,4 +36,5 @@ public interface Presenter extends GenericPresenter {
     void noteTabSelected();
     void setWorkflowNoteModel(String description);
     void setWorkflowNoteModel(ItemModel itemModel, boolean isProcessed);
+    void traceItem(String trackingId);
 }

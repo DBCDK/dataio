@@ -25,6 +25,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.user.client.ui.Composite;
@@ -51,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 
 public class PresenterImpl<P extends Place> extends AbstractActivity implements Presenter {
-
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
@@ -61,6 +61,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private static final String PATH_PARAM_PLACEHOLDER = "{jobId}";
     private static final String CHUNK_ITEM_TYPE_BYTES = "BYTES";
     private static final String CHUNK_ITEM_TYPE_DANMARC2LINEFORMAT = "DANMARC2LINEFORMAT";
+    private static final String TRACE_ID = "TRACEID";
 
     protected PlaceController placeController;
     View globalItemsView;
@@ -74,6 +75,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private String header;
     private String endpoint;
     protected String urlDataioFilestoreRs = null;
+    private String urlElk = null;
 
     /*
      * Default constructor
@@ -105,6 +107,18 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     @Override
                     public void onSuccess(String jndiUrl) {
                         urlDataioFilestoreRs = jndiUrl;
+                    }
+                });
+        commonInjector.getJndiProxyAsync().getJndiResource(
+                JndiConstants.URL_RESOURCE_ELK,
+                new AsyncCallback<String>() {
+                    @Override
+                    public void onFailure(Throwable throwable) {
+                        viewInjector.getView().setErrorText(viewInjector.getTexts().error_JndiElkUrlFetchError());
+                    }
+                    @Override
+                    public void onSuccess(String jndiUrl) {
+                        urlElk = jndiUrl;
                     }
                 });
     }
@@ -233,6 +247,18 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
     }
 
+    /**
+     * Opens a new tab in the browser, containing a search in ELK for the item with trackingId as supplied
+     * @param trackingId The tracking ID to search for
+     */
+    @Override
+    public void traceItem(String trackingId) {
+        if (urlElk != null) {
+            Window.open(Format.macro(urlElk, TRACE_ID, trackingId), "_blank", "");
+        }
+    }
+
+
     /*
      * Private methods
      */
@@ -290,7 +316,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         failedItemCounter = (int) jobModel.getFailedCounter();
         ignoredItemCounter = (int) jobModel.getIgnoredCounter();
         workflowNoteModel = jobModel.getWorkflowNoteModel();
-        AddOrRemoveFixedColumn();
         type = jobModel.getType();
         getView().jobHeader.setText(constructJobHeaderText(jobModel));
         setDiagnosticModels(jobModel);
@@ -298,18 +323,6 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         setJobInfoTab(jobModel);
         setWorkflowNoteTab();
         selectJobTabVisibility();
-    }
-
-    /**
-     * Adds or removes the fixed column from the failed items table
-     */
-    private void AddOrRemoveFixedColumn() {
-        View view = getView();
-        if(workflowNoteModel.getAssignee().isEmpty()) {
-            view.removeFixedColumn();
-        } else {
-            view.addFixedColumn();
-        }
     }
 
     /**
@@ -589,6 +602,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
     private void setWorkflowNoteTab() {
         if(workflowNoteModel != null) {
             getView().workflowNoteTabContent.note.setText(workflowNoteModel.getDescription());
+            getView().fixedColumnVisible = !workflowNoteModel.getAssignee().isEmpty();
         }
     }
 

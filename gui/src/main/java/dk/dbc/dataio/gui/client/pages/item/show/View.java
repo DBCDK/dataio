@@ -22,15 +22,17 @@
 package dk.dbc.dataio.gui.client.pages.item.show;
 
 
+import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
+import com.google.gwt.cell.client.TextCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.dom.client.Style;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.view.client.Range;
@@ -48,6 +50,8 @@ import java.util.List;
 public class View extends ViewWidget {
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
+    protected Boolean fixedColumnVisible = false;
 
     class Context {
         SingleSelectionModel<ItemModel> selectionModel = new SingleSelectionModel<>();
@@ -148,31 +152,12 @@ public class View extends ViewWidget {
     void setupColumns(final ItemsListView listView) {
         listView.itemsTable.setWidth("100%", true);
         listView.itemsTable.addColumn(constructItemColumn(), getTexts().column_Item());
-        listView.itemsTable.setColumnWidth(0, 8, Style.Unit.EM);
         listView.itemsTable.addColumn(constructRecordIdColumn(), getTexts().column_RecordId());
-        listView.itemsTable.setColumnWidth(1, 10, Style.Unit.EM);
         listView.itemsTable.addColumn(constructStatusColumn(), getTexts().column_Status());
-        listView.itemsTable.setColumnWidth(2, 8, Style.Unit.EM);
+        listView.itemsTable.addColumn(constructFixedColumn(), new HidableColumnHeader(getTexts().column_Fixed()));
+        listView.itemsTable.addColumn(constructTrackingIdColumn(), getTexts().column_Trace());
         listView.itemsTable.setVisibleRange(0, 20);
         listView.itemsPager.setDisplay(listView.itemsTable);
-    }
-
-    void addFixedColumn() {
-        if(failedContext.listView.itemsTable.getColumnCount() == 3) {
-            failedContext.listView.itemsTable.addColumn(constructFixedColumn(), getTexts().column_Fixed());
-            failedContext.listView.itemsTable.setColumnWidth(3, 4, Style.Unit.EM);
-            failedContext.listView.itemsTable.setVisibleRange(0, 20);
-            failedContext.listView.itemsTable.redraw();
-        }
-    }
-
-    void removeFixedColumn() {
-        if(failedContext.listView.itemsTable.getColumnCount() == 4) {
-            failedContext.listView.itemsTable.getColumn(ITEM_FIXED_COLUMN_INDEX);
-            failedContext.listView.itemsTable.clearColumnWidth(ITEM_FIXED_COLUMN_INDEX);
-            failedContext.listView.itemsTable.removeColumn(ITEM_FIXED_COLUMN_INDEX);
-            failedContext.listView.itemsTable.redraw();
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -246,18 +231,34 @@ public class View extends ViewWidget {
     }
 
     /**
+     * This method constructs the Tracking ID column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Tracking ID column
+     */
+    Column constructTrackingIdColumn() {
+        Column<ItemModel, String> column = new Column<ItemModel, String>(new ButtonCell()) {
+            @Override
+            public String getValue(ItemModel model) {
+                return getTexts().button_Trace();
+            }
+        };
+        column.setFieldUpdater((index, config, buttonText) -> presenter.traceItem(config.getTrackingId()));
+        return column;
+    }
+
+    /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
      * @return the double click handler
      */
     Column constructFixedColumn() {
         CheckboxCell checkboxCell = new CheckboxCell(true, false);
-        Column<ItemModel, Boolean> FixedColumn = new Column<ItemModel, Boolean>(checkboxCell) {
+        return new Column<ItemModel, Boolean>(checkboxCell) {
             @Override
             public Boolean getValue(ItemModel itemModel) {
                 return itemModel.getWorkflowNoteModel().isProcessed();
             }
-
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, ItemModel itemModel, NativeEvent event) {
                 if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
@@ -265,8 +266,11 @@ public class View extends ViewWidget {
                 }
                 super.onBrowserEvent(context, elem, itemModel, event);
             }
+            @Override
+            public String getCellStyleNames(Cell.Context context, ItemModel model) {
+                return fixedColumnVisible ? "visible center" : "invisible";
+            }
         };
-        return FixedColumn;
     }
 
     private String formatStatus(ItemModel.LifeCycle lifeCycle) {
@@ -284,11 +288,17 @@ public class View extends ViewWidget {
         }
     }
 
+    Texts getTexts() {
+        return viewInjector.getTexts();
+    }
 
     /*
      * Private classes
      */
 
+    /**
+     * Selection Handler class - to take action upon selection of a row
+     */
     class SelectionChangeHandlerClass implements SelectionChangeEvent.Handler {
         private Context context;
         public SelectionChangeHandlerClass(Context context) {
@@ -303,7 +313,23 @@ public class View extends ViewWidget {
         }
     }
 
-    Texts getTexts() {
-        return viewInjector.getTexts();
+    /**
+     * Normal Column Header class (to be hidden upon request)
+     */
+    class HidableColumnHeader extends Header<String> {
+        private String headerText;
+        public HidableColumnHeader(String text) {
+            super(new TextCell());
+            headerText = text;
+        }
+        @Override
+        public String getValue() {
+            return headerText;
+        }
+        @Override
+        public String getHeaderStyleNames() {
+            return fixedColumnVisible ? "visible" : "invisible";
+        }
     }
+
 }

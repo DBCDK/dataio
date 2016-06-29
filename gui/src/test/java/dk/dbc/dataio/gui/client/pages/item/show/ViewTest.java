@@ -128,6 +128,7 @@ public class ViewTest {
     final static String MOCKED_LIFECYCLE_DELIVERING = "Mocked Delivering";
     final static String MOCKED_LIFECYCLE_DONE = "Mocked Done";
     final static String MOCKED_LIFECYCLE_UNKNOWN = "Mocked Ukendt Lifecycle";
+    final static String MOCKED_TRACE = "Mocked Trace";
     @Before
     public void setupMockedTextsBehaviour() {
         when(mockedMenuItems.menu_Items()).thenReturn(MOCKED_MENU_ITEMS);
@@ -148,6 +149,7 @@ public class ViewTest {
         when(mockedTexts.lifecycle_Delivering()).thenReturn(MOCKED_LIFECYCLE_DELIVERING);
         when(mockedTexts.lifecycle_Done()).thenReturn(MOCKED_LIFECYCLE_DONE);
         when(mockedTexts.lifecycle_Unknown()).thenReturn(MOCKED_LIFECYCLE_UNKNOWN);
+        when(mockedTexts.button_Trace()).thenReturn(MOCKED_TRACE);
     }
 
 
@@ -254,6 +256,18 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(itemModel), is(MOCKED_LIFECYCLE_DELIVERING));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructTrackingIdColumn_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructTrackingIdColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(itemModel), is(MOCKED_TRACE));
     }
 
     @Test

@@ -25,30 +25,47 @@
     <ui:with type="dk.dbc.dataio.gui.client.pages.item.show.Texts" field="txt"/>
 
     <ui:style>
-        .horizontal-element {
+
+        .celltable-element {
+            padding: 0;
+            text-align: left;
+            float: left;
+        }
+
+        .celltable-element table {
+            width: 26em !important;
+            table-layout: auto !important;
+        }
+
+        .celltable-element td {
+            padding: 0 2px;
+        }
+
+        .celltable-element td button {
+            padding: 2px;
+        }
+
+        .tab-panel-element {
             padding: 0.5em;
             text-align: left;
         }
+
     </ui:style>
 
     <g:HTMLPanel>
-
         <g:Button ui:field="backButton" text="{txt.label_Back}" />
         <c:SimplePager ui:field="itemsPager" />
-        <g:HorizontalPanel verticalAlignment="top" horizontalAlignment="left" width="100%" >
-            <g:cell>
-                <c:CellTable ui:field='itemsTable' addStyleNames="{style.horizontal-element}"/>
-            </g:cell>
+        <g:FlowPanel>
+            <g:SimplePanel addStyleNames="{style.celltable-element}">
+                <c:CellTable  ui:field='itemsTable' />
+            </g:SimplePanel>
 
-            <g:cell width="100%">
-                <g:DecoratedTabPanel ui:field="detailedTabs" visible="false" animationEnabled="true" width="100%" addStyleNames="{style.horizontal-element}">
-                    <g:Tab text="{txt.tab_ItemDiagnostic}">
-                        <dio:ItemDiagnosticTabContent ui:field="itemDiagnosticTabContent"/>
-                    </g:Tab>
-                </g:DecoratedTabPanel>
-            </g:cell>
-        </g:HorizontalPanel>
-        
+            <g:DecoratedTabPanel ui:field="detailedTabs" visible="false" animationEnabled="true" addStyleNames="{style.tab-panel-element}">
+                <g:Tab text="{txt.tab_ItemDiagnostic}">
+                    <dio:ItemDiagnosticTabContent ui:field="itemDiagnosticTabContent"/>
+                </g:Tab>
+            </g:DecoratedTabPanel>
+        </g:FlowPanel>
     </g:HTMLPanel>
 
 </ui:UiBinder>

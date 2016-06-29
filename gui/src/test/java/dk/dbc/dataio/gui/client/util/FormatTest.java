@@ -50,7 +50,7 @@ public class FormatTest {
 
     @Test
     public void commaSeparate_emptyList_emptyResultString() {
-        List<String> empty = new ArrayList<String>();
+        List<String> empty = new ArrayList<>();
         String result = Format.commaSeparate(empty);
         assertThat(result, is(""));
     }
@@ -117,4 +117,40 @@ public class FormatTest {
             assertThat(matchesFound.get(i), is(String.valueOf(charArray[i])));
         }
     }
+
+    @Test(expected = NullPointerException.class)
+    public void macro_invalidNullInput_exception() {
+        assertThat(Format.macro(null, "SIZE", "little"), is("Mary had a little lamb"));
+    }
+
+    @Test
+    public void macro_invalidNullNameInput_noMacroSubstitution() {
+        assertThat(Format.macro("Mary had a @SIZE@ lamb", null, "little"), is("Mary had a @SIZE@ lamb"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void macro_invalidNullValueInput_exception() {
+        assertThat(Format.macro("Mary had a @SIZE@ lamb", "SIZE", null), is("Mary had a little lamb"));
+    }
+
+    @Test
+    public void macro_validSingleInput_correctOutput() {
+        assertThat(Format.macro("Mary had a @SIZE@ lamb", "SIZE", "little"), is("Mary had a little lamb"));
+    }
+
+    @Test
+    public void macro_validDoubleInput_correctOutput() {
+        assertThat(Format.macro("Mary had a @SIZE@ lamb and a @SIZE@ goat", "SIZE", "little"), is("Mary had a little lamb and a little goat"));
+    }
+
+    @Test
+    public void macro_validNoInput_correctOutput() {
+        assertThat(Format.macro("Mary had a lamb", "SIZE", "little"), is("Mary had a lamb"));
+    }
+
+    @Test
+    public void macro_validInputWrongName_noMacroSubstitution() {
+        assertThat(Format.macro("Mary had a @VOLUME@ lamb", "SIZE", "little"), is("Mary had a @VOLUME@ lamb"));
+    }
+
 }

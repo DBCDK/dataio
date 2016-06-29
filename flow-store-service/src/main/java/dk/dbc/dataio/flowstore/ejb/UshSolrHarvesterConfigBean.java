@@ -192,7 +192,7 @@ public class UshSolrHarvesterConfigBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public void tryDelete(HarvesterConfig persisted) {
         // Find harvester config to make sure it has not previously been deleted
-        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, persisted);
+        HarvesterConfig harvesterConfig = entityManager.find(HarvesterConfig.class, persisted.getId());
         if(harvesterConfig != null) {
             entityManager.remove(harvesterConfig);
         }

@@ -128,7 +128,7 @@ public class UshSolrHarvesterConfigBeanTest {
     @Test
     public void findAllAndSyncWithUsh_orphanedUshSolrHarvesterConfigFoundAndDeleted_ok() throws FlowStoreException {
         when(findAllOfType.getResultList()).thenReturn(Arrays.asList(harvesterConfig, orphanedHarvesterConfig));
-        when(entityManager.find(HarvesterConfig.class, orphanedHarvesterConfig)).thenReturn(orphanedHarvesterConfig);
+        when(entityManager.find(HarvesterConfig.class, orphanedHarvesterConfig.getId())).thenReturn(orphanedHarvesterConfig);
 
         // Subject under test
         ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();
@@ -140,7 +140,7 @@ public class UshSolrHarvesterConfigBeanTest {
     @Test
     public void findAllAndSyncWithUsh_orphanedUshSolrHarvesterPreviouslyDeleted_ok() throws FlowStoreException {
         when(findAllOfType.getResultList()).thenReturn(Arrays.asList(harvesterConfig, orphanedHarvesterConfig));
-        when(entityManager.find(HarvesterConfig.class, orphanedHarvesterConfig)).thenReturn(null);
+        when(entityManager.find(HarvesterConfig.class, orphanedHarvesterConfig.getId())).thenReturn(null);
 
         // Subject under test
         ushSolrHarvesterConfigBean.findAllAndSyncWithUsh();

@@ -44,9 +44,9 @@ import java.util.Set;
  *
  *
  */
-public class NewJobSchedulerBeanIT {
+public class JobSchedulerBeanIT {
     private EntityManager em;
-    private static final Logger LOGGER = LoggerFactory.getLogger(NewJobSchedulerBeanIT.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanIT.class);
 
     @Before
     public void setUp() throws Exception {
@@ -96,7 +96,7 @@ public class NewJobSchedulerBeanIT {
 
     @Test
     public void multipleCallesToChunkXxxxxxDoneIsIgnored() throws Exception {
-        JPATestUtils.runSqlFromResource(em, NewJobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+        JPATestUtils.runSqlFromResource(em, JobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
 
         em.getTransaction().begin();
         em.createNativeQuery("DELETE FROM dependencytracking").executeUpdate();

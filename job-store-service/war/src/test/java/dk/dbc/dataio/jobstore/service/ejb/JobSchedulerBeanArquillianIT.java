@@ -63,8 +63,8 @@ import java.util.Set;
  */
 @RunWith(Arquillian.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class NewJobSchedulerBeanArquillianIT {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NewJobSchedulerBeanArquillianIT.class);
+public class JobSchedulerBeanArquillianIT {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBeanArquillianIT.class);
 
     @EJB
     JobSchedulerBean jobSchedulerBean;

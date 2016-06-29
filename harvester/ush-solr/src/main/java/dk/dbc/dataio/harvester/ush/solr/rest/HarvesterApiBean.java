@@ -44,9 +44,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Stateless
@@ -79,19 +79,14 @@ public class HarvesterApiBean {
             Optional<JobInfoSnapshot> jobInfoSnapshot = harvestOperation.executeTest();
 
             if (jobInfoSnapshot.isPresent()) {
-                return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.get().getJobId())))
+                return Response.created(new URI(Long.valueOf(jobInfoSnapshot.get().getJobId()).toString()))
                         .build();
             } else {
                 return Response.noContent().build();
             }
-        } catch (FlowStoreServiceConnectorException | HarvesterException e) {
+        } catch (FlowStoreServiceConnectorException | HarvesterException | URISyntaxException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ServiceUtil.asJsonError(e, "Error occurred while executing test harvest")).build();
         }
-    }
-
-    private URI getUri(UriInfo uriInfo, String jobId) {
-        final UriBuilder absolutePathBuilder = uriInfo.getAbsolutePathBuilder();
-        return absolutePathBuilder.path(jobId).build();
     }
 
     public HarvestOperation getHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {

@@ -19,10 +19,23 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.commons.types.rest;
+package dk.dbc.dataio.commons.utils.ush.solr;
 
-public class UshServiceConstants {
+public class UshSolrHarvesterConnectorException extends Exception {
 
-    public static final String ID_VARIABLE = "id";
-    public static final String HARVESTERS_USH_SOLR_TEST = "harvesters/ush-solr/{id}/test";
+
+    private static final long serialVersionUID = 801595304289167463L;
+
+    /**
+     * Constructs a new exception with the specified detail message
+     * <p>
+     * The cause is not initialized, and may subsequently be initialized by
+     * a call to {@link #initCause}.
+     *
+     * @param message detail message saved for later retrieval by the
+     *                {@link #getMessage()} method. May be null.
+     */
+    public UshSolrHarvesterConnectorException(String message) {
+        super(message);
+    }
 }

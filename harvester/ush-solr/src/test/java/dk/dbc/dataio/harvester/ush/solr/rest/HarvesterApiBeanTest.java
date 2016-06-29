@@ -33,15 +33,11 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
@@ -50,7 +46,6 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -61,22 +56,13 @@ public class HarvesterApiBeanTest {
 
     private final static int USH_SOLR_HARVESTER_CONFIG_ID = 42;
     private final static String EXCEPTION_MSG = "msg";
-    private final static String LOCATION = "location";
 
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final HarvestOperation harvestOperation = mock(HarvestOperation.class);
     private final static UriInfo mockedUriInfo = mock(UriInfo.class);
-    private final static UriBuilder uriBuilder = mock(UriBuilder.class);
 
     private HarvesterApiBean harvesterApiBean;
     private final JSONBContext jsonbContext = new JSONBContext();
-
-    @BeforeClass
-    public static void setupUri() throws URISyntaxException {
-        when(mockedUriInfo.getAbsolutePathBuilder()).thenReturn(uriBuilder);
-        when(uriBuilder.path(anyString())).thenReturn(uriBuilder);
-        when(uriBuilder.build()).thenReturn(new URI(LOCATION));
-    }
 
     @Before
     public void setup() {
@@ -85,7 +71,8 @@ public class HarvesterApiBeanTest {
 
     @Test
     public void runTestHarvest_executeTestJobIsCreated_returnsResponseCreatedWithLocationSet() throws HarvesterException {
-        Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.of(new JobInfoSnapshotBuilder().build());
+        final int jobId = 123;
+        Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.of(new JobInfoSnapshotBuilder().setJobId(jobId).build());
         doReturn(jobInfoSnapshot).when(harvestOperation).executeTest();
 
         // Subject under test
@@ -93,7 +80,7 @@ public class HarvesterApiBeanTest {
 
         // Verification
         assertThat("Response.status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
-        assertThat("Response.location", response.getLocation().toString(), is(LOCATION));
+        assertThat("Response.location", response.getLocation().toString(), is(Long.valueOf(jobId).toString()));
         assertThat("Response.hasEntity", response.hasEntity(), is(false));
     }
 

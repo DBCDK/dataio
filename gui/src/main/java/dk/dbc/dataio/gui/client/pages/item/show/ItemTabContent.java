@@ -43,7 +43,7 @@ public class ItemTabContent extends HTML{
     }
 
     /*
-     * Callback class to be instantiated in the call to getChunkItem in jobStoreProxy
+     * Callback class to be instantiated in the call to getItemData in jobStoreProxy
      */
     class GetItemDataAsyncCallback implements AsyncCallback<String> {
 

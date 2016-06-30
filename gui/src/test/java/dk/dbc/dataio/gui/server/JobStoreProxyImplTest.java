@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -182,18 +183,17 @@ public class JobStoreProxyImplTest {
     }
 
     @Test(expected = ProxyException.class)
-    public void getItemData_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
+    public void getChunkItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
 
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-//        jobStoreProxy.getItemData(1, 0, (short) 0, ItemModel.LifeCycle.PROCESSING);
         jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PROCESSING);
     }
 
     @Test
-    public void getItemData_remoteServiceReturnsHttpStatusOk_returnsDataString() throws Exception {
+    public void getChunkItem_remoteServiceReturnsHttpStatusOk_returnsDataString() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(getXmlData());
+        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(new ChunkItemBuilder().setData(getXmlData()).build());
         try {
             String data = jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
             assertThat("data not null", data, not(nullValue()));
@@ -201,14 +201,6 @@ public class JobStoreProxyImplTest {
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getItemData()");
         }
-    }
-
-    @Test(expected = ProxyException.class)
-    public void getChunkItem_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.getItemData(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenThrow(new JobStoreServiceConnectorException("Testing"));
-
-        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
     }
 
     @Test(expected = ProxyException.class)

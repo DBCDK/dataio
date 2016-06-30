@@ -418,12 +418,12 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves data from partitioned chunk item as String
+     * Retrieves partitioned chunk item
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with data from partitioned chunk item as String,
+     * @return a HTTP 200 OK response with partitioned chunk item as entity,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -431,7 +431,7 @@ public class JobsBean {
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PARTITIONED)
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getPartitionedResult(
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
@@ -442,12 +442,12 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves data from processed chunk item as String
+     * Retrieves processed chunk item
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with data from processed chunk item as String,
+     * @return a HTTP 200 OK response with processed chunk item as entity,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -455,7 +455,7 @@ public class JobsBean {
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED)
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getProcessingResult(
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
@@ -466,12 +466,12 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves data from delivered chunk item as String
+     * Retrieves delivered chunk item
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with data from delivered chunk item as String,
+     * @return a HTTP 200 OK response with delivered chunk item as entity,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -479,7 +479,7 @@ public class JobsBean {
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_DELIVERED)
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({MediaType.APPLICATION_JSON})
     @Stopwatch
     public Response getDeliveringResult(
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
@@ -494,7 +494,7 @@ public class JobsBean {
      * @param chunkId the chunk id
      * @param itemId the item id
      * @param phase the phase of the item (PARTITIONING, PROCESSING, DELIVERING)
-     * @return a HTTP 200 OK response with data from chunk item as String,
+     * @return a HTTP 200 OK response with chunk item as String,
      *         a HTTP 404 NOT_FOUND response on failure to retrieve item
      *
      * @throws JobStoreException on failure to retrieve job
@@ -503,7 +503,7 @@ public class JobsBean {
     Response getChunkItemForPhase(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreException, JSONBException {
         try {
             ChunkItem chunkItem = jobStoreRepository.getChunkItemForPhase(jobId, chunkId, itemId, phase);
-            return  Response.ok().entity(StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding())).build();
+            return Response.ok().entity(jsonbContext.marshall(chunkItem)).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
         }

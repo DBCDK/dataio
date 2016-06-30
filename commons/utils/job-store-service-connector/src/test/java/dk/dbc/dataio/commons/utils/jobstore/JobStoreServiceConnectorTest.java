@@ -22,6 +22,7 @@
 package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
@@ -30,6 +31,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
@@ -87,6 +89,7 @@ public class JobStoreServiceConnectorTest {
     private static final int CHUNK_ID = 44;
     private static final short ITEM_ID = 0;
     private static final String ITEM_DATA = "item data";
+    private static final ChunkItem CHUNK_ITEM = new ChunkItemBuilder().setData(ITEM_DATA).build();
 
     @Before
     public void setup() throws Exception {
@@ -455,27 +458,27 @@ public class JobStoreServiceConnectorTest {
         assertThat(String.format("ResourceBundle: %s, expected to match: %s", resourceBundle, expectedResourceBundle), resourceBundle, is(expectedResourceBundle));
     }
 
-    // ******************************************* getItemData() tests *******************************************
+    // ******************************************* getChunkItem() tests *******************************************
 
     @Test
-    public void getItemData_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
+    public void getChunkItem_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         try {
-            jobStoreServiceConnector.getItemData(-1, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
+            jobStoreServiceConnector.getChunkItem(-1, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING);
             fail("No exception thrown");
         } catch (IllegalArgumentException e) {}
     }
 
     @Test(expected = NullPointerException.class)
-    public void getItemData_phaseIsNull_throws() throws JobStoreServiceConnectorException {
+    public void getChunkItem_phaseIsNull_throws() throws JobStoreServiceConnectorException {
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
-        jobStoreServiceConnector.getItemData(JOB_ID, CHUNK_ID, ITEM_ID, null);
+        jobStoreServiceConnector.getChunkItem(JOB_ID, CHUNK_ID, ITEM_ID, null);
     }
 
     @Test
-    public void getItemData_notFoundResponse_throws() throws JobStoreServiceConnectorException {
+    public void getChunkItem_notFoundResponse_throws() throws JobStoreServiceConnectorException {
         try {
-            callGetItemDataWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING,
+            callGetChunkItemWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING,
                     Response.Status.NOT_FOUND, null);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             assertThat("Exception status code", e.getStatusCode(), is(Response.Status.NOT_FOUND.getStatusCode()));
@@ -483,30 +486,30 @@ public class JobStoreServiceConnectorTest {
     }
 
     @Test
-    public void getItemData_partitioningPhase_partitionedDataReturned() throws JobStoreServiceConnectorException {
-        final String data = callGetItemDataWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING,
-                Response.Status.OK, ITEM_DATA);
+    public void getChunkItem_partitioningPhase_partitionedDataReturned() throws JobStoreServiceConnectorException {
+        final ChunkItem returnedChunkItem = callGetChunkItemWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PARTITIONING,
+                Response.Status.OK, CHUNK_ITEM);
 
-        assertThat(data, is(notNullValue()));
-        assertThat(data, is(ITEM_DATA));
+        assertThat(returnedChunkItem, is(notNullValue()));
+        assertThat(returnedChunkItem, is(returnedChunkItem));
     }
 
     @Test
-    public void getItemData_processingPhase_processedDataReturned() throws JobStoreServiceConnectorException {
-        final String data = callGetItemDataWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING,
-                Response.Status.OK, ITEM_DATA);
+    public void getChunkItem_processingPhase_processedDataReturned() throws JobStoreServiceConnectorException {
+        final ChunkItem returnedChunkItem = callGetChunkItemWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.PROCESSING,
+                Response.Status.OK, CHUNK_ITEM);
 
-        assertThat(data, is(notNullValue()));
-        assertThat(data, is(ITEM_DATA));
+        assertThat(returnedChunkItem, is(notNullValue()));
+        assertThat(returnedChunkItem, is(CHUNK_ITEM));
     }
 
     @Test
-    public void getItemData_deliveredPhase_deliveredDataReturned() throws JobStoreServiceConnectorException {
-        final String data = callGetItemDataWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING,
-                Response.Status.OK, ITEM_DATA);
+    public void getChunkItem_deliveredPhase_deliveredDataReturned() throws JobStoreServiceConnectorException {
+        final ChunkItem returnedChunkItem = callGetChunkItemWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID, State.Phase.DELIVERING,
+                Response.Status.OK, CHUNK_ITEM);
 
-        assertThat(data, is(notNullValue()));
-        assertThat(data, is(ITEM_DATA));
+        assertThat(returnedChunkItem, is(notNullValue()));
+        assertThat(returnedChunkItem, is(CHUNK_ITEM));
     }
 
     // ***************************************** getNextItemData() tests *****************************************
@@ -798,7 +801,7 @@ public class JobStoreServiceConnectorTest {
         return instance.getResourceBundle(jobId);
     }
 
-    private String callGetItemDataWithMockedHttpResponse(int jobId, int chunkId, short itemId, State.Phase phase, Response.Status statusCode, Object returnValue)
+    private ChunkItem callGetChunkItemWithMockedHttpResponse(int jobId, int chunkId, short itemId, State.Phase phase, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
         final String basePath;
         switch (phase) {
@@ -813,7 +816,7 @@ public class JobStoreServiceConnectorTest {
         when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildAddChunkItemPath(jobId, chunkId, itemId, basePath)))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
-        return instance.getItemData(jobId, chunkId, itemId, phase);
+        return instance.getChunkItem(jobId, chunkId, itemId, phase);
     }
 
     private List<JobNotification> callListJobNotificationForJobIdWithMockedHttpResponse(int jobId, Response.Status statusCode, Object returnValue)

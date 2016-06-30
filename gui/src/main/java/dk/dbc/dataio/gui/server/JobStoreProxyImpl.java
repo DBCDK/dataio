@@ -22,10 +22,12 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.time.StopWatch;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -192,38 +194,38 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
-    public String getItemData (ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException {
+    public String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException {
         final State.Phase phase;
         log.trace("JobStoreProxy: getItemData(\"{}\", {});", itemModel, lifeCycle);
         final StopWatch stopWatch = new StopWatch();
         try {
-        switch (lifeCycle) {
-            case PARTITIONING:
-                phase = State.Phase.PARTITIONING;
-                break;
-            case PROCESSING:
-                phase = State.Phase.PROCESSING;
-                break;
-            default:
-                phase = State.Phase.DELIVERING;
-                break;
+            switch (lifeCycle) {
+                case PARTITIONING:
+                    phase = State.Phase.PARTITIONING;
+                    break;
+                case PROCESSING:
+                    phase = State.Phase.PROCESSING;
+                    break;
+                default:
+                    phase = State.Phase.DELIVERING;
+                    break;
             }
-            return format(jobStoreServiceConnector.getItemData(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), phase));
-
+            ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), phase);
+            return format(StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding()));
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
-                log.error("JobStoreProxy: getChunkItem - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
-                log.error("JobStoreProxy: getChunkItem - Unexpected Status Code Exception", e);
+                log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
-            log.error("JobStoreProxy: getChunkItem - Service Not Found Exception", e);
+            log.error("JobStoreProxy: getItemData - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } finally {
-            log.debug("JobStoreProxy: getChunkItem took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreProxy: getItemData took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

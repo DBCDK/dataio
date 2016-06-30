@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.utils.jobstore;
 
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
@@ -318,9 +319,8 @@ public class JobStoreServiceConnector {
         }
     }
 
-
-    public String getItemData(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException{
-        log.trace("JobStoreServiceConnector: getItemData({}, {}, {}, {});", jobId, chunkId, itemId);
+    public ChunkItem getChunkItem(int jobId, int chunkId, short itemId, State.Phase phase) throws JobStoreServiceConnectorException, IllegalArgumentException{
+        log.trace("JobStoreServiceConnector: getChunkItem({}, {}, {}, {});", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
         try {
             InvariantUtil.checkIntLowerBoundOrThrow(jobId, "jobId", 0);
@@ -331,12 +331,12 @@ public class JobStoreServiceConnector {
             final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, String.class);
+                return readResponseEntity(response, ChunkItem.class);
             } finally {
                 response.close();
             }
         } finally {
-            log.debug("JobStoreServiceConnector: getItemData took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreServiceConnector: getChunkItem took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

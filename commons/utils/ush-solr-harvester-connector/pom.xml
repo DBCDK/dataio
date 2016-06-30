@@ -77,7 +77,7 @@
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock</artifactId>
-      <version>1.58</version>
+      <version>${wiremock.version}</version>
       <scope>test</scope>
       <!-- Include everything below here if you have dependency conflicts -->
       <classifier>standalone</classifier>

@@ -224,6 +224,8 @@ public class GatekeeperDestinationsBeanTest {
         verify(gatekeeperDestinationEntity).setDestination(gatekeeperDestination.getDestination());
         verify(gatekeeperDestinationEntity).setPackaging(gatekeeperDestination.getPackaging());
         verify(gatekeeperDestinationEntity).setFormat(gatekeeperDestination.getFormat());
+        verify(gatekeeperDestinationEntity).setCopyToPosthus(gatekeeperDestination.isCopyToPosthus());
+        verify(gatekeeperDestinationEntity).setNotifyFromPosthus(gatekeeperDestination.isNotifyFromPosthus());
 
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));

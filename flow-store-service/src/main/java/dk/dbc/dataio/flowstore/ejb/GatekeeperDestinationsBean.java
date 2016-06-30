@@ -165,6 +165,8 @@ public class GatekeeperDestinationsBean {
         gatekeeperDestinationEntity.setDestination(gatekeeperDestination.getDestination());
         gatekeeperDestinationEntity.setPackaging(gatekeeperDestination.getPackaging());
         gatekeeperDestinationEntity.setFormat(gatekeeperDestination.getFormat());
+        gatekeeperDestinationEntity.setCopyToPosthus(gatekeeperDestination.isCopyToPosthus());
+        gatekeeperDestinationEntity.setNotifyFromPosthus(gatekeeperDestination.isNotifyFromPosthus());
         entityManager.merge(gatekeeperDestinationEntity);
         entityManager.flush();
         return Response

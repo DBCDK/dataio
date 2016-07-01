@@ -491,7 +491,7 @@ public class JobStoreServiceConnectorTest {
                 Response.Status.OK, CHUNK_ITEM);
 
         assertThat(returnedChunkItem, is(notNullValue()));
-        assertThat(returnedChunkItem, is(returnedChunkItem));
+        assertThat(returnedChunkItem, is(CHUNK_ITEM));
     }
 
     @Test

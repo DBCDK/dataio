@@ -293,6 +293,39 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void updateGatekeeperDestinationCallback_callOnFailure_displayWarning() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+        PresenterImpl.UpdateGatekeeperDestinationCallback callback = presenterImpl.new UpdateGatekeeperDestinationCallback();
+        when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
+        when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
+
+        // Subject Under Test
+        callback.onFailure(mockedThrowable);
+
+        // Verify Test
+        verify(mockedTexts).error_CannotUpdateGatekeeperDestination();
+        verify(mockedView).displayWarning(any(String.class));
+        verifyNoMoreInteractions(mockedTexts);
+        verifyNoMoreInteractions(mockedView);
+    }
+
+    @Test
+    public void updateGatekeeperDestinationCallback_callOnSucces_initializeData() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+        PresenterImpl.UpdateGatekeeperDestinationCallback callback = presenterImpl.new UpdateGatekeeperDestinationCallback();
+        when(presenterImpl.viewInjector.getView()).thenReturn(mockedView);
+        when(presenterImpl.viewInjector.getTexts()).thenReturn(mockedTexts);
+
+        // Subject Under Test
+        callback.onSuccess(new GatekeeperDestinationBuilder().build());
+
+        // Verify Test
+        verifyInitializeDataMethodCall();
+    }
+
+    @Test
     public void findAllGateKeeperDestinationsCallback_callOnFailure_displayWarning() {
         // Prepare Test
         presenterImpl = new PresenterImpl("Header Text");

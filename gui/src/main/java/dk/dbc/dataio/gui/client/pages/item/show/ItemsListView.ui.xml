@@ -48,6 +48,7 @@
         .tab-panel-element {
             padding: 0.5em;
             text-align: left;
+            word-break: break-all;
         }
 
     </ui:style>

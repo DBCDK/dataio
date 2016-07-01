@@ -130,6 +130,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         flowStoreProxy.deleteGatekeeperDestination(gatekeeperId, new DeleteGatekeeperDestinationCallback());
     }
 
+    @Override
+    public void updateGatekeeperDestination(long id, String submitterNumber, String destination, String packaging, String format, boolean copyToPosthus, boolean notifyFromPosthus) {
+        flowStoreProxy.updateGatekeeperDestination(
+                new GatekeeperDestination(id, submitterNumber, destination, packaging, format, copyToPosthus, notifyFromPosthus),
+                new UpdateGatekeeperDestinationCallback()
+        );
+    }
+
 
     /*
      * Local methods
@@ -168,6 +176,17 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onFailure(Throwable throwable) {
             getView().displayWarning(getTexts().error_CannotCreateGatekeeperDestination());
+        }
+        @Override
+        public void onSuccess(GatekeeperDestination destination) {
+            initializeData();
+        }
+    }
+
+    class UpdateGatekeeperDestinationCallback implements AsyncCallback<GatekeeperDestination> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            getView().displayWarning(getTexts().error_CannotUpdateGatekeeperDestination());
         }
         @Override
         public void onSuccess(GatekeeperDestination destination) {

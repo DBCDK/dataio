@@ -61,13 +61,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         add(uiBinder.createAndBindUi(this));
     }
 
-    @UiHandler("submitter")
+    @Override
+    public void init() {
+        gatekeepersTable.setPresenter(presenter);
+    }
+
+        @UiHandler("submitter")
     void submitterChanged(ValueChangeEvent<String> event) {
         presenter.submitterChanged(submitter.getText());
     }
 
     @UiHandler("packaging")
-    void packaginChanged(ValueChangeEvent<String> event) {
+    void packagingChanged(ValueChangeEvent<String> event) {
         presenter.packagingChanged(packaging.getText());
     }
 

@@ -22,11 +22,17 @@
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
 import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.CheckboxCell;
 import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.dom.client.Element;
+import com.google.gwt.dom.client.InputElement;
+import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Event;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 
@@ -39,6 +45,7 @@ public class GatekeepersTable extends CellTable {
     ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
     Texts texts = viewGinjector.getTexts();
     View view;
+    Presenter presenter = null;
     ListDataProvider<GatekeeperDestination> dataProvider;
 
     /**
@@ -59,6 +66,16 @@ public class GatekeepersTable extends CellTable {
         addColumn(constructNotifyColumn(), texts.label_Notify());
         addColumn(constructActivityColumn(), texts.label_Action());
     }
+
+
+    /**
+     * Sets the presenter to allow communication back to the presenter
+     * @param presenter The presenter to set
+     */
+    public void setPresenter(Presenter presenter) {
+        this.presenter = presenter;
+    }
+
 
     /**
      * Puts data into the view
@@ -112,19 +129,59 @@ public class GatekeepersTable extends CellTable {
     }
 
     private Column constructCopyColumn() {
-        return new TextColumn<GatekeeperDestination>() {
+        CheckboxCell checkboxCell = new CheckboxCell(true, false);
+        return new Column<GatekeeperDestination, Boolean>(checkboxCell) {
             @Override
-            public String getValue(GatekeeperDestination gatekeeper) {
-                return gatekeeper.isCopyToPosthus() ? texts.label_DoCopy() : texts.label_DoNotCopy();
+            public Boolean getValue(GatekeeperDestination gatekeeper) {
+                return gatekeeper.isCopyToPosthus();
+            }
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, GatekeeperDestination gatekeeper, NativeEvent event) {
+                if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
+                    presenter.updateGatekeeperDestination(
+                            gatekeeper.getId(),
+                            gatekeeper.getSubmitterNumber(),
+                            gatekeeper.getDestination(),
+                            gatekeeper.getPackaging(),
+                            gatekeeper.getFormat(),
+                            ((InputElement) elem.getFirstChild()).isChecked(),
+                            gatekeeper.isNotifyFromPosthus()
+                    );
+                }
+                super.onBrowserEvent(context, elem, gatekeeper, event);
+            }
+            @Override
+            public String getCellStyleNames(Cell.Context context, GatekeeperDestination model) {
+                return "center";
             }
         };
     }
 
     private Column constructNotifyColumn() {
-        return new TextColumn<GatekeeperDestination>() {
+        CheckboxCell checkboxCell = new CheckboxCell(true, false);
+        return new Column<GatekeeperDestination, Boolean>(checkboxCell) {
             @Override
-            public String getValue(GatekeeperDestination gatekeeper) {
-                return gatekeeper.isNotifyFromPosthus() ? texts.label_DoNotify() : texts.label_DoNotNotify();
+            public Boolean getValue(GatekeeperDestination gatekeeper) {
+                return gatekeeper.isNotifyFromPosthus();
+            }
+            @Override
+            public void onBrowserEvent(Cell.Context context, Element elem, GatekeeperDestination gatekeeper, NativeEvent event) {
+                if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
+                    presenter.updateGatekeeperDestination(
+                            gatekeeper.getId(),
+                            gatekeeper.getSubmitterNumber(),
+                            gatekeeper.getDestination(),
+                            gatekeeper.getPackaging(),
+                            gatekeeper.getFormat(),
+                            gatekeeper.isCopyToPosthus(),
+                            ((InputElement) elem.getFirstChild()).isChecked()
+                    );
+                }
+                super.onBrowserEvent(context, elem, gatekeeper, event);
+            }
+            @Override
+            public String getCellStyleNames(Cell.Context context, GatekeeperDestination model) {
+                return "center";
             }
         };
     }

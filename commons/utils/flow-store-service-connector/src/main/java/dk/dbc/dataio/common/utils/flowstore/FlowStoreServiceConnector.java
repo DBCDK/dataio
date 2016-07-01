@@ -942,7 +942,9 @@ public class FlowStoreServiceConnector {
         }
     }
 
+
     // ************************************************** HarvesterConfig *********************************************
+
     /**
      * Creates new harvester config defined by the harvester config content and type
      *

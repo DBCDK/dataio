@@ -54,11 +54,10 @@ public class GatekeepersTableTest {
     @Mock List<GatekeeperDestination> mockedGatekeeperList;
     @Mock Texts mockedTexts;
     @Mock View mockedView;
+    @Mock Presenter mockedPresenter;
 
     @Before
     public void setupTexts() {
-        when(mockedTexts.label_DoNotCopy()).thenReturn("DoNotCopy");
-        when(mockedTexts.label_DoNotNotify()).thenReturn("DoNotNotify");
         when(mockedTexts.button_Delete()).thenReturn("ButtonDelete");
     }
 
@@ -113,8 +112,8 @@ public class GatekeepersTableTest {
         assertThat(gatekeepersTable.getColumn(1).getValue(gatekeeper), is("pa"));
         assertThat(gatekeepersTable.getColumn(2).getValue(gatekeeper), is("fo"));
         assertThat(gatekeepersTable.getColumn(3).getValue(gatekeeper), is("de"));
-        assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is("DoNotCopy"));
-        assertThat(gatekeepersTable.getColumn(5).getValue(gatekeeper), is("DoNotNotify"));
+        assertThat(gatekeepersTable.getColumn(4).getValue(gatekeeper), is(false));
+        assertThat(gatekeepersTable.getColumn(5).getValue(gatekeeper), is(false));
         assertThat(gatekeepersTable.getColumn(6).getValue(gatekeeper), is("ButtonDelete"));
     }
 }

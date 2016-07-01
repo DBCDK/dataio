@@ -64,11 +64,11 @@ public abstract class ContentPanel<T extends GenericPresenter> extends FlowPanel
      * @param presenter the presenter for the instance of the view to use
      */
     public void setPresenter(T presenter) {
+        this.presenter = presenter;
         if (!initialized) {
             initialized = true;
             init();
         }
-        this.presenter = presenter;
     }
 
     /**

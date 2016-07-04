@@ -60,7 +60,11 @@ public class OpenAgencyConnector {
 
     OpenAgencyConnector(OpenAgencyService openAgencyService, String endpoint) throws NullPointerException, IllegalArgumentException {
         this.service = InvariantUtil.checkNotNullOrThrow(openAgencyService, "service");
-        this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
+        String baseurl = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
+        if (!baseurl.endsWith("/")) {
+            baseurl += "/";
+        }
+        this.endpoint = baseurl;
         LOGGER.info("Using endpoint: {}", endpoint);
     }
 

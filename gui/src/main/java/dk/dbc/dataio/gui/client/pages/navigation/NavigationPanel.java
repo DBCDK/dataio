@@ -55,6 +55,7 @@ public class NavigationPanel extends FlowPanel {
     @UiField TreeItem gatekeeper;
     @UiField TreeItem ioTraffic;
     @UiField TreeItem ftp;
+    @UiField TreeItem baseMaintenance;
 
 
     /**
@@ -79,6 +80,7 @@ public class NavigationPanel extends FlowPanel {
         gatekeeper.setUserObject(ioTraffic);
         ioTraffic.setUserObject(new dk.dbc.dataio.gui.client.pages.iotraffic.Place());
         ftp.setUserObject(new dk.dbc.dataio.gui.client.pages.ftp.show.Place());
+        baseMaintenance.setUserObject(new dk.dbc.dataio.gui.client.pages.basemaintenance.Place());
     }
 
     /**

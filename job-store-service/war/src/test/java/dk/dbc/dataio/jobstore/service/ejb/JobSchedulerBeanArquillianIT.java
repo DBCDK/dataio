@@ -89,12 +89,7 @@ public class JobSchedulerBeanArquillianIT {
         TestSinkMessageConsumerBean.reset();
         dbCleanUp();
 
-        JobSchedulerBean.resetQueuedToDelivering((long) 3, 0);
-        JobSchedulerBean.resetQueuedToDelivering((long) 3, 0);
-
-        JobSchedulerBean.resetQueuedToDelivering((long) 1, 0);
-        JobSchedulerBean.resetQueuedToDelivering((long) 1, 0);
-
+        JobSchedulerBean.ForTesting_ResetPrSinkStatuses();
     }
 
 
@@ -133,7 +128,9 @@ public class JobSchedulerBeanArquillianIT {
                     .addClasses(JobProcessorMessageProducerBean.class)
 
                     .addClasses(SinkMessageProducerBean.class)
-                    .addClasses(JobSchedulerBean.class)
+                    .addClasses(JobSchedulerBean.class, JobSchedulerTransactionsBean.class,
+                            JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatus.class )
+
                     .addClasses(TestJobProcessorMessageConsumerBean.class)
                     .addClasses(TestSinkMessageConsumerBean.class)
                     .addClass(TestJobSchedulerConfigOverWrite.class)
@@ -176,22 +173,20 @@ public class JobSchedulerBeanArquillianIT {
 
     /*
       Test 2 Chunks (3,0) Is gowning thru the Stages
-             Chunks (3,1) Is blocked by (3,1) and released for Delivering when 3.0 is done.
+             Chunks (3,1) Is blocked by (3,0) and released for Delivering when 3.0 is done.
      */
     @Test
     public void scheduleChunkSimple() throws Exception {
-
-
         runSqlFromResource("JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
-        dbSingleUpdate("INSERT INTO dependencytracking (jobid, chunkid, sinkid, status, waitingon, blocking, matchkeys) VALUES (3, 1, 3, 4, '[{\"jobId\": 3, \"chunkId\": 0}]', null, '[\"K8\", \"KK2\", \"C4\"]')");
         // Given
-        ChunkEntity chunkEntity = new ChunkEntity()
-                .withJobId(3)
-                .withChunkId(0)
-                .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1")));
+
+        Sink sink1=new SinkBuilder().setId(1).build();
 
         // when
-        jobSchedulerBean.scheduleChunk(chunkEntity, new SinkBuilder().setId(3).build());
+        jobSchedulerBean.scheduleChunk(new ChunkEntity()
+                .withJobId(3).withChunkId(0)
+                .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
+                sink1);
 
         // Then
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
@@ -205,13 +200,13 @@ public class JobSchedulerBeanArquillianIT {
 
 
         // Given a chunk Returned from Processing it moves to Sink
-        Chunk chunk = new ChunkBuilder(PROCESSED)
+        Chunk chunk1 = new ChunkBuilder(PROCESSED)
                 .setJobId(3)
                 .setChunkId(0)
-                .appendItem(new ChunkItemBuilder().setData("ProcessdChunk").build())
+                .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
                 .build();
         // When
-        jobSchedulerBean.chunkProcessingDone(chunk);
+        jobSchedulerBean.chunkProcessingDone(chunk1);
 
 
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
@@ -222,8 +217,24 @@ public class JobSchedulerBeanArquillianIT {
         assertThat(dependencyTrackingEntity, notNullValue());
         assertThat(dependencyTrackingEntity.getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
 
+        jobSchedulerBean.scheduleChunk(new ChunkEntity()
+                        .withJobId(3).withChunkId(1)
+                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
+                        sink1);
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+
+        jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
+                .setJobId(3).setChunkId(1)
+                .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
+                .build()
+        );
+
+
+        assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is( ChunkProcessStatus.BLOCKED));
+
+
         // whenn chunk returns from Delivering
-        jobSchedulerBean.chunkDeliveringDone(chunk);
+        jobSchedulerBean.chunkDeliveringDone(chunk1);
 
         // Then
         JPATestUtils.clearEntityManagerCache(entityManager);
@@ -296,7 +307,7 @@ public class JobSchedulerBeanArquillianIT {
         assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
 
         for( int i=0; i<=9; i++ ) {
-            assertThat(getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+            assertThat("Chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
         }
 
         // Chunk 3.0 sent to delivering
@@ -305,7 +316,7 @@ public class JobSchedulerBeanArquillianIT {
         jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                 .setJobId(3)
                 .setChunkId(10)
-                .appendItem(new ChunkItemBuilder().setData("ProcessdChunk").build())
+                .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
                 .build()
         );
 
@@ -319,10 +330,11 @@ public class JobSchedulerBeanArquillianIT {
             jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3)
                     .setChunkId(i)
-                    .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
+                    .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
                     .build());
         }
 
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(11);
         // Then chunk 3.1 is released to Sink
         assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
 

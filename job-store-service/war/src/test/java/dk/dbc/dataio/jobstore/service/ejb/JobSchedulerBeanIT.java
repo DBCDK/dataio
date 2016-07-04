@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by ja7 on 11-04-16.
@@ -62,22 +59,6 @@ public class JobSchedulerBeanIT {
         flyway.migrate();
 
         JPATestUtils.runSqlFromResource(em, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
-    }
-
-    @Test
-    public void findChunksToWaitFor() throws Exception {
-
-        JobSchedulerBean bean= new JobSchedulerBean();
-        bean.entityManager=em;
-
-        assertThat(bean.findChunksToWaitFor( 0, createSet( )).size(), is(0));
-
-        assertThat(bean.findChunksToWaitFor( 0, createSet("K1")),containsInAnyOrder( new Key(1,1)));
-        assertThat(bean.findChunksToWaitFor( 0, createSet("C1")),containsInAnyOrder( new Key(1,1)));
-
-
-        assertThat(bean.findChunksToWaitFor( 0, createSet("KK2")), containsInAnyOrder( new Key(1,0), new Key(1,1), new Key(1,2), new Key(1,3) ));
-        assertThat(bean.findChunksToWaitFor( 1, createSet("K4", "K6", "C4")), containsInAnyOrder( new Key(2,0), new Key(2,2), new Key(2,4)));
     }
 
 
@@ -153,12 +134,4 @@ public class JobSchedulerBeanIT {
 
 
     }
-
-    // TODO: move to common code some ware
-    private <T> Set<T> createSet(T... elements) {
-            Set<T> r=new HashSet<>();
-            Collections.addAll(r, elements);
-            return r;
-    }
-
 }

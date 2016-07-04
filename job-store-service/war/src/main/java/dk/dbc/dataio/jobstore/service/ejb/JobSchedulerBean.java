@@ -9,14 +9,12 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
-import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
@@ -26,16 +24,21 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by ja7 on 11-04-16.
  *
  * Handle Chunk Scheduling. Chunks Travels thu the ChunkProcessStatus stages.
+ *
+ * 2 Modes of operations i possible for Pr Sink and QueueType ( processing / Delivering )
+ *
+ *    DirectSubmit : When no Rate limiting is needed, Chunks messages is JMS queue
+ *                   directly. we start in this mode
+ *    BulkSubmit   : IF MAX_NUMBER_OF_.. chunks is in the jms queue, we switch to this mode.
+ *                   And JobSchedulerBulkSubmitterBean handles the sending of JMS messages.
+ *
  *
  * HACK:
  * Limits is pr jvm process.
@@ -44,44 +47,41 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
-    // Max JMS Size pr Sink
+    enum QueueMode {
+        directSubmit,  // In this mode the chunk is send to the JMS queue directly
+        bulkSubmit // In this mode the chunk is just added as ready for Processing/Delivering
+    }
+
+
+    // Max JMS Size pr Sink -- Test sizes overwritten for
     static int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
     static int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 100;
+
 
     // Hash use to keep a count of pending jobs in JMS queues pr sink.
     // Small EJB violation for performance.
     // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
-
-    static final ConcurrentHashMap<Long,AtomicInteger> queuedToProcessingCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
-    static final ConcurrentHashMap<Long,AtomicInteger> queuedToDeliveringCounter = new ConcurrentHashMap<>(16, 0.9F, 1);
-
+    static final ConcurrentHashMap<Long, JobSchedulerPrSinkQueueStatus> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
 
     @Inject
     @JobstoreDB
     EntityManager entityManager;
 
     @EJB
-    JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
-    @EJB
-    SinkMessageProducerBean sinkMessageProducerBean;
-    @EJB
-    private PgJobStoreRepository jobStoreRepository;
+    private JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
 
     @Resource
     private SessionContext sessionContext;
 
 
-    private JobSchedulerBean getProxyToSelf() {
-        return sessionContext.getBusinessObject(JobSchedulerBean.class);
-    }
-
     /**
      * ScheduleChunk
-
+     * <p>
      * Passes given detection element and sink on to the
      * sequence analyser and notifies pipeline of next available workload (if any)
+     *
      * @param chunk next chunk element to enter into sequence analysis
-     * @param sink sink associated with chunk
+     * @param sink  sink associated with chunk
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
@@ -90,67 +90,13 @@ public class JobSchedulerBean {
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
         // Proxy to self to get new Transaction
-        getProxyToSelf().persistDependencyEntity(chunk, sink);
+        jobSchedulerTransactionsBean.persistDependencyEntity(chunk, sink );
         // Proxy to self to offload submit ot later..
-        getProxyToSelf().submitToProcessingIfPossibleAsync( chunk, sink.getId() );
-
-    }
-
-    /**
-     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
-     * New Transaction to ensure Record is on Disk before async submit
-     * @param chunk new Chunk
-     * @param sink Destination Sink
-     */
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
-    @Stopwatch
-    public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
-        int sinkId=(int)sink.getId();
-
-        DependencyTrackingEntity e=new DependencyTrackingEntity( chunk, sinkId );
-        e.setWaitingOn( findChunksToWaitFor( sinkId, e.getMatchKeys()));
-        entityManager.persist( e );
-    }
-
-    /**
-     * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     * @param chunk Chunk to send to JMS queu
-     * @param sinkId SinkId
-     */
-    @Stopwatch
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW)
-    @Asynchronous
-    public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId ) {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
-        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
-        if (dependencyTrackingEntity == null) {
-            LOGGER.error("Internale Error unable to lookup chunk {} in submitToProcessingIfPossibleAsync");
-            return;
-        }
-
-        submitToProcessingIfPossible( dependencyTrackingEntity, chunk, sinkId );
-    }
-
-    /**
-     * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
-     * @param dependencyTrackingEntity  ??
-     * @param chunk Chunk to send to JMS queu
-     * @param sinkId SinkId
-     */
-    public void submitToProcessingIfPossible(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, long sinkId) {
-        LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
-
-        if( incrementAndReturnCurrentQueuedToProcessing( sinkId ) > MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            decrementAndReturnCurrentQueuedToProcessing( sinkId );
-            return ;
-        }
-        dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_PROCESS);
-        try {
-            jobProcessorMessageProducerBean.send( getChunkFrom(chunk));
-        } catch (JobStoreException e) {
-            LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);
+        if (getPrSinkStatusForSinkId(sink.getId()).isProcessingModeDirectSubmit()) {
+            jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
         }
     }
+
 
     /**
      * Register Chunk Processing is Done.
@@ -160,8 +106,8 @@ public class JobSchedulerBean {
      * @throws JobStoreException if Unable to Load Chunk
      */
     @Stopwatch
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
-    public void chunkProcessingDone( Chunk chunk ) throws JobStoreException {
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void chunkProcessingDone(Chunk chunk) throws JobStoreException {
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
         DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
 
@@ -175,172 +121,88 @@ public class JobSchedulerBean {
             return;
         }
 
+        int sinkId = dependencyTrackingEntity.getSinkid();
+        JobSchedulerPrSinkQueueStatus prSinkQueueStatus = getPrSinkStatusForSinkId(sinkId);
+        prSinkQueueStatus.jmsEnqueuedToProcessing.decrementAndGet();
+        LOGGER.info("chunkProcesisngDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.jmsEnqueuedToProcessing.intValue());
 
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(ChunkProcessStatus.BLOCKED);
             LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
-        } else {
-            // Send chunk to Delivering
-            submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
         }
-
-        // Check for more READY_TO_PROCESS chunks.
-        int sinkId = dependencyTrackingEntity.getSinkid();
-        int queuedToProcessing = decrementAndReturnCurrentQueuedToProcessing(sinkId);
-
-        if( queuedToProcessing < MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            LOGGER.info("Space for more jobs to Processing {} < {}", queuedToProcessing, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
-            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
-            .setParameter("sinkId", sinkId)
-            .setParameter("state", ChunkProcessStatus.READY_TO_PROCESS)
-            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK -queuedToProcessing + 10);
-
-            List<DependencyTrackingEntity> chunks=query.getResultList();
-
-            LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToProcessing + 10);
-            for( DependencyTrackingEntity toSchedule : chunks ) {
-                DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
-                LOGGER.info(" Chunk ready to schedule {} to Processing",toScheduleKey);
-                ChunkEntity ch=entityManager.find( ChunkEntity.class, new ChunkEntity.Key( toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                submitToProcessingIfPossible(toSchedule, ch, sinkId);
+        else {
+            // Send chunk to Delivering
+            prSinkQueueStatus.readyForDelivering.incrementAndGet();
+            if (prSinkQueueStatus.isDeliveringModeDirectSubmit()) {
+                jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
             }
         }
+
     }
 
-    /**
-     * Send JMS message to Sink with chunk.
-     *
-
-     * @param dependencyTrackingEntity Tracking Entity for chunk*
-     * @throws JobStoreException if unable to
-     */
-    private void submitToDeliveringIfPossible(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity) throws JobStoreException {
-        LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
-        dependencyTrackingEntity.setStatus( ChunkProcessStatus.READY_TO_DELIVER );
-
-        int queuedToDelivering=incrementAndReturnCurrentQueuedToDelivering( dependencyTrackingEntity.getSinkid() );
-        if( queuedToDelivering > MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
-            decrementAndReturnCurrentQueuedToDelivering( dependencyTrackingEntity.getSinkid() );
-            LOGGER.info("chunk {} blocked by queue size {} ", dependencyTrackingEntity.getKey(), queuedToDelivering);
-            return ;
-        }
-
-        final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
-        // Chunk is ready for Sink
-        sinkMessageProducerBean.send( chunk, jobEntity );
-        LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
-        dependencyTrackingEntity.setStatus(ChunkProcessStatus.QUEUED_TO_DELIVERY);
-    }
 
 
     /**
      * Register a chunk as Delivered, and remove it from dependency tracking.
-     *
+     * <p>
      * If called Multiple times with the same chunk, or chunk not in QUEUED_TO_DELIVERY the chunk is ignored
      *
      * @param chunk Chunk Done
      * @throws JobStoreException on failure to queue other chunks
      */
     @Stopwatch
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
-    public void chunkDeliveringDone(Chunk chunk ) throws JobStoreException {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId() );
-        DependencyTrackingEntity doneChunk=entityManager.find( DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+    @TransactionAttribute(TransactionAttributeType.REQUIRED)
+    public void chunkDeliveringDone(Chunk chunk) throws JobStoreException {
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
+        DependencyTrackingEntity doneChunk = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
 
         if (doneChunk == null) {
-            LOGGER.info( "chunkDeliveringDone called with unknown Chunk {} - Assuming it is already completed ", key);
-            return ;
+            LOGGER.info("chunkDeliveringDone called with unknown Chunk {} - Assuming it is already completed ", key);
+            return;
         }
-        if( doneChunk.getStatus() != ChunkProcessStatus.QUEUED_TO_DELIVERY ) {
-            LOGGER.info( "chunkDeliveringDone called with chunk {}, not in state QUEUED_TO_DELIVERY {} -- chunk Ignored", key, doneChunk.getStatus());
-            return ;
+        if (doneChunk.getStatus() != ChunkProcessStatus.QUEUED_TO_DELIVERY) {
+            LOGGER.info("chunkDeliveringDone called with chunk {}, not in state QUEUED_TO_DELIVERY {} -- chunk Ignored", key, doneChunk.getStatus());
+            return;
         }
 
         // Decrement early to make space for in queue.  -- most important when queue size is 1, when unit testing
 
-        long doneChunkSinkId=doneChunk.getSinkid();
-        int queuedToDelivering=decrementAndReturnCurrentQueuedToDelivering( doneChunkSinkId );
-        LOGGER.info("After chunk {} returned from delivering {} is queuedToDelivering", doneChunk.getKey(), queuedToDelivering);
+        long doneChunkSinkId = doneChunk.getSinkid();
+        DependencyTrackingEntity.Key doneChunkKey = doneChunk.getKey();
+        entityManager.remove(doneChunk);
 
-        List<DependencyTrackingEntity.Key> chunksWaitingForMe=findChunksWaitingForMe( doneChunk.getKey());
+        JobSchedulerPrSinkQueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(doneChunkSinkId);
 
-        for( DependencyTrackingEntity.Key blockChunkKey: chunksWaitingForMe) {
-            DependencyTrackingEntity blockedChunk=entityManager.find( DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
+        int queuedToDelivering = sinkQueueStatus.jmsEnqueuedToDelivering.decrementAndGet();
+        LOGGER.info("After chunk {} returned from delivering {} is queuedToDelivering", doneChunkKey, queuedToDelivering);
 
-            blockedChunk.getWaitingOn().remove( doneChunk.getKey());
+        List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey);
 
-            if( blockedChunk.getWaitingOn().size() == 0 ) {
-                if( blockedChunk.getStatus() == ChunkProcessStatus.BLOCKED ) {
-                    blockedChunk.setStatus( ChunkProcessStatus.READY_TO_DELIVER );
-                    submitToDeliveringIfPossible( getProcessedChunkFrom( blockedChunk ),blockedChunk);
+        for (DependencyTrackingEntity.Key blockChunkKey : chunksWaitingForMe) {
+            DependencyTrackingEntity blockedChunk = entityManager.find(DependencyTrackingEntity.class, blockChunkKey, LockModeType.PESSIMISTIC_WRITE);
+
+            blockedChunk.getWaitingOn().remove(doneChunkKey);
+
+            if (blockedChunk.getWaitingOn().size() == 0) {
+                if (blockedChunk.getStatus() == ChunkProcessStatus.BLOCKED) {
+                    blockedChunk.setStatus(ChunkProcessStatus.READY_TO_DELIVER);
+                    sinkQueueStatus.readyForDelivering.incrementAndGet();
+                    if (sinkQueueStatus.isDeliveringModeDirectSubmit()) {
+                        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
+                    }
                 }
             }
         }
 
 
-        entityManager.remove( doneChunk );
-
-        if( queuedToDelivering <= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
-            LOGGER.info("Space for more jobs for delivering {}<{} ", queuedToDelivering, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK);
-            Query query=entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state")
-            .setParameter("sinkId", doneChunkSinkId )
-            .setParameter("state", ChunkProcessStatus.READY_TO_DELIVER)
-            .setMaxResults(MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering + 10);
-            List<DependencyTrackingEntity> chunks=query.getResultList();
-            LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK -queuedToDelivering + 10);
-            for( DependencyTrackingEntity toSchedule : chunks ) {
-                DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
-                LOGGER.info(" Chunk ready to schedule {} for Delivering" ,toScheduleKey);
-
-                submitToDeliveringIfPossible( getProcessedChunkFrom( toSchedule ), toSchedule );
-            }
-        }
 
     }
 
-
-    private Chunk getChunkFrom(ChunkEntity chunk) {
+    List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key) throws JobStoreException {
         try {
-            ChunkEntity.Key chunkKey = chunk.getKey();
-            return jobStoreRepository.getChunk(Chunk.Type.PARTITIONED, chunkKey.getJobId(), chunkKey.getId());
-        } catch( RuntimeException ex) {
-            LOGGER.error("Internal error Unable to get PARTITIONED items for {}", chunk.getKey());
-            throw ex;
-        }
-    }
+            String keyAsJson = ConverterJSONBContext.getInstance().marshall(key);
 
-    private Chunk getProcessedChunkFrom(DependencyTrackingEntity dependencyTrackingEntity )
-    {
-        try {
-            DependencyTrackingEntity.Key dtKey = dependencyTrackingEntity.getKey();
-            ChunkEntity.Key chunkKey = new ChunkEntity.Key(dtKey.getChunkId(), dtKey.getJobId());
-
-            return jobStoreRepository.getChunk(Chunk.Type.PROCESSED, chunkKey.getJobId(), chunkKey.getId());
-        } catch( RuntimeException ex) {
-            LOGGER.error("Internal error Unable to get PROCESSED items for {}", dependencyTrackingEntity.getKey(), ex);
-            throw ex;
-        }
-    }
-
-
-    /**
-     * Finding lists with which contains any of chunks keys
-     * @param matchKeys Set of match keys
-     * @return Returns List of Chunks To wait for.
-     */
-    List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys ) {
-        if( matchKeys.isEmpty() ) return new ArrayList<>();
-
-        Query query=entityManager.createNativeQuery( buildFindChunksToWaitForQuery( sinkId, matchKeys ), "JobIdChunkIdResult");
-        return query.getResultList();
-    }
-
-
-    List<DependencyTrackingEntity.Key> findChunksWaitingForMe( DependencyTrackingEntity.Key key ) throws JobStoreException {
-        try {
-            String keyAsJson= ConverterJSONBContext.getInstance().marshall(key);
-
-            Query query=entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '["+ keyAsJson +"]' ORDER BY jobid, chunkid " , "JobIdChunkIdResult");
+            Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingOn @> '[" + keyAsJson + "]' ORDER BY jobid, chunkid ", "JobIdChunkIdResult");
             return query.getResultList();
 
         } catch (JSONBException e) {
@@ -350,72 +212,13 @@ public class JobSchedulerBean {
 
     }
 
-    /**
-     * @param sinkId  Sink Id to find
-     * @param matchKeys  Set of keys any chunk with any key is returned
-     * @return  NativeQuery for find chunks to wait for using @>
-     */
-    String buildFindChunksToWaitForQuery( int sinkId, Set<String> matchKeys ) {
-        StringBuilder builder= new StringBuilder(1000);
-        builder.append("select jobId, chunkId from dependencyTracking where sinkId=");
-        builder.append( sinkId );
-        builder.append(" and ( ");
-
-
-        Boolean first=true;
-        for( String key: matchKeys ) {
-            if( ! first ) builder.append(" or ");
-            builder.append("matchKeys @> '[\"");
-            builder.append(key);
-            builder.append("\"]'");
-            first=false;
-        }
-        builder.append(" )");
-        builder.append(" ORDER BY jobid, chunkid for update");
-        return builder.toString();
+    static JobSchedulerPrSinkQueueStatus getPrSinkStatusForSinkId(long sinkId) {
+        return sinkStatusMap.computeIfAbsent(sinkId, k -> new JobSchedulerPrSinkQueueStatus());
     }
 
-    static int incrementAndReturnCurrentQueuedToDelivering(long sinkId) {
-        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        return sinkCounter.incrementAndGet();
+    // Helper method for Automatic Tests
+    static void ForTesting_ResetPrSinkStatuses() {
+        sinkStatusMap.replaceAll((k, v) -> new JobSchedulerPrSinkQueueStatus());
     }
-
-    static int decrementAndReturnCurrentQueuedToDelivering(long sinkId) {
-        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        return sinkCounter.decrementAndGet();
-    }
-
-    static int lookupQueuedToDelivering( long sinkId) {
-        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        return sinkCounter.intValue();
-    }
-
-    static void resetQueuedToDelivering( long sinkId, int newValue) {
-        AtomicInteger sinkCounter= queuedToDeliveringCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        sinkCounter.set( newValue );
-    }
-
-
-    static int incrementAndReturnCurrentQueuedToProcessing(long sinkId) {
-        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        return sinkCounter.incrementAndGet();
-    }
-
-    static int decrementAndReturnCurrentQueuedToProcessing(long sinkId) {
-        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        return sinkCounter.decrementAndGet();
-    }
-
-    static int lookupQueuedToProcessing( long sinkId ) {
-        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-        return sinkCounter.intValue();
-    }
-
-    static void resetQueuedToProcessing( long sinkId, int newValue) {
-        AtomicInteger sinkCounter=queuedToProcessingCounter.computeIfAbsent(sinkId, k -> new AtomicInteger(0) );
-         sinkCounter.set( newValue );
-    }
-
-
 
 }

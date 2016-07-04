@@ -240,9 +240,7 @@ public class JobsBean {
 
         jobSchedulerBean.chunkProcessingDone( processedChunk );
 
-        final Response addChunkResponse = addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
-
-        return addChunkResponse;
+        return addChunk(uriInfo, jobId, chunkId, Chunk.Type.PROCESSED, processedChunk);
     }
 
     /**
@@ -510,12 +508,12 @@ public class JobsBean {
     }
 
     /**
-     * Retrieves data from processed next chunk item as String
+     * Retrieves processed next chunk item
      * @param jobId the job id
      * @param chunkId the chunk id
      * @param itemId the itemId
      *
-     * @return a HTTP 200 OK response with data from processed next chunk item as String,
+     * @return a HTTP 200 OK response with processed next chunk item as entity,
      *         a HTTP 400 BAD_REQUEST response on failure to retrieve item
      *
      * @throws JSONBException on marshalling failure
@@ -523,7 +521,7 @@ public class JobsBean {
      */
     @GET
     @Path(JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)
-    @Produces({ MediaType.TEXT_PLAIN })
+    @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
     public Response getProcessedNextResult(
             @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) int jobId,
@@ -532,7 +530,7 @@ public class JobsBean {
 
         try {
             ChunkItem chunkItem = jobStoreRepository.getNextProcessingOutcome(jobId, chunkId, itemId);
-            return Response.ok().entity(StringUtil.asString(chunkItem.getData())).build();
+            return Response.ok().entity(jsonbContext.marshall(chunkItem)).build();
         } catch (InvalidInputException e) {
             return Response.status(NOT_FOUND).build();
         }

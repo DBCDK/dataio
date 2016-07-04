@@ -535,11 +535,11 @@ public class JobStoreServiceConnectorTest {
 
     @Test
     public void getProcessedNextResult_itemFound_returnsProcessedNextResult() throws JobStoreServiceConnectorException {
-        final String data = callProcessedNextResultWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID,
-                Response.Status.OK, ITEM_DATA);
+        final ChunkItem chunkItem = callProcessedNextResultWithMockedHttpResponse(JOB_ID, CHUNK_ID, ITEM_ID,
+                Response.Status.OK, CHUNK_ITEM);
 
-        assertThat(data, is(notNullValue()));
-        assertThat(data, is(ITEM_DATA));
+        assertThat(chunkItem, is(notNullValue()));
+        assertThat(chunkItem, is(CHUNK_ITEM));
     }
 
     // ******************************************* listJobNotificationsForJob() tests *******************************************
@@ -827,7 +827,7 @@ public class JobStoreServiceConnectorTest {
         return instance.listJobNotificationsForJob(jobId);
     }
 
-    private String callProcessedNextResultWithMockedHttpResponse(int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)
+    private ChunkItem callProcessedNextResultWithMockedHttpResponse(int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
         when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildAddChunkItemPath(jobId, chunkId, itemId, JobStoreServiceConstants.CHUNK_ITEM_PROCESSED_NEXT)))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));

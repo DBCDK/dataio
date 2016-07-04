@@ -350,7 +350,7 @@ public class JobStoreServiceConnector {
      * @throws JobStoreServiceConnectorException on general failure to retrieve processed next result
      * @throws IllegalArgumentException on job id less than bound value
      */
-    public String getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException{
+    public ChunkItem getProcessedNextResult(int jobId, int chunkId, short itemId) throws JobStoreServiceConnectorException, IllegalArgumentException{
         log.trace("JobStoreServiceConnector: getProcessedNextResult({}, {}, {}, {});", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
         try {
@@ -362,7 +362,7 @@ public class JobStoreServiceConnector {
             final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
             try {
                 verifyResponseStatus(response, Response.Status.OK);
-                return readResponseEntity(response, String.class);
+                return readResponseEntity(response, ChunkItem.class);
             } finally {
                 response.close();
             }

@@ -21,13 +21,14 @@
 
 package dk.dbc.dataio.gui.server;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -40,6 +41,7 @@ import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.server.modelmappers.ItemModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
+import dk.dbc.dataio.gui.server.util.PrettyPrint;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobNotification;
@@ -47,6 +49,7 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
@@ -54,9 +57,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(JobStoreProxyImpl.class);
@@ -195,23 +198,20 @@ public class JobStoreProxyImpl implements JobStoreProxy {
 
     @Override
     public String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException {
-        final State.Phase phase;
         log.trace("JobStoreProxy: getItemData(\"{}\", {});", itemModel, lifeCycle);
         final StopWatch stopWatch = new StopWatch();
         try {
-            switch (lifeCycle) {
-                case PARTITIONING:
-                    phase = State.Phase.PARTITIONING;
-                    break;
-                case PROCESSING:
-                    phase = State.Phase.PROCESSING;
-                    break;
-                default:
-                    phase = State.Phase.DELIVERING;
-                    break;
+            ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), getPhase(lifeCycle));
+            if(chunkItem.getType().stream().filter(type -> type == ChunkItem.Type.ADDI).findFirst().isPresent()) {
+                final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+                if(addiReader.hasNext()) {
+                    AddiRecord addiRecord = addiReader.next();
+                    final String metaData = PrettyPrint.asJson(addiRecord.getMetaData(), chunkItem.getEncoding());
+                    final String contentData = PrettyPrint.asXml(addiRecord.getContentData(), chunkItem.getEncoding());
+                    return PrettyPrint.combinePrintElements(metaData, contentData);
+                }
             }
-            ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), phase);
-            return format(StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding()));
+            return PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding());
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
@@ -224,6 +224,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } catch (JobStoreServiceConnectorException e) {
             log.error("JobStoreProxy: getItemData - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (JSONBException | IOException e) {
+            throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } finally {
             log.debug("JobStoreProxy: getItemData took {} milliseconds", stopWatch.getElapsedTime());
         }
@@ -234,7 +236,8 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: getProcessedNextResult(\"{}\", \"{}\", \"{}\");", jobId, chunkId, itemId);
         final StopWatch stopWatch = new StopWatch();
         try {
-            return format(jobStoreServiceConnector.getProcessedNextResult(jobId, chunkId, itemId));
+            ChunkItem chunkItem = jobStoreServiceConnector.getProcessedNextResult(jobId, chunkId, itemId);
+            return PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding());
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
                 log.error("JobStoreProxy: getProcessedNextResult - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
@@ -350,6 +353,17 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         }
     }
 
+    private State.Phase getPhase(ItemModel.LifeCycle lifeCycle) {
+        switch (lifeCycle) {
+            case PARTITIONING:
+                return State.Phase.PARTITIONING;
+            case PROCESSING:
+                return State.Phase.PROCESSING;
+            default:
+                return State.Phase.DELIVERING;
+        }
+    }
+
     private List<ItemModel> toPredefinedItemModel(ItemListCriteria.Field searchType, List<ItemInfoSnapshot> itemInfoSnapshotList) {
         switch (searchType) {
             case STATE_FAILED:
@@ -390,66 +404,6 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             throw (NullPointerException) exception;
         } else {
             throw new ProxyException(ProxyError.ERROR_UNKNOWN, exception);
-        }
-    }
-
-    /**
-     * Determines if a string is xml alike:
-     *  if TRUE : Adds tabs and new lines to a xml string
-     *  if FALSE: Returns the string without formatting
-     * @param xmlString the string to format
-     * @return formatted string if it should be displayed as xml, unformatted string if not
-     */
-    static String format(String xmlString) {
-        String formattedString = xmlString;
-
-        // Might be xml alike and should be displayed as xml even though the xml string starts with a number...
-        // check for the xmlns attribute.
-        if(xmlString.contains("xmlns") || xmlString.contains("?xml")) {
-            final String lineBreak = System.lineSeparator();
-            final String empty = "";
-            final StringBuffer prettyPrintXml = new StringBuffer();
-
-            /* Group the xml tags */
-            Pattern pattern = Pattern.compile("(<[^/][^>]+>)?([^<]*)(</[^>]+>)?(<[^/][^>]+/>)?");
-            Matcher matcher = pattern.matcher(xmlString);
-            int tabCount = 0;
-            while (matcher.find()) {
-                String str1 = null == matcher.group(1) || "null".equals(matcher.group()) ? empty : matcher.group(1);
-                String str2 = null == matcher.group(2) || "null".equals(matcher.group()) ? empty : matcher.group(2);
-                String str3 = null == matcher.group(3) || "null".equals(matcher.group()) ? empty : matcher.group(3);
-                String str4 = null == matcher.group(4) || "null".equals(matcher.group()) ? empty : matcher.group(4);
-
-                if (matcher.group() != null && !matcher.group().trim().equals(empty)) {
-                    printTabs(tabCount, prettyPrintXml);
-                    if (!str1.equals(empty) && str3.equals(empty)) {
-                        ++tabCount;
-                    }
-                    if (str1.equals(empty) && !str3.equals(empty)) {
-                        --tabCount;
-                        prettyPrintXml.deleteCharAt(prettyPrintXml.length() - 1);
-                    }
-                    prettyPrintXml.append(str1);
-                    prettyPrintXml.append(str2);
-                    prettyPrintXml.append(str3);
-                    if (!str4.equals(empty)) {
-                        prettyPrintXml.append(lineBreak);
-                        printTabs(tabCount, prettyPrintXml);
-                        prettyPrintXml.append(str4);
-                    }
-                    if (!str2.equals(lineBreak)){
-                        prettyPrintXml.append(lineBreak);
-                    }
-                }
-            }
-            formattedString = prettyPrintXml.toString();
-        }
-        return formattedString;
-    }
-
-    private static void printTabs(int count, StringBuffer stringBuffer) {
-        for (int i = 0; i < count; i++) {
-            stringBuffer.append("\t");
         }
     }
 

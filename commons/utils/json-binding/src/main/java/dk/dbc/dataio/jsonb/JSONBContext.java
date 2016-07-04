@@ -137,4 +137,19 @@ public class JSONBContext {
                     "Exception caught when trying to unmarshall JSON %s into JSON content tree", json), e);
         }
     }
+
+    /**
+     * @param json JSON document
+     * @return pretty printed json string
+     * @throws JSONBException if unable to unmarshall JSON representation to value type
+     */
+    public String prettyPrint(String json) throws JSONBException {
+        try {
+            Object object = objectMapper.readValue(json, Object.class);
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
+        } catch (IOException e) {
+            throw new JSONBException(String.format(
+                    "Exception caught when trying to unmarshall JSON %s to object", json), e);
+        }
+    }
 }

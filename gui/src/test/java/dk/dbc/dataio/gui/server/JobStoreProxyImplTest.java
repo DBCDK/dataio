@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.server;
 
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
@@ -32,6 +33,7 @@ import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
+import dk.dbc.dataio.gui.server.util.PrettyPrint;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -193,11 +195,12 @@ public class JobStoreProxyImplTest {
     @Test
     public void getChunkItem_remoteServiceReturnsHttpStatusOk_returnsDataString() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(new ChunkItemBuilder().setData(getXmlData()).build());
+        final ChunkItem chunkItem = new ChunkItemBuilder().setData(getXmlData()).build();
+        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
         try {
             String data = jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
             assertThat("data not null", data, not(nullValue()));
-            assertThat(data, is(JobStoreProxyImpl.format(getXmlData())));
+            assertThat(data, is(PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding())));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getItemData()");
         }
@@ -214,11 +217,12 @@ public class JobStoreProxyImplTest {
     @Test
     public void getProcessedNextResult_remoteServiceReturnsHttpStatusOk_returnsDataString() throws Exception {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
-        when(jobStoreServiceConnector.getProcessedNextResult(anyInt(), anyInt(), anyShort())).thenReturn(getXmlData());
+        final ChunkItem chunkItem = new ChunkItemBuilder().setData(getXmlData()).build();
+        when(jobStoreServiceConnector.getProcessedNextResult(anyInt(), anyInt(), anyShort())).thenReturn(chunkItem);
         try {
             String data = jobStoreProxy.getProcessedNextResult(1, 0, (short) 0);
             assertThat("data not null", data, not(nullValue()));
-            assertThat(data, is(JobStoreProxyImpl.format(getXmlData())));
+            assertThat(data, is(PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding())));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getProcessedNextResult()");
         }
@@ -417,5 +421,4 @@ public class JobStoreProxyImplTest {
                 "<datafield ind1=\"0\" ind2=\"0\" tag=\"z99\"><subfield code=\"a\">cfp</subfield></datafield>" +
                 "</record></collection></data></data-container></dataio-harvester-datafile>";
     }
-
 }

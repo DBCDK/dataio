@@ -26,7 +26,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -256,6 +255,13 @@ public class JSONBContextTest {
         final JSONBContext jsonbContext = new JSONBContext();
         final JsonNode jsonNode = jsonbContext.getJsonTree("{\"key\":\"value\"}");
         assertThat(jsonNode, is(notNullValue()));
+    }
+
+    @Test
+    public void prettyPrint_jsonStringIsValid_returnsPrettyPrintedJsonString() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final String prettyPrint = jsonbContext.prettyPrint("{\"value\":42}");
+        assertThat(prettyPrint, is("{\n  \"value\" : 42\n}"));
     }
 
     private static class SimpleBean {

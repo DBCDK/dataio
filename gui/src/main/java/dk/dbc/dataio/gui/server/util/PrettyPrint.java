@@ -60,11 +60,23 @@ public abstract class PrettyPrint {
         }
     }
 
+    /**
+     * Adds tabs and new lines to a json string
+     * @param bytes containing data
+     * @param encoding of data
+     * @return he string pretty printed as json
+     * @throws JSONBException on failure to to unmarshall
+     */
     public static String asJson(byte[] bytes, Charset encoding) throws JSONBException {
         String json = StringUtil.asString(bytes, encoding);
         return jsonbContext.prettyPrint(json).replaceAll(" {2}", TAB);
     }
 
+    /**
+     * Combines string elements to print
+     * @param elements to print
+     * @return the elements combined as one String
+     */
     public static String combinePrintElements(String... elements) {
         StringBuilder stringBuilder = new StringBuilder();
         for(String element : elements) {

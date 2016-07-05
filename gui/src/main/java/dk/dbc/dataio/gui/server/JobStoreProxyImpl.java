@@ -221,11 +221,9 @@ public class JobStoreProxyImpl implements JobStoreProxy {
                 log.error("JobStoreProxy: getItemData - Unexpected Status Code Exception", e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
-        } catch (JobStoreServiceConnectorException e) {
+        } catch (JobStoreServiceConnectorException | JSONBException | IOException e) {
             log.error("JobStoreProxy: getItemData - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
-        } catch (JSONBException | IOException e) {
-            throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } finally {
             log.debug("JobStoreProxy: getItemData took {} milliseconds", stopWatch.getElapsedTime());
         }

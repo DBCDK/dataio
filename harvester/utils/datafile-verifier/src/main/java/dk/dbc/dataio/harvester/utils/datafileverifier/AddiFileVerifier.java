@@ -36,9 +36,11 @@ public class AddiFileVerifier {
      * Verifies content of given addi file against given list of
      * expectations throwing assertion error unless all expectations can be met
      * @param dataFile harvester data file containing addi records
+     * @param addiMetaDataList expectations for addi records meta data
      * @param xmlExpectations expectations for addi records xml content
      * @throws IOException if unable to read harvester data file
      * @throws SAXException if unable to parse addi record content as XML
+     * @throws JSONBException if unable to unmarshall addi record meta data
      */
     public void verify(File dataFile, List<AddiMetaData> addiMetaDataList, List<XmlExpectation> xmlExpectations) throws IOException, SAXException, JSONBException {
         final AddiReader addiReader = new AddiReader(new BufferedInputStream(new FileInputStream(dataFile)));

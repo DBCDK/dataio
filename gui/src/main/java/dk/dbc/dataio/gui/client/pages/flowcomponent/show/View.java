@@ -21,21 +21,26 @@
 
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show;
 
-import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.ActionCell;
+import com.google.gwt.cell.client.Cell;
+import com.google.gwt.cell.client.CompositeCell;
 import com.google.gwt.cell.client.FieldUpdater;
+import com.google.gwt.cell.client.HasCell;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class View extends ViewWidget {
     ListDataProvider<FlowComponentModel> dataProvider;
-    SingleSelectionModel<FlowComponentModel> selectionModel = new SingleSelectionModel<FlowComponentModel>();
+    SingleSelectionModel<FlowComponentModel> selectionModel = new SingleSelectionModel<>();
 
     public View() {
         super("");
@@ -62,7 +67,7 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<FlowComponentModel>();
+        dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(flowComponentsTable);
 
         Texts texts = getTexts();
@@ -73,7 +78,6 @@ public class View extends ViewWidget {
         flowComponentsTable.addColumn(constructSvnProjectColumn(), texts.columnHeader_Project());
         flowComponentsTable.addColumn(constructSvnRevisionColumn(), texts.columnHeader_Revision());
         flowComponentsTable.addColumn(constructSvnNextColumn(), texts.columnHeader_Next());
-        flowComponentsTable.addColumn(constructJavaScriptModulesColumn(), texts.columnHeader_JavaScriptModules());
         flowComponentsTable.addColumn(constructActionColumn(), texts.columnHeader_Action());
         flowComponentsTable.setSelectionModel(selectionModel);
         flowComponentsTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
@@ -185,21 +189,6 @@ public class View extends ViewWidget {
     }
 
     /**
-     * This method constructs the Java Script Modules column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Java Script Modules column
-     */
-    Column constructJavaScriptModulesColumn() {
-        return new TextColumn<FlowComponentModel>() {
-            @Override
-            public String getValue(FlowComponentModel model) {
-                return fomatJavaScriptModules(model.getJavascriptModules());
-            }
-        };
-    }
-
-    /**
      * This method constructs the Action column
      * Should have been private, but is package-private to enable unit test
      *
@@ -207,38 +196,15 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     Column constructActionColumn() {
-        Column column = new Column<FlowComponentModel, String>(new ButtonCell()) {
+        List<HasCell<FlowComponentModel, ?>> cells = new LinkedList<>();
+        cells.add(new ActionHasCell(getTexts().button_ShowJSModules(), model -> Window.alert("Klik")));
+        cells.add(new ActionHasCell(getTexts().button_Edit(), model -> presenter.editFlowComponent(model)));
+        return new Column<FlowComponentModel, FlowComponentModel>(new CompositeCell<>(cells)) {
             @Override
-            public String getValue(FlowComponentModel model) {
-                // The value to display in the button.
-                return getTexts().button_Edit();
+            public FlowComponentModel getValue(FlowComponentModel model) {
+                return model;
             }
         };
-
-        column.setFieldUpdater(new FieldUpdater<FlowComponentModel, String>() {
-            @Override
-            public void update(int index, FlowComponentModel model, String buttonText) {
-                presenter.editFlowComponent(model);
-            }
-        });
-        return column;
-    }
-
-    /**
-     * This method format a list of Java Script Module names to a String
-     * @param javascriptModules The list of Java Script Names
-     * @return A string containing a comma-separated list of Java Script Name
-     */
-    private String fomatJavaScriptModules(List<String> javascriptModules) {
-        String moduleNames = "";
-        for (String script: javascriptModules) {
-            if (moduleNames.isEmpty()) {
-                moduleNames = script;
-            } else {
-                moduleNames += ", " + script;
-            }
-        }
-        return moduleNames;
     }
 
     /**
@@ -247,16 +213,40 @@ public class View extends ViewWidget {
      * @return the double click handler
      */
     private DoubleClickHandler getDoubleClickHandler(){
-        DoubleClickHandler handler = new DoubleClickHandler() {
-            @Override
-            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                FlowComponentModel selected = selectionModel.getSelectedObject();
-                if(selected != null) {
-                    presenter.editFlowComponent(selected);
-                }
+        return doubleClickEvent -> {
+            FlowComponentModel selected = selectionModel.getSelectedObject();
+            if(selected != null) {
+                presenter.editFlowComponent(selected);
             }
         };
-        return handler;
+    }
+
+
+    /*
+     * Local classes
+     */
+
+    private class ActionHasCell implements HasCell<FlowComponentModel, FlowComponentModel> {
+        private ActionCell<FlowComponentModel> cell;
+
+        public ActionHasCell(String text, ActionCell.Delegate<FlowComponentModel> delegate) {
+            cell = new ActionCell<>(text, delegate);
+        }
+
+        @Override
+        public Cell<FlowComponentModel> getCell() {
+            return cell;
+        }
+
+        @Override
+        public FieldUpdater<FlowComponentModel, FlowComponentModel> getFieldUpdater() {
+            return null;
+        }
+
+        @Override
+        public FlowComponentModel getValue(FlowComponentModel object) {
+            return object;
+        }
     }
 
 }

@@ -23,17 +23,23 @@
              xmlns:c="urn:import:com.google.gwt.user.cellview.client">
     <ui:with type="dk.dbc.dataio.gui.client.pages.flowcomponent.show.Texts" field="txt"/>
 
+    <ui:style>
+        .flowcomponentsTable thead th {
+            padding: 3px;
+        }
+        .flowcomponentsTable tbody td {
+            padding: 0 3px;
+        }
+        .flowcomponentsTable tbody button {
+            margin: 1px 3px;
+        }
+    </ui:style>
+
     <g:HTMLPanel>
 
         <g:Button ui:field="createButton" text="{txt.button_Create}" />
 
-        <table cellspacing='0' cellpadding='0' style='width:100%;'>
-            <tr>
-                <td id="flowcomponents-show-table" valign='top'>
-                    <c:CellTable pageSize='500' ui:field='flowComponentsTable' />
-                </td>
-            </tr>
-        </table>
+        <c:CellTable pageSize='500' ui:field='flowComponentsTable' styleName="{style.flowcomponentsTable}"/>
 
     </g:HTMLPanel>
 

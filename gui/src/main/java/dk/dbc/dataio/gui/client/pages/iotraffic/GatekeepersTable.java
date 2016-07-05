@@ -138,15 +138,7 @@ public class GatekeepersTable extends CellTable {
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, GatekeeperDestination gatekeeper, NativeEvent event) {
                 if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
-                    presenter.updateGatekeeperDestination(
-                            gatekeeper.getId(),
-                            gatekeeper.getSubmitterNumber(),
-                            gatekeeper.getDestination(),
-                            gatekeeper.getPackaging(),
-                            gatekeeper.getFormat(),
-                            ((InputElement) elem.getFirstChild()).isChecked(),
-                            gatekeeper.isNotifyFromPosthus()
-                    );
+                    presenter.updateGatekeeperDestination(gatekeeper.withCopyToPosthus(((InputElement) elem.getFirstChild()).isChecked()));
                 }
                 super.onBrowserEvent(context, elem, gatekeeper, event);
             }
@@ -167,15 +159,7 @@ public class GatekeepersTable extends CellTable {
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, GatekeeperDestination gatekeeper, NativeEvent event) {
                 if (Event.as(event).getTypeInt() == Event.ONCHANGE) {
-                    presenter.updateGatekeeperDestination(
-                            gatekeeper.getId(),
-                            gatekeeper.getSubmitterNumber(),
-                            gatekeeper.getDestination(),
-                            gatekeeper.getPackaging(),
-                            gatekeeper.getFormat(),
-                            gatekeeper.isCopyToPosthus(),
-                            ((InputElement) elem.getFirstChild()).isChecked()
-                    );
+                    presenter.updateGatekeeperDestination(gatekeeper.withNotifyFromPosthus(((InputElement) elem.getFirstChild()).isChecked()));
                 }
                 super.onBrowserEvent(context, elem, gatekeeper, event);
             }

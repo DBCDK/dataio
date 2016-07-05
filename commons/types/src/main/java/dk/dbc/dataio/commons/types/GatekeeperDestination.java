@@ -91,6 +91,41 @@ public class GatekeeperDestination implements Serializable {
         return notifyFromPosthus;
     }
 
+    public GatekeeperDestination withId(long id) {
+        this.id = id;
+        return this;
+    }
+
+    public GatekeeperDestination withSubmitterNumber(String submitterNumber) throws IllegalArgumentException {
+        this.submitterNumber = InvariantUtil.checkNotEmptyOrThrow(submitterNumber, "submitterNumber");
+        return this;
+    }
+
+    public GatekeeperDestination withDestination(String destination) throws IllegalArgumentException {
+        this.destination = InvariantUtil.checkNotNullNotEmptyOrThrow(destination, "destination");
+        return this;
+    }
+
+    public GatekeeperDestination withPackaging(String packaging) throws IllegalArgumentException {
+        this.packaging = InvariantUtil.checkNotNullNotEmptyOrThrow(packaging, "packaging");
+        return this;
+    }
+
+    public GatekeeperDestination withFormat(String format) throws IllegalArgumentException {
+        this.format = InvariantUtil.checkNotNullNotEmptyOrThrow(format, "format");
+        return this;
+    }
+
+    public GatekeeperDestination withCopyToPosthus(boolean copyToPosthus) {
+        this.copyToPosthus = copyToPosthus;
+        return this;
+    }
+
+    public GatekeeperDestination withNotifyFromPosthus(boolean notifyFromPosthus) {
+        this.notifyFromPosthus = notifyFromPosthus;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

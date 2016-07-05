@@ -131,11 +131,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     @Override
-    public void updateGatekeeperDestination(long id, String submitterNumber, String destination, String packaging, String format, boolean copyToPosthus, boolean notifyFromPosthus) {
-        flowStoreProxy.updateGatekeeperDestination(
-                new GatekeeperDestination(id, submitterNumber, destination, packaging, format, copyToPosthus, notifyFromPosthus),
-                new UpdateGatekeeperDestinationCallback()
-        );
+    public void updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination) {
+        flowStoreProxy.updateGatekeeperDestination(gatekeeperDestination, new UpdateGatekeeperDestinationCallback());
     }
 
 

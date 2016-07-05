@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
+import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 public interface Presenter extends GenericPresenter {
@@ -30,7 +31,7 @@ public interface Presenter extends GenericPresenter {
     void destinationChanged(String submitter);
     void copyChanged(Boolean copy);
     void notifyChanged(Boolean notify);
-    void updateGatekeeperDestination(long id, String submitterNumber, String destination, String packaging, String format, boolean copyToPosthus, boolean notifyFromPosthus);
+    void updateGatekeeperDestination(GatekeeperDestination gatekeeperDestination);
     void addButtonPressed();
     void deleteButtonPressed(long gatekeeperId);
 }

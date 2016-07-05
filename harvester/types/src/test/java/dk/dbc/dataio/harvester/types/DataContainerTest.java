@@ -200,10 +200,11 @@ public class DataContainerTest {
     private void assertDataContainerDocument(Document dataContainerDocument, Map<String, String> expectedSupplementaryData)
             throws HarvesterInvalidRecordException, IOException, TransformerException {
         final Element documentElement = dataContainerDocument.getDocumentElement();
-        assertThat(documentElement, is(notNullValue()));
-        final NodeList childNodes = documentElement.getChildNodes();
-        assertThat(childNodes.getLength(), is(2));
-
+        assertThat(DataContainer.DATA_SUPPLEMENTARY_ELEMENT_NAME + " element", documentElement, is(notNullValue()));
+        final NodeList dataContainerElements = documentElement.getElementsByTagName(DataContainer.DATA_CONTAINER_ELEMENT_NAME);
+        assertThat(DataContainer.DATA_CONTAINER_ELEMENT_NAME + " element", dataContainerElements.getLength(), is(1));
+        final NodeList childNodes = dataContainerElements.item(0).getChildNodes();
+        assertThat(DataContainer.DATA_CONTAINER_ELEMENT_NAME + " child nodes", childNodes.getLength(), is(2));
         assertDataContainerSupplementaryData(childNodes.item(0), expectedSupplementaryData);
         assertDataContainerData(childNodes.item(1));
     }

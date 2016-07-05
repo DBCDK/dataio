@@ -22,6 +22,8 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
+import dk.dbc.dataio.commons.types.AddiMetaData;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
@@ -29,13 +31,14 @@ import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.filestore.service.connector.MockedFileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.DataContainerExpectation;
-import dk.dbc.dataio.harvester.utils.datafileverifier.DataFileExpectation;
-import dk.dbc.dataio.harvester.utils.datafileverifier.HarvesterXmlDataFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeCollectionExpectation;
-import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecord;
+import dk.dbc.dataio.harvester.utils.datafileverifier.MarcExchangeRecordExpectation;
+import dk.dbc.dataio.harvester.utils.datafileverifier.XmlExpectation;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedRecord;
 import dk.dbc.rawrepo.QueueJob;
@@ -57,6 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -67,6 +71,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperation_2fbs_Test {
+    private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int AGENCY_ID = 123456;
 
@@ -75,21 +80,21 @@ public class HarvestOperation_2fbs_Test {
 
     private static final RecordId FIRST_RECORD_ID = new RecordId("first", AGENCY_ID);
     private static final String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
-    private static final MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID, true);
-    private static final QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID);
+    private static final MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
+    private static final QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
 
     private static final RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", AGENCY_ID);
-    private static final Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID, true);
+    private static final Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
 
     private static final RecordId SECOND_RECORD_ID = new RecordId("second", AGENCY_ID);
     private static final String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
-    private static final Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID, true);
-    private static final QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID);
+    private static final Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
+    private static final QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID, QUEUED_TIME);
 
     private static final RecordId THIRD_RECORD_ID = new RecordId("third", AGENCY_ID);
     private static final String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
-    private static final Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID, true);
-    private static final QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID);
+    private static final Record THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
+    private static final QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID, QUEUED_TIME);
 
     static {
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -103,7 +108,8 @@ public class HarvestOperation_2fbs_Test {
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
     private File harvesterDataFile;
-    private List<DataFileExpectation> harvesterDataFileExpectations;
+    private List<AddiMetaData> recordsAddiMetaDataExpectations;
+    private List<XmlExpectation> recordsExpectations;
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -136,12 +142,13 @@ public class HarvestOperation_2fbs_Test {
         mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
         mockedJobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
 
-        harvesterDataFileExpectations = new ArrayList<>();
+        recordsAddiMetaDataExpectations = new ArrayList<>();
+        recordsExpectations = new ArrayList<>();
     }
 
     @Test
     public void execute_multipleRecordsHarvested_dataFileContainsMarcExchangeCollections()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException {
+            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{
@@ -155,6 +162,8 @@ public class HarvestOperation_2fbs_Test {
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
+        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+
         // Setup harvester datafile content expectations
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
@@ -164,21 +173,35 @@ public class HarvestOperation_2fbs_Test {
         dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
         dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
         dataContainerExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
-        harvesterDataFileExpectations.add(dataContainerExpectation1);
+        recordsExpectations.add(dataContainerExpectation1);
+        recordsAddiMetaDataExpectations.add(new AddiMetaData()
+                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
+                .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withCreationDate(FIRST_RECORD.getCreated())
+                .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
+                .withTrackingId(FIRST_RECORD.getTrackingId()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
         final DataContainerExpectation dataContainerExpectation2 = new DataContainerExpectation();
         dataContainerExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
         dataContainerExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
-        harvesterDataFileExpectations.add(dataContainerExpectation2);
+        recordsExpectations.add(dataContainerExpectation2);
+        recordsAddiMetaDataExpectations.add(new AddiMetaData()
+                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withCreationDate(SECOND_RECORD.getCreated()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
         final DataContainerExpectation dataContainerExpectation3 = new DataContainerExpectation();
         dataContainerExpectation3.dataExpectation = marcExchangeCollectionExpectation3;
         dataContainerExpectation3.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
-        harvesterDataFileExpectations.add(dataContainerExpectation3);
+        recordsExpectations.add(dataContainerExpectation3);
+        recordsAddiMetaDataExpectations.add(new AddiMetaData()
+                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
+                .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withCreationDate(THIRD_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -188,8 +211,8 @@ public class HarvestOperation_2fbs_Test {
     }
 
     @Test
-    public void execute_recordIsInvalid_recordIsSkipped()
-            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException {
+    public void execute_recordIsInvalid_recordIsFailed()
+            throws IOException, SQLException, HarvesterException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
         final MockedRecord invalidRecord = new MockedRecord(SECOND_RECORD_ID, true);
         invalidRecord.setContent("not xml".getBytes(StandardCharsets.UTF_8));
 
@@ -205,6 +228,8 @@ public class HarvestOperation_2fbs_Test {
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
+        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(FIRST_RECORD_ID));
@@ -213,14 +238,36 @@ public class HarvestOperation_2fbs_Test {
         dataContainerExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(FIRST_RECORD));
         dataContainerExpectation1.supplementaryDataExpectation.put("enrichmentTrail", FIRST_RECORD.getEnrichmentTrail());
         dataContainerExpectation1.supplementaryDataExpectation.put("trackingId", FIRST_RECORD.getTrackingId());
-        harvesterDataFileExpectations.add(dataContainerExpectation1);
+        recordsExpectations.add(dataContainerExpectation1);
+        recordsAddiMetaDataExpectations.add(new AddiMetaData()
+                .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
+                .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withCreationDate(FIRST_RECORD.getCreated())
+                .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
+                .withTrackingId(FIRST_RECORD.getTrackingId()));
+
+        final DataContainerExpectation dataContainerExpectation2 = null;
+        recordsExpectations.add(dataContainerExpectation2);
+        recordsAddiMetaDataExpectations.add(new AddiMetaData()
+                .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
+                .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withCreationDate(SECOND_RECORD.getCreated())
+                .withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail())
+                .withTrackingId(SECOND_RECORD.getTrackingId())
+                .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
+                        "Harvesting RawRepo QueueJob{job=%s, worker=QUEUE_ID, queued=%s} failed: Record %s was not found in returned collection",
+                        SECOND_RECORD.getId(), dateToString(QUEUED_TIME), SECOND_RECORD.getId()))));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
-        final DataContainerExpectation dataContainerExpectation2 = new DataContainerExpectation();
-        dataContainerExpectation2.dataExpectation = marcExchangeCollectionExpectation2;
-        dataContainerExpectation2.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
-        harvesterDataFileExpectations.add(dataContainerExpectation2);
+        final DataContainerExpectation dataContainerExpectation3 = new DataContainerExpectation();
+        dataContainerExpectation3.dataExpectation = marcExchangeCollectionExpectation2;
+        dataContainerExpectation3.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(THIRD_RECORD));
+        recordsExpectations.add(dataContainerExpectation3);
+        recordsAddiMetaDataExpectations.add(new AddiMetaData()
+                .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
+                .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withCreationDate(THIRD_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
@@ -229,9 +276,9 @@ public class HarvestOperation_2fbs_Test {
         verifyJobSpecifications();
     }
 
-    private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException {
-        final HarvesterXmlDataFileVerifier harvesterXmlDataFileVerifier = new HarvesterXmlDataFileVerifier();
-        harvesterXmlDataFileVerifier.verify(harvesterDataFile, harvesterDataFileExpectations);
+    private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException, JSONBException {
+        final AddiFileVerifier addiFileVerifier = new AddiFileVerifier();
+        addiFileVerifier.verify(harvesterDataFile, recordsAddiMetaDataExpectations, recordsExpectations);
     }
 
     private void verifyJobSpecifications() {
@@ -247,12 +294,16 @@ public class HarvestOperation_2fbs_Test {
         assertThat("JobSpecification.submitterId", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
     }
 
-    private MarcExchangeRecord getMarcExchangeRecord(RecordId recordId) {
-        return new MarcExchangeRecord(recordId.getBibliographicRecordId(), recordId.getAgencyId());
+    private MarcExchangeRecordExpectation getMarcExchangeRecord(RecordId recordId) {
+        return new MarcExchangeRecordExpectation(recordId.getBibliographicRecordId(), recordId.getAgencyId());
     }
 
     private String getRecordCreationDate(Record record) {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
+    }
+
+    public String dateToString(Date date) {
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(date);
     }
 
     private HarvestOperation newHarvestOperation() {

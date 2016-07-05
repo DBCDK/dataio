@@ -28,7 +28,10 @@ import dk.dbc.dataio.jobstore.types.InvalidDataException;
 import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -123,7 +126,7 @@ public class AddiDataPartitionerTest {
     }
 
     @Test
-    public void partitioner_MetaDataContainsTrackingId_returnsResultWithChunkItemWithTrackingId() {
+    public void partitioner_metaDataContainsTrackingId_returnsResultWithChunkItemWithTrackingId() {
         final InputStream addiStream = StringUtil.asInputStream("27\n{\"trackingId\": \"trackedAs\"}\n7\ncontent\n");
         final AddiDataPartitionerImpl partitioner = new AddiDataPartitionerImpl(addiStream, UTF_8_ENCODING);
         final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
@@ -131,6 +134,24 @@ public class AddiDataPartitionerTest {
         final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getTrackingId()", chunkItem.getTrackingId(), is("trackedAs"));
+    }
+
+    @Test
+    public void partitioner_metaDataContainsDiagnostic_returnsResultWithChunkItemWithStatusFailure() {
+        final AddiRecord addiRecord = new AddiRecord(
+                "{\"diagnostic\":{\"level\":\"FATAL\",\"message\":\"error\"}}".getBytes(StandardCharsets.UTF_8),
+                "content".getBytes(StandardCharsets.UTF_8));
+        final AddiDataPartitionerImpl partitioner = new AddiDataPartitionerImpl(new ByteArrayInputStream(addiRecord.getBytes()), UTF_8_ENCODING);
+        final Iterator<DataPartitionerResult> iterator = partitioner.iterator();
+        final DataPartitionerResult dataPartitionerResult = iterator.next();
+        final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
+        assertThat("chunkItem", chunkItem, is(notNullValue()));
+        assertThat("chunkItem.getStatus()", chunkItem.getStatus(), is(ChunkItem.Status.FAILURE));
+        assertThat("chunkItem.getDiagnostics()", chunkItem.getDiagnostics(), is(notNullValue()));
+        assertThat("chunkItem.getDiagnostics().get(0).getMessage()", chunkItem.getDiagnostics().get(0).getMessage(), is("error"));
+        assertThat("chunkItem.getData()", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(addiRecord.getBytes())));
+        assertThat("chunkItem.getType()", chunkItem.getType(), is(Arrays.asList(ChunkItem.Type.ADDI, partitioner.getChunkItemType())));
+        assertThat("recordInfo", dataPartitionerResult.getRecordInfo(), is(notNullValue()));
     }
 
     @Test

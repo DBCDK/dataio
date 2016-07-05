@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
@@ -32,8 +33,6 @@ import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedSt
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.HarvesterXmlDataFile;
-import dk.dbc.dataio.harvester.types.HarvesterXmlRecord;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
@@ -45,16 +44,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Class used to build dataIO job from harvested records
+ */
 public class HarvesterJobBuilder implements AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterJobBuilder.class);
 
     private final BinaryFile tmpFile;
     private final OutputStream tmpFileOutputStream;
-    private final HarvesterXmlDataFile dataFile;
     private final JobSpecification jobSpecificationTemplate;
     private final BinaryFileStore binaryFileStore;
     private final FileStoreServiceConnector fileStoreServiceConnector;
@@ -68,7 +69,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
      * @param jobStoreServiceConnector job-store service connector for job creation
      * @param jobSpecificationTemplate job specification template
      * @throws NullPointerException if given null-valued argument
-     * @throws dk.dbc.dataio.harvester.types.HarvesterException on failure to create harvester data file
+     * @throws HarvesterException on failure to create harvester data file
      * backed by temporary binary file
      */
     public HarvesterJobBuilder(BinaryFileStore binaryFileStore,
@@ -79,43 +80,47 @@ public class HarvesterJobBuilder implements AutoCloseable {
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
         this.jobSpecificationTemplate = InvariantUtil.checkNotNullOrThrow(jobSpecificationTemplate, "jobSpecificationTemplate");
-        this.tmpFile = getTmpFile();
-        this.tmpFileOutputStream = tmpFile.openOutputStream();
-        this.dataFile = new HarvesterXmlDataFile(StandardCharsets.UTF_8, tmpFileOutputStream);
+        this.tmpFile = createTmpFile();
+        this.tmpFileOutputStream = openForWriting(tmpFile);
     }
 
     /**
-     * Adds given record to harvester data file
-     * @param harvesterRecord harvester record
-     * @throws dk.dbc.dataio.harvester.types.HarvesterException if unable to add harvester record
+     * Adds given Addi record to harvester data file
+     * @param record Addi record to add
+     * @throws HarvesterException if unable to add record
      */
-    public void addHarvesterRecord(HarvesterXmlRecord harvesterRecord) throws HarvesterException {
-        dataFile.addRecord(harvesterRecord);
+    public void addRecord(AddiRecord record) throws HarvesterException {
+        try {
+            tmpFileOutputStream.write(record.getBytes());
+        } catch (IOException e) {
+            throw new HarvesterException("Error writing harvester record to tmp", e);
+        }
         recordsAdded++;
     }
 
     /**
-     * Uploads harvester data file, as long as the data file contains
-     * any records, to the file-store and creates job in the job-store
-     * referencing the uploaded file
-     * @return job info snapshot for created job, or null if no job was created
-     * @throws HarvesterException on failure to upload to file-store or on
-     * failure to create job in job-store
+     * Uploads harvester data file, if non-empty, to the file-store
+     * and creates job in the job-store referencing the uploaded file
+     * @return Optional containing job info snapshot for created job, or empty if no job was created
+     * @throws HarvesterException on failure to upload to file-store or on failure to create job in job-store
      */
-    public JobInfoSnapshot build() throws HarvesterException {
-        dataFile.close();
-        try {
-            closeTmpFileOutputStream();
-        } catch (IllegalStateException e) {
-            throw new HarvesterException(e);
-        }
+    public Optional<JobInfoSnapshot> build() throws HarvesterException {
+        closeTmpFile();
         if (recordsAdded > 0) {
-            final String fileId = uploadToFileStore();
-            if (fileId != null) {
-                return createJobInJobStore(fileId);
+            final Optional<String> uploadedFileId = uploadToFileStore();
+            if (uploadedFileId.isPresent()) {
+                return Optional.of(createInJobStore(uploadedFileId.get()));
             }
         }
-        return null;
+        return Optional.empty();
+    }
+
+    public BinaryFileStore getBinaryFileStore() {
+        return binaryFileStore;
+    }
+
+    public JobStoreServiceConnector getJobStoreServiceConnector() {
+        return jobStoreServiceConnector;
     }
 
     public int getRecordsAdded() {
@@ -123,20 +128,21 @@ public class HarvesterJobBuilder implements AutoCloseable {
     }
 
     /**
-     * Closes associated file resources and deletes temporary file
-     * @throws IllegalStateException if unable to close temporary file output stream
+     * Closes and deletes temporary file
+     * @throws HarvesterException if unable to close temporary file
      */
     @Override
-    public void close() throws IllegalStateException {
-        closeTmpFileOutputStream();
+    public void close() throws HarvesterException {
+        closeTmpFile();
         deleteTmpFile();
     }
 
-    private void closeTmpFileOutputStream() throws IllegalStateException {
+    /* Returns temporary binary file for harvested data */
+    private BinaryFile createTmpFile() throws HarvesterException {
         try {
-            tmpFileOutputStream.close();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+            return binaryFileStore.getBinaryFile(Paths.get(UUID.randomUUID().toString()));
+        } catch (RuntimeException e) {
+            throw new HarvesterException("Error creating tmp file", e);
         }
     }
 
@@ -150,45 +156,44 @@ public class HarvesterJobBuilder implements AutoCloseable {
         }
     }
 
-    /* Returns temporary binary file for harvested data
-    */
-    private BinaryFile getTmpFile() {
-        return binaryFileStore.getBinaryFile(Paths.get(UUID.randomUUID().toString()));
+    private void closeTmpFile() throws HarvesterException {
+        try {
+            tmpFileOutputStream.close();
+        } catch (IOException e) {
+            throw new HarvesterException("Error while closing tmp file", e);
+        }
     }
 
-    /* Uploads harvester data file to the file-store
-     */
-    private String uploadToFileStore() throws HarvesterException {
+    private OutputStream openForWriting(BinaryFile binaryFile) throws HarvesterException {
+        try {
+            return binaryFile.openOutputStream();
+        } catch (RuntimeException e) {
+            throw new HarvesterException("Error opening tmp file for writing", e);
+        }
+    }
+
+    /* Uploads harvester data file to the file-store */
+    private Optional<String> uploadToFileStore() throws HarvesterException {
         String fileId = null;
         try (final InputStream is = tmpFile.openInputStream()) {
             fileId = fileStoreServiceConnector.addFile(is);
             LOGGER.info("Added file with ID {} to file-store", fileId);
-        } catch (FileStoreServiceConnectorException e) {
+        } catch (FileStoreServiceConnectorException | RuntimeException e) {
             throw new HarvesterException("Unable to add file to file-store", e);
         } catch (IOException e) {
             LOGGER.warn("Unable to close tmp file InputStream");
         }
-        return fileId;
+        return Optional.ofNullable(fileId);
     }
 
-    private void removeFromFileStore(String fileId) {
-        try {
-            LOGGER.info("Removing file with id {} from file-store", fileId);
-            fileStoreServiceConnector.deleteFile(fileId);
-        } catch (FileStoreServiceConnectorException e) {
-            LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
-        }
-    }
-
-    /* Creates new job in the job-store
-    */
-    private JobInfoSnapshot createJobInJobStore(String fileId) throws HarvesterException {
+    /* Creates new job in the job-store */
+    private JobInfoSnapshot createInJobStore(String fileId) throws HarvesterException {
         final JobSpecification jobSpecification = createJobSpecification(fileId);
         try {
             final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addJob(new JobInputStream(jobSpecification, true, 0));
             LOGGER.info("Created job in job-store with ID {}", jobInfoSnapshot.getJobId());
             return jobInfoSnapshot;
-        } catch (JobStoreServiceConnectorException e) {
+        } catch (JobStoreServiceConnectorException | RuntimeException e) {
             boolean doRemoveFromFileStore = true;
             if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
                 JobStoreServiceConnectorUnexpectedStatusCodeException statusCodeException
@@ -205,6 +210,15 @@ public class HarvesterJobBuilder implements AutoCloseable {
                 removeFromFileStore(fileId);
             }
             throw new HarvesterException("Unable to create job in job-store", e);
+        }
+    }
+
+    private void removeFromFileStore(String fileId) {
+        try {
+            LOGGER.info("Removing file with id {} from file-store", fileId);
+            fileStoreServiceConnector.deleteFile(fileId);
+        } catch (FileStoreServiceConnectorException | RuntimeException e) {
+            LOGGER.error("Failed to remove uploaded file with id {}", fileId, e);
         }
     }
 

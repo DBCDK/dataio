@@ -36,6 +36,10 @@ public class MockedRecord implements Record {
     private String enrichmentTrail;
     private String trackingId;
 
+    public MockedRecord(RecordId recordId) {
+        this(recordId, true);
+    }
+
     public MockedRecord(RecordId recordId, boolean isOriginal) {
         this.recordId = recordId;
         this.isOriginal = isOriginal;

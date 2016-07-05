@@ -21,13 +21,18 @@
 
 package dk.dbc.dataio.harvester.utils.datafileverifier;
 
-import dk.dbc.dataio.harvester.types.MarcExchangeRecordBinding;
-import org.w3c.dom.Document;
+import dk.dbc.dataio.commons.utils.lang.XmlUtil;
+import dk.dbc.marc.binding.MarcRecord;
+import dk.dbc.marc.reader.MarcReaderException;
+import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,22 +43,18 @@ import static org.junit.Assert.assertThat;
 /**
  * Verifier helper class for MARC exchange collection expectations
  */
-public class MarcExchangeCollectionExpectation implements DataFileExpectation {
+public class MarcExchangeCollectionExpectation implements XmlExpectation {
     static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v1";
     static final String COLLECTION_ELEMENT_NAME = "collection";
     static final String RECORD_ELEMENT_NAME = "record";
 
-    public Set<MarcExchangeRecord> records;
+    public Set<MarcExchangeRecordExpectation> records;
 
-    private final DomUtil domUtil;
+    private final XmlUtil xmlUtil;
 
     public MarcExchangeCollectionExpectation() {
-        this.records = new HashSet<>();
-        try {
-            domUtil = new DomUtil();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
+        records = new HashSet<>();
+        xmlUtil = new XmlUtil();
     }
 
     /**
@@ -64,9 +65,9 @@ public class MarcExchangeCollectionExpectation implements DataFileExpectation {
      */
     @Override
     public void verify(Node node) {
-        assertThat(node.getNodeType(), is(Node.ELEMENT_NODE));
-        assertThat(node.getLocalName(), is(COLLECTION_ELEMENT_NAME));
-        assertThat(node.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
+        assertThat("collection node is element", node.getNodeType(), is(Node.ELEMENT_NODE));
+        assertThat("collection node name", node.getLocalName(), is(COLLECTION_ELEMENT_NAME));
+        assertThat("collection node namespace", node.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
 
         verifyMarcExchangeCollectionRecords(node.getChildNodes());
     }
@@ -74,22 +75,30 @@ public class MarcExchangeCollectionExpectation implements DataFileExpectation {
     /* Verifies all record members
      */
     private void verifyMarcExchangeCollectionRecords(NodeList recordNodes) {
-        final Set<MarcExchangeRecord> actualRecords = new HashSet<>();
-        assertThat(recordNodes, is(notNullValue()));
-        assertThat(recordNodes.getLength(), is(records.size()));
+        final Set<MarcExchangeRecordExpectation> actualRecords = new HashSet<>();
+        assertThat("record nodes", recordNodes, is(notNullValue()));
+        assertThat("number of record nodes", recordNodes.getLength(), is(records.size()));
         for (int i = 0; i < recordNodes.getLength(); i++) {
             final Node recordNode = recordNodes.item(i);
-            assertThat(recordNode.getNodeType(), is(Node.ELEMENT_NODE));
-            assertThat(recordNode.getLocalName(), is(RECORD_ELEMENT_NAME));
-            assertThat(recordNode.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
-            final Document recordDocument = domUtil.asDocument((Element) recordNode);
-            final MarcExchangeRecordBinding marcExchangeRecordBinding = new MarcExchangeRecordBinding(recordDocument);
-            actualRecords.add(new MarcExchangeRecord(
-                    marcExchangeRecordBinding.getId(), marcExchangeRecordBinding.getLibrary()));
+            assertThat("record node is element", recordNode.getNodeType(), is(Node.ELEMENT_NODE));
+            assertThat("record node name", recordNode.getLocalName(), is(RECORD_ELEMENT_NAME));
+            assertThat("record node namespace", recordNode.getNamespaceURI(), is(MARC_EXCHANGE_NAMESPACE));
+            actualRecords.add(new MarcExchangeRecordExpectation(toMarcRecord(recordNode)));
         }
-        for (MarcExchangeRecord expectation : records) {
+        for (MarcExchangeRecordExpectation expectation : records) {
             assertThat(expectation.toString(), actualRecords.remove(expectation), is(true));
         }
         assertThat("All records accounted for", actualRecords.isEmpty(), is(true));
+    }
+
+    private MarcRecord toMarcRecord(Node recordNode) {
+        try {
+            final byte[] bytes = xmlUtil.getBytes(xmlUtil.toDocument((Element) recordNode));
+            final MarcXchangeV1Reader reader = new MarcXchangeV1Reader(
+                    new BufferedInputStream(new ByteArrayInputStream(bytes)), StandardCharsets.UTF_8);
+            return reader.read();
+        } catch (TransformerException | MarcReaderException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 }

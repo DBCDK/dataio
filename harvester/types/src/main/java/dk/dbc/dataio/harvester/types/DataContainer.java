@@ -46,6 +46,7 @@ import java.util.Date;
  * </p>
  */
 public class DataContainer implements HarvesterXmlRecord {
+    static final String HARVESTER_DATAFILE_ELEMENT_NAME = "dataio-harvester-datafile";
     static final String DATA_CONTAINER_ELEMENT_NAME = "data-container";
     static final String DATA_SUPPLEMENTARY_ELEMENT_NAME = "data-supplementary";
     static final String DATA_ELEMENT_NAME = "data";
@@ -101,12 +102,16 @@ public class DataContainer implements HarvesterXmlRecord {
             throw new HarvesterInvalidRecordException("Container data can not be null");
         }
         try {
-            final Document dataContainer = documentBuilder.newDocument();
-            dataContainer.setXmlStandalone(true);
-            dataContainer.appendChild(dataContainer.createElement(DATA_CONTAINER_ELEMENT_NAME));
-            appendDataSupplementary(dataContainer);
-            appendData(dataContainer);
-            return dataContainer;
+            final Document document = documentBuilder.newDocument();
+            document.setXmlStandalone(true);
+            // This is a hack job until we can get the dataIO pipeline to work with the addi format
+            final Element rootElement = document.createElement(HARVESTER_DATAFILE_ELEMENT_NAME);
+            final Element containerElement = document.createElement(DATA_CONTAINER_ELEMENT_NAME);
+            rootElement.appendChild(containerElement);
+            document.appendChild(rootElement);
+            appendDataSupplementary(document, containerElement);
+            appendData(document, containerElement);
+            return document;
         } finally {
             documentBuilder.reset();
         }
@@ -149,30 +154,30 @@ public class DataContainer implements HarvesterXmlRecord {
         this.trackingId = trackingId;
     }
 
-    private void appendDataSupplementary(Document dataContainer) {
-        final Element dataSupplementaryElement = dataContainer.createElement(DATA_SUPPLEMENTARY_ELEMENT_NAME);
+    private void appendDataSupplementary(Document document, Element parent) {
+        final Element dataSupplementaryElement = document.createElement(DATA_SUPPLEMENTARY_ELEMENT_NAME);
         if (creationDate != null) {
-            final Element creationDateElement = dataContainer.createElement("creationDate");
+            final Element creationDateElement = document.createElement("creationDate");
             creationDateElement.setTextContent(creationDate);
             dataSupplementaryElement.appendChild(creationDateElement);
         }
         if (enrichmentTrail != null) {
-            final Element enrichmentTrailElement = dataContainer.createElement("enrichmentTrail");
+            final Element enrichmentTrailElement = document.createElement("enrichmentTrail");
             enrichmentTrailElement.setTextContent(this.enrichmentTrail);
             dataSupplementaryElement.appendChild(enrichmentTrailElement);
         }
         if(trackingId != null) {
-            final Element trackingIdElement = dataContainer.createElement("trackingId");
+            final Element trackingIdElement = document.createElement("trackingId");
             trackingIdElement.setTextContent(this.trackingId);
             dataSupplementaryElement.appendChild(trackingIdElement);
         }
-        dataContainer.getDocumentElement().appendChild(dataSupplementaryElement);
+        parent.appendChild(dataSupplementaryElement);
     }
 
-    private void appendData(Document dataContainer) {
-        final Element dataElement = dataContainer.createElement(DATA_ELEMENT_NAME);
-        dataElement.appendChild(dataContainer.importNode(data, true));
-        dataContainer.getDocumentElement().appendChild(dataElement);
+    private void appendData(Document document, Element parent) {
+        final Element dataElement = document.createElement(DATA_ELEMENT_NAME);
+        dataElement.appendChild(document.importNode(data, true));
+        parent.appendChild(dataElement);
     }
 
     private Transformer configureTransformer() throws HarvesterException {

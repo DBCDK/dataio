@@ -22,6 +22,8 @@
 package dk.dbc.dataio.commons.utils.lang;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -83,6 +85,19 @@ public class XmlUtil {
         final ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
         documentBuilder.reset();
         return documentBuilder.parse(byteArrayInputStream);
+    }
+
+    /**
+     * Converts an element into its XML document representation
+     * @param element element to be represented as a document
+     * @return document representation
+     */
+    public Document toDocument(Element element) {
+        documentBuilder.reset();
+        final Document document = documentBuilder.newDocument();
+        final Node importedNode = document.importNode(element, true);
+        document.appendChild(importedNode);
+        return document;
     }
 
     /**

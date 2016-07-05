@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.utils.datafileverifier;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -35,22 +36,18 @@ import static org.junit.Assert.fail;
 /**
  * Verifier helper class for data-container expectations
  */
-public class DataContainerExpectation implements DataFileExpectation {
+public class DataContainerExpectation implements XmlExpectation {
+    private static final String HARVESTER_DATAFILE_ELEMENT_NAME = "dataio-harvester-datafile";
     private static final String DATA_CONTAINER_ELEMENT_NAME = "data-container";
     private static final String DATA_SUPPLEMENTARY_ELEMENT_NAME = "data-supplementary";
     private static final String DATA_ELEMENT_NAME = "data";
 
-    public DataFileExpectation dataExpectation;
+    public XmlExpectation dataExpectation;
     public Map<String, String> supplementaryDataExpectation;
 
     public DataContainerExpectation() {
         supplementaryDataExpectation = new HashMap<>();
-        dataExpectation = new DataFileExpectation() {
-            @Override
-            public void verify(Node node) {
-                fail("No data expectation set");
-            }
-        };
+        dataExpectation = node -> fail("No data expectation set");
     }
 
     /**
@@ -60,33 +57,35 @@ public class DataContainerExpectation implements DataFileExpectation {
      */
     @Override
     public void verify(Node node) {
-        assertThat(node.getNodeType(), is(Node.ELEMENT_NODE));
-        assertThat(node.getLocalName(), is(DATA_CONTAINER_ELEMENT_NAME));
-        final NodeList childNodes = node.getChildNodes();
-        assertThat(childNodes.getLength(), is(2));
+        assertThat("wrapper node is element", node.getNodeType(), is(Node.ELEMENT_NODE));
+        assertThat("wrapper node name", node.getLocalName(), is(HARVESTER_DATAFILE_ELEMENT_NAME));
+        final NodeList dataContainerElements = ((Element) node).getElementsByTagName(DATA_CONTAINER_ELEMENT_NAME);
+        assertThat("has one container element", dataContainerElements.getLength(), is(1));
+        final NodeList childNodes = dataContainerElements.item(0).getChildNodes();
+        assertThat("container element has two children", childNodes.getLength(), is(2));
         verifyDataSupplementary(childNodes.item(0));
         verifyData(childNodes.item(1));
     }
 
     private void verifyData(Node node) {
-        assertThat(node.getNodeType(), is(Node.ELEMENT_NODE));
-        assertThat(node.getLocalName(), is(DATA_ELEMENT_NAME));
+        assertThat("data node is element", node.getNodeType(), is(Node.ELEMENT_NODE));
+        assertThat("data node name", node.getLocalName(), is(DATA_ELEMENT_NAME));
         assertThat(dataExpectation, is(notNullValue()));
         dataExpectation.verify(node.getFirstChild());
     }
 
     private void verifyDataSupplementary(Node node) {
-        assertThat(node.getNodeType(), is(Node.ELEMENT_NODE));
-        assertThat(node.getLocalName(), is(DATA_SUPPLEMENTARY_ELEMENT_NAME));
+        assertThat("supplementary node is element", node.getNodeType(), is(Node.ELEMENT_NODE));
+        assertThat("supplementary node name", node.getLocalName(), is(DATA_SUPPLEMENTARY_ELEMENT_NAME));
         final HashMap<String, String> expectations = new HashMap<>(supplementaryDataExpectation);
         final NodeList childNodes = node.getChildNodes();
-        assertThat(childNodes.getLength(), is(expectations.size()));
+        assertThat("number of supplementary node children", childNodes.getLength(), is(expectations.size()));
         for (int i = 0; i < childNodes.getLength(); i++) {
             final Node valueNode = childNodes.item(i);
-            assertThat(valueNode.getNodeType(), is(Node.ELEMENT_NODE));
+            assertThat("supplementary child node is element", valueNode.getNodeType(), is(Node.ELEMENT_NODE));
             final String valueName = valueNode.getLocalName();
-            assertThat("/data-container/data-supplementary/" + valueName + " exists", expectations.containsKey(valueName), is(true));
-            assertThat("/data-container/data-supplementary/" + valueName + "/textContent",
+            assertThat("data-container/data-supplementary/" + valueName + " exists", expectations.containsKey(valueName), is(true));
+            assertThat("data-container/data-supplementary/" + valueName + "/textContent",
                     expectations.get(valueName), is(valueNode.getTextContent()));
             expectations.remove(valueName);
         }

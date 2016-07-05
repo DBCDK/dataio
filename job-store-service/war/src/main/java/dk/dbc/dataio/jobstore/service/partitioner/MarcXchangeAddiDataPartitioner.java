@@ -34,7 +34,6 @@ import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
@@ -82,18 +81,22 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
 
     @Override
     protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
-        try {
-            final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(content), StandardCharsets.UTF_8);
-            final MarcRecordInfoBuilder marcRecordInfoBuilder = new MarcRecordInfoBuilder();
-            Optional<MarcRecordInfo> marcRecordInfo = marcRecordInfoBuilder.parse(marcReader.read());
-            return Optional.of(marcRecordInfo.get());
-        } catch (MarcReaderException e) {
-            throw new IllegalArgumentException("Marc record info could not be created. ", e);
+        if (content != null) {
+            try {
+                final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(content), getEncoding());
+                final MarcRecordInfoBuilder marcRecordInfoBuilder = new MarcRecordInfoBuilder();
+                final Optional<MarcRecordInfo> marcRecordInfo = marcRecordInfoBuilder.parse(marcReader.read());
+                if (marcRecordInfo.isPresent()) {
+                    return Optional.of(marcRecordInfo.get());
+                }
+            } catch (MarcReaderException e) {
+                throw new IllegalArgumentException("Marc record info could not be created. ", e);
+            }
         }
+        return super.getRecordInfo(addiMetaData, content);
     }
 
     private BufferedInputStream getInputStream(byte[] data) {
         return new BufferedInputStream(new ByteArrayInputStream(data));
     }
-
 }

@@ -24,6 +24,7 @@ package dk.dbc.dataio.commons.types;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -39,6 +40,12 @@ public class AddiMetaData {
     private String bibliographicRecordId;
     @JsonProperty
     private String trackingId;
+    @JsonProperty
+    private Date creationDate;
+    @JsonProperty
+    private String enrichmentTrail;
+    @JsonProperty
+    private Diagnostic diagnostic;
 
     public AddiMetaData withSubmitterNumber(Integer submitterNumber) {
         submitter = submitterNumber;
@@ -46,7 +53,7 @@ public class AddiMetaData {
     }
 
     public Optional<Integer> submitterNumber() {
-        return getValue(submitter);
+        return Optional.ofNullable(submitter);
     }
 
     public AddiMetaData withFormat(String format) {
@@ -55,7 +62,7 @@ public class AddiMetaData {
     }
 
     public Optional<String> format() {
-        return getValue(format);
+        return Optional.ofNullable(format);
     }
 
     public AddiMetaData withBibliographicRecordId(String bibliographicRecordId) {
@@ -64,7 +71,7 @@ public class AddiMetaData {
     }
 
     public Optional<String> bibliographicRecordId() {
-        return getValue(bibliographicRecordId);
+        return Optional.ofNullable(bibliographicRecordId);
     }
 
     public AddiMetaData withTrackingId(String trackingId) {
@@ -73,7 +80,40 @@ public class AddiMetaData {
     }
 
     public Optional<String> trackingId() {
-        return getValue(trackingId);
+        return Optional.ofNullable(trackingId);
+    }
+
+    public AddiMetaData withCreationDate(Date creationDate) {
+        if (creationDate != null) {
+            this.creationDate = new Date(creationDate.getTime());
+        }
+        return this;
+    }
+
+    public Optional<Date> creationDate() {
+        final Optional<Date> date = Optional.ofNullable(creationDate);
+        if (date.isPresent()) {
+            return Optional.of(new Date(date.get().getTime()));
+        }
+        return date;
+    }
+
+    public AddiMetaData withEnrichmentTrail(String enrichmentTrail) {
+        this.enrichmentTrail = enrichmentTrail;
+        return this;
+    }
+
+    public Optional<String> enrichmentTrail() {
+        return Optional.ofNullable(enrichmentTrail);
+    }
+
+    public AddiMetaData withDiagnostic(Diagnostic diagnostic) {
+        this.diagnostic = diagnostic;
+        return this;
+    }
+
+    public Optional<Diagnostic> diagnostic() {
+        return Optional.ofNullable(diagnostic);
     }
 
     @Override
@@ -96,8 +136,16 @@ public class AddiMetaData {
         if (bibliographicRecordId != null ? !bibliographicRecordId.equals(that.bibliographicRecordId) : that.bibliographicRecordId != null) {
             return false;
         }
-        return trackingId != null ? trackingId.equals(that.trackingId) : that.trackingId == null;
-
+        if (trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null) {
+            return false;
+        }
+        if (creationDate != null ? !creationDate.equals(that.creationDate) : that.creationDate != null) {
+            return false;
+        }
+        if (enrichmentTrail != null ? !enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail != null) {
+            return false;
+        }
+        return diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null;
     }
 
     @Override
@@ -106,13 +154,22 @@ public class AddiMetaData {
         result = 31 * result + (format != null ? format.hashCode() : 0);
         result = 31 * result + (bibliographicRecordId != null ? bibliographicRecordId.hashCode() : 0);
         result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
+        result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
+        result = 31 * result + (enrichmentTrail != null ? enrichmentTrail.hashCode() : 0);
+        result = 31 * result + (diagnostic != null ? diagnostic.hashCode() : 0);
         return result;
     }
 
-    private <T> Optional<T> getValue(T value) {
-        if (value == null) {
-            return Optional.empty();
-        }
-        return Optional.of(value);
+    @Override
+    public String toString() {
+        return "AddiMetaData{" +
+                "submitter=" + submitter +
+                ", format='" + format + '\'' +
+                ", bibliographicRecordId='" + bibliographicRecordId + '\'' +
+                ", trackingId='" + trackingId + '\'' +
+                ", creationDate=" + creationDate +
+                ", enrichmentTrail='" + enrichmentTrail + '\'' +
+                ", diagnostic=" + diagnostic +
+                '}';
     }
 }

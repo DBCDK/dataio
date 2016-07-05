@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -29,6 +31,8 @@ import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.rawrepo.MockedQueueJob;
 import dk.dbc.rawrepo.MockedRecord;
@@ -39,6 +43,7 @@ import dk.dbc.rawrepo.RecordId;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import javax.naming.Context;
 import javax.sql.DataSource;
@@ -57,7 +62,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -77,6 +81,7 @@ public class HarvestOperationTest {
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
     private final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     @BeforeClass
     public static void setup() {
@@ -122,41 +127,15 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoConnectorQueueFailThrowsSqlException_throws() throws SQLException, RawRepoException, MarcXMergerException {
-        final Record rrRecord = mock(Record.class);
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashMap<String, Record>(){{
-                    put("ID", rrRecord);
-                }});
-        when(rrRecord.getContent()).thenReturn("invalid".getBytes());
-        doThrow(new SQLException()).when(rawRepoConnector).queueFail(any(QueueJob.class), anyString());
-
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
-    }
-
-    @Test
-    public void execute_rawRepoConnectorQueueFailThrowsRawRepoException_throws() throws SQLException, RawRepoException, MarcXMergerException {
-        final Record rrRecord = mock(Record.class);
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashMap<String, Record>() {{
-                    put("ID", rrRecord);
-                }});
-        when(rrRecord.getContent()).thenReturn("invalid".getBytes());
-        doThrow(new RawRepoException()).when(rawRepoConnector).queueFail(any(QueueJob.class), anyString());
-
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
-    }
-
-    @Test
     public void execute_rawRepoConnectorFetchRecordCollectionThrowsSqlException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -181,7 +160,9 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -206,7 +187,9 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -216,7 +199,9 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -226,7 +211,9 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -242,7 +229,9 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -250,26 +239,27 @@ public class HarvestOperationTest {
         final MockedRecord rrRecord = new MockedRecord(RECORD_ID, true);
         rrRecord.setCreated(null);
         rrRecord.setContent(getRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
-        when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(new HashMap<String, Record>() {{
-                    put(RECORD_ID.getBibliographicRecordId(), rrRecord);
-                }});
+        when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(rrRecord);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
     public void execute_rawRepoReturnsEmptyCollection_recordIsFailed() throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
-                .thenReturn(Collections.<String, Record>emptyMap());
+                .thenReturn(Collections.emptyMap());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -284,7 +274,9 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute();
 
-        verify(rawRepoConnector, times(1)).queueFail(any(QueueJob.class), anyString());
+        final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
+        verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
+        assertHasDiagnostic(addiRecordCaptor.getValue());
     }
 
     @Test
@@ -366,6 +358,7 @@ public class HarvestOperationTest {
         final int agencyId = 424242;
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
                 .setSubmitterId(agencyId)
+                .setPackaging("addi-xml")
                 .build();
 
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
@@ -385,6 +378,7 @@ public class HarvestOperationTest {
         final String formatOverride = "alternativeFormat";
         final JobSpecification expectedJobSpecificationTemplate = getJobSpecificationTemplateBuilder()
                 .setSubmitterId(agencyId)
+                .setPackaging("addi-xml")
                 .setFormat(formatOverride)
                 .build();
 
@@ -448,32 +442,42 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() throws HarvesterInvalidRecordException {
+        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        record.setEnrichmentTrail(null);
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, null), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() throws HarvesterInvalidRecordException {
+        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        record.setEnrichmentTrail(" ");
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, " "), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_no870TrailFound_throws() throws HarvesterInvalidRecordException {
+        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        record.setEnrichmentTrail("191919,123456");
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, "191919,123456"), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_invalid870TrailFound_throws() throws HarvesterInvalidRecordException {
+        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        record.setEnrichmentTrail("191919,870abc");
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, "191919,870abc"), isThrowing(HarvesterInvalidRecordException.class));
+        assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
     }
 
     @Test
     public void getAgencyId_DBC_returnsAgencyIdFromEnrichmentTrail() throws HarvesterInvalidRecordException {
+        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        record.setEnrichmentTrail("191919,870970");
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.getAgencyIdFromEnrichmentTrail(DBC_COMMON_RECORD_ID, "191919,870970"), is(870970));
+        assertThat(harvestOperation.getAgencyIdFromEnrichmentTrail(record), is(870970));
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
@@ -482,6 +486,18 @@ public class HarvestOperationTest {
 
     private HarvestOperation newHarvestOperation() {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
+    }
+
+    private void assertHasDiagnostic(AddiRecord addiRecord) {
+        assertThat("Addi record", addiRecord, is(notNullValue()));
+        try {
+            final AddiMetaData addiMetaData = jsonbContext.unmarshall(
+                    new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
+            assertThat("Addi record metadata", addiMetaData, is(notNullValue()));
+            assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic().isPresent(), is(true));
+        } catch (JSONBException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private JobSpecificationBuilder getJobSpecificationTemplateBuilder() {
@@ -496,9 +512,13 @@ public class HarvestOperationTest {
             .setType(JobSpecification.Type.TRANSIENT);
     }
 
-    public static QueueJob getQueueJob(RecordId recordId) {
+    public static QueueJob getQueueJob(RecordId recordId, Date queued) {
         return new MockedQueueJob(recordId.getBibliographicRecordId(), recordId.getAgencyId(), "QUEUE_ID",
-                new Timestamp(new Date().getTime()));
+                new Timestamp(queued.getTime()));
+    }
+
+    public static QueueJob getQueueJob(RecordId recordId) {
+        return getQueueJob(recordId, new Date());
     }
 
     public static String getRecordContent(RecordId recordId) {

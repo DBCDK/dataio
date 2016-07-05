@@ -26,6 +26,7 @@ import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
@@ -130,12 +131,23 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
                     .withType(ChunkItem.Type.STRING);
             } else {
                 final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
-                chunkItem = ChunkItem.successfulChunkItem()
-                    .withTrackingId(addiMetaData.trackingId().orElse(null))
-                    .withData(addiRecord.getContentData())
-                    .withEncoding(encoding)
-                    .withType(getChunkItemType());
-                recordInfo = getRecordInfo(addiMetaData, addiRecord.getContentData());
+                final byte[] content = addiRecord.getContentData();
+                final Optional<Diagnostic> diagnostic = addiMetaData.diagnostic();
+                if (diagnostic.isPresent()) {
+                    chunkItem = ChunkItem.failedChunkItem()
+                            .withTrackingId(addiMetaData.trackingId().orElse(null))
+                            .withData(addiRecord.getBytes())
+                            .withEncoding(encoding)
+                            .withDiagnostics(diagnostic.get())
+                            .withType(ChunkItem.Type.ADDI, getChunkItemType());
+                } else {
+                    chunkItem = ChunkItem.successfulChunkItem()
+                            .withTrackingId(addiMetaData.trackingId().orElse(null))
+                            .withData(content)
+                            .withEncoding(encoding)
+                            .withType(getChunkItemType());
+                }
+                recordInfo = getRecordInfo(addiMetaData, content);
             }
         } catch (JSONBException | RuntimeException e) {
             LOGGER.error("Exception caught while processing AddiRecord", e);

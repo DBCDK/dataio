@@ -42,7 +42,6 @@ import dk.dbc.log.DBCTrackedLogContext;
 import dk.dbc.marcxmerge.MarcXMergerException;
 import dk.dbc.openagency.client.OpenAgencyServiceFromURL;
 import dk.dbc.rawrepo.AgencySearchOrder;
-import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.Record;
 import dk.dbc.rawrepo.RecordId;
@@ -85,6 +84,7 @@ public class HarvestOperation {
     private final Transformer transformer;
     private final RawRepoConnector rawRepoConnector;
     private final JSONBContext jsonbContext;
+    private final RecordSource recordSource;
 
     public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
@@ -94,6 +94,7 @@ public class HarvestOperation {
         transformer = getTransformer();
         rawRepoConnector = getRawRepoConnector(config);
         jsonbContext = new JSONBContext();
+        recordSource = new RecordSource(config, rawRepoConnector);
     }
 
     /**
@@ -105,19 +106,18 @@ public class HarvestOperation {
     public int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
         int itemsHarvested = 0;
-        QueueJob nextQueuedItem = getNextQueuedItem();
 
-        while (nextQueuedItem != null) {
-            LOGGER.info("{} ready for harvesting", nextQueuedItem);
+        RecordSource.RecordWrapper recordWrapper = recordSource.getRecord();
+        while (recordWrapper != null) {
+            LOGGER.info("{} ready for harvesting", recordWrapper);
             Record record = null;
-            final RecordId queuedRecordId = nextQueuedItem.getJob();
-
             final AddiMetaData addiMetaData = new AddiMetaData()
-                    .withBibliographicRecordId(queuedRecordId.getBibliographicRecordId())
-                    .withSubmitterNumber(queuedRecordId.getAgencyId());
+                    .withBibliographicRecordId(recordWrapper.getRecordId().getBibliographicRecordId())
+                    .withSubmitterNumber(recordWrapper.getRecordId().getAgencyId());
 
             try {
-                record = fetchRecordFromRR(queuedRecordId);
+                record = recordWrapper.getRecord().orElseThrow(recordWrapper::getError);
+
                 DBCTrackedLogContext.setTrackingId(record.getTrackingId());
 
                 addiMetaData
@@ -133,7 +133,7 @@ public class HarvestOperation {
                     itemsHarvested++;
                 }
             } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", nextQueuedItem, e.getMessage());
+                final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordWrapper, e.getMessage());
                 LOGGER.error(errorMsg);
                 addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
                 getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
@@ -147,7 +147,7 @@ public class HarvestOperation {
             if (itemsHarvested == config.getBatchSize()) {
                 break;
             }
-            nextQueuedItem = getNextQueuedItem();
+            recordWrapper = recordSource.getRecord();
         }
         flushHarvesterJobBuilders();
 
@@ -181,18 +181,6 @@ public class HarvestOperation {
         } catch (NumberFormatException e) {
             throw new HarvesterInvalidRecordException(String.format(
                     "Record with ID %s has invalid 870* agency ID in its enrichment trail '%s'", record.getId(), enrichmentTrail));
-        }
-    }
-
-    private Record fetchRecordFromRR(RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
-        try {
-            final Record record = rawRepoConnector.fetchRecord(recordId);
-            if (record == null) {
-                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
-            }
-            return record;
-        } catch (SQLException | RawRepoException e) {
-            throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
         }
     }
 
@@ -255,15 +243,6 @@ public class HarvestOperation {
             }
         }
         harvesterJobBuilders.clear();
-    }
-
-    /* Returns next rawrepo queue item (or null if queue is empty) */
-    private QueueJob getNextQueuedItem() throws HarvesterException {
-        try {
-            return rawRepoConnector.dequeue(config.getConsumerId());
-        } catch (SQLException | RawRepoException e) {
-            throw new HarvesterException(e);
-        }
     }
 
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.

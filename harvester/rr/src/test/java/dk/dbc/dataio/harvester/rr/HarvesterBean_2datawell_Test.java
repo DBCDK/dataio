@@ -260,8 +260,7 @@ public class HarvesterBean_2datawell_Test {
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
-                        "Harvesting RawRepo QueueJob{job=%s, worker=QUEUE_ID, queued=%s} failed: member data can not be parsed as XML",
-                        FIRST_RECORD.getId(), dateToString(QUEUED_TIME)))));
+                        "Harvesting RawRepo %s failed: member data can not be parsed as XML", FIRST_RECORD.getId()))));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));

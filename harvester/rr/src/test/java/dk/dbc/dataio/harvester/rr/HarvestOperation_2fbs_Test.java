@@ -255,8 +255,8 @@ public class HarvestOperation_2fbs_Test {
                 .withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail())
                 .withTrackingId(SECOND_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
-                        "Harvesting RawRepo QueueJob{job=%s, worker=QUEUE_ID, queued=%s} failed: Record %s was not found in returned collection",
-                        SECOND_RECORD.getId(), dateToString(QUEUED_TIME), SECOND_RECORD.getId()))));
+                        "Harvesting RawRepo %s failed: Record %s was not found in returned collection",
+                        SECOND_RECORD.getId(), SECOND_RECORD.getId()))));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));

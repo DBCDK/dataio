@@ -22,6 +22,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
@@ -92,8 +93,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
 
 /**
  * Created by ThomasBerg @LundOgBendsen on 02/09/15.
@@ -393,7 +392,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      */
     @Stopwatch
     public Chunk getChunk(Chunk.Type type, int jobId, int chunkId) throws NullPointerException {
-        final Profiler profiler=new Profiler("pgJobStoreReposiutory.getChunk");
+        final Profiler profiler=new Profiler("pgJobStoreRepository.getChunk");
         try {
             final State.Phase phase = chunkTypeToStatePhase(InvariantUtil.checkNotNullOrThrow(type, "type"));
             final ItemListCriteria criteria = new ItemListCriteria()
@@ -405,19 +404,15 @@ public class PgJobStoreRepository extends RepositoryBase {
             final List<ItemEntity> itemEntities = new ItemListQuery(entityManager).execute(criteria);
             profiler.stop();
             if (itemEntities.size() > 0) {
-                Profiler nestedProfiler=profiler.startNested("loop items");
+                profiler.start("Loop itemEntities");
                 final Chunk chunk = new Chunk(jobId, chunkId, type);
                 int i=0;
                 for (ItemEntity itemEntity : itemEntities) {
                     if (PROCESSED == type) {
-                        nestedProfiler.start("Get ProcessintOutcome + nextProcessingOutComme : "+ i);
                         // Special case for chunks containing 'next' items - only relevant in phase PROCESSED
                         chunk.insertItem(itemEntity.getProcessingOutcome(), itemEntity.getNextProcessingOutcome());
-                        nestedProfiler.stop();
                     } else {
-                        nestedProfiler.start("getChunkItemForPhase " + i);
                         chunk.insertItem(itemEntity.getChunkItemForPhase(phase));
-                        nestedProfiler.stop();
                     }
                     ++i;
                 }
@@ -426,7 +421,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             }
             return null;
         } finally {
-            LOGGER.info("pgJobStoreReposiutory.getChunk timings:\n"+profiler.toString());
+            LOGGER.info("pgJobStoreRepository.getChunk timings:\n"+profiler.toString());
         }
     }
 

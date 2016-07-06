@@ -37,10 +37,10 @@ public class JobSchedulerBulkSubmitterBean {
     JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
 
 
-    private void bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerPrSinkQueueStatus sinkQueueStatus ) {
+    private void bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus ) {
 
-        int queuedToDelivering= sinkQueueStatus.jmsEnqueuedToDelivering.intValue();
-        LOGGER.info("bulkScheduleToDeliveringForSink: {} / {}-{}", sinkId, queuedToDelivering, sinkQueueStatus.readyForDelivering.intValue() );
+        int queuedToDelivering= sinkQueueStatus.jmsEnqueued.intValue();
+        LOGGER.info("bulkScheduleToDeliveringForSink: {} / {}-{}", sinkId, queuedToDelivering, sinkQueueStatus.readyForQueue.intValue() );
         int spaceInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - queuedToDelivering;
 
         if( spaceInQueue > 0 ) {
@@ -56,7 +56,7 @@ public class JobSchedulerBulkSubmitterBean {
             for( DependencyTrackingEntity toSchedule : chunks ) {
                 DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
                 LOGGER.info(" Chunk ready to schedule {} for Delivering" ,toScheduleKey);
-                jobSchedulerTransactionsBean.submitToDelivering( jobSchedulerTransactionsBean.getProcessedChunkFrom( toSchedule ), toSchedule, sinkQueueStatus);
+                jobSchedulerTransactionsBean.submitToDeliveringNewTransaction( jobSchedulerTransactionsBean.getProcessedChunkFrom( toSchedule ), sinkQueueStatus);
             }
         }
         // Todo reset to directDelivery mode if ReadyToDeliver is low
@@ -68,16 +68,16 @@ public class JobSchedulerBulkSubmitterBean {
     void bulkScheduleChunksForDelivering() {
 
         JobSchedulerBean.sinkStatusMap.forEach( Long.MAX_VALUE,  (sinkId, sinkQueueStatus) -> {
-            LOGGER.info("prSink Delivering Mode for sink {} is {}", sinkId, sinkQueueStatus.getProcessingMode());
+            LOGGER.info("prSink Delivering Mode for sink {} is {}", sinkId, sinkQueueStatus.deliveringStatus.getMode());
             if(sinkQueueStatus.isDeliveringModeDirectSubmit() ) return;
-            bulkScheduleToDeliveringForSink( sinkId, sinkQueueStatus );
+            bulkScheduleToDeliveringForSink( sinkId, sinkQueueStatus.deliveringStatus );
         });
     }
 
-    private void bulkScheduleToProcessingForSink(long sinkId, JobSchedulerPrSinkQueueStatus prSinkQueueStatus ) {
-        LOGGER.info("bulkScheduleToProcessingForSink( {} / {}-{}", sinkId, prSinkQueueStatus.jmsEnqueuedToProcessing.intValue(), prSinkQueueStatus.readyForDelivering);
+    private void bulkScheduleToProcessingForSink(long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus ) {
+        LOGGER.info("bulkScheduleToProcessingForSink( {} / {}-{}", sinkId, prSinkQueueStatus.jmsEnqueued.intValue(), prSinkQueueStatus.readyForQueue);
         try {
-            int queuedToProcessing = prSinkQueueStatus.jmsEnqueuedToProcessing.intValue();
+            int queuedToProcessing = prSinkQueueStatus.jmsEnqueued.intValue();
             LOGGER.info("bulkScheduleToProcessing: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", queuedToProcessing);
             final int spaceInQueue = JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK - queuedToProcessing;
 
@@ -95,7 +95,7 @@ public class JobSchedulerBulkSubmitterBean {
                     DependencyTrackingEntity.Key toScheduleKey = toSchedule.getKey();
                     LOGGER.info(" Chunk ready to schedule {} to Processing", toScheduleKey);
                     ChunkEntity ch = entityManager.find(ChunkEntity.class, new ChunkEntity.Key(toScheduleKey.getChunkId(), toScheduleKey.getJobId()));
-                    jobSchedulerTransactionsBean.submitToProcessing(toSchedule, ch, prSinkQueueStatus);
+                    jobSchedulerTransactionsBean.submitToProcessing( ch, prSinkQueueStatus);
                 }
             }
 
@@ -109,9 +109,9 @@ public class JobSchedulerBulkSubmitterBean {
     @Stopwatch
     void bulkScheduleChunksForProcessing() {
         JobSchedulerBean.sinkStatusMap.forEach(Long.MAX_VALUE, (sinkId, sinkQueueStatus) -> {
-            LOGGER.info("prSink Processing Mode for sink {} is {}", sinkId, sinkQueueStatus.getProcessingMode());
+            LOGGER.info("prSink Processing Mode for sink {} is {}", sinkId, sinkQueueStatus.processingStatus.getMode());
             if (sinkQueueStatus.isProcessingModeDirectSubmit()) return;
-            bulkScheduleToProcessingForSink(sinkId, sinkQueueStatus);
+            bulkScheduleToProcessingForSink(sinkId, sinkQueueStatus.processingStatus);
 
         });
     }

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.entity;
 
+import dk.dbc.dataio.commons.types.Chunk;
 import org.eclipse.persistence.annotations.Mutable;
 
 import javax.persistence.Column;
@@ -213,6 +214,11 @@ public class DependencyTrackingEntity {
         public Key(long jobId, long chunkId) {
             this.jobId = (int) jobId;
             this.chunkId = (int) chunkId;
+        }
+
+        public Key(Chunk chunk) {
+            this.jobId = (int) chunk.getJobId();
+            this.chunkId = (int) chunk.getChunkId();
         }
 
         public int getChunkId() {

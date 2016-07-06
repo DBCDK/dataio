@@ -61,7 +61,7 @@ public class JobSchedulerBean {
     // Hash use to keep a count of pending jobs in JMS queues pr sink.
     // Small EJB violation for performance.
     // If the Application is run in multiple JVM's the limiter is pr jvm not pr application
-    static final ConcurrentHashMap<Long, JobSchedulerPrSinkQueueStatus> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
+    static final ConcurrentHashMap<Long, JobSchedulerPrSinkQueueStatuses> sinkStatusMap = new ConcurrentHashMap<>(16, 0.9F, 1);
 
     @Inject
     @JobstoreDB
@@ -91,7 +91,9 @@ public class JobSchedulerBean {
 
         // Proxy to self to get new Transaction
         jobSchedulerTransactionsBean.persistDependencyEntity(chunk, sink );
-        // Proxy to self to offload submit ot later..
+
+        // Check before Submit to avoid unnecessary Async Call.
+
         if (getPrSinkStatusForSinkId(sink.getId()).isProcessingModeDirectSubmit()) {
             jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
         }
@@ -122,22 +124,17 @@ public class JobSchedulerBean {
         }
 
         int sinkId = dependencyTrackingEntity.getSinkid();
-        JobSchedulerPrSinkQueueStatus prSinkQueueStatus = getPrSinkStatusForSinkId(sinkId);
-        prSinkQueueStatus.jmsEnqueuedToProcessing.decrementAndGet();
-        LOGGER.info("chunkProcesisngDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.jmsEnqueuedToProcessing.intValue());
+        JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus = getPrSinkStatusForSinkId(sinkId).processingStatus;
+        prSinkQueueStatus.jmsEnqueued.decrementAndGet();
+        LOGGER.info("chunkProcessingDone: prSinkQueueStatus.jmsEnqueuedToProcessing: {}", prSinkQueueStatus.jmsEnqueued.intValue());
 
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(ChunkProcessStatus.BLOCKED);
             LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
         }
         else {
-            // Send chunk to Delivering
-            prSinkQueueStatus.readyForDelivering.incrementAndGet();
-            if (prSinkQueueStatus.isDeliveringModeDirectSubmit()) {
-                jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
-            }
+            jobSchedulerTransactionsBean.submitToDeliveringIfPossible(chunk, dependencyTrackingEntity);
         }
-
     }
 
 
@@ -171,9 +168,9 @@ public class JobSchedulerBean {
         DependencyTrackingEntity.Key doneChunkKey = doneChunk.getKey();
         entityManager.remove(doneChunk);
 
-        JobSchedulerPrSinkQueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(doneChunkSinkId);
+        JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(doneChunkSinkId).deliveringStatus;
 
-        int queuedToDelivering = sinkQueueStatus.jmsEnqueuedToDelivering.decrementAndGet();
+        int queuedToDelivering = sinkQueueStatus.jmsEnqueued.decrementAndGet();
         LOGGER.info("After chunk {} returned from delivering {} is queuedToDelivering", doneChunkKey, queuedToDelivering);
 
         List<DependencyTrackingEntity.Key> chunksWaitingForMe = findChunksWaitingForMe(doneChunkKey);
@@ -186,8 +183,8 @@ public class JobSchedulerBean {
             if (blockedChunk.getWaitingOn().size() == 0) {
                 if (blockedChunk.getStatus() == ChunkProcessStatus.BLOCKED) {
                     blockedChunk.setStatus(ChunkProcessStatus.READY_TO_DELIVER);
-                    sinkQueueStatus.readyForDelivering.incrementAndGet();
-                    if (sinkQueueStatus.isDeliveringModeDirectSubmit()) {
+                    sinkQueueStatus.readyForQueue.incrementAndGet();
+                    if (sinkQueueStatus.isDirectSubmitMode()) {
                         jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getProcessedChunkFrom(blockedChunk), blockedChunk);
                     }
                 }
@@ -212,13 +209,13 @@ public class JobSchedulerBean {
 
     }
 
-    static JobSchedulerPrSinkQueueStatus getPrSinkStatusForSinkId(long sinkId) {
-        return sinkStatusMap.computeIfAbsent(sinkId, k -> new JobSchedulerPrSinkQueueStatus());
+    static JobSchedulerPrSinkQueueStatuses getPrSinkStatusForSinkId(long sinkId) {
+        return sinkStatusMap.computeIfAbsent(sinkId, k -> new JobSchedulerPrSinkQueueStatuses());
     }
 
     // Helper method for Automatic Tests
     static void ForTesting_ResetPrSinkStatuses() {
-        sinkStatusMap.replaceAll((k, v) -> new JobSchedulerPrSinkQueueStatus());
+        sinkStatusMap.replaceAll((k, v) -> new JobSchedulerPrSinkQueueStatuses());
     }
 
 }

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -18,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ja7 on 06-05-16.
+ *
+ * Test message comsumer bean.
  */
 @MessageDriven(activationConfig = {
         @ActivationConfigProperty(propertyName = "destinationLookup", propertyValue = "jms/dataio/sinks"),
@@ -25,37 +28,39 @@ import java.util.concurrent.TimeUnit;
 )
 public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestJobProcessorMessageConsumerBean.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TestSinkMessageConsumerBean.class);
 
-     static private List<Chunk> chunksRetrived =new ArrayList<>();
-     static Semaphore processBlocker=new Semaphore(0);
+    private static final List<Chunk> chunksReceived =new ArrayList<>();
+    private static final Semaphore processBlocker=new Semaphore(0);
 
-     JSONBContext jsonbContext = new JSONBContext();
+    JSONBContext jsonbContext = new JSONBContext();
 
-     public static List<Chunk> getChunksRetrived() {
-         return chunksRetrived;
+     public static List<Chunk> getChunksReceived() {
+         return chunksReceived;
      }
 
      static void waitForDeliveringOfChunks(int numberOfChunksToWaitFor) throws Exception {
+         StopWatch timer=new StopWatch();
          if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
              throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds");
          }
+         LOGGER.info("Waiting in took waitForDeliveringOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
      }
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
         final Chunk processedChunk = unmarshallPayload(consumedMessage);
         LOGGER.info(" Chunk {}-{} handled in Sink", processedChunk.getJobId(), processedChunk.getChunkId() );
-        synchronized (chunksRetrived) {
-            chunksRetrived.add( processedChunk);
+        synchronized (chunksReceived) {
+            chunksReceived.add( processedChunk);
             processBlocker.release();
         }
 
     }
 
     public static void reset() {
-        synchronized ( chunksRetrived ) {
-            chunksRetrived.clear();
+        synchronized (chunksReceived) {
+            chunksReceived.clear();
             processBlocker.drainPermits();
         }
     }

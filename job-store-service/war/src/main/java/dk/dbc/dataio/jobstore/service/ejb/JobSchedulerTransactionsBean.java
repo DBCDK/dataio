@@ -65,7 +65,7 @@ public class JobSchedulerTransactionsBean {
     public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
         int sinkId = (int) sink.getId();
 
-        getPrSinkStatusForSinkId(sinkId).readyForProcessing.incrementAndGet();
+        getPrSinkStatusForSinkId(sinkId).processingStatus.readyForQueue.incrementAndGet();
 
         DependencyTrackingEntity e = new DependencyTrackingEntity(chunk, sinkId);
         e.setWaitingOn(findChunksToWaitFor(sinkId, e.getMatchKeys()));
@@ -82,14 +82,7 @@ public class JobSchedulerTransactionsBean {
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Asynchronous
     public void submitToProcessingIfPossibleAsync(ChunkEntity chunk, long sinkId) {
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
-        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
-        if (dependencyTrackingEntity == null) {
-            LOGGER.error("Internale Error unable to lookup chunk {} in submitToProcessingIfPossibleAsync");
-            return;
-        }
-
-        submitToProcessingIfPossible(dependencyTrackingEntity, chunk, sinkId);
+        submitToProcessingIfPossible( chunk, sinkId);
     }
 
 
@@ -119,8 +112,8 @@ public class JobSchedulerTransactionsBean {
         }
 
         int sinkId = dependencyTrackingEntity.getSinkid();
-        JobSchedulerPrSinkQueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId);
-        sinkQueueStatus.jmsEnqueuedToProcessing.decrementAndGet();
+        JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).processingStatus;
+        sinkQueueStatus.jmsEnqueued.decrementAndGet();
 
         if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
             dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.BLOCKED);
@@ -132,35 +125,43 @@ public class JobSchedulerTransactionsBean {
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
      *
-     * @param dependencyTrackingEntity ??
      * @param chunk                    Chunk to send to JMS queu
      * @param sinkId                   SinkId
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRED)
     @Stopwatch
-    public void submitToProcessingIfPossible(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, long sinkId) {
+    public void submitToProcessingIfPossible( ChunkEntity chunk, long sinkId) {
         LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
 
-        JobSchedulerPrSinkQueueStatus prSinkQueueStatus = getPrSinkStatusForSinkId(sinkId);
-        if (!prSinkQueueStatus.isProcessingModeDirectSubmit()) return;
 
-        LOGGER.debug("JA7: {} >= {} ", prSinkQueueStatus.jmsEnqueuedToProcessing.intValue(),MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK );
-        LOGGER.info("Ja7: {} >= {} ", prSinkQueueStatus.jmsEnqueuedToProcessing.intValue(),MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK );
-        if (prSinkQueueStatus.jmsEnqueuedToProcessing.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            prSinkQueueStatus.setProcessingMode(JobSchedulerBean.QueueMode.bulkSubmit);
+        JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus = getPrSinkStatusForSinkId(sinkId).processingStatus;
+
+        if (! prSinkQueueStatus.isDirectSubmitMode() ) return;
+
+        if (prSinkQueueStatus.jmsEnqueued.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
+            prSinkQueueStatus.setMode(JobSchedulerBean.QueueMode.bulkSubmit);
             return;
         }
-        submitToProcessing(dependencyTrackingEntity, chunk, prSinkQueueStatus);
+        submitToProcessing( chunk, prSinkQueueStatus );
     }
 
 
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     @Stopwatch
-    public void submitToProcessing(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, JobSchedulerPrSinkQueueStatus prSinkQueueStatus) {
+    public void submitToProcessing( ChunkEntity chunk, JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus) {
+
+
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getKey());
+        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+        if (dependencyTrackingEntity == null) {
+            LOGGER.error("Internal Error unable to lookup chunk {} in submitToProcessing", key);
+            return;
+        }
+
         dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk));
-            prSinkQueueStatus.jmsEnqueuedToProcessing.incrementAndGet();
+            prSinkQueueStatus.jmsEnqueued.incrementAndGet();
         } catch (JobStoreException e) {
             LOGGER.error("Unable to send processing notification for {}", chunk.getKey().toString(), e);
         }
@@ -179,14 +180,15 @@ public class JobSchedulerTransactionsBean {
         LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
         dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
 
-        JobSchedulerPrSinkQueueStatus sinkStatus = getPrSinkStatusForSinkId(dependencyTrackingEntity.getSinkid());
-        if (!sinkStatus.isDeliveringModeDirectSubmit()) return;
+        JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus = getPrSinkStatusForSinkId(dependencyTrackingEntity.getSinkid()).deliveringStatus;
+
+        if (!sinkStatus.isDirectSubmitMode()) return;
 
 
-        int queuedToDelivering = sinkStatus.jmsEnqueuedToDelivering.incrementAndGet();
+        int queuedToDelivering = sinkStatus.jmsEnqueued.incrementAndGet();
         if (queuedToDelivering > MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
-            sinkStatus.setDeliveringMode(JobSchedulerBean.QueueMode.bulkSubmit);
-            sinkStatus.jmsEnqueuedToDelivering.decrementAndGet();
+            sinkStatus.setMode(JobSchedulerBean.QueueMode.bulkSubmit);
+            sinkStatus.jmsEnqueued.decrementAndGet();
             LOGGER.info("chunk {} blocked by queue size {} ", dependencyTrackingEntity.getKey(), queuedToDelivering);
             return;
         }
@@ -194,9 +196,20 @@ public class JobSchedulerTransactionsBean {
         submitToDelivering(chunk, dependencyTrackingEntity, sinkStatus);
     }
 
-    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerPrSinkQueueStatus sinkStatus) {
+    public void submitToDeliveringNewTransaction(Chunk chunk, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus) {
+        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk);
+        final DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
+
+        submitToDelivering( chunk, dependencyTrackingEntity, sinkStatus);
+
+    }
+
+
+    public void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus) {
+
+
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
         // Chunk is ready for Sink
         try {
@@ -205,7 +218,7 @@ public class JobSchedulerTransactionsBean {
             dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY);
         } catch (JobStoreException e) {
             LOGGER.error("Unable to send chunk {} to jmsQueue Sink Set to bulkSubmit for retransmit", e);
-            sinkStatus.setDeliveringMode(JobSchedulerBean.QueueMode.bulkSubmit);
+            sinkStatus.setMode(JobSchedulerBean.QueueMode.bulkSubmit);
         }
     }
 

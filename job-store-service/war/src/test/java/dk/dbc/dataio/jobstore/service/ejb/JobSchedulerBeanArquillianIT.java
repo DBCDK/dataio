@@ -38,6 +38,7 @@ import javax.annotation.Resource;
 import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import javax.sql.DataSource;
 import javax.transaction.HeuristicMixedException;
@@ -85,6 +86,7 @@ public class JobSchedulerBeanArquillianIT {
 
     @Before
     public void clearTestConsumers() throws Exception {
+        LOGGER.info("Before Test cleanTestConsumers and stuff");
         TestJobProcessorMessageConsumerBean.reset();
         TestSinkMessageConsumerBean.reset();
         dbCleanUp();
@@ -129,7 +131,7 @@ public class JobSchedulerBeanArquillianIT {
 
                     .addClasses(SinkMessageProducerBean.class)
                     .addClasses(JobSchedulerBean.class, JobSchedulerTransactionsBean.class,
-                            JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatus.class )
+                            JobSchedulerBulkSubmitterBean.class, JobSchedulerPrSinkQueueStatuses.class )
 
                     .addClasses(TestJobProcessorMessageConsumerBean.class)
                     .addClasses(TestSinkMessageConsumerBean.class)
@@ -191,7 +193,7 @@ public class JobSchedulerBeanArquillianIT {
         // Then
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
 
-        assertThat(TestJobProcessorMessageConsumerBean.getChunksRetrived().size(), is(1));
+        assertThat(TestJobProcessorMessageConsumerBean.getChunksReceived().size(), is(1));
 
         DependencyTrackingEntity dependencyTrackingEntity = getDependencyTrackingEntity(3, 0);
 
@@ -290,7 +292,9 @@ public class JobSchedulerBeanArquillianIT {
                 sink1);
 
         // then Second chunk is blocked in ready_to_process
-        assertThat(getDependencyTrackingEntity(3, 0).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+        for( int i=0 ; i<=9 ; ++i) {
+            assertThat("Check QUEUED to PROCESS for chunk "+i, getDependencyTrackingEntity(3, 0).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+        }
         assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
 
         // when chunk 3.[0-9] is done..
@@ -302,8 +306,9 @@ public class JobSchedulerBeanArquillianIT {
             );
         }
 
-        // then chunk 3,1 is sent to processing
+        // Wait for chunk 3.1 to be sendto to processing
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+        // then chunk 3,1 is sent to processing
         assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
 
         for( int i=0; i<=9; i++ ) {
@@ -325,6 +330,8 @@ public class JobSchedulerBeanArquillianIT {
         assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
 
 
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(10);
+
         // When 3.[0-9] is returned from sink
         for( int i=0; i <= 9; ++i ) {
             jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
@@ -334,7 +341,7 @@ public class JobSchedulerBeanArquillianIT {
                     .build());
         }
 
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(11);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
         // Then chunk 3.1 is released to Sink
         assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
 
@@ -369,7 +376,8 @@ public class JobSchedulerBeanArquillianIT {
         JPATestUtils.clearEntityManagerCache(entityManager);
         utx.begin();
         entityManager.joinTransaction();
-        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId));
+        LOGGER.info("Test Checker entityManager.find( jobid={}, chunk={} ) ", jobId, chunkId );
+        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
         assertThat(dependencyTrackingEntity, is(notNullValue()));
         entityManager.refresh(dependencyTrackingEntity);
         utx.commit();

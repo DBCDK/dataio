@@ -45,12 +45,12 @@ public class HarvestRecordsRequest extends HarvestRequest<HarvestRecordsRequest>
         return recordIds;
     }
 
-    public HarvestRecordsRequest getBasedOnJob(Integer jobId) {
+    public HarvestRecordsRequest withBasedOnJob(Integer jobId) {
         basedOnJob = jobId;
         return this;
     }
 
-    public Integer getBasedOnJob() {
+    public Integer withBasedOnJob() {
         return basedOnJob;
     }
 }

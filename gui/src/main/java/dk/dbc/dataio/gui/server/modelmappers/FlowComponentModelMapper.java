@@ -50,16 +50,17 @@ public final class FlowComponentModelMapper {
                 flowComponent.getContent().getName(),
                 flowComponent.getContent().getSvnProjectForInvocationJavascript(),
                 String.valueOf(flowComponent.getContent().getSvnRevision()),
-                flowComponent.getNext() == null ? new String() : String.valueOf(flowComponent.getNext().getSvnRevision()),
+                flowComponent.getNext() == null ? "" : String.valueOf(flowComponent.getNext().getSvnRevision()),
                 flowComponent.getContent().getInvocationJavascriptName(),
                 flowComponent.getContent().getInvocationMethod(),
                 getJavaScriptNames(flowComponent.getContent().getJavascripts()),
+                flowComponent.getNext() == null ? new ArrayList<>() : getJavaScriptNames(flowComponent.getNext().getJavascripts()),
                 flowComponent.getContent().getDescription()
         );
     }
 
     private static List<String> getJavaScriptNames(List<JavaScript> javascripts) {
-        List<String> javascriptNames = new ArrayList<String>();
+        List<String> javascriptNames = new ArrayList<>();
         for (JavaScript javaScript: javascripts) {
             javascriptNames.add(javaScript.getModuleName());
         }
@@ -73,7 +74,7 @@ public final class FlowComponentModelMapper {
      * @return flowComponentModels the list of flowComponentModels
      */
     public static List<FlowComponentModel> toListOfFlowComponentModels(List<FlowComponent> flowComponents) {
-        List<FlowComponentModel> flowComponentModels = new ArrayList<FlowComponentModel>();
+        List<FlowComponentModel> flowComponentModels = new ArrayList<>();
         for (FlowComponent flowComponent : flowComponents) {
             flowComponentModels.add(toModel(flowComponent));
         }

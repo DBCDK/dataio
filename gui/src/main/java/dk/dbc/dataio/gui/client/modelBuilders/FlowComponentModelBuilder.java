@@ -37,7 +37,8 @@ public class FlowComponentModelBuilder {
     private String svnNext = "45";
     private String invocationJavascript = "invocationJavascript";
     private String invocationMethod = "invocationMethod";
-    private List<String> javascriptModules = new ArrayList<String>(Arrays.asList("javascript1", "javascript2"));
+    private List<String> javascriptModules = new ArrayList<>(Arrays.asList("javascript1", "javascript2"));
+    private List<String> nextJavascriptModules = new ArrayList<>(Arrays.asList("javascript3", "javascript4"));
     private String description = "description";
 
     public FlowComponentModelBuilder setId(long id) {
@@ -86,6 +87,11 @@ public class FlowComponentModelBuilder {
         return this;
     }
 
+    public FlowComponentModelBuilder setNextJavascriptModules (List<String> nextJavascriptModules) {
+        this.nextJavascriptModules = nextJavascriptModules;
+        return this;
+    }
+
     public FlowComponentModelBuilder setDescription (String description) {
         this.description = description;
         return this;
@@ -93,7 +99,7 @@ public class FlowComponentModelBuilder {
 
 
     public FlowComponentModel build() {
-        return new FlowComponentModel(id, version, name, svnProject, svnRevision, svnNext, invocationJavascript, invocationMethod, javascriptModules, description);
+        return new FlowComponentModel(id, version, name, svnProject, svnRevision, svnNext, invocationJavascript, invocationMethod, javascriptModules, nextJavascriptModules, description);
     }
 
 }

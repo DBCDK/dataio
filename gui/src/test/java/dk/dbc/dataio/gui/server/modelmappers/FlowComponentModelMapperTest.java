@@ -34,7 +34,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -51,16 +50,27 @@ public class FlowComponentModelMapperTest {
     private static final long   ID = 434L;
     private static final long   VERSION = 215L;
     private static final String NAME = "Flow Component Model Navn";
+    private static final String NEXT_NAME = "Next Flow Component Model Navn";
     private static final String DESCRIPTION = "description";
+    private static final String NEXT_DESCRIPTION = "next description";
     private static final String SVN_PROJECT = "Svn Project";
+    private static final String NEXT_SVN_PROJECT = "Next Svn Project";
     private static final long   SVN_REVISION_LONG = 747L;
+    private static final long   NEXT_SVN_REVISION_LONG = 748L;
     private static final String SVN_REVISION_STR = String.valueOf(SVN_REVISION_LONG);
+    private static final String NEXT_SVN_REVISION_STR = String.valueOf(NEXT_SVN_REVISION_LONG);
     private static final String JAVASCRIPT_NAME = "Javascript Name";
+    private static final String NEXT_JAVASCRIPT_NAME = "Next Javascript Name";
     private static final String INVOCATION_METHOD = "Invocation Method";
+    private static final String NEXT_INVOCATION_METHOD = "Next Invocation Method";
     private static final String JAVASCRIPT_1 = "javascript code no. 1";
+    private static final String NEXT_JAVASCRIPT_1 = "next javascript code no. 1";
     private static final String JAVASCRIPT_2 = "javascript code no. 2";
+    private static final String NEXT_JAVASCRIPT_2 = "next javascript code no. 2";
     private static final String MODULE_NAME_1 = "module name no. 1";
+    private static final String NEXT_MODULE_NAME_1 = "next module name no. 1";
     private static final String MODULE_NAME_2 = "module name no. 2";
+    private static final String NEXT_MODULE_NAME_2 = "next module name no. 2";
 
     @Test(expected = NullPointerException.class)
     public void toModel_nullInput_throws() {
@@ -77,13 +87,17 @@ public class FlowComponentModelMapperTest {
                 .setSvnRevision(SVN_REVISION_LONG)
                 .setInvocationJavascriptName(JAVASCRIPT_NAME)
                 .setInvocationMethod(INVOCATION_METHOD)
-                .setJavascripts(Collections.<JavaScript>emptyList())
+                .setJavascripts(Collections.emptyList())
+                .build();
+        FlowComponentContent nextFlowComponentContent = new FlowComponentContentBuilder()
+                .setSvnRevision(NEXT_SVN_REVISION_LONG)
                 .build();
 
         FlowComponent flowComponent = new FlowComponentBuilder()
                 .setId(ID)
                 .setVersion(VERSION)
                 .setContent(flowComponentContent)
+                .setNext(nextFlowComponentContent)
                 .build();
 
         FlowComponentModel model = FlowComponentModelMapper.toModel(flowComponent);
@@ -96,14 +110,19 @@ public class FlowComponentModelMapperTest {
         assertThat(model.getInvocationJavascript(), is(JAVASCRIPT_NAME));
         assertThat(model.getJavascriptModules().size(), is(0));
         assertThat(model.getInvocationMethod(), is(INVOCATION_METHOD));
+        assertThat(model.getSvnNext(), is(NEXT_SVN_REVISION_STR));
     }
 
     @Test
     public void toModel_validInput_returnsValidModel() {
         // Build a FlowComponent containing two javascripts
-        List<JavaScript> javaScriptList = new ArrayList<JavaScript>();
+        List<JavaScript> javaScriptList = new ArrayList<>();
         javaScriptList.add(new JavaScriptBuilder().setJavascript(JAVASCRIPT_1).setModuleName(MODULE_NAME_1).build());
         javaScriptList.add(new JavaScriptBuilder().setJavascript(JAVASCRIPT_2).setModuleName(MODULE_NAME_2).build());
+
+        List<JavaScript> nextJavaScriptList = new ArrayList<>();
+        nextJavaScriptList.add(new JavaScriptBuilder().setJavascript(NEXT_JAVASCRIPT_1).setModuleName(NEXT_MODULE_NAME_1).build());
+        nextJavaScriptList.add(new JavaScriptBuilder().setJavascript(NEXT_JAVASCRIPT_2).setModuleName(NEXT_MODULE_NAME_2).build());
 
         FlowComponentContent flowComponentContent = new FlowComponentContentBuilder()
                 .setName(NAME)
@@ -115,10 +134,21 @@ public class FlowComponentModelMapperTest {
                 .setJavascripts(javaScriptList)
                 .build();
 
+        FlowComponentContent nextFlowComponentContent = new FlowComponentContentBuilder()
+                .setName(NEXT_NAME)
+                .setDescription(NEXT_DESCRIPTION)
+                .setSvnProjectForInvocationJavascript(NEXT_SVN_PROJECT)
+                .setSvnRevision(NEXT_SVN_REVISION_LONG)
+                .setInvocationJavascriptName(NEXT_JAVASCRIPT_NAME)
+                .setInvocationMethod(NEXT_INVOCATION_METHOD)
+                .setJavascripts(nextJavaScriptList)
+                .build();
+
         FlowComponent flowComponent = new FlowComponentBuilder()
                 .setId(ID)
                 .setVersion(VERSION)
                 .setContent(flowComponentContent)
+                .setNext(nextFlowComponentContent)
                 .build();
 
         FlowComponentModel model = FlowComponentModelMapper.toModel(flowComponent);
@@ -174,11 +204,21 @@ public class FlowComponentModelMapperTest {
                         .build();
 
         // Create two flow components
-        FlowComponent flowComponent1 = new FlowComponentBuilder().setId(ID).setVersion(VERSION).setContent(flowComponentContent1).build();
-        FlowComponent flowComponent2 = new FlowComponentBuilder().setId(ID_1).setVersion(VERSION_1).setContent(flowComponentContent2).build();
+        FlowComponent flowComponent1 = new FlowComponentBuilder().
+                setId(ID).
+                setVersion(VERSION).
+                setContent(flowComponentContent1).
+                setNext(new FlowComponentContentBuilder().setSvnRevision(NEXT_SVN_REVISION_LONG).build()).
+                build();
+        FlowComponent flowComponent2 = new FlowComponentBuilder().
+                setId(ID_1).
+                setVersion(VERSION_1).
+                setContent(flowComponentContent2).
+                setNext(new FlowComponentContentBuilder().setSvnRevision(NEXT_SVN_REVISION_LONG).build()).
+                build();
 
         // Create new List and add flow components
-        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
+        List<FlowComponent> flowComponents = new ArrayList<>();
         flowComponents.add(flowComponent1);
         flowComponents.add(flowComponent2);
 
@@ -204,7 +244,7 @@ public class FlowComponentModelMapperTest {
     @Test(expected = IllegalArgumentException.class)
     public void toFlowComponentContent_listOfJavaScriptsAreEmpty_throwsIllegalArgumentException() {
         FlowComponentModel model = new FlowComponentModelBuilder().build();
-        FlowComponentModelMapper.toFlowComponentContent(model, new fetchRequiredJavaScriptResult( new ArrayList<JavaScript>(), null));
+        FlowComponentModelMapper.toFlowComponentContent(model, new fetchRequiredJavaScriptResult(new ArrayList<>(), null));
     }
 
     @Test(expected = IllegalArgumentException.class)

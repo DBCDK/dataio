@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public class FlowComponentModelTest {
     @Test
     public void isInputFieldsEmpty_emptyJavaScriptModulesInput_returnsTrue() {
         FlowComponentModel model = getTestModel();
-        model.setJavascriptModules(new ArrayList<String>());
+        model.setJavascriptModules(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
@@ -114,9 +115,19 @@ public class FlowComponentModelTest {
     }
 
     private FlowComponentModel getTestModel() {
-        List<String> javaScripts = new ArrayList<String>();
+        List<String> javaScripts = new ArrayList<>();
         javaScripts.add("Javascript");
-        return new FlowComponentModel(12, 23, "Name", "SVN Project", "SVN Revision", "SVN Next", "Invocation Javascript", "Invocation Method", javaScripts, "description");
+        return new FlowComponentModelBuilder().
+                setId(12).
+                setVersion(23).
+                setName("Name").
+                setSvnProject("SVN Project").
+                setSvnRevision("SVN Revision").
+                setInvocationJavascript("Invocation Javascript").
+                setInvocationMethod("Invocation Method").
+                setJavascriptModules(javaScripts).
+                setDescription("description").
+                build();
     }
 
 }

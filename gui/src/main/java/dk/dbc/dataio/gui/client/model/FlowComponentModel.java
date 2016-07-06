@@ -35,9 +35,10 @@ public class FlowComponentModel extends GenericBackendModel {
     private String invocationJavascript;
     private String invocationMethod;
     private List<String> javascriptModules;
+    private List<String> nextJavascriptModules;
     private String description;
 
-    public FlowComponentModel(long id, long version, String name, String svnProject, String svnRevision, String svnNext, String invocationJavascript, String invocationMethod, List<String> javascriptModules, String description) {
+    public FlowComponentModel(long id, long version, String name, String svnProject, String svnRevision, String svnNext, String invocationJavascript, String invocationMethod, List<String> javascriptModules, List<String> nextJavascriptModules, String description) {
         super(id, version);
         this.name = name;
         this.svnProject = svnProject;
@@ -45,20 +46,13 @@ public class FlowComponentModel extends GenericBackendModel {
         this.invocationJavascript = invocationJavascript;
         this.invocationMethod = invocationMethod;
         this.javascriptModules = javascriptModules;
+        this.nextJavascriptModules = nextJavascriptModules;
         this.description = description == null? "" : description;
         this.svnNext = svnNext;
     }
 
     public FlowComponentModel() {
-        super(0L, 0L);
-        this.name = "";
-        this.svnProject = "";
-        this.svnRevision = "";
-        this.svnNext = "";
-        this.invocationJavascript = "";
-        this.invocationMethod = "";
-        this.javascriptModules = new ArrayList<String>();
-        this.description = "";
+        this(0L, 0L, "", "", "", "", "", "", new ArrayList<>(), new ArrayList<>(), "");
     }
 
     /**
@@ -167,6 +161,21 @@ public class FlowComponentModel extends GenericBackendModel {
     }
 
     /**
+     * @return name A list of all Next Javascript modules
+     */
+    public List<String> getNextJavascriptModules() {
+        return nextJavascriptModules;
+    }
+
+    /**
+     * Set the list of all Next Javascript modules
+     * @param nextJavascriptModules The list of all Next Javascript modules
+     */
+    public void setNextJavascriptModules(List<String> nextJavascriptModules) {
+        this.nextJavascriptModules = nextJavascriptModules;
+    }
+
+    /**
      * @return description
      */
     public String getDescription() {
@@ -200,7 +209,9 @@ public class FlowComponentModel extends GenericBackendModel {
                 description == null ||
                 description.isEmpty() ||
                 javascriptModules == null ||
-                javascriptModules.isEmpty();
+                javascriptModules.isEmpty() ||
+                nextJavascriptModules == null ||
+                nextJavascriptModules.isEmpty();
     }
 
     public boolean isInputFieldsEmptyModulesExcluded() {
@@ -244,6 +255,8 @@ public class FlowComponentModel extends GenericBackendModel {
             return false;
         if (javascriptModules != null ? !javascriptModules.equals(that.javascriptModules) : that.javascriptModules != null)
             return false;
+        if (nextJavascriptModules != null ? !nextJavascriptModules.equals(that.nextJavascriptModules) : that.nextJavascriptModules != null)
+            return false;
         return !(description != null ? !description.equals(that.description) : that.description != null);
 
     }
@@ -257,6 +270,7 @@ public class FlowComponentModel extends GenericBackendModel {
         result = 31 * result + (invocationJavascript != null ? invocationJavascript.hashCode() : 0);
         result = 31 * result + (invocationMethod != null ? invocationMethod.hashCode() : 0);
         result = 31 * result + (javascriptModules != null ? javascriptModules.hashCode() : 0);
+        result = 31 * result + (nextJavascriptModules != null ? nextJavascriptModules.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }

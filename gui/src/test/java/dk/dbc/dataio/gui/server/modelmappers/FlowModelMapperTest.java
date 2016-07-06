@@ -31,6 +31,7 @@ import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import org.junit.Test;
 
@@ -70,7 +71,7 @@ public class FlowModelMapperTest {
     @Test
     public void toModel_validInputNoFlowComponents_returnsValidModelNoFlowComponents() {
 
-        List<FlowComponent> components = new ArrayList<FlowComponent>();
+        List<FlowComponent> components = new ArrayList<>();
         FlowContent flowContent = new FlowContent(NAME, DESCRIPTION, components);
         Flow flow = new Flow(ID, VERSION, flowContent);
 
@@ -85,7 +86,7 @@ public class FlowModelMapperTest {
     @Test
     public void toModel_validInput_returnsValidModel() {
 
-        List<FlowComponent> components = new ArrayList<FlowComponent>();
+        List<FlowComponent> components = new ArrayList<>();
         components.add(new FlowComponentBuilder()
                 .setId(FLOW_COMPONENT_ID_1)
                 .build());
@@ -134,7 +135,7 @@ public class FlowModelMapperTest {
     @Test(expected = IllegalArgumentException.class)
     public void toFlowContent_validInputNoFlowComponents_throwsIllegalArgumentException() {
         // Build a FlowModel containing no flow components
-        FlowModel model = new FlowModelBuilder().setComponents(new ArrayList<FlowComponentModel>()).build();
+        FlowModel model = new FlowModelBuilder().setComponents(new ArrayList<>()).build();
         FlowModelMapper.toFlowContent(model, Collections.singletonList(new FlowComponentBuilder().build()));
     }
 
@@ -170,30 +171,32 @@ public class FlowModelMapperTest {
         final String MODULE_NAME_1 = "JavaScript 1";
         final String MODULE_NAME_2 = "JavaScript 2";
 
-        List<FlowComponentModel> components = new ArrayList<FlowComponentModel>();
+        List<FlowComponentModel> components = new ArrayList<>();
         FlowComponentModel flowComponentModel1 =
-                new FlowComponentModel(FLOW_COMPONENT_ID_1,
-                        FLOW_COMPONENT_VERSION_1,
-                        CONTENT_NAME_1,
-                        SVN_PROJECT_1,
-                        Long.toString(SVN_REVISION_1),
-                        null,
-                        INVOCATION_NAME_1,
-                        INVOCATION_METHOD_1,
-                        Collections.singletonList(MODULE_NAME_1),
-                        DESCRIPTION);
+                new FlowComponentModelBuilder().
+                        setId(FLOW_COMPONENT_ID_1).
+                        setVersion(FLOW_COMPONENT_VERSION_1).
+                        setName(CONTENT_NAME_1).
+                        setSvnProject(SVN_PROJECT_1).
+                        setSvnRevision(Long.toString(SVN_REVISION_1)).
+                        setInvocationJavascript(INVOCATION_NAME_1).
+                        setInvocationMethod(INVOCATION_METHOD_1).
+                        setJavascriptModules(Collections.singletonList(MODULE_NAME_1)).
+                        setDescription(DESCRIPTION).
+                        build();
 
         FlowComponentModel flowComponentModel2 =
-                new FlowComponentModel(FLOW_COMPONENT_ID_2,
-                        FLOW_COMPONENT_VERSION_2,
-                        CONTENT_NAME_2,
-                        SVN_PROJECT_2,
-                        Long.toString(SVN_REVISION_2),
-                        null,
-                        INVOCATION_NAME_2,
-                        INVOCATION_METHOD_2,
-                        Collections.singletonList(MODULE_NAME_2),
-                        DESCRIPTION);
+                new FlowComponentModelBuilder().
+                        setId(FLOW_COMPONENT_ID_2).
+                        setVersion(FLOW_COMPONENT_VERSION_2).
+                        setName(CONTENT_NAME_2).
+                        setSvnProject(SVN_PROJECT_2).
+                        setSvnRevision(Long.toString(SVN_REVISION_2)).
+                        setInvocationJavascript(INVOCATION_NAME_2).
+                        setInvocationMethod(INVOCATION_METHOD_2).
+                        setJavascriptModules(Collections.singletonList(MODULE_NAME_2)).
+                        setDescription(DESCRIPTION).
+                        build();
 
         components.add(flowComponentModel1);
         components.add(flowComponentModel2);
@@ -227,7 +230,7 @@ public class FlowModelMapperTest {
                         .build())
                 .build();
 
-        List<FlowComponent> flowComponents = new ArrayList<FlowComponent>();
+        List<FlowComponent> flowComponents = new ArrayList<>();
         flowComponents.add(flowComponent1);
         flowComponents.add(flowComponent2);
 
@@ -256,7 +259,7 @@ public class FlowModelMapperTest {
 
     @Test
     public void toListOfFlowModels_emptyInputList_returnsEmptyList() {
-        List<FlowModel> flowModels = FlowModelMapper.toListOfFlowModels(new ArrayList<Flow>());
+        List<FlowModel> flowModels = FlowModelMapper.toListOfFlowModels(new ArrayList<>());
         assertThat(flowModels.size(), is(0));
     }
 
@@ -269,7 +272,7 @@ public class FlowModelMapperTest {
                 .setId(ID+1)
                 .build();
 
-        List<Flow> flows = new ArrayList<Flow>(2);
+        List<Flow> flows = new ArrayList<>(2);
         flows.add(flow1);
         flows.add(flow2);
 

@@ -50,7 +50,7 @@ public class HarvestRecordsRequest extends HarvestRequest<HarvestRecordsRequest>
         return this;
     }
 
-    public Integer withBasedOnJob() {
+    public Integer getBasedOnJob() {
         return basedOnJob;
     }
 }

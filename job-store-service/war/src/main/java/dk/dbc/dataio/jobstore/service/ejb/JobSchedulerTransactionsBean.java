@@ -35,7 +35,7 @@ import java.util.Set;
  * Methods needing its Own Transaction is pushed to this class
  *
  */
-@Stateless(name = "JobSchedulerTransactionsEJB")
+@Stateless
 public class JobSchedulerTransactionsBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerTransactionsBean.class);
 
@@ -137,6 +137,7 @@ public class JobSchedulerTransactionsBean {
      * @param sinkId                   SinkId
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRED)
+    @Stopwatch
     public void submitToProcessingIfPossible(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, long sinkId) {
         LOGGER.info(" void submitToProcessingIfPossible(ChunkEntity chunk, Sink sink)");
 
@@ -154,6 +155,7 @@ public class JobSchedulerTransactionsBean {
 
 
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    @Stopwatch
     public void submitToProcessing(DependencyTrackingEntity dependencyTrackingEntity, ChunkEntity chunk, JobSchedulerPrSinkQueueStatus prSinkQueueStatus) {
         dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
@@ -172,6 +174,7 @@ public class JobSchedulerTransactionsBean {
      * @param dependencyTrackingEntity Tracking Entity for chunk
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @Stopwatch
     public void submitToDeliveringIfPossible(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity)  {
         LOGGER.info("Trying to submit {} to Delivering", dependencyTrackingEntity.getKey());
         dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
@@ -192,6 +195,7 @@ public class JobSchedulerTransactionsBean {
     }
 
     @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
+    @Stopwatch
     public void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerPrSinkQueueStatus sinkStatus) {
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
         // Chunk is ready for Sink

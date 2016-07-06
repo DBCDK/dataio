@@ -203,7 +203,7 @@ public class HarvestOperation {
         try {
             jsonbContext.marshall(addiMetaData);
             String addiMetaDataString = jsonbContext.marshall(addiMetaData);
-            return new AddiRecord(addiMetaDataString.getBytes(StandardCharsets.UTF_8), document.recordBytes());
+            return new AddiRecord(addiMetaDataString.getBytes(StandardCharsets.UTF_8), document.originalRecord());
         } catch (JSONBException e) {
             throw new HarvesterException(e);
         }

@@ -82,6 +82,7 @@ public class HarvesterBean_2datawell_Test {
     private final static RecordId FIRST_RECORD_ID = new RecordId("first", DBC_COMMON_AGENCY_ID);
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
+    private final static MockedRecord FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(FIRST_RECORD_ID);
     private final static QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
 
     private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", DBC_COMMON_AGENCY_ID);
@@ -100,6 +101,7 @@ public class HarvesterBean_2datawell_Test {
     private final static RecordId THIRD_RECORD_ID = new RecordId("third", DBC_COMMON_AGENCY_ID);
     private final static String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
+    private final static MockedRecord THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(THIRD_RECORD_ID);
     private final static QueueJob THIRD_QUEUE_JOB = HarvestOperationTest.getQueueJob(THIRD_RECORD_ID, QUEUED_TIME);
 
     static {
@@ -108,6 +110,7 @@ public class HarvesterBean_2datawell_Test {
         FIRST_RECORD.setContent(FIRST_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         FIRST_RECORD.setEnrichmentTrail("191919,870970");
         FIRST_RECORD.setTrackingId("tracking id");
+        FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setTrackingId("tracking id");
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setEnrichmentTrail("191919,870970");
@@ -179,7 +182,10 @@ public class HarvesterBean_2datawell_Test {
                     put(THIRD_RECORD_ID.getBibliographicRecordId(), THIRD_RECORD);
                 }});
 
-        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class))).thenReturn(FIRST_RECORD).thenReturn(SECOND_RECORD).thenReturn(THIRD_RECORD);
+        when(RAW_REPO_CONNECTOR.fetchRecord(any(RecordId.class)))
+                .thenReturn(FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL)
+                .thenReturn(SECOND_RECORD)
+                .thenReturn(THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL);
 
         // Setup harvester datafile content expectations
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();

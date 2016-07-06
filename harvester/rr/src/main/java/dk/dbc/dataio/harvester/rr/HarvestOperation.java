@@ -122,11 +122,10 @@ public class HarvestOperation {
 
                 addiMetaData
                     .withTrackingId(record.getTrackingId())
-                    .withEnrichmentTrail(record.getEnrichmentTrail())
                     .withCreationDate(getRecordCreationDate(record));
 
                 if (includeRecord(record)) {
-                    final HarvesterXmlRecord xmlContentForRecord = getXmlContentForRecord(record, addiMetaData);
+                    final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
                     getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
                             .addRecord(
                                     createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
@@ -242,7 +241,7 @@ public class HarvestOperation {
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns data container harvester record containing MARC exchange collection as data
      */
-    private HarvesterXmlRecord getXmlContentForRecord(Record record, AddiMetaData addiMetaData) throws HarvesterException {
+    private HarvesterXmlRecord getXmlContentForEnrichedRecord(Record record, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, Record> records;
         try {
             records = rawRepoConnector.fetchRecordCollection(record.getId());
@@ -261,9 +260,9 @@ public class HarvestOperation {
         record = records.get(record.getId().getBibliographicRecordId());
         if (record.getId().getAgencyId() == DBC_LIBRARY_NUMBER) {
             // extract agency ID from enrichment trail if the record has agency ID 191919.
-            addiMetaData.withSubmitterNumber(
-                    getAgencyIdFromEnrichmentTrail(record));
+            addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(record));
         }
+        addiMetaData.withEnrichmentTrail(record.getEnrichmentTrail());
 
         //// TODO: 6/24/16 We should teach our javascript to work with addi records - this would remove the need for XML-DOM functionality below.
 

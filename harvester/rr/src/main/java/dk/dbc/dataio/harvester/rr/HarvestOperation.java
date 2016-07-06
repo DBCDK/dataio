@@ -125,8 +125,8 @@ public class HarvestOperation {
                     .withEnrichmentTrail(record.getEnrichmentTrail())
                     .withCreationDate(getRecordCreationDate(record));
 
-                if (includeRecord(addiMetaData, record)) {
-                    final HarvesterXmlRecord xmlContentForRecord = getXmlContentForRecord(record);
+                if (includeRecord(record)) {
+                    final HarvesterXmlRecord xmlContentForRecord = getXmlContentForRecord(record, addiMetaData);
                     getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
                             .addRecord(
                                     createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
@@ -184,8 +184,8 @@ public class HarvestOperation {
         }
     }
 
-    private boolean includeRecord(AddiMetaData addiMetaData, Record record) throws HarvesterInvalidRecordException {
-        final int agencyId = addiMetaData.submitterNumber().orElse(0);
+    private boolean includeRecord(Record record) throws HarvesterInvalidRecordException {
+        final int agencyId = record.getId().getAgencyId();
         // Special case handling for DBC records:
         // If the agency ID is either excluded or is equal to 191919...
         if (AGENCY_ID_EXCLUDES.contains(agencyId) || DBC_LIBRARY_NUMBER == agencyId) {
@@ -196,15 +196,9 @@ public class HarvestOperation {
                     return false;
                 }
             // if the record is NOT marked as DELETED in RR...
-            } else {
-                if (AGENCY_ID_EXCLUDES.contains(agencyId)) {
-                    // skip the record if has an excluded agency ID.
-                    return false;
-                } else if (agencyId == DBC_LIBRARY_NUMBER) {
-                    // extract agency ID from enrichment trail if the record has agency ID 191919.
-                    addiMetaData.withSubmitterNumber(
-                            getAgencyIdFromEnrichmentTrail(record));
-                }
+            } else if (AGENCY_ID_EXCLUDES.contains(agencyId)) {
+                // skip the record if has an excluded agency ID.
+                return false;
             }
         }
         // else include the record.
@@ -248,7 +242,7 @@ public class HarvestOperation {
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns data container harvester record containing MARC exchange collection as data
      */
-    private HarvesterXmlRecord getXmlContentForRecord(Record record) throws HarvesterException {
+    private HarvesterXmlRecord getXmlContentForRecord(Record record, AddiMetaData addiMetaData) throws HarvesterException {
         final Map<String, Record> records;
         try {
             records = rawRepoConnector.fetchRecordCollection(record.getId());
@@ -262,6 +256,13 @@ public class HarvestOperation {
         if (!records.containsKey(record.getId().getBibliographicRecordId())) {
             throw new HarvesterInvalidRecordException(String.format(
                     "Record %s was not found in returned collection", record.getId()));
+        }
+        // refresh - set to merged record
+        record = records.get(record.getId().getBibliographicRecordId());
+        if (record.getId().getAgencyId() == DBC_LIBRARY_NUMBER) {
+            // extract agency ID from enrichment trail if the record has agency ID 191919.
+            addiMetaData.withSubmitterNumber(
+                    getAgencyIdFromEnrichmentTrail(record));
         }
 
         //// TODO: 6/24/16 We should teach our javascript to work with addi records - this would remove the need for XML-DOM functionality below.

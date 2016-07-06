@@ -296,6 +296,8 @@ public class HarvestOperationTest {
         when(rawRepoConnector.dequeue(anyString()))
                 .thenReturn(queueJob)
                 .thenReturn(null);
+        when(rawRepoConnector.fetchRecord(any(RecordId.class)))
+                .thenReturn(new MockedRecord(recordId));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.execute(), is(0));

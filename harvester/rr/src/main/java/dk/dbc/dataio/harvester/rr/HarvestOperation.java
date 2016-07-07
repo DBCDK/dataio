@@ -263,6 +263,7 @@ public class HarvestOperation {
             addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(record));
         }
         addiMetaData.withEnrichmentTrail(record.getEnrichmentTrail());
+        addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber().orElse(0)));
 
         //// TODO: 6/24/16 We should teach our javascript to work with addi records - this would remove the need for XML-DOM functionality below.
 

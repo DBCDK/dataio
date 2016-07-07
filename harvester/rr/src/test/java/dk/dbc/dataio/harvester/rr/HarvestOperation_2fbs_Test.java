@@ -177,6 +177,7 @@ public class HarvestOperation_2fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withFormat("format")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId()));
@@ -190,6 +191,7 @@ public class HarvestOperation_2fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withFormat("format")
                 .withCreationDate(SECOND_RECORD.getCreated()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
@@ -201,6 +203,7 @@ public class HarvestOperation_2fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withFormat("format")
                 .withCreationDate(THIRD_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -242,6 +245,7 @@ public class HarvestOperation_2fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(FIRST_RECORD.getId().getAgencyId())
+                .withFormat("format")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId()));
@@ -267,6 +271,7 @@ public class HarvestOperation_2fbs_Test {
         recordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
+                .withFormat("format")
                 .withCreationDate(THIRD_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -310,7 +315,9 @@ public class HarvestOperation_2fbs_Test {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
         final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-        config.getContent().withConsumerId(CONSUMER_ID);
+        config.getContent()
+                .withFormat("format")
+                .withConsumerId(CONSUMER_ID);
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }
 

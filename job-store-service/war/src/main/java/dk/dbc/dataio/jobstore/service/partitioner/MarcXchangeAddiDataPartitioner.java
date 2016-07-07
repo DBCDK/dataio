@@ -81,7 +81,7 @@ public class MarcXchangeAddiDataPartitioner extends AddiDataPartitioner {
 
     @Override
     protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
-        if (content != null) {
+        if (!addiMetaData.diagnostic().isPresent() && content != null) {
             try {
                 final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(getInputStream(content), getEncoding());
                 final MarcRecordInfoBuilder marcRecordInfoBuilder = new MarcRecordInfoBuilder();

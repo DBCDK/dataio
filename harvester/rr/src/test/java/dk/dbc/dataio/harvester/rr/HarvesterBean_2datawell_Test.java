@@ -201,6 +201,7 @@ public class HarvesterBean_2datawell_Test {
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
+                .withFormat("katalog")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId()));
@@ -215,6 +216,7 @@ public class HarvesterBean_2datawell_Test {
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
+                .withFormat("katalog")
                 .withCreationDate(THIRD_RECORD.getCreated())
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail()));
 
@@ -227,6 +229,7 @@ public class HarvesterBean_2datawell_Test {
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withFormat("katalog")
                 .withCreationDate(SECOND_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -262,6 +265,7 @@ public class HarvesterBean_2datawell_Test {
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(FIRST_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
+                .withFormat("katalog")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
@@ -277,6 +281,7 @@ public class HarvesterBean_2datawell_Test {
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
+                .withFormat("katalog")
                 .withCreationDate(SECOND_RECORD.getCreated()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -289,6 +294,7 @@ public class HarvesterBean_2datawell_Test {
         dbcRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(870970)
+                .withFormat("katalog")
                 .withCreationDate(THIRD_RECORD.getCreated())
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail()));
 

@@ -88,7 +88,7 @@ public class ChunkItem implements Serializable {
      * @param data item data, can be empty, but not null
      * @param status item status can not be null
      * @param type item type as list to support Embeddable formats, can also be null or empty
-     * @param encoding item charset encoding, can also be null or empty
+     * @param encoding item charset encoding, can also be null
      */
     public ChunkItem(long id, byte[] data, Status status, List<Type> type, Charset encoding) {
         this(id, data, status);

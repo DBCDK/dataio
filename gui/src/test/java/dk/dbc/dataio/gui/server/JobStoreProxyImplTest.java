@@ -53,6 +53,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -201,6 +202,19 @@ public class JobStoreProxyImplTest {
             String data = jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
             assertThat("data not null", data, not(nullValue()));
             assertThat(data, is(PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding())));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getItemData()");
+        }
+    }
+
+    @Test
+    public void getChunkItem_remoteServiceReturnsHttpStatusOkWithEntityWithoutType_returnsEmptyString() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        final ChunkItem chunkItem = new ChunkItemBuilder().setData(getXmlData()).setType(Collections.emptyList()).build();
+        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
+        try {
+            String data = jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
+            assertThat(data, is(""));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getItemData()");
         }

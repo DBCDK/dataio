@@ -55,7 +55,7 @@ public class JobSchedulerBean {
 
     // Max JMS Size pr Sink -- Test sizes overwritten for
     static int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
-    static int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 100;
+    static int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 1000;
 
 
     // Hash use to keep a count of pending jobs in JMS queues pr sink.

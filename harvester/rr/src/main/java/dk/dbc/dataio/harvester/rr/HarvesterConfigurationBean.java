@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import javax.ejb.DependsOn;
 import javax.ejb.EJB;
 import javax.ejb.EJBException;
 import javax.ejb.Singleton;
@@ -42,6 +43,7 @@ import java.util.List;
  */
 @Singleton
 @Startup
+@DependsOn("BootstrapBean")
 public class HarvesterConfigurationBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigurationBean.class);
 

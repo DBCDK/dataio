@@ -48,18 +48,6 @@ public class PopupDoubleList extends PopupBox<DoubleList, PopupDoubleList.Double
         this("", "");
     }
 
-    /*
-     * Override PopupBox methods
-     */
-
-    /**
-     * Shows the popup and attach it to the page. It must have a child widget before this method is called.
-     */
-    @Override
-    public void show() {
-        super.show();
-    }
-
 
     /*
      * Local classes

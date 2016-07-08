@@ -41,6 +41,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_ShowJSModules();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Ok();
+
 
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -69,4 +72,16 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
+
+
+    // Headers
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_JSModulesListPopup();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_SVNRevision();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String header_SVNNextRevision();
+
 }

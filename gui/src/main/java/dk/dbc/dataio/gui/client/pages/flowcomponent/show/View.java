@@ -30,15 +30,18 @@ import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
+import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class View extends ViewWidget {
+    final static String FLOWCOMPONENT_MACRO_NAME = "FLOWCOMPONENT";
+    final static String SVN_REVISION_MACRO = "REVISION";
+
     ListDataProvider<FlowComponentModel> dataProvider;
     SingleSelectionModel<FlowComponentModel> selectionModel = new SingleSelectionModel<>();
 
@@ -197,14 +200,29 @@ public class View extends ViewWidget {
     @SuppressWarnings("unchecked")
     Column constructActionColumn() {
         List<HasCell<FlowComponentModel, ?>> cells = new LinkedList<>();
-        cells.add(new ActionHasCell(getTexts().button_ShowJSModules(), model -> Window.alert("Klik")));
+        cells.add(new ActionHasCell(getTexts().button_ShowJSModules(), this::showJsModules));
         cells.add(new ActionHasCell(getTexts().button_Edit(), model -> presenter.editFlowComponent(model)));
         return new Column<FlowComponentModel, FlowComponentModel>(new CompositeCell<>(cells)) {
             @Override
             public FlowComponentModel getValue(FlowComponentModel model) {
                 return model;
             }
+            @Override
+            public String getCellStyleNames(Cell.Context context, FlowComponentModel object) {
+                return "button-cell";  // To allow css to place button horisontally
+            }
         };
+    }
+
+    private void showJsModules(FlowComponentModel model) {
+        jsModulesPopup.setValue(jsModulesPopup.new DoubleListData(
+                Format.macro(getTexts().header_SVNRevision(), SVN_REVISION_MACRO, model.getSvnRevision()),
+                model.getJavascriptModules(),
+                Format.macro(getTexts().header_SVNNextRevision(), SVN_REVISION_MACRO, model.getSvnNext()),
+                model.getNextJavascriptModules()
+                ));
+        jsModulesPopup.setDialogTitle(Format.macro(getTexts().header_JSModulesListPopup(), FLOWCOMPONENT_MACRO_NAME, model.getName()));
+        jsModulesPopup.show();
     }
 
     /**

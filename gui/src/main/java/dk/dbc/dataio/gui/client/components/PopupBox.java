@@ -63,7 +63,7 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
     Button okButton;
     Button cancelButton;
     Button extraButton;
-    W widget;
+    protected W widget;
 
 
     /**
@@ -144,6 +144,14 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
         show();  // First show the DialogBox in order to add it to the DOM
         hide();  // ... but we don't want it shown upon startup - so hide it again
         dialogBox.setAnimationEnabled(animationEnabled);
+    }
+
+    /**
+     * Sets the Title of the Dialog
+     * @param title The Dialog Title
+     */
+    public void setDialogTitle(String title) {
+        dialogBox.setText(title);
     }
 
     /**

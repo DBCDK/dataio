@@ -21,6 +21,7 @@
  */
 @external .gwt-Tree, .gwt-TreeItem, .gwt-Button .gwt-TextBox .gwt-ListBox .gwt-RadioButton .gwt-PushButton-up .gwt-PushButton-up-hovering .gwt-PushButton-down-hovering;
 @external .gwtQuery-draggable-dragging;
+@external .gwt-DialogBox, .Caption;
 @external .dual-list-removeitem-class, .dual-list-additem-class, .fixed-empty-listbox-width, .dual-list-selection-buttons-pane-class;
 @external .dio-PromptedData, .dio-PromptedData-PromptClass, .dio-SaveButton-ResultLabel;
 @external .dio-DualList, .dio-DualPanesPanel-WidgetRightClass, .dio-DualPanesPanel-WidgetLeftClass, .dio-flow-element;
@@ -36,7 +37,7 @@
 @external .clickable-submitter-column-style;
 @external .multilistremovebutton;
 @external .gray-box-container, .gray-box-content;
-
+@external .button-cell;
 
 /*
  * Sprites
@@ -130,6 +131,11 @@ input:disabled {
     -webkit-border-radius: 0.5em;
     -moz-border-radius: 0.5em;
     border-radius: 0.5em;
+}
+
+.gwt-DialogBox .Caption {
+    font-size: 20px;
+    font-weight: bold;
 }
 
 .deleteButton {
@@ -337,4 +343,12 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 }
 #io-traffic-copy div.dio-PromptedData-PromptClass {
     width: auto;
+}
+
+.button-cell div {
+    display: inline-flex;
+}
+
+.button-cell button {
+    margin: 0 2px;
 }

@@ -19,31 +19,16 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr.rest;
+package dk.dbc.dataio.harvester.rr.entity;
 
-import dk.dbc.dataio.commons.utils.service.ServiceStatus;
+import dk.dbc.dataio.jsonb.JSONBContext;
 
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
+public class ConverterJSONBContext {
+    private static final JSONBContext JSONB_CONTEXT = new JSONBContext();
 
-@Stateless
-@Path("/")
-public class StatusBean implements ServiceStatus {
-    @PersistenceContext(unitName="harvesterRR_PU")
-    EntityManager entityManager;
+    private ConverterJSONBContext() {}
 
-    @Override
-    public Response getStatus() {
-        healthCheckDatabase();
-        return Response.ok().build();
-    }
-
-    public void healthCheckDatabase() {
-        final Query query = entityManager.createNativeQuery("SELECT 1");
-        query.getSingleResult();
+    public static JSONBContext getInstance() {
+        return JSONB_CONTEXT;
     }
 }

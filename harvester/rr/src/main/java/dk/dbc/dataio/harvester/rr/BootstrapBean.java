@@ -41,19 +41,19 @@ public class BootstrapBean {
     @Resource(lookup = JndiConstants.JDBC_RESOURCE_HARVESTER_RR)
     DataSource dataSource;
 
-   	@PostConstruct
-   	public void onStartup() {
-		migrateDatabase();
-   	}
+    @PostConstruct
+    public void onStartup() {
+        migrateDatabase();
+    }
 
-	public void migrateDatabase() {
-		final Flyway flyway = new Flyway();
+    public void migrateDatabase() {
+        final Flyway flyway = new Flyway();
         flyway.setTable("schema_version");
         flyway.setBaselineOnMigrate(true);
-   		flyway.setDataSource(dataSource);
-   		for (MigrationInfo i : flyway.info().all()) {
-   			LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-   		}
-   		flyway.migrate();
-	}
+        flyway.setDataSource(dataSource);
+        for (MigrationInfo i : flyway.info().all()) {
+            LOGGER.info("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
+        }
+        flyway.migrate();
+    }
 }

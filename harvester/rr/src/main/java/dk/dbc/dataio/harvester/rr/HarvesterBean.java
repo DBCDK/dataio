@@ -40,6 +40,9 @@ import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 import java.util.concurrent.Future;
 
 /**
@@ -52,6 +55,9 @@ public class HarvesterBean {
 
     @Resource
     SessionContext sessionContext;
+
+    @PersistenceUnit(unitName = "harvesterRR_PU")
+    EntityManagerFactory entityManagerFactory;
 
     @EJB
     public BinaryFileStoreBean binaryFileStoreBean;
@@ -97,7 +103,16 @@ public class HarvesterBean {
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public int execute(HarvestOperation harvestOperation) throws HarvesterException {
-        return harvestOperation.execute();
+        EntityManager entityManager = null;
+        try {
+            entityManager = entityManagerFactory.createEntityManager();
+            entityManager.joinTransaction();
+            return harvestOperation.execute(entityManager);
+        } finally {
+            if (entityManager != null && entityManager.isOpen()) {
+               entityManager.close();
+            }
+        }
     }
 
     /* Stand-alone method to enable easy injection during testing (via partial mocking)

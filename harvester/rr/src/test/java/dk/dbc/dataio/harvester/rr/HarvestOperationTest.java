@@ -46,6 +46,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import javax.naming.Context;
+import javax.persistence.EntityManager;
 import javax.sql.DataSource;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
@@ -73,6 +74,7 @@ public class HarvestOperationTest {
     private final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
     private final static Record RECORD = new MockedRecord(RECORD_ID, true);
     private final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
+    private final EntityManager entityManager = mock(EntityManager.class);
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
@@ -116,14 +118,14 @@ public class HarvestOperationTest {
     public void execute_rawRepoConnectorDequeueThrowsSqlException_throws() throws SQLException, RawRepoException {
         when(rawRepoConnector.dequeue(anyString())).thenThrow(new SQLException());
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
+        assertThat(() -> harvestOperation.execute(entityManager), isThrowing(HarvesterException.class));
     }
 
     @Test
     public void execute_rawRepoConnectorDequeueThrowsRawRepoException_throws() throws SQLException, RawRepoException {
         when(rawRepoConnector.dequeue(anyString())).thenThrow(new RawRepoException());
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
+        assertThat(() -> harvestOperation.execute(entityManager), isThrowing(HarvesterException.class));
     }
 
     @Test
@@ -131,7 +133,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -158,7 +160,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -185,7 +187,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -197,7 +199,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class))).thenThrow(new RawRepoException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -209,7 +211,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class))).thenThrow(new MarcXMergerException());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -227,7 +229,7 @@ public class HarvestOperationTest {
         when(rrRecord.getContent()).thenReturn("invalid".getBytes());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -242,7 +244,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(rrRecord);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -255,7 +257,7 @@ public class HarvestOperationTest {
                 .thenReturn(Collections.emptyMap());
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -272,7 +274,7 @@ public class HarvestOperationTest {
                 }});
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         final ArgumentCaptor<AddiRecord> addiRecordCaptor = ArgumentCaptor.forClass(AddiRecord.class);
         verify(harvesterJobBuilder, times(1)).addRecord(addiRecordCaptor.capture());
@@ -284,7 +286,7 @@ public class HarvestOperationTest {
         when(harvesterJobBuilder.build()).thenThrow(new HarvesterException("DIED"));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation::execute, isThrowing(HarvesterException.class));
+        assertThat(() -> harvestOperation.execute(entityManager), isThrowing(HarvesterException.class));
     }
 
     @Test
@@ -300,7 +302,7 @@ public class HarvestOperationTest {
                 .thenReturn(new MockedRecord(recordId));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.execute(), is(0));
+        assertThat(harvestOperation.execute(entityManager), is(0));
     }
 
     @Test
@@ -324,7 +326,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.execute(), is(1));
+        assertThat(harvestOperation.execute(entityManager), is(1));
         verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
         verify(rawRepoConnector, times(1)).fetchRecordCollection(any(RecordId.class));
     }
@@ -350,7 +352,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.execute(), is(0));
+        assertThat(harvestOperation.execute(entityManager), is(0));
         verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
         verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class));
     }

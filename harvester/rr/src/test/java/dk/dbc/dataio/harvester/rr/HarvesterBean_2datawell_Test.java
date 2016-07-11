@@ -53,6 +53,7 @@ import org.junit.rules.TemporaryFolder;
 import org.xml.sax.SAXException;
 
 import javax.naming.Context;
+import javax.persistence.EntityManager;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
@@ -115,6 +116,8 @@ public class HarvesterBean_2datawell_Test {
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setEnrichmentTrail("191919,870970");
     }
+
+    private final EntityManager entityManager = mock(EntityManager.class);
 
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
@@ -233,7 +236,7 @@ public class HarvesterBean_2datawell_Test {
                 .withCreationDate(SECOND_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -299,7 +302,7 @@ public class HarvesterBean_2datawell_Test {
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();

@@ -24,7 +24,7 @@
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_1.xsd"
              version="2.1">
   <persistence-unit name="harvesterRR_PU" transaction-type="JTA">
-    <jta-data-source>jdbc/dataio/harvester/rr</jta-data-source>
+    <jta-data-source>jdbc/dataio/harvester-xa/rr</jta-data-source>
     <class>dk.dbc.dataio.harvester.rr.entity.StringListConverter</class>
     <class>dk.dbc.dataio.harvester.rr.entity.HarvestTask</class>
     <properties>

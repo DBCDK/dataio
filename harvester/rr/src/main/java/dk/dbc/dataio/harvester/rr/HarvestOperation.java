@@ -51,6 +51,7 @@ import dk.dbc.rawrepo.showorder.AgencySearchOrderFromShowOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -77,37 +78,39 @@ public class HarvestOperation {
     private static final Set<Integer> AGENCY_ID_EXCLUDES = Stream.of(
             870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
-    private final RRHarvesterConfig.Content config;
+    private final RRHarvesterConfig config;
+    private final RRHarvesterConfig.Content configContent;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
     private final DocumentBuilder documentBuilder;
     private final Transformer transformer;
     private final RawRepoConnector rawRepoConnector;
     private final JSONBContext jsonbContext;
-    private final RecordSource recordSource;
 
     public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        this.config = InvariantUtil.checkNotNullOrThrow(config, "config").getContent();
+        this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
+        this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
         documentBuilder = getDocumentBuilder();
         transformer = getTransformer();
         rawRepoConnector = getRawRepoConnector(config);
         jsonbContext = new JSONBContext();
-        recordSource = new RecordSource(config, rawRepoConnector);
     }
 
     /**
      * Runs this harvest operation, creating dataIO jobs from harvested records.
      * If any non-internal error occurs a record is marked as failed.
+     * @param entityManager local database entity manager
      * @return number of records harvested and included in dataIO jobs
      * @throws HarvesterException on failure to complete harvest operation
      */
-    public int execute() throws HarvesterException {
+    public int execute(EntityManager entityManager) throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
-        int itemsHarvested = 0;
+        final RecordQueue recordQueue = getRecordQueue(config, rawRepoConnector);
 
-        RecordSource.RecordWrapper recordWrapper = recordSource.getRecord();
+        int itemsHarvested = 0;
+        RecordWrapper recordWrapper = recordQueue.poll();
         while (recordWrapper != null) {
             LOGGER.info("{} ready for harvesting", recordWrapper);
             Record record = null;
@@ -143,22 +146,22 @@ public class HarvestOperation {
                 DBCTrackedLogContext.remove();
             }
 
-            if (itemsHarvested == config.getBatchSize()) {
+            if (itemsHarvested == configContent.getBatchSize()) {
                 break;
             }
-            recordWrapper = recordSource.getRecord();
+            recordWrapper = recordQueue.poll();
         }
         flushHarvesterJobBuilders();
 
         LOGGER.info("Harvested {} items from {} queue in {} ms",
-                itemsHarvested, config.getConsumerId(), stopWatch.getElapsedTime());
+                itemsHarvested, configContent.getConsumerId(), stopWatch.getElapsedTime());
 
         return itemsHarvested;
     }
 
     JobSpecification getJobSpecificationTemplate(int agencyId) {
-        return new JobSpecification("addi-xml", getFormat(agencyId), "utf8", config.getDestination(), agencyId,
-                "placeholder", "placeholder", "placeholder", "placeholder", config.getType());
+        return new JobSpecification("addi-xml", getFormat(agencyId), "utf8", configContent.getDestination(), agencyId,
+                "placeholder", "placeholder", "placeholder", "placeholder", configContent.getType());
     }
 
     int getAgencyIdFromEnrichmentTrail(Record record) throws HarvesterInvalidRecordException {
@@ -280,7 +283,7 @@ public class HarvestOperation {
     private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records)
             throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
-        if (config.isIncludeRelations()) {
+        if (configContent.isIncludeRelations()) {
             for (Record record : records.values()) {
                 LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
                 marcExchangeCollection.addMember(getRecordContent(record.getId(), record));
@@ -358,8 +361,8 @@ public class HarvestOperation {
     }
 
     private String getFormat(int agencyId) {
-        final String formatOverride = config.getFormatOverrides().get(agencyId);
-        return formatOverride != null ? formatOverride : config.getFormat();
+        final String formatOverride = configContent.getFormatOverrides().get(agencyId);
+        return formatOverride != null ? formatOverride : configContent.getFormat();
     }
 
     private AddiRecord createAddiRecord(AddiMetaData metaData, byte[] content) throws HarvesterException {
@@ -367,6 +370,31 @@ public class HarvestOperation {
             return new AddiRecord(jsonbContext.marshall(metaData).getBytes(StandardCharsets.UTF_8), content);
         } catch (JSONBException e) {
             throw new HarvesterException(e);
+        }
+    }
+
+    private RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector) {
+        return new RawRepoQueue(config, rawRepoConnector);
+    }
+
+    /**
+     * Fetches rawrepo record with given record ID using given connector
+     * @param recordId ID of record to be fetched
+     * @param connector rawrepo connector
+     * @return rawrepo record
+     * @throws HarvesterSourceException on error communicating with the rawrepo
+     * @throws HarvesterInvalidRecordException if null-valued record is retrieved
+     */
+    public static Record fetchRecordFromRR(RecordId recordId, RawRepoConnector connector)
+            throws HarvesterSourceException, HarvesterInvalidRecordException {
+        try {
+            final Record record = connector.fetchRecord(recordId);
+            if (record == null) {
+                throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
+            }
+            return record;
+        } catch (SQLException | RawRepoException e) {
+            throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
         }
     }
 }

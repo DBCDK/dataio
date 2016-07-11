@@ -53,6 +53,7 @@ import org.junit.rules.TemporaryFolder;
 import org.xml.sax.SAXException;
 
 import javax.naming.Context;
+import javax.persistence.EntityManager;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,8 @@ public class HarvestOperation_2fbs_Test {
         SECOND_RECORD.setTrackingId(null);
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
+
+    private final EntityManager entityManager = mock(EntityManager.class);
 
     private MockedJobStoreServiceConnector mockedJobStoreServiceConnector;
     private MockedFileStoreServiceConnector mockedFileStoreServiceConnector;
@@ -207,7 +210,7 @@ public class HarvestOperation_2fbs_Test {
                 .withCreationDate(THIRD_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();
@@ -275,7 +278,7 @@ public class HarvestOperation_2fbs_Test {
                 .withCreationDate(THIRD_RECORD.getCreated()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.execute();
+        harvestOperation.execute(entityManager);
 
         verifyHarvesterDataFiles();
         verifyJobSpecifications();

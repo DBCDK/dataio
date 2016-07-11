@@ -214,7 +214,7 @@ public class View extends ViewWidget {
         };
     }
 
-    private void showJsModules(FlowComponentModel model) {
+    void showJsModules(FlowComponentModel model) {
         jsModulesPopup.setValue(jsModulesPopup.new DoubleListData(
                 Format.macro(getTexts().header_SVNRevision(), SVN_REVISION_MACRO, model.getSvnRevision()),
                 model.getJavascriptModules(),

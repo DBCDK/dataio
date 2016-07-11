@@ -41,6 +41,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
@@ -64,6 +65,12 @@ public class ViewTest {
     private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setJavascriptModules(Collections.singletonList("Java Script 1")).build();
     private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setJavascriptModules(Arrays.asList("Java Script 2", "Java Script 3")).build();
     private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setJavascriptModules(Arrays.asList("Java Script 4", "Java Script 5", "Java Script 6")).build();
+    private FlowComponentModel flowComponentModelNext = new FlowComponentModelBuilder().
+            setSvnRevision("123").
+            setJavascriptModules(Arrays.asList("Module 1", "Module 2", "Module 3")).
+            setSvnNext("456").
+            setNextJavascriptModules(Arrays.asList("Modulus 4", "Modulus 5")).
+            build();
 
     // Subject Under Test
     private View view;
@@ -83,6 +90,9 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_NEXT = "Mocked Text: columnHeader_Next";
     final static String MOCKED_COLUMNHEADER_JAVASCRIPTMODULES = "Mocked Text: columnHeader_JavaScript";
     final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
+    final static String MOCKED_HEADER_SVNREVISION = "Mocked Text: header_SVNRevision: <@REVISION@>";
+    final static String MOCKED_HEADER_SVNNEXTREVISION = "Mocked Text: header_SVNNextRevision: <@REVISION@>";
+    final static String MOCKED_HEADER_JSMODULESLISTPOPUP = "Mocked Text: header_JSModulesListPopup";
 
     @Before
     public void setupMockedTextsBehaviour() {
@@ -104,6 +114,9 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Next()).thenReturn(MOCKED_COLUMNHEADER_NEXT);
         when(mockedTexts.columnHeader_JavaScriptModules()).thenReturn(MOCKED_COLUMNHEADER_JAVASCRIPTMODULES);
         when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
+        when(mockedTexts.header_SVNRevision()).thenReturn(MOCKED_HEADER_SVNREVISION);
+        when(mockedTexts.header_SVNNextRevision()).thenReturn(MOCKED_HEADER_SVNNEXTREVISION);
+        when(mockedTexts.header_JSModulesListPopup()).thenReturn(MOCKED_HEADER_JSMODULESLISTPOPUP);
     }
 
     public class ViewConcrete extends View {
@@ -223,7 +236,7 @@ public class ViewTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void constructActionColumn_call_correctlySetup() {
+    public void constructActionColumn_getValue_correctlySetup() {
         setupView();
 
         // Subject Under Test
@@ -231,6 +244,38 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         assertThat(column.getValue(flowComponentModel1), is(flowComponentModel1));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructActionColumn_getCellStyleNames_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructActionColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getCellStyleNames(null, null), is("button-cell"));
+    }
+
+    @Test
+    public void showJsModules_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        view.showJsModules(flowComponentModelNext);
+
+        // Test Verification
+        verify(view.jsModulesPopup).setValue(
+                view.jsModulesPopup.new DoubleListData(
+                        "Mocked Text: header_SVNRevision: <123>",
+                        Arrays.asList("Module 1", "Module 2", "Module 3"),
+                        "Mocked Text: header_SVNNextRevision: <456>",
+                        Arrays.asList("Modulus 4", "Modulus 5"))
+        );
+        verify(view.jsModulesPopup).setDialogTitle("Mocked Text: header_JSModulesListPopup");
+        verify(view.jsModulesPopup).show();
+        verifyNoMoreInteractions(view.jsModulesPopup);
     }
 
     private void setupView() {

@@ -90,6 +90,48 @@ public class PopupBoxTest {
         noMoreMockInvocations();
     }
 
+    @Test
+    public void setDialogTitle_nullValue_exception() {
+        // Test Preparation
+        setupTest();
+        constructorVerification();
+
+        // Activate Subject Under Test
+        popupBox.setDialogTitle(null);
+
+        // Test Verification
+        verify(popupBox.dialogBox).setText(null);
+        noMoreMockInvocations();
+    }
+
+    @Test
+    public void setDialogTitle_emptyValue_buttonIsDisabled() {
+        // Test Preparation
+        setupTest();
+        constructorVerification();
+
+        // Activate Subject Under Test
+        popupBox.setDialogTitle("");
+
+        // Test Verification
+        verify(popupBox.dialogBox).setText("");
+        noMoreMockInvocations();
+    }
+
+    @Test
+    public void setDialogTitle_validValue_textIsSetCorrectly() {
+        // Test Preparation
+        setupTest();
+        constructorVerification();
+
+        // Activate Subject Under Test
+        popupBox.setDialogTitle("-Dialog-Title-");
+
+        // Test Verification
+        verify(popupBox.dialogBox).setText("-Dialog-Title-");
+        noMoreMockInvocations();
+    }
+
     @Test(expected = NullPointerException.class)
     public void setOkButtonText_nullValue_exception() {
         // Test Preparation

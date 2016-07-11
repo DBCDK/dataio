@@ -65,6 +65,17 @@ public class PopupDoubleList extends PopupBox<DoubleList, PopupDoubleList.Double
             this.headerRight = headerRight;
             this.bodyRight = bodyRight;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof DoubleListData)) return false;
+            DoubleListData that = (DoubleListData) o;
+            return this.headerLeft.equals(that.headerLeft) &&
+                    this.bodyLeft.equals(that.bodyLeft) &&
+                    this.headerRight.equals(that.headerRight) &&
+                    this.bodyRight.equals(that.bodyRight);
+        }
     }
 
 }

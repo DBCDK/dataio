@@ -76,6 +76,15 @@ public class PopupDoubleList extends PopupBox<DoubleList, PopupDoubleList.Double
                     this.headerRight.equals(that.headerRight) &&
                     this.bodyRight.equals(that.bodyRight);
         }
+
+        @Override
+        public int hashCode() {
+            int result = headerLeft != null ? headerLeft.hashCode() : 0;
+            result = 31 * result + (bodyLeft != null ? bodyLeft.hashCode() : 0);
+            result = 31 * result + (headerRight != null ? headerRight.hashCode() : 0);
+            result = 31 * result + (bodyRight != null ? bodyRight.hashCode() : 0);
+            return result;
+        }
     }
 
 }

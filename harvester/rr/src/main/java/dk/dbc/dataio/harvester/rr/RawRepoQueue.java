@@ -26,16 +26,18 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
+import dk.dbc.rawrepo.RecordId;
 
 import java.sql.SQLException;
 
 /**
- * Abstraction layer for rawrepo queue
+ * Abstraction layer for rawrepo queue.
+ * This class is not thread safe.
  */
 public class RawRepoQueue implements RecordQueue {
     private final RRHarvesterConfig.Content config;
     private final RawRepoConnector rawRepoConnector;
-    private RecordWrapper head;
+    private RecordId head;
 
     public RawRepoQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector) {
         this.config = config.getContent();
@@ -49,7 +51,7 @@ public class RawRepoQueue implements RecordQueue {
      * @throws HarvesterException on error while retrieving a queued record
      */
     @Override
-    public RecordWrapper peek() throws HarvesterException {
+    public RecordId peek() throws HarvesterException {
         if (head == null) {
             head = head();
         }
@@ -62,7 +64,7 @@ public class RawRepoQueue implements RecordQueue {
      * @throws HarvesterException on error while retrieving a queued record
      */
     @Override
-    public RecordWrapper poll() throws HarvesterException {
+    public RecordId poll() throws HarvesterException {
         try {
             return peek();
         } finally {
@@ -75,19 +77,13 @@ public class RawRepoQueue implements RecordQueue {
         return head == null ? 0 : 1;
     }
 
-    private RecordWrapper head() throws HarvesterException {
+    private RecordId head() throws HarvesterException {
         try {
             final QueueJob queueJob = rawRepoConnector.dequeue(config.getConsumerId());
-            RecordWrapper recordWrapper = null;
             if (queueJob != null) {
-                recordWrapper = new RecordWrapper(queueJob.getJob());
-                try {
-                    recordWrapper.withRecord(HarvestOperation.fetchRecordFromRR(queueJob.getJob(), rawRepoConnector));
-                } catch (HarvesterException e) {
-                    recordWrapper.withError(e);
-                }
+                return queueJob.getJob();
             }
-            return recordWrapper;
+            return null;
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterException(e);
         }

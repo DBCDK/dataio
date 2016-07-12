@@ -31,6 +31,8 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
@@ -38,7 +40,13 @@ import java.util.List;
 
 @Entity
 @Table(name = "task")
+@NamedQueries(
+    @NamedQuery(name = HarvestTask.QUERY_FIND_WAITING,
+        query = "SELECT task FROM HarvestTask task where task.configId = :configId AND task.status = 'WAITING' ORDER BY task.id ASC")
+)
 public class HarvestTask {
+    public static final String QUERY_FIND_WAITING = "HarvestTask.findWaiting";
+
     public enum Status {
         WAITING_TO_EXPAND,  // waiting to be split up into sub tasks
         WAITING,            // waiting to enter ready state

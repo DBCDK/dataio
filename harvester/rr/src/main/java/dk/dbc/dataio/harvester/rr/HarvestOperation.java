@@ -107,18 +107,21 @@ public class HarvestOperation {
      */
     public int execute(EntityManager entityManager) throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
-        final RecordQueue recordQueue = getRecordQueue(config, rawRepoConnector);
+        final RecordQueue recordQueue = getRecordQueue(config, rawRepoConnector, entityManager);
+        // Since we might (re)run batches with a size larger than the one currently configured
+        final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.size());
 
         int itemsHarvested = 0;
-        RecordWrapper recordWrapper = recordQueue.poll();
-        while (recordWrapper != null) {
-            LOGGER.info("{} ready for harvesting", recordWrapper);
+        RecordId recordId = recordQueue.poll();
+        while (recordId != null) {
+            LOGGER.info("{} ready for harvesting", recordId);
             Record record = null;
             final AddiMetaData addiMetaData = new AddiMetaData()
-                    .withBibliographicRecordId(recordWrapper.getRecordId().getBibliographicRecordId())
-                    .withSubmitterNumber(recordWrapper.getRecordId().getAgencyId());
+                    .withBibliographicRecordId(recordId.getBibliographicRecordId())
+                    .withSubmitterNumber(recordId.getAgencyId());
 
             try {
+                final RecordWrapper recordWrapper = createRecordWrapper(recordId);
                 record = recordWrapper.getRecord().orElseThrow(recordWrapper::getError);
 
                 DBCTrackedLogContext.setTrackingId(record.getTrackingId());
@@ -135,7 +138,7 @@ public class HarvestOperation {
                     itemsHarvested++;
                 }
             } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordWrapper, e.getMessage());
+                final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
                 LOGGER.error(errorMsg);
                 addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
                 getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
@@ -146,10 +149,10 @@ public class HarvestOperation {
                 DBCTrackedLogContext.remove();
             }
 
-            if (itemsHarvested == configContent.getBatchSize()) {
+            if (itemsHarvested == batchSize) {
                 break;
             }
-            recordWrapper = recordQueue.poll();
+            recordId = recordQueue.poll();
         }
         flushHarvesterJobBuilders();
 
@@ -373,8 +376,22 @@ public class HarvestOperation {
         }
     }
 
-    private RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector) {
-        return new RawRepoQueue(config, rawRepoConnector);
+    private RecordWrapper createRecordWrapper(RecordId recordId) {
+        final RecordWrapper recordWrapper = new RecordWrapper(recordId);
+        try {
+            recordWrapper.withRecord(fetchRecordFromRR(recordId, rawRepoConnector));
+        } catch (HarvesterException e) {
+            recordWrapper.withError(e);
+        }
+        return recordWrapper;
+    }
+
+    private RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
+        final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
+        if (rawRepoQueue.peek() != null) {
+            return rawRepoQueue;
+        }
+        return new TaskQueue(config, entityManager);
     }
 
     /**

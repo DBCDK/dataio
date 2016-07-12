@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
+import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
@@ -47,6 +48,7 @@ import org.mockito.ArgumentCaptor;
 
 import javax.naming.Context;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import javax.sql.DataSource;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
@@ -62,7 +64,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -482,6 +486,22 @@ public class HarvestOperationTest {
         record.setEnrichmentTrail("191919,870970");
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.getAgencyIdFromEnrichmentTrail(record), is(870970));
+    }
+
+    @Test
+    public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue() throws RawRepoException, SQLException, HarvesterException {
+        final Query query = mock(Query.class);
+        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_WAITING)).thenReturn(query);
+        when(query.setParameter(eq("configId"), anyInt())).thenReturn(query);
+        when(query.setMaxResults(1)).thenReturn(query);
+        when(query.getResultList()).thenReturn(Collections.emptyList());
+        when(rawRepoConnector.dequeue(anyString()))
+                .thenReturn(null);
+
+        final HarvestOperation harvestOperation = newHarvestOperation();
+        harvestOperation.execute(entityManager);
+
+        verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_WAITING);
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {

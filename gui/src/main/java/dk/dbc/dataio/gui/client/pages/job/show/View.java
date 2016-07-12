@@ -55,10 +55,12 @@ import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 
 
+
 /**
-* This class is the View class for the New Jobs Show View
-*/
+ * This class is the View class for the New Jobs Show View
+ */
 public class View extends ViewWidget {
+    @SuppressWarnings("unused")
     protected static final int IS_FIXED_COLUMN = 1;
     protected static final int ASSIGNEE_COLUMN = 2;
 
@@ -114,6 +116,18 @@ public class View extends ViewWidget {
             dataHasNotYetBeenLoaded = false;
             jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
         }
+    }
+
+
+    /*
+     * Implementation of abstract methods
+     */
+
+    /**
+     * Reruns all shown jobs on the current page
+     */
+    void rerunAllShownJobs() {
+        Window.alert("Genkør samtlige viste jobs - mangler implementation");
     }
 
 

@@ -72,6 +72,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField RadioButton deliveringFailedJobsButton;
     @UiField RadioButton fatalJobsButton;
     @UiField Button refreshButton;
+    @UiField Button rerunAllShownJobsButton;
     @UiField TextBox jobIdInputField;
     @UiField PushButton showJobButton;
 
@@ -84,24 +85,32 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     }
 
     @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton", "fatalJobsButton"})
+    @SuppressWarnings("unused")
     void filterItemsRadioButtonPressed(ClickEvent event) {
         pagerTop.firstPage();
         presenter.updateSelectedJobs();
     }
 
     @UiHandler("jobFilter")
+    @SuppressWarnings("unused")
     void jobFilterChanged(ChangeEvent event) {
-        GWT.log("jobFilter Changed Event");
         presenter.updateSelectedJobs();
     }
 
     @UiHandler("refreshButton")
+    @SuppressWarnings("unused")
     void refreshButtonPressed(ClickEvent event) {
-        GWT.log("Refresh button clicked Event");
         presenter.refresh();
     }
 
+    @UiHandler("rerunAllShownJobsButton")
+    @SuppressWarnings("unused")
+    void setRerunAllFilteredJobsButtonPressed(ClickEvent event) {
+        rerunAllShownJobs();
+    }
+
     @UiHandler("showJobButton")
+    @SuppressWarnings("unused")
     void showJobButtonPressed(ClickEvent event) {
         presenter.showJob();
     }
@@ -113,5 +122,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         }
     }
 
+    // Abstract methods
+    abstract void rerunAllShownJobs();
 
 }

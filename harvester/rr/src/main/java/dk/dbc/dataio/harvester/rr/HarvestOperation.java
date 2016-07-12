@@ -121,8 +121,7 @@ public class HarvestOperation {
                     .withSubmitterNumber(recordId.getAgencyId());
 
             try {
-                final RecordWrapper recordWrapper = createRecordWrapper(recordId);
-                record = recordWrapper.getRecord().orElseThrow(recordWrapper::getError);
+                record = fetchRecord(recordId);
 
                 DBCTrackedLogContext.setTrackingId(record.getTrackingId());
 
@@ -376,16 +375,6 @@ public class HarvestOperation {
         }
     }
 
-    private RecordWrapper createRecordWrapper(RecordId recordId) {
-        final RecordWrapper recordWrapper = new RecordWrapper(recordId);
-        try {
-            recordWrapper.withRecord(fetchRecordFromRR(recordId, rawRepoConnector));
-        } catch (HarvesterException e) {
-            recordWrapper.withError(e);
-        }
-        return recordWrapper;
-    }
-
     private RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
         final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
         if (rawRepoQueue.peek() != null) {
@@ -394,18 +383,9 @@ public class HarvestOperation {
         return new TaskQueue(config, entityManager);
     }
 
-    /**
-     * Fetches rawrepo record with given record ID using given connector
-     * @param recordId ID of record to be fetched
-     * @param connector rawrepo connector
-     * @return rawrepo record
-     * @throws HarvesterSourceException on error communicating with the rawrepo
-     * @throws HarvesterInvalidRecordException if null-valued record is retrieved
-     */
-    public static Record fetchRecordFromRR(RecordId recordId, RawRepoConnector connector)
-            throws HarvesterSourceException, HarvesterInvalidRecordException {
+    private Record fetchRecord(RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
-            final Record record = connector.fetchRecord(recordId);
+            final Record record = rawRepoConnector.fetchRecord(recordId);
             if (record == null) {
                 throw new HarvesterInvalidRecordException("Record for " + recordId + " was not found");
             }

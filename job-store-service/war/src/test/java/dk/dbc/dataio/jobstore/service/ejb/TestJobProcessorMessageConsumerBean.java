@@ -61,10 +61,10 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
         return chunksReceived;
     }
 
-    static void waitForProcessingOfChunks(int numberOfChunksToWaitFor) throws Exception {
+    static void waitForProcessingOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
         StopWatch timer=new StopWatch();
         if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
-            throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds");
+            throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds :"+message);
         }
         LOGGER.info("Waiting in took waitForProcessingOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
     }

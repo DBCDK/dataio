@@ -192,7 +192,7 @@ public class JobSchedulerBeanArquillianIT {
                 sink1);
 
         // Then
-        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
 
         assertThat(TestJobProcessorMessageConsumerBean.getChunksReceived().size(), is(1));
 
@@ -212,7 +212,7 @@ public class JobSchedulerBeanArquillianIT {
         jobSchedulerBean.chunkProcessingDone(chunk1);
 
 
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("",1);
         // Then
 
         dependencyTrackingEntity = getDependencyTrackingEntity(3, 0);
@@ -224,7 +224,7 @@ public class JobSchedulerBeanArquillianIT {
                         .withJobId(3).withChunkId(1)
                         .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
                         sink1);
-        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
 
         jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                 .setJobId(3).setChunkId(1)
@@ -247,7 +247,7 @@ public class JobSchedulerBeanArquillianIT {
         Query query = entityManager.createNativeQuery("select jobid, chunkid from dependencyTracking where waitingon @> '[" + keyAsJson + "]'", "JobIdChunkIdResult");
         assertThat(query.getResultList().size(), is(0));
 
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("",1);
 
         DependencyTrackingEntity dep = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(3, 0));
         assertThat(dep, is(nullValue()));
@@ -290,7 +290,7 @@ public class JobSchedulerBeanArquillianIT {
                     sink1);
         }
         // Chunk 3.[0-9] must take last slot before chunk is delayed.
-        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(10);
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 10);
 
 
 
@@ -321,8 +321,8 @@ public class JobSchedulerBeanArquillianIT {
                     .build()
             );
             int chunkExpected=10+i;
-            if( chunkExpected <= 12) { // only wait for the 3 ekstra chunks
-                TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+            if( chunkExpected <= 12) { // only wait for the 3 extra chunks
+                TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("chunk "+chunkExpected,1);
                 assertThat("Check QUEUED to PROCESS for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
                 assertThat("Processing status after chunk "+chunkExpected, sinkStatus.processingStatus.isDirectSubmitMode(),is(false));
             }
@@ -338,12 +338,12 @@ public class JobSchedulerBeanArquillianIT {
             );
         }
 
-        assertThat("DeliveringStatus after 13 chunks went tru processing ", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(false));
+        assertThat("DeliveringStatus after 13 chunks went tru processing ", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueMode.bulkSubmit));
 
         //
         // Done Testing processing Queue.. 21 chunks passed on for Delivery
         //
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(10);
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks("0-9", 10);
         for( int i=0; i<=9; ++i) {
             assertThat("Check QUEUED_TO_DELIVERY for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
         }
@@ -362,7 +362,7 @@ public class JobSchedulerBeanArquillianIT {
 
             int chunkExpected=10+i;
             if( chunkExpected <= 12 ) {
-                TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
+                TestSinkMessageConsumerBean.waitForDeliveringOfChunks(" chunk "+chunkExpected, 1);
                 assertThat("Check QUEUED_TO_DELIVERY for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
             }
         }
@@ -379,16 +379,19 @@ public class JobSchedulerBeanArquillianIT {
 
 
         waitForDirectSubmitModeIs( sinkStatus.processingStatus, JobSchedulerBean.QueueMode.directSubmit);
+        waitForDirectSubmitModeIs( sinkStatus.deliveringStatus, JobSchedulerBean.QueueMode.directSubmit);
 
-        assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(true));
-        assertThat("Delivering is back to directMode", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(false));
+
+        assertThat("Processing is back to directMode", sinkStatus.processingStatus.getMode(),is(JobSchedulerBean.QueueMode.directSubmit));
+        assertThat("Delivering is back to directMode", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueMode.directSubmit));
+
     }
 
     public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus qstatus, JobSchedulerBean.QueueMode expected ) {
-        for(int i=0; i<12 ; ++i) {
+        for(int i=0; i<40 ; ++i) {
             if( qstatus.getMode() == expected) return;
             try {
-                TimeUnit.MICROSECONDS.sleep( 250 ); // 1/4 second
+                TimeUnit.MILLISECONDS.sleep( 250 ); // 1/4 second
             } catch (InterruptedException e) {
             }
         }

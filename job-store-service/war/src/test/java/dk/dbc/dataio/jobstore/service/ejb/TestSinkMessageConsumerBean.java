@@ -39,10 +39,10 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
          return chunksReceived;
      }
 
-     static void waitForDeliveringOfChunks(int numberOfChunksToWaitFor) throws Exception {
+     static void waitForDeliveringOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
          StopWatch timer=new StopWatch();
          if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
-             throw new Exception("Unittest Errors unable to Aacquire "+ numberOfChunksToWaitFor + " in 10 Seconds");
+             throw new Exception("Unittest Errors unable to Acquire "+ numberOfChunksToWaitFor + " in 10 Seconds : "+message);
          }
          LOGGER.info("Waiting in took waitForDeliveringOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
      }

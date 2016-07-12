@@ -4,10 +4,10 @@ import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueMode.bulkSubmit;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueMode.directSubmit;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueMode.transitionToDirectSubmit;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.sinkStatusMap;
-import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,8 +18,6 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import java.util.List;
 
 /**
  * Created by ja7 on 03-07-16.
@@ -37,38 +35,8 @@ public class JobSchedulerBulkSubmitterBean {
     @JobstoreDB
     EntityManager entityManager;
 
-
-    @EJB // TODO be removed when Delivering Modes is set for
-    JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
-
     @EJB
     JobSchedulerBean jobSchedulerBean;
-
-
-    private void bulkScheduleToDeliveringForSink(long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus ) {
-
-        int queuedToDelivering= sinkQueueStatus.jmsEnqueued.intValue();
-        LOGGER.info("bulkScheduleToDeliveringForSink: {} / {}-{}", sinkId, queuedToDelivering, sinkQueueStatus.readyForQueue.intValue() );
-        int spaceInQueue = MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK - queuedToDelivering;
-
-        if( spaceInQueue > 0 ) {
-            LOGGER.info("Space for more jobs for delivering {}<{} select limited to {}", queuedToDelivering, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK, spaceInQueue);
-
-            Query query= entityManager.createQuery("select e from DependencyTrackingEntity e where e.sinkid=:sinkId and e.status=:state order by e.key.jobId, e.key.chunkId")
-            .setParameter("sinkId", sinkId )
-            .setParameter("state", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER)
-            .setMaxResults(spaceInQueue);
-
-            List<DependencyTrackingEntity> chunks=query.getResultList();
-            LOGGER.info(" found {} chunks ready for delivering max({})", chunks.size(), spaceInQueue );
-            for( DependencyTrackingEntity toSchedule : chunks ) {
-                DependencyTrackingEntity.Key toScheduleKey=toSchedule.getKey();
-                LOGGER.info(" Chunk ready to schedule {} for Delivering" ,toScheduleKey);
-                jobSchedulerTransactionsBean.submitToDeliveringNewTransaction( jobSchedulerTransactionsBean.getProcessedChunkFrom( toSchedule ), sinkQueueStatus);
-            }
-        }
-        // Todo reset to directDelivery mode if ReadyToDeliver is low
-    }
 
     @Schedule(second="*/1", minute="*",hour="*", persistent=false)
     @Stopwatch
@@ -76,60 +44,85 @@ public class JobSchedulerBulkSubmitterBean {
     void bulkScheduleChunksForDelivering() {
 
         sinkStatusMap.forEach( Long.MAX_VALUE,  (sinkId, sinkQueueStatus) -> {
-            LOGGER.info("prSink Delivering Mode for sink {} is {}", sinkId, sinkQueueStatus.deliveringStatus.getMode());
-            if(sinkQueueStatus.isDeliveringModeDirectSubmit() ) return;
-            bulkScheduleToDeliveringForSink( sinkId, sinkQueueStatus.deliveringStatus );
+            JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus =sinkQueueStatus.deliveringStatus;
+            LOGGER.info("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
+
+            if( queueStatus.getMode() == directSubmit) return;
+
+            doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
         });
     }
 
 
     @Schedule(second = "*/1", minute = "*", hour = "*", persistent = false)
     @Stopwatch
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
     void bulkScheduleChunksForProcessing() {
         sinkStatusMap.forEach(Long.MAX_VALUE, (sinkId, sinkQueueStatus) -> {
             JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus =sinkQueueStatus.processingStatus;
-            LOGGER.info("prSink Processing Mode for sink {} is {}", sinkId, queueStatus.getMode());
+            LOGGER.info("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
 
-            // Ignore queues in DirectSubmitMode
-            if (queueStatus.isDirectSubmitMode()) return;
+            if (queueStatus.getMode() == directSubmit) return;
 
-            LOGGER.info("psSink processing queue test {} < {} -> {} ",queueStatus.readyForQueue.intValue(), ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 2 ),queueStatus.readyForQueue.intValue() < ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 2 ));
-            if( queueStatus.readyForQueue.intValue() < ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 2 )) {
-                LOGGER.info("psSink processing Queue starting switch to DirectMode");
-                queueStatus.setMode( transitionToDirectSubmit );
-                queueStatus.bulkToDirectCleanUpPushes = 0;
-            }
-
-
-            // If no Async Future exists call async
-            if( queueStatus.lastAsyncPushResult==null ) {
-                queueStatus.lastAsyncPushResult = jobSchedulerBean.bulkScheduleToProcessingForSink(sinkId, sinkQueueStatus.processingStatus);
-                return ;
-            }
-            LOGGER.info("Processing Async Result for sink {}, readyForQueue({}), jmsEnqueued({})", sinkId, queueStatus.readyForQueue.intValue(), queueStatus.jmsEnqueued.intValue());
-            // A Future is present
-            // If not done wait
-            int lastAsyncPushedToQueue=0;
-            if( !queueStatus.lastAsyncPushResult.isDone() ) return;
-            try {
-                lastAsyncPushedToQueue=queueStatus.lastAsyncPushResult.get();
-            } catch (Throwable e) {
-                LOGGER.error("Exception thrown by Async Push ",e);
-            }
-            queueStatus.lastAsyncPushResult=null;
-
-            if( queueStatus.getMode() == transitionToDirectSubmit ) {
-                queueStatus.bulkToDirectCleanUpPushes++;
-            }
-
-
-            // Check of done traisition to directMode is complete
-
-            if(( queueStatus.bulkToDirectCleanUpPushes > 2) && lastAsyncPushedToQueue == 0)   {
-                queueStatus.setMode( directSubmit );
-            }
+            doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK);
 
 
         });
+    }
+
+    // Enum used for Logging and Knowning which phase of the system we are jmsBulkQueuing for
+    private enum ProcessingOrDelivering {
+        Processing,
+        Delivering
+    }
+
+
+    private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase, int maxNumberOfChunksInQueuePerSink) {
+        LOGGER.info("psSink {} queue test {} < {} -> {} ", phase, queueStatus.readyForQueue.intValue(), ( maxNumberOfChunksInQueuePerSink / 2 ),queueStatus.readyForQueue.intValue() < ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 2 ));
+        if( (queueStatus.getMode() == bulkSubmit) &&
+            (queueStatus.readyForQueue.intValue() < ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 3 )) )
+        {
+            LOGGER.info("psSink {} Queue starting switch to DirectMode", phase);
+            queueStatus.setMode( transitionToDirectSubmit );
+            queueStatus.bulkToDirectCleanUpPushes = 0;
+        }
+
+
+        // If no Async Future exists call async
+        if( queueStatus.lastAsyncPushResult==null ) {
+            switch (phase) {
+                case Processing:
+                    queueStatus.lastAsyncPushResult = jobSchedulerBean.bulkScheduleToProcessingForSink( sinkId, queueStatus);
+                    break;
+                case Delivering:
+                    queueStatus.lastAsyncPushResult = jobSchedulerBean.bulkScheduleToDeliveringForSink( sinkId, queueStatus);
+                    break;
+            }
+            return ;
+        }
+
+        LOGGER.info("{} Async Result for sink {}, readyForQueue({}), jmsEnqueued({})", phase, sinkId, queueStatus.readyForQueue.intValue(), queueStatus.jmsEnqueued.intValue());
+        // A Future is present
+        // If not done wait
+        int lastAsyncPushedToQueue=0;
+        if( !queueStatus.lastAsyncPushResult.isDone() ) return;
+        try {
+            lastAsyncPushedToQueue=queueStatus.lastAsyncPushResult.get();
+        } catch (Throwable e) {
+            LOGGER.error("Exception thrown by Async Push to {} ", phase, e);
+        }
+        queueStatus.lastAsyncPushResult=null;
+
+        if( queueStatus.getMode() == transitionToDirectSubmit ) {
+            queueStatus.bulkToDirectCleanUpPushes++;
+        }
+
+
+        // Check of done traisition to directMode is complete
+
+        if(( queueStatus.bulkToDirectCleanUpPushes > 2) && lastAsyncPushedToQueue == 0)   {
+            LOGGER.info("prSink {} {} queue switched to {}",sinkId, phase, directSubmit);
+            queueStatus.setMode( directSubmit );
+        }
     }
 }

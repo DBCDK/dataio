@@ -87,7 +87,7 @@ public class TaskQueueTest {
         assertThat("queue.size() after second poll", queue.size(), is(0));
         assertThat("recordId1", recordId1, is(expectedRecordId1));
         assertThat("recordId2", recordId2, is(expectedRecordId2));
-        assertThat("", task.getStatus(), is(HarvestTask.Status.COMPLETED));
+        assertThat("task status", task.getStatus(), is(HarvestTask.Status.COMPLETED));
     }
 
     @Test

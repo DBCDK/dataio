@@ -158,6 +158,11 @@ public class JobSchedulerTransactionsBean {
             return;
         }
 
+        // recheck check if chunk is found by bulk and directSubmit mode
+        if ( dependencyTrackingEntity.getStatus() != DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS ) {
+            return;
+        }
+
         dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS);
         try {
             jobProcessorMessageProducerBean.send(getChunkFrom(chunk));
@@ -207,8 +212,11 @@ public class JobSchedulerTransactionsBean {
     }
 
 
-    public void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus) {
-
+    private void submitToDelivering(Chunk chunk, DependencyTrackingEntity dependencyTrackingEntity, JobSchedulerPrSinkQueueStatuses.QueueStatus sinkStatus) {
+        // recheck with chunk status with chunk Locked before sending to
+        if( dependencyTrackingEntity.getStatus() != DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER ) {
+            return;
+        }
 
         final JobEntity jobEntity = jobStoreRepository.getJobEntityById((int) chunk.getJobId());
         // Chunk is ready for Sink

@@ -1,5 +1,6 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -36,6 +37,11 @@ class JobSchedulerPrSinkQueueStatuses {
         private JobSchedulerBean.QueueMode queueMode = JobSchedulerBean.QueueMode.directSubmit;
         final ReadWriteLock modeLock = new ReentrantReadWriteLock();
 
+        //
+        // owned by and updaded by Singleton JobSchedulerBulkSubmitterBean
+        public Future<Integer> lastAsyncPushResult=null;
+        public int bulkToDirectCleanUpPushes;
+
 
         void setMode(JobSchedulerBean.QueueMode newMode) {
             modeLock.writeLock().lock();
@@ -56,7 +62,7 @@ class JobSchedulerPrSinkQueueStatuses {
         }
 
         boolean isDirectSubmitMode() {
-                return getMode() == JobSchedulerBean.QueueMode.directSubmit;
+                return getMode() != JobSchedulerBean.QueueMode.bulkSubmit;
         }
 
     }

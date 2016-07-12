@@ -53,6 +53,7 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by ja7 on 11-04-16.
@@ -265,7 +266,8 @@ public class JobSchedulerBeanArquillianIT {
 
 
     /*
-
+      The Tests use a queue limit on 10 chunks. And tests by submitting 13 chunks.
+      and forces handle 3 chunks one at a time.
      */
     @Test
     public void RateLimits() throws Exception {
@@ -275,27 +277,41 @@ public class JobSchedulerBeanArquillianIT {
         // when there is only space for 10 chunks to sink 1
         Sink sink1 = new SinkBuilder().setId(1).build();
 
+        JobSchedulerPrSinkQueueStatuses sinkStatus=JobSchedulerBean.getPrSinkStatusForSinkId( sink1.getId());
+
+        assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(true));
+        assertThat("Processing is back to directMode", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(true));
 
         // submit 3.[0-9]
         for( int i=0; i<=9; ++i) {
             jobSchedulerBean.scheduleChunk(new ChunkEntity()
                             .withJobId(3).withChunkId(i)
-                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"+i))),
+                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
                     sink1);
         }
-        // Chunk 3.9 must take last slot before chunk is delayed.
+        // Chunk 3.[0-9] must take last slot before chunk is delayed.
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(10);
 
-        jobSchedulerBean.scheduleChunk(new ChunkEntity()
-                        .withJobId(3).withChunkId(10)
-                        .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f2 10"))),
-                sink1);
+
+
+        for( int i=10; i <= 12; ++i ) {
+            jobSchedulerBean.scheduleChunk(new ChunkEntity()
+                            .withJobId(3).withChunkId(i)
+                            .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
+                    sink1);
+        }
+
+        assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(false));
+        assertThat("Processing is back to directMode", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(true));
+
 
         // then Second chunk is blocked in ready_to_process
         for( int i=0 ; i<=9 ; ++i) {
-            assertThat("Check QUEUED to PROCESS for chunk "+i, getDependencyTrackingEntity(3, 0).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+            assertThat("Check QUEUED to PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
         }
-        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
+        for( int i=10; i <= 12 ; ++i ) {
+            assertThat("Check READY_TO_PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
+        }
 
         // when chunk 3.[0-9] is done..
         for( int i=0; i<=9; ++i) {
@@ -304,53 +320,78 @@ public class JobSchedulerBeanArquillianIT {
                     .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
                     .build()
             );
+            int chunkExpected=10+i;
+            if( chunkExpected <= 12) { // only wait for the 3 ekstra chunks
+                TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
+                assertThat("Check QUEUED to PROCESS for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+                assertThat("Processing status after chunk "+chunkExpected, sinkStatus.processingStatus.isDirectSubmitMode(),is(false));
+            }
         }
 
-        // Wait for chunk 3.1 to be sendto to processing
-        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks(1);
-        // then chunk 3,1 is sent to processing
-        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
 
-        for( int i=0; i<=9; i++ ) {
-            assertThat("Chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        // Mark last chunks done for chunks 10-12
+        for( int i=10; i<=12; ++i) {
+            jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3).setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
+                    .build()
+            );
         }
 
-        // Chunk 3.0 sent to delivering
+        assertThat("DeliveringStatus after 13 chunks went tru processing ", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(false));
 
-        // When chunk 3.1 is done processing
-        jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
-                .setJobId(3)
-                .setChunkId(10)
-                .appendItem(new ChunkItemBuilder().setData("ProcessedChunk").build())
-                .build()
-        );
-
-        JPATestUtils.clearEntityManagerCache(entityManager);
-        // Then chunk 3.1 i blocked by 3.0 in sink -- It waits for space in queue to Delivering
-        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
-
-
+        //
+        // Done Testing processing Queue.. 21 chunks passed on for Delivery
+        //
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks(10);
-
-        // When 3.[0-9] is returned from sink
-        for( int i=0; i <= 9; ++i ) {
-            jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
-                    .setJobId(3)
-                    .setChunkId(i)
-                    .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
-                    .build());
+        for( int i=0; i<=9; ++i) {
+            assertThat("Check QUEUED_TO_DELIVERY for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        }
+        for( int i=10; i<=12; ++i ) {
+            assertThat("Check READY_TO_DELIVER for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
         }
 
-        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
-        // Then chunk 3.1 is released to Sink
-        assertThat(getDependencyTrackingEntity(3, 10).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+        // Mark Chunks Done from delivering one by one
+        // when chunk 3.[0-9] is done..
+        for( int i=0; i<=10; ++i) {
+            jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3).setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
+                    .build()
+            );
 
-        jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
-                .setJobId(3)
-                .setChunkId(10)
-                .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
-                .build());
+            int chunkExpected=10+i;
+            if( chunkExpected <= 12 ) {
+                TestSinkMessageConsumerBean.waitForDeliveringOfChunks(1);
+                assertThat("Check QUEUED_TO_DELIVERY for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
+            }
+        }
 
+
+        // Mark last chunks done for chunks 11-12
+        for( int i=11; i<=12; ++i) {
+            jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3).setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
+                    .build()
+            );
+        }
+
+
+        waitForDirectSubmitModeIs( sinkStatus.processingStatus, JobSchedulerBean.QueueMode.directSubmit);
+
+        assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(true));
+        assertThat("Delivering is back to directMode", sinkStatus.deliveringStatus.isDirectSubmitMode(),is(false));
+    }
+
+    public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus qstatus, JobSchedulerBean.QueueMode expected ) {
+        for(int i=0; i<12 ; ++i) {
+            if( qstatus.getMode() == expected) return;
+            try {
+                TimeUnit.MICROSECONDS.sleep( 250 ); // 1/4 second
+            } catch (InterruptedException e) {
+            }
+        }
 
     }
 

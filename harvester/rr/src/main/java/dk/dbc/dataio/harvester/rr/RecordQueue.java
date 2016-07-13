@@ -30,4 +30,6 @@ public interface RecordQueue {
     RecordId poll() throws HarvesterException;
 
     int size();
+
+    void commit();
 }

@@ -27,6 +27,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.rawrepo.RecordId;
 
 import javax.persistence.EntityManager;
+import java.sql.Timestamp;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -45,9 +46,9 @@ public class TaskQueue implements RecordQueue {
     public TaskQueue(RRHarvesterConfig config, EntityManager entityManager) {
         this.config = config;
         this.entityManager = entityManager;
-        final Optional<HarvestTask> nextWaitingTask = findNextWaitingTask();
-        if (nextWaitingTask.isPresent()) {
-            this.task = nextWaitingTask.get();
+        final Optional<HarvestTask> readyTask = findNextReadyTask();
+        if (readyTask.isPresent()) {
+            this.task = readyTask.get();
         } else {
             this.task = new HarvestTask();
             this.task.setRecordIds(Collections.emptyList());
@@ -79,9 +80,6 @@ public class TaskQueue implements RecordQueue {
         final RecordId peek = peek();
         if (peek != null) {
             cursor++;
-            if (size() == 0) {
-                task.setStatus(HarvestTask.Status.COMPLETED);
-            }
         }
         head = null;
         return peek;
@@ -92,8 +90,14 @@ public class TaskQueue implements RecordQueue {
         return task.getRecordIds().size() - cursor;
     }
 
-    private Optional<HarvestTask> findNextWaitingTask() {
-        final List<HarvestTask> tasks = entityManager.createNamedQuery(HarvestTask.QUERY_FIND_WAITING)
+    @Override
+    public void commit() {
+        task.setStatus(HarvestTask.Status.COMPLETED);
+        task.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+    }
+
+    private Optional<HarvestTask> findNextReadyTask() {
+        final List<HarvestTask> tasks = entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY)
                 .setParameter("configId", config.getId())
                 .setMaxResults(1)
                 .getResultList();

@@ -491,7 +491,7 @@ public class HarvestOperationTest {
     @Test
     public void execute_whenRawRepoQueueIsEmpty_fallsBackToTaskQueue() throws RawRepoException, SQLException, HarvesterException {
         final Query query = mock(Query.class);
-        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_WAITING)).thenReturn(query);
+        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY)).thenReturn(query);
         when(query.setParameter(eq("configId"), anyInt())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
@@ -501,7 +501,7 @@ public class HarvestOperationTest {
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);
 
-        verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_WAITING);
+        verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_READY);
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {

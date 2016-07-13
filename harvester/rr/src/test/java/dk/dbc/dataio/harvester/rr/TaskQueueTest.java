@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -47,7 +48,7 @@ public class TaskQueueTest {
 
     @Before
     public void setupMocks() {
-        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_WAITING)).thenReturn(query);
+        when(entityManager.createNamedQuery(HarvestTask.QUERY_FIND_READY)).thenReturn(query);
         when(query.setParameter("configId", config.getId())).thenReturn(query);
         when(query.setMaxResults(1)).thenReturn(query);
     }
@@ -87,7 +88,6 @@ public class TaskQueueTest {
         assertThat("queue.size() after second poll", queue.size(), is(0));
         assertThat("recordId1", recordId1, is(expectedRecordId1));
         assertThat("recordId2", recordId2, is(expectedRecordId2));
-        assertThat("task status", task.getStatus(), is(HarvestTask.Status.COMPLETED));
     }
 
     @Test
@@ -107,6 +107,18 @@ public class TaskQueueTest {
         assertThat("queue.size() after second peek", queue.size(), is(1));
         assertThat("recordId1", recordId1, is(expectedRecordId));
         assertThat("recordId2", recordId2, is(expectedRecordId));
+    }
+
+    @Test
+    public void commit_setsStatusAndTimeOfCompletion() {
+        final HarvestTask task = new HarvestTask();
+        task.setRecordIds(Collections.emptyList());
+        when(query.getResultList()).thenReturn(Collections.singletonList(task));
+
+        final TaskQueue queue = createQueue();
+        queue.commit();
+        assertThat("task status", task.getStatus(), is(HarvestTask.Status.COMPLETED));
+        assertThat("task timeOfCompletion", task.getTimeOfCompletion(), is(notNullValue()));
     }
 
     private TaskQueue createQueue() {

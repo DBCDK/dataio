@@ -41,11 +41,11 @@ import java.util.List;
 @Entity
 @Table(name = "task")
 @NamedQueries(
-    @NamedQuery(name = HarvestTask.QUERY_FIND_WAITING,
-        query = "SELECT task FROM HarvestTask task where task.configId = :configId AND task.status = 'WAITING' ORDER BY task.id ASC")
+    @NamedQuery(name = HarvestTask.QUERY_FIND_READY,
+        query = "SELECT task FROM HarvestTask task where task.configId = :configId AND task.status = 'READY' ORDER BY task.id ASC")
 )
 public class HarvestTask {
-    public static final String QUERY_FIND_WAITING = "HarvestTask.findWaiting";
+    public static final String QUERY_FIND_READY = "HarvestTask.findReady";
 
     public enum Status {
         WAITING_TO_EXPAND,  // waiting to be split up into sub tasks

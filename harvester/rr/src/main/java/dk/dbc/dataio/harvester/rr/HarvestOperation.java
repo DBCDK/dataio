@@ -155,6 +155,8 @@ public class HarvestOperation {
         }
         flushHarvesterJobBuilders();
 
+        recordQueue.commit();
+
         LOGGER.info("Harvested {} items from {} queue in {} ms",
                 itemsHarvested, configContent.getConsumerId(), stopWatch.getElapsedTime());
 

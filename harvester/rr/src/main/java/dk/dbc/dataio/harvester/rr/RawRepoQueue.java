@@ -77,6 +77,9 @@ public class RawRepoQueue implements RecordQueue {
         return head == null ? 0 : 1;
     }
 
+    @Override
+    public void commit() { }
+
     private RecordId head() throws HarvesterException {
         try {
             final QueueJob queueJob = rawRepoConnector.dequeue(config.getConsumerId());

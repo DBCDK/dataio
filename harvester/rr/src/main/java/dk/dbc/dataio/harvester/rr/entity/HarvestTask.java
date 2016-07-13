@@ -42,7 +42,7 @@ import java.util.List;
 @Table(name = "task")
 @NamedQueries(
     @NamedQuery(name = HarvestTask.QUERY_FIND_READY,
-        query = "SELECT task FROM HarvestTask task where task.configId = :configId AND task.status = 'READY' ORDER BY task.id ASC")
+        query = "SELECT task FROM HarvestTask task WHERE task.configId = :configId AND task.status = dk.dbc.dataio.harvester.rr.entity.HarvestTask.Status.READY ORDER BY task.id ASC")
 )
 public class HarvestTask {
     public static final String QUERY_FIND_READY = "HarvestTask.findReady";

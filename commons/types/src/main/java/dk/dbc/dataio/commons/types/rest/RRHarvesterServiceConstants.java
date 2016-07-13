@@ -19,22 +19,12 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr.rest;
+package dk.dbc.dataio.commons.types.rest;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+public class RRHarvesterServiceConstants {
+    public static final String HARVEST_ID_VARIABLE = "harvest-id";
 
-/**
- * This class defines the other classes that make up this JAX-RS application by
- * having the getClasses method return a specific set of resources.
- */
-@ApplicationPath("/")
-public class HarvesterApplication extends Application {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return new HashSet<>(Arrays.asList(HarvestTasksBean.class, StatusBean.class));
-    }
+    public static final String HARVEST_TASKS = "harvests/{harvest-id}/tasks";
+
+    private RRHarvesterServiceConstants() { }
 }

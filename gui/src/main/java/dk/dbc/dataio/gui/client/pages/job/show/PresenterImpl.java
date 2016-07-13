@@ -25,14 +25,18 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
+import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+
+import java.util.List;
 
 
 /**
@@ -146,6 +150,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         return workflowNoteModel;
     }
 
+    /**
+     * Re runs a series of jobs, based on the input list jobIds
+     * @param jobIds The jobs to rerun
+     */
+    public void rerunJobs(List<String> jobIds) {
+        Window.alert("Jobs:\n" + Format.commaSeparate(jobIds) + "\nImplementationen er på vej...");
+    }
 
     /*
      * Private methods

@@ -97,6 +97,14 @@
         .jobsTable tbody td {
             padding: 0 3px;
         }
+
+        .rerunJobsDialogBox {
+            width: 20em;
+        }
+
+        .rerunConfirmationText {
+            font-size: larger;
+        }
     </ui:style>
 
     <g:HTMLPanel styleName="{style.outerHtmlPanel}">
@@ -135,6 +143,18 @@
 
         <c:CellTable pageSize='20' ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
         <c:SimplePager ui:field="pagerBottom"/>
+
+        <g:DialogBox ui:field="rerunAllShownJobsConfirmationDialog" autoHide="true" modal="true" addStyleNames="{style.rerunJobsDialogBox}">
+            <g:caption><b><ui:text from="{txt.label_RerunConfirmationCaption}"/></b></g:caption>
+            <g:HTMLPanel>
+                <g:Label ui:field="rerunJobsCount"/>
+                <g:Label ui:field="rerunJobsList"/>
+                <hr/>
+                <g:Label ui:field="rerunJobsConfirmation" styleName="{style.rerunConfirmationText}"/>
+                <g:Button ui:field="rerunOkButton" text="{txt.button_RerunOk}"/>
+                <g:Button ui:field="rerunCancelButton" text="{txt.button_RerunCancel}"/>
+            </g:HTMLPanel>
+        </g:DialogBox>
 
     </g:HTMLPanel>
 

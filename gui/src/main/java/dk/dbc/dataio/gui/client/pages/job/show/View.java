@@ -54,14 +54,15 @@ import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.gui.client.util.Format;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
  * This class is the View class for the New Jobs Show View
  */
 public class View extends ViewWidget {
-    @SuppressWarnings("unused")
-    protected static final int IS_FIXED_COLUMN = 1;
     protected static final int ASSIGNEE_COLUMN = 2;
 
     ViewJobsGinjector viewInjector = GWT.create(ViewJobsGinjector.class);
@@ -125,9 +126,37 @@ public class View extends ViewWidget {
 
     /**
      * Reruns all shown jobs on the current page
+     * This method is un-confirmed, meaning the purpose is to ask the user if a re-run is really wanted
+     * If this is the case, call the confirmed rerunAllShownJobs method (rerunAllShownJobsConfirmed)
      */
     void rerunAllShownJobs() {
-        Window.alert("Genkør samtlige viste jobs - mangler implementation");
+        int count = jobsTable.getVisibleItemCount();
+        switch (count) {
+            case 0:
+                setDialogTexts("", getTexts().error_NoJobsToRerun(), "");
+                rerunOkButton.setVisible(false);
+                break;
+            case 1:
+                setDialogTexts(getTexts().label_RerunJob(), Format.commaSeparate(getShownJobIds()), getTexts().label_RerunJobConfirmation());
+                rerunOkButton.setVisible(true);
+                break;
+            default:  // count > 1
+                setDialogTexts(
+                        Format.macro(getTexts().label_RerunJobs(), "COUNT", String.valueOf(count)),
+                        Format.commaSeparate(getShownJobIds()),
+                        getTexts().label_RerunJobsConfirmation()
+                );
+                rerunOkButton.setVisible(true);
+                break;
+        }
+        rerunAllShownJobsConfirmationDialog.show();
+    }
+
+    /**
+     * Reruns all shown jobs on the current page (now the user has confirmed the action)
+     */
+    void rerunAllShownJobsConfirmed() {
+        presenter.rerunJobs(getShownJobIds());
     }
 
 
@@ -135,6 +164,32 @@ public class View extends ViewWidget {
      * Private methods
      */
 
+    /**
+     * Sets the three texts in the Confirmation Dialog Box
+     * @param count The text to set for the jobs counter
+     * @param list The text to set for the jobs list
+     * @param confirmation The text to set for the confirmation text
+     */
+    private void setDialogTexts(String count, String list, String confirmation) {
+        rerunJobsCount.setText(count);
+        rerunJobsList.setText(list);
+        rerunJobsConfirmation.setText(confirmation);
+    }
+
+    /**
+     * Finds all job id's from the shown jobs in the jobs table
+     * @return List of Job Ids
+     */
+    private List<String> getShownJobIds() {
+        List<String> jobIds = new ArrayList<>();
+        int count = jobsTable.getVisibleItemCount();
+        for (int i=0; i<count; i++) {
+            JobModel model = (JobModel) jobsTable.getVisibleItem(i);
+            jobIds.add(model.getJobId());
+        }
+        Collections.sort(jobIds, (o1, o2) -> Integer.valueOf(o1).compareTo(Integer.valueOf(o2)));
+        return jobIds;
+    }
 
     /**
      * This method sets up all columns in the view
@@ -184,7 +239,7 @@ public class View extends ViewWidget {
                             previousId = jobModel.getPreviousJobIdAncestry();
                         }
                         if (previousId != null && !previousId.equals("0")) {
-                            sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_ReRunJobNo() + " " + previousId + "'>"));
+                            sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + getTexts().label_RerunJobNo() + " " + previousId + "'>"));
                         }
                         sb.append(renderer.render(value));
                         if (previousId != null && !previousId.equals("0")) {
@@ -568,7 +623,7 @@ public class View extends ViewWidget {
 
         @Override
         public ImageResource getValue(JobModel model) {
-            if (model.getPreviousJobIdAncestry() != null && !model.getPreviousJobIdAncestry().equals("0")) {
+            if (model != null && model.getPreviousJobIdAncestry() != null && !model.getPreviousJobIdAncestry().equals("0")) {
                 return resources.recycleIcon();
             } else {
                 return resources.emptyIcon();

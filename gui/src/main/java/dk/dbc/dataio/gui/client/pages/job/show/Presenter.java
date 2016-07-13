@@ -25,6 +25,8 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
+import java.util.List;
+
 public interface Presenter extends GenericPresenter {
     void itemSelected(JobModel jobModel);
     void updateSelectedJobs();
@@ -33,4 +35,5 @@ public interface Presenter extends GenericPresenter {
     void editJob(JobModel rowModel);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
     WorkflowNoteModel preProcessAssignee(String assignee);
+    void rerunJobs(List<String> jobIds);
 }

@@ -33,7 +33,9 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.SimplePager;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextBox;
@@ -59,7 +61,10 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     public ViewWidget(String headerText) {
         super(headerText);
         add(uiBinder.createAndBindUi(this));
-        this.allJobsButton.setValue(true);
+        allJobsButton.setValue(true);
+        rerunAllShownJobsConfirmationDialog.show();  // First show the DialogBox in order to add it to the DOM
+        rerunAllShownJobsConfirmationDialog.hide();  // ... but we don't want it shown upon startup - so hide it again
+        rerunAllShownJobsConfirmationDialog.center();
     }
 
     // UI Fields
@@ -75,6 +80,11 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Button rerunAllShownJobsButton;
     @UiField TextBox jobIdInputField;
     @UiField PushButton showJobButton;
+    @UiField DialogBox rerunAllShownJobsConfirmationDialog;
+    @UiField Label rerunJobsCount;
+    @UiField Label rerunJobsList;
+    @UiField Label rerunJobsConfirmation;
+    @UiField Button rerunOkButton;
 
 
     @UiFactory SimplePager makeSimplePager() {
@@ -105,7 +115,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiHandler("rerunAllShownJobsButton")
     @SuppressWarnings("unused")
-    void setRerunAllFilteredJobsButtonPressed(ClickEvent event) {
+    void setRerunAllShownJobsButtonPressed(ClickEvent event) {
         rerunAllShownJobs();
     }
 
@@ -122,7 +132,22 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         }
     }
 
+    @UiHandler("rerunOkButton")
+    @SuppressWarnings("unused")
+    void onRerunOkButtonClick(ClickEvent event) {
+        rerunAllShownJobsConfirmed();
+        rerunAllShownJobsConfirmationDialog.hide();
+    }
+
+    @UiHandler("rerunCancelButton")
+    @SuppressWarnings("unused")
+    void onRerunCancelButtonClick(ClickEvent event) {
+        rerunAllShownJobsConfirmationDialog.hide();  // Just hide - do nothing else...
+    }
+
+
     // Abstract methods
     abstract void rerunAllShownJobs();
+    abstract void rerunAllShownJobsConfirmed();
 
 }

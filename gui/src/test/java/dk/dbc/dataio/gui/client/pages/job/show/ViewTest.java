@@ -106,22 +106,43 @@ public class ViewTest {
 
     // Mocked Texts
     @Mock static Texts mockedTexts;
-    final static String MOCKED_LABEL_JOBS = "Mocked Label Jobs";
-    final static String MOCKED_COLUMN_HEADER_JOB_CREATION_TIME = "Mocked Column Header Job Creation Time";
-    final static String MOCKED_COLUMN_HEADER_JOB_ID = "Mocked Column Header Job Id";
-    final static String MOCKED_COLUMN_HEADER_SUBMITTER = "Mocked Column Header Submitter";
-    final static String MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME = "Mocked Column Header Flow Binder Name";
-    final static String MOCKED_COLUMN_HEADER_SINK_NAME = "Mocked Column Header Sink Name";
-    final static String MOCKED_COLUMN_HEADER_ITEM_COUNTER = "Mocked Column Header Item Counter";
-    final static String MOCKED_COLUMN_HEADER_FAILED = "Mocked Column Header Failed";
-    final static String MOCKED_COLUMN_HEADER_IGNORED = "Mocked Column Header Ignored";
-    final static String MOCKED_COLUMN_HEADER_PROGRESS = "Mocked Column Header Progress";
-    final static String MOCKED_COLUMN_HEADER_JOB_STATUS = "Mocked Column Header Job Status";
-    final static String MOCKED_COLUMN_HEADER_IS_FIXED = "Mocked Column Header Fixed";
-    final static String MOCKED_COLUMN_HEADER_ASSIGNEE = "Mocked Column Header Assignee";
-    final static String MOCKED_BUTTON_RERUN_JOB = "Mocked Button Rerun Job";
-    final static String MOCKED_LABEL_RERUN_JOB_NO = "Mocked Label Rerun Job No";
-
+    final static String MOCKED_LABEL_JOBS = "Mocked Text: label_Jobs";
+    final static String MOCKED_LABEL_JOBID = "Mocked Text: label_JobId";
+    final static String MOCKED_LABEL_RERUNJOBNO = "Mocked Text: label_RerunJobNo";
+    final static String MOCKED_LABEL_RERUNJOB = "Mocked Text: label_RerunJob";
+    final static String MOCKED_LABEL_RERUNJOBS = "Mocked Text: label_RerunJobs - count = @COUNT@";
+    final static String MOCKED_LABEL_RERUNCONFIRMATIONCAPTION = "Mocked Text: label_RerunConfirmationCaption";
+    final static String MOCKED_LABEL_RERUNJOBCONFIRMATION = "Mocked Text: label_RerunJobConfirmation";
+    final static String MOCKED_LABEL_RERUNJOBSCONFIRMATION = "Mocked Text: label_RerunJobsConfirmation";
+    final static String MOCKED_COLUMNHEADER_JOBID = "Mocked Text: columnHeader_JobId";
+    final static String MOCKED_COLUMNHEADER_SUBMITTER = "Mocked Text: columnHeader_Submitter";
+    final static String MOCKED_COLUMNHEADER_FLOWBINDERNAME = "Mocked Text: columnHeader_FlowBinderName";
+    final static String MOCKED_COLUMNHEADER_SINKNAME = "Mocked Text: columnHeader_SinkName";
+    final static String MOCKED_COLUMNHEADER_TOTALCHUNKCOUNT = "Mocked Text: columnHeader_TotalChunkCount";
+    final static String MOCKED_COLUMNHEADER_JOBCREATIONTIME = "Mocked Text: columnHeader_JobCreationTime";
+    final static String MOCKED_COLUMNHEADER_FAILURECOUNTER = "Mocked Text: columnHeader_FailureCounter";
+    final static String MOCKED_COLUMNHEADER_IGNOREDCOUNTER = "Mocked Text: columnHeader_IgnoredCounter";
+    final static String MOCKED_COLUMNHEADER_PROGRESSBAR = "Mocked Text: columnHeader_ProgressBar";
+    final static String MOCKED_COLUMNHEADER_JOBSTATUS = "Mocked Text: columnHeader_JobStatus";
+    final static String MOCKED_COLUMNHEADER_ACTION = "Mocked Text: columnHeader_Action";
+    final static String MOCKED_COLUMNHEADER_FIXED = "Mocked Text: columnHeader_Fixed";
+    final static String MOCKED_COLUMNHEADER_ASSIGNEE = "Mocked Text: columnHeader_Assignee";
+    final static String MOCKED_BUTTON_ALLJOBS = "Mocked Text: button_AllJobs";
+    final static String MOCKED_BUTTON_PROCESSINGFAILEDJOBS = "Mocked Text: button_ProcessingFailedJobs";
+    final static String MOCKED_BUTTON_DELIVERINGFAILEDJOBS = "Mocked Text: button_DeliveringFailedJobs";
+    final static String MOCKED_BUTTON_FATALJOBS = "Mocked Text: button_FatalJobs";
+    final static String MOCKED_BUTTON_REFRESH = "Mocked Text: button_Refresh";
+    final static String MOCKED_BUTTON_SHOWJOB = "Mocked Text: button_ShowJob";
+    final static String MOCKED_BUTTON_RERUNJOB = "Mocked Text: button_RerunJob";
+    final static String MOCKED_BUTTON_RERUNALLSHOWNJOBS = "Mocked Text: button_RerunAllShownJobs";
+    final static String MOCKED_BUTTON_RERUNOK = "Mocked Text: button_RerunOk";
+    final static String MOCKED_BUTTON_RERUNCANCEL = "Mocked Text: button_RerunCancel";
+    final static String MOCKED_ERROR_INPUTFIELDVALIDATIONERROR = "Mocked Text: error_InputFieldValidationError";
+    final static String MOCKED_ERROR_NUMERICINPUTFIELDVALIDATIONERROR = "Mocked Text: error_NumericInputFieldValidationError";
+    final static String MOCKED_ERROR_JOBNOTFOUND = "Mocked Text: error_JobNotFound";
+    final static String MOCKED_ERROR_INPUTCELLVALIDATIONERROR = "Mocked Text: error_InputCellValidationError";
+    final static String MOCKED_ERROR_CHECKBOXCELLVALIDATIONERROR = "Mocked Text: error_CheckboxCellValidationError";
+    final static String MOCKED_ERROR_NOJOBSTORERUN = "Mocked Text: error_NoJobsToRerun";
 
     public class ViewConcrete extends View {
 
@@ -145,20 +166,43 @@ public class ViewTest {
         when(mockedMenuTexts.menu_Jobs()).thenReturn("Header Text");
 
         when(mockedTexts.label_Jobs()).thenReturn(MOCKED_LABEL_JOBS);
-        when(mockedTexts.columnHeader_JobCreationTime()).thenReturn(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME);
-        when(mockedTexts.columnHeader_JobId()).thenReturn(MOCKED_COLUMN_HEADER_JOB_ID);
-        when(mockedTexts.columnHeader_Submitter()).thenReturn(MOCKED_COLUMN_HEADER_SUBMITTER);
-        when(mockedTexts.columnHeader_FlowBinderName()).thenReturn(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME);
-        when(mockedTexts.columnHeader_SinkName()).thenReturn(MOCKED_COLUMN_HEADER_SINK_NAME);
-        when(mockedTexts.columnHeader_TotalChunkCount()).thenReturn(MOCKED_COLUMN_HEADER_ITEM_COUNTER);
-        when(mockedTexts.columnHeader_FailureCounter()).thenReturn(MOCKED_COLUMN_HEADER_FAILED);
-        when(mockedTexts.columnHeader_IgnoredCounter()).thenReturn(MOCKED_COLUMN_HEADER_IGNORED);
-        when(mockedTexts.columnHeader_ProgressBar()).thenReturn(MOCKED_COLUMN_HEADER_PROGRESS);
-        when(mockedTexts.columnHeader_JobStatus()).thenReturn(MOCKED_COLUMN_HEADER_JOB_STATUS);
-        when(mockedTexts.columnHeader_Fixed()).thenReturn(MOCKED_COLUMN_HEADER_IS_FIXED);
-        when(mockedTexts.columnHeader_Assignee()).thenReturn(MOCKED_COLUMN_HEADER_ASSIGNEE);
-        when(mockedTexts.button_RerunJob()).thenReturn(MOCKED_BUTTON_RERUN_JOB);
-        when(mockedTexts.label_ReRunJobNo()).thenReturn(MOCKED_LABEL_RERUN_JOB_NO);
+        when(mockedTexts.label_JobId()).thenReturn(MOCKED_LABEL_JOBID);
+        when(mockedTexts.label_RerunJobNo()).thenReturn(MOCKED_LABEL_RERUNJOBNO);
+        when(mockedTexts.label_RerunJob()).thenReturn(MOCKED_LABEL_RERUNJOB);
+        when(mockedTexts.label_RerunJobs()).thenReturn(MOCKED_LABEL_RERUNJOBS);
+        when(mockedTexts.label_RerunConfirmationCaption()).thenReturn(MOCKED_LABEL_RERUNCONFIRMATIONCAPTION);
+        when(mockedTexts.label_RerunJobConfirmation()).thenReturn(MOCKED_LABEL_RERUNJOBCONFIRMATION);
+        when(mockedTexts.label_RerunJobsConfirmation()).thenReturn(MOCKED_LABEL_RERUNJOBSCONFIRMATION);
+        when(mockedTexts.columnHeader_JobId()).thenReturn(MOCKED_COLUMNHEADER_JOBID);
+        when(mockedTexts.columnHeader_Submitter()).thenReturn(MOCKED_COLUMNHEADER_SUBMITTER);
+        when(mockedTexts.columnHeader_FlowBinderName()).thenReturn(MOCKED_COLUMNHEADER_FLOWBINDERNAME);
+        when(mockedTexts.columnHeader_SinkName()).thenReturn(MOCKED_COLUMNHEADER_SINKNAME);
+        when(mockedTexts.columnHeader_TotalChunkCount()).thenReturn(MOCKED_COLUMNHEADER_TOTALCHUNKCOUNT);
+        when(mockedTexts.columnHeader_JobCreationTime()).thenReturn(MOCKED_COLUMNHEADER_JOBCREATIONTIME);
+        when(mockedTexts.columnHeader_FailureCounter()).thenReturn(MOCKED_COLUMNHEADER_FAILURECOUNTER);
+        when(mockedTexts.columnHeader_IgnoredCounter()).thenReturn(MOCKED_COLUMNHEADER_IGNOREDCOUNTER);
+        when(mockedTexts.columnHeader_ProgressBar()).thenReturn(MOCKED_COLUMNHEADER_PROGRESSBAR);
+        when(mockedTexts.columnHeader_JobStatus()).thenReturn(MOCKED_COLUMNHEADER_JOBSTATUS);
+        when(mockedTexts.columnHeader_Action()).thenReturn(MOCKED_COLUMNHEADER_ACTION);
+        when(mockedTexts.columnHeader_Fixed()).thenReturn(MOCKED_COLUMNHEADER_FIXED);
+        when(mockedTexts.columnHeader_Assignee()).thenReturn(MOCKED_COLUMNHEADER_ASSIGNEE);
+        when(mockedTexts.button_AllJobs()).thenReturn(MOCKED_BUTTON_ALLJOBS);
+        when(mockedTexts.button_ProcessingFailedJobs()).thenReturn(MOCKED_BUTTON_PROCESSINGFAILEDJOBS);
+        when(mockedTexts.button_DeliveringFailedJobs()).thenReturn(MOCKED_BUTTON_DELIVERINGFAILEDJOBS);
+        when(mockedTexts.button_FatalJobs()).thenReturn(MOCKED_BUTTON_FATALJOBS);
+        when(mockedTexts.button_Refresh()).thenReturn(MOCKED_BUTTON_REFRESH);
+        when(mockedTexts.button_ShowJob()).thenReturn(MOCKED_BUTTON_SHOWJOB);
+        when(mockedTexts.button_RerunJob()).thenReturn(MOCKED_BUTTON_RERUNJOB);
+        when(mockedTexts.button_RerunAllShownJobs()).thenReturn(MOCKED_BUTTON_RERUNALLSHOWNJOBS);
+        when(mockedTexts.button_RerunOk()).thenReturn(MOCKED_BUTTON_RERUNOK);
+        when(mockedTexts.button_RerunCancel()).thenReturn(MOCKED_BUTTON_RERUNCANCEL);
+        when(mockedTexts.error_InputFieldValidationError()).thenReturn(MOCKED_ERROR_INPUTFIELDVALIDATIONERROR);
+        when(mockedTexts.error_NumericInputFieldValidationError()).thenReturn(MOCKED_ERROR_NUMERICINPUTFIELDVALIDATIONERROR);
+        when(mockedTexts.error_JobNotFound()).thenReturn(MOCKED_ERROR_JOBNOTFOUND);
+        when(mockedTexts.error_InputCellValidationError()).thenReturn(MOCKED_ERROR_INPUTCELLVALIDATIONERROR);
+        when(mockedTexts.error_CheckboxCellValidationError()).thenReturn(MOCKED_ERROR_CHECKBOXCELLVALIDATIONERROR);
+        when(mockedTexts.error_NoJobsToRerun()).thenReturn(MOCKED_ERROR_NOJOBSTORERUN);
+
     }
 
     //Testing starts here...
@@ -172,16 +216,16 @@ public class ViewTest {
         // Verify invocations
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), isA(View.HideShowColumnHeader.class));
         verify(viewConcrete.jobsTable, times(3)).addColumn(isA(Column.class), isA(View.HidableColumnHeader.class));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_CREATION_TIME));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_ID));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SUBMITTER));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FLOW_BINDER_NAME));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_SINK_NAME));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_ITEM_COUNTER));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_FAILED));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_IGNORED));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_PROGRESS));
-        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMN_HEADER_JOB_STATUS));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOBCREATIONTIME));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOBID));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SUBMITTER));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FLOWBINDERNAME));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_SINKNAME));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TOTALCHUNKCOUNT));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FAILURECOUNTER));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_IGNOREDCOUNTER));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_PROGRESSBAR));
+        verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOBSTATUS));
         verify(viewConcrete.jobsTable).setSelectionModel(isA(SingleSelectionModel.class));
         verify(viewConcrete.jobsTable).addDomHandler(isA(DoubleClickHandler.class), isA(DomEvent.Type.class));
         verify(viewConcrete.jobsTable).setVisibleRange(0, 20);
@@ -248,6 +292,60 @@ public class ViewTest {
         verify(view.jobsTable, times(1)).setVisibleRangeAndClearData(any(Range.class), eq(true));
         verifyNoMoreInteractions(view.jobsTable);
     }
+
+    @Test
+    public void rerunAllShownJobs_countIsZero_noJobsToRerunDialogBox() {
+        // Subject Under Test
+        view = new ViewConcrete();
+        when(view.jobsTable.getVisibleItemCount()).thenReturn(0);
+
+        // Subject Under Test
+        view.rerunAllShownJobs();
+
+        // Verify test
+        verify(view.jobsTable).getVisibleItemCount();
+        verifyDialogBoxOperations("", MOCKED_ERROR_NOJOBSTORERUN, "", false);
+        verifyNoMoreInteractions(view.jobsTable);
+    }
+
+    @Test
+    public void rerunAllShownJobs_countIsOne_oneJobToRerunDialogBox() {
+        // Subject Under Test
+        view = new ViewConcrete();
+        when(view.jobsTable.getVisibleItemCount()).thenReturn(1);
+        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModelBuilder().setJobId("124").build());
+
+        // Subject Under Test
+        view.rerunAllShownJobs();
+
+        // Verify test
+        verify(view.jobsTable, times(2)).getVisibleItemCount();
+        verifyDialogBoxOperations(MOCKED_LABEL_RERUNJOB, "124", MOCKED_LABEL_RERUNJOBCONFIRMATION, true);
+        verify(view.jobsTable).getVisibleItem(0);
+        verifyNoMoreInteractions(view.jobsTable);
+    }
+
+    @Test
+    public void rerunAllShownJobs_countIsThree_threeJobsToRerunDialogBox() {
+        // Subject Under Test
+        view = new ViewConcrete();
+        when(view.jobsTable.getVisibleItemCount()).thenReturn(3);
+        when(view.jobsTable.getVisibleItem(0)).thenReturn(new JobModelBuilder().setJobId("635").build());
+        when(view.jobsTable.getVisibleItem(1)).thenReturn(new JobModelBuilder().setJobId("124").build());
+        when(view.jobsTable.getVisibleItem(2)).thenReturn(new JobModelBuilder().setJobId("784").build());
+
+        // Subject Under Test
+        view.rerunAllShownJobs();
+
+        // Verify test
+        verify(view.jobsTable, times(2)).getVisibleItemCount();
+        verifyDialogBoxOperations("Mocked Text: label_RerunJobs - count = 3", "124, 635, 784", MOCKED_LABEL_RERUNJOBSCONFIRMATION, true);
+        verify(view.jobsTable).getVisibleItem(0);
+        verify(view.jobsTable).getVisibleItem(1);
+        verify(view.jobsTable).getVisibleItem(2);
+        verifyNoMoreInteractions(view.jobsTable);
+    }
+
 
     @Test
     @SuppressWarnings("unchecked")
@@ -329,7 +427,7 @@ public class ViewTest {
         cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
 
         // Verify Test
-        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("<span title='Mocked Label Rerun Job No '>image([Test Image], 11, 22)</span>"));
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("<span title='Mocked Text: label_RerunJobNo '>image([Test Image], 11, 22)</span>"));
     }
 
     @Test
@@ -350,7 +448,7 @@ public class ViewTest {
         cell.render(mockedContext, mockedImageResource, safeHtmlBuilder);
 
         // Verify Test
-        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("<span title='Mocked Label Rerun Job No 1234'>image([Test Image], 11, 22)</span>"));
+        assertThat(safeHtmlBuilder.toSafeHtml().asString(), is("<span title='Mocked Text: label_RerunJobNo 1234'>image([Test Image], 11, 22)</span>"));
     }
 
     @Test
@@ -540,7 +638,7 @@ public class ViewTest {
         Column column = view.constructRerunColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUN_JOB));
+        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
         assertThat(column.getCellStyleNames(null, null), is("visible"));
     }
 
@@ -554,7 +652,7 @@ public class ViewTest {
         Column column = view.constructRerunColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUN_JOB));
+        assertThat(column.getValue(null), is(MOCKED_BUTTON_RERUNJOB));
         assertThat(column.getCellStyleNames(null, null), is("invisible"));
 
         // Test that setFieldUpdater is setup correctly, by calling it and verify behaviour
@@ -564,6 +662,19 @@ public class ViewTest {
         column.getFieldUpdater().update(0, testModel, "bla");
         verify(mockedPresenter).editJob(testModel);
         verifyNoMoreInteractions(mockedPresenter);
+    }
+
+
+    /*
+     * Private methods
+     */
+
+    private void verifyDialogBoxOperations(String count, String list, String confirmation, Boolean hideOkButton) {
+        verify(view.rerunJobsCount).setText(count);
+        verify(view.rerunJobsList).setText(list);
+        verify(view.rerunJobsConfirmation).setText(confirmation);
+        verify(view.rerunOkButton).setVisible(hideOkButton);
+        verify(view.rerunAllShownJobsConfirmationDialog, times(2)).show();
     }
 
 }

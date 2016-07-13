@@ -62,9 +62,10 @@ public class EsSinkConfig implements SinkConfig {
 
         EsSinkConfig that = (EsSinkConfig) o;
 
-        return userId == that.userId
-                && (databaseName != null ? databaseName.equals(that.databaseName) : that.databaseName == null
-                && (esAction != null ? esAction.equals(that.esAction) : that.esAction == null));
+        if (userId != that.userId) return false;
+        if (databaseName != null ? !databaseName.equals(that.databaseName) : that.databaseName != null) return false;
+        return esAction != null ? esAction.equals(that.esAction) : that.esAction == null;
+
     }
 
     @Override

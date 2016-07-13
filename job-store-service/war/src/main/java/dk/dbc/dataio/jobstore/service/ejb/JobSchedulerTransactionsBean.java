@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Created by ja7 on 03-07-16.
  *
- * Helper Bean for JobScheduler and JobSchedulerBulkSubmiterBean
+ * Helper Bean for JobScheduler and JobSchedulerBulkSubmitterBean
  *
  * Methods needing its Own Transaction is pushed to this class
  *
@@ -75,7 +75,7 @@ public class JobSchedulerTransactionsBean {
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
      *
-     * @param chunk  Chunk to send to JMS queu
+     * @param chunk  Chunk to send to JMS queue
      * @param sinkId SinkId
      */
     @Stopwatch
@@ -86,46 +86,10 @@ public class JobSchedulerTransactionsBean {
     }
 
 
-
-    /**
-     * Register Chunk Processing is Done.
-     * Chunks not i state QUEUED_TO_PROCESS is ignored.
-     *
-     * @param chunk Chunk completed from processing
-     * @throws JobStoreException if Unable to Load Chunk
-     */
-    @Stopwatch
-    @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void chunkProcessingDone(Chunk chunk) throws JobStoreException {
-        // ONE Transaction
-        final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
-        DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
-
-        if (dependencyTrackingEntity == null) {
-            LOGGER.info("chunkProcessingDone called with unknown Chunk {} - Assuming it is already completed ", key);
-            return;
-        }
-
-        if (dependencyTrackingEntity.getStatus() != DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS) {
-            LOGGER.info("chunkProcessingDone called with chunk not in state QUEUED_TO_PROCESS {} was {} ", key, dependencyTrackingEntity.getStatus());
-            return;
-        }
-
-        int sinkId = dependencyTrackingEntity.getSinkid();
-        JobSchedulerPrSinkQueueStatuses.QueueStatus sinkQueueStatus = getPrSinkStatusForSinkId(sinkId).processingStatus;
-        sinkQueueStatus.jmsEnqueued.decrementAndGet();
-
-        if (dependencyTrackingEntity.getWaitingOn().size() != 0) {
-            dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.BLOCKED);
-            LOGGER.debug("chunk {} blocked by {} ", key, dependencyTrackingEntity.getWaitingOn());
-        }
-
-    }
-
     /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
      *
-     * @param chunk                    Chunk to send to JMS queu
+     * @param chunk                    Chunk to send to JMS queue
      * @param sinkId                   SinkId
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRED)
@@ -290,7 +254,7 @@ public class JobSchedulerTransactionsBean {
             first = false;
         }
         builder.append(" )");
-        builder.append(" ORDER BY jobid, chunkid for update");
+        builder.append(" ORDER BY jobId, chunkId for update");
         return builder.toString();
     }
 

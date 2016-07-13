@@ -71,7 +71,7 @@ public class JobSchedulerBulkSubmitterBean {
         });
     }
 
-    // Enum used for Logging and Knowning which phase of the system we are jmsBulkQueuing for
+    // Enum used for Logging and Knowing which phase of the system we are jmsBulkQueuing for
     private enum ProcessingOrDelivering {
         Processing,
         Delivering
@@ -91,7 +91,7 @@ public class JobSchedulerBulkSubmitterBean {
 
         // If no Async Future exists call async
         if( queueStatus.lastAsyncPushResult==null ) {
-            queueStatus.lastAsyncPushResult = doAyncBulkScheduleCallForPhase(sinkId, queueStatus, phase);
+            queueStatus.lastAsyncPushResult = doAsyncBulkScheduleCallForPhase(sinkId, queueStatus, phase);
             return ;
         }
 
@@ -112,7 +112,7 @@ public class JobSchedulerBulkSubmitterBean {
         }
 
 
-        // Check of done traisition to directMode is complete
+        // Check of done transition to directMode is complete
 
         if(( queueStatus.bulkToDirectCleanUpPushes > 2) && lastAsyncPushedToQueue == 0)   {
             LOGGER.info("prSink {} {} queue switched to {}",sinkId, phase, DIRECT);
@@ -120,7 +120,7 @@ public class JobSchedulerBulkSubmitterBean {
         }
     }
 
-    private Future<Integer> doAyncBulkScheduleCallForPhase(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase) {
+    private Future<Integer> doAsyncBulkScheduleCallForPhase(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase) {
         switch (phase) {
             case Processing:
                 return queueStatus.lastAsyncPushResult = jobSchedulerBean.bulkScheduleToProcessingForSink( sinkId, queueStatus );

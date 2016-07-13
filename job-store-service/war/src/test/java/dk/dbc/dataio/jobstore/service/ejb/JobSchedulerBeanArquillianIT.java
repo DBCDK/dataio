@@ -59,10 +59,11 @@ import java.util.concurrent.TimeUnit;
  * Created by ja7 on 11-04-16.
  * Arquillian Test for NewJobSchedulerBeanArquillian.
  * <p>
- * To Run from InteliJ use arguillian Plugin JBoss Arquillian Support
- * - Manual Container Configuation -
+ * To Run from Intellij use arquillian Plugin JBoss Arquillian Support
+ * - Manual Container Configuration -
  * dk.dbc.arquillian.container : arquillian-glassfish-remote-3.1
  */
+@SuppressWarnings("JavaDoc")
 @RunWith(Arquillian.class)
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JobSchedulerBeanArquillianIT {
@@ -105,6 +106,7 @@ public class JobSchedulerBeanArquillianIT {
         utx.commit();
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Deployment
     public static WebArchive createDeployment() {
         LOGGER.warn("in public static WebArchive createDeployment() ");
@@ -121,7 +123,7 @@ public class JobSchedulerBeanArquillianIT {
                     .up() // update Properties */
                     .up(); // update PersistenceUnit
 
-            WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobscheduler-test.war")
+            WebArchive war = ShrinkWrap.create(WebArchive.class, "jobstore-jobScheduler-test.war")
                     .addPackages(true, "dk/dbc/dataio/jobstore/service/entity", "dk/dbc/dataio/jobstore/service/digest",
                             "dk/dbc/dataio/jobstore/service/cdi", "dk/dbc/dataio/jobstore/service/param",
                             "dk/dbc/dataio/jobstore/service/partitioner", "dk/dbc/dataio/jobstore/service/util"
@@ -139,7 +141,7 @@ public class JobSchedulerBeanArquillianIT {
                     .addClass(TestJobSchedulerConfigOverWrite.class)
                     ;
 
-            // Add Maven Dependencyes  // .workOffline fejler med  mvnlocal ( .m2 i projectHome
+            // Add Maven Dependencies  // .workOffline fails med  mvnLocal ( .m2 i projectHome
             File[] files = Maven.configureResolver().workOffline().withMavenCentralRepo(false).loadPomFromFile("pom.xml")
                     //File[] files = Maven.configureResolver().loadPomFromFile("pom.xml")
                     .importRuntimeDependencies().resolve().withTransitivity().asFile();
@@ -175,7 +177,7 @@ public class JobSchedulerBeanArquillianIT {
     }
 
     /*
-      Test 2 Chunks (3,0) Is gowning thru the Stages
+      Test 2 Chunks (3,0) Is gowning through the Stages
              Chunks (3,1) Is blocked by (3,0) and released for Delivering when 3.0 is done.
      */
     @Test
@@ -236,7 +238,7 @@ public class JobSchedulerBeanArquillianIT {
         assertThat(getDependencyTrackingEntity(3, 1).getStatus(), is( ChunkProcessStatus.BLOCKED));
 
 
-        // whenn chunk returns from Delivering
+        // when chunk returns from Delivering
         jobSchedulerBean.chunkDeliveringDone(chunk1);
 
         // Then
@@ -387,9 +389,9 @@ public class JobSchedulerBeanArquillianIT {
 
     }
 
-    public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus qstatus, JobSchedulerBean.QueueSubmitMode expected ) {
+    public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, JobSchedulerBean.QueueSubmitMode expected ) {
         for(int i=0; i<40 ; ++i) {
-            if( qstatus.getMode() == expected) return;
+            if( queueStatus.getMode() == expected) return;
             try {
                 TimeUnit.MILLISECONDS.sleep( 250 ); // 1/4 second
             } catch (InterruptedException e) {
@@ -416,11 +418,12 @@ public class JobSchedulerBeanArquillianIT {
 
     }
 
+    @SuppressWarnings("SameParameterValue")
     private DependencyTrackingEntity getDependencyTrackingEntity(int jobId, int chunkId) throws NotSupportedException, SystemException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
         JPATestUtils.clearEntityManagerCache(entityManager);
         utx.begin();
         entityManager.joinTransaction();
-        LOGGER.info("Test Checker entityManager.find( jobid={}, chunk={} ) ", jobId, chunkId );
+        LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId );
         DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
         assertThat(dependencyTrackingEntity, is(notNullValue()));
         entityManager.refresh(dependencyTrackingEntity);
@@ -428,13 +431,5 @@ public class JobSchedulerBeanArquillianIT {
         return dependencyTrackingEntity;
     }
 
-
-    private void dbSingleUpdate(String update) throws Exception {
-        utx.begin();
-        entityManager.joinTransaction();
-
-        entityManager.createNativeQuery(update).executeUpdate();
-        utx.commit();
-    }
 
 }

@@ -45,7 +45,7 @@ import java.util.concurrent.Future;
  *    The Transition from BulkSubmit To Direct submit mode must take at least 2 seconds to allow
  *    for all chunks to be picked up by Direct Submit.
  *
- *    Chunks i submitted directly to the JMS queue in the transistionToDirectSubmit mode.
+ *    Chunks i submitted directly to the JMS queue in the transitionToDirectSubmit mode.
  *    but the bulkSubmitter is also scanning for records to pickup Chunks added during mode Switch
  *
  *
@@ -60,12 +60,14 @@ public class JobSchedulerBean {
     enum QueueSubmitMode {
         DIRECT,  // In this mode the chunk is send to the JMS queue directly
         BULK, // In this mode the chunk is just added as ready for Processing/Delivering
-        TRANSITION_TO_DIRECT // This is a transistional mode
+        TRANSITION_TO_DIRECT // This is a transitional mode
     }
 
 
     // Max JMS Size pr Sink -- Test sizes overwritten for
+    @SuppressWarnings("EjbClassWarningsInspection")
     static int MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK = 1000;
+    @SuppressWarnings("EjbClassWarningsInspection")
     static int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 1000;
 
 
@@ -116,11 +118,10 @@ public class JobSchedulerBean {
      * Chunks not i state QUEUED_TO_PROCESS is ignored.
      *
      * @param chunk Chunk completed from processing
-     * @throws JobStoreException if Unable to Load Chunk
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public void chunkProcessingDone(Chunk chunk) throws JobStoreException {
+    public void chunkProcessingDone(Chunk chunk) {
         final DependencyTrackingEntity.Key key = new DependencyTrackingEntity.Key(chunk.getJobId(), chunk.getChunkId());
         DependencyTrackingEntity dependencyTrackingEntity = entityManager.find(DependencyTrackingEntity.class, key, LockModeType.PESSIMISTIC_WRITE);
 
@@ -290,11 +291,13 @@ public class JobSchedulerBean {
 
     }
 
+    @SuppressWarnings("EjbClassBasicInspection")
     static JobSchedulerPrSinkQueueStatuses getPrSinkStatusForSinkId(long sinkId) {
         return sinkStatusMap.computeIfAbsent(sinkId, k -> new JobSchedulerPrSinkQueueStatuses());
     }
 
     // Helper method for Automatic Tests
+    @SuppressWarnings("EjbClassBasicInspection")
     static void ForTesting_ResetPrSinkStatuses() {
         sinkStatusMap.replaceAll((k, v) -> new JobSchedulerPrSinkQueueStatuses());
     }

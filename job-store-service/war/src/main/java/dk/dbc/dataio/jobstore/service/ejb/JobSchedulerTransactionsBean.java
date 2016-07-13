@@ -139,7 +139,7 @@ public class JobSchedulerTransactionsBean {
         if (! prSinkQueueStatus.isDirectSubmitMode() ) return;
 
         if (prSinkQueueStatus.jmsEnqueued.intValue() >= MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK) {
-            prSinkQueueStatus.setMode(JobSchedulerBean.QueueMode.bulkSubmit);
+            prSinkQueueStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
             return;
         }
         submitToProcessing( chunk, prSinkQueueStatus );
@@ -158,7 +158,7 @@ public class JobSchedulerTransactionsBean {
             return;
         }
 
-        // recheck check if chunk is found by bulk and directSubmit mode
+        // recheck check if chunk is found by bulk and DIRECT mode
         if ( dependencyTrackingEntity.getStatus() != DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS ) {
             return;
         }
@@ -192,7 +192,7 @@ public class JobSchedulerTransactionsBean {
 
         int queuedToDelivering = sinkStatus.jmsEnqueued.incrementAndGet();
         if (queuedToDelivering > MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
-            sinkStatus.setMode(JobSchedulerBean.QueueMode.bulkSubmit);
+            sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
             sinkStatus.jmsEnqueued.decrementAndGet();
             LOGGER.info("chunk {} blocked by queue size {} ", dependencyTrackingEntity.getKey(), queuedToDelivering);
             return;
@@ -225,8 +225,8 @@ public class JobSchedulerTransactionsBean {
             LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
             dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY);
         } catch (JobStoreException e) {
-            LOGGER.error("Unable to send chunk {} to jmsQueue Sink Set to bulkSubmit for retransmit", e);
-            sinkStatus.setMode(JobSchedulerBean.QueueMode.bulkSubmit);
+            LOGGER.error("Unable to send chunk {} to jmsQueue Sink Set to BULK for retransmit", e);
+            sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
         }
     }
 

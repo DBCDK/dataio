@@ -338,7 +338,7 @@ public class JobSchedulerBeanArquillianIT {
             );
         }
 
-        assertThat("DeliveringStatus after 13 chunks went tru processing ", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueMode.bulkSubmit));
+        assertThat("DeliveringStatus after 13 chunks went tru processing ", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueSubmitMode.BULK));
 
         //
         // Done Testing processing Queue.. 21 chunks passed on for Delivery
@@ -378,16 +378,16 @@ public class JobSchedulerBeanArquillianIT {
         }
 
 
-        waitForDirectSubmitModeIs( sinkStatus.processingStatus, JobSchedulerBean.QueueMode.directSubmit);
-        waitForDirectSubmitModeIs( sinkStatus.deliveringStatus, JobSchedulerBean.QueueMode.directSubmit);
+        waitForDirectSubmitModeIs( sinkStatus.processingStatus, JobSchedulerBean.QueueSubmitMode.DIRECT);
+        waitForDirectSubmitModeIs( sinkStatus.deliveringStatus, JobSchedulerBean.QueueSubmitMode.DIRECT);
 
 
-        assertThat("Processing is back to directMode", sinkStatus.processingStatus.getMode(),is(JobSchedulerBean.QueueMode.directSubmit));
-        assertThat("Delivering is back to directMode", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueMode.directSubmit));
+        assertThat("Processing is back to directMode", sinkStatus.processingStatus.getMode(),is(JobSchedulerBean.QueueSubmitMode.DIRECT));
+        assertThat("Delivering is back to directMode", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueSubmitMode.DIRECT));
 
     }
 
-    public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus qstatus, JobSchedulerBean.QueueMode expected ) {
+    public void waitForDirectSubmitModeIs(JobSchedulerPrSinkQueueStatuses.QueueStatus qstatus, JobSchedulerBean.QueueSubmitMode expected ) {
         for(int i=0; i<40 ; ++i) {
             if( qstatus.getMode() == expected) return;
             try {

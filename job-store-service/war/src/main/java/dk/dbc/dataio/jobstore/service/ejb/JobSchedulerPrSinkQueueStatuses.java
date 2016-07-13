@@ -34,7 +34,7 @@ class JobSchedulerPrSinkQueueStatuses {
     static class QueueStatus {
         final AtomicInteger readyForQueue = new AtomicInteger(0);
         final AtomicInteger jmsEnqueued = new AtomicInteger(0);
-        private JobSchedulerBean.QueueMode queueMode = JobSchedulerBean.QueueMode.directSubmit;
+        private JobSchedulerBean.QueueSubmitMode queueSubmitMode = JobSchedulerBean.QueueSubmitMode.DIRECT;
         final ReadWriteLock modeLock = new ReentrantReadWriteLock();
 
         //
@@ -43,26 +43,26 @@ class JobSchedulerPrSinkQueueStatuses {
         public int bulkToDirectCleanUpPushes;
 
 
-        void setMode(JobSchedulerBean.QueueMode newMode) {
+        void setMode(JobSchedulerBean.QueueSubmitMode newMode) {
             modeLock.writeLock().lock();
             try {
-                queueMode = newMode;
+                queueSubmitMode = newMode;
             } finally {
                 modeLock.writeLock().unlock();
             }
         }
 
-        JobSchedulerBean.QueueMode getMode() {
+        JobSchedulerBean.QueueSubmitMode getMode() {
             modeLock.readLock().lock();
             try {
-                return queueMode;
+                return queueSubmitMode;
             } finally {
                 modeLock.readLock().unlock();
             }
         }
 
         boolean isDirectSubmitMode() {
-                return getMode() != JobSchedulerBean.QueueMode.bulkSubmit;
+                return getMode() != JobSchedulerBean.QueueSubmitMode.BULK;
         }
 
     }

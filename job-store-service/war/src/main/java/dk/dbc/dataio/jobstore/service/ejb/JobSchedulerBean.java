@@ -37,13 +37,13 @@ import java.util.concurrent.Future;
  *
  * 2 Modes of operations i possible for Pr Sink and QueueType ( processing / Delivering )
  *
- *    DirectSubmit : When no Rate limiting is needed, Chunks messages is JMS queue
+ *    DIRECT       : When no Rate limiting is needed, Chunks messages is JMS queue
  *                   directly. we start in this mode
- *    BulkSubmit   : IF MAX_NUMBER_OF_.. chunks is in the jms queue, we switch to this mode.
+ *    BULK        : IF MAX_NUMBER_OF_.. chunks is in the jms queue, we switch to this mode.
  *                   And JobSchedulerBulkSubmitterBean handles the sending of JMS messages.
- *    transitionToDirectSubmit
- *    The Transition from BulkSubmit To DirectSuibmit mode must take at least 2 seconds to allow
- *    for alle chunks to be picked up by DirectSubmit.
+ *    TRANSITION_TO_DIRECT
+ *    The Transition from BulkSubmit To Direct submit mode must take at least 2 seconds to allow
+ *    for all chunks to be picked up by Direct Submit.
  *
  *    Chunks i submitted directly to the JMS queue in the transistionToDirectSubmit mode.
  *    but the bulkSubmitter is also scanning for records to pickup Chunks added during mode Switch
@@ -57,10 +57,10 @@ import java.util.concurrent.Future;
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
-    enum QueueMode {
-        directSubmit,  // In this mode the chunk is send to the JMS queue directly
-        bulkSubmit, // In this mode the chunk is just added as ready for Processing/Delivering
-        transitionToDirectSubmit // This is a transistional mode
+    enum QueueSubmitMode {
+        DIRECT,  // In this mode the chunk is send to the JMS queue directly
+        BULK, // In this mode the chunk is just added as ready for Processing/Delivering
+        TRANSITION_TO_DIRECT // This is a transistional mode
     }
 
 
@@ -205,7 +205,7 @@ public class JobSchedulerBean {
     }
 
     @Asynchronous
-    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @TransactionAttribute( TransactionAttributeType.REQUIRES_NEW )
     public Future<Integer> bulkScheduleToProcessingForSink(long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus prSinkQueueStatus ) {
         LOGGER.info("bulkScheduleToProcessingForSink( {} / {}-{}", sinkId, prSinkQueueStatus.jmsEnqueued.intValue(), prSinkQueueStatus.readyForQueue);
         int chunksPushedToQueue=0;
@@ -234,7 +234,7 @@ public class JobSchedulerBean {
                 }
             }
 
-        } catch( Throwable ex) {
+        } catch( Exception ex) {
             LOGGER.error("Error in bulk submit to Processing for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);
@@ -268,7 +268,7 @@ public class JobSchedulerBean {
                     chunksPushedToQueue++;
                 }
             }
-        } catch( Throwable ex) {
+        } catch( Exception ex) {
             LOGGER.error("Error in bulk submit to Delivering for sink {}", sinkId, ex);
         }
         return new AsyncResult<>(chunksPushedToQueue);

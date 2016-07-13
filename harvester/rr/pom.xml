@@ -203,7 +203,7 @@
               <maxPortNumber>65000</maxPortNumber>
               <minPortNumber>60000</minPortNumber>
               <portNames>
-                <portName>postgresql.port</portName>
+                <portName>harvester.postgresql.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -221,7 +221,7 @@
               <goal>start</goal>
             </goals>
             <configuration>
-              <pgPort>${postgresql.port}</pgPort>
+              <pgPort>${harvester.postgresql.port}</pgPort>
               <pgDbName>testdb</pgDbName>
               <pgDbScripts>
               </pgDbScripts>
@@ -242,7 +242,7 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
-            <postgresql.port>${postgresql.port}</postgresql.port>
+            <postgresql.port>${harvester.postgresql.port}</postgresql.port>
           </systemPropertyVariables>
         </configuration>
         <executions>

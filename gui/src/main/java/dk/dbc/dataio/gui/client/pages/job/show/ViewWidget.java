@@ -62,9 +62,9 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         super(headerText);
         add(uiBinder.createAndBindUi(this));
         allJobsButton.setValue(true);
+        rerunAllShownJobsConfirmationDialog.center();
         rerunAllShownJobsConfirmationDialog.show();  // First show the DialogBox in order to add it to the DOM
         rerunAllShownJobsConfirmationDialog.hide();  // ... but we don't want it shown upon startup - so hide it again
-        rerunAllShownJobsConfirmationDialog.center();
     }
 
     // UI Fields

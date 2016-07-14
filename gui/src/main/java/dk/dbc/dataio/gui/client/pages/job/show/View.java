@@ -156,7 +156,7 @@ public class View extends ViewWidget {
      * Reruns all shown jobs on the current page (now the user has confirmed the action)
      */
     void rerunAllShownJobsConfirmed() {
-        presenter.rerunJobs(getShownJobIds());
+        presenter.rerunJobs(getShownJobModels());
     }
 
 
@@ -177,17 +177,28 @@ public class View extends ViewWidget {
     }
 
     /**
+     * Finds all JobModels from the shown jobs in the jobs table
+     * @return List of JobModels
+     */
+    private List<JobModel> getShownJobModels() {
+        List<JobModel> models = new ArrayList<>();
+        int count = jobsTable.getVisibleItemCount();
+        for (int i=0; i<count; i++) {
+            models.add((JobModel) jobsTable.getVisibleItem(i));
+        }
+        Collections.sort(models, (model1, model2) -> Integer.valueOf(model1.getJobId()).compareTo(Integer.valueOf(model2.getJobId())));
+        return models;
+    }
+
+    /**
      * Finds all job id's from the shown jobs in the jobs table
      * @return List of Job Ids
      */
     private List<String> getShownJobIds() {
         List<String> jobIds = new ArrayList<>();
-        int count = jobsTable.getVisibleItemCount();
-        for (int i=0; i<count; i++) {
-            JobModel model = (JobModel) jobsTable.getVisibleItem(i);
+        for (JobModel model: getShownJobModels()) {
             jobIds.add(model.getJobId());
         }
-        Collections.sort(jobIds, (o1, o2) -> Integer.valueOf(o1).compareTo(Integer.valueOf(o2)));
         return jobIds;
     }
 

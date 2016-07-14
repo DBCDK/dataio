@@ -25,14 +25,13 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
-import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
@@ -151,12 +150,15 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
-     * Re runs a series of jobs, based on the input list jobIds
-     * @param jobIds The jobs to rerun
+     * Re runs a series of jobs, based on the input list job models
+     * @param jobModels The JobModels to rerun
      */
-    public void rerunJobs(List<String> jobIds) {
-        Window.alert("Jobs:\n" + Format.commaSeparate(jobIds) + "\nImplementationen er på vej...");
+    public void rerunJobs(List<JobModel> jobModels) {
+        for (JobModel model: jobModels) {
+            commonInjector.getJobStoreProxyAsync().reRunJob(model, new RerunJobFilteredAsyncCallback() );
+        }
     }
+
 
     /*
      * Private methods
@@ -182,8 +184,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * Validates that the job id is numeric
      * @return true if the job id is numeric, otherwise false
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private boolean isJobIdValidNumber() {
-        try {
+             try {
             Long.valueOf(jobId);
         } catch (NumberFormatException e) {
             getView().setErrorText(getView().getTexts().error_NumericInputFieldValidationError());
@@ -229,7 +232,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
 
     /*
-     * Protected classes
+     * Callback classes
      */
 
     protected class CountExistingJobsWithJobIdCallBack extends FilteredAsyncCallback<Long> {
@@ -260,4 +263,16 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             getView().selectionModel.setSelected(jobModel, true);
         }
     }
+
+    protected class RerunJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            String msg = "jobId: " + jobId;
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+        }
+        @Override
+        public void onSuccess(JobModel jobModel) {
+        }
+    }
+
 }

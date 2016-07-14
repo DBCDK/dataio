@@ -35,5 +35,5 @@ public interface Presenter extends GenericPresenter {
     void editJob(JobModel rowModel);
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
     WorkflowNoteModel preProcessAssignee(String assignee);
-    void rerunJobs(List<String> jobIds);
+    void rerunJobs(List<JobModel> jobModels);
 }

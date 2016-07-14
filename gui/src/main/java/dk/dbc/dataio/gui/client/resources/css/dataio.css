@@ -133,6 +133,10 @@ input:disabled {
     border-radius: 0.5em;
 }
 
+.gwt-DialogBox {
+    z-index: 10;
+}
+
 .gwt-DialogBox .Caption {
     font-size: 20px;
     font-weight: bold;

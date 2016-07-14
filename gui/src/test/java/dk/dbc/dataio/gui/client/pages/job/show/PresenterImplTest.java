@@ -41,14 +41,19 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -102,11 +107,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
     class PresenterImplConcrete extends PresenterImpl {
         public CountExistingJobsWithJobIdCallBack getJobCountCallback;
         public SetWorkflowNoteCallBack getWorkflowNoteCallback;
+        public RerunJobFilteredAsyncCallback getRerunJobFilteredAsyncCallback;
         public PresenterImplConcrete(PlaceController placeController, String header) {
             super(placeController, mockedView, header);
             this.commonInjector = mockedCommonGinjector;
             this.getJobCountCallback = new CountExistingJobsWithJobIdCallBack();
             this.getWorkflowNoteCallback = new SetWorkflowNoteCallBack();
+            this.getRerunJobFilteredAsyncCallback = new RerunJobFilteredAsyncCallback();
         }
 
         @Override
@@ -367,8 +374,89 @@ public class PresenterImplTest extends PresenterImplTestBase {
         assertThat(updatedWorkflowNoteModel, is(expectedWorkflowNoteModel));
     }
 
+    @Test
+    public void rerunJobs_twoJobs_ok() {
+        // Setup
+        setupPresenter();
+
+        // Subject under test
+        JobModel model1 = new JobModelBuilder().setJobId("123").build();
+        JobModel model2 = new JobModelBuilder().setJobId("234").build();
+        presenterImpl.rerunJobs(Arrays.asList(model1, model2));
+
+        // Verify Test
+        verify(mockedJobStore).reRunJob(eq(model1), any(PresenterImpl.RerunJobFilteredAsyncCallback.class));
+        verify(mockedJobStore).reRunJob(eq(model2), any(PresenterImpl.RerunJobFilteredAsyncCallback.class));
+        verifyNoMoreInteractions(mockedJobStore);
+    }
+
+    @Test
+    public void rerunJobs_noJobs_ok() {
+        // Setup
+        setupPresenter();
+
+        // Subject under test
+        presenterImpl.rerunJobs(new ArrayList<>());
+
+        // Verify Test
+        verifyNoMoreInteractions(mockedJobStore);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void rerunJobs_nullJobs_throws() {
+        // Setup
+        setupPresenter();
+
+        // Subject under test
+        presenterImpl.rerunJobs(null);
+    }
+
+    @Test
+    public void rerunJobs_callbackWithError_errorMessageInView() {
+
+        // Setup
+        setupPresenter();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getRerunJobFilteredAsyncCallback.onFailure(mockedException);
+
+        // Verify Test
+        verify(mockedView).setErrorText(anyString());
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader("Header Text");
+        verify(mockedView).asWidget();
+        verify(mockedView).refreshJobsTable();
+        verifyNoMoreInteractions(mockedView);
+    }
+
+    @Test
+    public void rerunJobs_callbackWithSuccess_noAction() {
+
+        // Setup
+        setupPresenter();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.getWorkflowNoteCallback.onSuccess(mockedSingleSelectionModel.getSelectedObject());
+        presenterImpl.getRerunJobFilteredAsyncCallback.onSuccess(new JobModel());
+
+        // Verify Test
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader("Header Text");
+        verify(mockedView).asWidget();
+        verify(mockedView).refreshJobsTable();
+        verifyNoMoreInteractions(mockedView);
+    }
+
+
+    /*
+     * Private methods
+     */
+
     private void setupPresenter() {
         presenterImpl = new PresenterImplConcrete(mockedPlaceController, header);
         presenterImpl.commonInjector = mockedCommonGinjector;
     }
+
 }

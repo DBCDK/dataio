@@ -43,11 +43,7 @@ public class SinkModelMapper {
      */
     public static SinkModel toModel(Sink sink) {
         SinkContent.SinkType sinkType;
-        if (sink.getContent() == null || sink.getContent().getSinkType() == null) {
-            sinkType = SinkContent.SinkType.ES;  // Old style Sinks - before Sink Config's
-        } else {
-            sinkType = sink.getContent().getSinkType();
-        }
+        sinkType = sink.getContent().getSinkType();
         if (sinkType == SinkContent.SinkType.OPENUPDATE) {
             OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
             List<String> queueProviders = sinkConfig.getAvailableQueueProviders();

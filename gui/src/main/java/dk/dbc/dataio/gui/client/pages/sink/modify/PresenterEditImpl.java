@@ -110,6 +110,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         public void onSuccess(SinkModel model) {
             setSinkModel(model);
             updateAllFieldsAccordingToCurrentState();
+            getView().sinkTypeSelection.setEnabled(false);
         }
     }
 

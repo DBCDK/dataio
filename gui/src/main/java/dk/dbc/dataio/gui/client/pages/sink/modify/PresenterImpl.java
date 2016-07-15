@@ -39,7 +39,6 @@ import java.util.List;
  * Abstract Presenter Implementation Class for Sink Create and Edit
  */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
-    private final String DEFAULT_SINK_TYPE = "ES";
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -199,7 +198,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     public void initializeViewFields() {
         View view = getView();
-        view.sinkTypeSelection.setSelectedValue(DEFAULT_SINK_TYPE);  // Default selection is ES Sink
         view.sinkTypeSelection.setEnabled(false);
         view.name.clearText();
         view.name.setEnabled(false);
@@ -223,8 +221,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     void updateAllFieldsAccordingToCurrentState() {
         View view = getView();
-        view.sinkTypeSelection.setSelectedValue(model.getSinkType() != null ? model.getSinkType().name() : DEFAULT_SINK_TYPE);
-        view.sinkTypeSelection.setEnabled(true);
+        view.sinkTypeSelection.setSelectedValue(model.getSinkType().name());
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
@@ -242,7 +239,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.queueProviders.setEnabled(true);
         view.status.setText("");
         view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
-        view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 
 

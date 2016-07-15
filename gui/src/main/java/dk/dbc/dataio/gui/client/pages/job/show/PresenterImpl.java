@@ -98,7 +98,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     public void updateSelectedJobs() {
         View view = getView();
         view.selectionModel.clear();
-        view.dataProvider.updateUserCriteria();
         view.dataProvider.updateCurrentCriteria();
         view.jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
     }

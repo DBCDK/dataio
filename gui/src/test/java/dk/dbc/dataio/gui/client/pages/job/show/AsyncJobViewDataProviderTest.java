@@ -49,9 +49,6 @@ public class AsyncJobViewDataProviderTest {
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
     @Mock SingleSelectionModel<JobModel> mockedSelectionModel;
     @Mock JobFilter mockedJobFilter;
-    @Mock RadioButton mockedProcessingFailedJobsButton;
-    @Mock RadioButton mockedDeliveringFailedJobsButton;
-    @Mock RadioButton mockedFatalJobsButton;
 
     private AsyncJobViewDataProvider objectUnderTest;
 
@@ -61,9 +58,6 @@ public class AsyncJobViewDataProviderTest {
         when(mockedCommonInjector.getJobStoreProxyAsync()).thenReturn(mockedJobStoreProxy);
         mockedView.selectionModel = mockedSelectionModel;
         mockedView.jobFilter = mockedJobFilter;
-        mockedView.processingFailedJobsButton = mockedProcessingFailedJobsButton;
-        mockedView.deliveringFailedJobsButton = mockedDeliveringFailedJobsButton;
-        mockedView.fatalJobsButton = mockedFatalJobsButton;
     }
 
     @Test
@@ -87,26 +81,10 @@ public class AsyncJobViewDataProviderTest {
     }
 
     @Test
-    public void testUpdateUserCriteria_processingFailedSelected_jobsFailedInProcessingRequested() throws Exception {
-        genericUpdateUserCriteriaAssertSearchType(mockedProcessingFailedJobsButton, JobListCriteria.Field.STATE_PROCESSING_FAILED);
-    }
-
-    @Test
-    public void testUpdateUserCriteria_deliveringFailedSelected_jobsFailedInDeliveringRequested() throws Exception {
-        genericUpdateUserCriteriaAssertSearchType(mockedDeliveringFailedJobsButton, JobListCriteria.Field.STATE_DELIVERING_FAILED);
-    }
-
-    @Test
-    public void testUpdateUserCriteria_jobsWithFatalErrorSelected_jobsWithFatalErrorRequested() throws Exception {
-        genericUpdateUserCriteriaAssertSearchType(mockedFatalJobsButton, JobListCriteria.Field.WITH_FATAL_ERROR);
-    }
-
-    @Test
     public void testUpdateUserCriteria_initialSearch_allJobsRequested() throws Exception {
         objectUnderTest = new AsyncJobViewDataProvider(mockedView );
         when(mockedJobFilter.getValue()).thenReturn(new JobListCriteria());
 
-        objectUnderTest.updateUserCriteria();
         assertThat(mockedView.jobFilter.getValue().getFiltering().size(), is(0));
         verify(mockedView, times(0)).refreshJobsTable();
     }
@@ -117,7 +95,6 @@ public class AsyncJobViewDataProviderTest {
         objectUnderTest = new AsyncJobViewDataProvider(mockedView );
         when(mockedJobFilter.getValue()).thenReturn(new JobListCriteria());
         when(radioButton.getValue()).thenReturn(true);
-        objectUnderTest.updateUserCriteria();
 
         assertThat(mockedView.jobFilter.getValue().getFiltering().get(0).getMembers().get(0).getFilter().getField(), is(field));
         verify(mockedView, times(1)).loadJobsTable();

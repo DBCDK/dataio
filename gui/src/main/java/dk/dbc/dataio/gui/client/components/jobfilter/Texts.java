@@ -71,4 +71,20 @@ public interface Texts extends Constants{
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String jobDateFilter_To();
+
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String errorFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String errorFilter_FailedIn();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String errorFilter_Processing();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String errorFilter_Delivering();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String errorFilter_JobCreation();
 }

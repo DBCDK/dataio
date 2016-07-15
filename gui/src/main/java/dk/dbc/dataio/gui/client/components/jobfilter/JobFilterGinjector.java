@@ -35,4 +35,5 @@ public interface JobFilterGinjector extends Ginjector {
     SubmitterJobFilter getSubmitterJobFilter();
     SuppressSubmitterJobFilter getSuppressSubmitterJobFilter();
     DateJobFilter getDateJobFilter();
+    ErrorJobFilter getErrorJobFilter();
 }

@@ -29,6 +29,7 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
 
@@ -37,6 +38,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
     private View view;
+    // The 3 Radio Buttons
+    JobListCriteria userCriteria = null;
     // The selection  from the left side
     JobListCriteria baseCriteria = null;
 
@@ -44,7 +47,15 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private JobListCriteria currentCriteria = new JobListCriteria();
 
     public AsyncJobViewDataProvider(View view) {
+        this(view, true);
+    }
+
+    /* Package scoped Constructor used for unit testing. */
+    AsyncJobViewDataProvider(View view, Boolean updateUserCriteria) {
         this.view = view;
+        if (updateUserCriteria) {
+            updateUserCriteria();
+        }
     }
 
     void setBaseCriteria( JobListCriteria newBaseCriteria) {
@@ -61,6 +72,10 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
             newJobListCriteria.and(baseCriteria);
         }
 
+        if (userCriteria != null) {
+            newJobListCriteria.where(userCriteria);
+        }
+
         if( !currentCriteria.equals(newJobListCriteria)) {
             criteriaIncarnation++;
             currentCriteria = newJobListCriteria;
@@ -72,6 +87,29 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     void refresh( ) {
         view.loadJobsTable();
     }
+
+    /**
+     * Call this when the jobFilter Changes values..
+     *
+     *
+     */
+    void updateUserCriteria( ) {
+
+        if (view.selectionModel.getSelectedObject() == null) {
+            userCriteria = view.jobFilter.getValue();
+            if (view.processingFailedJobsButton.getValue()) {
+                userCriteria.where(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
+
+            } else if (view.deliveringFailedJobsButton.getValue()) {
+                userCriteria.where(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
+
+            } else if (view.fatalJobsButton.getValue()) {
+                userCriteria.where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR));
+            }
+        }
+        updateCurrentCriteria();
+    }
+
 
     /**
      * The Worker function of tha Async Data Provider.

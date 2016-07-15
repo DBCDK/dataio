@@ -37,6 +37,7 @@ import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
+import com.google.gwt.user.client.ui.RadioButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
@@ -60,6 +61,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     public ViewWidget(String headerText) {
         super(headerText);
         add(uiBinder.createAndBindUi(this));
+        allJobsButton.setValue(true);
         rerunAllShownJobsConfirmationDialog.center();
         rerunAllShownJobsConfirmationDialog.show();  // First show the DialogBox in order to add it to the DOM
         rerunAllShownJobsConfirmationDialog.hide();  // ... but we don't want it shown upon startup - so hide it again
@@ -70,6 +72,10 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField JobFilter jobFilter;
     @UiField SimplePager pagerTop;
     @UiField SimplePager pagerBottom;
+    @UiField RadioButton allJobsButton;
+    @UiField RadioButton processingFailedJobsButton;
+    @UiField RadioButton deliveringFailedJobsButton;
+    @UiField RadioButton fatalJobsButton;
     @UiField Button refreshButton;
     @UiField Button rerunAllShownJobsButton;
     @UiField TextBox jobIdInputField;
@@ -86,6 +92,13 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
         // the pager with a location, and we do also want to enable the "Show Last Page" Button and we also want to
         // set the Fast Forward button to scroll 100 items (10 pages) at a time.
         return new SimplePager(SimplePager.TextLocation.CENTER, true, FAST_FORWARD_PAGES * PAGE_SIZE, true);
+    }
+
+    @UiHandler(value={"allJobsButton", "processingFailedJobsButton", "deliveringFailedJobsButton", "fatalJobsButton"})
+    @SuppressWarnings("unused")
+    void filterItemsRadioButtonPressed(ClickEvent event) {
+        pagerTop.firstPage();
+        presenter.updateSelectedJobs();
     }
 
     @UiHandler("jobFilter")

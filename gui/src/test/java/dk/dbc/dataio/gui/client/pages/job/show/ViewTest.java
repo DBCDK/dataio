@@ -147,7 +147,7 @@ public class ViewTest {
     public class ViewConcrete extends View {
 
         public ViewConcrete() {
-            super("header", false, false);
+            super("header", false);
             this.commonInjector = mockedCommonInjector;
             this.viewInjector = mockedViewInjector;
         }

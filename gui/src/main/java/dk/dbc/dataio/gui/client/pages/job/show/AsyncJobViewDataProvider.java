@@ -29,7 +29,6 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
-import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
 
@@ -45,11 +44,6 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private JobListCriteria currentCriteria = new JobListCriteria();
 
     public AsyncJobViewDataProvider(View view) {
-        this(view, true);
-    }
-
-    /* Package scoped Constructor used for unit testing. */
-    AsyncJobViewDataProvider(View view, Boolean updateUserCriteria) {
         this.view = view;
     }
 

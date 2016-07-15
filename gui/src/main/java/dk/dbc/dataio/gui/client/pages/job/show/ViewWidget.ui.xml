@@ -30,9 +30,6 @@
             width: 100%;
         }
 
-        .radio-buttons {
-        }
-
         .innerHtmlPanel {
             width: inherit;
             min-width: inherit;

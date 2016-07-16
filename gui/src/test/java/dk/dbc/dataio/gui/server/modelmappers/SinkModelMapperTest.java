@@ -50,13 +50,12 @@ public class SinkModelMapperTest {
     // Default Sinks
     private static final SinkContent defaultSinkContent1 = new SinkContentBuilder().setName("sink content 1").setResource("sink resource 1").build();
     private static final SinkContent defaultSinkContent2 = new SinkContentBuilder().setName("sink content 2").setResource("sink resource 2").build();
-    private static final SinkConfig updateSC = new OpenUpdateSinkConfig("uid", "pwd", "url");
+    private static final SinkConfig updateSC = new OpenUpdateSinkConfig().withUserId("uid").withPassword("pwd").withEndpoint("url");
     private static final SinkContent defaultSinkContentOUpdate = new SinkContentBuilder().setName("SC Up").setResource("sink res").setDescription("desci").setSinkType(SinkContent.SinkType.OPENUPDATE).setSinkConfig(updateSC).build();
     private static final Sink defaultSink1 = new SinkBuilder().setId(111L).setVersion(222L).setContent(defaultSinkContent1).build();
     private static final Sink defaultSink2 = new SinkBuilder().setId(333L).setVersion(444L).setContent(defaultSinkContent2).build();
     private static final Sink defaultSinkOU = new SinkBuilder().setId(555L).setVersion(666L).setContent(defaultSinkContentOUpdate).build();
     private static final List<Sink> defaultSinkList = Arrays.asList(defaultSink1, defaultSink2);
-    private static final List<Sink> defaultSinkListOU = Arrays.asList(defaultSinkOU);
 
     // Default SinkModels
     private static final SinkModel defaultSinkModel1 = new SinkModelBuilder()

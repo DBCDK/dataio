@@ -101,11 +101,11 @@ public class SinkModelMapper {
                     model.getResourceName(),
                     model.getDescription(),
                     model.getSinkType(),
-                    new OpenUpdateSinkConfig(
-                            model.getOpenUpdateUserId(),
-                            model.getOpenUpdatePassword(),
-                            model.getOpenUpdateEndpoint(),
-                            model.getOpenUpdateAvailableQueueProviders()),
+                    new OpenUpdateSinkConfig()
+                            .withUserId(model.getOpenUpdateUserId())
+                            .withPassword(model.getOpenUpdatePassword())
+                            .withEndpoint(model.getOpenUpdateEndpoint())
+                            .withAvailableQueueProviders(model.getOpenUpdateAvailableQueueProviders()),
                     model.getSequenceAnalysisOption());
         } else {
             return new SinkContent(

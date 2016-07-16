@@ -99,7 +99,7 @@ public class JsonBuilderTest {
     public void SinkContentJsonBuilderWithTypeAndConfigProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new SinkContentJsonBuilder()
                 .setSinkType(SinkContent.SinkType.OPENUPDATE)
-                .setSinkConfig(new OpenUpdateSinkConfigJsonBuilder().build())
+                .setSinkConfig(jsonbContext.marshall(new OpenUpdateSinkConfig()))
                 .build(), SinkContent.class);
     }
 
@@ -121,11 +121,6 @@ public class JsonBuilderTest {
     @Test
     public void SupplementaryProcessDataJsonBuilderProducesValidJson() throws JSONBException {
         jsonbContext.unmarshall(new SupplementaryProcessDataJsonBuilder().build(), SupplementaryProcessData.class);
-    }
-
-    @Test
-    public void OpenUpdateSinkConfigJsonBuilderProducesValidJson() throws JSONBException {
-        jsonbContext.unmarshall(new OpenUpdateSinkConfigJsonBuilder().build(), OpenUpdateSinkConfig.class);
     }
 
     @Test

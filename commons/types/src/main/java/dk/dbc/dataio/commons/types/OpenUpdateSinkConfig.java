@@ -20,49 +20,54 @@
  */
 package dk.dbc.dataio.commons.types;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class OpenUpdateSinkConfig implements SinkConfig {
 
-    private final String userId;
-    private final String password;
-    private final String endpoint;
-    private final List<String> availableQueueProviders;  // Optional
+    private String userId;
+    private String password;
+    private String endpoint;
+    private List<String> availableQueueProviders;
 
-    @JsonCreator
-    public OpenUpdateSinkConfig(@JsonProperty("userId") String userId,
-                                @JsonProperty("password") String password,
-                                @JsonProperty("endpoint") String endpoint,
-                                @JsonProperty("queueProviders") List<String> availableQueueProviders) {
-        this.userId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
-        this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
-        this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
-        this.availableQueueProviders = availableQueueProviders == null ? null : new ArrayList<>(availableQueueProviders);
+    public String getUserId() {
+        return userId;
     }
 
-    public OpenUpdateSinkConfig(String userId, String password, String endpoint) {
-        this(userId, password, endpoint, null);
+    public OpenUpdateSinkConfig withUserId(String userId) {
+        this.userId = InvariantUtil.checkNotNullNotEmptyOrThrow(userId, "userId");
+        return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public String getUserId() {
-        return userId;
+    public OpenUpdateSinkConfig withPassword(String password) {
+        this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
+        return this;
     }
 
     public String getEndpoint() {
         return endpoint;
     }
 
+    public OpenUpdateSinkConfig withEndpoint(String endpoint) {
+        this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
+        return this;
+    }
+
     public List<String> getAvailableQueueProviders() {
         return availableQueueProviders == null ? null : new ArrayList<>(availableQueueProviders);
+    }
+
+    public OpenUpdateSinkConfig withAvailableQueueProviders(List<String> availableQueueProviders) {
+        this.availableQueueProviders = availableQueueProviders;
+        return this;
     }
 
     @Override
@@ -72,17 +77,18 @@ public class OpenUpdateSinkConfig implements SinkConfig {
 
         OpenUpdateSinkConfig that = (OpenUpdateSinkConfig) o;
 
-        if (!userId.equals(that.userId)) return false;
-        if (!password.equals(that.password)) return false;
-        if (!endpoint.equals(that.endpoint)) return false;
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+        if (password != null ? !password.equals(that.password) : that.password != null) return false;
+        if (endpoint != null ? !endpoint.equals(that.endpoint) : that.endpoint != null) return false;
         return availableQueueProviders != null ? availableQueueProviders.equals(that.availableQueueProviders) : that.availableQueueProviders == null;
+
     }
 
     @Override
     public int hashCode() {
-        int result = userId.hashCode();
-        result = 31 * result + password.hashCode();
-        result = 31 * result + endpoint.hashCode();
+        int result = userId != null ? userId.hashCode() : 0;
+        result = 31 * result + (password != null ? password.hashCode() : 0);
+        result = 31 * result + (endpoint != null ? endpoint.hashCode() : 0);
         result = 31 * result + (availableQueueProviders != null ? availableQueueProviders.hashCode() : 0);
         return result;
     }

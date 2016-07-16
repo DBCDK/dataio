@@ -25,13 +25,13 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.OpenUpdateSinkConfigBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -66,7 +66,7 @@ public class OpenUpdateConfigBeanTest {
 
         final SinkContent sinkContent = new SinkContentBuilder()
                 .setSinkType(SinkContent.SinkType.OPENUPDATE)
-                .setSinkConfig(new OpenUpdateSinkConfigBuilder().build())
+                .setSinkConfig(new OpenUpdateSinkConfig().withUserId("userId").withPassword("password").withEndpoint("endpoint"))
                 .build();
 
         sink    = new SinkBuilder().setContent(sinkContent).build();

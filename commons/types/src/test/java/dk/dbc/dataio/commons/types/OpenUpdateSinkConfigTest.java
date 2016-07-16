@@ -20,15 +20,18 @@
  */
 package dk.dbc.dataio.commons.types;
 
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -44,64 +47,60 @@ public class OpenUpdateSinkConfigTest {
     private static final String ENDPOINT = "endpoint";
     private static final List<String> AVAILABLE_QUEUE_PROVIDERS = Arrays.asList("qp1", "qp2");
 
-    @Test(expected = NullPointerException.class)
-    public void constructor_userIdArgIsNull_throws() {
-        new OpenUpdateSinkConfig(null, PASSWORD, ENDPOINT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_userIdArgIsEmpty_throws() {
-        new OpenUpdateSinkConfig("", PASSWORD, ENDPOINT);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_passwordArgIsNull_throws() {
-        new OpenUpdateSinkConfig(USER_ID, null, ENDPOINT);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_passwordArgIsEmpty_throws() {
-        new OpenUpdateSinkConfig(USER_ID, "", ENDPOINT);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void constructor_webUrlArgIsNull_throws() {
-        new OpenUpdateSinkConfig(USER_ID, PASSWORD, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_webUrlArgIsEmpty_throws() {
-        new OpenUpdateSinkConfig(USER_ID, PASSWORD, "");
+    @Test
+    public void withUserId_userIdArgIsNull_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withUserId(null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void constructor_queueProviderArgIsNull_throws() {
-        new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, null);
-        // NB: *NO* exception should be thrown here
+    public void withUserId_userIdArgIsEmpty_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withUserId(""), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
-    public void constructor_queueProviderArgIsEmpty_throws() {
-        new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, new ArrayList<>());
-        // This is also legal, so no exception
+    public void withPassword_passwordArgIsNull_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withPassword(null), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void constructor_all3ArgsAreValid_returnsNewInstance() {
-        final OpenUpdateSinkConfig instance = new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT);
-        assertThat(instance, is(notNullValue()));
-        assertThat(instance.getAvailableQueueProviders(), is(nullValue()));
+    public void withPassword_passwordArgIsEmpty_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withPassword(""), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
-    public void constructor_all4ArgsAreValid_returnsNewInstance() {
-        final OpenUpdateSinkConfig instance = new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, AVAILABLE_QUEUE_PROVIDERS);
-        assertThat(instance, is(notNullValue()));
-        assertThat(instance.getAvailableQueueProviders().size(), is(2));
+    public void withEndpoint_webUrlArgIsNull_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withEndpoint(null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void withEndpoint_webUrlArgIsEmpty_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withEndpoint(""), isThrowing(IllegalArgumentException.class));;
+    }
+
+    @Test
+    public void withQueueProvider_queueProviderArgIsNull_returnsNewInstance() {
+        OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig().withAvailableQueueProviders(null);
+        assertThat(openUpdateSinkConfig.getAvailableQueueProviders(), is(nullValue()));
+    }
+
+    @Test
+    public void withQueueProvider_queueProviderArgIsEmpty_returnsNewInstance() {
+        OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig().withAvailableQueueProviders(Collections.emptyList());
+        assertThat(openUpdateSinkConfig.getAvailableQueueProviders(), is(Collections.emptyList()));
+    }
+
+    @Test
+    public void marshalling() throws JSONBException {
+        final JSONBContext jsonbContext = new JSONBContext();
+        final OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig();
+        System.out.println(jsonbContext.marshall(openUpdateSinkConfig));
+        final OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(openUpdateSinkConfig), OpenUpdateSinkConfig.class);
+        System.out.println(unmarshalled);
+        assertThat(unmarshalled, is(openUpdateSinkConfig));
     }
 
     public static OpenUpdateSinkConfig newOpenUpdateSinkConfigInstance() {
-        return new OpenUpdateSinkConfig(USER_ID, PASSWORD, ENDPOINT, AVAILABLE_QUEUE_PROVIDERS);
+        return new OpenUpdateSinkConfig().withUserId(USER_ID).withPassword(PASSWORD).withEndpoint(ENDPOINT).withAvailableQueueProviders(AVAILABLE_QUEUE_PROVIDERS);
     }
 
 }

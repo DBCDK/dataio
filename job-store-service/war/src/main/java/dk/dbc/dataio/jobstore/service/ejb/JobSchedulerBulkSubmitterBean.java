@@ -8,6 +8,7 @@ import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMod
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.DIRECT;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.sinkStatusMap;
+import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.util.concurrent.Future;
 
 /**
@@ -45,12 +47,16 @@ public class JobSchedulerBulkSubmitterBean {
     void bulkScheduleChunksForDelivering() {
 
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
-            JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus =sinkQueueStatus.deliveringStatus;
-            LOGGER.info("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
+            try {
+                JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.deliveringStatus;
+                LOGGER.info("prSink Delivering QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
 
-            if( queueStatus.getMode() == DIRECT) return;
+                if (queueStatus.getMode() == DIRECT) return;
 
-            doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
+                doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
+            }catch (Exception e) {
+                LOGGER.error("Error in sink for sink {}", sinkId,e);
+            }
         });
     }
 
@@ -60,14 +66,16 @@ public class JobSchedulerBulkSubmitterBean {
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
     void bulkScheduleChunksForProcessing() {
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
-            JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus =sinkQueueStatus.processingStatus;
-            LOGGER.info("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
+            try {
+                JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.processingStatus;
+                LOGGER.info("prSink Processing QueueMode for sink {} is {}", sinkId, queueStatus.getMode());
 
-            if (queueStatus.getMode() == DIRECT) return;
+                if (queueStatus.getMode() == DIRECT) return;
 
-            doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK);
-
-
+                doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK);
+            } catch (Exception e) {
+                LOGGER.error("Error in Processing for sink {}", sinkId, e);
+            }
         });
     }
 
@@ -99,7 +107,7 @@ public class JobSchedulerBulkSubmitterBean {
         if( !queueStatus.lastAsyncPushResult.isDone() ) return;
 
         LOGGER.info("{} Async Result for sink {}, readyForQueue({}), jmsEnqueued({})", phase, sinkId, queueStatus.readyForQueue.intValue(), queueStatus.jmsEnqueued.intValue());
-        int lastAsyncPushedToQueue=0;
+        int lastAsyncPushedToQueue=-1;
         try {
             lastAsyncPushedToQueue=queueStatus.lastAsyncPushResult.get();
         } catch (Throwable e) {
@@ -115,8 +123,17 @@ public class JobSchedulerBulkSubmitterBean {
         // Check of done transition to directMode is complete
 
         if(( queueStatus.bulkToDirectCleanUpPushes > 2) && lastAsyncPushedToQueue == 0)   {
-            LOGGER.info("prSink {} {} queue switched to {}",sinkId, phase, DIRECT);
-            queueStatus.setMode(DIRECT);
+            Query q=entityManager.createQuery("select count(dt) from DependencyTrackingEntity dt where ( dt.status=:statusProcess or dt.status=:statusDelivering) and dt.sinkid=:sinkid")
+                    .setParameter("sinkid", sinkId)
+                    .setParameter("statusProcess", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS)
+                    .setParameter("statusDelivering", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
+            Long count= (Long) q.getSingleResult();
+            if( count == 0 ) {
+                LOGGER.info("prSink {} {} queue switched to {}",sinkId, phase, DIRECT);
+                queueStatus.setMode(DIRECT);
+            } else {
+                LOGGER.info("prSink {} {} queue NOT switched to {} {} chunks found waiting",sinkId, phase, DIRECT, count);
+            }
         }
     }
 

@@ -31,7 +31,10 @@ import javax.persistence.Convert;
 import javax.persistence.Embeddable;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.SqlResultSetMapping;
+import javax.persistence.SqlResultSetMappings;
 import javax.persistence.Table;
 import java.util.HashSet;
 import java.util.List;
@@ -45,18 +48,39 @@ import java.util.Set;
  */
 @Entity
 @Table(name = "dependencytracking")
-@SqlResultSetMapping(
-    name="JobIdChunkIdResult",
-    classes={
-       @ConstructorResult(
-            targetClass=dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key.class,
-            columns= {
-                    @ColumnResult(name = "jobId"),
-                    @ColumnResult(name = "chunkId"),
-            }
-       )
-    }
-)
+@SqlResultSetMappings({
+        @SqlResultSetMapping(
+                name = "JobIdChunkIdResult",
+                classes = {
+                        @ConstructorResult(
+                                targetClass = dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key.class,
+                                columns = {
+                                        @ColumnResult(name = "jobId"),
+                                        @ColumnResult(name = "chunkId"),
+                                }
+                        )
+                }
+        ),
+        @SqlResultSetMapping(
+                name = "SinkIdStatusCountResult",
+                classes = {
+                        @ConstructorResult(
+                                targetClass = dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult.class,
+                                columns = {
+                                        @ColumnResult(name = "sinkId"),
+                                        @ColumnResult(name = "Status"),
+                                        @ColumnResult(name = "count"),
+                                }
+                        )
+                }
+        )
+})
+@NamedNativeQueries({
+        @NamedNativeQuery( name= "SinkIdStatusCount",
+                query = "select sinkid, status, count(*) from dependencytracking group by jobid, sinkid, status order by sinkid, status",
+                resultSetMapping = "SinkIdStatusCountResult"
+        )
+})
 public class DependencyTrackingEntity {
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId) {
         this.key = new Key( chunk.getKey());

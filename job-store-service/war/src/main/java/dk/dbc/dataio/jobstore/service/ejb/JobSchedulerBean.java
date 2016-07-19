@@ -9,16 +9,15 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
+import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
 import javax.ejb.AsyncResult;
 import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
-import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
@@ -82,9 +81,6 @@ public class JobSchedulerBean {
 
     @EJB
     private JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
-
-    @Resource
-    private SessionContext sessionContext;
 
 
     /**
@@ -275,6 +271,36 @@ public class JobSchedulerBean {
         return new AsyncResult<>(chunksPushedToQueue);
     }
 
+    /**
+     *  Reload and reset Counters form current Sink status.
+     *  Set alle sinks to BulkMode to ensure progress on redeploy of service
+     */
+    @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    public void loadSinkStatusOnBootstrap() {
+        List<SinkIdStatusCountResult> res=entityManager.createNamedQuery("SinkIdStatusCount").getResultList();
+
+        for( SinkIdStatusCountResult entry: res ) {
+            JobSchedulerPrSinkQueueStatuses sinkQueueStatuses=getPrSinkStatusForSinkId( entry.sinkId );
+            switch (entry.status) {
+                case QUEUED_TO_PROCESS:
+                    sinkQueueStatuses.processingStatus.jmsEnqueued.addAndGet( entry.count );
+                    // intended fallthrough
+                case READY_TO_PROCESS:
+                    sinkQueueStatuses.processingStatus.readyForQueue.addAndGet(entry.count );
+                    break;
+                case QUEUED_TO_DELIVERY:
+                    sinkQueueStatuses.deliveringStatus.jmsEnqueued.addAndGet( entry.count);
+                    // intended fallthrough
+                case READY_TO_DELIVER:
+                    sinkQueueStatuses.deliveringStatus.readyForQueue.addAndGet( entry.count);
+                    break;
+                case BLOCKED: // blocked chunks is not counted
+                    break;
+            }
+            sinkQueueStatuses.processingStatus.setMode(QueueSubmitMode.BULK);
+            sinkQueueStatuses.deliveringStatus.setMode(QueueSubmitMode.BULK);
+        }
+    }
 
 
     List<DependencyTrackingEntity.Key> findChunksWaitingForMe(DependencyTrackingEntity.Key key) throws JobStoreException {

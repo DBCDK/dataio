@@ -111,6 +111,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         final BootstrapBean bootstrapBean = new BootstrapBean();
         bootstrapBean.jobStoreRepository = newPgJobStoreRepository();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
+        bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
         return bootstrapBean;
     }
 

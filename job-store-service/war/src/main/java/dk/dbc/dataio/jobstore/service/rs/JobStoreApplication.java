@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.jobstore.service.rs;
 
+import dk.dbc.dataio.jobstore.service.ejb.JobSchedulerRestBean;
 import dk.dbc.dataio.jobstore.service.ejb.JobsBean;
 import dk.dbc.dataio.jobstore.service.ejb.NotificationsBean;
 import org.slf4j.Logger;
@@ -46,6 +47,7 @@ public class JobStoreApplication extends Application {
         classes.add(JobsBean.class);
         classes.add(NotificationsBean.class);
         classes.add(StatusBean.class);
+        classes.add(JobSchedulerRestBean.class);
         for (Class<?> clazz : classes) {
             log.info("Registered {} resource", clazz.getName());
         }

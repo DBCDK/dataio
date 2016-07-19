@@ -23,7 +23,6 @@ LOOP
    insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (5,_counter,'','{}'::JSON,'{}'::JSON);
    insert into chunk (jobid, id, datafileid,sequenceanalysisdata, state) values (6,_counter,'','{}'::JSON,'{}'::JSON);
     _counter := _counter + 1;
-
 END LOOP;
 END
 $do$;

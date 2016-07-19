@@ -43,10 +43,15 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBException;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
+import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.jvnet.mock_javamail.Mailbox;
+import static org.mockito.Mockito.mock;
 import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.ejb.SessionContext;
@@ -63,12 +68,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_DRIVER;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_PASSWORD;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_URL;
-import static org.eclipse.persistence.config.PersistenceUnitProperties.JDBC_USER;
-import static org.mockito.Mockito.mock;
 
 public class AbstractJobStoreIT {
     protected static final String DATABASE_NAME = "jobstore";
@@ -245,6 +244,13 @@ public class AbstractJobStoreIT {
         jobQueueRepository.entityManager = entityManager;
         return jobQueueRepository;
     }
+
+    protected JobSchedulerBean newJobSchedulerBean() {
+        final JobSchedulerBean jobSchedulerBean = new JobSchedulerBean();
+        jobSchedulerBean.entityManager = entityManager;
+        return jobSchedulerBean;
+    }
+
 
     protected PgJobStoreRepository newPgJobStoreRepository() {
         final PgJobStoreRepository pgJobStoreRepository = new PgJobStoreRepository();

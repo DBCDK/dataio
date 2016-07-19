@@ -8,14 +8,17 @@ import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.Query;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -39,6 +42,13 @@ public class DependencyTrackingEntityIT {
             LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
         }
         flyway.migrate();
+    }
+
+    @After
+    public void cleanEntityManagerUp() {
+        if (em.getTransaction().isActive() ) {
+            em.getTransaction().rollback();
+        }
     }
 
     @Test
@@ -75,8 +85,33 @@ public class DependencyTrackingEntityIT {
 
     }
 
+    @Test
+    public void SinkIdStatusCountResultQuery() throws Exception {
+        JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_sinkStatusLoadTest.sql");
+        em.getTransaction().begin();
 
-     private <T> Set<T> createSet(T... elements) {
+        Query q=em.createNamedQuery("SinkIdStatusCount");
+        List<SinkIdStatusCountResult> result=q.getResultList();
+
+
+        assertThat(result.size(), is(10));
+
+        SinkIdStatusCountResult res1=result.get(0);
+        em.getTransaction().commit();
+        assertThat("result[0]", result.get(0) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS, 5)));
+        assertThat("result[1]", result.get(1) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS, 4)));
+        assertThat("result[2]", result.get(2) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.BLOCKED, 2)));
+        assertThat("result[3]", result.get(3) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER, 3)));
+        assertThat("result[4]", result.get(4) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY, 1)));
+
+        assertThat("result[5]", result.get(5) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS, 1)));
+        assertThat("result[6]", result.get(6) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS, 2)));
+        assertThat("result[7]", result.get(7) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.BLOCKED, 3)));
+        assertThat("result[8]", result.get(8) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER, 4)));
+        assertThat("result[9]", result.get(9) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY, 5)));
+    }
+
+    private <T> Set<T> createSet(T... elements) {
         Set<T> r=new HashSet<>();
         Collections.addAll(r, elements);
         return r;

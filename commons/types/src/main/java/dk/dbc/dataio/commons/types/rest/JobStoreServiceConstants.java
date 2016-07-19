@@ -25,6 +25,7 @@ public class JobStoreServiceConstants {
     public static final String JOB_ID_VARIABLE = "jobId";
     public static final String CHUNK_ID_VARIABLE = "chunkId";
     public static final String ITEM_ID_VARIABLE = "itemId";
+    public static final String SINK_ID_VARIABLE = "sinkId";
 
     public static final String JOB_COLLECTION                   = "jobs";
     public static final String JOB_COLLECTION_SEARCHES          = "jobs/searches";
@@ -50,6 +51,8 @@ public class JobStoreServiceConstants {
     public static final String EXPORT_ITEMS_DELIVERED_FAILED   = "jobs/{jobId}/exports/items/delivered/failed";
     public static final String QUERY_PARAM_FORMAT              = "format";
 
+    public static final String SCHEDULER_SINK_FORCE_BULK_MODE = "dependency/sinks/{"+SINK_ID_VARIABLE+"}/forceBulkMode";
+    public static final String SCHEDULER_SINK_FORCE_TRANSITION_MODE = "dependency/sinks/{"+SINK_ID_VARIABLE+"}/forceTransitionMode";
 
     private JobStoreServiceConstants() { }
 }

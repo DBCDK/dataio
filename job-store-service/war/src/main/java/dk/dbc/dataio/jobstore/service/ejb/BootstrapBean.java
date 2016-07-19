@@ -45,11 +45,15 @@ public class BootstrapBean {
     @EJB
     JobQueueRepository jobQueueRepository;
 
+    @EJB
+    JobSchedulerBean jobSchedulerBean;
+
     @PostConstruct
     @Stopwatch
     public void initialize() {
         jobStoreRepository.purgeReorderedItems();
         resetJobsInterruptedDuringPartitioning();
+        jobSchedulerBean.loadSinkStatusOnBootstrap();
     }
 
     /**

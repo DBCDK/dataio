@@ -29,10 +29,11 @@ import json
 import requests
 
 
+sinksUpdaded=[];
 def parse_arguments():
     global args
     parser = argparse.ArgumentParser("")
-    parser.add_argument("sinkId", help="sinkId")
+    parser.add_argument("sinkId", help="sinkId use [all] for all sinks")
     parser.add_argument("--host", help="host for the dataio system, choose dataio-be-s01:8080 for staging or dataio-be-p01:8080 for prod", required=True)
 
     args = parser.parse_args()
@@ -42,12 +43,27 @@ def post_force_bulk_mode( sinkid ):
     data={
         "sinkId": sinkid
     }
-    response = requests.post("http://" + args.host + "/dataio/job-store-service/dependency/sinks/" + sinkid + "/forceBulkMode", json.dumps(data))
-
-    print( response )
-
-
+    response = requests.post("http://" + args.host + "/dataio/job-store-service/dependency/sinks/" + str(sinkid)+ "/forceBulkMode", json.dumps(data))
+    if response.status_code == requests.codes.OK :
+        sinksUpdaded.append( sinkid)
+    else :
+        print "Error for sink ", sinkid, response
 
 parse_arguments()
 
-post_force_bulk_mode(args.sinkId)
+def getSinkId( arg) :
+    return arg['id']
+
+def get_all_sinkIds( ) :
+    response = requests.get( "http://" + args.host + "/dataio/flow-store-service/sinks/")
+
+    return response.json()
+
+
+if args.sinkId=="all" :
+    for sink in get_all_sinkIds():
+        post_force_bulk_mode( getSinkId( sink ))
+else :
+    post_force_bulk_mode(args.sinkId)
+
+print "sinks set to bulkMode ", sinksUpdaded

@@ -165,7 +165,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedView.selectionModel).clear();
-        verify(mockedAsyncJobViewDataProvider).updateUserCriteria();
         verify(mockedAsyncJobViewDataProvider).updateCurrentCriteria();
         verify(mockedAsyncJobViewDataProvider).setBaseCriteria(any(JobListCriteria.class));
     }

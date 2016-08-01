@@ -109,17 +109,10 @@
 
     <g:HTMLPanel styleName="{style.outerHtmlPanel}">
         <g:HorizontalPanel horizontalAlignment="left">
+            <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />
+            <g:Button ui:field="rerunAllShownJobsButton" text="{txt.button_RerunAllShownJobs}" />
             <jobs:JobFilter ui:field="jobFilter" />
-        </g:HorizontalPanel>
-        <span class="{style.radio-buttons}">
-            <g:RadioButton ui:field="processingFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_ProcessingFailedJobs}" />
-            <g:RadioButton ui:field="deliveringFailedJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_DeliveringFailedJobs}" />
-            <g:RadioButton ui:field="allJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_AllJobs}" />
-            <g:RadioButton ui:field="fatalJobsButton" name="jobsButton" value="false" enabled="true" text="{txt.button_FatalJobs}" />
-        </span>
-
-        <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />
-        <g:Button ui:field="rerunAllShownJobsButton" text="{txt.button_RerunAllShownJobs}" />
+       </g:HorizontalPanel>
 
         <g:HTMLPanel addStyleNames="{style.innerHtmlPanel}">
 

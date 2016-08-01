@@ -82,18 +82,18 @@ public class View extends ViewWidget {
     }
 
     public View() {
-        this("", true, true);
+        this("", true);
         dataProvider.addDataDisplay(jobsTable);
         HideColumn(true);  // Default: Do not show Work Flow columns
     }
 
     /* Package scoped Constructor used for unit testing. */
-    View(String headerText, Boolean setupColumns, Boolean updateUserCriteria) {
+    View(String headerText, Boolean setupColumns) {
         super(headerText);
         if( setupColumns ) {
             setupColumns();
         }
-        dataProvider = new AsyncJobViewDataProvider(this, updateUserCriteria);
+        dataProvider = new AsyncJobViewDataProvider(this);
     }
 
 

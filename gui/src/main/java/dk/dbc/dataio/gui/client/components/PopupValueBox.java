@@ -50,8 +50,8 @@ import dk.dbc.dataio.gui.client.events.HasDialogHandlers;
  * @param <W> The class defining the widget to be embedded (eg. TextBox)
  * @param <T> The class defining the type of the entered value
  */
-public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite implements HasValue<T>, HasDialogHandlers {
-    public static final String POPUP_BOX_GUID = "dio-PopupBox";
+public class PopupValueBox<W extends HasValue<T> & Focusable, T> extends Composite implements HasValue<T>, HasDialogHandlers {
+    public static final String POPUP_BOX_GUID = "dio-PopupValueBox";
 
     ValueChangeHandler<T> valueChangeHandler = null;  // This is package private because of test - should be private
     DialogHandler dialogHandler = null;  // This is package private because of test - should be private
@@ -73,7 +73,7 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
      * @param dialogTitle  The title text to display on the Dialog Box (mandatory)
      * @param okButtonText The text to be displayed in the OK Button (mandatory)
      */
-    public PopupBox(W widget, String dialogTitle, String okButtonText) {
+    public PopupValueBox(W widget, String dialogTitle, String okButtonText) {
         this(widget, dialogTitle, okButtonText, new FlowPanel(), new DialogBox(), new VerticalPanel(), new FlowPanel(), new Button(), new Button(), new Button());
     }
 
@@ -92,16 +92,16 @@ public class PopupBox<W extends HasValue<T> & Focusable, T> extends Composite im
      * @param cancelButton The Cancel Button
      * @param extraButton The Extra Button
      */
-    PopupBox(W widget,
-            String dialogTitle,
-            String okButtonText,
-            FlowPanel basePanel,
-            DialogBox dialogBox,
-            VerticalPanel containerPanel,
-            FlowPanel buttonPanel,
-            Button okButton,
-            Button cancelButton,
-            Button extraButton) {
+    PopupValueBox(W widget,
+                  String dialogTitle,
+                  String okButtonText,
+                  FlowPanel basePanel,
+                  DialogBox dialogBox,
+                  VerticalPanel containerPanel,
+                  FlowPanel buttonPanel,
+                  Button okButton,
+                  Button cancelButton,
+                  Button extraButton) {
         // Data injection
         this.widget = widget;
         this.basePanel = basePanel;

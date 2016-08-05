@@ -22,7 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flowcomponent.show.jsmodulespopup;
 
 import com.google.gwt.uibinder.client.UiConstructor;
-import dk.dbc.dataio.gui.client.components.PopupBox;
+import dk.dbc.dataio.gui.client.components.PopupValueBox;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import java.util.List;
 /**
  * Popup box for showing a double list in a popup window
  */
-public class PopupDoubleList extends PopupBox<DoubleList, PopupDoubleList.DoubleListData> {
+public class PopupDoubleList extends PopupValueBox<DoubleList, PopupDoubleList.DoubleListData> {
 
 
     /**

@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Popup box for entering a list in a popup window
  */
-public class PopupListBox extends PopupBox<ListBoxHasValue, Map<String, String>> {
+public class PopupListBox extends PopupValueBox<ListBoxHasValue, Map<String, String>> {
     private final int MAX_ITEMS_IN_LIST = 20;
     private final int MIN_ITEMS_IN_LIST = 2;
     private final String DEFAULT_WIDTH = "16em";
@@ -78,7 +78,7 @@ public class PopupListBox extends PopupBox<ListBoxHasValue, Map<String, String>>
 
 
     /*
-     * Override PopupBox methods
+     * Override PopupValueBox methods
      */
 
     /**

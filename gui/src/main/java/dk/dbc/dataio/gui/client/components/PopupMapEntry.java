@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Popup box for entering a text string in a popup window
  */
-public class PopupMapEntry extends PopupBox<MapEntry, Map.Entry<String, String>> {
+public class PopupMapEntry extends PopupValueBox<MapEntry, Map.Entry<String, String>> {
 
     /**
      * Constructor

@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * PopupBox unit tests
+ * PopupValueBox unit tests
  * <p/>
  * The test methods of this class uses the following naming convention:
  * <p/>

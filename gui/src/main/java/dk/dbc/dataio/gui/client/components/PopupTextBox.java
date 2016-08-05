@@ -27,7 +27,7 @@ import com.google.gwt.user.client.ui.TextBox;
 /**
  * Popup box for entering a text string in a popup window
  */
-public class PopupTextBox extends PopupBox<TextBox, String> {
+public class PopupTextBox extends PopupValueBox<TextBox, String> {
 
     /**
      * Constructor

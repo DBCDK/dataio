@@ -48,14 +48,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * PopupBox unit tests
+ * PopupValueBox unit tests
  * <p/>
  * The test methods of this class uses the following naming convention:
  * <p/>
  * unitOfWork_stateUnderTest_expectedBehavior
  */
 @RunWith(GwtMockitoTestRunner.class)
-public class PopupBoxTest {
+public class PopupValueBoxTest {
     @Mock KeyPressEvent mockedKeyPressEvent;
     @Mock TextBox mockedWidget;
     @Mock FlowPanel mockedBasePanel;
@@ -73,7 +73,7 @@ public class PopupBoxTest {
     /**
      * Subject Under Test
      */
-    PopupBox popupBox;
+    PopupValueBox popupValueBox;
 
 
     /**
@@ -97,10 +97,10 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setDialogTitle(null);
+        popupValueBox.setDialogTitle(null);
 
         // Test Verification
-        verify(popupBox.dialogBox).setText(null);
+        verify(popupValueBox.dialogBox).setText(null);
         noMoreMockInvocations();
     }
 
@@ -111,10 +111,10 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setDialogTitle("");
+        popupValueBox.setDialogTitle("");
 
         // Test Verification
-        verify(popupBox.dialogBox).setText("");
+        verify(popupValueBox.dialogBox).setText("");
         noMoreMockInvocations();
     }
 
@@ -125,10 +125,10 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setDialogTitle("-Dialog-Title-");
+        popupValueBox.setDialogTitle("-Dialog-Title-");
 
         // Test Verification
-        verify(popupBox.dialogBox).setText("-Dialog-Title-");
+        verify(popupValueBox.dialogBox).setText("-Dialog-Title-");
         noMoreMockInvocations();
     }
 
@@ -138,7 +138,7 @@ public class PopupBoxTest {
         setupTest();
 
         // Activate Subject Under Test
-        popupBox.setOkButtonText(null);
+        popupValueBox.setOkButtonText(null);
     }
 
     @Test
@@ -148,7 +148,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setOkButtonText("");
+        popupValueBox.setOkButtonText("");
 
         // Test Verification
         verify(mockedOkButton).setEnabled(false);
@@ -163,7 +163,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setOkButtonText("-Ok-Button-Text-");
+        popupValueBox.setOkButtonText("-Ok-Button-Text-");
 
         // Test Verification
         verify(mockedOkButton).setText("-Ok-Button-Text-");
@@ -178,7 +178,7 @@ public class PopupBoxTest {
         setupTest();
 
         // Activate Subject Under Test
-        popupBox.setCancelButtonText(null);
+        popupValueBox.setCancelButtonText(null);
     }
 
     @Test
@@ -188,7 +188,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setCancelButtonText("");
+        popupValueBox.setCancelButtonText("");
 
         // Test Verification
         verify(mockedCancelButton, times(2)).setEnabled(false);
@@ -203,7 +203,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setCancelButtonText("-Cancel-Button-Text-");
+        popupValueBox.setCancelButtonText("-Cancel-Button-Text-");
 
         // Test Verification
         verify(mockedCancelButton).setText("-Cancel-Button-Text-");
@@ -218,7 +218,7 @@ public class PopupBoxTest {
         setupTest();
 
         // Activate Subject Under Test
-        popupBox.setExtraButtonText(null);
+        popupValueBox.setExtraButtonText(null);
     }
 
     @Test
@@ -228,7 +228,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setExtraButtonText("");
+        popupValueBox.setExtraButtonText("");
 
         // Test Verification
         verify(mockedExtraButton, times(2)).setEnabled(false);
@@ -243,7 +243,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setExtraButtonText("-Extra-Button-Text-");
+        popupValueBox.setExtraButtonText("-Extra-Button-Text-");
 
         // Test Verification
         verify(mockedExtraButton).setText("-Extra-Button-Text-");
@@ -259,7 +259,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setGuid(null);
+        popupValueBox.setGuid(null);
     }
 
     @Test
@@ -270,7 +270,7 @@ public class PopupBoxTest {
         when(mockedDialogBox.getElement()).thenReturn(mockedElement);
 
         // Activate Subject Under Test
-        popupBox.setGuid("");
+        popupValueBox.setGuid("");
 
         // Test Verification
         noMoreMockInvocations();
@@ -284,7 +284,7 @@ public class PopupBoxTest {
         when(mockedDialogBox.getElement()).thenReturn(mockedElement);
 
         // Activate Subject Under Test
-        popupBox.setGuid("gui ID");
+        popupValueBox.setGuid("gui ID");
 
         // Test Verification
         verify(mockedDialogBox).getElement();
@@ -299,7 +299,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.okClickHandler(mockedClickEvent);
+        popupValueBox.okClickHandler(mockedClickEvent);
 
         // Test Verification
         verify(mockedDialogBox, times(2)).hide();
@@ -311,10 +311,10 @@ public class PopupBoxTest {
         // Test Preparation
         setupTest();
         constructorVerification();
-        popupBox.addValueChangeHandler(mockedValueChangeHandler);
+        popupValueBox.addValueChangeHandler(mockedValueChangeHandler);
 
         // Activate Subject Under Test
-        popupBox.okClickHandler(mockedClickEvent);
+        popupValueBox.okClickHandler(mockedClickEvent);
 
         // Test Verification
         verify(mockedDialogBox, times(2)).hide();
@@ -330,7 +330,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.cancelClickHandler(mockedClickEvent);
+        popupValueBox.cancelClickHandler(mockedClickEvent);
 
         // Test Verification
         verify(mockedDialogBox, times(2)).hide();
@@ -344,7 +344,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.extraClickHandler(mockedClickEvent);
+        popupValueBox.extraClickHandler(mockedClickEvent);
 
         // Test Verification
         verify(mockedDialogBox, times(2)).hide();
@@ -358,7 +358,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.show();
+        popupValueBox.show();
 
         // Test Verification
         verify(mockedWidget, times(2)).setValue(null);
@@ -375,7 +375,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.hide();
+        popupValueBox.hide();
 
         // Test Verification
         verify(mockedDialogBox, times(2)).hide();
@@ -390,7 +390,7 @@ public class PopupBoxTest {
         when(mockedWidget.getValue()).thenReturn("correct value");
 
         // Activate Subject Under Test
-        String value = (String) popupBox.getValue();
+        String value = (String) popupValueBox.getValue();
 
         // Test Verification
         assertThat(value, is("correct value"));
@@ -405,7 +405,7 @@ public class PopupBoxTest {
         constructorVerification();
 
         // Activate Subject Under Test
-        popupBox.setValue("new value");
+        popupValueBox.setValue("new value");
 
         // Test Verification
         verify(mockedWidget).setValue("new value");
@@ -417,10 +417,10 @@ public class PopupBoxTest {
         // Test Preparation
         setupTest();
         constructorVerification();
-        popupBox.addValueChangeHandler(mockedValueChangeHandler);
+        popupValueBox.addValueChangeHandler(mockedValueChangeHandler);
 
         // Activate Subject Under Test
-        popupBox.setValue("new value", true);
+        popupValueBox.setValue("new value", true);
 
         // Test Verification
         verify(mockedWidget).setValue("new value", true);
@@ -435,14 +435,14 @@ public class PopupBoxTest {
         // Test Preparation
         setupTest();
         constructorVerification();
-        HandlerRegistration registration = popupBox.addValueChangeHandler(mockedValueChangeHandler);
-        assertThat(popupBox.valueChangeHandler, is(notNullValue()));
+        HandlerRegistration registration = popupValueBox.addValueChangeHandler(mockedValueChangeHandler);
+        assertThat(popupValueBox.valueChangeHandler, is(notNullValue()));
 
         // Activate Subject Under Test
         registration.removeHandler();
 
         // Test Verification
-        assertThat(popupBox.valueChangeHandler, is(nullValue()));
+        assertThat(popupValueBox.valueChangeHandler, is(nullValue()));
     }
 
 
@@ -451,7 +451,7 @@ public class PopupBoxTest {
      */
 
     private void setupTest() {
-        popupBox = new PopupBox(
+        popupValueBox = new PopupValueBox(
                 mockedWidget,
                 "Dialog Title",
                 "Ok Button Text",
@@ -483,7 +483,7 @@ public class PopupBoxTest {
         verify(mockedContainerPanel).add(mockedButtonPanel);
         verify(mockedDialogBox).add(mockedContainerPanel);
         verify(mockedBasePanel).add(mockedDialogBox);
-        verify(mockedDialogBox).addStyleName("dio-PopupBox");
+        verify(mockedDialogBox).addStyleName("dio-PopupValueBox");
         verify(mockedDialogBox).setAutoHideEnabled(true);
         verify(mockedDialogBox).setModal(true);
         verify(mockedDialogBox).isAnimationEnabled();

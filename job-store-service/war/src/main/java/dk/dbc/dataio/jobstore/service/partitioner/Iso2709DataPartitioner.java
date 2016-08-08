@@ -261,7 +261,7 @@ public class Iso2709DataPartitioner implements DataPartitioner {
         try {
             return Iso2709Unpacker.createMarcRecord(recordAsBytes, danMarc2Charset);
         } catch (Exception e) {
-            throw new Iso2709IteratorReadError("Exception caught while decoding 2709");
+            throw new Iso2709IteratorReadError("Exception caught while decoding 2709: " + e.getMessage(), e);
         }
     }
 

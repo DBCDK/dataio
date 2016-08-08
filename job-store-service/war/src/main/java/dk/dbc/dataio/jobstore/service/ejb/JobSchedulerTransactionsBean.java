@@ -4,9 +4,6 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getPrSinkStatusForSinkId;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -26,6 +23,10 @@ import javax.persistence.Query;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getPrSinkStatusForSinkId;
 
 /**
  * Created by ja7 on 03-07-16.
@@ -231,8 +232,6 @@ public class JobSchedulerTransactionsBean {
         }
     }
 
-
-
     /**
      * @param sinkId    Sink Id to find
      * @param matchKeys Set of keys any chunk with any key is returned
@@ -249,7 +248,7 @@ public class JobSchedulerTransactionsBean {
         for (String key : matchKeys) {
             if (!first) builder.append(" or ");
             builder.append("matchKeys @> '[\"");
-            builder.append(key);
+            builder.append(escapeSql(key));
             builder.append("\"]'");
             first = false;
         }
@@ -258,5 +257,10 @@ public class JobSchedulerTransactionsBean {
         return builder.toString();
     }
 
-
+    private String escapeSql(String str) {
+        if (str == null) {
+            return null;
+        }
+        return str.replaceAll("'", "''");
+    }
 }

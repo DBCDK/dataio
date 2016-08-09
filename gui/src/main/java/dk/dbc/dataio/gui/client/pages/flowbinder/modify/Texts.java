@@ -59,6 +59,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_QueueProvider();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_AreYouSureAboutDeleting();
+
 
     // Tooltips
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -84,10 +87,16 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Cancel();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Yes();
+
 
     // Captions
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String caption_SelectSubmitter();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String caption_DeleteFlowbinder();
 
 
     // Error messages

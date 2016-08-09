@@ -28,12 +28,14 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.KeyDownEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PopupBox;
 import dk.dbc.dataio.gui.client.components.PopupListBox;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
@@ -47,10 +49,15 @@ import java.util.Map;
 public class View extends ContentPanel<Presenter> implements IsWidget {
     interface FlowbinderBinder extends UiBinder<HTMLPanel, View> {}
     private static FlowbinderBinder uiBinder = GWT.create(FlowbinderBinder.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     public View() {
         super("");
         add(uiBinder.createAndBindUi(this));
+    }
+
+    @UiFactory PopupBox<Label> getPopupBox() {
+        return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
     @UiField PromptedTextBox name;
@@ -68,6 +75,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupListBox popupListBox;
+    @UiField PopupBox<Label> confirmation;
 
     @UiHandler("name")
     void nameChanged(BlurEvent event) {
@@ -151,13 +159,20 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("deleteButton")
     void deleteButtonPressed(ClickEvent event) {
-        presenter.deleteButtonPressed();
+        confirmation.show();
     }
 
     @UiHandler("popupListBox")
     void setPopupListBoxClicked(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             presenter.addSubmitters(popupListBox.getValue());
+        }
+    }
+
+    @UiHandler("confirmation")
+    void confirmationButtonClicked(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            presenter.deleteButtonPressed();
         }
     }
 

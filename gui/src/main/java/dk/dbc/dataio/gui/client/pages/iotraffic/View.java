@@ -25,15 +25,19 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.components.EnterButton;
+import dk.dbc.dataio.gui.client.components.PopupBox;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 import java.util.List;
@@ -44,6 +48,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     private static UiTrafficBinder uiBinder = GWT.create(UiTrafficBinder.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+
+    @UiFactory
+    PopupBox<Label> getPopupBox() {
+        return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
+    }
 
     @UiField PromptedTextBox submitter;
     @UiField PromptedTextBox packaging;
@@ -53,6 +63,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedCheckBox notify;
     @UiField EnterButton addButton;
     @UiField(provided=true) GatekeepersTable gatekeepersTable;
+    @UiField PopupBox<Label> confirmation;
+    long gateKeeperDestinationToBeDeleted = 0;
 
 
     public View() {
@@ -99,6 +111,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("addButton")
     void addButtonPressed(ClickEvent event) {
         presenter.addButtonPressed();
+    }
+
+    @UiHandler("confirmation")
+    void confirmationButtonClicked(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON && gateKeeperDestinationToBeDeleted != 0) {
+            presenter.deleteButtonPressed(gateKeeperDestinationToBeDeleted);
+            gateKeeperDestinationToBeDeleted = 0;
+        }
     }
 
     /**

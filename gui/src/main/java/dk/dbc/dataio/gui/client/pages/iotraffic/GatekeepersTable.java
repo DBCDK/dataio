@@ -180,7 +180,8 @@ public class GatekeepersTable extends CellTable {
         column.setFieldUpdater(new FieldUpdater<GatekeeperDestination, String>() {
             @Override
             public void update(int index, GatekeeperDestination gatekeeperDestination, String buttonText) {
-                view.presenter.deleteButtonPressed(gatekeeperDestination.getId());
+                view.gateKeeperDestinationToBeDeleted = gatekeeperDestination.getId();
+                view.confirmation.show();
             }
         });
         return column;

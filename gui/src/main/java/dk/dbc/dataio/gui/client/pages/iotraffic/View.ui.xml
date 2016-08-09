@@ -65,6 +65,8 @@
 
         <io:GatekeepersTable pageSize='500' ui:field='gatekeepersTable' />
 
+        <dio:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteGatekeeperDestination}" />
+
     </g:HTMLPanel>
 
 </ui:UiBinder>

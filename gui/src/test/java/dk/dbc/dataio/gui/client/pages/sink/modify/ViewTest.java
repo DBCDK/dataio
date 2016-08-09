@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -53,6 +54,7 @@ public class ViewTest {
     @Mock Presenter mockedPresenter;
     @Mock ValueChangeEvent mockedValueChangeEvent;
     @Mock ClickEvent mockedClickEvent;
+    @Mock DialogEvent mockedDialogEvent;
 
 
     // Subject Under Test
@@ -256,7 +258,7 @@ public class ViewTest {
         view.deleteButtonPressed(mockedClickEvent);
 
         // Test Verification
-        verify(mockedPresenter).deleteButtonPressed();
+        verify(view.confirmation).show();
         verifyNoMoreInteractions(mockedPresenter);
     }
 
@@ -345,6 +347,33 @@ public class ViewTest {
         expectedResult.put("provider2", "provider2");
         verify(view.queueProviders).setValue(expectedResult, true);
         verifyNoMoreInteractions(view.queueProviders);
+    }
+
+    @Test
+    public void confirmationButtonClicked_okButton_presenterCalled() {
+        // Test preparation
+        setupView();
+        when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.OK_BUTTON);
+
+        // Subject Under Test
+        view.confirmationButtonClicked(mockedDialogEvent);
+
+        // Test Verification
+        verify(mockedPresenter).deleteButtonPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void confirmationButtonClicked_cancelButton_presenterNotCalled() {
+        // Test preparation
+        setupView();
+        when(mockedDialogEvent.getDialogButton()).thenReturn(DialogEvent.DialogButton.CANCEL_BUTTON);
+
+        // Subject Under Test
+        view.confirmationButtonClicked(mockedDialogEvent);
+
+        // Test Verification
+        verifyNoMoreInteractions(mockedPresenter);
     }
 
 

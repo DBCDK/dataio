@@ -43,6 +43,7 @@
         <li><g:Label ui:field="status"/></li>
 
         <dio:PopupListBox ui:field="popupListBox" guid="dio-FlowComponentSelectionDialogBox" multipleSelect="false" okButtonText="{txt.button_Select}" dialogTitle="{txt.caption_SelectFlowComponent}" cancelButtonText="{txt.button_Cancel}" extraButtonText="{txt.button_NewFlowComponent}"/>
+        <dio:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteFlow}" />
 
     </g:HTMLPanel>
 

@@ -36,12 +36,27 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_Description();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_AreYouSureAboutDeleting();
+
+
+    // Captions
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String caption_DeleteSubmitter();
+
 
     // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Save();
+
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_Delete();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Cancel();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Yes();
 
 
     // Error messages
@@ -53,6 +68,7 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NameFormatValidationError();
+
 
     // Status messages
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

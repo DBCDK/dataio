@@ -38,6 +38,8 @@
 
         <li><g:Label ui:field="status"></g:Label></li>
 
+        <dio:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteSubmitter}" />
+
     </g:HTMLPanel>
 
 </ui:UiBinder>

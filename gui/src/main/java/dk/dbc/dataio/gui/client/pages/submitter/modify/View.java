@@ -25,24 +25,32 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import dk.dbc.dataio.gui.client.components.PopupBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
+import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-
     interface SubmitterBinder extends UiBinder<HTMLPanel, View> {}
     private static SubmitterBinder uiBinder = GWT.create(SubmitterBinder.class);
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     public View() {
         super("");
         add(uiBinder.createAndBindUi(this));
+    }
+
+    @UiFactory
+    PopupBox<Label> getPopupBox() {
+        return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
     @UiField PromptedTextBox number;
@@ -50,6 +58,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextArea description;
     @UiField Button deleteButton;
     @UiField Label status;
+    @UiField PopupBox<Label> confirmation;
 
     @UiHandler("number")
     void numberChanged(ValueChangeEvent<String> event) {
@@ -76,6 +85,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("deleteButton")
     void deleteButtonPressed(ClickEvent event) {
-        presenter.deleteButtonPressed();
+        confirmation.show();
     }
+
+    @UiHandler("confirmation")
+    void confirmationButtonClicked(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            presenter.deleteButtonPressed();
+        }
+    }
+
 }

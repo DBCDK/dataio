@@ -64,7 +64,11 @@ public class AddiMetaDataTest {
     public void addiMetaData_canBeMarshalledUnmarshalled() throws JSONBException {
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withSubmitterNumber(42)
-                .withFormat("marc2");
+                .withFormat("marc2")
+                .withLibraryRules(new AddiMetaData.LibraryRules()
+                                        .withAgencyType("theWorstType")
+                                        .withLibraryRule("canDeleteAll", true)
+                                        .withLibraryRule("canGetAwayWithEverything", true));
         final AddiMetaData unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(addiMetaData), AddiMetaData.class);
         assertThat(unmarshalled, is(addiMetaData));
     }

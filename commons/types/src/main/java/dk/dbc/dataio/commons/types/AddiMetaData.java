@@ -21,10 +21,13 @@
 
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -46,6 +49,8 @@ public class AddiMetaData {
     private String enrichmentTrail;
     @JsonProperty
     private Diagnostic diagnostic;
+    @JsonProperty
+    private LibraryRules libraryRules;
 
     public AddiMetaData withSubmitterNumber(Integer submitterNumber) {
         submitter = submitterNumber;
@@ -116,6 +121,15 @@ public class AddiMetaData {
         return Optional.ofNullable(diagnostic);
     }
 
+    public Optional<LibraryRules> libraryRules() {
+        return Optional.ofNullable(libraryRules);
+    }
+
+    public AddiMetaData withLibraryRules(LibraryRules libraryRules) {
+        this.libraryRules = libraryRules;
+        return this;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -145,7 +159,11 @@ public class AddiMetaData {
         if (enrichmentTrail != null ? !enrichmentTrail.equals(that.enrichmentTrail) : that.enrichmentTrail != null) {
             return false;
         }
-        return diagnostic != null ? diagnostic.equals(that.diagnostic) : that.diagnostic == null;
+        if (diagnostic != null ? !diagnostic.equals(that.diagnostic) : that.diagnostic != null) {
+            return false;
+        }
+        return libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null;
+
     }
 
     @Override
@@ -157,6 +175,7 @@ public class AddiMetaData {
         result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
         result = 31 * result + (enrichmentTrail != null ? enrichmentTrail.hashCode() : 0);
         result = 31 * result + (diagnostic != null ? diagnostic.hashCode() : 0);
+        result = 31 * result + (libraryRules != null ? libraryRules.hashCode() : 0);
         return result;
     }
 
@@ -170,6 +189,67 @@ public class AddiMetaData {
                 ", creationDate=" + creationDate +
                 ", enrichmentTrail='" + enrichmentTrail + '\'' +
                 ", diagnostic=" + diagnostic +
+                ", libraryRules=" + libraryRules +
                 '}';
+    }
+
+    @JsonSerialize(include = JsonSerialize.Inclusion.NON_EMPTY)
+    public static class LibraryRules {
+        @JsonProperty
+        private String agencyType;
+        @JsonProperty
+        private Map<String, Boolean> rules = new HashMap<>();
+
+        public LibraryRules withAgencyType(String type) {
+            agencyType = type;
+            return this;
+        }
+
+        public Optional<String> agencyType() {
+            return Optional.ofNullable(agencyType);
+        }
+
+        public LibraryRules withLibraryRule(String rule, Boolean value) {
+            rules.put(rule, value);
+            return this;
+        }
+
+        @JsonIgnore
+        public Map<String, Boolean> getLibraryRules() {
+            return rules;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            LibraryRules that = (LibraryRules) o;
+
+            if (agencyType != null ? !agencyType.equals(that.agencyType) : that.agencyType != null) {
+                return false;
+            }
+            return rules.equals(that.rules);
+
+        }
+
+        @Override
+        public int hashCode() {
+            int result = agencyType != null ? agencyType.hashCode() : 0;
+            result = 31 * result + rules.hashCode();
+            return result;
+        }
+
+        @Override
+        public String toString() {
+            return "LibraryRules{" +
+                    "agencyType='" + agencyType + '\'' +
+                    ", rules=" + rules +
+                    '}';
+        }
     }
 }

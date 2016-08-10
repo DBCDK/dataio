@@ -23,6 +23,7 @@ package dk.dbc.dataio.openagency;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import dk.dbc.oss.ns.openagency.Information;
+import dk.dbc.oss.ns.openagency.LibraryRules;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -77,5 +78,31 @@ public class OpenAgencyConnectorTest {
     void recordServiceRequests() throws OpenAgencyConnectorException {
         getAgencyInformationForExistingAgency();
         getAgencyInformationForNonExistingAgency();
+    }
+
+    @Test
+    public void getLibraryRules_agencyIdExists_returnsLibraryRules() throws OpenAgencyConnectorException {
+        final LibraryRules libraryRules = getLibraryRulesForExistingAgency();
+        assertThat("libraryRules", libraryRules, is(notNullValue()));
+        assertThat("libraryRules.getAgencyId()", libraryRules.getAgencyId(), is(String.valueOf(AGENCY_ID)));
+    }
+
+    private LibraryRules getLibraryRulesForExistingAgency() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getLibraryRules(AGENCY_ID, null).orElse(null);
+    }
+
+    @Test
+    public void getLibraryRules_agencyIdDoesNotExist_returns() throws OpenAgencyConnectorException {
+        final LibraryRules libraryRules = getLibraryRulesForNonExistingAgency();
+        assertThat("libraryRules", libraryRules, is(nullValue()));
+    }
+
+    private LibraryRules getLibraryRulesForNonExistingAgency() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getLibraryRules(111111, null).orElse(null);
+    }
+
+    void recordLibraryRulesRequests() throws OpenAgencyConnectorException {
+        getLibraryRulesForExistingAgency();
+        getLibraryRulesForNonExistingAgency();
     }
 }

@@ -24,6 +24,9 @@ package dk.dbc.dataio.openagency;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.oss.ns.openagency.ErrorType;
 import dk.dbc.oss.ns.openagency.Information;
+import dk.dbc.oss.ns.openagency.LibraryRules;
+import dk.dbc.oss.ns.openagency.LibraryRulesRequest;
+import dk.dbc.oss.ns.openagency.LibraryRulesResponse;
 import dk.dbc.oss.ns.openagency.ServiceRequest;
 import dk.dbc.oss.ns.openagency.ServiceResponse;
 import dk.dbc.oss.ns.openagency.ServiceType;
@@ -33,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
+import java.util.List;
 import java.util.Optional;
 
 public class OpenAgencyConnector {
@@ -88,6 +92,41 @@ public class OpenAgencyConnector {
 
             final ErrorType error = serviceResponse.getError();
             if (error != null && error == ErrorType.AGENCY_NOT_FOUND) {
+                return Optional.empty();
+            }
+
+            throw new OpenAgencyConnectorException(
+                    "Information retrieval for agency ID " + agencyId + " returned error " + error);
+
+        } catch (RuntimeException e) {
+           throw new OpenAgencyConnectorException(
+                   "Exception caught during information retrieval for agency ID " + agencyId, e);
+        }
+    }
+
+    /**
+     * Retrieves library rules for given agency ID
+     * @param agencyId agency ID
+     * @param trackingId tracking ID, can be null
+     * @return library rules or empty if agency ID could not be found
+     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
+     */
+    public Optional<LibraryRules> getLibraryRules(long agencyId, String trackingId) throws OpenAgencyConnectorException {
+        try {
+            final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+            libraryRulesRequest.setAgencyId(Long.toString(agencyId));
+            if (trackingId != null) {
+                libraryRulesRequest.setTrackingId(trackingId);
+            }
+            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(libraryRulesRequest);
+
+            final List<LibraryRules> libraryRules = libraryRulesResponse.getLibraryRules();
+            if (libraryRules != null && !libraryRules.isEmpty()) {
+                return Optional.of(libraryRules.get(0));
+            }
+
+            final ErrorType error = libraryRulesResponse.getError();
+            if (error == null) {
                 return Optional.empty();
             }
 

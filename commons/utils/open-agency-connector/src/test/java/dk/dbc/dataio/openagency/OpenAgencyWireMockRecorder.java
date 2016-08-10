@@ -37,5 +37,6 @@ public class OpenAgencyWireMockRecorder {
         final OpenAgencyConnectorTest openAgencyConnectorTest = new OpenAgencyConnectorTest();
         openAgencyConnectorTest.openAgencyConnector = new OpenAgencyConnector("http://localhost:8080");
         openAgencyConnectorTest.recordServiceRequests();
+        openAgencyConnectorTest.recordLibraryRulesRequests();
     }
 }

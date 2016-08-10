@@ -23,12 +23,14 @@ package dk.dbc.dataio.commons.types;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
-public class OpenUpdateSinkConfig implements SinkConfig {
+public class OpenUpdateSinkConfig implements SinkConfig, Serializable {
 
+    private static final long serialVersionUID = 3950981967853410646L;
     private String userId;
     private String password;
     private String endpoint;
@@ -66,7 +68,7 @@ public class OpenUpdateSinkConfig implements SinkConfig {
     }
 
     public OpenUpdateSinkConfig withAvailableQueueProviders(List<String> availableQueueProviders) {
-        this.availableQueueProviders = availableQueueProviders;
+        this.availableQueueProviders = InvariantUtil.checkNotNullOrThrow(availableQueueProviders, "availableQueueProviders");
         return this;
     }
 

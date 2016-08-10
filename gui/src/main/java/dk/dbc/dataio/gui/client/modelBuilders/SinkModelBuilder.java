@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.modelBuilders;
 
+import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
@@ -42,6 +43,7 @@ public class SinkModelBuilder {
     private String endpoint = "endpoint";
     private List<String> availableQueueProviders = new ArrayList<>();
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
+    private SinkConfig sinkConfig = null;
 
     /**
      * Sets the ID for the Sink
@@ -154,14 +156,20 @@ public class SinkModelBuilder {
     }
 
     /**
+     * Sets the SinkConfig for the Sink
+     * @param sinkConfig Sink Config
+     * @return The SinkModelBuilder object itself (for chaining)
+     */
+    public SinkModelBuilder setSinkConfig(SinkConfig sinkConfig) {
+        this.sinkConfig = sinkConfig;
+        return this;
+    }
+
+    /**
      * Build the SinkModel object
      * @return The SinkModel object
      */
     public SinkModel build() {
-        if (sinkType == SinkContent.SinkType.OPENUPDATE) {
-            return new SinkModel(id, version, sinkType, name, resource, description, userId, password, endpoint, availableQueueProviders, sequenceAnalysisOption);
-        } else {
-            return new SinkModel(id, version, sinkType, name, resource, description, sequenceAnalysisOption);
-        }
+        return new SinkModel(id, version, sinkType, name, resource, description, sequenceAnalysisOption, sinkConfig);
     }
 }

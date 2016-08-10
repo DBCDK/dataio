@@ -21,6 +21,9 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
@@ -33,34 +36,15 @@ public class SinkModel extends GenericBackendModel {
     private String sinkName;
     private String resource;
     private String description;
-
-    // Open Update Configuration data:
-    private String openUpdateUserId;
-    private String openUpdatePassword;
-    private String openUpdateEndpoint;
-    private List<String> openUpdateAvailableQueueProviders;
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption;
+    private SinkConfig sinkConfig;
 
 
     /**
      * Empty constructor
      */
     public SinkModel() {
-        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", SinkContent.SequenceAnalysisOption.ALL);
-    }
-
-    /**
-     * Non Open Update Sink
-     * @param id Sink Id
-     * @param version Sink Version
-     * @param sinkType Sink Type
-     * @param name Sink Name
-     * @param resource Sink Resource
-     * @param description Sink Description
-     * @param sequenceAnalysisOption Sequence Analysis Option
-     */
-    public SinkModel(long id, long version, SinkContent.SinkType sinkType, String name, String resource, String description, SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
-        this(id, version, sinkType, name, resource, description, "", "", "", new ArrayList<String>(), sequenceAnalysisOption);
+        this(0L, 0L, SinkContent.SinkType.ES, "", "", "", SinkContent.SequenceAnalysisOption.ALL, null);
     }
 
     /**
@@ -71,10 +55,6 @@ public class SinkModel extends GenericBackendModel {
      * @param name Sink Name
      * @param resource Sink Resource
      * @param description Sink Description
-     * @param openUpdateUserId Open Update Sink Config User Id
-     * @param openUpdatePassword Open Update Sink Config Password
-     * @param openUpdateEndpoint Open Update Sink Config Endpoint URL
-     * @param openUpdateAvailableQueueProviders Open Update List of Available Queue Providers
      * @param sequenceAnalysisOption deciding level of sequence analysis
      */
     public SinkModel(long id,
@@ -83,21 +63,15 @@ public class SinkModel extends GenericBackendModel {
                      String name,
                      String resource,
                      String description,
-                     String openUpdateUserId,
-                     String openUpdatePassword,
-                     String openUpdateEndpoint,
-                     List<String> openUpdateAvailableQueueProviders,
-                     SinkContent.SequenceAnalysisOption sequenceAnalysisOption) {
+                     SinkContent.SequenceAnalysisOption sequenceAnalysisOption,
+                     SinkConfig sinkConfig) {
         super(id, version);
         this.sinkType = sinkType;
         this.sinkName = name;
         this.resource = resource;
         this.description = description == null? "" : description;
-        this.openUpdateUserId = openUpdateUserId;
-        this.openUpdatePassword = openUpdatePassword;
-        this.openUpdateEndpoint = openUpdateEndpoint;
-        this.openUpdateAvailableQueueProviders = openUpdateAvailableQueueProviders;
         this.sequenceAnalysisOption = sequenceAnalysisOption;
+        this.sinkConfig = sinkConfig;
     }
 
     /**
@@ -169,7 +143,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: User Id
      */
     public String getOpenUpdateUserId() {
-        return openUpdateUserId;
+        return ((OpenUpdateSinkConfig) sinkConfig).getUserId() == null ? "" : ((OpenUpdateSinkConfig) sinkConfig).getUserId();
     }
 
     /**
@@ -177,7 +151,7 @@ public class SinkModel extends GenericBackendModel {
      * @param openUpdateUserId Open Update Configuration data: User Id
      */
     public void setOpenUpdateUserId(String openUpdateUserId) {
-        this.openUpdateUserId = openUpdateUserId;
+        ((OpenUpdateSinkConfig) sinkConfig).withUserId(openUpdateUserId);
     }
 
     /**
@@ -185,7 +159,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: Password
      */
     public String getOpenUpdatePassword() {
-        return openUpdatePassword;
+        return ((OpenUpdateSinkConfig) sinkConfig).getPassword() == null ? "" : ((OpenUpdateSinkConfig) sinkConfig).getPassword();
     }
 
     /**
@@ -193,7 +167,7 @@ public class SinkModel extends GenericBackendModel {
      * @param openUpdatePassword Open Update Configuration data: Password
      */
     public void setOpenUpdatePassword(String openUpdatePassword) {
-        this.openUpdatePassword = openUpdatePassword;
+        ((OpenUpdateSinkConfig) sinkConfig).withPassword(openUpdatePassword);
     }
 
     /**
@@ -201,7 +175,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: Endpoint
      */
     public String getOpenUpdateEndpoint() {
-        return openUpdateEndpoint;
+        return ((OpenUpdateSinkConfig) sinkConfig).getEndpoint() == null ? "" : ((OpenUpdateSinkConfig) sinkConfig).getEndpoint();
     }
 
     /**
@@ -209,7 +183,7 @@ public class SinkModel extends GenericBackendModel {
      * @param openUpdateEndpoint Open Update Configuration data: Endpoint
      */
     public void setOpenUpdateEndpoint(String openUpdateEndpoint) {
-        this.openUpdateEndpoint = openUpdateEndpoint;
+        ((OpenUpdateSinkConfig) sinkConfig).withEndpoint(openUpdateEndpoint);
     }
 
     /**
@@ -217,7 +191,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: List of Available Queue Providers
      */
     public List<String> getOpenUpdateAvailableQueueProviders() {
-        return openUpdateAvailableQueueProviders;
+        return ((OpenUpdateSinkConfig) sinkConfig).getAvailableQueueProviders() == null ? new ArrayList<>() : ((OpenUpdateSinkConfig) sinkConfig).getAvailableQueueProviders();
     }
 
     /**
@@ -225,7 +199,7 @@ public class SinkModel extends GenericBackendModel {
      * @param availableQueueProviders Open Update Configuration data: List of Available Queue Providers
      */
     public void setOpenUpdateAvailableQueueProviders(List<String> availableQueueProviders) {
-        this.openUpdateAvailableQueueProviders = availableQueueProviders;
+        ((OpenUpdateSinkConfig) sinkConfig).withAvailableQueueProviders(availableQueueProviders);
     }
 
     /**
@@ -244,6 +218,14 @@ public class SinkModel extends GenericBackendModel {
         this.sequenceAnalysisOption = sequenceAnalysisOption;
     }
 
+    public SinkConfig getSinkConfig() {
+        return sinkConfig;
+    }
+
+    public void setSinkConfig(SinkConfig sinkConfig) {
+        this.sinkConfig = sinkConfig;
+    }
+
     /**
      * Checks for empty String values
      * NB: The list of Available Queue Providers is optional, and is therefore not considered here
@@ -251,8 +233,12 @@ public class SinkModel extends GenericBackendModel {
      */
     public boolean isInputFieldsEmpty() {
         if (sinkType == SinkContent.SinkType.OPENUPDATE) {
+            OpenUpdateSinkConfig openUpdateSinkConfig = (OpenUpdateSinkConfig) sinkConfig;
             return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()
-                    || openUpdateUserId.isEmpty() || openUpdatePassword.isEmpty() || openUpdateEndpoint.isEmpty();
+                    || openUpdateSinkConfig.getUserId() == null
+                    || openUpdateSinkConfig.getPassword() == null
+                    || openUpdateSinkConfig.getEndpoint() == null
+                    || openUpdateSinkConfig.getAvailableQueueProviders() == null;
         } else {
             return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty();
         }
@@ -279,15 +265,8 @@ public class SinkModel extends GenericBackendModel {
         if (resource != null ? !resource.equals(sinkModel.resource) : sinkModel.resource != null) return false;
         if (description != null ? !description.equals(sinkModel.description) : sinkModel.description != null)
             return false;
-        if (openUpdateUserId != null ? !openUpdateUserId.equals(sinkModel.openUpdateUserId) : sinkModel.openUpdateUserId != null)
-            return false;
-        if (openUpdatePassword != null ? !openUpdatePassword.equals(sinkModel.openUpdatePassword) : sinkModel.openUpdatePassword != null)
-            return false;
-        if (openUpdateEndpoint != null ? !openUpdateEndpoint.equals(sinkModel.openUpdateEndpoint) : sinkModel.openUpdateEndpoint != null)
-            return false;
-        if (openUpdateAvailableQueueProviders != null ? !openUpdateAvailableQueueProviders.equals(sinkModel.openUpdateAvailableQueueProviders) : sinkModel.openUpdateAvailableQueueProviders != null)
-            return false;
-        return sequenceAnalysisOption == sinkModel.sequenceAnalysisOption;
+        if (sequenceAnalysisOption != sinkModel.sequenceAnalysisOption) return false;
+        return sinkConfig != null ? sinkConfig.equals(sinkModel.sinkConfig) : sinkModel.sinkConfig == null;
 
     }
 
@@ -297,11 +276,8 @@ public class SinkModel extends GenericBackendModel {
         result = 31 * result + (sinkName != null ? sinkName.hashCode() : 0);
         result = 31 * result + (resource != null ? resource.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (openUpdateUserId != null ? openUpdateUserId.hashCode() : 0);
-        result = 31 * result + (openUpdatePassword != null ? openUpdatePassword.hashCode() : 0);
-        result = 31 * result + (openUpdateEndpoint != null ? openUpdateEndpoint.hashCode() : 0);
-        result = 31 * result + (openUpdateAvailableQueueProviders != null ? openUpdateAvailableQueueProviders.hashCode() : 0);
         result = 31 * result + (sequenceAnalysisOption != null ? sequenceAnalysisOption.hashCode() : 0);
+        result = 31 * result + (sinkConfig != null ? sinkConfig.hashCode() : 0);
         return result;
     }
 }

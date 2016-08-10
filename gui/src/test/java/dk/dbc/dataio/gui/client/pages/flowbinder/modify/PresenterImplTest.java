@@ -23,6 +23,8 @@ package dk.dbc.dataio.gui.client.pages.flowbinder.modify;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -48,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -87,6 +90,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private final SinkModel sinkModel1 = new SinkModelBuilder().setId(301L).setName("Snm1").build();
     private final SinkModel sinkModel2 = new SinkModelBuilder().setId(302L).setName("Snm2").build();
     private final SinkModel sinkModel3 = new SinkModelBuilder().setId(303L).setName("Snm3").build();
+    private final OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig().withAvailableQueueProviders(Arrays.asList("avail1", "avail2")).withUserId("user").withPassword("pass").withEndpoint("url");
+    private final SinkModel sinkModel4 = new SinkModelBuilder().setId(304L).setName("Snm4").setSinkType(SinkContent.SinkType.OPENUPDATE).setSinkConfig(openUpdateSinkConfig).build();
 
     class PresenterImplConcrete extends PresenterImpl {
         public PresenterImplConcrete(String header) {
@@ -96,7 +101,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
             model = new FlowBinderModelBuilder().setFlowModel(flowModel1).setSubmitterModels(submitterModelList).setSinkModel(sinkModel1).build();
             setAvailableSubmitters(availableSubmitterModelList);
             setAvailableFlows(Arrays.asList(flowModel1, flowModel2, flowModel3));
-            setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3));
+            setAvailableSinks(Arrays.asList(sinkModel1, sinkModel2, sinkModel3, sinkModel4));
             setAvailableRecordSplitters();
             initializeModelHasBeenCalled = false;
             saveModelHasBeenCalled = false;
@@ -427,6 +432,30 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         assertThat(presenterImpl.model.getSinkModel().getId(), is(sinkModel3.getId()));
         assertThat(presenterImpl.model.getSinkModel().getSinkName(), is(sinkModel3.getSinkName()));
+    }
+
+    @Test public void sinkChanged_openUpdateSink_queryProviderIsSet() {
+        initializeAndStartPresenter();
+
+        presenterImpl.model.setQueueProvider(null);
+        presenterImpl.sinkChanged("304");
+
+        assertThat(presenterImpl.model.getQueueProvider(), is(openUpdateSinkConfig.getAvailableQueueProviders().get(0)));
+
+        verify(view.updateSinkSection, times(1)).setVisible(true);
+        verify(view.queueProvider, times(1)).setEnabled(true);
+        verify(view.queueProvider, times(1)).setValue(presenterImpl.model.getQueueProvider());
+    }
+
+    @Test public void sinkChanged_toNoneOpenUpdateSink_queryProviderIsSet() {
+        initializeAndStartPresenter();
+
+        presenterImpl.sinkChanged("301");
+
+        assertThat(presenterImpl.model.getQueueProvider(), is(nullValue()));
+
+        verify(view.updateSinkSection, times(1)).setVisible(false);
+        verify(view.queueProvider, times(1)).setEnabled(false);
     }
 
     @Test(expected = IllegalArgumentException.class)

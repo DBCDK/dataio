@@ -228,7 +228,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         if (sinkId != null && !sinkId.isEmpty()) {
             SinkModel sinkModel = getSinkModel(Long.parseLong(sinkId));
             model.setSinkModel(sinkModel);
-            considerQueueProviderVisiblity(sinkModel);
             updateAllFieldsAccordingToCurrentState();
         }
     }
@@ -300,17 +299,36 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.flow.setEnabled(true);
         view.sink.setSelectedText(model.getSinkModel().getSinkName());
         view.sink.setEnabled(true);
-        setAvailableQueueProvidersToView(model.getSinkModel().getOpenUpdateAvailableQueueProviders());
-        view.queueProvider.setValue(model.getQueueProvider());
-        view.queueProvider.setEnabled(true);
+        configureOpenUpdateSinkSection();
     }
 
-    private void setAvailableQueueProvidersToView(List<String> availableQueueProviders) {
-        getView().queueProvider.clear();
-        for (String queueProvider: availableQueueProviders) {
-            getView().queueProvider.addAvailableItem(queueProvider);
+    private void configureOpenUpdateSinkSection() {
+        View view = getView();
+        if(model.getSinkModel().getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+            setAvailableQueueProvidersToView();
+            setOpenUpdateQueryProviderIfNoneSelected();
+            view.updateSinkSection.setVisible(true);
+            view.queueProvider.setValue(model.getQueueProvider());
+            view.queueProvider.setEnabled(true);
+        } else {
+            model.setQueueProvider(null);
+            view.updateSinkSection.setVisible(false);
+            view.queueProvider.setEnabled(false);
         }
-        considerQueueProviderVisiblity(model.getSinkModel());
+    }
+
+    private void setAvailableQueueProvidersToView() {
+        View view = getView();
+        view.queueProvider.clear();
+        for (String queueProvider : model.getSinkModel().getOpenUpdateAvailableQueueProviders()) {
+            view.queueProvider.addAvailableItem(queueProvider);
+        }
+    }
+
+    private void setOpenUpdateQueryProviderIfNoneSelected() {
+        if(model.getQueueProvider() == null) {
+            model.setQueueProvider(model.getSinkModel().getOpenUpdateAvailableQueueProviders().get(0));
+        }
     }
 
     private Map<String, String> getAvailableSubmitters(FlowBinderModel model) {
@@ -461,10 +479,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     protected void setFlowBinderModel(FlowBinderModel model) {
         this.model = model;
-    }
-
-    private void considerQueueProviderVisiblity(SinkModel sinkModel) {
-        getView().updateSinkSection.setVisible(sinkModel.getSinkType() == SinkContent.SinkType.OPENUPDATE);
     }
 
 

@@ -58,8 +58,8 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     public void initializeModel() {
         model = new SinkModel();
-        updateAllFieldsAccordingToCurrentState();
         getView().sinkTypeSelection.setEnabled(true);
+        updateAllFieldsAccordingToCurrentState();
     }
 
     /**

@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -50,7 +51,7 @@ public class SinkModelMapperTest {
     // Default Sinks
     private static final SinkContent defaultSinkContent1 = new SinkContentBuilder().setName("sink content 1").setResource("sink resource 1").build();
     private static final SinkContent defaultSinkContent2 = new SinkContentBuilder().setName("sink content 2").setResource("sink resource 2").build();
-    private static final SinkConfig updateSC = new OpenUpdateSinkConfig().withUserId("uid").withPassword("pwd").withEndpoint("url");
+    private static final SinkConfig updateSC = new OpenUpdateSinkConfig().withUserId("uid").withPassword("pwd").withEndpoint("url").withAvailableQueueProviders(Collections.singletonList("avail"));
     private static final SinkContent defaultSinkContentOUpdate = new SinkContentBuilder().setName("SC Up").setResource("sink res").setDescription("desci").setSinkType(SinkContent.SinkType.OPENUPDATE).setSinkConfig(updateSC).build();
     private static final Sink defaultSink1 = new SinkBuilder().setId(111L).setVersion(222L).setContent(defaultSinkContent1).build();
     private static final Sink defaultSink2 = new SinkBuilder().setId(333L).setVersion(444L).setContent(defaultSinkContent2).build();
@@ -68,9 +69,7 @@ public class SinkModelMapperTest {
             .setName("Name OU")
             .setResource("Resource OU")
             .setDescription("Description OU")
-            .setUserId("uSiD")
-            .setPassword("pWd")
-            .setEndpoint("uRl")
+            .setSinkConfig(updateSC)
             .build();
 
 
@@ -139,9 +138,10 @@ public class SinkModelMapperTest {
         assertThat(sinkContent.getDescription(), is("Description OU"));
         assertThat(sinkContent.getSinkType(), is(SinkContent.SinkType.OPENUPDATE));
         OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sinkContent.getSinkConfig();
-        assertThat(sinkConfig.getUserId(), is("uSiD"));
-        assertThat(sinkConfig.getPassword(), is("pWd"));
-        assertThat(sinkConfig.getEndpoint(), is("uRl"));
+        assertThat(sinkConfig.getUserId(), is(((OpenUpdateSinkConfig)updateSC).getUserId()));
+        assertThat(sinkConfig.getPassword(), is(((OpenUpdateSinkConfig)updateSC).getPassword()));
+        assertThat(sinkConfig.getEndpoint(), is(((OpenUpdateSinkConfig)updateSC).getEndpoint()));
+        assertThat(sinkConfig.getAvailableQueueProviders(), is(((OpenUpdateSinkConfig) updateSC).getAvailableQueueProviders()));
     }
 
     @Test(expected = NullPointerException.class)

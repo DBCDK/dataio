@@ -31,7 +31,6 @@ import java.util.List;
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -78,9 +77,8 @@ public class OpenUpdateSinkConfigTest {
     }
 
     @Test
-    public void withQueueProvider_queueProviderArgIsNull_returnsNewInstance() {
-        OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig().withAvailableQueueProviders(null);
-        assertThat(openUpdateSinkConfig.getAvailableQueueProviders(), is(nullValue()));
+    public void withAvailableQueueProviders_queueProviderArgIsNull_throws() {
+        assertThat(() -> new OpenUpdateSinkConfig().withAvailableQueueProviders(null), isThrowing(NullPointerException.class));
     }
 
     @Test
@@ -93,9 +91,7 @@ public class OpenUpdateSinkConfigTest {
     public void marshalling() throws JSONBException {
         final JSONBContext jsonbContext = new JSONBContext();
         final OpenUpdateSinkConfig openUpdateSinkConfig = new OpenUpdateSinkConfig();
-        System.out.println(jsonbContext.marshall(openUpdateSinkConfig));
         final OpenUpdateSinkConfig unmarshalled = jsonbContext.unmarshall(jsonbContext.marshall(openUpdateSinkConfig), OpenUpdateSinkConfig.class);
-        System.out.println(unmarshalled);
         assertThat(unmarshalled, is(openUpdateSinkConfig));
     }
 

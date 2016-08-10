@@ -21,13 +21,16 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class SinkModelTest {
@@ -42,14 +45,12 @@ public class SinkModelTest {
         assertThat(model.getSinkName(), is(""));
         assertThat(model.getResourceName(), is(""));
         assertThat(model.getDescription(), is(""));
-        assertThat(model.getOpenUpdateUserId(), is(""));
-        assertThat(model.getOpenUpdatePassword(), is(""));
-        assertThat(model.getOpenUpdateEndpoint(), is(""));
+        assertThat(model.getSinkConfig(), is(nullValue()));
     }
 
     @Test
     public void constructor_withoutConfigValues_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(3L, 4L, SinkContent.SinkType.FBS, "nam2", "resou2", "descri2", SinkContent.SequenceAnalysisOption.ALL);
+        SinkModel model = new SinkModel(3L, 4L, SinkContent.SinkType.FBS, "nam2", "resou2", "descri2", SinkContent.SequenceAnalysisOption.ALL, null);
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(3L));
         assertThat(model.getVersion(), is(4L));
@@ -57,14 +58,14 @@ public class SinkModelTest {
         assertThat(model.getSinkName(), is("nam2"));
         assertThat(model.getResourceName(), is("resou2"));
         assertThat(model.getDescription(), is("descri2"));
-        assertThat(model.getOpenUpdateUserId(), is(""));
-        assertThat(model.getOpenUpdatePassword(), is(""));
-        assertThat(model.getOpenUpdateEndpoint(), is(""));
+        assertThat(model.getSinkConfig(), is (nullValue()));
     }
 
     @Test
     public void constructor_withConfigValues_returnsNewInstanceWithDefaultValues() {
-        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", "user", "pass", "url", null,SinkContent.SequenceAnalysisOption.ALL);
+        SinkModel model = new SinkModel(5L, 6L, SinkContent.SinkType.OPENUPDATE, "nam3", "resou3", "descri3", SinkContent.SequenceAnalysisOption.ALL,
+                new OpenUpdateSinkConfig().withUserId("user").withPassword("pass").withEndpoint("url"));
+
         assertThat(model, is(notNullValue()));
         assertThat(model.getId(), is(5L));
         assertThat(model.getVersion(), is(6L));
@@ -105,50 +106,48 @@ public class SinkModelTest {
     }
 
     @Test
-    public void isInputFieldsEmpty_noConfigEmptyUserId_returnsFalse() {
-        SinkModel model = getNoConfigTestModel();
-        model.setOpenUpdateUserId("");  // Does not cause input fields to be empty due to ES type
-        assertThat(model.isInputFieldsEmpty(), is(false));
-    }
-
-    @Test
-    public void isInputFieldsEmpty_noConfigEmptyPassword_returnsFalse() {
-        SinkModel model = getNoConfigTestModel();
-        model.setOpenUpdatePassword("");  // Does not cause input fields to be empty due to ES type
-        assertThat(model.isInputFieldsEmpty(), is(false));
-    }
-
-    @Test
-    public void isInputFieldsEmpty_noConfigEmptyEndpoint_returnsFalse() {
-        SinkModel model = getNoConfigTestModel();
-        model.setOpenUpdateEndpoint("");  // Does not cause input fields to be empty due to ES type
-        assertThat(model.isInputFieldsEmpty(), is(false));
-    }
-
-    @Test
-    public void isInputFieldsEmpty_newStyleOpenUpdateEmptyUserId_returnsTrue() {
-        SinkModel model = getNewStyleOpenUpdateTestModel();
-        model.setOpenUpdateUserId("");
+    public void isInputFieldsEmpty_openUpdateUserIdIsNull_returnsTrue() {
+        SinkModel model = getWithConfigTestModel();
+        model.setOpenUpdatePassword("pass");
+        model.setOpenUpdateEndpoint("enpoint");
+        model.setOpenUpdateAvailableQueueProviders(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
-    public void isInputFieldsEmpty_newStyleOpenUpdateEmptyPassword_returnsTrue() {
-        SinkModel model = getNewStyleOpenUpdateTestModel();
-        model.setOpenUpdatePassword("");
+    public void isInputFieldsEmpty_openUpdatePasswordIsNull_returnsTrue() {
+        SinkModel model = getWithConfigTestModel();
+        model.setOpenUpdateUserId("user");
+        model.setOpenUpdateEndpoint("endpoint");
+        model.setOpenUpdateAvailableQueueProviders(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
-    public void isInputFieldsEmpty_newStyleOpenUpdateEmptyEndpoint_returnsTrue() {
-        SinkModel model = getNewStyleOpenUpdateTestModel();
-        model.setOpenUpdateEndpoint("");
+    public void isInputFieldsEmpty_openUpdateEndpointIsNull_returnsTrue() {
+        SinkModel model = getWithConfigTestModel();
+        model.setOpenUpdateUserId("user");
+        model.setOpenUpdatePassword("pass");
+        model.setOpenUpdateAvailableQueueProviders(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
     @Test
-    public void isInputFieldsEmpty_newStyleOpenUpdateAllInputFieldsSet_returnsFalse() {
-        SinkModel model = getNewStyleOpenUpdateTestModel();
+    public void isInputFieldsEmpty_openUpdateAvailableQueueProvidersIsNull_returnsTrue() {
+        SinkModel model = getWithConfigTestModel();
+        model.setOpenUpdateUserId("user");
+        model.setOpenUpdatePassword("pass");
+        model.setOpenUpdateEndpoint("endpoint");
+        assertThat(model.isInputFieldsEmpty(), is(true));
+    }
+
+    @Test
+    public void isInputFieldsEmpty_openUpdateAllInputFieldsSet_returnsFalse() {
+        SinkModel model = getWithConfigTestModel();
+        model.setOpenUpdateUserId("user");
+        model.setOpenUpdatePassword("pass");
+        model.setOpenUpdateEndpoint("enpoint");
+        model.setOpenUpdateAvailableQueueProviders(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(false));
     }
 
@@ -173,11 +172,12 @@ public class SinkModelTest {
     }
 
     private SinkModel getNoConfigTestModel() {
-        return new SinkModel(1, 2, SinkContent.SinkType.DUMMY, "Name", "Resource", "Description", SinkContent.SequenceAnalysisOption.ALL);
+        return new SinkModel(1, 2, SinkContent.SinkType.DUMMY, "Name", "Resource", "Description", SinkContent.SequenceAnalysisOption.ALL, null);
     }
 
-    private SinkModel getNewStyleOpenUpdateTestModel() {
-        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", "User2", "Pass2", "Endpoint2", null, SinkContent.SequenceAnalysisOption.ALL);
+    private SinkModel getWithConfigTestModel() {
+        return new SinkModel(5, 6, SinkContent.SinkType.OPENUPDATE, "Name2", "Resource2", "Description2", SinkContent.SequenceAnalysisOption.ALL,
+                new OpenUpdateSinkConfig());
     }
 
 }

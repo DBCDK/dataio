@@ -26,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
@@ -73,6 +74,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void sinkTypeChanged(String sinkType) {
         model.setSinkType(SinkContent.SinkType.valueOf(sinkType));
+        if(model.getSinkType() == SinkContent.SinkType.OPENUPDATE && model.getSinkConfig() == null) {
+            model.setSinkConfig(new OpenUpdateSinkConfig());
+        }
     }
 
     /**
@@ -213,7 +217,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.password.setEnabled(false);
         view.queueProviders.clear();
         view.queueProviders.setEnabled(false);
-        view.sinkTypeSelection.fireChangeEvent(); // Assure, that Config fields are shown correctly
     }
 
     /**
@@ -221,7 +224,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     void updateAllFieldsAccordingToCurrentState() {
         View view = getView();
-        view.sinkTypeSelection.setSelectedValue(model.getSinkType().name());
+        final SinkContent.SinkType sinkType = model.getSinkType();
+        view.sinkTypeSelection.setSelectedValue(sinkType.name());
         view.name.setText(model.getSinkName());
         view.name.setEnabled(true);
         view.name.setFocus(true);
@@ -229,16 +233,20 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.resource.setEnabled(true);
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
-        view.url.setText(model.getOpenUpdateEndpoint());
         view.url.setEnabled(true);
-        view.userid.setText(model.getOpenUpdateUserId());
         view.userid.setEnabled(true);
-        view.password.setText(model.getOpenUpdatePassword());
         view.password.setEnabled(true);
-        setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
         view.queueProviders.setEnabled(true);
+
+        if(sinkType == SinkContent.SinkType.OPENUPDATE) {
+            view.url.setText(model.getOpenUpdateEndpoint());
+            view.userid.setText(model.getOpenUpdateUserId());
+            view.password.setText(model.getOpenUpdatePassword());
+            setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+        }
         view.status.setText("");
         view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
+        view.sinkTypeSelection.fireChangeEvent();
     }
 
 

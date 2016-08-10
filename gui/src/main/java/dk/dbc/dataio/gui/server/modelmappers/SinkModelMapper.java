@@ -27,8 +27,8 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SinkModelMapper {
     /**
@@ -42,36 +42,15 @@ public class SinkModelMapper {
      * @return model
      */
     public static SinkModel toModel(Sink sink) {
-        SinkContent.SinkType sinkType;
-        sinkType = sink.getContent().getSinkType();
-        if (sinkType == SinkContent.SinkType.OPENUPDATE) {
-            OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sink.getContent().getSinkConfig();
-            List<String> queueProviders = sinkConfig.getAvailableQueueProviders();
-            if (queueProviders == null) {
-                queueProviders = new ArrayList<>();
-            }
-            return new SinkModel(
-                    sink.getId(),
-                    sink.getVersion(),
-                    sinkType,
-                    sink.getContent().getName(),
-                    sink.getContent().getResource(),
-                    sink.getContent().getDescription(),
-                    sinkConfig.getUserId(),
-                    sinkConfig.getPassword(),
-                    sinkConfig.getEndpoint(),
-                    queueProviders,
-                    sink.getContent().getSequenceAnalysisOption());
-        } else {
-            return new SinkModel(
-                    sink.getId(),
-                    sink.getVersion(),
-                    sinkType,
-                    sink.getContent().getName(),
-                    sink.getContent().getResource(),
-                    sink.getContent().getDescription(),
-                    sink.getContent().getSequenceAnalysisOption());
-        }
+        return new SinkModel(
+                sink.getId(),
+                sink.getVersion(),
+                sink.getContent().getSinkType(),
+                sink.getContent().getName(),
+                sink.getContent().getResource(),
+                sink.getContent().getDescription(),
+                sink.getContent().getSequenceAnalysisOption(),
+                sink.getContent().getSinkConfig());
     }
 
     /**
@@ -96,6 +75,7 @@ public class SinkModelMapper {
         }
 
         if (model.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
+            List<String> availableQueueProviders = model.getOpenUpdateAvailableQueueProviders().isEmpty() ? null : model.getOpenUpdateAvailableQueueProviders();
             return new SinkContent(
                     model.getSinkName(),
                     model.getResourceName(),
@@ -105,7 +85,7 @@ public class SinkModelMapper {
                             .withUserId(model.getOpenUpdateUserId())
                             .withPassword(model.getOpenUpdatePassword())
                             .withEndpoint(model.getOpenUpdateEndpoint())
-                            .withAvailableQueueProviders(model.getOpenUpdateAvailableQueueProviders()),
+                            .withAvailableQueueProviders(availableQueueProviders),
                     model.getSequenceAnalysisOption());
         } else {
             return new SinkContent(
@@ -124,10 +104,7 @@ public class SinkModelMapper {
      * @return sinkModels the list of sinkModels
      */
     public static List<SinkModel> toListOfSinkModels(List<Sink> sinks) {
-        List<SinkModel> sinkModels = new ArrayList<>();
-        for (Sink sink : sinks) {
-            sinkModels.add(toModel(sink));
-        }
+        List<SinkModel> sinkModels = sinks.stream().map(SinkModelMapper::toModel).collect(Collectors.toList());
         return sinkModels;
     }
 

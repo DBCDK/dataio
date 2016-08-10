@@ -208,6 +208,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final String USER_ID = "UserId";
         initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
 
         // Subject Under Test
         presenterImpl.userIdChanged(USER_ID);
@@ -222,6 +223,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final String PASSWORD = "Password";
         initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
 
         // Subject Under Test
         presenterImpl.passwordChanged(PASSWORD);
@@ -236,6 +238,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
         initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
 
         // Subject Under Test
         presenterImpl.queueProvidersChanged(QUEUE_PROVIDERS);
@@ -250,6 +253,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final String ENDPOINT = "Endpoint";
         initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
 
         // Subject Under Test
         presenterImpl.endpointChanged(ENDPOINT);
@@ -291,6 +295,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Setup
         initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
         final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
         presenterImpl.model.setOpenUpdateAvailableQueueProviders(QUEUE_PROVIDERS);
 

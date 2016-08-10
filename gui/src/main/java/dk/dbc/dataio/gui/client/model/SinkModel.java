@@ -56,6 +56,7 @@ public class SinkModel extends GenericBackendModel {
      * @param resource Sink Resource
      * @param description Sink Description
      * @param sequenceAnalysisOption deciding level of sequence analysis
+     * @param sinkConfig Sink Config
      */
     public SinkModel(long id,
                      long version,

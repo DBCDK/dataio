@@ -25,9 +25,6 @@ import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * This class is the Builder class for SinkModel's
  */
@@ -38,10 +35,6 @@ public class SinkModelBuilder {
     private String name = "name";
     private String resource = "resource";
     private String description = "description";
-    private String userId = "userid";
-    private String password = "password";
-    private String endpoint = "endpoint";
-    private List<String> availableQueueProviders = new ArrayList<>();
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
     private SinkConfig sinkConfig = null;
 
@@ -102,46 +95,6 @@ public class SinkModelBuilder {
      */
     public SinkModelBuilder setDescription(String description) {
         this.description = description;
-        return this;
-    }
-
-    /**
-     * Sets the User Id Configuration for the Sink - in case this is an Open Update Sink
-     * @param userId User ID
-     * @return The SinkModelBuilder object itself (for chaining)
-     */
-    public SinkModelBuilder setUserId(String userId) {
-        this.userId = userId;
-        return this;
-    }
-
-    /**
-     * Sets the Password Configuration for the Sink - in case this is an Open Update Sink
-     * @param password Password
-     * @return The SinkModelBuilder object itself (for chaining)
-     */
-    public SinkModelBuilder setPassword(String password) {
-        this.password = password;
-        return this;
-    }
-
-    /**
-     * Sets the Endpoint Configuration of the Sink - in case this is an Open Update Sink
-     * @param endpoint Endpoint
-     * @return The SinkModelBuilder object itself (for chaining)
-     */
-    public SinkModelBuilder setEndpoint(String endpoint) {
-        this.endpoint = endpoint;
-        return this;
-    }
-
-    /**
-     * Sets the List of Available Queue Providers of the Sink - in case this is an Open Update Sink
-     * @param availableQueueProviders The List of Available Queue Providers
-     * @return The SinkModelBuilder object itself (for chaining)
-     */
-    public SinkModelBuilder setAvailableQueueProviders(List<String> availableQueueProviders) {
-        this.availableQueueProviders = new ArrayList<>(availableQueueProviders);
         return this;
     }
 

@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.client.model;
 
-import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;

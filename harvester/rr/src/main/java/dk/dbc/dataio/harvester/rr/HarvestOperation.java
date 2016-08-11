@@ -70,32 +70,31 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class HarvestOperation {
-    public static final int DBC_LIBRARY_NUMBER = 191919;
+    public static final int DBC_LIBRARY = 191919;
+
+    private static final Set<Integer> DBC_DERIVATIVES = Stream.of(
+            870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
-
-    /* Currently only 87097x agency id's should be added to excludes or else execute functionality will break */
-    private static final Set<Integer> AGENCY_ID_EXCLUDES = Stream.of(
-            870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private final RRHarvesterConfig config;
     private final RRHarvesterConfig.Content configContent;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
-    private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
-    private final DocumentBuilder documentBuilder;
-    private final Transformer transformer;
     private final RawRepoConnector rawRepoConnector;
-    private final JSONBContext jsonbContext;
 
-    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
-            throws NullPointerException, IllegalArgumentException, IllegalStateException {
+    private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
+    private final JSONBContext jsonbContext = new JSONBContext();
+    private final DocumentBuilder documentBuilder = getDocumentBuilder();
+    private final Transformer transformer = getTransformer();
+
+    public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
+        if (!hasOpenAgencyTarget(config)) {
+            throw new IllegalArgumentException("No OpenAgency target configured");
+        }
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
-        documentBuilder = getDocumentBuilder();
-        transformer = getTransformer();
-        rawRepoConnector = getRawRepoConnector(config);
-        jsonbContext = new JSONBContext();
+        this.rawRepoConnector = getRawRepoConnector(config);
     }
 
     /**
@@ -163,6 +162,28 @@ public class HarvestOperation {
         return itemsHarvested;
     }
 
+    /* package scoped to enable easy override during testing */
+    RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
+            throws NullPointerException, IllegalArgumentException, IllegalStateException {
+        final OpenAgencyTarget openAgencyTarget = config.getContent().getOpenAgencyTarget();
+        final OpenAgencyServiceFromURL openAgencyService;
+        if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
+            openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl());
+        } else {
+            openAgencyService = OpenAgencyServiceFromURL.builder()
+                                    .authentication(
+                                            openAgencyTarget.getUser(),
+                                            openAgencyTarget.getGroup(),
+                                            openAgencyTarget.getPassword())
+                                    .build(openAgencyTarget.getUrl());
+        }
+
+        final AgencySearchOrder agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyService);
+        final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
+
+        return new RawRepoConnector(config.getContent().getResource(), agencySearchOrder, relationHints);
+    }
+
     JobSpecification getJobSpecificationTemplate(int agencyId) {
         return new JobSpecification("addi-xml", getFormat(agencyId), "utf8", configContent.getDestination(), agencyId,
                 "placeholder", "placeholder", "placeholder", "placeholder", configContent.getType());
@@ -194,15 +215,15 @@ public class HarvestOperation {
         final int agencyId = record.getId().getAgencyId();
         // Special case handling for DBC records:
         // If the agency ID is either excluded or is equal to 191919...
-        if (AGENCY_ID_EXCLUDES.contains(agencyId) || DBC_LIBRARY_NUMBER == agencyId) {
+        if (DBC_DERIVATIVES.contains(agencyId) || DBC_LIBRARY == agencyId) {
             // if the record IS marked as DELETED in RR...
             if (record.isDeleted()) {
-                if (agencyId == DBC_LIBRARY_NUMBER) {
+                if (agencyId == DBC_LIBRARY) {
                     // skip the record if it has agency ID 191919.
                     return false;
                 }
             // if the record is NOT marked as DELETED in RR...
-            } else if (AGENCY_ID_EXCLUDES.contains(agencyId)) {
+            } else if (DBC_DERIVATIVES.contains(agencyId)) {
                 // skip the record if has an excluded agency ID.
                 return false;
             }
@@ -265,7 +286,7 @@ public class HarvestOperation {
         }
         // refresh - set to merged record
         record = records.get(record.getId().getBibliographicRecordId());
-        if (record.getId().getAgencyId() == DBC_LIBRARY_NUMBER) {
+        if (record.getId().getAgencyId() == DBC_LIBRARY) {
             // extract agency ID from enrichment trail if the record has agency ID 191919.
             addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(record));
         }
@@ -318,50 +339,8 @@ public class HarvestOperation {
         return created;
     }
 
-    /* Stand-alone methods to enable easy override during testing */
-
-    RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
-            throws NullPointerException, IllegalArgumentException, IllegalStateException {
-        final OpenAgencyTarget openAgencyTarget = config.getContent().getOpenAgencyTarget();
-        if (openAgencyTarget == null) {
-            throw new IllegalArgumentException("No OpenAgency target configured");
-        }
-
-        final OpenAgencyServiceFromURL openAgencyService;
-        if (openAgencyTarget.getUser() == null && openAgencyTarget.getGroup() == null) {
-            openAgencyService = OpenAgencyServiceFromURL.builder().build(openAgencyTarget.getUrl());
-        } else {
-            openAgencyService = OpenAgencyServiceFromURL.builder()
-                                    .authentication(
-                                            openAgencyTarget.getUser(),
-                                            openAgencyTarget.getGroup(),
-                                            openAgencyTarget.getPassword())
-                                    .build(openAgencyTarget.getUrl());
-        }
-
-        final AgencySearchOrder agencySearchOrder = new AgencySearchOrderFromShowOrder(openAgencyService);
-        final RelationHints relationHints = new RelationHintsOpenAgency(openAgencyService);
-
-        return new RawRepoConnector(config.getContent().getResource(), agencySearchOrder, relationHints);
-    }
-
-    private DocumentBuilder getDocumentBuilder() {
-        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        documentBuilderFactory.setNamespaceAware(true);
-        try {
-            return documentBuilderFactory.newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private Transformer getTransformer() {
-        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        try {
-            return transformerFactory.newTransformer();
-        } catch (TransformerConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
+    private boolean hasOpenAgencyTarget(RRHarvesterConfig config) {
+        return config.getContent().getOpenAgencyTarget() != null;
     }
 
     private String getFormat(int agencyId) {
@@ -394,6 +373,25 @@ public class HarvestOperation {
             return record;
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
+        }
+    }
+
+    private static DocumentBuilder getDocumentBuilder() {
+        final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        documentBuilderFactory.setNamespaceAware(true);
+        try {
+            return documentBuilderFactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static Transformer getTransformer() {
+        final TransformerFactory transformerFactory = TransformerFactory.newInstance();
+        try {
+            return transformerFactory.newTransformer();
+        } catch (TransformerConfigurationException e) {
+            throw new IllegalStateException(e);
         }
     }
 }

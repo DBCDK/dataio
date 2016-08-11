@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.harvester.rr.entity.HarvestTask;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.HarvesterInvalidRecordException;
-import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.rawrepo.RawRepoConnector;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -116,6 +115,13 @@ public class HarvestOperationTest {
     @Test(expected = NullPointerException.class)
     public void constructor_harvesterJobBuilderFactoryArgIsNull_throws() {
         new HarvestOperation(HarvesterTestUtil.getRRHarvesterConfig(), null);
+    }
+
+    @Test
+    public void constructor_noOpenAgencyTargetIsConfigured_throws() {
+        final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
+        config.getContent().withOpenAgencyTarget(null);
+        assertThat(() -> new HarvestOperation(config, harvesterJobBuilderFactory), isThrowing(IllegalArgumentException.class));
     }
 
     @Test
@@ -419,24 +425,9 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void getRawRepoConnector_noOpenAgencyTargetIsConfigured_throws() {
-        try {
-            final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-            InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
-            assertThat(() -> new HarvestOperation(config, harvesterJobBuilderFactory), isThrowing(IllegalArgumentException.class));
-        } finally {
-            InMemoryInitialContextFactory.clear();
-        }
-    }
-
-    @Test
     public void getRawRepoConnector_openAgencyTargetIsConfigured_configuresAgencySearchOrder() throws MalformedURLException {
         try {
-            final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
-            openAgencyTarget.setUrl("http://test.dbc.dk/oa");
-
             final RRHarvesterConfig config = HarvesterTestUtil.getRRHarvesterConfig();
-            config.getContent().withOpenAgencyTarget(openAgencyTarget);
             InMemoryInitialContextFactory.bind(config.getContent().getResource(), mock(DataSource.class));
 
             final HarvestOperation harvestOperation = new HarvestOperation(config, harvesterJobBuilderFactory);

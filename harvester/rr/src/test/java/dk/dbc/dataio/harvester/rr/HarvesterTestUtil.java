@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.rr;
 
+import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 
 import java.util.ArrayList;
@@ -47,12 +48,15 @@ public class HarvesterTestUtil {
     }
 
     public static RRHarvesterConfig.Content getRRHarvestConfigContent() {
+        final OpenAgencyTarget openAgencyTarget = new OpenAgencyTarget();
+        openAgencyTarget.setUrl("openAgencyUrl");
         return new RRHarvesterConfig.Content()
                 .withId("id")
                 .withResource("resource")
                 .withConsumerId("consumerId")
                 .withFormat("format")
                 .withDestination("destination")
-                .withIncludeRelations(false);
+                .withIncludeRelations(false)
+                .withOpenAgencyTarget(openAgencyTarget);
     }
 }

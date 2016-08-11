@@ -73,6 +73,7 @@ public class ViewTest {
         when(view.consumerId.getText()).thenReturn("-consumerId-");
         when(view.size.getText()).thenReturn("-size-");
         when(view.relations.getValue()).thenReturn(false);
+        when(view.libraryRules.getValue()).thenReturn(false);
         when(view.destination.getText()).thenReturn("-destination-");
         when(view.format.getText()).thenReturn("-format-");
         when(view.type.getText()).thenReturn("-type-");
@@ -95,6 +96,7 @@ public class ViewTest {
         verifyNoMoreInteractions(view.size);
         verifyNoMoreInteractions(view.formatOverrides);
         verifyNoMoreInteractions(view.relations);
+        verifyNoMoreInteractions(view.libraryRules);
         verifyNoMoreInteractions(view.destination);
         verifyNoMoreInteractions(view.format);
         verifyNoMoreInteractions(view.type);
@@ -211,6 +213,17 @@ public class ViewTest {
         // Test verification
         verify(view.relations).getValue();
         verify(mockedPresenter).relationsChanged(false);
+        verify(mockedPresenter).keyPressed();
+    }
+
+    @Test
+    public void libraryRulesChanged_call_libraryRulesChanged() {
+        // Subject Under Test
+        view.libraryRulesChanged(mockedValueChangeEvent);
+
+        // Test verification
+        verify(view.libraryRules).getValue();
+        verify(mockedPresenter).libraryRulesChanged(false);
         verify(mockedPresenter).keyPressed();
     }
 

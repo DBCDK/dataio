@@ -187,6 +187,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the library rules field has been changed
+     * @param libraryRules, the new library rules value
+     */
+    @Override
+    public void libraryRulesChanged(Boolean libraryRules) {
+        if (config != null) {
+            config.getContent().withIncludeLibraryRules(libraryRules);
+        }
+    }
+
+    /**
      * A signal to the presenter, saying that the destination field has been changed
      * @param destination, the new destination value
      */
@@ -349,6 +360,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             String size,
             Map<String, String> formatOverrides,
             Boolean relations,
+            Boolean libraryRules,
             String destination,
             String format,
             String type,
@@ -375,6 +387,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.formatOverrides.setEnabled(viewEnabled);
         view.relations.setValue(relations);
         view.relations.setEnabled(viewEnabled);
+        view.libraryRules.setValue(libraryRules);
+        view.libraryRules.setEnabled(viewEnabled);
         view.destination.setText(destination);
         view.destination.setEnabled(viewEnabled);
         view.format.setText(format);
@@ -389,7 +403,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, "", "", "", false, false);
     }
 
     /**
@@ -409,6 +423,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 String.valueOf(config.getContent().getBatchSize()),
                 viewOverrides,
                 config.getContent().hasIncludeRelations(),
+                config.getContent().hasIncludeLibraryRules(),
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
                 config.getContent().getType().toString(),

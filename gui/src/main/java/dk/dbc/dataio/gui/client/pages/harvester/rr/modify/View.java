@@ -61,6 +61,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox size;
     @UiField PromptedMultiList formatOverrides;
     @UiField PromptedCheckBox relations;
+    @UiField PromptedCheckBox libraryRules;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
     @UiField PromptedTextBox type;
@@ -121,6 +122,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("relations")
     void relationsChanged(ValueChangeEvent<Boolean> event) {
         presenter.relationsChanged(relations.getValue());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("libraryRules")
+    void libraryRulesChanged(ValueChangeEvent<Boolean> event) {
+        presenter.libraryRulesChanged(libraryRules.getValue());
         presenter.keyPressed();
     }
 

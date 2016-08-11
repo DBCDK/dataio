@@ -36,6 +36,7 @@
         <li><dio:PromptedTextBox ui:field="size" guiId="harvestersizepanel" prompt="{txt.prompt_Size}"/></li>
         <li><dio:PromptedMultiList ui:field="formatOverrides" guiId="harvesterformatoverridespanel" prompt="{txt.prompt_FormatOverrides}" manualSorting="false"/></li>
         <li><dio:PromptedCheckBox ui:field="relations" guiId="harvesterrelationspanel" prompt="{txt.prompt_Relations}"/></li>
+        <li><dio:PromptedCheckBox ui:field="libraryRules" guiId="harvesterlibraryrulespanel" prompt="{txt.prompt_LibraryRules}"/></li>
         <li><dio:PromptedTextBox ui:field="destination" guiId="harvesterdestinationpanel" prompt="{txt.prompt_Destination}"/></li>
         <li><dio:PromptedTextBox ui:field="format" guiId="harvesterformatpanel" prompt="{txt.prompt_Format}"/></li>
         <li><dio:PromptedTextBox ui:field="type" guiId="harvestertypepanel" prompt="{txt.prompt_Type}"/></li>

@@ -75,6 +75,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedSize;
     @Mock private PromptedMultiList mockedFormatOverrides;
     @Mock private PromptedCheckBox mockedRelations;
+    @Mock private PromptedCheckBox mockedLibraryRules;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedTextBox mockedType;
@@ -145,6 +146,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.size = mockedSize;
         mockedView.formatOverrides = mockedFormatOverrides;
         mockedView.relations = mockedRelations;
+        mockedView.libraryRules = mockedLibraryRules;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -575,6 +577,36 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(mockedConfig).getContent();
         verify(mockedContent).withIncludeRelations(true);
+        commonPostVerification();
+    }
+
+    @Test
+    public void libraryRulesChanged_null_noAction() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(null);
+
+        // Test
+        presenter.libraryRulesChanged(true);
+
+        // Test verification
+        verifyStart();
+        commonPostVerification();
+    }
+
+    @Test
+    public void libraryRulesChanged_validLibraryRules_libraryRulesSet() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(mockedConfig);
+
+        // Test
+        presenter.libraryRulesChanged(true);
+
+        // Test verification
+        verifyStart();
+        verify(mockedConfig).getContent();
+        verify(mockedContent).withIncludeLibraryRules(true);
         commonPostVerification();
     }
 
@@ -1017,6 +1049,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedFormatOverrides).setEnabled(false);
         verify(mockedRelations).setValue(false);
         verify(mockedRelations).setEnabled(false);
+        verify(mockedLibraryRules).setValue(false);
+        verify(mockedLibraryRules).setEnabled(false);
         verify(mockedDestination).setText("");
         verify(mockedDestination).setEnabled(false);
         verify(mockedFormat).setText("");
@@ -1045,6 +1079,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedSize);
         verifyNoMoreInteractions(mockedFormatOverrides);
         verifyNoMoreInteractions(mockedRelations);
+        verifyNoMoreInteractions(mockedLibraryRules);
         verifyNoMoreInteractions(mockedDestination);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);

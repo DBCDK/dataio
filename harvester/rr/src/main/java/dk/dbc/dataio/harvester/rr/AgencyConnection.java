@@ -24,14 +24,20 @@ package dk.dbc.dataio.harvester.rr;
 import dk.dbc.dataio.commons.types.AddiMetaData.LibraryRules;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 /**
  * This class is wrapper for OpenAgency web-service communication
  */
 public class AgencyConnection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AgencyConnection.class);
+
     private final OpenAgencyConnector connector;
+    private final HashMap<Long, LibraryRules> libraryRulesCache;    // unbounded in-memory cache
 
     /**
      * Class constructor
@@ -46,6 +52,7 @@ public class AgencyConnection {
     /* Used for dependency injection during testing */
     AgencyConnection(OpenAgencyConnector connector) {
         this.connector = connector;
+        this.libraryRulesCache = new HashMap<>();
     }
 
     /**
@@ -53,17 +60,25 @@ public class AgencyConnection {
      * @param agencyId agency ID
      * @param trackingId tracking ID used in web-service call, can be null
      * @return library rules
-     * @throws OpenAgencyConnectorException on error communicating with the OpenAgency web-service
+     * @throws IllegalStateException on error communicating with the OpenAgency web-service
      */
-    public LibraryRules getLibraryRules(long agencyId, String trackingId) throws OpenAgencyConnectorException {
-        final Optional<dk.dbc.oss.ns.openagency.LibraryRules> response = connector.getLibraryRules(agencyId, trackingId);
-        if (response.isPresent()) {
-            final LibraryRules libraryRules = new LibraryRules();
-            final dk.dbc.oss.ns.openagency.LibraryRules objectToConvert = response.get();
-            objectToConvert.getLibraryRule()
-                    .forEach(entry -> libraryRules.withLibraryRule(entry.getName(), entry.isBool()));
-            return libraryRules.withAgencyType(objectToConvert.getAgencyType());
-        }
-        return null;
+    public LibraryRules getLibraryRules(long agencyId, String trackingId) throws IllegalStateException {
+        return libraryRulesCache.computeIfAbsent(agencyId, id -> {
+            try {
+                final Optional<dk.dbc.oss.ns.openagency.LibraryRules> response = connector.getLibraryRules(id, trackingId);
+                if (response.isPresent()) {
+                    final LibraryRules libraryRules = new LibraryRules();
+                    final dk.dbc.oss.ns.openagency.LibraryRules objectToConvert = response.get();
+                    objectToConvert.getLibraryRule()
+                            .forEach(entry -> libraryRules.withLibraryRule(entry.getName(), entry.isBool()));
+                    return libraryRules.withAgencyType(objectToConvert.getAgencyType());
+                } else {
+                    LOGGER.error("No library rules found for agency ID " + id);
+                }
+                return null;
+            } catch (OpenAgencyConnectorException e) {
+                throw new IllegalStateException("Error while looking up library rules for agency ID " + id, e);
+            }
+        });
     }
 }

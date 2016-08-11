@@ -29,12 +29,17 @@ import org.junit.Test;
 
 import java.util.Optional;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class AgencyConnectionTest {
@@ -76,6 +81,31 @@ public class AgencyConnectionTest {
 
         when(connector.getLibraryRules(anyLong(), anyString())).thenReturn(Optional.of(response));
         assertThat(createAgencyConnection().getLibraryRules(123456, null), is(expectedLibraryRules));
+    }
+
+    @Test
+    public void getLibraryRules_connectorThrows_throws() throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(anyLong(), anyString())).thenThrow(new OpenAgencyConnectorException("died"));
+        assertThat(() -> createAgencyConnection().getLibraryRules(123456, null), isThrowing(IllegalStateException.class));
+    }
+
+    @Test
+    public void getLibraryRules_connectorReturnsNonEmptyResponse_cachesLibraryRules() throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(123456, null)).thenReturn(Optional.of(new dk.dbc.oss.ns.openagency.LibraryRules()));
+        final AgencyConnection agencyConnection = createAgencyConnection();
+        assertSame(agencyConnection.getLibraryRules(123456, null), agencyConnection.getLibraryRules(123456, null));
+
+        verify(connector, times(1)).getLibraryRules(123456, null);
+    }
+
+    @Test
+    public void getLibraryRules_connectorReturnsEmptyResponse_notCached() throws OpenAgencyConnectorException {
+        when(connector.getLibraryRules(123456, null)).thenReturn(Optional.empty());
+        final AgencyConnection agencyConnection = createAgencyConnection();
+        agencyConnection.getLibraryRules(123456, null);
+        agencyConnection.getLibraryRules(123456, null);
+
+        verify(connector, times(2)).getLibraryRules(123456, null);
     }
 
     private AgencyConnection createAgencyConnection() {

@@ -21,10 +21,15 @@
 
 package dk.dbc.dataio.commons.types;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
-public class EsSinkConfig implements SinkConfig {
+import java.io.Serializable;
 
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+public class EsSinkConfig implements SinkConfig, Serializable {
+
+    private static final long serialVersionUID = 3028558873084758575L;
     private int userId;
     private String databaseName;
     private String esAction;

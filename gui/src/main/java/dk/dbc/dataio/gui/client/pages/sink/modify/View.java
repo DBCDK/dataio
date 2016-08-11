@@ -159,10 +159,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("popupTextBox")
-    void popupTextBoxChanged(ValueChangeEvent<String> event) {
-        Map<String, String> list = queueProviders.getValue();
-        list.put(event.getValue(), event.getValue());
-        queueProviders.setValue(list, true);
+    void popupTextBoxChanged(DialogEvent event) {
+        if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
+            Map<String, String> list = queueProviders.getValue();
+            list.put(popupTextBox.getValue(), popupTextBox.getValue());
+            queueProviders.setValue(list, true);
+        }
     }
 
     @UiHandler("confirmation")

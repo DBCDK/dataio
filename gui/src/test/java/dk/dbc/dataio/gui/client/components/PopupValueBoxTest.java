@@ -21,9 +21,7 @@
 
 package dk.dbc.dataio.gui.client.components;
 
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
-import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.FlowPanel;
@@ -34,11 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -106,7 +101,7 @@ public class PopupValueBoxTest {
         when(mockedWidget.getValue()).thenReturn("correct value");
 
         // Activate Subject Under Test
-        String value = (String) popupValueBox.getValue();
+        String value = popupValueBox.getValue();
 
         // Test Verification
         assertThat(value, is("correct value"));
@@ -135,7 +130,6 @@ public class PopupValueBoxTest {
     public void setValue_callWithFireEvent_newValueSetAndFireEvent() {
         // Test Preparation
         setupTest();
-        popupValueBox.addValueChangeHandler(mockedValueChangeHandler);
 
         // Activate Subject Under Test
         popupValueBox.setValue("new value", true);
@@ -144,23 +138,22 @@ public class PopupValueBoxTest {
         verify(mockedWidget).setValue("new value", true);
         verify(mockedWidget).setValue(null);
         verify(mockedWidget).setFocus(true);
-        verify(mockedWidget).getValue();
-        verify(mockedValueChangeHandler).onValueChange(any(ValueChangeEvent.class));
         verifyNoMoreInteractions(mockedWidget);
     }
 
     @Test
-    public void addValueChangeHandler_removeHandler_handlerRemoved() {
+    public void addValueChangeHandler_addValueHandler_handlerAdded() {
         // Test Preparation
         setupTest();
-        HandlerRegistration registration = popupValueBox.addValueChangeHandler(mockedValueChangeHandler);
-        assertThat(popupValueBox.valueChangeHandler, is(notNullValue()));
 
         // Activate Subject Under Test
-        registration.removeHandler();
+        popupValueBox.addValueChangeHandler(mockedValueChangeHandler);
 
         // Test Verification
-        assertThat(popupValueBox.valueChangeHandler, is(nullValue()));
+        verify(mockedWidget).addValueChangeHandler(mockedValueChangeHandler);
+        verify(mockedWidget).setValue(null);
+        verify(mockedWidget).setFocus(true);
+        verifyNoMoreInteractions(mockedWidget);
     }
 
 

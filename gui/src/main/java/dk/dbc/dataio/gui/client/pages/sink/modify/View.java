@@ -32,9 +32,10 @@ import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Label;
+import com.google.gwt.user.client.ui.TextBox;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.components.PopupBox;
-import dk.dbc.dataio.gui.client.components.PopupTextBox;
+import dk.dbc.dataio.gui.client.components.PopupValueBox;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
@@ -62,6 +63,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         return new PopupBox<>(new Label(viewInjector.getTexts().label_AreYouSureAboutDeleting()), "", "");
     }
 
+    @UiFactory
+    PopupValueBox<TextBox, String> getPopupValueBox() {
+        return new PopupValueBox<>(new TextBox(), "", "");
+    }
+
     @UiField PromptedList sinkTypeSelection;
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox resource;
@@ -73,7 +79,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedMultiList queueProviders;
     @UiField Button deleteButton;
     @UiField Label status;
-    @UiField PopupTextBox popupTextBox;
+    @UiField PopupValueBox popupTextBox;
     @UiField PromptedRadioButtons sequenceAnalysisSelection;
     @UiField PopupBox<Label> confirmation;
 
@@ -162,7 +168,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     void popupTextBoxChanged(DialogEvent event) {
         if (event.getDialogButton() == DialogEvent.DialogButton.OK_BUTTON) {
             Map<String, String> list = queueProviders.getValue();
-            list.put(popupTextBox.getValue(), popupTextBox.getValue());
+            list.put((String)popupTextBox.getValue(), (String)popupTextBox.getValue());
             queueProviders.setValue(list, true);
         }
     }

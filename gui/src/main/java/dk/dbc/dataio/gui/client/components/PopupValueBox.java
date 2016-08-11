@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.client.components;
 
-import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.logical.shared.ValueChangeHandler;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Button;
@@ -41,8 +40,6 @@ import com.google.gwt.user.client.ui.VerticalPanel;
  * @param <T> The class defining the type of the entered value (eg. String)
  */
 public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> extends PopupBox<W> implements HasValue<T> {
-    ValueChangeHandler<T> valueChangeHandler = null;  // This is package private because of test - should be private
-
 
     /**
      * Default constructor
@@ -130,9 +127,6 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
     @Override
     public void setValue(T value, boolean fireEvents) {
         widget.setValue(value, fireEvents);
-        if (fireEvents) {
-            triggerValueChangeEvent();
-        }
     }
 
     /**
@@ -143,22 +137,7 @@ public class PopupValueBox<W extends HasValue<T> & IsWidget & Focusable, T> exte
      */
     @Override
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<T> changeHandler) {
-        valueChangeHandler = changeHandler;
-        return () -> valueChangeHandler = null;
-    }
-
-
-    /*
-     * Private methods
-     */
-
-    /**
-     * Triggers a Value Change Event - but only if there is an eventhandler registered
-     */
-    private void triggerValueChangeEvent() {
-        if (valueChangeHandler != null) {
-            valueChangeHandler.onValueChange(new ValueChangeEvent<T>(getValue()) {});
-        }
+        return widget.addValueChangeHandler(changeHandler);
     }
 
 }

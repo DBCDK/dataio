@@ -41,7 +41,7 @@ public class AgencyConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgencyConnection.class);
 
     private final OpenAgencyConnector connector;
-    private final HashMap<Long, LibraryRules> libraryRulesCache;    // unbounded in-memory cache
+    private final HashMap<Integer, LibraryRules> libraryRulesCache;    // unbounded in-memory cache
 
     /**
      * Class constructor
@@ -70,7 +70,7 @@ public class AgencyConnection {
      * @return library rules or null if no rules could be found.
      * @throws IllegalStateException on error communicating with the OpenAgency web-service
      */
-    public LibraryRules getLibraryRules(long agencyId, String trackingId) throws IllegalStateException {
+    public LibraryRules getLibraryRules(int agencyId, String trackingId) throws IllegalStateException {
         return libraryRulesCache.computeIfAbsent(agencyId, id -> {
             try {
                 final Optional<dk.dbc.oss.ns.openagency.LibraryRules> response = connector.getLibraryRules(id, trackingId);

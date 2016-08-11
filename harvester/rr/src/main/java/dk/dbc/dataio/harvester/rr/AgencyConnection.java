@@ -31,7 +31,11 @@ import java.util.HashMap;
 import java.util.Optional;
 
 /**
- * This class is wrapper for OpenAgency web-service communication
+ * This class is wrapper for OpenAgency web-service communication.
+ * <p>
+ * This class is not thread safe. For it to be made thread safe, the
+ * internal caching mechanisms must be made thread safe also.
+ * </p>
  */
 public class AgencyConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(AgencyConnection.class);
@@ -56,10 +60,14 @@ public class AgencyConnection {
     }
 
     /**
-     * Retrieves library rules for given agency ID
+     * Retrieves library rules for given agency ID.
+     * <p>
+     * All non-null rule sets are cached. All subsequent requests for the same agency ID
+     * will return the result from the cache.
+     * </p>
      * @param agencyId agency ID
      * @param trackingId tracking ID used in web-service call, can be null
-     * @return library rules
+     * @return library rules or null if no rules could be found.
      * @throws IllegalStateException on error communicating with the OpenAgency web-service
      */
     public LibraryRules getLibraryRules(long agencyId, String trackingId) throws IllegalStateException {

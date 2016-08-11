@@ -66,6 +66,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructSizeColumn(), textWithToolTip(texts.columnHeader_Size(), texts.help_Size()));
         addColumn(constructFormatOverridesColumn(), textWithToolTip(texts.columnHeader_FormatOverrides(), texts.help_FormatOverrides()));
         addColumn(constructRelationsColumn(), textWithToolTip(texts.columnHeader_Relations(), texts.help_Relations()));
+        addColumn(constructLibraryRulesColumn(), textWithToolTip(texts.columnHeader_LibraryRules(), texts.help_LibraryRules()));
         addColumn(constructDestinationColumn(), textWithToolTip(texts.columnHeader_Destination(), texts.help_Destination()));
         addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format(), texts.help_Format()));
         addColumn(constructTypeColumn(), textWithToolTip(texts.columnHeader_Type(), texts.help_Type()));
@@ -205,6 +206,21 @@ public class HarvestersTable extends CellTable {
             @Override
             public String getValue(RRHarvesterConfig harvester) {
                 return harvester.getContent().hasIncludeRelations() ? texts.includeRelationsTrue() : texts.includeRelationsFalse();
+            }
+        };
+    }
+
+    /**
+     * This method constructs the Library Rules column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed Library Rules column
+     */
+    private Column constructLibraryRulesColumn() {
+        return new TextColumn<RRHarvesterConfig>() {
+            @Override
+            public String getValue(RRHarvesterConfig harvester) {
+                return harvester.getContent().hasIncludeLibraryRules() ? texts.libraryRulesTrue() : texts.libraryRulesFalse();
             }
         };
     }

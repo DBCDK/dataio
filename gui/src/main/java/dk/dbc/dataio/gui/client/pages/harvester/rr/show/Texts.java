@@ -50,6 +50,9 @@ public interface Texts extends Constants {
     String columnHeader_Relations();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_LibraryRules();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -88,6 +91,9 @@ public interface Texts extends Constants {
     String help_Relations();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_LibraryRules();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -109,6 +115,14 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String includeRelationsFalse();
+
+
+    // Include Library Rules values
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String libraryRulesTrue();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String libraryRulesFalse();
 
 
     // Enabled values

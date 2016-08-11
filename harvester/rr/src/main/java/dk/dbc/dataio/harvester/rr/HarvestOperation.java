@@ -287,7 +287,7 @@ public class HarvestOperation {
     private MarcExchangeCollection getMarcExchangeCollection(RecordId recordId, Map<String, Record> records)
             throws HarvesterException {
         final MarcExchangeCollection marcExchangeCollection = new MarcExchangeCollection(documentBuilder, transformer);
-        if (configContent.isIncludeRelations()) {
+        if (configContent.hasIncludeRelations()) {
             for (Record record : records.values()) {
                 LOGGER.debug("Adding {} member to {} marc exchange collection", record.getId(), recordId);
                 marcExchangeCollection.addMember(getRecordContent(record.getId(), record));

@@ -408,7 +408,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getConsumerId(),
                 String.valueOf(config.getContent().getBatchSize()),
                 viewOverrides,
-                config.getContent().isIncludeRelations(),
+                config.getContent().hasIncludeRelations(),
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
                 config.getContent().getType().toString(),

@@ -166,7 +166,7 @@ public class OLDRRHarvesterConfig extends RRHarvesterConfig implements Serializa
             return this;
         }
 
-        public boolean isIncludeRelations() {
+        public boolean hasIncludeRelations() {
             return includeRelations;
         }
 

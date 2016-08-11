@@ -54,7 +54,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         /** ID of harvest operation */
         private String id;
 
-        /** Flag Indicating if the Configuation is enabled */
+        /** Flag Indicating if the configuration is enabled */
         @JsonProperty
         private boolean enabled = false;
 
@@ -85,6 +85,11 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
          record relations in marcXchange collections */
         @JsonProperty
         private boolean includeRelations = true;
+
+        /** Flag indicating whether or not to include
+         library rules in record metadata */
+        @JsonProperty
+        private boolean includeLibraryRules = false;
 
         /** Harvest batch size (default 10000) */
         private int batchSize = 10000;
@@ -168,12 +173,21 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
-        public boolean isIncludeRelations() {
+        public boolean hasIncludeRelations() {
             return includeRelations;
         }
 
         public Content withIncludeRelations(boolean includeRelations) {
             this.includeRelations = includeRelations;
+            return this;
+        }
+
+        public boolean hasIncludeLibraryRules() {
+            return includeLibraryRules;
+        }
+
+        public Content withIncludeLibraryRules(boolean includeLibraryRules) {
+            this.includeLibraryRules = includeLibraryRules;
             return this;
         }
 
@@ -202,6 +216,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             Content content = (Content) o;
             return enabled == content.enabled &&
                     includeRelations == content.includeRelations &&
+                    includeLibraryRules == content.includeLibraryRules &&
                     batchSize == content.batchSize &&
                     Objects.equals(id, content.id) &&
                     Objects.equals(resource, content.resource) &&
@@ -215,24 +230,24 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, enabled, resource, consumerId, destination, type, format, formatOverrides, includeRelations, batchSize, openAgencyTarget);
+            return Objects.hash(id, enabled, resource, consumerId, destination, type, format, formatOverrides,
+                    includeRelations, includeLibraryRules, batchSize, openAgencyTarget);
         }
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("Content{");
-            sb.append("batchSize=").append(batchSize);
-            sb.append(", isEnabled=").append(enabled);
-            sb.append(", resource='").append(resource).append('\'');
-            sb.append(", consumerId='").append(consumerId).append('\'');
-            sb.append(", destination='").append(destination).append('\'');
-            sb.append(", type=").append(type);
-            sb.append(", format='").append(format).append('\'');
-            sb.append(", formatOverrides=").append(formatOverrides);
-            sb.append(", includeRelations=").append(includeRelations);
-            sb.append(", openAgencyTarget=").append(openAgencyTarget);
-            sb.append('}');
-            return sb.toString();
+            return "Content{" + "batchSize=" + batchSize +
+                    ", isEnabled=" + enabled +
+                    ", resource='" + resource + '\'' +
+                    ", consumerId='" + consumerId + '\'' +
+                    ", destination='" + destination + '\'' +
+                    ", type=" + type +
+                    ", format='" + format + '\'' +
+                    ", formatOverrides=" + formatOverrides +
+                    ", includeRelations=" + includeRelations +
+                    ", includeLibraryRules=" + includeLibraryRules +
+                    ", openAgencyTarget=" + openAgencyTarget +
+                    '}';
         }
     }
 }

@@ -74,32 +74,36 @@ import static org.mockito.Mockito.when;
 public class HarvesterBean_2datawell_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
-    private static final int DBC_COMMON_AGENCY_ID = 191919;
-    private static final int LOCAL_ID = 700000;
+    private static final int LOCAL_LIBRARY = 700000;
 
     private final static String BFS_BASE_PATH_JNDI_NAME = "bfs/home";
     private final static RawRepoConnector RAW_REPO_CONNECTOR = mock(RawRepoConnector.class);
+    private final static AgencyConnection AGENCY_CONNECTION = mock(AgencyConnection.class);
 
-    private final static RecordId FIRST_RECORD_ID = new RecordId("first", DBC_COMMON_AGENCY_ID);
+
+    /* 1st record is a DBC record */
+    private final static RecordId FIRST_RECORD_ID = new RecordId("first", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD = new MockedRecord(FIRST_RECORD_ID);
     private final static MockedRecord FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(FIRST_RECORD_ID);
     private final static QueueJob FIRST_QUEUE_JOB = HarvestOperationTest.getQueueJob(FIRST_RECORD_ID, QUEUED_TIME);
 
-    private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", DBC_COMMON_AGENCY_ID);
+    private final static RecordId FIRST_RECORD_HEAD_ID = new RecordId("first-head", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_HEAD_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_HEAD_ID);
     private final static Record FIRST_RECORD_HEAD = new MockedRecord(FIRST_RECORD_HEAD_ID);
 
-    private final static RecordId FIRST_RECORD_SECTION_ID = new RecordId("first-section", DBC_COMMON_AGENCY_ID);
+    private final static RecordId FIRST_RECORD_SECTION_ID = new RecordId("first-section", HarvestOperation.DBC_LIBRARY);
     private final static String FIRST_RECORD_SECTION_CONTENT = HarvestOperationTest.getRecordContent(FIRST_RECORD_SECTION_ID);
     private final static Record FIRST_RECORD_SECTION = new MockedRecord(FIRST_RECORD_SECTION_ID);
 
-    private final static RecordId SECOND_RECORD_ID = new RecordId("second", LOCAL_ID);
+    /* 2nd record is a local record */
+    private final static RecordId SECOND_RECORD_ID = new RecordId("second", LOCAL_LIBRARY);
     private final static String SECOND_RECORD_CONTENT = HarvestOperationTest.getRecordContent(SECOND_RECORD_ID);
     private final static Record SECOND_RECORD = new MockedRecord(SECOND_RECORD_ID);
     private final static QueueJob SECOND_QUEUE_JOB = HarvestOperationTest.getQueueJob(SECOND_RECORD_ID, QUEUED_TIME);
 
-    private final static RecordId THIRD_RECORD_ID = new RecordId("third", DBC_COMMON_AGENCY_ID);
+    /* 3rd record is a DBC record */
+    private final static RecordId THIRD_RECORD_ID = new RecordId("third", HarvestOperation.DBC_LIBRARY);
     private final static String THIRD_RECORD_CONTENT = HarvestOperationTest.getRecordContent(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD = new MockedRecord(THIRD_RECORD_ID);
     private final static MockedRecord THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL = new MockedRecord(THIRD_RECORD_ID);
@@ -127,6 +131,9 @@ public class HarvesterBean_2datawell_Test {
     private List<AddiMetaData> localRecordsAddiMetaDataExpectations;
     private List<XmlExpectation> dbcRecordsExpectations;
     private List<XmlExpectation> localRecordsExpectations;
+
+    private AddiMetaData.LibraryRules localLibraryRules = new AddiMetaData.LibraryRules()
+            .withLibraryRule("rule1", true);
 
     @Rule
     public TemporaryFolder tmpFolder = new TemporaryFolder();
@@ -166,11 +173,15 @@ public class HarvesterBean_2datawell_Test {
         localRecordsAddiMetaDataExpectations = new ArrayList<>();
         dbcRecordsExpectations = new ArrayList<>();
         localRecordsExpectations = new ArrayList<>();
+
+        // mock OpenAgency calls for non-DBC libraries
+        when(AGENCY_CONNECTION.getLibraryRules(LOCAL_LIBRARY, null)).thenReturn(localLibraryRules);
     }
 
     @Test
-    public void harvest_multipleLibraryNumbersHarvested_CommunityAndLocalRecordsInSeparateJobs()
-            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException, ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
+    public void harvest_multipleAgencyIdsHarvested_agencyIdsInSeparateJobs()
+            throws IOException, HarvesterException, SQLException, JobStoreServiceConnectorException,
+                   ParserConfigurationException, SAXException, RawRepoException, MarcXMergerException, JSONBException {
         // Mock rawrepo return values
         when(RAW_REPO_CONNECTOR.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{
@@ -230,13 +241,14 @@ public class HarvesterBean_2datawell_Test {
         final DataContainerExpectation localExpectation1 = new DataContainerExpectation();
         localExpectation1.dataExpectation = marcExchangeCollectionExpectation3;
         localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
+        localExpectation1.supplementaryDataExpectation.put("rules", "true"); // list content is coerced into single value during test
         localRecordsExpectations.add(localExpectation1);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
                 .withCreationDate(SECOND_RECORD.getCreated())
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+                .withLibraryRules(localLibraryRules));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);
@@ -284,13 +296,14 @@ public class HarvesterBean_2datawell_Test {
         final DataContainerExpectation localExpectation1 = new DataContainerExpectation();
         localExpectation1.dataExpectation = marcExchangeCollectionExpectation1;
         localExpectation1.supplementaryDataExpectation.put("creationDate", getRecordCreationDate(SECOND_RECORD));
+        localExpectation1.supplementaryDataExpectation.put("rules", "true"); // list content is coerced into single value during test
         localRecordsExpectations.add(localExpectation1);
         localRecordsAddiMetaDataExpectations.add(new AddiMetaData()
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
                 .withCreationDate(SECOND_RECORD.getCreated())
-                .withLibraryRules(new AddiMetaData.LibraryRules()));
+                .withLibraryRules(localLibraryRules));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
@@ -321,8 +334,9 @@ public class HarvesterBean_2datawell_Test {
         config.getContent()
             .withConsumerId(CONSUMER_ID)
             .withFormat("katalog")
-            .withFormatOverridesEntry(DBC_COMMON_AGENCY_ID, "basis")
-            .withIncludeRelations(true);
+            .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
+            .withIncludeRelations(true)
+            .withIncludeLibraryRules(true);
         return new ClassUnderTest(config, harvesterJobBuilderFactory);
     }
 
@@ -336,7 +350,7 @@ public class HarvesterBean_2datawell_Test {
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
                 newHarvestOperation().getJobSpecificationTemplate(870970));
         verifyJobSpecification(mockedJobStoreServiceConnector.jobInputStreams.remove().getJobSpecification(),
-                newHarvestOperation().getJobSpecificationTemplate(LOCAL_ID));
+                newHarvestOperation().getJobSpecificationTemplate(LOCAL_LIBRARY));
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {
@@ -355,13 +369,13 @@ public class HarvesterBean_2datawell_Test {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
-    public String dateToString(Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(date);
-    }
-
     private class ClassUnderTest extends HarvestOperation {
         public ClassUnderTest(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
             super(config, harvesterJobBuilderFactory);
+        }
+        @Override
+        AgencyConnection getAgencyConnection(RRHarvesterConfig config) {
+            return AGENCY_CONNECTION;
         }
         @Override
         RawRepoConnector getRawRepoConnector(RRHarvesterConfig config) {

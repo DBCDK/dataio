@@ -72,7 +72,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
-    private final static RecordId DBC_COMMON_RECORD_ID = new RecordId("record", 191919);
+    private final static RecordId DBC_RECORD_ID = new RecordId("record", HarvestOperation.DBC_LIBRARY);
     private final static RecordId RECORD_ID = new RecordId("record", 12345678);
     private final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
     private final static Record RECORD = new MockedRecord(RECORD_ID, true);
@@ -300,7 +300,7 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoRecordHasAgencyIdContainedInExcludedSet_recordIsSkipped()
+    public void execute_rawRepoRecordHasCommunityId_recordIsSkipped()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final RecordId recordId = new RecordId("record", 870970);
         final QueueJob queueJob = getQueueJob(recordId);
@@ -342,12 +342,11 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoDeleteRecordDbcCommonsAgencyId_recordIsSkipped()
+    public void execute_rawRepoDeleteRecordHasDbcId_recordIsSkipped()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
-        final RecordId recordId = new RecordId("record", DBC_COMMON_RECORD_ID.getAgencyId());
-        final QueueJob queueJob = getQueueJob(recordId);
-        final Record record = new MockedRecord(recordId, true);
-        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        final QueueJob queueJob = getQueueJob(DBC_RECORD_ID);
+        final Record record = new MockedRecord(DBC_RECORD_ID, true);
+        record.setContent(getDeleteRecordContent(DBC_RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -356,7 +355,7 @@ public class HarvestOperationTest {
 
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{
-                    put(recordId.getBibliographicRecordId(), record);
+                    put(DBC_RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
@@ -441,7 +440,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsNull_throws() throws HarvesterInvalidRecordException {
-        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail(null);
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
@@ -449,7 +448,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_enrichmentTrailArgIsEmpty_throws() throws HarvesterInvalidRecordException {
-        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail(" ");
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
@@ -457,7 +456,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_no870TrailFound_throws() throws HarvesterInvalidRecordException {
-        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail("191919,123456");
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
@@ -465,7 +464,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_invalid870TrailFound_throws() throws HarvesterInvalidRecordException {
-        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail("191919,870abc");
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(() -> harvestOperation.getAgencyIdFromEnrichmentTrail(record), isThrowing(HarvesterInvalidRecordException.class));
@@ -473,7 +472,7 @@ public class HarvestOperationTest {
 
     @Test
     public void getAgencyId_DBC_returnsAgencyIdFromEnrichmentTrail() throws HarvesterInvalidRecordException {
-        final MockedRecord record = new MockedRecord(DBC_COMMON_RECORD_ID, true);
+        final MockedRecord record = new MockedRecord(DBC_RECORD_ID, true);
         record.setEnrichmentTrail("191919,870970");
         final HarvestOperation harvestOperation = newHarvestOperation();
         assertThat(harvestOperation.getAgencyIdFromEnrichmentTrail(record), is(870970));

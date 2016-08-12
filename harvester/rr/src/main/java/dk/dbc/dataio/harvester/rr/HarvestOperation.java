@@ -72,7 +72,7 @@ import java.util.stream.Stream;
 public class HarvestOperation {
     public static final int DBC_LIBRARY = 191919;
 
-    private static final Set<Integer> DBC_DERIVATIVES = Stream.of(
+    private static final Set<Integer> DBC_COMMUNITY = Stream.of(
             870970, 870971, 870972, 870973, 870974, 870975, 870976, 870977, 870978, 870979).collect(Collectors.toSet());
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
@@ -80,6 +80,7 @@ public class HarvestOperation {
     private final RRHarvesterConfig config;
     private final RRHarvesterConfig.Content configContent;
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
+    private final AgencyConnection agencyConnection;
     private final RawRepoConnector rawRepoConnector;
 
     private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
@@ -94,6 +95,7 @@ public class HarvestOperation {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
+        this.agencyConnection = getAgencyConnection(config);
         this.rawRepoConnector = getRawRepoConnector(config);
     }
 
@@ -129,6 +131,7 @@ public class HarvestOperation {
                     .withCreationDate(getRecordCreationDate(record));
 
                 if (includeRecord(record)) {
+                    enrichAddiMetaData(addiMetaData);
                     final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
                     getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
                             .addRecord(
@@ -160,6 +163,11 @@ public class HarvestOperation {
                 itemsHarvested, configContent.getConsumerId(), stopWatch.getElapsedTime());
 
         return itemsHarvested;
+    }
+
+    /* package scoped to enable easy override during testing */
+    AgencyConnection getAgencyConnection(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
+        return new AgencyConnection(config.getContent().getOpenAgencyTarget().getUrl());
     }
 
     /* package scoped to enable easy override during testing */
@@ -215,7 +223,7 @@ public class HarvestOperation {
         final int agencyId = record.getId().getAgencyId();
         // Special case handling for DBC records:
         // If the agency ID is either excluded or is equal to 191919...
-        if (DBC_DERIVATIVES.contains(agencyId) || DBC_LIBRARY == agencyId) {
+        if (DBC_COMMUNITY.contains(agencyId) || DBC_LIBRARY == agencyId) {
             // if the record IS marked as DELETED in RR...
             if (record.isDeleted()) {
                 if (agencyId == DBC_LIBRARY) {
@@ -223,7 +231,7 @@ public class HarvestOperation {
                     return false;
                 }
             // if the record is NOT marked as DELETED in RR...
-            } else if (DBC_DERIVATIVES.contains(agencyId)) {
+            } else if (DBC_COMMUNITY.contains(agencyId)) {
                 // skip the record if has an excluded agency ID.
                 return false;
             }
@@ -266,6 +274,17 @@ public class HarvestOperation {
         harvesterJobBuilders.clear();
     }
 
+    private void enrichAddiMetaData(AddiMetaData addiMetaData) {
+        if (configContent.hasIncludeLibraryRules()) {
+            int agencyId = addiMetaData.submitterNumber().get();
+            if (!isDbcAgencyId(agencyId)) {
+                addiMetaData.withLibraryRules(
+                        agencyConnection.getLibraryRules(
+                                agencyId, addiMetaData.trackingId().orElse(null)));
+            }
+        }
+    }
+
     /* Fetches rawrepo record collection associated with given record ID and adds its content to a new MARC exchange collection.
        Returns data container harvester record containing MARC exchange collection as data
      */
@@ -300,6 +319,7 @@ public class HarvestOperation {
         dataContainer.setCreationDate(record.getCreated());
         dataContainer.setEnrichmentTrail(record.getEnrichmentTrail());
         dataContainer.setTrackingId(record.getTrackingId());
+        dataContainer.setLibraryRules(addiMetaData.libraryRules().orElse(null));
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
         return dataContainer;
@@ -341,6 +361,10 @@ public class HarvestOperation {
 
     private boolean hasOpenAgencyTarget(RRHarvesterConfig config) {
         return config.getContent().getOpenAgencyTarget() != null;
+    }
+
+    private boolean isDbcAgencyId(int agencyId) {
+        return agencyId == DBC_LIBRARY || DBC_COMMUNITY.contains(agencyId);
     }
 
     private String getFormat(int agencyId) {

@@ -27,6 +27,7 @@ public class JndiConstants {
     public static final String JDBC_RESOURCE_ES_INFLIGHT = "jdbc/dataio/sinks/esInFlight";
     public static final String JDBC_RESOURCE_SINK_DIFF = "jdbc/dataio/diff";
     public static final String JDBC_RESOURCE_HARVESTER_RR = "jdbc/dataio/harvester/rr";
+    public static final String JDBC_RESOURCE_HARVESTER_USH_SOLR = "jdbc/dataio/harvester/ush-solr";
 
     public static final String URL_RESOURCE_FBS_WS = "url/dataio/fbs/ws";
     public static final String URL_RESOURCE_FILESTORE_RS = "url/dataio/filestore/rs";

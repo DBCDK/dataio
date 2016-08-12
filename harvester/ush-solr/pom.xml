@@ -119,6 +119,11 @@
       <artifactId>dataio-commons-utils-json-binding</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
+      <version>${flyway.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

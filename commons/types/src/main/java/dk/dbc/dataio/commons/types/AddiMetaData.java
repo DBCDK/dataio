@@ -23,6 +23,7 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import java.util.Date;
@@ -50,6 +51,7 @@ public class AddiMetaData {
     @JsonProperty
     private Diagnostic diagnostic;
     @JsonProperty
+    @JsonUnwrapped
     private LibraryRules libraryRules;
 
     public AddiMetaData withSubmitterNumber(Integer submitterNumber) {

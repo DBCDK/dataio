@@ -183,7 +183,8 @@ public class HarvestOperation_2fbs_Test {
                 .withFormat("format")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
-                .withTrackingId(FIRST_RECORD.getTrackingId()));
+                .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
@@ -195,7 +196,8 @@ public class HarvestOperation_2fbs_Test {
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(SECOND_RECORD.getCreated()));
+                .withCreationDate(SECOND_RECORD.getCreated())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
@@ -207,7 +209,8 @@ public class HarvestOperation_2fbs_Test {
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(THIRD_RECORD.getCreated()));
+                .withCreationDate(THIRD_RECORD.getCreated())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);
@@ -251,7 +254,8 @@ public class HarvestOperation_2fbs_Test {
                 .withFormat("format")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
-                .withTrackingId(FIRST_RECORD.getTrackingId()));
+                .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final DataContainerExpectation dataContainerExpectation2 = null;
         recordsExpectations.add(dataContainerExpectation2);
@@ -263,7 +267,8 @@ public class HarvestOperation_2fbs_Test {
                 .withTrackingId(SECOND_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
                         "Harvesting RawRepo %s failed: Record %s was not found in returned collection",
-                        SECOND_RECORD.getId(), SECOND_RECORD.getId()))));
+                        SECOND_RECORD.getId(), SECOND_RECORD.getId())))
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
@@ -275,7 +280,8 @@ public class HarvestOperation_2fbs_Test {
                 .withBibliographicRecordId(THIRD_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
                 .withFormat("format")
-                .withCreationDate(THIRD_RECORD.getCreated()));
+                .withCreationDate(THIRD_RECORD.getCreated())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);

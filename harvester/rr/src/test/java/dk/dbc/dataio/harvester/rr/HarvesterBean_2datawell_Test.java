@@ -207,7 +207,8 @@ public class HarvesterBean_2datawell_Test {
                 .withFormat("katalog")
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
-                .withTrackingId(FIRST_RECORD.getTrackingId()));
+                .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
@@ -221,7 +222,8 @@ public class HarvesterBean_2datawell_Test {
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
                 .withCreationDate(THIRD_RECORD.getCreated())
-                .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail()));
+                .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation3.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
@@ -233,7 +235,8 @@ public class HarvesterBean_2datawell_Test {
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
-                .withCreationDate(SECOND_RECORD.getCreated()));
+                .withCreationDate(SECOND_RECORD.getCreated())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);
@@ -273,7 +276,8 @@ public class HarvesterBean_2datawell_Test {
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
-                        "Harvesting RawRepo %s failed: member data can not be parsed as XML", FIRST_RECORD.getId()))));
+                        "Harvesting RawRepo %s failed: member data can not be parsed as XML", FIRST_RECORD.getId())))
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation1.records.add(getMarcExchangeRecord(SECOND_RECORD_ID));
@@ -285,7 +289,8 @@ public class HarvesterBean_2datawell_Test {
                 .withBibliographicRecordId(SECOND_RECORD.getId().getBibliographicRecordId())
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
-                .withCreationDate(SECOND_RECORD.getCreated()));
+                .withCreationDate(SECOND_RECORD.getCreated())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
         marcExchangeCollectionExpectation2.records.add(getMarcExchangeRecord(THIRD_RECORD_ID));
@@ -299,7 +304,8 @@ public class HarvesterBean_2datawell_Test {
                 .withSubmitterNumber(870970)
                 .withFormat("katalog")
                 .withCreationDate(THIRD_RECORD.getCreated())
-                .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail()));
+                .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
+                .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
         harvestOperation.execute(entityManager);

@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.harvester.types;
 
+import dk.dbc.dataio.commons.types.AddiMetaData.LibraryRules;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -38,6 +39,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * This class represents a data container as a harvester XML record.
@@ -58,6 +60,7 @@ public class DataContainer implements HarvesterXmlRecord {
     private String enrichmentTrail = null;
     private Element data;
     private String trackingId;
+    private LibraryRules libraryRules;
 
     /**
      * Class constructor
@@ -154,6 +157,10 @@ public class DataContainer implements HarvesterXmlRecord {
         this.trackingId = trackingId;
     }
 
+    public void setLibraryRules(LibraryRules libraryRules) {
+        this.libraryRules = libraryRules;
+    }
+
     private void appendDataSupplementary(Document document, Element parent) {
         final Element dataSupplementaryElement = document.createElement(DATA_SUPPLEMENTARY_ELEMENT_NAME);
         if (creationDate != null) {
@@ -166,10 +173,13 @@ public class DataContainer implements HarvesterXmlRecord {
             enrichmentTrailElement.setTextContent(this.enrichmentTrail);
             dataSupplementaryElement.appendChild(enrichmentTrailElement);
         }
-        if(trackingId != null) {
+        if (trackingId != null) {
             final Element trackingIdElement = document.createElement("trackingId");
             trackingIdElement.setTextContent(this.trackingId);
             dataSupplementaryElement.appendChild(trackingIdElement);
+        }
+        if (libraryRules != null) {
+            appendLibraryRules(document, dataSupplementaryElement, libraryRules);
         }
         parent.appendChild(dataSupplementaryElement);
     }
@@ -178,6 +188,24 @@ public class DataContainer implements HarvesterXmlRecord {
         final Element dataElement = document.createElement(DATA_ELEMENT_NAME);
         dataElement.appendChild(document.importNode(data, true));
         parent.appendChild(dataElement);
+    }
+
+    private void appendLibraryRules(Document document, Element parent, LibraryRules libraryRules) {
+        if (libraryRules.agencyType().isPresent()) {
+            final Element agencyTypeElement = document.createElement("agencyType");
+            agencyTypeElement.setTextContent(libraryRules.agencyType().get());
+            parent.appendChild(agencyTypeElement);
+        }
+        final Map<String, Boolean> rules = libraryRules.getLibraryRules();
+        if (!rules.isEmpty()) {
+            final Element rulesElement = document.createElement("rules");
+            rules.forEach((k,v) -> {
+                final Element ruleElement = document.createElement(k);
+                ruleElement.setTextContent(v.toString());
+                rulesElement.appendChild(ruleElement);
+            });
+            parent.appendChild(rulesElement);
+        }
     }
 
     private Transformer configureTransformer() throws HarvesterException {

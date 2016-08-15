@@ -24,9 +24,13 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.SinkContent;
+import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
+
+import java.util.List;
 
 /**
  * Concrete Presenter Implementation Class for Sink Edit
@@ -109,8 +113,37 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         @Override
         public void onSuccess(SinkModel model) {
             setSinkModel(model);
-            getView().sinkTypeSelection.setEnabled(false);
             updateAllFieldsAccordingToCurrentState();
+            handleSinkConfig(model.getSinkType());
+        }
+    }
+
+    @Override
+    void handleSinkConfig(SinkContent.SinkType sinkType) {
+        View view = getView();
+        view.sinkTypeSelection.setEnabled(false);
+            switch (sinkType) {
+                case OPENUPDATE:
+                    view.url.setText(model.getOpenUpdateEndpoint());
+                    view.openupdateuserid.setText(model.getOpenUpdateUserId());
+                    view.password.setText(model.getOpenUpdatePassword());
+                    setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
+                    view.updateSinkSection.setVisible(true);
+                    break;
+                case ES:
+                    view.esUserId.setText(String.valueOf(model.getEsUserId()));
+                    view.esDatabase.setText(model.getEsDatabase());
+                    view.esSinkSection.setVisible(true);
+                    break;
+            }
+    }
+
+    private void setQueueProvidersMultiList(PromptedMultiList queueProviders, List<String> modelProviders) {
+        queueProviders.clear();
+        if (modelProviders != null) {
+            for (String value: modelProviders) {
+                queueProviders.addValue(value, value);
+            }
         }
     }
 

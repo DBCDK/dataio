@@ -73,10 +73,13 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox resource;
     @UiField PromptedTextArea description;
     @UiField HTMLPanel updateSinkSection;
+    @UiField HTMLPanel esSinkSection;
     @UiField PromptedTextBox url;
-    @UiField PromptedTextBox userid;
+    @UiField PromptedTextBox openupdateuserid;
     @UiField PromptedPasswordTextBox password;
     @UiField PromptedMultiList queueProviders;
+    @UiField PromptedTextBox esUserId;
+    @UiField PromptedTextBox esDatabase;
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupValueBox popupTextBox;
@@ -85,16 +88,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ValueChangeEvent<String> event) {
-        String selectedKey = sinkTypeSelection.getSelectedKey();
-        switch (SinkContent.SinkType.valueOf(selectedKey)) {
-            case OPENUPDATE:
-                updateSinkSection.setVisible(true);
-                break;
-            default:
-                updateSinkSection.setVisible(false);
-                break;
-        }
-        presenter.sinkTypeChanged(selectedKey);
+        presenter.sinkTypeChanged(SinkContent.SinkType.valueOf(sinkTypeSelection.getSelectedKey()));
         presenter.keyPressed();
     }
 
@@ -122,9 +116,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
-    @UiHandler("userid")
+    @UiHandler("openupdateuserid")
     void useridChanged(ValueChangeEvent<String> event) {
-        presenter.userIdChanged(userid.getText());
+        presenter.openUpdateUserIdChanged(openupdateuserid.getText());
         presenter.keyPressed();
     }
 
@@ -140,6 +134,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
             presenter.queueProvidersChanged(new ArrayList<>(queueProviders.getValue().values()));
             presenter.keyPressed();
         }
+    }
+
+    @UiHandler("esUserId")
+    void setEsUserIdChanged(ValueChangeEvent<String> event) {
+        presenter.esUserIdChanged(esUserId.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("esDatabase")
+    void setEsDatabaseChanged(ValueChangeEvent<String> event) {
+        presenter.esDatabaseChanged(esDatabase.getText());
+        presenter.keyPressed();
     }
 
     @UiHandler("saveButton")
@@ -179,5 +185,4 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
             presenter.deleteButtonPressed();
         }
     }
-
 }

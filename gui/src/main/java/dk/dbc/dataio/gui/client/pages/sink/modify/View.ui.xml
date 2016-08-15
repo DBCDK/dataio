@@ -45,9 +45,13 @@
         </li>
         <g:HTMLPanel ui:field="updateSinkSection" visible="false">
             <li><dio:PromptedTextBox ui:field="url" guiId="sinkurl" prompt="{txt.label_SinkUrl}" maxLength="160" toolTip=""/></li>
-            <li><dio:PromptedTextBox ui:field="userid" guiId="sinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>
+            <li><dio:PromptedTextBox ui:field="openupdateuserid" guiId="openupdatesinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>
             <li><dio:PromptedPasswordTextBox ui:field="password" guiId="sinkpassword" prompt="{txt.label_Password}" maxLength="160" toolTip=""/></li>
             <li><dio:PromptedMultiList ui:field="queueProviders" guiId="sinkqueueproviders" prompt="{txt.label_QueueProviders}" manualSorting="false" /></li>
+        </g:HTMLPanel>
+        <g:HTMLPanel ui:field="esSinkSection" visible="false">
+            <li><dio:PromptedTextBox ui:field="esUserId" guiId="essinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>
+            <li><dio:PromptedTextBox ui:field="esDatabase" guiId="essinkdatabase" prompt="{txt.label_Database}" maxLength="160" toolTip=""/></li>
         </g:HTMLPanel>
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

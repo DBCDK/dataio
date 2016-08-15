@@ -28,7 +28,7 @@ public class SinkContentBuilder {
     private String name = "name";
     private String resource = "resource";
     private String description = "description";
-    private SinkContent.SinkType sinkType = null;
+    private SinkContent.SinkType sinkType = SinkContent.SinkType.DUMMY;
     private SinkConfig sinkConfig = null;
     private SinkContent.SequenceAnalysisOption sequenceAnalysisOption = SinkContent.SequenceAnalysisOption.ALL;
 

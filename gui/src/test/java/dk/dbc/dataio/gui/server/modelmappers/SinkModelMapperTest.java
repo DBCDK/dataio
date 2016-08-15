@@ -21,9 +21,9 @@
 
 package dk.dbc.dataio.gui.server.modelmappers;
 
+import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
@@ -51,18 +51,23 @@ public class SinkModelMapperTest {
     // Default Sinks
     private static final SinkContent defaultSinkContent1 = new SinkContentBuilder().setName("sink content 1").setResource("sink resource 1").build();
     private static final SinkContent defaultSinkContent2 = new SinkContentBuilder().setName("sink content 2").setResource("sink resource 2").build();
-    private static final SinkConfig updateSC = new OpenUpdateSinkConfig().withUserId("uid").withPassword("pwd").withEndpoint("url").withAvailableQueueProviders(Collections.singletonList("avail"));
+    private static final OpenUpdateSinkConfig updateSC = new OpenUpdateSinkConfig().withUserId("uid").withPassword("pwd").withEndpoint("url").withAvailableQueueProviders(Collections.singletonList("avail"));
+    private static final EsSinkConfig esSC = new EsSinkConfig().withUserId(1234).withDatabaseName("pwd");
     private static final SinkContent defaultSinkContentOUpdate = new SinkContentBuilder().setName("SC Up").setResource("sink res").setDescription("desci").setSinkType(SinkContent.SinkType.OPENUPDATE).setSinkConfig(updateSC).build();
+    private static final SinkContent defaultSinkContentES = new SinkContentBuilder().setName("SC Es").setResource("sink res").setDescription("desci").setSinkType(SinkContent.SinkType.ES).setSinkConfig(updateSC).build();
     private static final Sink defaultSink1 = new SinkBuilder().setId(111L).setVersion(222L).setContent(defaultSinkContent1).build();
     private static final Sink defaultSink2 = new SinkBuilder().setId(333L).setVersion(444L).setContent(defaultSinkContent2).build();
     private static final Sink defaultSinkOU = new SinkBuilder().setId(555L).setVersion(666L).setContent(defaultSinkContentOUpdate).build();
+    private static final Sink defaultSinkES = new SinkBuilder().setId(666L).setVersion(777L).setContent(defaultSinkContentES).build();
     private static final List<Sink> defaultSinkList = Arrays.asList(defaultSink1, defaultSink2);
 
     // Default SinkModels
-    private static final SinkModel defaultSinkModel1 = new SinkModelBuilder()
+    private static final SinkModel defaultSinkModelES = new SinkModelBuilder()
+            .setSinkType(SinkContent.SinkType.ES)
             .setName("Sink Model Name 1")
             .setResource("Sink Model Resource 1")
             .setDescription("Sink Model Description 1")
+            .setSinkConfig(esSC)
             .build();
     private static final SinkModel defaultSinkModelOU = new SinkModelBuilder()
             .setSinkType(SinkContent.SinkType.OPENUPDATE)
@@ -109,6 +114,21 @@ public class SinkModelMapperTest {
         assertThat(model.getOpenUpdateEndpoint(), is("url"));
     }
 
+    @Test
+    public void toModel_validESInput_returnsValidESModel() {
+        // Activate Subject Under Test
+        SinkModel model = SinkModelMapper.toModel(defaultSinkES);
+
+        // Verification
+        assertThat(model.getId(), is(defaultSinkES.getId()));
+        assertThat(model.getVersion(), is(defaultSinkES.getVersion()));
+        assertThat(model.getSinkName(), is(defaultSinkContentES.getName()));
+        assertThat(model.getResourceName(), is(defaultSinkContentES.getResource()));
+        assertThat(model.getDescription(), is(defaultSinkContentES.getDescription()));
+        assertThat(model.getSinkType(), is(defaultSinkContentES.getSinkType()));
+        assertThat(model.getSinkConfig(), is(defaultSinkContentES.getSinkConfig()));
+    }
+
     @Test(expected = NullPointerException.class)
     public void toSinkContent_nullInput_throws() {
         // Activate Subject Under Test
@@ -116,15 +136,18 @@ public class SinkModelMapperTest {
     }
 
     @Test
-    public void toSinkContent_validInput_returnsValidSinkContent() {
+    public void toSinkContent_validEsInput_returnsValidSinkContent() {
         // Activate Subject Under Test
-        SinkContent sinkContent = SinkModelMapper.toSinkContent(defaultSinkModel1);
+        SinkContent sinkContent = SinkModelMapper.toSinkContent(defaultSinkModelES);
 
         // Verification
-        assertThat(sinkContent.getName(), is(defaultSinkModel1.getSinkName()));
-        assertThat(sinkContent.getResource(), is(defaultSinkModel1.getResourceName()));
-        assertThat(sinkContent.getDescription(), is(defaultSinkModel1.getDescription()));
+        assertThat(sinkContent.getName(), is(defaultSinkModelES.getSinkName()));
+        assertThat(sinkContent.getResource(), is(defaultSinkModelES.getResourceName()));
+        assertThat(sinkContent.getDescription(), is(defaultSinkModelES.getDescription()));
         assertThat(sinkContent.getSinkType(), is(SinkContent.SinkType.ES));
+        final EsSinkConfig esSinkConfig = (EsSinkConfig) sinkContent.getSinkConfig();
+        assertThat(esSinkConfig.getUserId(), is(defaultSinkModelES.getEsUserId()));
+        assertThat(esSinkConfig.getDatabaseName(), is(defaultSinkModelES.getEsDatabase()));
     }
 
     @Test
@@ -133,15 +156,15 @@ public class SinkModelMapperTest {
         SinkContent sinkContent = SinkModelMapper.toSinkContent(defaultSinkModelOU);
 
         // Verification
-        assertThat(sinkContent.getName(), is("Name OU"));
-        assertThat(sinkContent.getResource(), is("Resource OU"));
-        assertThat(sinkContent.getDescription(), is("Description OU"));
+        assertThat(sinkContent.getName(), is(defaultSinkModelOU.getSinkName()));
+        assertThat(sinkContent.getResource(), is(defaultSinkModelOU.getResourceName()));
+        assertThat(sinkContent.getDescription(), is(defaultSinkModelOU.getDescription()));
         assertThat(sinkContent.getSinkType(), is(SinkContent.SinkType.OPENUPDATE));
-        OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sinkContent.getSinkConfig();
-        assertThat(sinkConfig.getUserId(), is(((OpenUpdateSinkConfig)updateSC).getUserId()));
-        assertThat(sinkConfig.getPassword(), is(((OpenUpdateSinkConfig)updateSC).getPassword()));
-        assertThat(sinkConfig.getEndpoint(), is(((OpenUpdateSinkConfig)updateSC).getEndpoint()));
-        assertThat(sinkConfig.getAvailableQueueProviders(), is(((OpenUpdateSinkConfig) updateSC).getAvailableQueueProviders()));
+        final OpenUpdateSinkConfig sinkConfig = (OpenUpdateSinkConfig) sinkContent.getSinkConfig();
+        assertThat(sinkConfig.getUserId(), is(defaultSinkModelOU.getOpenUpdateUserId()));
+        assertThat(sinkConfig.getPassword(), is(defaultSinkModelOU.getOpenUpdatePassword()));
+        assertThat(sinkConfig.getEndpoint(), is(defaultSinkModelOU.getOpenUpdateEndpoint()));
+        assertThat(sinkConfig.getAvailableQueueProviders(), is(defaultSinkModelOU.getOpenUpdateAvailableQueueProviders()));
     }
 
     @Test(expected = NullPointerException.class)
@@ -174,7 +197,7 @@ public class SinkModelMapperTest {
     public void toSinkContent_invalidSinkName_throwsIllegalArgumentException() {
         final String sinkName = "*%(Illegal)_&Name - €";
         final String expectedIllegalCharacters = "[*], [%], [(], [)], [&], [€]";
-        SinkModel model = new SinkModelBuilder().setName(sinkName).build();
+        SinkModel model = new SinkModelBuilder().setName(sinkName).setSinkType(SinkContent.SinkType.DUMMY).build();
         try {
             SinkModelMapper.toSinkContent(model);
             fail("Illegal sink name not detected");
@@ -182,5 +205,4 @@ public class SinkModelMapperTest {
             assertThat(e.getMessage().contains(expectedIllegalCharacters), is (true));
         }
     }
-
 }

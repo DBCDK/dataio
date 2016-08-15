@@ -23,6 +23,8 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -66,6 +68,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private PresenterImplConcrete presenterImpl;
     private static boolean saveModelHasBeenCalled;
     private static boolean initializeModelHasBeenCalled;
+    private static boolean handleSinkConfigHasBeenCalled;
 
     private final SinkModel sinkModel = new SinkModelBuilder().build();
 
@@ -74,6 +77,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
             super(header);
             view = PresenterImplTest.this.view;
             model = sinkModel;
+        }
+
+        @Override
+        void handleSinkConfig(SinkContent.SinkType sinkType) {
+            handleSinkConfigHasBeenCalled = true;
         }
 
         @Override
@@ -147,17 +155,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void sinkTypeChanged_callSinkTypeChanged_sinkTypeIsChangedAccordingly() {
-
+    public void sinkTypeChanged_callSinkTypeChanged_sinkConfigSpecificSectionsSetInvisible() {
         // Setup
-        final SinkContent.SinkType CHANGED_SINK_TYPE = SinkContent.SinkType.DUMMY;
         initializeAndStartPresenter();
+        view.esSinkSection.setVisible(true);
 
         // Subject Under Test
-        presenterImpl.sinkTypeChanged("DUMMY");
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.ES);
 
         // Verifications
-        assertThat(presenterImpl.model.getSinkType(), is(CHANGED_SINK_TYPE));
+        assertThat(view.updateSinkSection.isVisible(), is(false));
+        assertThat(view.esSinkSection.isVisible(), is(false));
+        assertThat(handleSinkConfigHasBeenCalled, is(true));
     }
 
     @Test
@@ -203,15 +212,16 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void userIdChanged_callUserIdChanged_userIdIsChangedAccordingly() {
+    public void openUpdateUserIdChanged_callUserIdChanged_userIdIsChangedAccordingly() {
 
         // Setup
         final String USER_ID = "UserId";
         initializeAndStartPresenter();
-        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE);
+        presenterImpl.model.setSinkConfig(new OpenUpdateSinkConfig());
 
         // Subject Under Test
-        presenterImpl.userIdChanged(USER_ID);
+        presenterImpl.openUpdateUserIdChanged(USER_ID);
 
         // Verifications
         assertThat(presenterImpl.model.getOpenUpdateUserId(), is(USER_ID));
@@ -223,7 +233,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final String PASSWORD = "Password";
         initializeAndStartPresenter();
-        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE);
+        presenterImpl.model.setSinkConfig(new OpenUpdateSinkConfig());
 
         // Subject Under Test
         presenterImpl.passwordChanged(PASSWORD);
@@ -238,7 +249,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
         initializeAndStartPresenter();
-        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE);
+        presenterImpl.model.setSinkConfig(new OpenUpdateSinkConfig());
 
         // Subject Under Test
         presenterImpl.queueProvidersChanged(QUEUE_PROVIDERS);
@@ -253,13 +265,41 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Setup
         final String ENDPOINT = "Endpoint";
         initializeAndStartPresenter();
-        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE);
+        presenterImpl.model.setSinkConfig(new OpenUpdateSinkConfig());
 
         // Subject Under Test
         presenterImpl.endpointChanged(ENDPOINT);
 
         // Verifications
         assertThat(presenterImpl.model.getOpenUpdateEndpoint(), is(ENDPOINT));
+    }
+
+    @Test
+    public void esUserIdChanged_callEsUserIdChanged_esUserIdIsChangedAccordingly() {
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.ES);
+        presenterImpl.model.setSinkConfig(new EsSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.esUserIdChanged("3");
+
+        // Verifications
+        assertThat(presenterImpl.model.getEsUserId(), is(3));
+    }
+
+    @Test
+    public void esDatabaseChanged_callEsDatabaseChanged_esDatabaseIsChangedAccordingly() {
+        final String database = "changed database";
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.ES);
+        presenterImpl.model.setSinkConfig(new EsSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.esDatabaseChanged(database);
+
+        // Verifications
+        assertThat(presenterImpl.model.getEsDatabase(), is(database));
     }
 
     @Test
@@ -295,8 +335,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Setup
         initializeAndStartPresenter();
-        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE.name());
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.OPENUPDATE);
         final List<String> QUEUE_PROVIDERS = Arrays.asList("QProvider1", "QProvider2", "QProvider3");
+        presenterImpl.model.setSinkConfig(new OpenUpdateSinkConfig());
         presenterImpl.model.setOpenUpdateAvailableQueueProviders(QUEUE_PROVIDERS);
 
         // Subject Under Test
@@ -351,7 +392,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(view.status).setText("");
     }
 
-
     @Test
     public void saveSinkModelFilteredAsyncCallback_successfulCallback_setStatusTextCalledInView() {
 
@@ -366,7 +406,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verifications
         verify(view.status).setText(SUCCESS_TEXT);  // Expect the status text to be set in View
         assertThat(presenterImpl.model, is(sinkModel));
-
     }
 
     @Test

@@ -31,7 +31,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 public class SinkModelBuilder {
     private long id = 64L;
     private long version = 1L;
-    private SinkContent.SinkType sinkType = SinkContent.SinkType.ES;
+    private SinkContent.SinkType sinkType = SinkContent.SinkType.DUMMY;
     private String name = "name";
     private String resource = "resource";
     private String description = "description";

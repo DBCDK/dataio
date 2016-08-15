@@ -29,6 +29,7 @@ import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.view.client.RangeChangeEvent;
 import com.google.gwt.view.client.SelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import org.junit.Before;
@@ -65,7 +66,7 @@ public class ViewTest {
 
 
     // Test Data
-    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setResource("SinkRes1").setDescription("SinkDescription1").build();
+    private SinkModel testModel1 = new SinkModelBuilder().setName("SinkNam1").setResource("SinkRes1").setDescription("SinkDescription1").setSinkType(SinkContent.SinkType.DUMMY).build();
     private SinkModel testModel2 = new SinkModelBuilder().setName("SinkNam2").setResource("SinkRes2").setDescription("SinkDescription2").build();
     private List<SinkModel> testModels = Arrays.asList(testModel1, testModel2);
 
@@ -168,7 +169,7 @@ public class ViewTest {
         Column column = view.constructTypeColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat(column.getValue(testModel1), is(MOCKED_ESSINK));
+        assertThat(column.getValue(testModel1), is(MOCKED_DUMMYSINK));
     }
 
     @Test

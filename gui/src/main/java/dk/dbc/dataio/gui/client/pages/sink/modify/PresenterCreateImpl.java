@@ -23,6 +23,9 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 
 /**
@@ -58,8 +61,26 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     public void initializeModel() {
         model = new SinkModel();
-        getView().sinkTypeSelection.setEnabled(true);
+        View view = getView();
+        view.sinkTypeSelection.fireChangeEvent();
         updateAllFieldsAccordingToCurrentState();
+    }
+
+    @Override
+    void handleSinkConfig(SinkContent.SinkType sinkType) {
+        View view = getView();
+        view.sinkTypeSelection.setEnabled(true);
+        model.setSinkType(sinkType);
+        switch (sinkType) {
+            case OPENUPDATE:
+                model.setSinkConfig(new OpenUpdateSinkConfig());
+                view.updateSinkSection.setVisible(true);
+                break;
+            case ES:
+                model.setSinkConfig(new EsSinkConfig());
+                view.esSinkSection.setVisible(true);
+                break;
+        }
     }
 
     /**

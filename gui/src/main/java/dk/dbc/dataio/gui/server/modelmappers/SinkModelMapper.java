@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.server.modelmappers;
 
 
-import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -62,11 +61,7 @@ public class SinkModelMapper {
     public static SinkContent toSinkContent(SinkModel model) throws IllegalArgumentException {
 
         if (model.isInputFieldsEmpty()) {
-            if (model.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
-                throw new IllegalArgumentException("model.name, model.resource, model.description, config.userId, config.password, config.endpoint cannot be empty");
-            } else {
-                throw new IllegalArgumentException("model.name, model.resource, model.description cannot be empty");
-            }
+            throw new IllegalArgumentException("model.name, model.resource, model.description cannot be empty");
         }
 
         List<String> matches = model.getDataioPatternMatches();
@@ -74,27 +69,13 @@ public class SinkModelMapper {
             throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
 
-        if (model.getSinkType() == SinkContent.SinkType.OPENUPDATE) {
-            List<String> availableQueueProviders = model.getOpenUpdateAvailableQueueProviders().isEmpty() ? null : model.getOpenUpdateAvailableQueueProviders();
-            return new SinkContent(
-                    model.getSinkName(),
-                    model.getResourceName(),
-                    model.getDescription(),
-                    model.getSinkType(),
-                    new OpenUpdateSinkConfig()
-                            .withUserId(model.getOpenUpdateUserId())
-                            .withPassword(model.getOpenUpdatePassword())
-                            .withEndpoint(model.getOpenUpdateEndpoint())
-                            .withAvailableQueueProviders(availableQueueProviders),
-                    model.getSequenceAnalysisOption());
-        } else {
-            return new SinkContent(
-                    model.getSinkName(),
-                    model.getResourceName(),
-                    model.getDescription(),
-                    model.getSinkType(),
-                    model.getSequenceAnalysisOption());
-        }
+        return new SinkContent(
+                model.getSinkName(),
+                model.getResourceName(),
+                model.getDescription(),
+                model.getSinkType(),
+                model.getSinkConfig(),
+                model.getSequenceAnalysisOption());
     }
 
     /**
@@ -104,8 +85,7 @@ public class SinkModelMapper {
      * @return sinkModels the list of sinkModels
      */
     public static List<SinkModel> toListOfSinkModels(List<Sink> sinks) {
-        List<SinkModel> sinkModels = sinks.stream().map(SinkModelMapper::toModel).collect(Collectors.toList());
-        return sinkModels;
+        return sinks.stream().map(SinkModelMapper::toModel).collect(Collectors.toList());
     }
 
     /*
@@ -119,5 +99,4 @@ public class SinkModelMapper {
         }
         return stringBuilder.deleteCharAt(stringBuilder.length() -1).toString();
     }
-
 }

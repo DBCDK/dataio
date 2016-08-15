@@ -26,9 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
-import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -72,11 +70,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * A signal to the presenter, saying that the selection of Sink Type has changed
      * @param sinkType Sink Type selection
      */
-    public void sinkTypeChanged(String sinkType) {
-        model.setSinkType(SinkContent.SinkType.valueOf(sinkType));
-        if(model.getSinkType() == SinkContent.SinkType.OPENUPDATE && model.getSinkConfig() == null) {
-            model.setSinkConfig(new OpenUpdateSinkConfig());
-        }
+    public void sinkTypeChanged(SinkContent.SinkType sinkType) {
+        View view = getView();
+        view.updateSinkSection.setVisible(false);
+        view.esSinkSection.setVisible(false);
+        handleSinkConfig(sinkType);
     }
 
     /**
@@ -110,8 +108,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param userId, the new User Id value
      */
     @Override
-    public void userIdChanged(String userId) {
-        model.setOpenUpdateUserId(userId);
+    public void openUpdateUserIdChanged(String userId) {
+        if (isValid(userId)) {
+            model.setOpenUpdateUserId(userId);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
     }
 
     /**
@@ -120,7 +122,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void passwordChanged(String password) {
-        model.setOpenUpdatePassword(password);
+        if(isValid(password)) {
+            model.setOpenUpdatePassword(password);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
     }
 
     /**
@@ -129,7 +135,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void queueProvidersChanged(List<String> availableQueueProviders) {
-        model.setOpenUpdateAvailableQueueProviders(availableQueueProviders);
+        if(isValid(availableQueueProviders)) {
+            model.setOpenUpdateAvailableQueueProviders(availableQueueProviders);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
     }
 
     /**
@@ -138,7 +148,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void sequenceAnalysisSelectionChanged(String value) {
-        model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.valueOf(value));
+        if(isValid(value)) {
+            model.setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.valueOf(value));
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
     }
 
     /**
@@ -147,7 +161,41 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void endpointChanged(String endpoint) {
-        model.setOpenUpdateEndpoint(endpoint);
+        if(isValid(endpoint)) {
+            model.setOpenUpdateEndpoint(endpoint);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    /**
+     * A signal to the presenter, saying that the es user id field has been changed
+     * @param userId, the new es user id value
+     */
+    @Override
+    public void esUserIdChanged(String userId) {
+        if(isValid(userId)) {
+            try {
+                model.setEsUserId(Integer.valueOf(userId));
+            } catch (NumberFormatException e) {
+                getView().setErrorText(getTexts().error_NumericEsUserValidationError());
+            }
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    /**
+     * A signal to the presenter, saying that the es database field has been changed
+     * @param esDatabase, the new es database name value
+     */
+    @Override
+    public void esDatabaseChanged(String esDatabase) {
+        if(isValid(esDatabase)) {
+            model.setEsDatabase(esDatabase);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
     }
 
     /**
@@ -202,7 +250,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     public void initializeViewFields() {
         View view = getView();
-        view.sinkTypeSelection.setEnabled(false);
         view.name.clearText();
         view.name.setEnabled(false);
         view.resource.clearText();
@@ -211,12 +258,24 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setEnabled(false);
         view.url.clearText();
         view.url.setEnabled(false);
-        view.userid.clearText();
-        view.userid.setEnabled(false);
+        view.openupdateuserid.clearText();
+        view.openupdateuserid.setEnabled(false);
         view.password.clearText();
         view.password.setEnabled(false);
         view.queueProviders.clear();
         view.queueProviders.setEnabled(false);
+        view.esUserId.clearText();
+        view.esUserId.setEnabled(false);
+        view.esDatabase.clearText();
+        view.esDatabase.setEnabled(false);
+    }
+
+    private boolean isValid(String input) {
+        return input != null && !input.trim().isEmpty();
+    }
+
+    private boolean isValid(List<String> input) {
+        return input != null && !input.isEmpty();
     }
 
     /**
@@ -234,35 +293,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.description.setText(model.getDescription());
         view.description.setEnabled(true);
         view.url.setEnabled(true);
-        view.userid.setEnabled(true);
+        view.openupdateuserid.setEnabled(true);
         view.password.setEnabled(true);
         view.queueProviders.setEnabled(true);
-
-        if(sinkType == SinkContent.SinkType.OPENUPDATE) {
-            view.url.setText(model.getOpenUpdateEndpoint());
-            view.userid.setText(model.getOpenUpdateUserId());
-            view.password.setText(model.getOpenUpdatePassword());
-            setQueueProvidersMultiList(view.queueProviders, model.getOpenUpdateAvailableQueueProviders());
-        }
         view.status.setText("");
         view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
-        view.sinkTypeSelection.fireChangeEvent();
     }
-
-
-    /*
-     * Private methods
-     */
-
-    private void setQueueProvidersMultiList(PromptedMultiList queueProviders, List<String> modelProviders) {
-        queueProviders.clear();
-        if (modelProviders != null) {
-            for (String value: modelProviders) {
-                queueProviders.addValue(value, value);
-            }
-        }
-    }
-
 
     /*
      * Local classes
@@ -305,6 +341,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * saveModel
      */
     abstract void saveModel();
+
+    /**
+     * handleSinkConfig
+     * @param sinkType defining the type of sinkConfig
+     */
+    abstract void handleSinkConfig(SinkContent.SinkType sinkType);
 
 }
 

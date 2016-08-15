@@ -73,11 +73,9 @@ public class ViewTest {
         verifyNoMoreInteractions(view.description);
         verifyNoMoreInteractions(view.updateSinkSection);
         verifyNoMoreInteractions(view.url);
-        verifyNoMoreInteractions(view.userid);
+        verifyNoMoreInteractions(view.openupdateuserid);
         verifyNoMoreInteractions(view.password);
         verifyNoMoreInteractions(view.queueProviders);
-//        verifyNoMoreInteractions(view.sequenceAnalysisOptionAllButton);
-//        verifyNoMoreInteractions(view.sequenceAnalysisOptionIdOnlyButton);
         verifyNoMoreInteractions(view.deleteButton);
         verifyNoMoreInteractions(view.status);
         verifyNoMoreInteractions(view.popupTextBox);
@@ -91,40 +89,6 @@ public class ViewTest {
 
         // Subject Under Test
         view.sinkTypeSelectionChanged(mockedValueChangeEvent);
-    }
-
-    @Test
-    public void sinkTypeSelectionChanged_dummySinkType_setUpdateSinkSectionInvisible() {
-        // Test preparation
-        setupView();
-        when(view.sinkTypeSelection.getSelectedKey()).thenReturn("DUMMY");
-
-        // Subject Under Test
-        view.sinkTypeSelectionChanged(mockedValueChangeEvent);
-
-        // Test Verification
-        verify(view.updateSinkSection).setVisible(false);
-        verifyNoMoreInteractions(view.updateSinkSection);
-        verify(mockedPresenter).sinkTypeChanged("DUMMY");
-        verify(mockedPresenter).keyPressed();
-        verifyNoMoreInteractions(mockedPresenter);
-    }
-
-    @Test
-    public void sinkTypeSelectionChanged_openupdateSinkType_setUpdateSinkSectionVisible() {
-        // Test preparation
-        setupView();
-        when(view.sinkTypeSelection.getSelectedKey()).thenReturn("OPENUPDATE");
-
-        // Subject Under Test
-        view.sinkTypeSelectionChanged(mockedValueChangeEvent);
-
-        // Test Verification
-        verify(view.updateSinkSection).setVisible(true);
-        verifyNoMoreInteractions(view.updateSinkSection);
-        verify(mockedPresenter).sinkTypeChanged("OPENUPDATE");
-        verify(mockedPresenter).keyPressed();
-        verifyNoMoreInteractions(mockedPresenter);
     }
 
     @Test
@@ -191,13 +155,13 @@ public class ViewTest {
     public void userIdChanged_called_presenterNotified() {
         // Test preparation
         setupView();
-        when(view.userid.getText()).thenReturn("-userid-");
+        when(view.openupdateuserid.getText()).thenReturn("-userid-");
 
         // Subject Under Test
         view.useridChanged(mockedValueChangeEvent);
 
         // Test Verification
-        verify(mockedPresenter).userIdChanged("-userid-");
+        verify(mockedPresenter).openUpdateUserIdChanged("-userid-");
         verify(mockedPresenter).keyPressed();
         verifyNoMoreInteractions(mockedPresenter);
     }

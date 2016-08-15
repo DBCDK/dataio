@@ -21,12 +21,12 @@
 
 package dk.dbc.dataio.gui.client.model;
 
+import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.util.Format;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SinkModel extends GenericBackendModel {
@@ -143,7 +143,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: User Id
      */
     public String getOpenUpdateUserId() {
-        return ((OpenUpdateSinkConfig) sinkConfig).getUserId() == null ? "" : ((OpenUpdateSinkConfig) sinkConfig).getUserId();
+        return ((OpenUpdateSinkConfig) sinkConfig).getUserId();
     }
 
     /**
@@ -159,7 +159,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: Password
      */
     public String getOpenUpdatePassword() {
-        return ((OpenUpdateSinkConfig) sinkConfig).getPassword() == null ? "" : ((OpenUpdateSinkConfig) sinkConfig).getPassword();
+        return ((OpenUpdateSinkConfig) sinkConfig).getPassword();
     }
 
     /**
@@ -175,7 +175,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: Endpoint
      */
     public String getOpenUpdateEndpoint() {
-        return ((OpenUpdateSinkConfig) sinkConfig).getEndpoint() == null ? "" : ((OpenUpdateSinkConfig) sinkConfig).getEndpoint();
+        return ((OpenUpdateSinkConfig) sinkConfig).getEndpoint();
     }
 
     /**
@@ -191,7 +191,7 @@ public class SinkModel extends GenericBackendModel {
      * @return Open Update Configuration data: List of Available Queue Providers
      */
     public List<String> getOpenUpdateAvailableQueueProviders() {
-        return ((OpenUpdateSinkConfig) sinkConfig).getAvailableQueueProviders() == null ? new ArrayList<>() : ((OpenUpdateSinkConfig) sinkConfig).getAvailableQueueProviders();
+        return ((OpenUpdateSinkConfig) sinkConfig).getAvailableQueueProviders();
     }
 
     /**
@@ -200,6 +200,38 @@ public class SinkModel extends GenericBackendModel {
      */
     public void setOpenUpdateAvailableQueueProviders(List<String> availableQueueProviders) {
         ((OpenUpdateSinkConfig) sinkConfig).withAvailableQueueProviders(availableQueueProviders);
+    }
+
+    /**
+     * Gets the ES Configuration data: user id
+     * @return ES Configuration data: user id
+     */
+    public Integer getEsUserId() {
+        return ((EsSinkConfig) sinkConfig).getUserId();
+    }
+
+    /**
+     * Sets the ES Configuration data: user id
+     * @param userId ES Configuration data: user id
+     */
+    public void setEsUserId(Integer userId) {
+        ((EsSinkConfig) sinkConfig).withUserId(userId);
+    }
+
+    /**
+     * Gets the ES Configuration data: database
+     * @return ES Configuration data: database
+     */
+    public String getEsDatabase() {
+        return ((EsSinkConfig) sinkConfig).getDatabaseName();
+    }
+
+    /**
+     * Sets the ES Configuration data: database
+     * @param database ES Configuration data: database
+     */
+    public void setEsDatabase(String database) {
+        ((EsSinkConfig) sinkConfig).withDatabaseName(database);
     }
 
     /**
@@ -227,20 +259,26 @@ public class SinkModel extends GenericBackendModel {
     }
 
     /**
-     * Checks for empty String values
-     * NB: The list of Available Queue Providers is optional, and is therefore not considered here
-     * @return true if no empty String values were found, otherwise false
+     * Checks for null or empty String values
+     * @return true if no null or empty String values were found, otherwise false
      */
     public boolean isInputFieldsEmpty() {
-        if (sinkType == SinkContent.SinkType.OPENUPDATE) {
-            OpenUpdateSinkConfig openUpdateSinkConfig = (OpenUpdateSinkConfig) sinkConfig;
-            return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()
-                    || openUpdateSinkConfig.getUserId() == null
-                    || openUpdateSinkConfig.getPassword() == null
-                    || openUpdateSinkConfig.getEndpoint() == null
-                    || openUpdateSinkConfig.getAvailableQueueProviders() == null;
+        if(sinkName.isEmpty() || resource.isEmpty() || description.isEmpty()) {
+            return true;
         } else {
-            return sinkName.isEmpty() || resource.isEmpty() || description.isEmpty();
+            switch (sinkType) {
+                case OPENUPDATE:
+                    final OpenUpdateSinkConfig openUpdateSinkConfig = (OpenUpdateSinkConfig) sinkConfig;
+                    return openUpdateSinkConfig.getAvailableQueueProviders() == null
+                            || openUpdateSinkConfig.getUserId() == null
+                            || openUpdateSinkConfig.getEndpoint() == null
+                            || openUpdateSinkConfig.getPassword() == null;
+                case ES:
+                    final EsSinkConfig esSinkConfig = (EsSinkConfig) sinkConfig;
+                    return esSinkConfig.getUserId() == null || esSinkConfig.getDatabaseName() == null;
+                default:
+                    return false;
+            }
         }
     }
 

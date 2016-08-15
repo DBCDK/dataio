@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.SinkContent;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -109,7 +110,7 @@ public class SinkModelTest {
     public void isInputFieldsEmpty_openUpdateUserIdIsNull_returnsTrue() {
         SinkModel model = getWithConfigTestModel();
         model.setOpenUpdatePassword("pass");
-        model.setOpenUpdateEndpoint("enpoint");
+        model.setOpenUpdateEndpoint("endpoint");
         model.setOpenUpdateAvailableQueueProviders(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
@@ -146,8 +147,8 @@ public class SinkModelTest {
         SinkModel model = getWithConfigTestModel();
         model.setOpenUpdateUserId("user");
         model.setOpenUpdatePassword("pass");
-        model.setOpenUpdateEndpoint("enpoint");
-        model.setOpenUpdateAvailableQueueProviders(new ArrayList<>());
+        model.setOpenUpdateEndpoint("endpoint");
+        model.setOpenUpdateAvailableQueueProviders(Collections.singletonList("avail"));
         assertThat(model.isInputFieldsEmpty(), is(false));
     }
 

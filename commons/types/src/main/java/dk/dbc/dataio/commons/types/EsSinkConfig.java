@@ -30,7 +30,7 @@ import java.io.Serializable;
 public class EsSinkConfig implements SinkConfig, Serializable {
 
     private static final long serialVersionUID = 3028558873084758575L;
-    private int userId;
+    private Integer userId;
     private String databaseName;
     private String esAction;
 
@@ -38,12 +38,12 @@ public class EsSinkConfig implements SinkConfig, Serializable {
         this.esAction = "INSERT";
     }
 
-    public int getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public EsSinkConfig withUserId(int userId) throws IllegalArgumentException {
-        this.userId = userId;
+    public EsSinkConfig withUserId(Integer userId) throws IllegalArgumentException {
+        this.userId = InvariantUtil.checkNotNullOrThrow(userId, "userId");
         return this;
     }
 

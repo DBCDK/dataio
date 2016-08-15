@@ -21,19 +21,22 @@
 
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 import java.util.List;
 
 public interface Presenter extends GenericPresenter {
-    void sinkTypeChanged(String sinkType);
+    void sinkTypeChanged(SinkContent.SinkType sinkType);
     void nameChanged(String name);
     void resourceChanged(String resource);
     void descriptionChanged(String description);
-    void userIdChanged(String userId);
+    void openUpdateUserIdChanged(String userId);
     void passwordChanged(String password);
     void queueProvidersChanged(List<String> value);
     void endpointChanged(String endpoint);
+    void esUserIdChanged(String userId);
+    void esDatabaseChanged(String esDatabase);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();

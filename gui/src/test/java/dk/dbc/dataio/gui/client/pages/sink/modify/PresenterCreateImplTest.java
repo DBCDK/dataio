@@ -22,6 +22,9 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import org.junit.Before;
@@ -31,6 +34,7 @@ import org.mockito.Mock;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -105,6 +109,42 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
 
         // Verifications
         verify(mockedFlowStore).createSink(eq(presenterCreateImpl.model), any(PresenterImpl.SaveSinkModelFilteredAsyncCallback.class));
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeOpenUpdate_OpenUpdateSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.OPENUPDATE);
+
+        // Verifications
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new OpenUpdateSinkConfig()));
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeDummy_sinkConfigIsNull() {
+        // Setup expectations
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.DUMMY);
+
+        // Verifications
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(nullValue()));
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeEs_EsSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.ES);
+
+        // Verifications
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new EsSinkConfig()));
     }
 
     private void setupPresenterCreateImpl() {

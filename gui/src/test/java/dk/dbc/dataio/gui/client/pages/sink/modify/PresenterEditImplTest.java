@@ -22,6 +22,8 @@
 package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyException;
@@ -33,8 +35,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.Collections;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -128,26 +133,87 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;
 
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        final SinkModel sinkModel = new SinkModelBuilder().setSinkType(SinkContent.SinkType.DUMMY).build();
+
+        // Initial state
+        assertThat(presenterEditImpl.model, is(notNullValue()));
+        assertThat(presenterEditImpl.model, not(sinkModel));
+
+        // Subject Under Test
+        presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
+
+        // Assert that the sink model has been updated correctly
+        assertThat(presenterEditImpl.model, is(sinkModel));
+
+        // Assert that the view is not showing sinkConfig specific sections
+        assertThat(editView.esSinkSection.isVisible(), is(false));
+        assertThat(editView.updateSinkSection.isVisible(), is(false));
+
+        // Assert that the view is displaying the correct values
+        verify(editView.name).setText(sinkModel.getSinkName());  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
+        verify(editView.description).setText(sinkModel.getDescription());
+        verify(editView.sequenceAnalysisSelection).setValue(sinkModel.getSequenceAnalysisOption().name());
+    }
+
+
+    @Test
+    public void getSinkModelFilteredAsyncCallback_successfulCallback_modelUpdatedCorrectlyForOpenUpdate() {
+
+        // Expectations
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
+        presenterEditImpl.viewInjector = mockedViewGinjector;
+
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+        final OpenUpdateSinkConfig sinkConfig = new OpenUpdateSinkConfig()
+                .withUserId("user")
+                .withEndpoint("url")
+                .withPassword("pass")
+                .withAvailableQueueProviders(Collections.singletonList("avail1"));
+
+        final SinkModel sinkModel = new SinkModelBuilder()
+                .setSinkType(SinkContent.SinkType.OPENUPDATE)
+                .setSinkConfig(sinkConfig).build();
+
+        // Subject Under Test
+        presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
+
+        // Assert that the sink model had the sink config updated correctly
+        assertThat(presenterEditImpl.model, is(sinkModel));
+
+        // Assert that the view is displaying the correct config values
+        verify(editView.openupdateuserid).setText(sinkConfig.getUserId());
+        verify(editView.url).setText(sinkConfig.getEndpoint());
+        verify(editView.password).setText(sinkConfig.getPassword());
+        verify(editView.updateSinkSection).setVisible(true);
+        verify(editView.sinkTypeSelection).setEnabled(false);
+    }
+
+    @Test
+    public void getSinkModelFilteredAsyncCallback_successfulCallback_modelUpdatedCorrectlyForEs() {
+
+        // Expectations
+        PresenterEditImplConcrete presenterEditImpl = new PresenterEditImplConcrete(mockedEditPlace, header);
+        presenterEditImpl.viewInjector = mockedViewGinjector;
+
         // Subject Under Test
         presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
-        final SinkModel sinkModel = new SinkModelBuilder()
-                .setName("New Sink Name")
-                .setSequenceAnalysisOption(SinkContent.SequenceAnalysisOption.ID_ONLY)
-                .build();
+        final EsSinkConfig sinkConfig = new EsSinkConfig().withUserId(1).withDatabaseName("database");
 
-        assertThat(presenterEditImpl.model, is(notNullValue()));
-        assertThat(presenterEditImpl.model.getSinkName(), is(""));
-        assertThat(presenterEditImpl.model.getSequenceAnalysisOption(), is(SinkContent.SequenceAnalysisOption.ALL));
+        final SinkModel sinkModel = new SinkModelBuilder()
+                .setSinkType(SinkContent.SinkType.ES)
+                .setSinkConfig(sinkConfig).build();
 
         presenterEditImpl.getSinkModelFilteredAsyncCallback.onSuccess(sinkModel);  // Emulate a successful callback from flowstore
 
         // Assert that the sink model has been updated correctly
-        assertThat(presenterEditImpl.model.getSinkName(), is(sinkModel.getSinkName()));
-        assertThat(presenterEditImpl.model.getSequenceAnalysisOption(), is(sinkModel.getSequenceAnalysisOption()));
+        assertThat(presenterEditImpl.model.getSinkConfig(), is(sinkConfig));
 
-        // Assert that the view is displaying the correct values
-        verify(editView.name).setText(sinkModel.getSinkName());  // view is not mocked, but view.name is - we therefore do verify, that the model has been updated, by verifying view.name
-        verify(editView.sequenceAnalysisSelection).setValue("ID_ONLY");
+        // Assert that the view is displaying the correct config values
+        verify(editView.esUserId).setText(String.valueOf(sinkConfig.getUserId()));
+        verify(editView.esDatabase).setText(sinkConfig.getDatabaseName());
+        verify(editView.esSinkSection).setVisible(true);
+        verify(editView.sinkTypeSelection).setEnabled(false);
     }
 
     @Test

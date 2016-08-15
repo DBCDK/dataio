@@ -53,6 +53,12 @@ public interface Texts extends Constants {
     String columnHeader_LibraryRules();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_ImsHarvester();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_ImsHoldingsUrl();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -94,6 +100,12 @@ public interface Texts extends Constants {
     String help_LibraryRules();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_ImsHarvester();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String help_ImsHoldingsUrl();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String help_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -123,6 +135,14 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String libraryRulesFalse();
+
+
+    // IMS Harvester values
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String imsHarvesterTrue();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String imsHarvesterFalse();
 
 
     // Enabled values

@@ -68,6 +68,7 @@ public class HarvestersTableTest {
     private OpenAgencyTarget testOpenAgencyTarget = new OpenAgencyTarget();
     private RRHarvesterConfig testHarvesterConfigEntry1 = new RRHarvesterConfig(1,2, new RRHarvesterConfig.Content()
             .withId("ID1")
+            .withEnabled(false)
             .withResource("Resource1")
             .withConsumerId("ConsumerId1")
             .withDestination("Destination1")
@@ -78,8 +79,9 @@ public class HarvestersTableTest {
             .withIncludeRelations(true)
             .withIncludeLibraryRules(false)
             .withBatchSize(321)
-            .withEnabled(false)
             .withOpenAgencyTarget(testOpenAgencyTarget)
+            .withImsHarvester(true)
+            .withImsHoldingsTarget("ImsHoldingsTarget")
     );
     private OLDRRHarvesterConfig testHarvesterConfigEntry2 = new OLDRRHarvesterConfig(2,3, new OLDRRHarvesterConfig.Content().withId("ID2"));
 
@@ -89,8 +91,6 @@ public class HarvestersTableTest {
         testOpenAgencyTarget.setGroup("Group1");
         testOpenAgencyTarget.setUser("User1");
         testOpenAgencyTarget.setPassword("Password1");
-
-
         testHarvesterConfig.add(testHarvesterConfigEntry2);
         testHarvesterConfig.add(testHarvesterConfigEntry1);
     }
@@ -101,6 +101,8 @@ public class HarvestersTableTest {
         when(mockedTexts.includeRelationsFalse()).thenReturn("includeRelationsFalse");
         when(mockedTexts.libraryRulesTrue()).thenReturn("libraryRulesTrue");
         when(mockedTexts.libraryRulesFalse()).thenReturn("libraryRulesFalse");
+        when(mockedTexts.imsHarvesterTrue()).thenReturn("imsHarvesterTrue");
+        when(mockedTexts.imsHarvesterFalse()).thenReturn("imsHarvesterFalse");
         when(mockedTexts.harvesterEnabled()).thenReturn("enabled");
         when(mockedTexts.harvesterDisabled()).thenReturn("disabled");
         when(mockedTexts.button_Edit()).thenReturn("editButton");
@@ -155,7 +157,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(13));
+        assertThat(harvestersTable.getColumnCount(), is(15));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ID1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Resource1"));
@@ -165,6 +167,8 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("123456 - FormatOverride1, 234567 - FormatOverride2"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("includeRelationsTrue"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("libraryRulesFalse"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("imsHarvesterTrue"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("ImsHoldingsTarget"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Destination1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("Format1"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("TRANSIENT"));

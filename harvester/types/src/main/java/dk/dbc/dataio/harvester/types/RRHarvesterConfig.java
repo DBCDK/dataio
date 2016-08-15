@@ -51,6 +51,8 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
 
         public Content() { }
 
+        // Data
+
         /** ID of harvest operation */
         private String id;
 
@@ -77,10 +79,6 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         @JsonProperty
         private final Map<Integer, String> formatOverrides = new HashMap<>(); // We need a map implementation with putAll()
 
-        public boolean isEnabled() {
-            return enabled;
-        }
-
         /** Flag indicating whether or not to include
          record relations in marcXchange collections */
         @JsonProperty
@@ -94,7 +92,18 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         /** Harvest batch size (default 10000) */
         private int batchSize = 10000;
 
+        /** The OpenAgencyTarget */
         private OpenAgencyTarget openAgencyTarget;
+
+        /** Flag set when the RR Harvester Config is an IMS Config */
+        @JsonProperty
+        private boolean imsHarvester = false;
+
+        /** The IMS Holdings Target Url */
+        private String imsHoldingsTarget;
+
+
+        // Getters and Setters
 
         public String getId() {
             return id;
@@ -105,18 +114,22 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
+        public boolean isEnabled() {
+            return enabled;
+        }
+
         public Content withEnabled(boolean enabled) {
             this.enabled = enabled;
             return this;
         }
 
+        public String getResource() {
+            return resource;
+        }
+
         public Content withResource(String resource) {
             this.resource = resource;
             return this;
-        }
-
-        public String getResource() {
-            return resource;
         }
 
         public String getConsumerId() {
@@ -208,6 +221,27 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             this.openAgencyTarget = openAgencyTarget;
             return this;
         }
+
+        public boolean isImsHarvester() {
+            return imsHarvester;
+        }
+
+        public Content withImsHarvester(boolean imsHarvester) {
+            this.imsHarvester = imsHarvester;
+            return this;
+        }
+
+        public String getImsHoldingsTarget() {
+            return imsHoldingsTarget;
+        }
+
+        public Content withImsHoldingsTarget(String imsHoldingsTarget) {
+            this.imsHoldingsTarget = imsHoldingsTarget;
+            return this;
+        }
+
+
+        // Other methods
 
         @Override
         public boolean equals(Object o) {

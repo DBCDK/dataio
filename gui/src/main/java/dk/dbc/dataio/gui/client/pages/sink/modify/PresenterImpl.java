@@ -296,6 +296,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.openupdateuserid.setEnabled(true);
         view.password.setEnabled(true);
         view.queueProviders.setEnabled(true);
+        view.esUserId.setEnabled(true);
+        view.esDatabase.setEnabled(true);
         view.status.setText("");
         view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
     }

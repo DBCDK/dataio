@@ -82,7 +82,7 @@ public class HarvesterWalBean {
         try {
             entityManager.persist(progressWal);
         } catch (RuntimeException e) {
-            throw new HarvesterException("Unexpected exception caught while writing wal entry: " + progressWal, e);
+            throw new HarvesterException("Unexpected exception caught while writing wal entry: " + progressWal + " " + e, e);
         }
     }
 

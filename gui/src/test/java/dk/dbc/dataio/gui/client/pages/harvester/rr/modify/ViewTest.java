@@ -74,6 +74,8 @@ public class ViewTest {
         when(view.size.getText()).thenReturn("-size-");
         when(view.relations.getValue()).thenReturn(false);
         when(view.libraryRules.getValue()).thenReturn(false);
+        when(view.imsHarvester.getValue()).thenReturn(false);
+        when(view.imsHoldingsTarget.getText()).thenReturn("-imsHoldingsTarget-");
         when(view.destination.getText()).thenReturn("-destination-");
         when(view.format.getText()).thenReturn("-format-");
         when(view.type.getText()).thenReturn("-type-");
@@ -97,6 +99,8 @@ public class ViewTest {
         verifyNoMoreInteractions(view.formatOverrides);
         verifyNoMoreInteractions(view.relations);
         verifyNoMoreInteractions(view.libraryRules);
+        verifyNoMoreInteractions(view.imsHarvester);
+        verifyNoMoreInteractions(view.imsHoldingsTarget);
         verifyNoMoreInteractions(view.destination);
         verifyNoMoreInteractions(view.format);
         verifyNoMoreInteractions(view.type);
@@ -224,6 +228,28 @@ public class ViewTest {
         // Test verification
         verify(view.libraryRules).getValue();
         verify(mockedPresenter).libraryRulesChanged(false);
+        verify(mockedPresenter).keyPressed();
+    }
+
+    @Test
+    public void imsHarvesterChanged_call_imsHarvesterChanged() {
+        // Subject Under Test
+        view.imsHarvesterChanged(mockedValueChangeEvent);
+
+        // Test verification
+        verify(view.imsHarvester).getValue();
+        verify(mockedPresenter).imsHarvesterChanged(false);
+        verify(mockedPresenter).keyPressed();
+    }
+
+    @Test
+    public void imsHoldingsTargetChanged_call_imsHoldingsTargetChanged() {
+        // Subject Under Test
+        view.imsHoldingsTargetChanged(mockedValueChangeEvent);
+
+        // Test verification
+        verify(view.imsHoldingsTarget).getText();
+        verify(mockedPresenter).imsHoldingsTargetChanged("-imsHoldingsTarget-");
         verify(mockedPresenter).keyPressed();
     }
 

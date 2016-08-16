@@ -76,6 +76,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedMultiList mockedFormatOverrides;
     @Mock private PromptedCheckBox mockedRelations;
     @Mock private PromptedCheckBox mockedLibraryRules;
+    @Mock private PromptedCheckBox mockedImsHarvester;
+    @Mock private PromptedTextBox mockedImsHoldingsTarget;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedTextBox mockedType;
@@ -147,6 +149,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.formatOverrides = mockedFormatOverrides;
         mockedView.relations = mockedRelations;
         mockedView.libraryRules = mockedLibraryRules;
+        mockedView.imsHarvester = mockedImsHarvester;
+        mockedView.imsHoldingsTarget = mockedImsHoldingsTarget;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -611,6 +615,66 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
+    public void imsHarvesterChanged_null_noAction() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(null);
+
+        // Test
+        presenter.imsHarvesterChanged(true);
+
+        // Test verification
+        verifyStart();
+        commonPostVerification();
+    }
+
+    @Test
+    public void imsHarvesterChanged_validLibraryRules_libraryRulesSet() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(mockedConfig);
+
+        // Test
+        presenter.imsHarvesterChanged(true);
+
+        // Test verification
+        verifyStart();
+        verify(mockedConfig).getContent();
+        verify(mockedContent).withImsHarvester(true);
+        commonPostVerification();
+    }
+
+    @Test
+    public void imsHoldingsTargetChanged_null_noAction() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(null);
+
+        // Test
+        presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
+
+        // Test verification
+        verifyStart();
+        commonPostVerification();
+    }
+
+    @Test
+    public void imsHoldingsTargetChanged_validDestination_destinationSet() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(mockedConfig);
+
+        // Test
+        presenter.imsHoldingsTargetChanged("imsHoldingsTarget");
+
+        // Test verification
+        verifyStart();
+        verify(mockedConfig).getContent();
+        verify(mockedContent).withImsHoldingsTarget("imsHoldingsTarget");
+        commonPostVerification();
+    }
+
+    @Test
     public void destinationChanged_null_noAction() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
@@ -861,7 +925,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void saveButtonPressed_configNonEmpty_errorMessageDisplayed() {
+    public void saveButtonPressed_configNonEmptyNonIms_errorMessageDisplayed() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(mockedConfig);
@@ -869,6 +933,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedContent.getResource()).thenReturn("Resource");
         when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
         when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
+        when(mockedContent.isImsHarvester()).thenReturn(false);
         when(mockedContent.getDestination()).thenReturn("Destination");
         when(mockedContent.getFormat()).thenReturn("Format");
 
@@ -877,19 +942,52 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Test verification
         verifyStart(1, true);
-        verify(mockedConfig, times(14)).getContent();
+        verify(mockedConfig, times(15)).getContent();
         verify(mockedContent, times(2)).getId();
         verify(mockedContent, times(2)).getResource();
         verify(mockedContent, times(3)).getOpenAgencyTarget();
         verify(mockedOpenAgencyTarget, times(2)).getUrl();
         verify(mockedContent, times(2)).getConsumerId();
+        verify(mockedContent, times(1)).isImsHarvester();
         verify(mockedContent, times(2)).getDestination();
         verify(mockedContent, times(2)).getFormat();
         commonPostVerification();
     }
 
     @Test
-    public void updateButtonPressed_configNonEmpty_errorMessageDisplayed() {
+    public void saveButtonPressed_configNonEmptyIms_errorMessageDisplayed() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(mockedConfig);
+        when(mockedContent.getId()).thenReturn("Id");
+        when(mockedContent.getResource()).thenReturn("Resource");
+        when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
+        when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
+        when(mockedContent.isImsHarvester()).thenReturn(true);
+        when(mockedContent.getImsHoldingsTarget()).thenReturn("ImsHoldingsTarget");
+        when(mockedContent.getDestination()).thenReturn("Destination");
+        when(mockedContent.getFormat()).thenReturn("Format");
+
+        // Test
+        presenter.saveButtonPressed();
+
+        // Test verification
+        verifyStart(1, true);
+        verify(mockedConfig, times(17)).getContent();
+        verify(mockedContent, times(2)).getId();
+        verify(mockedContent, times(2)).getResource();
+        verify(mockedContent, times(3)).getOpenAgencyTarget();
+        verify(mockedOpenAgencyTarget, times(2)).getUrl();
+        verify(mockedContent, times(2)).getConsumerId();
+        verify(mockedContent, times(1)).isImsHarvester();
+        verify(mockedContent, times(2)).getImsHoldingsTarget();
+        verify(mockedContent, times(2)).getDestination();
+        verify(mockedContent, times(2)).getFormat();
+        commonPostVerification();
+    }
+
+    @Test
+    public void updateButtonPressed_configNonEmptyNonIms_ok() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(mockedConfig);
@@ -899,6 +997,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedContent.getResource()).thenReturn("Resource");
         when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
         when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
+        when(mockedContent.isImsHarvester()).thenReturn(false);
         when(mockedContent.getDestination()).thenReturn("Destination");
         when(mockedContent.getFormat()).thenReturn("Format");
 
@@ -915,6 +1014,43 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedContent, times(3)).getOpenAgencyTarget();
         verify(mockedOpenAgencyTarget, times(2)).getUrl();
         verify(mockedContent, times(2)).getConsumerId();
+        verify(mockedContent, times(1)).isImsHarvester();
+        verify(mockedContent, times(2)).getDestination();
+        verify(mockedContent, times(2)).getFormat();
+        commonPostVerification();
+    }
+
+    @Test
+    public void updateButtonPressed_configNonEmptyIms_ok() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(mockedConfig);
+        when(mockedConfig.getId()).thenReturn(11L);
+        when(mockedConfig.getVersion()).thenReturn(22L);
+        when(mockedContent.getId()).thenReturn("1");
+        when(mockedContent.getResource()).thenReturn("Resource");
+        when(mockedOpenAgencyTarget.getUrl()).thenReturn("Url");
+        when(mockedContent.getConsumerId()).thenReturn("ConsumerId");
+        when(mockedContent.isImsHarvester()).thenReturn(true);
+        when(mockedContent.getImsHoldingsTarget()).thenReturn("ImsHoldingsTarget");
+        when(mockedContent.getDestination()).thenReturn("Destination");
+        when(mockedContent.getFormat()).thenReturn("Format");
+
+        // Test
+        presenter.updateButtonPressed();
+
+        // Test verification
+        verifyStart(1, true);
+        verify(mockedConfig).getId();
+        verify(mockedConfig).getVersion();
+        verify(mockedConfig, times(1)).getContent();  // Please note, that a new (non-mocked) config is instantiated with the old (mocked) content - therefore only one call is made here...
+        verify(mockedContent, times(2)).getId();
+        verify(mockedContent, times(2)).getResource();
+        verify(mockedContent, times(3)).getOpenAgencyTarget();
+        verify(mockedOpenAgencyTarget, times(2)).getUrl();
+        verify(mockedContent, times(2)).getConsumerId();
+        verify(mockedContent, times(1)).isImsHarvester();
+        verify(mockedContent, times(2)).getImsHoldingsTarget();
         verify(mockedContent, times(2)).getDestination();
         verify(mockedContent, times(2)).getFormat();
         commonPostVerification();
@@ -935,7 +1071,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void formatOverridesAddButtonPressed_configNonEmpty_errorMessageDisplayed() {
+    public void formatOverridesAddButtonPressed_configNonEmpty_ok() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(mockedConfig);

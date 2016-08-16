@@ -66,6 +66,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedMultiList mockedFormatOverrides;
     @Mock private PromptedCheckBox mockedRelations;
     @Mock private PromptedCheckBox mockedLibraryRules;
+    @Mock private PromptedCheckBox mockedImsHarvester;
+    @Mock private PromptedTextBox mockedImsHoldingsTarget;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedTextBox mockedType;
@@ -97,6 +99,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                     withBatchSize(1).
                     withFormatOverrides(formatOverrides).
                     withIncludeRelations(true).
+                    withImsHarvester(true).
+                    withImsHoldingsTarget("ImsHoldingsTarget321").
                     withDestination("Destination123").
                     withFormat("Format123").
                     withType(JobSpecification.Type.TEST).
@@ -133,6 +137,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.formatOverrides = mockedFormatOverrides;
         mockedView.relations = mockedRelations;
         mockedView.libraryRules = mockedLibraryRules;
+        mockedView.imsHarvester = mockedImsHarvester;
+        mockedView.imsHoldingsTarget = mockedImsHoldingsTarget;
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
@@ -249,6 +255,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedRelations).setEnabled(true);
         verify(mockedLibraryRules).setValue(false);
         verify(mockedLibraryRules).setEnabled(true);
+        verify(mockedImsHarvester).setValue(true);
+        verify(mockedImsHarvester).setEnabled(true);
+        verify(mockedImsHoldingsTarget).setText("ImsHoldingsTarget321");
+        verify(mockedImsHoldingsTarget).setEnabled(true);
         verify(mockedDestination).setText("Destination123");
         verify(mockedDestination).setEnabled(true);
         verify(mockedFormat).setText("Format123");
@@ -332,6 +342,10 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedRelations).setEnabled(false);
         verify(mockedLibraryRules).setValue(false);
         verify(mockedLibraryRules).setEnabled(false);
+        verify(mockedImsHarvester).setValue(false);
+        verify(mockedImsHarvester).setEnabled(false);
+        verify(mockedImsHoldingsTarget).setText("");
+        verify(mockedImsHoldingsTarget).setEnabled(false);
         verify(mockedDestination).setText("");
         verify(mockedDestination).setEnabled(false);
         verify(mockedFormat).setText("");
@@ -361,6 +375,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedFormatOverrides);
         verifyNoMoreInteractions(mockedRelations);
         verifyNoMoreInteractions(mockedLibraryRules);
+        verifyNoMoreInteractions(mockedImsHarvester);
+        verifyNoMoreInteractions(mockedImsHoldingsTarget);
         verifyNoMoreInteractions(mockedDestination);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);

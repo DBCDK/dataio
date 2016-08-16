@@ -198,6 +198,29 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the IMS Harvester field has been changed
+     * @param imsHarvester, the new IMS Harvester value
+     */
+    @Override
+    public void imsHarvesterChanged(Boolean imsHarvester) {
+        if (config != null) {
+            config.getContent().withImsHarvester(imsHarvester);
+        }
+        getView().imsHoldingsTarget.setEnabled(imsHarvester);
+    }
+
+    /**
+     * A signal to the presenter, saying that the IMS Holdings Target field has been changed
+     * @param imsHoldingsTarget, the new IMS Holdings Target value
+     */
+    @Override
+    public void imsHoldingsTargetChanged(String imsHoldingsTarget) {
+        if (config != null) {
+            config.getContent().withImsHoldingsTarget(imsHoldingsTarget);
+        }
+    }
+
+    /**
      * A signal to the presenter, saying that the destination field has been changed
      * @param destination, the new destination value
      */
@@ -325,6 +348,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getOpenAgencyTarget().getUrl().isEmpty() ||
                 config.getContent().getConsumerId() == null ||
                 config.getContent().getConsumerId().isEmpty() ||
+                (config.getContent().isImsHarvester() &&
+                    (config.getContent().getImsHoldingsTarget() == null ||
+                     config.getContent().getImsHoldingsTarget().isEmpty()) ) ||
                 config.getContent().getDestination() == null ||
                 config.getContent().getDestination().isEmpty() ||
                 config.getContent().getFormat() == null ||
@@ -361,6 +387,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Map<String, String> formatOverrides,
             Boolean relations,
             Boolean libraryRules,
+            Boolean imsHarvester,
+            String imsHoldingsTarget,
             String destination,
             String format,
             String type,
@@ -389,6 +417,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.relations.setEnabled(viewEnabled);
         view.libraryRules.setValue(libraryRules);
         view.libraryRules.setEnabled(viewEnabled);
+        view.imsHarvester.setValue(imsHarvester);
+        view.imsHarvester.setEnabled(viewEnabled);
+        view.imsHoldingsTarget.setText(imsHoldingsTarget);
+        view.imsHoldingsTarget.setEnabled(imsHarvester && viewEnabled);
         view.destination.setText(destination);
         view.destination.setEnabled(viewEnabled);
         view.format.setText(format);
@@ -403,7 +435,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, "", "", "", "", false, false);
     }
 
     /**
@@ -424,6 +456,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 viewOverrides,
                 config.getContent().hasIncludeRelations(),
                 config.getContent().hasIncludeLibraryRules(),
+                config.getContent().isImsHarvester(),
+                config.getContent().getImsHoldingsTarget(),
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
                 config.getContent().getType().toString(),

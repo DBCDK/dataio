@@ -62,6 +62,8 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedMultiList formatOverrides;
     @UiField PromptedCheckBox relations;
     @UiField PromptedCheckBox libraryRules;
+    @UiField PromptedCheckBox imsHarvester;
+    @UiField PromptedTextBox imsHoldingsTarget;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
     @UiField PromptedTextBox type;
@@ -128,6 +130,18 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("libraryRules")
     void libraryRulesChanged(ValueChangeEvent<Boolean> event) {
         presenter.libraryRulesChanged(libraryRules.getValue());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("imsHarvester")
+    void imsHarvesterChanged(ValueChangeEvent<Boolean> event) {
+        presenter.imsHarvesterChanged(imsHarvester.getValue());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("imsHoldingsTarget")
+    void imsHoldingsTargetChanged(ValueChangeEvent<String> event) {
+        presenter.imsHoldingsTargetChanged(imsHoldingsTarget.getText());
         presenter.keyPressed();
     }
 

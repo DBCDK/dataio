@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -43,6 +44,19 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             @JsonProperty("content") Content content)
             throws NullPointerException, IllegalArgumentException {
         super(id, version, content);
+    }
+
+    @JsonIgnore
+    public String getHarvesterToken() {
+        String from = "";
+        if (getContent().getTimeOfLastHarvest() != null) {
+            from += getContent().getTimeOfLastHarvest().getTime();
+        }
+        String until = "";
+        if (getContent().getUshHarvesterProperties().getLastHarvestFinished() != null) {
+            until += getContent().getUshHarvesterProperties().getLastHarvestFinished().getTime();
+        }
+        return "ush-solr:" + getId() + ":" + getVersion() + ":" + from + ":" + until;
     }
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)

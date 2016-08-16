@@ -27,7 +27,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
@@ -36,17 +35,12 @@ import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrConnector;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
-import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
-import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -107,15 +101,6 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_redoesAnyUncommittedConfigUpdatesAndLeavesNoWalBehind() throws HarvesterException {
-        final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
-        when(resultSet.iterator()).thenReturn(Collections.singletonList(new UshSolrDocument()).iterator());
-        harvestOperation.execute();
-        assertThat(walFileExists(), is(false));
-        verify(harvestOperation).redoConfigUpdateIfUncommitted();
-    }
-
-    @Test
     public void execute_returnsNumberOfRecordsAdded() throws HarvesterException, FlowStoreServiceConnectorException {
         final HarvestOperation harvestOperation = Mockito.spy(newHarvestOperation(newUshSolrHarvesterConfig()));
         when(resultSet.iterator()).thenReturn(Arrays.asList(new UshSolrDocument(), new UshSolrDocument()).iterator());
@@ -139,62 +124,6 @@ public class HarvestOperationTest {
         harvestOperation.execute();
 
         verify(flowStoreServiceConnector, times(1)).updateHarvesterConfig(any(HarvesterConfig.class));
-    }
-
-    @Test
-    public void redoConfigUpdateIfUncommitted_noUncommittedWalEntryExists_returns() throws HarvesterException, JobStoreServiceConnectorException {
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        harvestOperation.redoConfigUpdateIfUncommitted();
-
-        verify(jobStoreServiceConnector, times(0)).listJobs(any(JobListCriteria.class));
-    }
-
-    @Test
-    public void redoConfigUpdateIfUncommitted_uncommittedWalEntryExistsButNoDataIoJobExists_commitsWal()
-            throws HarvesterException, JobStoreServiceConnectorException, IOException, FlowStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.emptyList());
-        createWalWithUncommittedEntry();
-        assertThat(walFileExists(), is(true));
-
-        final UshSolrHarvesterConfig config = newUshSolrHarvesterConfig();
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
-        harvestOperation.redoConfigUpdateIfUncommitted();
-        assertThat("WAL file exists", walFileExists(), is(false));
-        assertThat("Config not updated", config.getContent().getTimeOfLastHarvest(), is(solrTimeOfLastHarvest));
-
-        verify(flowStoreServiceConnector, times(0)).updateHarvesterConfig(any(UshSolrHarvesterConfig.class));
-    }
-
-    @Test
-    public void redoConfigUpdateIfUncommitted_uncommitedWalEntryExistsAndDataIoJobExists_updatesConfigAndCommitsWal()
-            throws HarvesterException, JobStoreServiceConnectorException, IOException, FlowStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()));
-        createWalWithUncommittedEntry();
-        assertThat(walFileExists(), is(true));
-
-        final UshSolrHarvesterConfig config = newUshSolrHarvesterConfig();
-        final HarvestOperation harvestOperation = newHarvestOperation(config);
-        harvestOperation.redoConfigUpdateIfUncommitted();
-        assertThat("WAL file exists", walFileExists(), is(false));
-        assertThat("Config updated", config.getContent().getTimeOfLastHarvest(), is(ushTimeOfLastHarvest));
-
-        verify(flowStoreServiceConnector).updateHarvesterConfig(any(UshSolrHarvesterConfig.class));
-    }
-
-    @Test
-    public void harvesterTokenExistsInDataIo_harvesterTokenNotFoundInDataIO_returnsFalse()
-            throws HarvesterException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.emptyList());
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.harvesterTokenExistsInDataIo("token"), is(false));
-    }
-
-    @Test
-    public void harvesterTokenExistsInDataIo_harvesterTokenFoundInDataIO_returnsTrue()
-            throws HarvesterException, JobStoreServiceConnectorException {
-        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class))).thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()));
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.harvesterTokenExistsInDataIo("token"), is(true));
     }
 
     @Test
@@ -224,10 +153,6 @@ public class HarvestOperationTest {
         assertThat(harvestOperation.getJobSpecificationTemplate(JobSpecification.Type.TRANSIENT), is(expectedJobSpecificationTemplate));
     }
 
-    private HarvestOperation newHarvestOperation() throws HarvesterException {
-        return newHarvestOperation(newUshSolrHarvesterConfig());
-    }
-
     private HarvestOperation newHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
         HarvestOperation harvestOperation = new HarvestOperation(config, flowStoreServiceConnector, binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector);
         harvestOperation.ushSolrConnector = ushSolrConnector;
@@ -247,14 +172,5 @@ public class HarvestOperationTest {
                     new UshHarvesterProperties()
                         .withLastHarvestFinishedDate(ushTimeOfLastHarvest)
                 .withStorageUrl("url")));
-    }
-
-    private void createWalWithUncommittedEntry() throws HarvesterException {
-        final HarvesterWal harvesterWal = new HarvesterWal(newUshSolrHarvesterConfig(), new BinaryFileStoreFsImpl(folder.getRoot().toPath()));
-        harvesterWal.write(HarvesterWal.WalEntry.create(1, 1, solrTimeOfLastHarvest, ushTimeOfLastHarvest));
-    }
-
-    private boolean walFileExists() {
-        return Files.exists(Paths.get(folder.getRoot().getAbsolutePath(), ushHarvesterJobId + ".wal"));
     }
 }

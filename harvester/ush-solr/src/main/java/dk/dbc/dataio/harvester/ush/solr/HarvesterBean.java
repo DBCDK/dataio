@@ -22,11 +22,16 @@
 package dk.dbc.dataio.harvester.ush.solr;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBean;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
+import dk.dbc.dataio.harvester.ush.solr.entity.ProgressWal;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -41,12 +46,12 @@ import javax.ejb.SessionContext;
 import javax.ejb.Singleton;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
+import java.util.Optional;
 import java.util.concurrent.Future;
 
 /**
  * This Enterprise Java Bean (EJB) handles an USH Solr harvest
  */
-@SuppressWarnings("PMD") // TODO: 5/11/16 Remove suppression when ready
 @Singleton
 public class HarvesterBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterBean.class);
@@ -54,6 +59,9 @@ public class HarvesterBean {
 
     @Resource
     SessionContext sessionContext;
+
+    @EJB
+    HarvesterWalBean wal;
 
     @EJB
     public BinaryFileStoreBean binaryFileStoreBean;
@@ -83,8 +91,14 @@ public class HarvesterBean {
         LOGGER.debug("Called with config {}", config);
         try {
             MDC.put(HARVESTER_MDC_KEY, config.getContent().getName());
+            config = redoConfigUpdateIfUncommitted(config);
+
+            final ProgressWal progressWal = getProgressWal(config);
+            wal.write(progressWal);  // Write new WAL entry
             final HarvestOperation harvestOperation = getHarvestOperation(config);
             final int itemsHarvested = self().execute(harvestOperation);
+            wal.commit(progressWal);
+
             return new AsyncResult<>(itemsHarvested);
         } finally {
             MDC.remove(HARVESTER_MDC_KEY);
@@ -113,5 +127,45 @@ public class HarvesterBean {
 
     private HarvesterBean self() {
         return sessionContext.getBusinessObject(HarvesterBean.class);
+    }
+
+    private ProgressWal getProgressWal(UshSolrHarvesterConfig config) {
+        return new ProgressWal()
+                .withConfigId(config.getId())
+                .withConfigVersion(config.getVersion())
+                .withHarvestedFrom(config.getContent().getTimeOfLastHarvest())
+                .withHarvestedUntil(config.getContent().getUshHarvesterProperties().getLastHarvestFinished());
+    }
+
+    UshSolrHarvesterConfig redoConfigUpdateIfUncommitted(UshSolrHarvesterConfig config) throws HarvesterException {
+        final Optional<ProgressWal> progressWal = wal.read(config.getId());
+        if (progressWal.isPresent()) {
+            if (harvesterTokenExistsInDataIo(config.getHarvesterToken())) {
+                LOGGER.info("Found uncommitted WAL entry for existing dataIO job - updating config");
+                config.getContent().withTimeOfLastHarvest(progressWal.get().getHarvestedUntil());
+                return updateHarvesterConfig(config);
+            }
+            wal.commit(progressWal.get());
+        }
+        return config;
+    }
+
+    private boolean harvesterTokenExistsInDataIo(String harvesterToken) throws HarvesterException {
+        final String harvesterTokenJson = String.format("{\"ancestry\": {\"harvesterToken\": \"%s\"}}", harvesterToken);
+        final JobListCriteria criteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, harvesterTokenJson));
+        try {
+            return !jobStoreServiceConnectorBean.getConnector().listJobs(criteria).isEmpty();
+        } catch (JobStoreServiceConnectorException | RuntimeException e) {
+            throw new HarvesterException("Failed to query dataIO job-store for harvester token: " + harvesterToken, e);
+        }
+    }
+
+    private UshSolrHarvesterConfig updateHarvesterConfig(UshSolrHarvesterConfig config) throws HarvesterException {
+        try {
+            return flowStoreServiceConnectorBean.getConnector().updateHarvesterConfig(config);
+        } catch (FlowStoreServiceConnectorException | RuntimeException e) {
+            throw new HarvesterException("Failed to update harvester config: " + config.toString(), e);
+        }
     }
 }

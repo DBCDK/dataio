@@ -348,9 +348,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getOpenAgencyTarget().getUrl().isEmpty() ||
                 config.getContent().getConsumerId() == null ||
                 config.getContent().getConsumerId().isEmpty() ||
-                (config.getContent().isImsHarvester() &&
+                config.getContent().isImsHarvester() &&
                     (config.getContent().getImsHoldingsTarget() == null ||
-                     config.getContent().getImsHoldingsTarget().isEmpty()) ) ||
+                     config.getContent().getImsHoldingsTarget().isEmpty()) ||
                 config.getContent().getDestination() == null ||
                 config.getContent().getDestination().isEmpty() ||
                 config.getContent().getFormat() == null ||

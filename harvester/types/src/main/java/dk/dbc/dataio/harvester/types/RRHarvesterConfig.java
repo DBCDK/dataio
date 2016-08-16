@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content> implements  Serializable {
     private static final long serialVersionUID = 3701420845816493033L;
@@ -247,31 +246,52 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Content)) return false;
+
             Content content = (Content) o;
-            return enabled == content.enabled &&
-                    includeRelations == content.includeRelations &&
-                    includeLibraryRules == content.includeLibraryRules &&
-                    batchSize == content.batchSize &&
-                    Objects.equals(id, content.id) &&
-                    Objects.equals(resource, content.resource) &&
-                    Objects.equals(consumerId, content.consumerId) &&
-                    Objects.equals(destination, content.destination) &&
-                    type == content.type &&
-                    Objects.equals(format, content.format) &&
-                    Objects.equals(formatOverrides, content.formatOverrides) &&
-                    Objects.equals(openAgencyTarget, content.openAgencyTarget);
+
+            if (enabled != content.enabled) return false;
+            if (includeRelations != content.includeRelations) return false;
+            if (includeLibraryRules != content.includeLibraryRules) return false;
+            if (batchSize != content.batchSize) return false;
+            if (imsHarvester != content.imsHarvester) return false;
+            if (id != null ? !id.equals(content.id) : content.id != null) return false;
+            if (resource != null ? !resource.equals(content.resource) : content.resource != null) return false;
+            if (consumerId != null ? !consumerId.equals(content.consumerId) : content.consumerId != null) return false;
+            if (destination != null ? !destination.equals(content.destination) : content.destination != null)
+                return false;
+            if (type != content.type) return false;
+            if (format != null ? !format.equals(content.format) : content.format != null) return false;
+            if (formatOverrides != null ? !formatOverrides.equals(content.formatOverrides) : content.formatOverrides != null)
+                return false;
+            if (openAgencyTarget != null ? !openAgencyTarget.equals(content.openAgencyTarget) : content.openAgencyTarget != null)
+                return false;
+            return imsHoldingsTarget != null ? imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget == null;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, enabled, resource, consumerId, destination, type, format, formatOverrides,
-                    includeRelations, includeLibraryRules, batchSize, openAgencyTarget);
+            int result = id != null ? id.hashCode() : 0;
+            result = 31 * result + (enabled ? 1 : 0);
+            result = 31 * result + (resource != null ? resource.hashCode() : 0);
+            result = 31 * result + (consumerId != null ? consumerId.hashCode() : 0);
+            result = 31 * result + (destination != null ? destination.hashCode() : 0);
+            result = 31 * result + (type != null ? type.hashCode() : 0);
+            result = 31 * result + (format != null ? format.hashCode() : 0);
+            result = 31 * result + (formatOverrides != null ? formatOverrides.hashCode() : 0);
+            result = 31 * result + (includeRelations ? 1 : 0);
+            result = 31 * result + (includeLibraryRules ? 1 : 0);
+            result = 31 * result + batchSize;
+            result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
+            result = 31 * result + (imsHarvester ? 1 : 0);
+            result = 31 * result + (imsHoldingsTarget != null ? imsHoldingsTarget.hashCode() : 0);
+            return result;
         }
 
         @Override
         public String toString() {
-            return "Content{" + "batchSize=" + batchSize +
-                    ", isEnabled=" + enabled +
+            return "Content{" +
+                    "id='" + id + '\'' +
+                    ", enabled=" + enabled +
                     ", resource='" + resource + '\'' +
                     ", consumerId='" + consumerId + '\'' +
                     ", destination='" + destination + '\'' +
@@ -280,7 +300,10 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                     ", formatOverrides=" + formatOverrides +
                     ", includeRelations=" + includeRelations +
                     ", includeLibraryRules=" + includeLibraryRules +
+                    ", batchSize=" + batchSize +
                     ", openAgencyTarget=" + openAgencyTarget +
+                    ", imsHarvester=" + imsHarvester +
+                    ", imsHoldingsTarget='" + imsHoldingsTarget + '\'' +
                     '}';
         }
     }

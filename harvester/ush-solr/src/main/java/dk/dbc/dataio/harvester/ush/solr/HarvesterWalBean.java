@@ -55,7 +55,8 @@ public class HarvesterWalBean {
     EntityManager entityManager;
 
     /**
-     * Reads non-committed progress from this WAL if it exists
+     * Reads non-committed progress from WAL if it exists
+     * @param configId ID of config for which to retrieve WAL entry
      * @return ProgressWal, otherwise empty
      * @throws HarvesterException on error while reading WAL entry
      */

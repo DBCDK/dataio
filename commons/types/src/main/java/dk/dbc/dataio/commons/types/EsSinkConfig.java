@@ -67,7 +67,7 @@ public class EsSinkConfig implements SinkConfig, Serializable {
 
         EsSinkConfig that = (EsSinkConfig) o;
 
-        if (userId != that.userId) return false;
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
         if (databaseName != null ? !databaseName.equals(that.databaseName) : that.databaseName != null) return false;
         return esAction != null ? esAction.equals(that.esAction) : that.esAction == null;
 
@@ -75,7 +75,7 @@ public class EsSinkConfig implements SinkConfig, Serializable {
 
     @Override
     public int hashCode() {
-        int result = userId;
+        int result = userId != null ? userId.hashCode() : 0;
         result = 31 * result + (databaseName != null ? databaseName.hashCode() : 0);
         result = 31 * result + (esAction != null ? esAction.hashCode() : 0);
         return result;

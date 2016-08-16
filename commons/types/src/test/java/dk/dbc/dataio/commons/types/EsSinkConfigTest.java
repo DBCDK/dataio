@@ -32,8 +32,13 @@ import static org.junit.Assert.assertThat;
 
 public class EsSinkConfigTest {
 
-    private static final int USER_ID = 0;
+    private static final Integer USER_ID = 0;
     private static final String DATABASE_NAME = "databaseName";
+
+    @Test
+    public void constructor_userIdArgIsNull_throws() {
+        assertThat(() -> new EsSinkConfig().withUserId(null), isThrowing(NullPointerException.class));
+    }
 
     @Test
     public void constructor_databaseArgIsNull_throws() {

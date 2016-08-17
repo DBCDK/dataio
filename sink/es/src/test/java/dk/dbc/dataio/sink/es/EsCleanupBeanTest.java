@@ -26,8 +26,8 @@ import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
@@ -37,6 +37,7 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -74,6 +75,8 @@ public class EsCleanupBeanTest {
     private TaskStatus taskStatus_124;
     private TaskStatus taskStatus_125;
     private List<EsInFlight> emptyEsInFlightList = Collections.emptyList();
+    private final static int SINK_ID = 333;
+    private EntityManager entityManager = mock(EntityManager.class);
 
     @Before
     public void setup() throws JSONBException {
@@ -81,37 +84,29 @@ public class EsCleanupBeanTest {
         final Chunk incompleteDeliveredChunk = new ChunkBuilder(Chunk.Type.DELIVERED).setItems(
                 Collections.singletonList(new ChunkItemBuilder().setStatus(ChunkItem.Status.SUCCESS).build())).build();
         String incompleteDeliveredChunkJson = new JSONBContext().marshall(incompleteDeliveredChunk);
-                
+
         esInFlight41_1 = new EsInFlight();
         esInFlight41_1.setJobId(41L);
         esInFlight41_1.setChunkId(1L);
         esInFlight41_1.setTargetReference(122);
-        esInFlight41_1.setRecordSlots(3);
-        esInFlight41_1.setResourceName("resource 1");
         esInFlight41_1.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
 
         esInFlight42_1 = new EsInFlight();
         esInFlight42_1.setJobId(42L);
         esInFlight42_1.setChunkId(1L);
         esInFlight42_1.setTargetReference(123);
-        esInFlight42_1.setRecordSlots(10);
-        esInFlight42_1.setResourceName("resource 1");
         esInFlight42_1.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
 
         esInFlight42_2 = new EsInFlight();
         esInFlight42_2.setJobId(42L);
         esInFlight42_2.setChunkId(2L);
         esInFlight42_2.setTargetReference(124);
-        esInFlight42_2.setRecordSlots(5);
-        esInFlight42_2.setResourceName("resource 1");
         esInFlight42_2.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
 
         esInFlight43_1 = new EsInFlight();
         esInFlight43_1.setJobId(43L);
         esInFlight43_1.setChunkId(1L);
         esInFlight43_1.setTargetReference(125);
-        esInFlight43_1.setRecordSlots(10);
-        esInFlight43_1.setResourceName("resource 1");
         esInFlight43_1.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
 
         taskStatus_122 = new TaskStatus(TaskPackageEntity.TaskStatus.ABORTED, 122);
@@ -123,6 +118,7 @@ public class EsCleanupBeanTest {
     @Before
     public void setupMocks() {
         esInFlightAdmin = mock(EsInFlightBean.class);
+        esInFlightAdmin.entityManager = entityManager;
         esConnector = mock(EsConnectorBean.class);
         jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
@@ -132,14 +128,14 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_emptyEsInFlight_nothingHappens() {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(emptyEsInFlightList);
+        when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(emptyEsInFlightList);
 
         getEsCleanupBean().cleanup();
     }
 
     @Test
     public void cleanup_noFinishedInFlight_nothingHappens() throws SinkException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Collections.singletonList(esInFlight42_2));
+        when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight42_2));
         final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
         taskStatusMap.put(taskStatus_124.getTargetReference(), taskStatus_124);
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class))).thenReturn(taskStatusMap);
@@ -149,7 +145,7 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedIsCleanedUp() throws SinkException, JobStoreServiceConnectorException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
+        when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
         final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
         taskStatusMap.put(taskStatus_122.getTargetReference(), taskStatus_122);
         taskStatusMap.put(taskStatus_123.getTargetReference(), taskStatus_123);
@@ -168,9 +164,9 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JSONBException, JobStoreServiceConnectorException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Collections.singletonList(esInFlight43_1));
+        when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight43_1));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
-                .thenReturn(Collections.<Integer, TaskStatus>emptyMap());
+                .thenReturn(Collections.emptyMap());
 
         getEsCleanupBean().cleanup();
 
@@ -181,7 +177,7 @@ public class EsCleanupBeanTest {
 
     @Test
     public void cleanup_AbortedCompletedActivePendingInFlight_AbortedCompletedAndNoTargetReferencedAreCleanedUp() throws SinkException, JobStoreServiceConnectorException {
-        when(esInFlightAdmin.listEsInFlight()).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
+        when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Arrays.asList(esInFlight41_1, esInFlight42_1, esInFlight42_2, esInFlight43_1));
         final HashMap<Integer, TaskStatus> taskStatusMap = new HashMap<>();
         taskStatusMap.put(taskStatus_122.getTargetReference(), taskStatus_122);
         taskStatusMap.put(taskStatus_123.getTargetReference(), taskStatus_123);
@@ -232,6 +228,7 @@ public class EsCleanupBeanTest {
         esCleanupBean.esInFlightAdmin = esInFlightAdmin;
         esCleanupBean.esConnector = esConnector;
         esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        esCleanupBean.sinkId = SINK_ID;
         return esCleanupBean;
     }
 }

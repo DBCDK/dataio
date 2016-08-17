@@ -39,6 +39,7 @@ import static org.junit.Assert.assertThat;
 
 
 public class EsCleanupBeanIT extends SinkIT {
+
     @Test
     public void cleanup_noTaskPackagesAreMarkedAsFinished_leavesEsAndInFlightUnchanged() throws JSONBException, JMSException, IOException, URISyntaxException {
 
@@ -73,8 +74,6 @@ public class EsCleanupBeanIT extends SinkIT {
 
         // Assert that one ES task package is in-flight
         assertThat("Number of ES task packages in-flight", esInFlight.size(), is(1));
-
-
 
         final EsCleanupBean esCleanupBean = getEsCleanupBean();
         EntityTransaction esTransaction=esCleanupBean.esConnector.entityManager.getTransaction() ;

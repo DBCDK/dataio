@@ -21,15 +21,23 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
-import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.jms.JMSException;
@@ -41,12 +49,30 @@ import java.util.List;
 import static dk.dbc.dataio.commons.utils.lang.StringUtil.asString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.when;
 
 public class EsMessageProcessorBeanIT extends SinkIT {
+
+    private EsSinkConfig esSinkConfig;
+    private Sink sink;
+
+    @Before
+    public void setUpSink() {
+        esSinkConfig = new EsSinkConfig().withUserId(3).withDatabaseName("dbname");
+        SinkContent sinkContent = new SinkContentBuilder().setSinkConfig(esSinkConfig).build();
+
+        sink = new SinkBuilder().setId(1).setContent(sinkContent).build();
+
+        try {
+            when(flowStoreServiceConnector.getSink(sink.getId())).thenReturn(sink);
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new IllegalStateException("Error");
+        }
+    }
+
     @Test
     public void onMessage_chunkWithAllRecordsFailedOrIgnored_noTaskPackageInFlight()
-            throws JSONBException, JMSException, JobStoreServiceConnectorException {
-
+            throws JSONBException, JMSException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
 
         // Mock JobInfoSnapshot returned from jobStoreServiceConnector.addChunk() call
         jobStoreServiceConnector.jobInfoSnapshots.add(new JobInfoSnapshotBuilder().build());
@@ -59,13 +85,18 @@ public class EsMessageProcessorBeanIT extends SinkIT {
             items.add(new ChunkItemBuilder().setId(i).setStatus(ChunkItem.Status.FAILURE).build());
         }
         final Chunk processorChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
-        final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk);
+        final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk, sink);
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
         esMessageProcessorBean.onMessage(sinkMessage);
 
         // Assert that no ES task packages are in-flight
         assertThat("Number of ES task packages in-flight", listEsInFlight().size(), is(0));
+
+        // Assert that the ES sink config, sinkId and sinkVersion has been set correctly
+        assertThat("highestVersionSeen", esMessageProcessorBean.highestVersionSeen, is(sink.getVersion()));
+        assertThat("sinkConfig", esMessageProcessorBean.sinkConfig, is(esSinkConfig));
+        assertThat("sinkId", esMessageProcessorBean.sinkId, is(Long.valueOf(System.getenv().get(Constants.SINK_ID_ENV_VARIABLE))));
 
         // Assert that sink chunk corresponds to processor chunk and that all items are ignored:
         final Chunk sinkChunk = jobStoreServiceConnector.chunks.remove();
@@ -86,7 +117,7 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         items.add(new ChunkItemBuilder().setId(2).setStatus(ChunkItem.Status.FAILURE).build());
         items.add(new ChunkItemBuilder().setId(3).setStatus(ChunkItem.Status.SUCCESS).setData(getValidAddiWithProcessingTrue()).build());
         final Chunk processorChunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(items).build();
-        final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk);
+        final MockedJmsTextMessage sinkMessage = getSinkMessage(processorChunk, sink);
 
         final EsMessageProcessorBean esMessageProcessorBean = getEsMessageProcessorBean();
         final EntityTransaction transaction = esInFlightEntityManager.getTransaction();
@@ -103,7 +134,8 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         assertThat("Number of ES task packages in-flight", listEsInFlight().size(), is(1));
 
         final EsInFlight esInFlight = esInFlights.get(0);
-        assertThat("Number of record slots occupied by task package", esInFlight.getRecordSlots(), is(2));
+        assertThat("esInFlight.sinkId", esInFlight.getSinkId(), is(sink.getId()));
+        assertThat("esInFlight.databaseName", esInFlight.getDatabaseName(), is(esSinkConfig.getDatabaseName()));
 
         // Assert in-flight placeholder chunk content
         final Chunk placeholderChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), Chunk.class);
@@ -147,7 +179,6 @@ public class EsMessageProcessorBeanIT extends SinkIT {
         assertThat("Number of ES task packages in-flight", listEsInFlight().size(), is(1));
 
         final EsInFlight esInFlight = esInFlights.get(0);
-        assertThat("Number of record slots occupied by task package", esInFlight.getRecordSlots(), is(5));
 
         // Assert in-flight placeholder chunk content
         final Chunk placeholderChunk = jsonbContext.unmarshall(esInFlight.getIncompleteDeliveredChunk(), Chunk.class);

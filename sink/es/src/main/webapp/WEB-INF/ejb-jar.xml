@@ -55,34 +55,6 @@
         </activation-config-property>
       </activation-config>
     </message-driven>
-    <session>
-      <ejb-name>EsSinkConfigurationBean</ejb-name>
-      <env-entry>
-        <env-entry-name>esResourceName</env-entry-name>
-        <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value>jdbc/dataio/es</env-entry-value>
-      </env-entry>
-      <env-entry>
-        <env-entry-name>esDatabaseName</env-entry-name>
-        <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value>${es.dbname}</env-entry-value>
-      </env-entry>
-      <env-entry>
-        <env-entry-name>esPackageType</env-entry-name>
-        <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value></env-entry-value>
-      </env-entry>
-      <env-entry>
-        <env-entry-name>esAction</env-entry-name>
-        <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value></env-entry-value>
-      </env-entry>
-      <env-entry>
-        <env-entry-name>esUserId</env-entry-name>
-        <env-entry-type>java.lang.Integer</env-entry-type>
-        <env-entry-value>0</env-entry-value>
-      </env-entry>
-    </session>
   </enterprise-beans>
   <assembly-descriptor>
   </assembly-descriptor>

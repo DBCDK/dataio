@@ -21,8 +21,8 @@ insert into taskpackage (packagetype, packageName, userid, targetReference, crea
 
  update taskpackagerecordstructure set recordstatus=1 where lbnr=1 and targetreference = currval('taskpackagerefseq'); -- 1 for record Success
 
-insert into esinflight (targetreference, resourcename, chunkid, jobid, recordslots, sinkchunkresult)
-       values (  currval('taskpackagerefseq'), 'test/resource', 0, 1, 3, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"},{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}');
+insert into esinflight (targetreference, chunkid, jobid, chunk, sinkid, databasename)
+       values (  currval('taskpackagerefseq'), 0, 1, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"},{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}', 1, 'database1');
 
 
 --
@@ -40,5 +40,5 @@ insert into taskpackage (packagetype, packageName, userid, targetReference, crea
         VALUES ( currval('taskpackagerefseq'), 0, 'SupplementalID1'::BYTEA , 'record 1'::BYTEA );
 
 
-insert into esinflight (targetreference, resourcename, chunkid, jobid, recordslots, sinkchunkresult)
-       values (  currval('taskpackagerefseq'), 'test/resource', 0, 1, 3, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}');
+insert into esinflight (targetreference, chunkid, jobid, chunk, sinkid, databasename)
+       values (  currval('taskpackagerefseq'), 0, 1, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}', 1, 'database1');

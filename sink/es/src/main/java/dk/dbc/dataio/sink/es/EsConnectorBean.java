@@ -22,21 +22,18 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.sink.es.entity.es.TaskPackageEntity;
 import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.types.SinkException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ejb.EJB;
-import javax.ejb.EJBException;
 import javax.ejb.Stateless;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,47 +42,30 @@ public class EsConnectorBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EsConnectorBean.class);
 
-    @EJB
-    EsSinkConfigurationBean configuration;
-
     @PersistenceContext(unitName = "esPU")
     EntityManager entityManager;
 
-
-    public Connection getConnection() throws SQLException, NamingException {
-        LOGGER.debug("Looking up datasource");
-        final DataSource dataSource = doDataSourceLookup();
-        LOGGER.debug("Looked up datasource");
-        return dataSource.getConnection();
-    }
-
-    private InitialContext getInitialContext() throws EJBException {
-        final InitialContext initialContext;
-        try {
-            initialContext = new InitialContext();
-        } catch (NamingException e) {
-            throw new EJBException(e);
-        }
-        return initialContext;
-    }
-
-
-    public int insertEsTaskPackage(EsWorkload esWorkload) throws SinkException {
+    public int insertEsTaskPackage(EsWorkload esWorkload, EsSinkConfig sinkConfig) throws SinkException {
         LOGGER.debug("Getting connection");
         try {
             LOGGER.debug("Inserting task package");
-            return ESTaskPackageUtil.insertTaskPackage(entityManager, configuration.getEsDatabaseName(), esWorkload);
+            return ESTaskPackageUtil.insertTaskPackage(entityManager, sinkConfig.getDatabaseName(), esWorkload);
         } catch (SQLException e) {
             throw new SinkException("Failed to insert ES task package", e);
         }
     }
 
     public Map<Integer, ESTaskPackageUtil.TaskStatus> getCompletionStatusForESTaskpackages(List<Integer> targetReferences) throws SinkException {
-        try (final Connection connection = getConnection()) {
-            return ESTaskPackageUtil.findCompletionStatusForTaskpackages(connection, targetReferences);
-        } catch (SQLException | NamingException e) {
-            throw new SinkException("Failed to get completion status for task packages", e);
+        Map<Integer, ESTaskPackageUtil.TaskStatus> res = new HashMap<>();
+        for(Integer targetReference : targetReferences ) {
+            TaskPackageEntity taskPackageEntity = entityManager.find(TaskPackageEntity.class, targetReference);
+            if(taskPackageEntity == null) {
+                throw new SinkException(String.format("TaskPackageEntity with id: %d not found", targetReference)); // TODO: 12/07/16  is this desired behaviour?
+            } else {
+                res.put(targetReference, new ESTaskPackageUtil.TaskStatus(taskPackageEntity.getTaskStatus(), targetReference));
+            }
         }
+        return res;
     }
 
     public void deleteESTaskpackages(List<Integer> targetReferences) throws SinkException {
@@ -107,35 +87,6 @@ public class EsConnectorBean {
         } catch (Exception e) {
             LOGGER.warn("Exception caught while creating chunk for ES task package", e);
             throw new SinkException("Failed to create chunk for task package", e);
-        }
-    }
-
-    private void closeInitialContext(InitialContext initialContext) {
-        if (initialContext != null) {
-            try {
-                initialContext.close();
-            } catch (NamingException e) {
-                LOGGER.warn("Unable to close initial context", e);
-            }
-        }
-    }
-
-    private DataSource doDataSourceLookup() throws NamingException {
-        LOGGER.debug("Getting initial context");
-        final InitialContext initialContext = getInitialContext();
-        try {
-            final String esResourceName = configuration.getEsResourceName();
-            LOGGER.debug("Looking up ES resource {}", esResourceName);
-            final Object lookup = initialContext.lookup(esResourceName);
-            LOGGER.debug("Looked up ES resource {}", esResourceName);
-            if (!(lookup instanceof DataSource)) {
-                throw new NamingException("Unexpected type of resource returned from lookup");
-            }
-            return (DataSource) lookup;
-        } finally {
-            LOGGER.debug("Closing initial context");
-            closeInitialContext(initialContext);
-            LOGGER.debug("Closed initital context");
         }
     }
 }

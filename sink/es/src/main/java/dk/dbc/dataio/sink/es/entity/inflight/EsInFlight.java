@@ -25,7 +25,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
-import javax.persistence.Lob;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 
@@ -36,14 +35,13 @@ import javax.persistence.NamedQuery;
 })
 public class EsInFlight {
     public static final String FIND_ALL = "EsInFlight.findAll";
-    public static final String QUERY_PARAMETER_RESOURCENAME = "resourceName";
+    public static final String QUERY_PARAMETER_SINKID = "sinkId";
     public static final String QUERY_FIND_ALL =
-            "SELECT esInFlight FROM EsInFlight esInFlight WHERE esInFlight.resourceName = :"
-                    + QUERY_PARAMETER_RESOURCENAME;
+            "SELECT esInFlight FROM EsInFlight esInFlight WHERE esInFlight.sinkId = :"
+                    + QUERY_PARAMETER_SINKID;
 
     @Id
-    @Lob
-    private String resourceName;
+    private Long sinkId;
 
     @Id
     private Integer targetReference;
@@ -55,34 +53,17 @@ public class EsInFlight {
     private Long chunkId;
 
     @Column(nullable = false)
-    private Integer recordSlots;
+    private String chunk;
 
-    @Lob
     @Column(nullable = false)
-    private String sinkChunkResult; // TODO: This should be changed, but requires reinstall of database together with change in source.
+    private String databaseName;
 
-    public Long getChunkId() {
-        return chunkId;
+    public Long getSinkId() {
+        return sinkId;
     }
 
-    public void setChunkId(Long chunkId) {
-        this.chunkId = chunkId;
-    }
-
-    public Long getJobId() {
-        return jobId;
-    }
-
-    public void setJobId(Long jobId) {
-        this.jobId = jobId;
-    }
-
-    public Integer getRecordSlots() {
-        return recordSlots;
-    }
-
-    public void setRecordSlots(Integer recordSlots) {
-        this.recordSlots = recordSlots;
+    public void setSinkId(Long sinkId) {
+        this.sinkId = sinkId;
     }
 
     public Integer getTargetReference() {
@@ -93,19 +74,35 @@ public class EsInFlight {
         this.targetReference = targetReference;
     }
 
-    public String getResourceName() {
-        return resourceName;
+    public Long getJobId() {
+        return jobId;
     }
 
-    public void setResourceName(String resourceName) {
-        this.resourceName = resourceName;
+    public void setJobId(Long jobId) {
+        this.jobId = jobId;
+    }
+
+    public Long getChunkId() {
+        return chunkId;
+    }
+
+    public void setChunkId(Long chunkId) {
+        this.chunkId = chunkId;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public void setDatabaseName(String databaseName) {
+        this.databaseName = databaseName;
     }
 
     public String getIncompleteDeliveredChunk() {
-        return sinkChunkResult;
+        return chunk;
     }
 
     public void setIncompleteDeliveredChunk(String incompleteDeliveredChunk) {
-        this.sinkChunkResult = incompleteDeliveredChunk;
+        this.chunk = incompleteDeliveredChunk;
     }
 }

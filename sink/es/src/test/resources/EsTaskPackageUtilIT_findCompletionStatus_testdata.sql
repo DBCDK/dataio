@@ -22,8 +22,8 @@ CREATE or REPLACE FUNCTION create_test_package(tRef INTEGER) RETURNS void AS $$
 
  update taskpackagerecordstructure set recordstatus=1 where lbnr=1 and targetreference = $1; -- 1 for record Success
 
-insert into esinflight (targetreference, resourcename, chunkid, jobid, recordslots, sinkchunkresult)
-       values (  $1, 'test/resource', 0, 1, 3, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"},{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}');
+insert into esinflight (targetreference, chunkid, jobid, chunk, sinkid, databasename)
+       values (  $1, 0, 1, '{"jobId":6849,"chunkId":0,"type":"DELIVERED","items":[{"id":0,"data":"MQ==","status":"SUCCESS"},{"id":0,"data":"MQ==","status":"SUCCESS"}],"encoding":"ISO-8859-1"}', 1, 'database1');
 
   $$ LANGUAGE sql;
 

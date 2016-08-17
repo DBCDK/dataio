@@ -22,15 +22,15 @@
 package dk.dbc.dataio.sink.es.entity.inflight;
 
 public class EsInFlightPK {
-    private String resourceName;
+    private Long sinkId;
     private Integer targetReference;
 
-    public String getResourceName() {
-        return resourceName;
+    public Long getSinkId() {
+        return sinkId;
     }
 
-    public void setResourceName(String resourceName) {
-        this.resourceName = resourceName;
+    public void setSinkId(Long sinkId) {
+        this.sinkId = sinkId;
     }
 
     public Integer getTargetReference() {
@@ -43,28 +43,19 @@ public class EsInFlightPK {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (!(o instanceof EsInFlightPK)) return false;
 
         EsInFlightPK that = (EsInFlightPK) o;
 
-        if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null) {
-            return false;
-        }
-        if (targetReference != null ? !targetReference.equals(that.targetReference) : that.targetReference != null) {
-            return false;
-        }
+        if (sinkId != null ? !sinkId.equals(that.sinkId) : that.sinkId != null) return false;
+        return targetReference != null ? targetReference.equals(that.targetReference) : that.targetReference == null;
 
-        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = resourceName != null ? resourceName.hashCode() : 0;
+        int result = sinkId != null ? sinkId.hashCode() : 0;
         result = 31 * result + (targetReference != null ? targetReference.hashCode() : 0);
         return result;
     }

@@ -23,7 +23,6 @@ package dk.dbc.dataio.sink.es;
 
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 
-import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -32,8 +31,6 @@ import java.util.List;
 
 @Stateless
 public class EsInFlightBean {
-    @EJB
-    EsSinkConfigurationBean configuration;
 
     @PersistenceContext(unitName = "esInFlightPU")
     EntityManager entityManager;
@@ -46,9 +43,9 @@ public class EsInFlightBean {
         entityManager.remove(esInFlight);
     }
 
-    public List<EsInFlight> listEsInFlight() {
+    public List<EsInFlight> listEsInFlight(long sinkId) {
         final TypedQuery<EsInFlight> query = entityManager.createNamedQuery(EsInFlight.FIND_ALL, EsInFlight.class);
-        query.setParameter(EsInFlight.QUERY_PARAMETER_RESOURCENAME, configuration.getEsResourceName());
+        query.setParameter(EsInFlight.QUERY_PARAMETER_SINKID, sinkId);
         return query.getResultList();
     }
 }

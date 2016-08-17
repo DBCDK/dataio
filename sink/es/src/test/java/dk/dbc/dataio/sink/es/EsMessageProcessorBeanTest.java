@@ -22,16 +22,23 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
@@ -74,7 +81,6 @@ import static org.mockito.Mockito.when;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class EsMessageProcessorBeanTest {
-    private static final String ES_DATABASE_NAME = "dbname";
     private static final String PAYLOAD_TYPE = JmsConstants.CHUNK_PAYLOAD_TYPE;
     private static final String PROCESSING_TAG = "dataio:sink-processing";
     private JSONBContext jsonbContext = new JSONBContext();
@@ -82,34 +88,80 @@ public class EsMessageProcessorBeanTest {
     private EsConnectorBean esConnector;
     private EsInFlightBean esInFlightAdmin;
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+    private FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     private JobStoreServiceConnector jobStoreServiceConnector;
+    private FlowStoreServiceConnector flowStoreServiceConnector;
     private final String trackingId = "rr:1234io:5353";
+    private final static int SINK_ID = 333;
+    private EsSinkConfig sinkConfig = new EsSinkConfig().withUserId(42).withDatabaseName("dbname");
 
 
     @Before
     public void setupMocks() {
         esConnector = mock(EsConnectorBean.class);
         esInFlightAdmin = mock(EsInFlightBean.class);
+
         jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
 
+        flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+        flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+        when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
     }
 
     @Test
-    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkAdded() throws JMSException, SinkException, JSONBException, JobStoreServiceConnectorException {
+    public void onMessage_messageArgPayloadIsChunkResultWithJsonWithInvalidAddi_deliveredChunkAdded() throws Exception {
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
         final String processedChunkJson = jsonbContext.marshall(processedChunk);
-        final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson);
+        final SinkContent sinkContent = new SinkContentBuilder().setSinkConfig(sinkConfig).build();
+        final Sink sink = new SinkBuilder().setId(SINK_ID).setContent(sinkContent).build();
+        final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson, sink.getVersion());
+
+        when(flowStoreServiceConnector.getSink(SINK_ID)).thenReturn(sink);
+
         esMessageProcessorBean.onMessage(textMessage);
         assertThat(esMessageProcessorBean.getMessageDrivenContext().getRollbackOnly(), is(false));
         verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
 
     @Test
+    public void onMessage_configureVersionSpecificConfigValueCalled_highestVersionSet() throws Exception {
+        final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+
+        final Chunk processedChunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+        final String processedChunkJson = jsonbContext.marshall(processedChunk);
+
+        final SinkContent sinkContent = new SinkContentBuilder().setSinkConfig(sinkConfig).build();
+        final Sink version1 = new SinkBuilder().setId(SINK_ID).setVersion(1).setContent(sinkContent).build();
+        final Sink version2 = new SinkBuilder().setId(SINK_ID).setVersion(2).setContent(sinkContent).build();
+
+        final MockedJmsTextMessage textMessage1 = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson, version1.getVersion());
+        final MockedJmsTextMessage textMessage2 = getMockedJmsTextMessage(PAYLOAD_TYPE, processedChunkJson, version2.getVersion());
+
+        when(flowStoreServiceConnector.getSink(SINK_ID)).thenReturn(version1, version2);
+
+        // send textMessage containing sink version 1
+        esMessageProcessorBean.onMessage(textMessage1);
+        verify(flowStoreServiceConnector, times(1)).getSink(SINK_ID); // called onMessage
+        assertThat("highestVersionSeen updated", esMessageProcessorBean.highestVersionSeen, is(version1.getVersion())); // highestVersionSeen updated to newest
+
+        // resend textMessage containing sink version 1
+        esMessageProcessorBean.onMessage(textMessage1);
+        verify(flowStoreServiceConnector, times(1)).getSink(SINK_ID); // not called onMessage
+        assertThat("highestVersionSeen not updated", esMessageProcessorBean.highestVersionSeen, is(version1.getVersion())); // highestVersionSeen not updated
+
+        // send textMessage containing updated sink version
+        esMessageProcessorBean.onMessage(textMessage2);
+        verify(flowStoreServiceConnector, times(2)).getSink(SINK_ID); // called onMessage
+        assertThat("highestVersionSeen updated", esMessageProcessorBean.highestVersionSeen, is(version2.getVersion())); // highestVersionSeen updated to newest
+    }
+
+    @Test
     public void onMessage_esConnectorThrowsSinkException_transactionRollback() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenThrow(new SinkException("TEST"));
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class), any(EsSinkConfig.class))).thenThrow(new SinkException("TEST"));
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
         try {
@@ -122,7 +174,7 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void onMessage_esConnectorThrowsSystemException_transactionRollback() throws JMSException, SinkException, InterruptedException {
-        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenThrow(new RuntimeException("TEST"));
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class), any(EsSinkConfig.class))).thenThrow(new RuntimeException("TEST"));
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
         try {
@@ -135,7 +187,7 @@ public class EsMessageProcessorBeanTest {
 
     @Test
     public void onMessage_esInFlightAdminThrowsSystemException_transactionRollback() throws JMSException, SinkException {
-        when(esConnector.insertEsTaskPackage(any(EsWorkload.class))).thenReturn(42);
+        when(esConnector.insertEsTaskPackage(any(EsWorkload.class), any(EsSinkConfig.class))).thenReturn(42);
         doThrow(new RuntimeException("TEST")).when(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
         final MockedJmsTextMessage textMessage = getMockedJmsTextMessage(PAYLOAD_TYPE, chunkResultWithOneValidAddiRecord);
@@ -158,7 +210,7 @@ public class EsMessageProcessorBeanTest {
     }
 
     @Test
-    public void getEsWorkloadFromChunkResult_chunkResultArgIsNonEmpty_returnsEsWorkload() throws SinkException {
+    public void getEsWorkloadFromChunkResult_chunkResultArgIsNonEmpty_returnsEsWorkload() throws SinkException, FlowStoreServiceConnectorException {
         final byte[] validAddiProcessingFalse = AddiRecordPreprocessorTest.getValidAddiWithProcessingFalse();
         final byte[] validAddiProcessingTrue = AddiRecordPreprocessorTest.getValidAddiWithProcessingTrueAndValidMarcXContentData();
         final byte[] validAddiWithoutProcessing = AddiRecordPreprocessorTest.getValidAddiWithoutProcessing();
@@ -220,6 +272,7 @@ public class EsMessageProcessorBeanTest {
                 .build();
 
         final TestableMessageConsumerBean esMessageProcessorBean = getInitializedBean();
+        esMessageProcessorBean.sinkConfig = sinkConfig; //set sinkConfig since OnMessage not called before hand
         final EsWorkload esWorkloadFromChunkResult = esMessageProcessorBean.getEsWorkloadFromChunkResult(processedChunk);
 
         assertThat(esWorkloadFromChunkResult, is(notNullValue()));
@@ -302,14 +355,14 @@ public class EsMessageProcessorBeanTest {
     private TestableMessageConsumerBean getInitializedBean() {
         final TestableMessageConsumerBean testableMessageConsumerBean = new TestableMessageConsumerBean();
         testableMessageConsumerBean.setMessageDrivenContext(new MockedMessageDrivenContext());
-        final EsSinkConfigurationBean configuration = new EsSinkConfigurationBean();
-        configuration.esDatabaseName = ES_DATABASE_NAME;
-        testableMessageConsumerBean.configuration = configuration;
+        testableMessageConsumerBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         testableMessageConsumerBean.esConnector = esConnector;
         testableMessageConsumerBean.esInFlightAdmin = esInFlightAdmin;
 
         testableMessageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        testableMessageConsumerBean.setup();
+        testableMessageConsumerBean.flowStoreServiceConnector = flowStoreServiceConnector;
+        testableMessageConsumerBean.addiRecordPreprocessor = new AddiRecordPreprocessor();
+        testableMessageConsumerBean.sinkId = SINK_ID;
         return testableMessageConsumerBean;
     }
 
@@ -336,8 +389,13 @@ public class EsMessageProcessorBeanTest {
     }
 
     private MockedJmsTextMessage getMockedJmsTextMessage(String payloadType, String payload) throws JMSException {
+        return getMockedJmsTextMessage(payloadType, payload, 1);
+    }
+
+    private MockedJmsTextMessage getMockedJmsTextMessage(String payloadType, String payload, long sinkVersion) throws JMSException {
         final MockedJmsTextMessage textMessage = new MockedJmsTextMessage();
         textMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, payloadType);
+        textMessage.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkVersion);
         textMessage.setText(payload);
         return textMessage;
     }

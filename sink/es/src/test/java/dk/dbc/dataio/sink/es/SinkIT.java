@@ -21,7 +21,10 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
@@ -48,10 +51,13 @@ import javax.persistence.TypedQuery;
 import javax.sql.DataSource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
@@ -59,6 +65,7 @@ import static org.mockito.Mockito.when;
 
 
 public abstract class SinkIT {
+    private static final long SINK_ID = 1;
     protected static final DataSource ES_INFLIGHT_DATASOURCE;
     protected static final DataSource ES_DATASOURCE;
     protected static final String ES_INFLIGHT_DATABASE_NAME = "testdb";
@@ -70,6 +77,8 @@ public abstract class SinkIT {
     protected JSONBContext jsonbContext = new JSONBContext();
     protected JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     protected MockedJobStoreServiceConnector jobStoreServiceConnector;
+    protected FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+    protected FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
     static {
         ES_INFLIGHT_DATASOURCE = JPATestUtils.getTestDataSource( ES_INFLIGHT_DATABASE_NAME );
@@ -89,6 +98,23 @@ public abstract class SinkIT {
         dbMigrator.onStartup();
     }
 
+    @BeforeClass
+    public static void addSinkIdToEnvironmentVariables() {
+        try {
+            for (Class declaredClass : Collections.class.getDeclaredClasses()) {
+                if ("java.util.Collections$UnmodifiableMap".equals(declaredClass.getName())) {
+                    Field field = declaredClass.getDeclaredField("m");
+                    field.setAccessible(true);
+                    Object currentEnvironment = field.get(System.getenv());
+                    Map<String, String> newEnvironment = (Map<String, String>) currentEnvironment;
+                    newEnvironment.put(Constants.SINK_ID_ENV_VARIABLE, String.valueOf(SINK_ID));
+                }
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalStateException("Environment not in legal state");
+        }
+    }
+
     @Before
     public void setInitialContext() {
         InMemoryInitialContextFactory.bind(ES_RESOURCE_NAME, ES_DATASOURCE);
@@ -103,6 +129,11 @@ public abstract class SinkIT {
     public void mockJobStoreServiceConnector() {
         jobStoreServiceConnector = new MockedJobStoreServiceConnector();
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+    }
+
+    @Before
+    public void mockFlowStoreServiceConnector() {
+        when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
     }
 
     @Before
@@ -128,10 +159,10 @@ public abstract class SinkIT {
 
     protected EsMessageProcessorBean getEsMessageProcessorBean() {
         final TestableEsMessageProcessorBean esMessageProcessorBean = new TestableEsMessageProcessorBean();
-        esMessageProcessorBean.configuration = getEsSinkConfigurationBean();
         esMessageProcessorBean.esConnector = getEsConnectorBean();
         esMessageProcessorBean.esInFlightAdmin = getEsInFlightBean();
         esMessageProcessorBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        esMessageProcessorBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         esMessageProcessorBean.setMessageDrivenContext(new MockedJmsMessageDrivenContext());
         esMessageProcessorBean.setup();
         return esMessageProcessorBean;
@@ -145,38 +176,34 @@ public abstract class SinkIT {
         return esCleanupBean;
     }
 
-    protected EsSinkConfigurationBean getEsSinkConfigurationBean() {
-        final EsSinkConfigurationBean esSinkConfigurationBean = new EsSinkConfigurationBean();
-        esSinkConfigurationBean.esDatabaseName = ES_DATABASE_NAME;
-        esSinkConfigurationBean.esResourceName = ES_RESOURCE_NAME;
-        return esSinkConfigurationBean;
-    }
 
     protected EsConnectorBean getEsConnectorBean() {
         final EsConnectorBean esConnectorBean = new EsConnectorBean();
-        esConnectorBean.configuration = getEsSinkConfigurationBean();
         esConnectorBean.entityManager = JPATestUtils.createEntityManagerForIntegrationTest( "esIT");
         return esConnectorBean;
     }
 
     protected EsInFlightBean getEsInFlightBean() {
         final EsInFlightBean esInFlightBean = new EsInFlightBean();
-        esInFlightBean.configuration = getEsSinkConfigurationBean();
         esInFlightBean.entityManager = esInFlightEntityManager;
         return esInFlightBean;
     }
 
-    protected MockedJmsTextMessage getSinkMessage(Chunk chunk) throws JMSException, JSONBException {
-        final Sink sink = new SinkBuilder().build();
-
+    protected MockedJmsTextMessage getSinkMessage(Chunk chunk, Sink sink) throws JSONBException, JMSException {
         final TextMessage basicMessage = jmsContext.createTextMessage(jsonbContext.marshall(chunk));
         basicMessage.setStringProperty(JmsConstants.SOURCE_PROPERTY_NAME, JmsConstants.PROCESSOR_SOURCE_VALUE);
         basicMessage.setStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME, JmsConstants.CHUNK_PAYLOAD_TYPE);
-        basicMessage.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, sink.getContent().getResource());
+        basicMessage.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, sink.getId());
+        basicMessage.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, sink.getVersion());
         final MockedJmsTextMessage message = (MockedJmsTextMessage) basicMessage;
 
         message.setText(jsonbContext.marshall(chunk));
         return message;
+    }
+
+    protected MockedJmsTextMessage getSinkMessage(Chunk chunk) throws JMSException, JSONBException {
+        final Sink sink = new SinkBuilder().setId(1).build();
+        return getSinkMessage(chunk, sink);
     }
 
     protected List<EsInFlight> listEsInFlight() {

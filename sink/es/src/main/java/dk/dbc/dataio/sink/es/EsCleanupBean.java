@@ -24,11 +24,13 @@ package dk.dbc.dataio.sink.es;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -49,6 +51,7 @@ import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,14 +71,15 @@ public class EsCleanupBean {
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    JSONBContext jsonbContext = new JSONBContext();
+    private JSONBContext jsonbContext = new JSONBContext();
+    long sinkId;
 
     @PostConstruct
     public void startup() {
+        sinkId = Long.parseLong(System.getenv().get(Constants.SINK_ID_ENV_VARIABLE));
         LOGGER.info("Startup of EsScheduledCleanupBean!");
-        List<EsInFlight> esInFlightList = esInFlightAdmin.listEsInFlight();
         LOGGER.info("The following targetreferences are inFlight in the sink at startup: {}",
-                Arrays.toString(createEsInFlightMap(esInFlightList).keySet().toArray()));
+                Arrays.toString(createEsInFlightMap().keySet().toArray()));
         // Integrity-test is deferred to the first run of cleanup().
     }
 
@@ -95,12 +99,12 @@ public class EsCleanupBean {
         final StopWatch stopWatch = new StopWatch();
         try {
             LOGGER.info("Cleaning up ES-base");
-            Map<Integer, EsInFlight> esInFlightMap = createEsInFlightMap(esInFlightAdmin.listEsInFlight());
+            final Map<Integer, EsInFlight> esInFlightMap = createEsInFlightMap();
             if (esInFlightMap.isEmpty()) {
                 LOGGER.info("No records in ES InFlight.");
                 return;
             }
-            Map<Integer, TaskStatus> taskStatusMap = getTaskStatusForESTaskpackages(esInFlightMap);
+            final Map<Integer, TaskStatus> taskStatusMap = getTaskStatusForESTaskpackages(esInFlightMap);
 
             final List<Chunk> lostChunks = findLostChunks(esInFlightMap, taskStatusMap);
             if(!lostChunks.isEmpty()) {
@@ -260,14 +264,11 @@ public class EsCleanupBean {
 
         return esConnector.getChunkForTaskPackage(esInFlight.getTargetReference(), incompleteDeliveredChunk);
     }
-    
-    private Map<Integer, EsInFlight> createEsInFlightMap(List<EsInFlight> esInFlightList) {
-        Map<Integer, EsInFlight> esInFlightMap = new HashMap<>();
-        for (EsInFlight esInFlight : esInFlightList) {
-            esInFlightMap.put(esInFlight.getTargetReference(), esInFlight);
-        }
-        return esInFlightMap;
+
+    private Map<Integer, EsInFlight> createEsInFlightMap() {
+        return esInFlightAdmin.listEsInFlight(sinkId).stream().collect(Collectors.toMap(EsInFlight::getTargetReference, c -> c));
     }
+
 
     private List<EsInFlight> getEsInFlightsFromTargetReferences(Map<Integer, EsInFlight> esInFlightMap, List<Integer> finishedTargetReferences) {
         return finishedTargetReferences.stream().map(esInFlightMap::get).collect(Collectors.toList());

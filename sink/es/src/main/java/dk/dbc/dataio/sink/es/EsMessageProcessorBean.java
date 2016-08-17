@@ -22,12 +22,19 @@
 package dk.dbc.dataio.sink.es;
 
 import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Constants;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -35,6 +42,7 @@ import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sink.es.entity.es.TaskSpecificUpdateEntity;
 import dk.dbc.dataio.sink.es.entity.inflight.EsInFlight;
 import dk.dbc.dataio.sink.types.SinkException;
 import dk.dbc.dataio.sink.util.AddiUtil;
@@ -53,8 +61,14 @@ import java.util.stream.Collectors;
 @MessageDriven
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsMessageProcessorBean.class);
+    private JSONBContext jsonbContext = new JSONBContext();
 
-    private AddiRecordPreprocessor addiRecordPreprocessor;
+    // Packaged scoped due to unit test
+    AddiRecordPreprocessor addiRecordPreprocessor;
+    FlowStoreServiceConnector flowStoreServiceConnector;
+    long sinkId;
+    long highestVersionSeen = 0;
+    EsSinkConfig sinkConfig;
 
     @EJB
     EsConnectorBean esConnector;
@@ -63,16 +77,18 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     EsInFlightBean esInFlightAdmin;
 
     @EJB
-    EsSinkConfigurationBean configuration;
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    JSONBContext jsonbContext = new JSONBContext();
+
 
     @PostConstruct
     public void setup() {
         addiRecordPreprocessor = new AddiRecordPreprocessor();
+        flowStoreServiceConnector = flowStoreServiceConnectorBean.getConnector();
+        sinkId = Long.parseLong(System.getenv().get(Constants.SINK_ID_ENV_VARIABLE));
     }
 
     /**
@@ -84,6 +100,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
      */
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
+        retrieveVersionSpecificConfigValue(consumedMessage);
         final Chunk processedChunk = unmarshallPayload(consumedMessage);
         final EsWorkload workload = getEsWorkloadFromChunkResult(processedChunk);
         final Chunk deliveredChunk = workload.getDeliveredChunk();
@@ -102,8 +119,8 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                     }
                 }
             } else {
-                final int targetReference = esConnector.insertEsTaskPackage(workload);
-                esInFlightAdmin.addEsInFlight( buildEsInFlight(deliveredChunk, targetReference, workload.getAddiRecords().size()) );
+                final int targetReference = esConnector.insertEsTaskPackage(workload, sinkConfig);
+                esInFlightAdmin.addEsInFlight( buildEsInFlight(deliveredChunk, targetReference) );
                 LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}", targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             }
         } catch (Exception e) {
@@ -165,7 +182,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         } finally {
             DBCTrackedLogContext.remove();
         }
-        return new EsWorkload(incompleteDeliveredChunk, addiRecords, configuration.getEsUserId(), configuration.getEsAction());
+        return new EsWorkload(incompleteDeliveredChunk, addiRecords, sinkConfig.getUserId(), TaskSpecificUpdateEntity.UpdateAction.valueOf(sinkConfig.getEsAction()));
     }
 
     private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
@@ -175,16 +192,45 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         return preprocessedAddiRecords;
     }
 
-    private EsInFlight buildEsInFlight(Chunk deliveredChunk, int targetReference, int iRecordsSize) throws JSONBException {
+    private EsInFlight buildEsInFlight(Chunk deliveredChunk, int targetReference) throws JSONBException {
 
         final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setResourceName(configuration.getEsResourceName());
+        esInFlight.setSinkId(sinkId);
+        esInFlight.setDatabaseName(sinkConfig.getDatabaseName());
         esInFlight.setJobId(deliveredChunk.getJobId());
         esInFlight.setChunkId(deliveredChunk.getChunkId());
-        esInFlight.setRecordSlots(iRecordsSize);
         esInFlight.setTargetReference(targetReference);
         esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(deliveredChunk));
 
         return esInFlight;
+    }
+
+    /**
+     * This method determines if the es sink config is the latest version.
+     *
+     * If the current config is outdated:
+     * The latest version of the ES sink config is retrieved through the referenced sink.
+
+     * @param consumedMessage consumed message containing the current sink version
+     * @throws SinkException on error to retrieve version from consumed message or on error when fetching sink
+     */
+    private void retrieveVersionSpecificConfigValue(ConsumedMessage consumedMessage) throws SinkException {
+        try {
+            final long sinkVersion = consumedMessage.getHeaderValue(JmsConstants.SINK_VERSION_PROPERTY_NAME, Long.class);
+
+            LOGGER.trace("Sink version of message {} vs highest version seen {}", sinkVersion, highestVersionSeen);
+            if (sinkVersion > highestVersionSeen) {
+                final Sink sink = flowStoreServiceConnector.getSink(sinkId);
+                sinkConfig = (EsSinkConfig) sink.getContent().getSinkConfig();
+                highestVersionSeen = sink.getVersion();
+                LOGGER.info("Current config values: {}, {}, {}",
+                        sinkConfig.getUserId(),
+                        sinkConfig.getDatabaseName(),
+                        TaskSpecificUpdateEntity.UpdateAction.valueOf(sinkConfig.getEsAction()));
+
+            }
+        } catch (FlowStoreServiceConnectorException e) {
+            throw new SinkException(e.getMessage(), e);
+        }
     }
 }

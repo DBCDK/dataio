@@ -1,0 +1,16 @@
+{
+  "request" : {
+    "url" : "/select?q=holdingsitem.bibliographicRecordId%3Ano-such-record-id&group=true&group.main=true&group.field=holdingsitem.agencyId&fl=holdingsitem.agencyId&rows=9999&wt=javabin&version=2",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-select-X1FCd.json",
+    "headers" : {
+      "Server" : "Apache-Coyote/1.1",
+      "Content-Type" : "application/octet-stream",
+      "Content-Length" : "250",
+      "Date" : "Wed, 17 Aug 2016 05:54:42 GMT"
+    }
+  }
+}

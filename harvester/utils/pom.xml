@@ -36,6 +36,7 @@
 
   <modules>
     <module>datafile-verifier</module>
+    <module>holdings-items-connector</module>
     <module>rawrepo-connector</module>
     <module>ush-solr-connector</module>
   </modules>

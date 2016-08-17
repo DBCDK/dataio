@@ -1,0 +1,16 @@
+{
+  "request" : {
+    "url" : "/select?q=holdingsitem.bibliographicRecordId%3A23181444+AND+holdingsitem.agencyId%3A%28771000+OR+111111+OR+767100%29&group=true&group.main=true&group.field=holdingsitem.agencyId&fl=holdingsitem.agencyId&rows=3&wt=javabin&version=2",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "body-select-gGpCz.json",
+    "headers" : {
+      "Server" : "Apache-Coyote/1.1",
+      "Content-Type" : "application/octet-stream",
+      "Content-Length" : "325",
+      "Date" : "Wed, 17 Aug 2016 06:52:50 GMT"
+    }
+  }
+}

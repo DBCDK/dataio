@@ -47,7 +47,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
-public class ESTaskPackageUtilIT {
+public class ESTaskPackageUtilIT extends SinkIT {
 
     private static final String DB_NAME = "dbname";
     private static final Charset ENCODING = Charset.defaultCharset();

@@ -60,7 +60,7 @@ public class EsConnectorBean {
         for(Integer targetReference : targetReferences ) {
             TaskPackageEntity taskPackageEntity = entityManager.find(TaskPackageEntity.class, targetReference);
             if(taskPackageEntity == null) {
-                throw new SinkException(String.format("TaskPackageEntity with id: %d not found", targetReference)); // TODO: 12/07/16  is this desired behaviour?
+                throw new SinkException(String.format("TaskPackageEntity with id: %d not found", targetReference));
             } else {
                 res.put(targetReference, new ESTaskPackageUtil.TaskStatus(taskPackageEntity.getTaskStatus(), targetReference));
             }

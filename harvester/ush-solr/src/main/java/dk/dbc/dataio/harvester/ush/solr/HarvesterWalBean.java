@@ -93,7 +93,7 @@ public class HarvesterWalBean {
      */
     public void commit(ProgressWal progressWal) throws HarvesterException {
         try {
-            entityManager.remove(progressWal);
+            entityManager.remove(entityManager.merge(progressWal));
         } catch (RuntimeException e) {
             throw new HarvesterException("Commit failed for wal entry: " + progressWal, e);
         }

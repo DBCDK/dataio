@@ -27,6 +27,8 @@ import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -38,6 +40,8 @@ import java.util.NoSuchElementException;
  * This class is thread safe.
  */
 public class UshSolrConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UshSolrConnector.class);
+
     private static final int DEFAULT_DOCUMENT_BUFFER_MAX_SIZE = 500;
 
     private final SolrServer server;
@@ -81,6 +85,7 @@ public class UshSolrConnector {
         final SolrQuery query = new SolrQuery()
             .setQuery(String.format("database:%s AND harvest-timestamp:{%s TO %s]",
                     database, asQueryDateTime(from), asQueryDateTime(until)));
+        LOGGER.info("query: {}", query.toString());
         return new ResultSet(query, documentBufferMaxSize);
     }
 

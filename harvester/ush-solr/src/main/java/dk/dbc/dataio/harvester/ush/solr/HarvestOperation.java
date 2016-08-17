@@ -38,6 +38,8 @@ import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
@@ -46,6 +48,8 @@ import java.util.Optional;
  * Class representing a single harvest operation
  */
 public class HarvestOperation {
+    private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
+
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final BinaryFileStore binaryFileStore;
     private final FileStoreServiceConnector fileStoreServiceConnector;
@@ -96,10 +100,12 @@ public class HarvestOperation {
                 getJobSpecificationTemplate(JobSpecification.Type.TRANSIENT)))
         {
             final UshSolrConnector.ResultSet resultSet = findDatabaseDocumentsHarvestedInInterval();
+            LOGGER.info("Found {} records on Solr", resultSet.getSize());
 
             for (UshSolrDocument solrDocument : resultSet) {
                 jobBuilder.addRecord(toAddiRecord(solrDocument));
             }
+            jobBuilder.build();
             recordsAdded = jobBuilder.getRecordsAdded();
 
             // update config in flow store

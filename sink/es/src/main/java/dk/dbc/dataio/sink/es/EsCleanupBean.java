@@ -97,7 +97,6 @@ public class EsCleanupBean {
         try {
             LOGGER.info("Cleaning up ES-base");
             final Map<Integer, EsInFlight> esInFlightMap = createEsInFlightMap();
-            LOGGER.info("Number of ES in flight: " + esInFlightMap.size());
             if (esInFlightMap.isEmpty()) {
                 LOGGER.info("No records in ES InFlight.");
                 return;
@@ -125,7 +124,6 @@ public class EsCleanupBean {
         JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
         for(Chunk chunk : chunks) {
             try {
-                LOGGER.info("Called addChunkIgnoreDuplicates()");
                 jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
             } catch (JobStoreServiceConnectorException e) {
                 if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
@@ -141,7 +139,6 @@ public class EsCleanupBean {
 
     private void removeEsInFlights(List<EsInFlight> esInFlightList) {
         for (EsInFlight esInFlight : esInFlightList) {
-            LOGGER.info("Calling remove ES in fight[sinkId, databaseName, chunkId, jobId, targetReference, incompleteDeliveredChunk]: [{}/{}/{}/{}/{}/{}]", esInFlight.getSinkId(), esInFlight.getDatabaseName(), esInFlight.getChunkId(), esInFlight.getJobId(), esInFlight.getTargetReference(), esInFlight.getIncompleteDeliveredChunk());
             esInFlightAdmin.removeEsInFlight(esInFlight);
         }
     }
@@ -231,9 +228,7 @@ public class EsCleanupBean {
                 LOGGER.info("No finished taskpackages in ES.");
             } else {
                 List<EsInFlight> finishedEsInFlight = getEsInFlightsFromTargetReferences(esInFlightMap, finishedTargetReferences);
-                LOGGER.info("number of finished Es in fight :" + finishedEsInFlight.size());
                 deliveredChunks = createDeliveredChunks(finishedEsInFlight);
-                LOGGER.info("number delivered chunks :" + deliveredChunks.size());
                 esConnector.deleteESTaskpackages(finishedTargetReferences);
                 removeEsInFlights(finishedEsInFlight);
                 return deliveredChunks;

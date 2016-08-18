@@ -62,6 +62,7 @@ public class EsConnectorBean {
             if(taskPackageEntity == null) {
                 throw new SinkException(String.format("TaskPackageEntity with id: %d not found", targetReference));
             } else {
+                entityManager.refresh(taskPackageEntity);
                 res.put(targetReference, new ESTaskPackageUtil.TaskStatus(taskPackageEntity.getTaskStatus(), targetReference));
             }
         }

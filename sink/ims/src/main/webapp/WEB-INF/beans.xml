@@ -19,31 +19,12 @@
     You should have received a copy of the GNU General Public License
     along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<beans xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_1.xsd"
+       version="1.1" bean-discovery-mode="all">
 
-  <parent>
-    <artifactId>dataio</artifactId>
-    <groupId>dk.dbc</groupId>
-    <version>1.0-SNAPSHOT</version>
-  </parent>
-
-  <artifactId>dataio-sink</artifactId>
-  <name>dataio-sink</name>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>openupdate</module>
-    <module>dummy</module>
-    <module>es</module>
-    <module>fbs</module>
-    <module>ims</module>
-    <module>diff</module>
-    <module>testutil</module>
-    <module>types</module>
-    <module>util</module>
-  </modules>
-
-</project>
+       <interceptors>
+              <class>dk.dbc.dataio.commons.types.interceptor.StopwatchInterceptor</class>
+       </interceptors>
+</beans>

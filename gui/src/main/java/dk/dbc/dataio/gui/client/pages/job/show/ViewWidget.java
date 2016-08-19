@@ -44,11 +44,6 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 
 public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWidget {
 
-    // Constants
-    protected static final int PAGE_SIZE = 20;
-    protected static final int FAST_FORWARD_PAGES = 5;
-
-
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, ViewWidget> {}
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
@@ -81,11 +76,9 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField Button rerunOkButton;
 
 
-    @UiFactory SimplePager makeSimplePager() {
-        // We want to make a UI Factory instantiation of the pager, because UI Binder only allows us to instantiate
-        // the pager with a location, and we do also want to enable the "Show Last Page" Button and we also want to
-        // set the Fast Forward button to scroll 100 items (10 pages) at a time.
-        return new SimplePager(SimplePager.TextLocation.CENTER, true, FAST_FORWARD_PAGES * PAGE_SIZE, true);
+    @UiFactory
+    SimplePager makeSimplePager() {
+        return new SimplePager(SimplePager.TextLocation.CENTER, false, true);
     }
 
     @UiHandler("jobFilter")

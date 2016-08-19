@@ -26,7 +26,6 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
-import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -99,7 +98,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         View view = getView();
         view.selectionModel.clear();
         view.dataProvider.updateCurrentCriteria();
-        view.jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+        view.refreshJobsTable();
     }
 
 

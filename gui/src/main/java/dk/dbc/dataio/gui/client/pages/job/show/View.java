@@ -70,6 +70,7 @@ public class View extends ViewWidget {
 
     private boolean dataHasNotYetBeenLoaded = true;
     private boolean workFlowColumnsVisible = true;
+    private int pageSize = 20;
 
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
@@ -105,7 +106,11 @@ public class View extends ViewWidget {
      * Refreshes the content of the Jobs Table
      */
     public void refreshJobsTable() {
-        jobsTable.setVisibleRangeAndClearData(this.jobsTable.getVisibleRange(), true);
+        if (jobsTable.getVisibleRange().getLength() == pageSize) {
+            jobsTable.setVisibleRangeAndClearData(this.jobsTable.getVisibleRange(), true);
+        } else {
+            jobsTable.setVisibleRangeAndClearData(new Range(0, pageSize), true);
+        }
     }
 
     /**
@@ -115,8 +120,13 @@ public class View extends ViewWidget {
     public void loadJobsTable() {
         if (dataProvider != null && dataHasNotYetBeenLoaded) {
             dataHasNotYetBeenLoaded = false;
-            jobsTable.setVisibleRangeAndClearData(new Range(0, 20), true);
+            refreshJobsTable();
         }
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+        refreshJobsTable();
     }
 
 
@@ -228,8 +238,6 @@ public class View extends ViewWidget {
 
         pagerTop.setDisplay(jobsTable);
         pagerBottom.setDisplay(jobsTable);
-
-        jobsTable.setVisibleRange(0,20);
     }
 
     /**

@@ -228,7 +228,6 @@ public class ViewTest {
         verify(viewConcrete.jobsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_JOBSTATUS));
         verify(viewConcrete.jobsTable).setSelectionModel(isA(SingleSelectionModel.class));
         verify(viewConcrete.jobsTable).addDomHandler(isA(DoubleClickHandler.class), isA(DomEvent.Type.class));
-        verify(viewConcrete.jobsTable).setVisibleRange(0, 20);
         verifyNoMoreInteractions(viewConcrete.jobsTable);
         verify(viewConcrete.pagerTop).setDisplay(viewConcrete.jobsTable);
         verifyNoMoreInteractions(viewConcrete.pagerTop);
@@ -276,6 +275,7 @@ public class ViewTest {
 
         // Verify test
         verify(view.jobsTable, times(1)).setVisibleRangeAndClearData(any(Range.class), eq(true));
+        verify(view.jobsTable).getVisibleRange();
         verifyNoMoreInteractions(view.jobsTable);
     }
 
@@ -290,6 +290,7 @@ public class ViewTest {
 
         // Verify test
         verify(view.jobsTable, times(1)).setVisibleRangeAndClearData(any(Range.class), eq(true));
+        verify(view.jobsTable).getVisibleRange();
         verifyNoMoreInteractions(view.jobsTable);
     }
 

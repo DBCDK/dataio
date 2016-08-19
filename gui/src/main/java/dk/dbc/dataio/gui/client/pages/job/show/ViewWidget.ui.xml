@@ -134,7 +134,7 @@
 
         </g:HTMLPanel>
 
-        <c:CellTable pageSize='20' ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
+        <c:CellTable ui:field='jobsTable' addStyleNames="{style.jobsTable}"/>
         <c:SimplePager ui:field="pagerBottom"/>
 
         <g:DialogBox ui:field="rerunAllShownJobsConfirmationDialog" autoHide="true" modal="true" addStyleNames="{style.rerunJobsDialogBox}">

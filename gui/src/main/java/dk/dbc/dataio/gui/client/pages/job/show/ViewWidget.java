@@ -110,7 +110,6 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
 
     @UiHandler("numberOfShownJobsSelection")
     void numberOfShownJobsSelectionChanged(ValueChangeEvent<String> event) {
-        String value = event.getValue();
         switch (event.getValue()) {
             case "20":
                 jobsTable.setPageSize(20);

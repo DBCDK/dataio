@@ -51,6 +51,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String label_RerunJobsConfirmation();
 
+    @Constants.DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String label_NumberOfShownJobs();
+
 
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

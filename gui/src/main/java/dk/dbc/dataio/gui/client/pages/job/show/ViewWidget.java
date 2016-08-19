@@ -26,6 +26,7 @@ import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.KeyCodes;
 import com.google.gwt.event.dom.client.KeyDownEvent;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiFactory;
 import com.google.gwt.uibinder.client.UiField;
@@ -39,6 +40,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.PushButton;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
 
@@ -67,6 +69,7 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @UiField SimplePager pagerBottom;
     @UiField Button refreshButton;
     @UiField Button rerunAllShownJobsButton;
+    @UiField PromptedList numberOfShownJobsSelection;
     @UiField TextBox jobIdInputField;
     @UiField PushButton showJobButton;
     @UiField DialogBox rerunAllShownJobsConfirmationDialog;
@@ -103,6 +106,22 @@ public abstract class ViewWidget extends ContentPanel<Presenter> implements IsWi
     @SuppressWarnings("unused")
     void showJobButtonPressed(ClickEvent event) {
         presenter.showJob();
+    }
+
+    @UiHandler("numberOfShownJobsSelection")
+    void numberOfShownJobsSelectionChanged(ValueChangeEvent<String> event) {
+        String value = event.getValue();
+        switch (event.getValue()) {
+            case "20":
+                jobsTable.setPageSize(20);
+                break;
+            case "50":
+                jobsTable.setPageSize(50);
+                break;
+            case "100":
+                jobsTable.setPageSize(100);
+                break;
+        }
     }
 
     @UiHandler("jobIdInputField")

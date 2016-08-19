@@ -300,22 +300,6 @@ public class HarvestOperationTest {
     }
 
     @Test
-    public void execute_rawRepoRecordHasCommunityId_recordIsSkipped()
-            throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
-        final RecordId recordId = new RecordId("record", 870970);
-        final QueueJob queueJob = getQueueJob(recordId);
-
-        when(rawRepoConnector.dequeue(anyString()))
-                .thenReturn(queueJob)
-                .thenReturn(null);
-        when(rawRepoConnector.fetchRecord(any(RecordId.class)))
-                .thenReturn(new MockedRecord(recordId));
-
-        final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.execute(entityManager), is(0));
-    }
-
-    @Test
     public void execute_rawRepoDeleteRecordHasAgencyIdContainedInExcludedSet_recordIsProcessed()
             throws RawRepoException, SQLException, MarcXMergerException, HarvesterException {
         final RecordId recordId = new RecordId("record", 870970);
@@ -361,7 +345,7 @@ public class HarvestOperationTest {
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenReturn(record);
 
         final HarvestOperation harvestOperation = newHarvestOperation();
-        assertThat(harvestOperation.execute(entityManager), is(0));
+        harvestOperation.execute(entityManager);
         verify(rawRepoConnector, times(1)).fetchRecord(any(RecordId.class));
         verify(rawRepoConnector, times(0)).fetchRecordCollection(any(RecordId.class));
     }

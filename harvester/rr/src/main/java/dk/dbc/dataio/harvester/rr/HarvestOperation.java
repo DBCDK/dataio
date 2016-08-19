@@ -103,7 +103,7 @@ public class HarvestOperation {
      * Runs this harvest operation, creating dataIO jobs from harvested records.
      * If any non-internal error occurs a record is marked as failed.
      * @param entityManager local database entity manager
-     * @return number of records harvested and included in dataIO jobs
+     * @return number of records processed
      * @throws HarvesterException on failure to complete harvest operation
      */
     public int execute(EntityManager entityManager) throws HarvesterException {
@@ -112,45 +112,18 @@ public class HarvestOperation {
         // Since we might (re)run batches with a size larger than the one currently configured
         final int batchSize = Math.max(configContent.getBatchSize(), recordQueue.size());
 
-        int itemsHarvested = 0;
+        int itemsProcessed = 0;
         RecordId recordId = recordQueue.poll();
         while (recordId != null) {
             LOGGER.info("{} ready for harvesting", recordId);
-            Record record = null;
+
             final AddiMetaData addiMetaData = new AddiMetaData()
                     .withBibliographicRecordId(recordId.getBibliographicRecordId())
                     .withSubmitterNumber(recordId.getAgencyId());
 
-            try {
-                record = fetchRecord(recordId);
+            processRecord(recordId, addiMetaData);
 
-                DBCTrackedLogContext.setTrackingId(record.getTrackingId());
-
-                addiMetaData
-                    .withTrackingId(record.getTrackingId())
-                    .withCreationDate(getRecordCreationDate(record));
-
-                if (includeRecord(record)) {
-                    enrichAddiMetaData(addiMetaData);
-                    final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
-                    getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
-                            .addRecord(
-                                    createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
-                    itemsHarvested++;
-                }
-            } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
-                final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
-                LOGGER.error(errorMsg);
-                addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg));
-                getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
-                        .addRecord(
-                                createAddiRecord(addiMetaData, record != null ? record.getContent() : null));
-                itemsHarvested++;
-            } finally {
-                DBCTrackedLogContext.remove();
-            }
-
-            if (itemsHarvested == batchSize) {
+            if (++itemsProcessed == batchSize) {
                 break;
             }
             recordId = recordQueue.poll();
@@ -159,10 +132,40 @@ public class HarvestOperation {
 
         recordQueue.commit();
 
-        LOGGER.info("Harvested {} items from {} queue in {} ms",
-                itemsHarvested, configContent.getConsumerId(), stopWatch.getElapsedTime());
+        LOGGER.info("Processed {} items from {} queue in {} ms",
+                itemsProcessed, configContent.getConsumerId(), stopWatch.getElapsedTime());
 
-        return itemsHarvested;
+        return itemsProcessed;
+    }
+
+    protected void processRecord(RecordId recordId, AddiMetaData addiMetaData) throws HarvesterException {
+        Record record = null;
+        try {
+            record = fetchRecord(recordId);
+
+            DBCTrackedLogContext.setTrackingId(record.getTrackingId());
+
+            addiMetaData
+                    .withTrackingId(record.getTrackingId())
+                    .withCreationDate(getRecordCreationDate(record));
+
+            if (includeRecord(record)) {
+                enrichAddiMetaData(addiMetaData);
+                final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
+                getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
+                        .addRecord(
+                                createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
+            }
+        } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
+            final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
+            LOGGER.error(errorMsg);
+            getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
+                    .addRecord(
+                            createAddiRecord(addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
+                                             record != null ? record.getContent() : null));
+        } finally {
+            DBCTrackedLogContext.remove();
+        }
     }
 
     /* package scoped to enable easy override during testing */
@@ -305,7 +308,7 @@ public class HarvestOperation {
         }
         // refresh - set to merged record
         record = records.get(record.getId().getBibliographicRecordId());
-        if (record.getId().getAgencyId() == DBC_LIBRARY) {
+        if (addiMetaData.submitterNumber().orElse(0) == DBC_LIBRARY) {
             // extract agency ID from enrichment trail if the record has agency ID 191919.
             addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(record));
         }

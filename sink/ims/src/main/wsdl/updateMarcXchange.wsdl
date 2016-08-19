@@ -2,8 +2,7 @@
 <wsdl:definitions xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://oss.dbc.dk/ns/updateMarcXchange" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" name="UpdateMarcXchangeServices" targetNamespace="http://oss.dbc.dk/ns/updateMarcXchange">
   <wsdl:types>
     <xs:schema attributeFormDefault="qualified" elementFormDefault="qualified">
-      <!--<xs:include schemaLocation="updateMarcXchange.xsd" />-->
-      <xs:import namespace="updateMarcXchange.xsd" schemaLocation="updateMarcXchange.xsd"/>
+      <xs:import namespace="http://oss.dbc.dk/ns/updateMarcXchange" schemaLocation="updateMarcXchange.xsd"/>
     </xs:schema>
   </wsdl:types>
   <wsdl:message name="UpdateMarcXchangeInputMessage">

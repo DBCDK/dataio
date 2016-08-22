@@ -71,7 +71,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvestOperation_2fbs_Test {
+public class HarvestOperation_fbs_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int AGENCY_ID = 123456;
@@ -316,10 +316,6 @@ public class HarvestOperation_2fbs_Test {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
     }
 
-    public String dateToString(Date date) {
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(date);
-    }
-
     private HarvestOperation newHarvestOperation() {
         final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
                 BinaryFileStoreBeanTestUtil.getBinaryFileStoreBean(BFS_BASE_PATH_JNDI_NAME), mockedFileStoreServiceConnector, mockedJobStoreServiceConnector);
@@ -327,16 +323,6 @@ public class HarvestOperation_2fbs_Test {
         config.getContent()
                 .withFormat("format")
                 .withConsumerId(CONSUMER_ID);
-        return new ClassUnderTest(config, harvesterJobBuilderFactory);
-    }
-
-    private class ClassUnderTest extends HarvestOperation {
-        public ClassUnderTest(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
-            super(config, harvesterJobBuilderFactory);
-        }
-        @Override
-        RawRepoConnector getRawRepoConnector(RRHarvesterConfig config) {
-            return RAW_REPO_CONNECTOR;
-        }
+        return new HarvestOperation(config, harvesterJobBuilderFactory, null, RAW_REPO_CONNECTOR);
     }
 }

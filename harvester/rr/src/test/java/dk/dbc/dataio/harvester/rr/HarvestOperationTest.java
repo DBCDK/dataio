@@ -72,17 +72,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
-    private final static RecordId DBC_RECORD_ID = new RecordId("record", HarvestOperation.DBC_LIBRARY);
-    private final static RecordId RECORD_ID = new RecordId("record", 12345678);
-    private final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
-    private final static Record RECORD = new MockedRecord(RECORD_ID, true);
-    private final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
-    private final EntityManager entityManager = mock(EntityManager.class);
+    public final static RecordId DBC_RECORD_ID = new RecordId("record", HarvestOperation.DBC_LIBRARY);
+    public final static RecordId RECORD_ID = new RecordId("record", 12345678);
+    public final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
+    public final static Record RECORD = new MockedRecord(RECORD_ID, true);
+    public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
 
     static {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
+    private final EntityManager entityManager = mock(EntityManager.class);
     private final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
     private final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
     private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
@@ -479,7 +479,7 @@ public class HarvestOperationTest {
     }
 
     private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new ClassUnderTest(config, harvesterJobBuilderFactory);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, null, rawRepoConnector);
     }
 
     private HarvestOperation newHarvestOperation() {
@@ -547,15 +547,5 @@ public class HarvestOperationTest {
                 "</marcx:datafield>" +
             "</marcx:record>" +
         "</marcx:collection>";
-    }
-
-    private class ClassUnderTest extends HarvestOperation {
-        public ClassUnderTest(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
-            super(config, harvesterJobBuilderFactory);
-        }
-        @Override
-        RawRepoConnector getRawRepoConnector(RRHarvesterConfig config) {
-            return rawRepoConnector;
-        }
     }
 }

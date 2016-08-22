@@ -71,7 +71,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvesterBean_2datawell_Test {
+public class HarvesterBean_datawell_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int LOCAL_LIBRARY = 700000;
@@ -337,7 +337,7 @@ public class HarvesterBean_2datawell_Test {
             .withFormatOverridesEntry(HarvestOperation.DBC_LIBRARY, "basis")
             .withIncludeRelations(true)
             .withIncludeLibraryRules(true);
-        return new ClassUnderTest(config, harvesterJobBuilderFactory);
+        return new HarvestOperation(config, harvesterJobBuilderFactory, AGENCY_CONNECTION, RAW_REPO_CONNECTOR);
     }
 
     private void verifyHarvesterDataFiles() throws ParserConfigurationException, IOException, SAXException, JSONBException {
@@ -367,19 +367,5 @@ public class HarvesterBean_2datawell_Test {
 
     private String getRecordCreationDate(Record record) {
         return new SimpleDateFormat("yyyyMMdd").format(record.getCreated());
-    }
-
-    private class ClassUnderTest extends HarvestOperation {
-        public ClassUnderTest(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
-            super(config, harvesterJobBuilderFactory);
-        }
-        @Override
-        AgencyConnection getAgencyConnection(RRHarvesterConfig config) {
-            return AGENCY_CONNECTION;
-        }
-        @Override
-        RawRepoConnector getRawRepoConnector(RRHarvesterConfig config) {
-            return RAW_REPO_CONNECTOR;
-        }
     }
 }

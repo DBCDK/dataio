@@ -77,26 +77,31 @@ public class HarvestOperation {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
-    private final RRHarvesterConfig config;
-    private final RRHarvesterConfig.Content configContent;
-    private final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
-    private final AgencyConnection agencyConnection;
-    private final RawRepoConnector rawRepoConnector;
+    final RRHarvesterConfig config;
+    final RRHarvesterConfig.Content configContent;
+    final HarvesterJobBuilderFactory harvesterJobBuilderFactory;
+    final AgencyConnection agencyConnection;
+    final RawRepoConnector rawRepoConnector;
 
-    private final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
-    private final JSONBContext jsonbContext = new JSONBContext();
-    private final DocumentBuilder documentBuilder = getDocumentBuilder();
-    private final Transformer transformer = getTransformer();
+    final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
+    final JSONBContext jsonbContext = new JSONBContext();
+    final DocumentBuilder documentBuilder = getDocumentBuilder();
+    final Transformer transformer = getTransformer();
 
     public HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory) {
+        this(config, harvesterJobBuilderFactory, null, null);
+    }
+
+    HarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory,
+                     AgencyConnection agencyConnection, RawRepoConnector rawRepoConnector) {
         if (!hasOpenAgencyTarget(config)) {
             throw new IllegalArgumentException("No OpenAgency target configured");
         }
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.configContent = config.getContent();
         this.harvesterJobBuilderFactory = InvariantUtil.checkNotNullOrThrow(harvesterJobBuilderFactory, "harvesterJobBuilderFactory");
-        this.agencyConnection = getAgencyConnection(config);
-        this.rawRepoConnector = getRawRepoConnector(config);
+        this.agencyConnection = agencyConnection != null ? agencyConnection : getAgencyConnection(config);
+        this.rawRepoConnector = rawRepoConnector != null ? rawRepoConnector : getRawRepoConnector(config);
     }
 
     /**
@@ -168,12 +173,6 @@ public class HarvestOperation {
         }
     }
 
-    /* package scoped to enable easy override during testing */
-    AgencyConnection getAgencyConnection(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
-        return new AgencyConnection(config.getContent().getOpenAgencyTarget().getUrl());
-    }
-
-    /* package scoped to enable easy override during testing */
     RawRepoConnector getRawRepoConnector(RRHarvesterConfig config)
             throws NullPointerException, IllegalArgumentException, IllegalStateException {
         final OpenAgencyTarget openAgencyTarget = config.getContent().getOpenAgencyTarget();
@@ -200,6 +199,14 @@ public class HarvestOperation {
                 "placeholder", "placeholder", "placeholder", "placeholder", configContent.getType());
     }
 
+    RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
+        final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
+        if (rawRepoQueue.peek() != null) {
+            return rawRepoQueue;
+        }
+        return new TaskQueue(config, entityManager);
+    }
+
     int getAgencyIdFromEnrichmentTrail(Record record) throws HarvesterInvalidRecordException {
         final String enrichmentTrail = record.getEnrichmentTrail();
         if (enrichmentTrail == null || enrichmentTrail.trim().isEmpty()) {
@@ -219,6 +226,21 @@ public class HarvestOperation {
         } catch (NumberFormatException e) {
             throw new HarvesterInvalidRecordException(String.format(
                     "Record with ID %s has invalid 870* agency ID in its enrichment trail '%s'", record.getId(), enrichmentTrail));
+        }
+    }
+
+   void flushHarvesterJobBuilders() throws HarvesterException {
+        try {
+            for (Map.Entry<Integer, HarvesterJobBuilder> entry : harvesterJobBuilders.entrySet()) {
+                try {
+                    entry.getValue().build();
+                } catch (HarvesterException e) {
+                    LOGGER.error("Failed to flush HarvesterJobBuilder for {}", entry.getKey(), e);
+                    throw e;
+                }
+            }
+        } finally {
+            closeHarvesterJobBuilders();
         }
     }
 
@@ -249,21 +271,6 @@ public class HarvestOperation {
                     .newHarvesterJobBuilder(getJobSpecificationTemplate(agencyId)));
         }
         return harvesterJobBuilders.get(agencyId);
-    }
-
-    private void flushHarvesterJobBuilders() throws HarvesterException {
-        try {
-            for (Map.Entry<Integer, HarvesterJobBuilder> entry : harvesterJobBuilders.entrySet()) {
-                try {
-                    entry.getValue().build();
-                } catch (HarvesterException e) {
-                    LOGGER.error("Failed to flush HarvesterJobBuilder for {}", entry.getKey(), e);
-                    throw e;
-                }
-            }
-        } finally {
-            closeHarvesterJobBuilders();
-        }
     }
 
     private void closeHarvesterJobBuilders() {
@@ -383,14 +390,6 @@ public class HarvestOperation {
         }
     }
 
-    private RecordQueue getRecordQueue(RRHarvesterConfig config, RawRepoConnector rawRepoConnector, EntityManager entityManager) throws HarvesterException {
-        final RawRepoQueue rawRepoQueue = new RawRepoQueue(config, rawRepoConnector);
-        if (rawRepoQueue.peek() != null) {
-            return rawRepoQueue;
-        }
-        return new TaskQueue(config, entityManager);
-    }
-
     private Record fetchRecord(RecordId recordId) throws HarvesterSourceException, HarvesterInvalidRecordException {
         try {
             final Record record = rawRepoConnector.fetchRecord(recordId);
@@ -401,6 +400,10 @@ public class HarvestOperation {
         } catch (SQLException | RawRepoException e) {
             throw new HarvesterSourceException("Unable to fetch record for " + recordId + ": " + e.getMessage(), e);
         }
+    }
+
+    private AgencyConnection getAgencyConnection(RRHarvesterConfig config) throws NullPointerException, IllegalArgumentException {
+        return new AgencyConnection(config.getContent().getOpenAgencyTarget().getUrl());
     }
 
     private static DocumentBuilder getDocumentBuilder() {

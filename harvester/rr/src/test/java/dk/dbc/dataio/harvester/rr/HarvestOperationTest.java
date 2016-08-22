@@ -73,7 +73,7 @@ import static org.mockito.Mockito.when;
 
 public class HarvestOperationTest {
     public final static RecordId DBC_RECORD_ID = new RecordId("record", HarvestOperation.DBC_LIBRARY);
-    public final static RecordId RECORD_ID = new RecordId("record", 12345678);
+    public final static RecordId RECORD_ID = new RecordId("record", 710100);
     public final static String RECORD_CONTENT = getRecordContent(RECORD_ID);
     public final static Record RECORD = new MockedRecord(RECORD_ID, true);
     public final static QueueJob QUEUE_JOB = getQueueJob(RECORD_ID);
@@ -82,11 +82,11 @@ public class HarvestOperationTest {
         RECORD.setContent(RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
 
-    private final EntityManager entityManager = mock(EntityManager.class);
-    private final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
-    private final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
-    private final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
-    private final JSONBContext jsonbContext = new JSONBContext();
+    final EntityManager entityManager = mock(EntityManager.class);
+    final HarvesterJobBuilderFactory harvesterJobBuilderFactory = mock(HarvesterJobBuilderFactory.class);
+    final HarvesterJobBuilder harvesterJobBuilder = mock(HarvesterJobBuilder.class);
+    final RawRepoConnector rawRepoConnector = mock(RawRepoConnector.class);
+    final JSONBContext jsonbContext = new JSONBContext();
 
     @BeforeClass
     public static void setup() {
@@ -152,10 +152,9 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsSqlException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
-        final RecordId recordId = new RecordId("record", 870970);
-        final QueueJob queueJob = getQueueJob(recordId);
-        final Record record = new MockedRecord(recordId, true);
-        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        final QueueJob queueJob = getQueueJob(RECORD_ID);
+        final Record record = new MockedRecord(RECORD_ID, true);
+        record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -164,7 +163,7 @@ public class HarvestOperationTest {
 
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{
-                    put(recordId.getBibliographicRecordId(), record);
+                    put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
@@ -179,10 +178,9 @@ public class HarvestOperationTest {
 
     @Test
     public void execute_rawRepoConnectorFetchRecordThrowsRawRepoException_recordIsFailed() throws SQLException, RawRepoException, MarcXMergerException, HarvesterException {
-        final RecordId recordId = new RecordId("record", 870970);
-        final QueueJob queueJob = getQueueJob(recordId);
-        final Record record = new MockedRecord(recordId, true);
-        record.setContent(getDeleteRecordContent(recordId).getBytes(StandardCharsets.UTF_8));
+        final QueueJob queueJob = getQueueJob(RECORD_ID);
+        final Record record = new MockedRecord(RECORD_ID, true);
+        record.setContent(getDeleteRecordContent(RECORD_ID).getBytes(StandardCharsets.UTF_8));
         record.setDeleted(true);
 
         when(rawRepoConnector.dequeue(anyString()))
@@ -191,7 +189,7 @@ public class HarvestOperationTest {
 
         when(rawRepoConnector.fetchRecordCollection(any(RecordId.class)))
                 .thenReturn(new HashMap<String, Record>() {{
-                    put(recordId.getBibliographicRecordId(), record);
+                    put(RECORD_ID.getBibliographicRecordId(), record);
                 }});
 
         when(rawRepoConnector.fetchRecord(any(RecordId.class))).thenThrow(new SQLException());
@@ -478,11 +476,11 @@ public class HarvestOperationTest {
         verify(entityManager).createNamedQuery(HarvestTask.QUERY_FIND_READY);
     }
 
-    private HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
+    public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
         return new HarvestOperation(config, harvesterJobBuilderFactory, null, rawRepoConnector);
     }
 
-    private HarvestOperation newHarvestOperation() {
+    public HarvestOperation newHarvestOperation() {
         return newHarvestOperation(HarvesterTestUtil.getRRHarvesterConfig());
     }
 

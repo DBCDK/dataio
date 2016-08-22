@@ -43,7 +43,7 @@ public class ImsHarvestOperation extends HarvestOperation {
 
     private final HoldingsItemsConnector holdingsItemsConnector;
 
-    public ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory, Set<Integer> imsLibraries)
+    public ImsHarvestOperation(RRHarvesterConfig config, HarvesterJobBuilderFactory harvesterJobBuilderFactory)
             throws NullPointerException, IllegalArgumentException {
         this(config, harvesterJobBuilderFactory, null, null, null);
     }

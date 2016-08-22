@@ -71,7 +71,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class HarvesterBean_datawell_Test {
+public class HarvestOperation_datawell_Test {
     private static final Date QUEUED_TIME = new Date(1467277697583L); // 2016-06-30 11:08:17.583
     private static final String CONSUMER_ID = "consumerId";
     private static final int LOCAL_LIBRARY = 700000;

@@ -115,10 +115,13 @@ public class HarvesterBean {
         }
     }
 
-    /* Stand-alone method to enable easy injection during testing (via partial mocking)
-     */
     public HarvestOperation getHarvestOperation(RRHarvesterConfig config) {
-        return new HarvestOperation(config, new HarvesterJobBuilderFactory(
-                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector()));
+        final HarvesterJobBuilderFactory harvesterJobBuilderFactory = new HarvesterJobBuilderFactory(
+                binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
+
+        if (config.getContent().isImsHarvester()) {
+            return new ImsHarvestOperation(config, harvesterJobBuilderFactory);
+        }
+        return new HarvestOperation(config, harvesterJobBuilderFactory);
     }
 }

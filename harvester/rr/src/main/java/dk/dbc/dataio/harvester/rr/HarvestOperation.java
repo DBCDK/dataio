@@ -62,7 +62,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -83,7 +83,7 @@ public class HarvestOperation {
     final AgencyConnection agencyConnection;
     final RawRepoConnector rawRepoConnector;
 
-    final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new HashMap<>();
+    final Map<Integer, HarvesterJobBuilder> harvesterJobBuilders = new LinkedHashMap<>();
     final JSONBContext jsonbContext = new JSONBContext();
     final DocumentBuilder documentBuilder = getDocumentBuilder();
     final Transformer transformer = getTransformer();

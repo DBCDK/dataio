@@ -116,9 +116,11 @@ public class HarvestOperation_datawell_Test {
         FIRST_RECORD.setEnrichmentTrail("191919,870970");
         FIRST_RECORD.setTrackingId("tracking id");
         FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setTrackingId("tracking id");
+        FIRST_RECORD_WITHOUT_ENRICHMENT_TRAIL.setCreated(FIRST_RECORD.getCreated());
         SECOND_RECORD.setContent(SECOND_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setContent(THIRD_RECORD_CONTENT.getBytes(StandardCharsets.UTF_8));
         THIRD_RECORD.setEnrichmentTrail("191919,870970");
+        THIRD_RECORD_WITHOUT_ENRICHMENT_TRAIL.setCreated(THIRD_RECORD.getCreated());
     }
 
     private final EntityManager entityManager = mock(EntityManager.class);

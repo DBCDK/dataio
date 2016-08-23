@@ -27,8 +27,9 @@ import dk.dbc.oss.ns.openagency.LibraryRules;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -111,9 +112,9 @@ public class OpenAgencyConnectorTest {
 
     @Test
     public void getFbsImsLibraries_returnsSetOfAgencyIds() throws OpenAgencyConnectorException {
+        final Set<Integer> expectedAgencyIds = Stream.of(710100, 737000, 754000, 775100, 785100).collect(Collectors.toSet());
         final Set<Integer> agencyIds = getFbsImsLibraries();
-        // TODO: 8/23/16 This test should be re-recorded when the VIP base is finally updated, in which case a non-empty set is to be expected.
-        assertThat(agencyIds, is(Collections.emptySet()));
+        assertThat(agencyIds, is(expectedAgencyIds));
     }
 
     private Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {

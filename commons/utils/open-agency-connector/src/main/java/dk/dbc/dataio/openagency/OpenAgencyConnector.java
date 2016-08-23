@@ -21,9 +21,11 @@
 
 package dk.dbc.dataio.openagency;
 
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.oss.ns.openagency.ErrorType;
 import dk.dbc.oss.ns.openagency.Information;
+import dk.dbc.oss.ns.openagency.LibraryRule;
 import dk.dbc.oss.ns.openagency.LibraryRules;
 import dk.dbc.oss.ns.openagency.LibraryRulesRequest;
 import dk.dbc.oss.ns.openagency.LibraryRulesResponse;
@@ -38,6 +40,8 @@ import org.slf4j.LoggerFactory;
 import javax.xml.ws.BindingProvider;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OpenAgencyConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenAgencyConnector.class);
@@ -46,6 +50,8 @@ public class OpenAgencyConnector {
     private static final String REQUEST_TIMEOUT_PROPERTY   = "com.sun.xml.ws.request.timeout";
     private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 30 * 1000;     // 30 seconds
     private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 30 * 1000;     // 30 seconds
+
+    private static final LibraryRulesRequest fbsImsLibrariesRequest = getFbsImsLibrariesRequest();
 
     private final String endpoint;
 
@@ -79,6 +85,7 @@ public class OpenAgencyConnector {
      * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
      */
     public Optional<Information> getAgencyInformation(long agencyId) throws OpenAgencyConnectorException {
+        final StopWatch stopWatch = new StopWatch();
         try {
             final ServiceRequest serviceRequest = new ServiceRequest();
             serviceRequest.setAgencyId(Long.toString(agencyId));
@@ -101,6 +108,8 @@ public class OpenAgencyConnector {
         } catch (RuntimeException e) {
            throw new OpenAgencyConnectorException(
                    "Exception caught during information retrieval for agency ID " + agencyId, e);
+        } finally {
+            LOGGER.info("getAgencyInformation() operation took {} ms", stopWatch.getElapsedTime());
         }
     }
 
@@ -112,6 +121,7 @@ public class OpenAgencyConnector {
      * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
      */
     public Optional<LibraryRules> getLibraryRules(long agencyId, String trackingId) throws OpenAgencyConnectorException {
+        final StopWatch stopWatch = new StopWatch();
         try {
             final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
             libraryRulesRequest.setAgencyId(Long.toString(agencyId));
@@ -131,11 +141,40 @@ public class OpenAgencyConnector {
             }
 
             throw new OpenAgencyConnectorException(
-                    "Information retrieval for agency ID " + agencyId + " returned error " + error);
+                    "Library rules retrieval for agency ID " + agencyId + " returned error " + error);
 
         } catch (RuntimeException e) {
            throw new OpenAgencyConnectorException(
-                   "Exception caught during information retrieval for agency ID " + agencyId, e);
+                   "Exception caught during library rules retrieval for agency ID " + agencyId, e);
+        } finally {
+            LOGGER.info("getLibraryRules() operation took {} ms", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves set of FBS IMS agency IDs
+     * @return set of FBS IMS agency IDs
+     * @throws OpenAgencyConnectorException in case of JAX-WS API runtime exception or service error
+     */
+    public Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final LibraryRulesResponse libraryRulesResponse = getProxy().libraryRules(fbsImsLibrariesRequest);
+
+            final ErrorType error = libraryRulesResponse.getError();
+            if (error != null) {
+                throw new OpenAgencyConnectorException("FBS IMS libraries retrieval returned error " + error);
+            }
+
+            return libraryRulesResponse.getLibraryRules().stream()
+                    .map(LibraryRules::getAgencyId)
+                    .map(Integer::valueOf)
+                    .collect(Collectors.toSet());
+
+        } catch (RuntimeException e) {
+           throw new OpenAgencyConnectorException("Exception caught during FBS IMS libraries retrieval", e);
+        } finally {
+            LOGGER.info("getFbsImsLibraries() operation took {} ms", stopWatch.getElapsedTime());
         }
     }
 
@@ -153,5 +192,18 @@ public class OpenAgencyConnector {
         bindingProvider.getRequestContext().put(REQUEST_TIMEOUT_PROPERTY, REQUEST_TIMEOUT_DEFAULT_IN_MS);
 
         return proxy;
+    }
+
+    private static LibraryRulesRequest getFbsImsLibrariesRequest() {
+        final LibraryRulesRequest libraryRulesRequest = new LibraryRulesRequest();
+        final LibraryRule imsLibraryRule = new LibraryRule();
+        imsLibraryRule.setName("ims_library");
+        imsLibraryRule.setBool(true);
+        libraryRulesRequest.getLibraryRule().add(imsLibraryRule);
+        final LibraryRule createEnrichmentLibraryRule = new LibraryRule();
+        createEnrichmentLibraryRule.setName("create_enrichments");
+        createEnrichmentLibraryRule.setBool(true);
+        libraryRulesRequest.getLibraryRule().add(createEnrichmentLibraryRule);
+        return libraryRulesRequest;
     }
 }

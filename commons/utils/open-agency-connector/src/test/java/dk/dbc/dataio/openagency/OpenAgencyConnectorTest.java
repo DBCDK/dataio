@@ -27,6 +27,9 @@ import dk.dbc.oss.ns.openagency.LibraryRules;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Collections;
+import java.util.Set;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -104,5 +107,20 @@ public class OpenAgencyConnectorTest {
     void recordLibraryRulesRequests() throws OpenAgencyConnectorException {
         getLibraryRulesForExistingAgency();
         getLibraryRulesForNonExistingAgency();
+    }
+
+    @Test
+    public void getFbsImsLibraries_returnsSetOfAgencyIds() throws OpenAgencyConnectorException {
+        final Set<Integer> agencyIds = getFbsImsLibraries();
+        // TODO: 8/23/16 This test should be re-recorded when the VIP base is finally updated, in which case a non-empty set is to be expected.
+        assertThat(agencyIds, is(Collections.emptySet()));
+    }
+
+    private Set<Integer> getFbsImsLibraries() throws OpenAgencyConnectorException {
+        return openAgencyConnector.getFbsImsLibraries();
+    }
+
+    void recordGetFbsImsLibrariesRequests() throws OpenAgencyConnectorException {
+        getFbsImsLibraries();
     }
 }

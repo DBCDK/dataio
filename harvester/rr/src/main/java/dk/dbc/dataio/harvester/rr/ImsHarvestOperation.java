@@ -36,7 +36,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ImsHarvestOperation extends HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsHarvestOperation.class);
@@ -72,8 +71,7 @@ public class ImsHarvestOperation extends HarvestOperation {
 
         Set<Integer> imsLibraries = null;
         if (recordQueue.size() > 0) {
-            // TODO: 8/22/16 Replace with open-agency call
-            imsLibraries = Stream.of(710100, 737000, 775100, 785100).collect(Collectors.toSet());
+            imsLibraries = agencyConnection.getFbsImsLibraries();
         }
 
         int itemsProcessed = 0;

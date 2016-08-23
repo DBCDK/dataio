@@ -140,7 +140,7 @@ public class HarvestOperation_ims_Test {
     }
 
     @Before
-    public void setupMocks() throws IOException, RawRepoException, SQLException {
+    public void setupMocks() throws IOException, RawRepoException, SQLException, HarvesterException {
         // Enable JNDI lookup of base path for BinaryFileStoreBean
         final File testFolder = tmpFolder.newFolder();
         InMemoryInitialContextFactory.bind(BFS_BASE_PATH_JNDI_NAME, testFolder.toString());
@@ -151,7 +151,7 @@ public class HarvestOperation_ims_Test {
                 .thenReturn(SECOND_QUEUE_JOB)
                 .thenReturn(null);
 
-        // Mock holdings-items lookup
+        // Mock agency-connection and holdings-items lookup
         final Set<Integer> imsLibraries = Stream.of(710100, 737000, 775100, 785100).collect(Collectors.toSet());
         final Set<Integer> hasHoldingsResponse = new LinkedHashSet<>();
         hasHoldingsResponse.add(710100);
@@ -159,6 +159,7 @@ public class HarvestOperation_ims_Test {
         hasHoldingsResponse.add(123456);
         when(holdingsItemsConnector.hasHoldings(FIRST_RECORD_ID.getBibliographicRecordId(), imsLibraries))
                 .thenReturn(hasHoldingsResponse);
+        when(agencyConnection.getFbsImsLibraries()).thenReturn(imsLibraries);
 
         // Intercept harvester data files with mocked FileStoreServiceConnectorBean
         harvesterDataFileWith710100 = tmpFolder.newFile();

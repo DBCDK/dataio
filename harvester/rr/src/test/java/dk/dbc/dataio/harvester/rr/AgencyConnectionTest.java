@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData.LibraryRules;
+import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import dk.dbc.oss.ns.openagency.LibraryRule;
@@ -106,6 +107,12 @@ public class AgencyConnectionTest {
         agencyConnection.getLibraryRules(123456, null);
 
         verify(connector, times(2)).getLibraryRules(123456, null);
+    }
+
+    @Test
+    public void getFbsImsLibraries_connectorThrows_throws() throws OpenAgencyConnectorException {
+        when(connector.getFbsImsLibraries()).thenThrow(new OpenAgencyConnectorException("died"));
+        assertThat(() -> createAgencyConnection().getFbsImsLibraries(), isThrowing(HarvesterException.class));
     }
 
     private AgencyConnection createAgencyConnection() {

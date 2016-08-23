@@ -27,6 +27,7 @@ import dk.dbc.dataio.harvester.utils.holdingsitems.HoldingsItemsConnector;
 import dk.dbc.rawrepo.QueueJob;
 import dk.dbc.rawrepo.RawRepoException;
 import dk.dbc.rawrepo.RecordId;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -47,7 +48,13 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
     private final static Set<Integer> IMS_LIBRARIES = Stream.of(710100, 737000, 775100, 785100)
             .collect(Collectors.toSet());
 
+    private final AgencyConnection agencyConnection = mock(AgencyConnection.class);
     private final HoldingsItemsConnector holdingsItemsConnector = mock(HoldingsItemsConnector.class);
+
+    @Before
+    public void setupImsHarvestOperationTestMocks() throws HarvesterException {
+        when(agencyConnection.getFbsImsLibraries()).thenReturn(IMS_LIBRARIES);
+    }
 
     @Test
     public void execute_harvestedRecordHasNonDbcAndNonImsAgencyId_recordIsSkipped() throws HarvesterException, RawRepoException, SQLException {
@@ -132,6 +139,6 @@ public class ImsHarvestOperationTest extends HarvestOperationTest {
 
     @Override
     public HarvestOperation newHarvestOperation(RRHarvesterConfig config) {
-        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, null, rawRepoConnector, holdingsItemsConnector);
+        return new ImsHarvestOperation(config, harvesterJobBuilderFactory, agencyConnection, rawRepoConnector, holdingsItemsConnector);
     }
 }

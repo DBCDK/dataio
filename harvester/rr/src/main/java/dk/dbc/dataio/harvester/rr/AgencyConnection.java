@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.rr;
 
 import dk.dbc.dataio.commons.types.AddiMetaData.LibraryRules;
+import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.OpenAgencyConnectorException;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * This class is wrapper for OpenAgency web-service communication.
@@ -88,5 +90,18 @@ public class AgencyConnection {
                 throw new IllegalStateException("Error while looking up library rules for agency ID " + id, e);
             }
         });
+    }
+
+    /**
+     * Retrieves FBS IMS libraries
+     * @return set of agency IDs
+     * @throws HarvesterException on error communicating with the OpenAgency web-service
+     */
+    public Set<Integer> getFbsImsLibraries() throws HarvesterException {
+        try {
+            return connector.getFbsImsLibraries();
+        } catch (OpenAgencyConnectorException e) {
+            throw new HarvesterException("Error while looking up FBS IMS libraries", e);
+        }
     }
 }

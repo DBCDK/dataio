@@ -53,6 +53,7 @@ public class MarcXchangeRecordUnmarshaller {
         final JAXBElement<CollectionType> jaxbCollection = unmarshaller.unmarshal(new StreamSource(byteArrayInputStream), CollectionType.class);
         final MarcXchangeRecord marcXchangeRecord = new MarcXchangeRecord();
         marcXchangeRecord.setCollection(jaxbCollection.getValue());
+        marcXchangeRecord.setMarcXchangeRecordId(String.valueOf(chunkItem.getId()));
         return marcXchangeRecord;
     }
 }

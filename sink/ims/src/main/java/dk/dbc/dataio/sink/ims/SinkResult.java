@@ -50,16 +50,14 @@ public class SinkResult {
             switch (chunkItem.getStatus()) {
                 case SUCCESS:
                     try {
-                        final MarcXchangeRecord marcXchangeRecord = marcXchangeRecordUnmarshaller.toMarcXchangeRecord(chunkItem);
-                        marcXchangeRecord.setMarcXchangeRecordId(String.valueOf(chunkItem.getId()));
-                        marcXchangeRecords.add(marcXchangeRecord);
-                        break;
+                        marcXchangeRecords.add(marcXchangeRecordUnmarshaller.toMarcXchangeRecord(chunkItem));
                     } catch (JAXBException e) {
                         final ChunkItem failedChunkItem = ObjectFactory.buildFailedChunkItem(
                                 chunkItem.getId(), "Error occured while unmarshalling JAXBElement", ChunkItem.Type.STRING);
                         failedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage(), e));
                         chunkItems.add((int) chunkItem.getId(), failedChunkItem);
                     }
+                    break;
 
                 case FAILURE:
                     chunkItems.add((int) chunkItem.getId(), ObjectFactory.buildIgnoredChunkItem(

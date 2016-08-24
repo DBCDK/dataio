@@ -56,9 +56,10 @@ public class ImsServiceConnector {
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
     }
 
-    /** todo make doc corrent
+    /**
      * Calls updateMarcXchange operation of the ims Web service
      * @param trackingId unique ID for each chunk within the job
+     * @param marcXchangeRecords list of marcXchange records to set on updateMarcXchangeRequest
      * @return list containing UpdateMarcXchangeResults
      * @throws WebServiceException on failure communicating with the ims web service
      */

@@ -132,17 +132,17 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
             } else {
                 final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
                 final byte[] content = addiRecord.getContentData();
-                final Optional<Diagnostic> diagnostic = addiMetaData.diagnostic();
-                if (diagnostic.isPresent()) {
+                final Diagnostic diagnostic = addiMetaData.diagnostic();
+                if (diagnostic != null) {
                     chunkItem = ChunkItem.failedChunkItem()
-                            .withTrackingId(addiMetaData.trackingId().orElse(null))
+                            .withTrackingId(addiMetaData.trackingId())
                             .withData(addiRecord.getBytes())
                             .withEncoding(encoding)
-                            .withDiagnostics(diagnostic.get())
+                            .withDiagnostics(diagnostic)
                             .withType(ChunkItem.Type.ADDI, getChunkItemType());
                 } else {
                     chunkItem = ChunkItem.successfulChunkItem()
-                            .withTrackingId(addiMetaData.trackingId().orElse(null))
+                            .withTrackingId(addiMetaData.trackingId())
                             .withData(content)
                             .withEncoding(encoding)
                             .withType(getChunkItemType());
@@ -166,6 +166,6 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
     }
 
     protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
-        return Optional.of(new RecordInfo(addiMetaData.bibliographicRecordId().orElse(null)));
+        return Optional.of(new RecordInfo(addiMetaData.bibliographicRecordId()));
     }
 }

@@ -176,7 +176,7 @@ public class DataContainerTest {
         assertThat(document, hasXPath("count(/dataio-harvester-datafile/data-container/data-supplementary/*)",
                 equalTo("2")));
         assertThat(document, hasXPath("/dataio-harvester-datafile/data-container/data-supplementary/agencyType/text()",
-                equalTo(libraryRules.agencyType().get())));
+                equalTo(libraryRules.agencyType())));
         assertThat(document, hasXPath("/dataio-harvester-datafile/data-container/data-supplementary/rules/rule1[text() = 'true']"));
         assertThat(document, hasXPath("/dataio-harvester-datafile/data-container/data-supplementary/rules/rule2[text() = 'false']"));
     }

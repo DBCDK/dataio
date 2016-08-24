@@ -490,7 +490,7 @@ public class HarvestOperationTest {
             final AddiMetaData addiMetaData = jsonbContext.unmarshall(
                     new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
             assertThat("Addi record metadata", addiMetaData, is(notNullValue()));
-            assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic().isPresent(), is(true));
+            assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic(), is(notNullValue()));
         } catch (JSONBException e) {
             throw new IllegalStateException(e);
         }

@@ -25,9 +25,8 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;
 
-import java.util.Optional;
-
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
 
 public class AddiMetaDataTest {
@@ -41,10 +40,10 @@ public class AddiMetaDataTest {
     @Test
     public void emptyAddiMetaData_gettersReturnEmptyOptional() {
         final AddiMetaData addiMetaData = new AddiMetaData();
-        assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(Optional.empty()));
-        assertThat("format()", addiMetaData.format(), is(Optional.empty()));
-        assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is(Optional.empty()));
-        assertThat("trackingId()", addiMetaData.trackingId(), is(Optional.empty()));
+        assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(nullValue()));
+        assertThat("format()", addiMetaData.format(), is(nullValue()));
+        assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is(nullValue()));
+        assertThat("trackingId()", addiMetaData.trackingId(), is(nullValue()));
     }
 
     @Test
@@ -54,10 +53,10 @@ public class AddiMetaDataTest {
                 .withFormat("marc2")
                 .withBibliographicRecordId("id")
                 .withTrackingId("trackedAs");
-        assertThat("submitterNumber()", addiMetaData.submitterNumber().orElse(null), is(42));
-        assertThat("format()", addiMetaData.format().orElse(null), is("marc2"));
-        assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId().orElse(null), is("id"));
-        assertThat("trackingId()", addiMetaData.trackingId().orElse(null), is("trackedAs"));
+        assertThat("submitterNumber()", addiMetaData.submitterNumber(), is(42));
+        assertThat("format()", addiMetaData.format(), is("marc2"));
+        assertThat("bibliographicRecordId()", addiMetaData.bibliographicRecordId(), is("id"));
+        assertThat("trackingId()", addiMetaData.trackingId(), is("trackedAs"));
     }
 
     @Test

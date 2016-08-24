@@ -49,7 +49,7 @@ public class AddiFileVerifier {
             final AddiRecord addiRecord = addiReader.next();
             final AddiMetaData addiMetaData = jsonbContext.unmarshall(new String(addiRecord.getMetaData(), StandardCharsets.UTF_8), AddiMetaData.class);
             assertThat(addiMetaData, is(addiMetaDataList.get(recordNo)));
-            if (!addiMetaData.diagnostic().isPresent()) {
+            if (addiMetaData.diagnostic() == null) {
                 final Document document = xmlUtil.toDocument(addiRecord.getContentData());
                 xmlExpectations.get(recordNo).verify(document.getDocumentElement());
             }

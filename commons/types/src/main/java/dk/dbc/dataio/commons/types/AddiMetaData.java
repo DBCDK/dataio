@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Class representing Addi format meta data content
@@ -59,8 +58,8 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<Integer> submitterNumber() {
-        return Optional.ofNullable(submitter);
+    public Integer submitterNumber() {
+        return submitter;
     }
 
     public AddiMetaData withFormat(String format) {
@@ -68,8 +67,8 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<String> format() {
-        return Optional.ofNullable(format);
+    public String format() {
+        return format;
     }
 
     public AddiMetaData withBibliographicRecordId(String bibliographicRecordId) {
@@ -77,8 +76,8 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<String> bibliographicRecordId() {
-        return Optional.ofNullable(bibliographicRecordId);
+    public String bibliographicRecordId() {
+        return bibliographicRecordId;
     }
 
     public AddiMetaData withTrackingId(String trackingId) {
@@ -86,8 +85,8 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<String> trackingId() {
-        return Optional.ofNullable(trackingId);
+    public String trackingId() {
+        return trackingId;
     }
 
     public AddiMetaData withCreationDate(Date creationDate) {
@@ -97,12 +96,11 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<Date> creationDate() {
-        final Optional<Date> date = Optional.ofNullable(creationDate);
-        if (date.isPresent()) {
-            return Optional.of(new Date(date.get().getTime()));
+    public Date creationDate() {
+        if (creationDate != null) {
+            return new Date(creationDate().getTime());
         }
-        return date;
+        return null;
     }
 
     public AddiMetaData withEnrichmentTrail(String enrichmentTrail) {
@@ -110,8 +108,8 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<String> enrichmentTrail() {
-        return Optional.ofNullable(enrichmentTrail);
+    public String enrichmentTrail() {
+        return enrichmentTrail;
     }
 
     public AddiMetaData withDiagnostic(Diagnostic diagnostic) {
@@ -119,12 +117,12 @@ public class AddiMetaData {
         return this;
     }
 
-    public Optional<Diagnostic> diagnostic() {
-        return Optional.ofNullable(diagnostic);
+    public Diagnostic diagnostic() {
+        return diagnostic;
     }
 
-    public Optional<LibraryRules> libraryRules() {
-        return Optional.ofNullable(libraryRules);
+    public LibraryRules libraryRules() {
+        return libraryRules;
     }
 
     public AddiMetaData withLibraryRules(LibraryRules libraryRules) {
@@ -207,8 +205,8 @@ public class AddiMetaData {
             return this;
         }
 
-        public Optional<String> agencyType() {
-            return Optional.ofNullable(agencyType);
+        public String agencyType() {
+            return agencyType;
         }
 
         public LibraryRules withLibraryRule(String rule, Boolean value) {

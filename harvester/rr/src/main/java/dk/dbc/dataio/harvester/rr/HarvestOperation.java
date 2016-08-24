@@ -157,14 +157,14 @@ public class HarvestOperation {
             if (includeRecord(record)) {
                 enrichAddiMetaData(addiMetaData);
                 final HarvesterXmlRecord xmlContentForRecord = getXmlContentForEnrichedRecord(record, addiMetaData);
-                getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
+                getHarvesterJobBuilder(addiMetaData.submitterNumber())
                         .addRecord(
                                 createAddiRecord(addiMetaData, xmlContentForRecord.asBytes()));
             }
         } catch (HarvesterInvalidRecordException | HarvesterSourceException e) {
             final String errorMsg = String.format("Harvesting RawRepo %s failed: %s", recordId, e.getMessage());
             LOGGER.error(errorMsg);
-            getHarvesterJobBuilder(addiMetaData.submitterNumber().orElse(0))
+            getHarvesterJobBuilder(addiMetaData.submitterNumber())
                     .addRecord(
                             createAddiRecord(addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, errorMsg)),
                                              record != null ? record.getContent() : null));
@@ -286,11 +286,10 @@ public class HarvestOperation {
 
     private void enrichAddiMetaData(AddiMetaData addiMetaData) {
         if (configContent.hasIncludeLibraryRules()) {
-            int agencyId = addiMetaData.submitterNumber().get();
+            int agencyId = addiMetaData.submitterNumber();
             if (!isDbcAgencyId(agencyId)) {
                 addiMetaData.withLibraryRules(
-                        agencyConnection.getLibraryRules(
-                                agencyId, addiMetaData.trackingId().orElse(null)));
+                        agencyConnection.getLibraryRules(agencyId, addiMetaData.trackingId()));
             }
         }
     }
@@ -315,12 +314,12 @@ public class HarvestOperation {
         }
         // refresh - set to merged record
         record = records.get(record.getId().getBibliographicRecordId());
-        if (addiMetaData.submitterNumber().orElse(0) == DBC_LIBRARY) {
+        if (addiMetaData.submitterNumber() == DBC_LIBRARY) {
             // extract agency ID from enrichment trail if the record has agency ID 191919.
             addiMetaData.withSubmitterNumber(getAgencyIdFromEnrichmentTrail(record));
         }
         addiMetaData.withEnrichmentTrail(record.getEnrichmentTrail());
-        addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber().orElse(0)));
+        addiMetaData.withFormat(getFormat(addiMetaData.submitterNumber()));
 
         //// TODO: 6/24/16 We should teach our javascript to work with addi records - this would remove the need for XML-DOM functionality below.
 
@@ -329,7 +328,7 @@ public class HarvestOperation {
         dataContainer.setCreationDate(record.getCreated());
         dataContainer.setEnrichmentTrail(record.getEnrichmentTrail());
         dataContainer.setTrackingId(record.getTrackingId());
-        dataContainer.setLibraryRules(addiMetaData.libraryRules().orElse(null));
+        dataContainer.setLibraryRules(addiMetaData.libraryRules());
         dataContainer.setData(marcExchangeCollection.asDocument().getDocumentElement());
 
         return dataContainer;

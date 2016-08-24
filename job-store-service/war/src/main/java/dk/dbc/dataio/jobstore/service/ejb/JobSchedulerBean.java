@@ -276,6 +276,7 @@ public class JobSchedulerBean {
      *  Set alle sinks to BulkMode to ensure progress on redeploy of service
      */
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
+    @Stopwatch
     public void loadSinkStatusOnBootstrap() {
         List<SinkIdStatusCountResult> res=entityManager.createNamedQuery("SinkIdStatusCount").getResultList();
 

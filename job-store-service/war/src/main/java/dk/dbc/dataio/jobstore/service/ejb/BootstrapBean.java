@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,6 @@ import javax.ejb.Startup;
 @DependsOn("StartupDBMigrator")
 public class BootstrapBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapBean.class);
-    private static final int CACHE_MAX_ENTRIES = 100;
 
     @EJB
     PgJobStoreRepository jobStoreRepository;
@@ -49,7 +47,6 @@ public class BootstrapBean {
     JobSchedulerBean jobSchedulerBean;
 
     @PostConstruct
-    @Stopwatch
     public void initialize() {
         jobStoreRepository.purgeReorderedItems();
         resetJobsInterruptedDuringPartitioning();

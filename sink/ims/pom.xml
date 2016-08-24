@@ -35,7 +35,6 @@
   <packaging>war</packaging>
 
   <properties>
-    <!--<wsdl.url>https://cicero-test3.systematic.com/UpdateMarcXchangeServices</wsdl.url>-->
     <logback.jndi.resource>${jndi.url.sink.ims.logback}</logback.jndi.resource>
   </properties>
 

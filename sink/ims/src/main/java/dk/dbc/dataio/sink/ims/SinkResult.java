@@ -30,18 +30,19 @@ import dk.dbc.oss.ns.updatemarcxchange.UpdateMarcXchangeStatusEnum;
 
 import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
 public class SinkResult {
 
-    private final List<ChunkItem> chunkItems;
+    private final ChunkItem[] chunkItems;
     private final List<MarcXchangeRecord> marcXchangeRecords;
     private final long jobId;
     private final long chunkId;
 
     public SinkResult(Chunk chunk, MarcXchangeRecordUnmarshaller marcXchangeRecordUnmarshaller) {
-        chunkItems = new ArrayList<>(chunk.size());
+        chunkItems = new ChunkItem[chunk.size()];
         marcXchangeRecords = new ArrayList<>();
         jobId = chunk.getJobId();
         chunkId = chunk.getChunkId();
@@ -52,21 +53,22 @@ public class SinkResult {
                     try {
                         marcXchangeRecords.add(marcXchangeRecordUnmarshaller.toMarcXchangeRecord(chunkItem));
                     } catch (JAXBException e) {
+                        final String message = "Error occurred while unmarshalling JAXBElement";
                         final ChunkItem failedChunkItem = ObjectFactory.buildFailedChunkItem(
-                                chunkItem.getId(), "Error occured while unmarshalling JAXBElement", ChunkItem.Type.STRING);
-                        failedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage(), e));
-                        chunkItems.add((int) chunkItem.getId(), failedChunkItem);
+                                chunkItem.getId(), message, ChunkItem.Type.STRING);
+                        failedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message, e));
+                        chunkItems[((int) chunkItem.getId())] = failedChunkItem;
                     }
                     break;
 
                 case FAILURE:
-                    chunkItems.add((int) chunkItem.getId(), ObjectFactory.buildIgnoredChunkItem(
-                            chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId()));
+                    chunkItems[((int) chunkItem.getId())] = ObjectFactory.buildIgnoredChunkItem(
+                            chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId());
                     break;
 
                 case IGNORE:
-                    chunkItems.add((int) chunkItem.getId(), ObjectFactory.buildIgnoredChunkItem(
-                            chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId()));
+                    chunkItems[((int) chunkItem.getId())] = ObjectFactory.buildIgnoredChunkItem(
+                            chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId());
                     break;
             }
         }
@@ -80,11 +82,11 @@ public class SinkResult {
         for(UpdateMarcXchangeResult updateMarcXchangeResult : updateMarcXchangeResults) {
             final String itemData = buildItemData(updateMarcXchangeResult);
             if(updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
-                chunkItems.add(Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId()),
-                        ObjectFactory.buildSuccessfulChunkItem(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()), itemData, ChunkItem.Type.STRING));
+                chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
+                        ObjectFactory.buildSuccessfulChunkItem(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()), itemData, ChunkItem.Type.STRING);
             } else {
-                chunkItems.add(Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId()),
-                        ObjectFactory.buildFailedChunkItem(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()), itemData, ChunkItem.Type.STRING));
+                chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
+                        ObjectFactory.buildFailedChunkItem(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()), itemData, ChunkItem.Type.STRING);
             }
         }
     }
@@ -95,7 +97,7 @@ public class SinkResult {
 
     public Chunk toChunk() {
         Chunk chunk = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
-        chunk.addAllItems(chunkItems);
+        chunk.addAllItems(new ArrayList<>(Arrays.asList(chunkItems)));
         return chunk;
     }
 

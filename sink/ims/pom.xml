@@ -35,6 +35,7 @@
   <packaging>war</packaging>
 
   <properties>
+    <!--<wsdl.url>https://cicero-test3.systematic.com/UpdateMarcXchangeServices</wsdl.url>-->
     <logback.jndi.resource>${jndi.url.sink.ims.logback}</logback.jndi.resource>
   </properties>
 
@@ -51,31 +52,57 @@
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-invariant</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-flow-store-service-connector</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-job-store-service-connector</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-sink-types</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
-      <!--<plugin>-->
-        <!--<groupId>org.jvnet.jax-ws-commons</groupId>-->
-        <!--<artifactId>jaxws-maven-plugin</artifactId>-->
-        <!--<version>2.3</version>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<phase>generate-resources</phase>-->
-            <!--<goals>-->
-              <!--<goal>wsimport</goal>-->
-            <!--</goals>-->
-            <!--<configuration>-->
-              <!--<vmArgs>-->
-                <!--<vmArg>-Djavax.xml.accessExternalDTD=all</vmArg>-->
-                <!--<vmArg>-Djavax.xml.accessExternalStylesheet=all</vmArg>-->
-                <!--<vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>-->
-              <!--</vmArgs>-->
-              <!--<target>2.2</target>-->
-              <!--<wsdlDirectory>${basedir}/src/main/wsdl</wsdlDirectory>-->
-            <!--</configuration>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
+      <plugin>
+        <groupId>org.jvnet.jax-ws-commons</groupId>
+        <artifactId>jaxws-maven-plugin</artifactId>
+        <version>2.3</version>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>wsimport</goal>
+            </goals>
+            <configuration>
+              <vmArgs>
+                <vmArg>-Djavax.xml.accessExternalDTD=all</vmArg>
+                <vmArg>-Djavax.xml.accessExternalStylesheet=all</vmArg>
+                <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
+              </vmArgs>
+              <target>2.2</target>
+              <wsdlDirectory>${basedir}/src/main/wsdl</wsdlDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

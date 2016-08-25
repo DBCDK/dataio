@@ -54,21 +54,21 @@ public class SinkResult {
                         marcXchangeRecords.add(marcXchangeRecordUnmarshaller.toMarcXchangeRecord(chunkItem));
                     } catch (JAXBException e) {
                         final String message = "Error occurred while unmarshalling JAXBElement";
-                        final ChunkItem failedChunkItem = ObjectFactory.buildFailedChunkItem(
-                                chunkItem.getId(), message, ChunkItem.Type.STRING);
-                        failedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(message, e));
+                        final ChunkItem failedChunkItem = ChunkItem.failedChunkItem().withId(chunkItem.getId())
+                                .withData(message).withTrackingId(chunkItem.getTrackingId()).withType(ChunkItem.Type.STRING)
+                                .withDiagnostics(ObjectFactory.buildFatalDiagnostic(message, e));
                         chunkItems[((int) chunkItem.getId())] = failedChunkItem;
                     }
                     break;
 
                 case FAILURE:
-                    chunkItems[((int) chunkItem.getId())] = ObjectFactory.buildIgnoredChunkItem(
-                            chunkItem.getId(), "Failed by processor", chunkItem.getTrackingId());
+                    chunkItems[((int) chunkItem.getId())] = ChunkItem.ignoredChunkItem().withId(chunkItem.getId())
+                            .withData("Failed by processor").withType(ChunkItem.Type.STRING).withTrackingId(chunkItem.getTrackingId());
                     break;
 
                 case IGNORE:
-                    chunkItems[((int) chunkItem.getId())] = ObjectFactory.buildIgnoredChunkItem(
-                            chunkItem.getId(), "Ignored by processor", chunkItem.getTrackingId());
+                    chunkItems[((int) chunkItem.getId())] = ChunkItem.ignoredChunkItem().withId(chunkItem.getId())
+                            .withData("Ignored by processor").withType(ChunkItem.Type.STRING).withTrackingId(chunkItem.getTrackingId());
                     break;
             }
         }
@@ -119,7 +119,7 @@ public class SinkResult {
         final String itemData = buildItemData(updateMarcXchangeResult, message);
         for (int i = 0; i < chunkItems.length; i++) {
             if(chunkItems[i] == null) {
-                chunkItems[i] = ObjectFactory.buildFailedChunkItem(i, itemData, ChunkItem.Type.STRING);
+                chunkItems[i] = ChunkItem.failedChunkItem().withId(i).withData(itemData).withType(ChunkItem.Type.STRING);
             }
         }
     }
@@ -133,10 +133,12 @@ public class SinkResult {
             final String itemData = buildItemData(updateMarcXchangeResult, null);
             if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() == UpdateMarcXchangeStatusEnum.OK) {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
-                        ObjectFactory.buildSuccessfulChunkItem(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()), itemData, ChunkItem.Type.STRING);
+                        ChunkItem.successfulChunkItem().withId(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()))
+                                .withData(itemData).withType(ChunkItem.Type.STRING);
             } else {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
-                        ObjectFactory.buildFailedChunkItem(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()), itemData, ChunkItem.Type.STRING);
+                        ChunkItem.failedChunkItem().withId(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()))
+                        .withData(itemData).withType(ChunkItem.Type.STRING);
             }
         }
     }

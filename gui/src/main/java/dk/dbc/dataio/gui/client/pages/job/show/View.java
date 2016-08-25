@@ -85,6 +85,7 @@ public class View extends ViewWidget {
     public View() {
         this("", true);
         dataProvider.addDataDisplay(jobsTable);
+        jobsTable.setVisibleRange(new Range(0, pageSize));
         HideColumn(true);  // Default: Do not show Work Flow columns
     }
 
@@ -106,11 +107,7 @@ public class View extends ViewWidget {
      * Refreshes the content of the Jobs Table
      */
     public void refreshJobsTable() {
-        if (jobsTable.getVisibleRange().getLength() == pageSize) {
-            jobsTable.setVisibleRangeAndClearData(this.jobsTable.getVisibleRange(), true);
-        } else {
-            jobsTable.setVisibleRangeAndClearData(new Range(0, pageSize), true);
-        }
+        jobsTable.setVisibleRangeAndClearData(this.jobsTable.getVisibleRange(), true);
     }
 
     /**

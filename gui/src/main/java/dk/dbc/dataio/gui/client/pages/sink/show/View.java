@@ -23,7 +23,6 @@ package dk.dbc.dataio.gui.client.pages.sink.show;
 
 
 import com.google.gwt.cell.client.ButtonCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.Column;
@@ -62,7 +61,7 @@ public class View extends ViewWidget {
     }
 
 
-    /**
+    /*
      * Private methods
      */
 
@@ -160,13 +159,7 @@ public class View extends ViewWidget {
                 return getTexts().button_Edit();
             }
         };
-
-        column.setFieldUpdater(new FieldUpdater<SinkModel, String>() {
-            @Override
-            public void update(int index, SinkModel model, String buttonText) {
-                presenter.editSink(model);
-            }
-        });
+        column.setFieldUpdater((index, model, buttonText) -> presenter.editSink((SinkModel) model));
     return column;
     }
 
@@ -176,13 +169,10 @@ public class View extends ViewWidget {
      * @return the double click handler
      */
     private DoubleClickHandler getDoubleClickHandler(){
-        return new DoubleClickHandler() {
-            @Override
-            public void onDoubleClick(DoubleClickEvent doubleClickEvent) {
-                SinkModel selected = selectionModel.getSelectedObject();
-                if(selected != null) {
-                    presenter.editSink(selected);
-                }
+        return doubleClickEvent -> {
+            SinkModel selected = selectionModel.getSelectedObject();
+            if(selected != null) {
+                presenter.editSink(selected);
             }
         };
     }
@@ -193,6 +183,7 @@ public class View extends ViewWidget {
             case ES: return getTexts().selection_ESSink();
             case FBS: return getTexts().selection_FBSWebserviceSink();
             case OPENUPDATE: return getTexts().selection_UpdateSink();
+            case IMS: return getTexts().selection_ImsSink();
             default: return "";
         }
     }

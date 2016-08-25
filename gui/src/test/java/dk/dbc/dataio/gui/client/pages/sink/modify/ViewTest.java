@@ -182,7 +182,7 @@ public class ViewTest {
     }
 
     @Test
-    public void queueProvidersChanged_called_presenterNotified() {
+    public void availableQueueProvidersChanged_called_presenterNotified() {
         // Test preparation
         setupView();
         Map<String, String> queueProviders = new HashMap<>();
@@ -195,6 +195,51 @@ public class ViewTest {
 
         // Test Verification
         verify(mockedPresenter).queueProvidersChanged(Arrays.asList("value1", "value2"));
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void esUserIdChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.esUserId.getText()).thenReturn("-es user id-");
+
+        // Subject Under Test
+        view.esUserIdChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).esUserIdChanged("-es user id-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void esDatabaseChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.esDatabase.getText()).thenReturn("-es dbase-");
+
+        // Subject Under Test
+        view.esDatabaseChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).esDatabaseChanged("-es dbase-");
+        verify(mockedPresenter).keyPressed();
+        verifyNoMoreInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void imsEndpointChanged_called_presenterNotified() {
+        // Test preparation
+        setupView();
+        when(view.imsEndpoint.getText()).thenReturn("-ims endpoint-");
+
+        // Subject Under Test
+        view.imsEndpointChanged(mockedValueChangeEvent);
+
+        // Test Verification
+        verify(mockedPresenter).imsEndpointChanged("-ims endpoint-");
         verify(mockedPresenter).keyPressed();
         verifyNoMoreInteractions(mockedPresenter);
     }

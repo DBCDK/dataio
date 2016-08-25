@@ -74,6 +74,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         View view = getView();
         view.updateSinkSection.setVisible(false);
         view.esSinkSection.setVisible(false);
+        view.imsSinkSection.setVisible(false);
         handleSinkConfig(sinkType);
     }
 
@@ -199,6 +200,19 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the ims endpoint field has been changed
+     * @param imsEndpoint, the new ims endpoint value
+     */
+    @Override
+    public void imsEndpointChanged(String imsEndpoint) {
+        if(isValid(imsEndpoint)) {
+            model.setImsEndpoint(imsEndpoint);
+        } else {
+            getView().setErrorText(getTexts().error_InputFieldValidationError());
+        }
+    }
+
+    /**
      * A signal to the presenter, saying that a key has been pressed in either of the fields
      */
     public void keyPressed() {
@@ -268,6 +282,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.esUserId.setEnabled(false);
         view.esDatabase.clearText();
         view.esDatabase.setEnabled(false);
+        view.imsEndpoint.clearText();
+        view.imsEndpoint.setEnabled(false);
     }
 
     private boolean isValid(String input) {
@@ -298,6 +314,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.queueProviders.setEnabled(true);
         view.esUserId.setEnabled(true);
         view.esDatabase.setEnabled(true);
+        view.imsEndpoint.setEnabled(true);
         view.status.setText("");
         view.sequenceAnalysisSelection.setValue(model.getSequenceAnalysisOption().toString());
     }

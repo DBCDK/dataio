@@ -45,6 +45,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(GwtMockitoTestRunner.class)
@@ -52,6 +53,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private Texts mockedTexts;
     @Mock private EditPlace mockedEditPlace;
     @Mock private ViewGinjector mockedViewGinjector;
+    @Mock private SinkModel mockedSinkModel;
 
     private View editView;
 
@@ -255,10 +257,115 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                 any(PresenterEditImpl.DeleteSinkModelFilteredAsyncCallback.class));
     }
 
+    @Test
+    public void handleSinkConfig_sinkTypeDummy_sinkConfigIsNull() {
+        // Setup expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.model = mockedSinkModel;
+
+        // Subject Under Test
+        presenterEditImpl.handleSinkConfig(SinkContent.SinkType.DUMMY);
+
+        // Verifications
+        verifyNoMoreViewInteractions();
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeEs_EsSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.model = mockedSinkModel;
+        when(mockedSinkModel.getEsUserId()).thenReturn(321);
+        when(mockedSinkModel.getEsDatabase()).thenReturn("<dbase>");
+
+        // Subject Under Test
+        presenterEditImpl.handleSinkConfig(SinkContent.SinkType.ES);
+
+        // Verifications
+        verify(editView.esUserId).setText("321");
+        verify(editView.esDatabase).setText("<dbase>");
+        verify(editView.esSinkSection).setVisible(true);
+        verifyNoMoreViewInteractions();
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeFbs_FbsSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.model = mockedSinkModel;
+
+        // Subject Under Test
+        presenterEditImpl.handleSinkConfig(SinkContent.SinkType.FBS);
+
+        // Verifications
+        verifyNoMoreViewInteractions();
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeOpenUpdate_OpenUpdateSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.model = mockedSinkModel;
+        when(mockedSinkModel.getOpenUpdateEndpoint()).thenReturn("OpenUpdateEndPoint");
+        when(mockedSinkModel.getOpenUpdateUserId()).thenReturn("OpenUpdateUserId");
+        when(mockedSinkModel.getOpenUpdatePassword()).thenReturn("OpenUpdatePassword");
+
+        // Subject Under Test
+        presenterEditImpl.handleSinkConfig(SinkContent.SinkType.OPENUPDATE);
+
+        // Verifications
+        verify(editView.url).setText("OpenUpdateEndPoint");
+        verify(editView.openupdateuserid).setText("OpenUpdateUserId");
+        verify(editView.password).setText("OpenUpdatePassword");
+        verify(editView.queueProviders).clear();
+        verify(editView.updateSinkSection).setVisible(true);
+        verifyNoMoreViewInteractions();
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeIms_ImsSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterEditImpl();
+        presenterEditImpl.model = mockedSinkModel;
+        when(mockedSinkModel.getImsEndpoint()).thenReturn("ImsEndPoint");
+
+        // Subject Under Test
+        presenterEditImpl.handleSinkConfig(SinkContent.SinkType.IMS);
+
+        // Verifications
+        verify(editView.imsEndpoint).setText("ImsEndPoint");
+        verify(editView.imsSinkSection).setVisible(true);
+        verifyNoMoreViewInteractions();
+    }
+
+
+    // Private methods
+
     private void setupPresenterEditImpl() {
         presenterEditImpl = new PresenterEditImpl(mockedEditPlace, header);
         presenterEditImpl.viewInjector = mockedViewGinjector;
         presenterEditImpl.commonInjector = mockedCommonGinjector;
+    }
+
+    private void verifyNoMoreViewInteractions() {
+        verifyNoMoreInteractions(editView.name);
+        verifyNoMoreInteractions(editView.resource);
+        verifyNoMoreInteractions(editView.description);
+        verifyNoMoreInteractions(editView.updateSinkSection);
+        verifyNoMoreInteractions(editView.esSinkSection);
+        verifyNoMoreInteractions(editView.imsSinkSection);
+        verifyNoMoreInteractions(editView.url);
+        verifyNoMoreInteractions(editView.openupdateuserid);
+        verifyNoMoreInteractions(editView.password);
+        verifyNoMoreInteractions(editView.queueProviders);
+        verifyNoMoreInteractions(editView.esUserId);
+        verifyNoMoreInteractions(editView.esDatabase);
+        verifyNoMoreInteractions(editView.imsEndpoint);
+        verifyNoMoreInteractions(editView.deleteButton);
+        verifyNoMoreInteractions(editView.status);
+        verifyNoMoreInteractions(editView.popupTextBox);
+        verifyNoMoreInteractions(editView.sequenceAnalysisSelection);
+        verifyNoMoreInteractions(editView.confirmation);
     }
 
 }

@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
@@ -112,18 +113,6 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void handleSinkConfig_sinkTypeOpenUpdate_OpenUpdateSinkConfigAdded() {
-        // Setup expectations
-        setupPresenterCreateImpl();
-
-        // Subject Under Test
-        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.OPENUPDATE);
-
-        // Verifications
-        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new OpenUpdateSinkConfig()));
-    }
-
-    @Test
     public void handleSinkConfig_sinkTypeDummy_sinkConfigIsNull() {
         // Setup expectations
         setupPresenterCreateImpl();
@@ -145,6 +134,42 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
 
         // Verifications
         assertThat(presenterCreateImpl.model.getSinkConfig(), is(new EsSinkConfig()));
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeFbs_FbsSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.FBS);
+
+        // Verifications
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(nullValue()));
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeOpenUpdate_OpenUpdateSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.OPENUPDATE);
+
+        // Verifications
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new OpenUpdateSinkConfig()));
+    }
+
+    @Test
+    public void handleSinkConfig_sinkTypeIms_ImsSinkConfigAdded() {
+        // Setup expectations
+        setupPresenterCreateImpl();
+
+        // Subject Under Test
+        presenterCreateImpl.handleSinkConfig(SinkContent.SinkType.IMS);
+
+        // Verifications
+        assertThat(presenterCreateImpl.model.getSinkConfig(), is(new ImsSinkConfig()));
     }
 
     private void setupPresenterCreateImpl() {

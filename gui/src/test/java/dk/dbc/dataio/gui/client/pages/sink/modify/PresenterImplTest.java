@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
@@ -77,6 +78,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
             super(header);
             view = PresenterImplTest.this.view;
             model = sinkModel;
+            saveModelHasBeenCalled = false;
+            initializeModelHasBeenCalled = false;
+            handleSinkConfigHasBeenCalled = false;
         }
 
         @Override
@@ -166,6 +170,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // Verifications
         assertThat(view.updateSinkSection.isVisible(), is(false));
         assertThat(view.esSinkSection.isVisible(), is(false));
+        assertThat(view.imsSinkSection.isVisible(), is(false));
         assertThat(handleSinkConfigHasBeenCalled, is(true));
     }
 
@@ -303,7 +308,21 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void saveButtonPressed_callSaveButtonPressedWithNameFieldEmpty_ErrorTextIsDisplayed() {
+    public void imsEndpointChanged_callImsEndpointChanged_ImsEndpointIsChangedAccordingly() {
+        final String imsEndpoint = "changed imsEndpoint";
+        initializeAndStartPresenter();
+        presenterImpl.sinkTypeChanged(SinkContent.SinkType.IMS);
+        presenterImpl.model.setSinkConfig(new ImsSinkConfig());
+
+        // Subject Under Test
+        presenterImpl.imsEndpointChanged(imsEndpoint);
+
+        // Verifications
+        assertThat(presenterImpl.model.getImsEndpoint(), is(imsEndpoint));
+    }
+
+    @Test
+    public void saveButtonPressed_nameFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
         initializeAndStartPresenter();
@@ -314,10 +333,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verifications
         verify(mockedTexts).error_InputFieldValidationError();
+        assertThat(saveModelHasBeenCalled, is(false));
     }
 
     @Test
-    public void saveButtonPressed_callSaveButtonPressedWithDescriptionFieldEmpty_ErrorTextIsDisplayed() {
+    public void saveButtonPressed_descriptionFieldEmpty_ErrorTextIsDisplayed() {
 
         // Setup
         initializeAndStartPresenter();
@@ -328,6 +348,21 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verifications
         verify(mockedTexts).error_InputFieldValidationError();
+        assertThat(saveModelHasBeenCalled, is(false));
+    }
+
+    @Test
+    public void saveButtonPressed_allFieldsOk_saveButtonHasBeenCalled() {
+
+        // Setup
+        initializeAndStartPresenter();
+
+        // Subject Under Test
+        presenterImpl.saveButtonPressed();
+
+        // Verifications
+        verifyNoMoreInteractions(mockedTexts);  // No error texts
+        assertThat(saveModelHasBeenCalled, is(true));
     }
 
     @Test

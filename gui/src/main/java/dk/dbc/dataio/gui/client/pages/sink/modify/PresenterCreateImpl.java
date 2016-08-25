@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.sink.modify;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -79,6 +80,10 @@ public class PresenterCreateImpl extends PresenterImpl {
             case ES:
                 model.setSinkConfig(new EsSinkConfig());
                 view.esSinkSection.setVisible(true);
+                break;
+            case IMS:
+                model.setSinkConfig(new ImsSinkConfig());
+                view.imsSinkSection.setVisible(true);
                 break;
         }
     }

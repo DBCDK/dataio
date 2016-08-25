@@ -135,6 +135,10 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.esDatabase.setText(model.getEsDatabase());
                     view.esSinkSection.setVisible(true);
                     break;
+                case IMS:
+                    view.imsEndpoint.setText(String.valueOf(model.getImsEndpoint()));
+                    view.imsSinkSection.setVisible(true);
+                    break;
             }
     }
 

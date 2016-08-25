@@ -74,12 +74,14 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextArea description;
     @UiField HTMLPanel updateSinkSection;
     @UiField HTMLPanel esSinkSection;
+    @UiField HTMLPanel imsSinkSection;
     @UiField PromptedTextBox url;
     @UiField PromptedTextBox openupdateuserid;
     @UiField PromptedPasswordTextBox password;
     @UiField PromptedMultiList queueProviders;
     @UiField PromptedTextBox esUserId;
     @UiField PromptedTextBox esDatabase;
+    @UiField PromptedTextBox imsEndpoint;
     @UiField Button deleteButton;
     @UiField Label status;
     @UiField PopupValueBox popupTextBox;
@@ -137,14 +139,20 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     }
 
     @UiHandler("esUserId")
-    void setEsUserIdChanged(ValueChangeEvent<String> event) {
+    void esUserIdChanged(ValueChangeEvent<String> event) {
         presenter.esUserIdChanged(esUserId.getText());
         presenter.keyPressed();
     }
 
     @UiHandler("esDatabase")
-    void setEsDatabaseChanged(ValueChangeEvent<String> event) {
+    void esDatabaseChanged(ValueChangeEvent<String> event) {
         presenter.esDatabaseChanged(esDatabase.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("imsEndpoint")
+    void imsEndpointChanged(ValueChangeEvent<String> event) {
+        presenter.imsEndpointChanged(imsEndpoint.getText());
         presenter.keyPressed();
     }
 

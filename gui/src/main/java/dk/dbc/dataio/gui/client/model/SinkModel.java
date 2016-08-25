@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.model;
 
 import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.ImsSinkConfig;
 import dk.dbc.dataio.commons.types.OpenUpdateSinkConfig;
 import dk.dbc.dataio.commons.types.SinkConfig;
 import dk.dbc.dataio.commons.types.SinkContent;
@@ -232,6 +233,22 @@ public class SinkModel extends GenericBackendModel {
      */
     public void setEsDatabase(String database) {
         ((EsSinkConfig) sinkConfig).withDatabaseName(database);
+    }
+
+    /**
+     * Gets the IMS Configuration data: endpoint
+     * @return IMS Configuration data: endpoint
+     */
+    public String getImsEndpoint() {
+        return ((ImsSinkConfig) sinkConfig).getEndpoint();
+    }
+
+    /**
+     * Sets the IMS Configuration data: endpoint
+     * @param endpoint IMS Configuration data: endpoint
+     */
+    public void setImsEndpoint(String endpoint) {
+        ((ImsSinkConfig) sinkConfig).withEndpoint(endpoint);
     }
 
     /**

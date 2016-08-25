@@ -32,10 +32,11 @@
                 <dio:item value="OPENUPDATE"><g:Label><ui:text from="{txt.selection_UpdateSink}"/></g:Label></dio:item>
                 <dio:item value="DUMMY"><g:Label><ui:text from="{txt.selection_DummySink}"/></g:Label></dio:item>
                 <dio:item value="FBS"><g:Label><ui:text from="{txt.selection_FBSWebserviceSink}"/></g:Label></dio:item>
+                <dio:item value="IMS"><g:Label><ui:text from="{txt.selection_ImsSink}"/></g:Label></dio:item>
             </dio:PromptedList>
         </li>
-        <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}" maxLength="160" toolTip=""/></li>
-        <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}" maxLength="160" toolTip=""/></li>
+        <li><dio:PromptedTextBox ui:field="name" guiId="sinknamepanel" prompt="{txt.label_SinkName}"/></li>
+        <li><dio:PromptedTextBox ui:field="resource" guiId="sinkresourcepanel" prompt="{txt.label_ResourceName}"/></li>
         <li><dio:PromptedTextArea ui:field="description" guiId="sinkdescriptionpanel" prompt="{txt.label_Description}" maxLength="160"/></li>
         <li>
             <dio:PromptedRadioButtons ui:field="sequenceAnalysisSelection" guiId="sequenceAnalysisSelection" prompt="{txt.label_SequenceAnalysis}">
@@ -44,14 +45,17 @@
             </dio:PromptedRadioButtons>
         </li>
         <g:HTMLPanel ui:field="updateSinkSection" visible="false">
-            <li><dio:PromptedTextBox ui:field="url" guiId="sinkurl" prompt="{txt.label_SinkUrl}" maxLength="160" toolTip=""/></li>
-            <li><dio:PromptedTextBox ui:field="openupdateuserid" guiId="openupdatesinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>
-            <li><dio:PromptedPasswordTextBox ui:field="password" guiId="sinkpassword" prompt="{txt.label_Password}" maxLength="160" toolTip=""/></li>
+            <li><dio:PromptedTextBox ui:field="url" guiId="sinkurl" prompt="{txt.label_SinkUrl}"/></li>
+            <li><dio:PromptedTextBox ui:field="openupdateuserid" guiId="openupdatesinkuserid" prompt="{txt.label_UserId}"/></li>
+            <li><dio:PromptedPasswordTextBox ui:field="password" guiId="sinkpassword" prompt="{txt.label_Password}"/></li>
             <li><dio:PromptedMultiList ui:field="queueProviders" guiId="sinkqueueproviders" prompt="{txt.label_QueueProviders}" manualSorting="false" /></li>
         </g:HTMLPanel>
         <g:HTMLPanel ui:field="esSinkSection" visible="false">
-            <li><dio:PromptedTextBox ui:field="esUserId" guiId="essinkuserid" prompt="{txt.label_UserId}" maxLength="160" toolTip=""/></li>
-            <li><dio:PromptedTextBox ui:field="esDatabase" guiId="essinkdatabase" prompt="{txt.label_Database}" maxLength="160" toolTip=""/></li>
+            <li><dio:PromptedTextBox ui:field="esUserId" guiId="essinkuserid" prompt="{txt.label_UserId}"/></li>
+            <li><dio:PromptedTextBox ui:field="esDatabase" guiId="essinkdatabase" prompt="{txt.label_Database}"/></li>
+        </g:HTMLPanel>
+        <g:HTMLPanel ui:field="imsSinkSection" visible="false">
+            <li><dio:PromptedTextBox ui:field="imsEndpoint" guiId="imssinkendpoint" prompt="{txt.label_ImsEndpoint}"/></li>
         </g:HTMLPanel>
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>

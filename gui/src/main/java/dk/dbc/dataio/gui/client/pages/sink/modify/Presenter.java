@@ -37,6 +37,7 @@ public interface Presenter extends GenericPresenter {
     void endpointChanged(String endpoint);
     void esUserIdChanged(String userId);
     void esDatabaseChanged(String esDatabase);
+    void imsEndpointChanged(String imsEndpoint);
     void keyPressed();
     void saveButtonPressed();
     void deleteButtonPressed();

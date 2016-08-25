@@ -42,7 +42,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         super(id, version, content);
     }
 
-    protected RRHarvesterConfig() { }
+    public RRHarvesterConfig() { }
 
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Content implements Serializable {

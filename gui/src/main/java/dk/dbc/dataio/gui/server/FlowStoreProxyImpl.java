@@ -519,11 +519,11 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      */
 
     @Override
-    public HarvesterConfig createHarvesterConfig(HarvesterConfig config) throws ProxyException {
+    public RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException {
         final String callerMethodName = "createHarvesterConfig";
-        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        //log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId()); // ja7
         try {
-            return flowStoreServiceConnector.createHarvesterConfig(config, config.getClass());
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), RRHarvesterConfig.class);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
             return null;

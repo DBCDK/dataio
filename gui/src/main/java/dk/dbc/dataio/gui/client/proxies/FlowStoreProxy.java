@@ -78,7 +78,7 @@ public interface FlowStoreProxy extends RemoteService {
     SinkModel getSink(Long id) throws ProxyException;
 
     // Harvesters
-    HarvesterConfig createHarvesterConfig(HarvesterConfig config) throws ProxyException;
+    RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException;
     HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException;
     void deleteHarvesterConfig(long id, long version) throws ProxyException;
     List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException;

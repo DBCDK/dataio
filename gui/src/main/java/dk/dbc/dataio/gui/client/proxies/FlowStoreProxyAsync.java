@@ -71,7 +71,8 @@ public interface FlowStoreProxyAsync {
     void getSink(Long id, AsyncCallback<SinkModel> async);
 
     // Harvesters
-    void createHarvesterConfig(HarvesterConfig config, AsyncCallback<HarvesterConfig> async);
+    void createRRHarvesterConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
+
     void updateHarvesterConfig(HarvesterConfig config, AsyncCallback<HarvesterConfig> async);
     void deleteHarvesterConfig(long id, long version, AsyncCallback<Void> async);
     void findAllRRHarvesterConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
@@ -87,4 +88,7 @@ public interface FlowStoreProxyAsync {
 
     // Other
     void close(AsyncCallback<Void> async);
+
+    // Harvesters
+
 }

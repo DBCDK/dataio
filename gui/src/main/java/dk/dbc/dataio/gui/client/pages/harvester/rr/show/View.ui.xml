@@ -35,6 +35,8 @@
 
     <g:HTMLPanel>
 
+        <g:Button ui:field="createButton" text="{txt.button_Create}" />
+
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>
                 <td id="rr-harvesters-show-table" valign='top'>

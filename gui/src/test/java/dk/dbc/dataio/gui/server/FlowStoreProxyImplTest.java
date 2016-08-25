@@ -64,24 +64,15 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshHarvesterProperties;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import javax.naming.NamingException;
-import javax.ws.rs.client.Client;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.anyString;
@@ -91,6 +82,14 @@ import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.naming.NamingException;
+import javax.ws.rs.client.Client;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -1697,7 +1696,7 @@ public class FlowStoreProxyImplTest {
         // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenThrow(new TypeNotPresentException("RRHarvesterConfig", new Throwable()));
 
-        flowStoreProxy.createHarvesterConfig(new RRHarvesterConfig(1L, 1L, new RRHarvesterConfig.Content().withId("content-id")));
+        flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(1L, 1L, new RRHarvesterConfig.Content().withId("content-id")));
     }
 
     @Test
@@ -1709,7 +1708,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
         try {
-            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(createdConfig);
             assertThat(createdConfig.getContent().getId(), is("created-content-id"));
         } catch (ProxyException e) {
@@ -1726,7 +1725,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
         try {
-            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createHarvesterConfig(new OLDRRHarvesterConfig(346L, 457L, new OLDRRHarvesterConfig.Content().withId("content-id")));
+            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createRRHarvesterConfig(new OLDRRHarvesterConfig(346L, 457L, new OLDRRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(createdConfig);
             assertThat(createdConfig.getContent().getId(), is("old-created-content-id"));
         } catch (ProxyException e) {
@@ -1758,7 +1757,7 @@ public class FlowStoreProxyImplTest {
                 .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
 
         try {
-            flowStoreProxy.createHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
             fail("No " + expectedErrorName + " error was thrown by createHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));
@@ -1771,7 +1770,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenThrow(exception);
 
         try {
-            flowStoreProxy.createHarvesterConfig(config);
+            flowStoreProxy.createRRHarvesterConfig(config);
             fail("No " + expectedErrorName + " error was thrown by createHarvesterConfig()");
         } catch (ProxyException e) {
             assertThat(e.getErrorCode(), is(expectedError));

@@ -28,6 +28,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.harvester.rr.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.pages.harvester.rr.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -82,6 +83,11 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     @Override
     public void editHarvesterConfig(String id) {
         this.placeController.goTo(new EditPlace(id));
+    }
+
+    @Override
+    public void createHarvester() {
+        this.placeController.goTo(new CreatePlace());
     }
 
 

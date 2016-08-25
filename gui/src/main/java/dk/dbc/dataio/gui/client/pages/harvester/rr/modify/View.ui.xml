@@ -47,11 +47,14 @@
         <li>
             <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
             <g:Button ui:field="updateButton" visible="false"><ui:text from="{txt.button_Update}"/></g:Button>
+            <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
         </li>
 
         <li><g:Label ui:field="status"></g:Label></li>
 
         <dio:PopupMapEntry ui:field="popupFormatOverrideEntry" keyPrompt="{txt.prompt_OverrideSubmitter}" valuePrompt="{txt.prompt_OverrideFormat}" dialogTitle="{txt.label_EnterFormatOverride}" okButtonText="{txt.button_Ok}" cancelButtonText="{txt.button_Cancel}" />
+        <dio:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteHarvester}" />
+
 
     </g:HTMLPanel>
 

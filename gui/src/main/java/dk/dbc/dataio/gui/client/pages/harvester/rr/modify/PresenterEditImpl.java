@@ -56,6 +56,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
     }
 
     /**
@@ -76,6 +77,34 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         commonInjector.getFlowStoreProxyAsync().updateHarvesterConfig(config, new UpdateHarvesterConfigAsyncCallback());
     }
 
+
+
+    /**
+     * This has no implementation because "Create" does not have a delete button!
+     */
+    public void deleteButtonPressed() {
+        commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(), new AsyncCallback<Void>() {
+            @Override
+            public void onFailure(Throwable throwable) {
+
+            }
+
+            @Override
+            public void onSuccess(Void aVoid) {
+                getView().status.setText(getTexts().status_RRHarvesterSuccessfullyDeleted());
+                setRRHarvesterConfig(null);
+                History.back();
+
+            }
+        });
+    }
+
+    /**
+     * Deletes the embedded model as a Sink in the database
+     */
+    void deleteModel() {
+        //commonInjector.getFlowStoreProxyAsync().deleteSink(model.getId(), model.getVersion(), new DeleteSinkModelFilteredAsyncCallback());
+    }
 
 
     /*

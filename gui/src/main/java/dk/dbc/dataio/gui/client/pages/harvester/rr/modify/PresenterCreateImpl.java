@@ -89,6 +89,11 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
     }
 
 
+    /**
+     * This has no implementation because "Create" does not have a delete button!
+     */
+    public void deleteButtonPressed() {}
+
 
     /*
      * Private classes

@@ -120,4 +120,16 @@ public interface Texts extends com.google.gwt.i18n.client.Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_NumericSubmitterValidationError();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Delete();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_Yes();
+
+    String caption_DeleteHarvester();
+
+    String label_AreYouSureAboutDeleting();
+
+    String status_RRHarvesterSuccessfullyDeleted();
 }

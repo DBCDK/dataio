@@ -80,6 +80,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private RRHarvesterConfig mockedConfig;
     @Mock private RRHarvesterConfig.Content mockedContent;
     @Mock private OpenAgencyTarget mockedOpenAgencyTarget;
+    @Mock private Button mockedDeleteButton;
 
 
     private PresenterEditImpl presenter;
@@ -146,6 +147,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.updateButton = mockedUpdateButton;
         mockedView.status = mockedStatus;
         mockedView.popupFormatOverrideEntry = mockedPopupFormatOverrideEntry;
+        mockedView.deleteButton = mockedDeleteButton;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(mockedConfig.getContent()).thenReturn(mockedContent);
         when(mockedContent.getOpenAgencyTarget()).thenReturn(mockedOpenAgencyTarget);

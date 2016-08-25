@@ -36,6 +36,7 @@ import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
+
 /**
  * This is the Sink Job Filter
  */
@@ -65,7 +66,7 @@ public class ErrorJobFilter extends BaseJobFilter {
 
 
     /**
-     * Event handler for handling changes in the selection of from and to dates
+     * Event handler for handling changes in the selection of error filtering
      * @param event The ValueChangeEvent
      */
     @UiHandler(value = {"processingCheckBox", "deliveringCheckBox", "jobCreationCheckBox"})
@@ -98,17 +99,35 @@ public class ErrorJobFilter extends BaseJobFilter {
 
     @Override
     public JobListCriteria getValue() {
-        JobListCriteria criteria = new JobListCriteria();
-        if (processingCheckBox.getValue()) {
-            criteria.where(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED));
-        }
-        if (deliveringCheckBox.getValue()) {
-            criteria.where(new ListFilter<>(JobListCriteria.Field.STATE_DELIVERING_FAILED));
-        }
-        if (jobCreationCheckBox.getValue()) {
-            criteria.where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR));
-        }
-        return criteria;
+        CriteriaClass criteriaClass = new CriteriaClass();
+        criteriaClass.or(processingCheckBox.getValue(), JobListCriteria.Field.STATE_PROCESSING_FAILED);
+        criteriaClass.or(deliveringCheckBox.getValue(), JobListCriteria.Field.STATE_DELIVERING_FAILED);
+        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.WITH_FATAL_ERROR);
+        return criteriaClass.getCriteria();
     }
 
+
+    /*
+     * Private classes
+     */
+
+    private class CriteriaClass {
+        boolean firstCriteria = true;
+        private JobListCriteria criteria = new JobListCriteria();
+
+        public void or(boolean active, JobListCriteria.Field state) {
+            if (active) {
+                if (firstCriteria) {
+                    firstCriteria = false;
+                    criteria.where(new ListFilter<>(state));
+                } else {
+                    criteria.or(new ListFilter<>(state));
+                }
+            }
+        }
+
+        public JobListCriteria getCriteria() {
+            return criteria;
+        }
+    }
 }

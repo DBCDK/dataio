@@ -198,7 +198,7 @@ public class ErrorJobFilterTest {
         // Verify test
         assertThat(criteria, is(new JobListCriteria().
                 where(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED)).
-                where(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR))
+                or(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR))
         ));
     }
 

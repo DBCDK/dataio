@@ -27,9 +27,9 @@
 
         <span>
             <Label><ui:text from="{txt.errorFilter_FailedIn}"/></Label>
-            <g:CheckBox ui:field="processingCheckBox" text="{txt.errorFilter_Processing}" />
-            <g:CheckBox ui:field="deliveringCheckBox" text="{txt.errorFilter_Delivering}" />
-            <g:CheckBox ui:field="jobCreationCheckBox" text="{txt.errorFilter_JobCreation}" />
+            <g:CheckBox ui:field="processingCheckBox" text="{txt.errorFilter_Processing}" checked="true"/>
+            <g:CheckBox ui:field="deliveringCheckBox" text="{txt.errorFilter_Delivering}" checked="true"/>
+            <g:CheckBox ui:field="jobCreationCheckBox" text="{txt.errorFilter_JobCreation}" checked="true"/>
        </span>
 
     </g:HTMLPanel>

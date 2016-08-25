@@ -35,8 +35,6 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
  * Concrete Presenter Implementation Class for Harvester Edit
  */
 public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl {
-    private long id=-1;
-
     /**
      * Constructor
      * @param header The header

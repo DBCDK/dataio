@@ -1709,7 +1709,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
         when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
         try {
-            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
+            final RRHarvesterConfig createdConfig = flowStoreProxy.createRRHarvesterConfig(new RRHarvesterConfig(345L, 456L, new RRHarvesterConfig.Content().withId("content-id")));
             assertNotNull(createdConfig);
             assertThat(createdConfig.getContent().getId(), is("created-content-id"));
         } catch (ProxyException e) {
@@ -1717,22 +1717,6 @@ public class FlowStoreProxyImplTest {
         }
     }
 
-    @Test
-    public void createHarvesterConfig_old_remoteServiceReturnsHttpStatusCreated_returnsRRHarvesterConfigEntity() throws Exception {
-        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
-        final RRHarvesterConfig config = new RRHarvesterConfig(123L, 234L, new RRHarvesterConfig.Content().withId("created-content-id"));
-        final OLDRRHarvesterConfig oldConfig = new OLDRRHarvesterConfig(124L, 235L, new OLDRRHarvesterConfig.Content().withId("old-created-content-id"));
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(RRHarvesterConfig.class))).thenReturn(config);
-        when(flowStoreServiceConnector.createHarvesterConfig(any(RRHarvesterConfig.class), eq(OLDRRHarvesterConfig.class))).thenReturn(oldConfig);
-        try {
-            final RRHarvesterConfig createdConfig = (RRHarvesterConfig) flowStoreProxy.createRRHarvesterConfig(new OLDRRHarvesterConfig(346L, 457L, new OLDRRHarvesterConfig.Content().withId("content-id")));
-            assertNotNull(createdConfig);
-            assertThat(createdConfig.getContent().getId(), is("old-created-content-id"));
-        } catch (ProxyException e) {
-            fail("Unexpected error when calling: createHarvesterConfig()");
-        }
-    }
 
     @Test
     public void createHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {

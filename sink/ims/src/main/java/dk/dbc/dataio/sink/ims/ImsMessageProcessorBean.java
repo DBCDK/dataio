@@ -64,10 +64,11 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
         try {
             final SinkResult sinkResult = new SinkResult(chunk, marcXchangeRecordUnmarshaller);
-            final ImsServiceConnector connector = imsConfigBean.getConnector(consumedMessage);
-            final List<UpdateMarcXchangeResult> marcXchangeResults = connector.updateMarcXchange(imsTrackingId, sinkResult.getMarcXchangeRecords());
-
-            sinkResult.update(marcXchangeResults);
+            if(!sinkResult.getMarcXchangeRecords().isEmpty()) {
+                final ImsServiceConnector connector = imsConfigBean.getConnector(consumedMessage);
+                final List<UpdateMarcXchangeResult> marcXchangeResults = connector.updateMarcXchange(imsTrackingId, sinkResult.getMarcXchangeRecords());
+                sinkResult.update(marcXchangeResults);
+            }
             addChunkToJobStore(sinkResult.toChunk());
         } catch (WebServiceException e) {
             LOGGER.error("WebServiceException caught when handling chunk {} for job {}", chunk.getChunkId(), chunk.getJobId(), e);

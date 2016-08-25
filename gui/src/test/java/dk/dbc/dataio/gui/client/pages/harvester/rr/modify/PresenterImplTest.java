@@ -124,6 +124,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         String getHeader() {
             return header;
         }
+
+        @Override
+        public void deleteButtonPressed() {  };
     }
 
 

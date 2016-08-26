@@ -119,7 +119,8 @@ public class SinkResult {
         final String itemData = buildItemData(updateMarcXchangeResult, message);
         for (int i = 0; i < chunkItems.length; i++) {
             if(chunkItems[i] == null) {
-                chunkItems[i] = ChunkItem.failedChunkItem().withId(i).withData(itemData).withType(ChunkItem.Type.STRING);
+                chunkItems[i] = ChunkItem.failedChunkItem().withId(i).withData(itemData).withType(ChunkItem.Type.STRING)
+                .withDiagnostics(ObjectFactory.buildFatalDiagnostic(itemData));
             }
         }
     }
@@ -138,7 +139,7 @@ public class SinkResult {
             } else {
                 chunkItems[Integer.parseInt(updateMarcXchangeResult.getMarcXchangeRecordId())] =
                         ChunkItem.failedChunkItem().withId(Long.valueOf(updateMarcXchangeResult.getMarcXchangeRecordId()))
-                        .withData(itemData).withType(ChunkItem.Type.STRING);
+                        .withData(itemData).withType(ChunkItem.Type.STRING).withDiagnostics(ObjectFactory.buildFatalDiagnostic(itemData));
             }
         }
     }

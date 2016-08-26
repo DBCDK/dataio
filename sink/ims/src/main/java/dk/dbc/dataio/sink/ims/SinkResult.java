@@ -79,22 +79,9 @@ public class SinkResult {
      * @param updateMarcXchangeResults list containing the results for each updated record
      */
     public void update(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
-        String errorMessage = null;
-        if (updateMarcXchangeResults.size() == 1) {
-            final UpdateMarcXchangeResult updateMarcXchangeResult = updateMarcXchangeResults.get(0);
-            if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() != UpdateMarcXchangeStatusEnum.OK && updateMarcXchangeResult.getMarcXchangeRecordId() == null) {
-                errorMessage = "Item failed due to webservice returning updateMarcXchangeResult with record id null.";
-            }
-        }
-        if (errorMessage == null && updateMarcXchangeResults.size() != marcXchangeRecords.size()) {
-            errorMessage = String.format("Item failed due to webservice returning %s updateMarcXchangeResults when %d was expected.",
-                    updateMarcXchangeResults.size(), marcXchangeRecords.size());
-        }
-
-        if (errorMessage == null) {
+        if (!(hasFailedServiceValidation(updateMarcXchangeResults)
+                || hasTooFewResults(updateMarcXchangeResults))) {
             insertChunkItems(updateMarcXchangeResults);
-        } else {
-            insertFailedChunkItems(updateMarcXchangeResults.get(0), errorMessage);
         }
     }
 
@@ -108,9 +95,27 @@ public class SinkResult {
         return chunk;
     }
 
-    /*
-     * private methods
-     */
+    private boolean hasFailedServiceValidation(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
+        if (updateMarcXchangeResults.size() == 1) {
+            final UpdateMarcXchangeResult updateMarcXchangeResult = updateMarcXchangeResults.get(0);
+            if (updateMarcXchangeResult.getUpdateMarcXchangeStatus() != UpdateMarcXchangeStatusEnum.OK && updateMarcXchangeResult.getMarcXchangeRecordId() == null) {
+                insertFailedChunkItems(updateMarcXchangeResults.get(0),
+                        "Item failed due to webservice returning updateMarcXchangeResult with record id null.");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasTooFewResults(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
+        if (updateMarcXchangeResults.size() != marcXchangeRecords.size()) {
+            insertFailedChunkItems(updateMarcXchangeResults.get(0), String.format(
+                    "Item failed due to webservice returning %s updateMarcXchangeResults when %d was expected.",
+                    updateMarcXchangeResults.size(), marcXchangeRecords.size()));
+            return true;
+        }
+        return false;
+    }
 
     /*
     * replaces null values in the list of chunk items with failed chunk items

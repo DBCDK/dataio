@@ -109,8 +109,7 @@ public class SinkResult {
 
     private boolean hasTooFewResults(List<UpdateMarcXchangeResult> updateMarcXchangeResults) {
         if (updateMarcXchangeResults.size() != marcXchangeRecords.size()) {
-            insertFailedChunkItems(updateMarcXchangeResults.get(0), String.format(
-                    "Item failed due to webservice returning %s updateMarcXchangeResults when %d was expected.",
+            insertFailedChunkItems(null, String.format("Item failed due to webservice returning %s updateMarcXchangeResults when %d was expected.",
                     updateMarcXchangeResults.size(), marcXchangeRecords.size()));
             return true;
         }
@@ -150,15 +149,19 @@ public class SinkResult {
     }
 
     private String buildItemData(UpdateMarcXchangeResult updateMarcXchangeResult, String errorMessage) {
-        final StringBuilder stringBuilder = new StringBuilder();
-        if(errorMessage != null) {
-            stringBuilder.append(errorMessage).append(" -> ");
+        if (updateMarcXchangeResult == null) {
+            return errorMessage == null ? "" : errorMessage;
+        } else {
+            final StringBuilder stringBuilder = new StringBuilder();
+            if (errorMessage != null) {
+                stringBuilder.append(errorMessage).append(" -> ");
+            }
+            stringBuilder.append("[Status: ").append(updateMarcXchangeResult.getUpdateMarcXchangeStatus().value()).append("]");
+            final String updateMarcXchangeMessage = updateMarcXchangeResult.getUpdateMarcXchangeMessage();
+            if (updateMarcXchangeMessage != null && !updateMarcXchangeMessage.isEmpty()) {
+                stringBuilder.append(", [Message: ").append(updateMarcXchangeMessage).append("]");
+            }
+            return stringBuilder.toString();
         }
-        stringBuilder.append("[Status: ").append(updateMarcXchangeResult.getUpdateMarcXchangeStatus().value()).append("]");
-        final String updateMarcXchangeMessage = updateMarcXchangeResult.getUpdateMarcXchangeMessage();
-        if(updateMarcXchangeMessage != null && !updateMarcXchangeMessage.isEmpty()){
-            stringBuilder.append(", [Message: ").append(updateMarcXchangeMessage).append("]");
-        }
-        return stringBuilder.toString();
     }
 }

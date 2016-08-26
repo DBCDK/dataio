@@ -93,14 +93,14 @@ public class ImsServiceConnectorTest {
         protected String requestBody;
         protected String responseBody;
 
-        public abstract List<ChunkItem> getChunkItemsForRecording();
+        public abstract List<ChunkItem> getChunkItemsForRequest();
 
         public String getTrackingId() {
             return TRACKING_ID;
         }
 
         public List<MarcXchangeRecord> getMarcXchangeRecordsForRequest() {
-            return getChunkItemsForRecording().stream()
+            return getChunkItemsForRequest().stream()
                     .map(this::toMarcXchangeRecord)
                     .collect(Collectors.toList());
         }
@@ -139,7 +139,7 @@ public class ImsServiceConnectorTest {
                     "        <MarcXchangeRecordId>0</MarcXchangeRecordId>\n" +
                     "    </updateMarcXchangeResult>\n" +
                     "    <updateMarcXchangeResult>\n" +
-                    "        <updateMarcXchangeStatus></updateMarcXchangeStatus>\n" +
+                    "        <updateMarcXchangeStatus>update_failed_invalid_record</updateMarcXchangeStatus>\n" +
                     "        <updateMarcXchangeMessage>Missing leader</updateMarcXchangeMessage>\n" +
                     "        <MarcXchangeRecordId>1</MarcXchangeRecordId>\n" +
                     "    </updateMarcXchangeResult>\n" +
@@ -151,17 +151,20 @@ public class ImsServiceConnectorTest {
                     "</updateMarcXchangeResponse></soap:Body></soap:Envelope>";
         }
 
-        public List<ChunkItem> getChunkItemsForRecording() {
+        public List<ChunkItem> getChunkItemsForRequest() {
             final List<ChunkItem> chunkItems = new ArrayList<>(3);
             chunkItems.add(new ChunkItem()
                     .withId(0)
-                    .withData(MARCXCHANGE_710100_OK));
+                    .withData(MARCXCHANGE_710100_OK)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             chunkItems.add(new ChunkItem()
                     .withId(1)
-                    .withData(MARCXCHANGE_710100_FAIL));
+                    .withData(MARCXCHANGE_710100_FAIL)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             chunkItems.add(new ChunkItem()
                     .withId(2)
-                    .withData(MARCXCHANGE_737000_OK));
+                    .withData(MARCXCHANGE_737000_OK)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             return chunkItems;
         }
     }
@@ -183,17 +186,20 @@ public class ImsServiceConnectorTest {
                     "</updateMarcXchangeResponse></soap:Body></soap:Envelope>";
         }
 
-        public List<ChunkItem> getChunkItemsForRecording() {
+        public List<ChunkItem> getChunkItemsForRequest() {
             final List<ChunkItem> chunkItems = new ArrayList<>(3);
             chunkItems.add(new ChunkItem()
                     .withId(0)
-                    .withData(MARCXCHANGE_710100_OK));
+                    .withData(MARCXCHANGE_710100_OK)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             chunkItems.add(new ChunkItem()
                     .withId(1)
-                    .withData(MARCXCHANGE_710100_FAIL));
+                    .withData(MARCXCHANGE_710100_FAIL)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             chunkItems.add(new ChunkItem()
                     .withId(2)
-                    .withData(MARCXCHANGE_737000_OK));
+                    .withData(MARCXCHANGE_737000_OK)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             return chunkItems;
         }
     }
@@ -216,14 +222,16 @@ public class ImsServiceConnectorTest {
                     "</updateMarcXchangeResponse></soap:Body></soap:Envelope>";
         }
 
-        public List<ChunkItem> getChunkItemsForRecording() {
+        public List<ChunkItem> getChunkItemsForRequest() {
             final List<ChunkItem> chunkItems = new ArrayList<>(3);
             chunkItems.add(new ChunkItem()
                     .withId(0)
-                    .withData(MARCXCHANGE_710100_OK));
+                    .withData(MARCXCHANGE_710100_OK)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             chunkItems.add(new ChunkItem()
                     .withId(2)
-                    .withData(MARCXCHANGE_737000_OK));
+                    .withData(MARCXCHANGE_737000_OK)
+                    .withStatus(ChunkItem.Status.SUCCESS));
             return chunkItems;
         }
     }

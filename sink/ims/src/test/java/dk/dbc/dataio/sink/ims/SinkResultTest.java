@@ -144,12 +144,12 @@ public class SinkResultTest {
 
         // Verification
         final ChunkItem chunkItem0 = sinkResult.chunkItems[0];
-        assertThat(StringUtil.asString(chunkItem0.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(true));
+        assertThat(StringUtil.asString(chunkItem0.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(false));
         assertThat(chunkItem0.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(chunkItem0.getDiagnostics().size(), is(1));
 
         final ChunkItem chunkItem1 = sinkResult.chunkItems[1];
-        assertThat(StringUtil.asString(chunkItem1.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(true));
+        assertThat(StringUtil.asString(chunkItem1.getData()).contains(UpdateMarcXchangeStatusEnum.UPDATE_FAILED_PLEASE_RESEND_LATER.value()), is(false));
         assertThat(chunkItem1.getStatus(), is(ChunkItem.Status.FAILURE));
         assertThat(chunkItem1.getDiagnostics().size(), is(1));
 

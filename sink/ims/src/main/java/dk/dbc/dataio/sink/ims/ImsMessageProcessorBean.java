@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.sink.ims;
 
-import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ConsumedMessage;
 import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
@@ -47,7 +46,6 @@ public class ImsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImsMessageProcessorBean.class);
 
-    @EJB FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     @EJB JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     @EJB ImsConfigBean imsConfigBean;
 

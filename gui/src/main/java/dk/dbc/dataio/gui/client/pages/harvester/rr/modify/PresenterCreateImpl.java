@@ -62,8 +62,6 @@ public class PresenterCreateImpl<Place extends EditPlace> extends PresenterImpl 
      */
     @Override
     public void initializeModel() {
-        //commonInjector.getFlowStoreProxyAsync().getRRHarvesterConfig(id, new GetRRHarvesterConfigAsyncCallback());
-        //RRHarvesterConfig rrHarvesterConfig=new RRHarvesterConfig();
 
         RRHarvesterConfig rrHarvesterConfig=new RRHarvesterConfig(1,1, new RRHarvesterConfig.Content()
                     .withEnabled(false)

@@ -77,7 +77,7 @@ import java.util.Set;
 })
 @NamedNativeQueries({
         @NamedNativeQuery( name= "SinkIdStatusCount",
-                query = "select sinkid, status, count(*) from dependencytracking group by jobid, sinkid, status order by sinkid, status",
+                query = "select sinkid, status, count(*) from dependencytracking group by sinkid, status order by sinkid, status",
                 resultSetMapping = "SinkIdStatusCountResult"
         )
 })

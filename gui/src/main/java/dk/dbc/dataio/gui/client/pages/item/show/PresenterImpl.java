@@ -539,7 +539,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         } else {
             final String[] numbers = model.getDataFile().split(":");
             if (numbers.length > 1) {
-                anchor.setHref(urlDataioFilestoreRs + "/files/" + numbers[2]);
+                anchor.setHrefAndText(urlDataioFilestoreRs + "/files/" + numbers[2]);
                 anchor.setVisible(true);
             } else {
                 anchor.setVisible(false);

@@ -75,6 +75,11 @@ public class PromptedAnchor extends PromptedData {
         anchor.setHref(href);
     }
 
+    public void setHrefAndText( String href) {
+        anchor.setText( href );
+        anchor.setHref( href );
+    }
+
     /**
      * Fetches the text from the anchor
      * @return The text for the anchor

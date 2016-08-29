@@ -1049,7 +1049,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedResultMailInitials).setText("resultMailInitialsA");
         verify(mockedJobCreationTime).setText("2015-08-13 14:56:11");
         verify(mockedJobCompletionTime).setText(EMPTY);
-        verify(mockedFileStore).setHref("filestore/url/files/83");
+        verify(mockedFileStore).setHrefAndText("filestore/url/files/83");
         verify(mockedFileStore).setVisible(true);
         verifyHideExportLinks();
         verify(mockedType).setText(JobSpecification.Type.TEST.name());
@@ -1498,7 +1498,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
 
         // Verify Test
-        verify(mockedFileStore).setHref("url/files/23");
+        verify(mockedFileStore).setHrefAndText("url/files/23");
         verify(mockedFileStore).setVisible(true);
         verifyNoMoreInteractions(mockedFileStore);
     }

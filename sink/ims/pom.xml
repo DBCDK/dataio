@@ -98,6 +98,23 @@
   </dependencies>
   <build>
     <plugins>
+      <!--<plugin>-->
+        <!--<groupId>org.codehaus.mojo</groupId>-->
+        <!--<artifactId>exec-maven-plugin</artifactId>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>build-docker-image</id>-->
+            <!--<phase>package</phase>-->
+            <!--<goals>-->
+              <!--<goal>exec</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+        <!--</executions>-->
+        <!--<configuration>-->
+          <!--<workingDirectory>${basedir}/src/main/docker/dockerfile</workingDirectory>-->
+          <!--<executable>buildDockerImg.sh</executable>-->
+        <!--</configuration>-->
+      <!--</plugin>-->
       <plugin>
         <groupId>org.jvnet.jax-ws-commons</groupId>
         <artifactId>jaxws-maven-plugin</artifactId>

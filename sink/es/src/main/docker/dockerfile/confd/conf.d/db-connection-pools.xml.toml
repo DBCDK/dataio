@@ -1,0 +1,15 @@
+[template]
+src = "db-connection-pools.xml.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/19-db-connection-pools.xml"
+
+keys = [
+    "/dbc/es/env/user",
+    "/dbc/es/env/password",
+    "/dbc/es/env/tnsname",
+    "/dbc/es/env/port",
+    "/dbc/es/env/db",
+    "/dbc/postgres/inflight/env/postgres/user",
+    "/dbc/postgres/inflight/env/postgres/password",
+    "/dbc/postgres/inflight/env/postgres/db",
+    "/message/name/filter"
+]

@@ -33,6 +33,7 @@ def write_build_script(path, artifact, image_name):
     script_content = """#!/usr/bin/env bash
 
 set -e
+ARTIFACTORY=docker-io.dbc.dk
 BUILD_NUMBER=${BUILD_NUMBER}
 NAME=%s
 
@@ -49,17 +50,23 @@ ln ../${ARTIFACT} ${ARTIFACT}
 TAG=${NAME}-devel
 BUILD_ARG="build_number=devel"
 if [ -n "${BUILD_NUMBER}" ] ; then
-   TAG=docker-io.dbc.dk/${NAME}:${BUILD_NUMBER}
+   TAG=${ARTIFACTORY}/${NAME}:${BUILD_NUMBER}
    BUILD_ARG="build_number=${BUILD_NUMBER}"
 fi
 
-echo building image with tag ${TAG}
+echo building ${NAME} docker image
 
 ##
 time docker build -t ${TAG} --build-arg ${BUILD_ARG} -f Dockerfile .
 rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest
+
+if [ -n "${BUILD_NUMBER}" ] ; then
+  echo pushing to ${ARTIFACTORY}
+  docker push ${ARTIFACTORY}/${NAME}:${BUILD_NUMBER}
+  docker push ${ARTIFACTORY}/${NAME}:latest
+fi
 """ % (image_name, artifact)
     with open(path, "w") as script_file:
         script_file.write(script_content)

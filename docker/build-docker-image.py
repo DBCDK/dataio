@@ -37,8 +37,7 @@ ARTIFACTORY=docker-io.dbc.dk
 BUILD_NUMBER=${BUILD_NUMBER}
 NAME=%s
 
-eval skip=\$$SKIP_BUILD_DOCKER_IMAGE
-if [  -z "$skip" ]; then
+if [ -n "$SKIP_BUILD_DOCKER_IMAGE" ]; then
   echo skipping building of $NAME docker image
   exit 0
 fi

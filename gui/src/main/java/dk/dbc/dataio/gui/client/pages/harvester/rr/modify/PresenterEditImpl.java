@@ -78,15 +78,12 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
     }
 
 
-
-    /**
-     * This has no implementation because "Create" does not have a delete button!
-     */
     public void deleteButtonPressed() {
         commonInjector.getFlowStoreProxyAsync().deleteHarvesterConfig(config.getId(), config.getVersion(), new AsyncCallback<Void>() {
             @Override
-            public void onFailure(Throwable throwable) {
-
+            public void onFailure(Throwable e) {
+                String msg = "RRHarvesterConfig.id: " + config.getId();
+                getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
             }
 
             @Override
@@ -97,13 +94,6 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
 
             }
         });
-    }
-
-    /**
-     * Deletes the embedded model as a Sink in the database
-     */
-    void deleteModel() {
-        //commonInjector.getFlowStoreProxyAsync().deleteSink(model.getId(), model.getVersion(), new DeleteSinkModelFilteredAsyncCallback());
     }
 
 

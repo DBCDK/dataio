@@ -2,6 +2,9 @@ FROM docker-io.dbc.dk/dbc-glassfish
 
 MAINTAINER dataio
 
+ARG build_number=unknown
+LABEL BuildNumber=$build_number
+
 # Mechanism to select messages in queue based on name
 ENV MESSAGE_NAME_FILTER dataio/sinks/ims/ws
 ENV QUEUE_PORT 7676
@@ -18,7 +21,6 @@ ADD confd /etc/confd
 ADD *.war $GLASSFISH_USER_HOME
 
 RUN chown -R $GLASSFISH_USER:$GLASSFISH_USER $GLASSFISH_USER_HOME && \
-    chown -R $GLASSFISH_USER:$GLASSFISH_USER $GLASSFISH_HOME && \
     mkdir -p /data/dataio && chown -R $GLASSFISH_USER:$GLASSFISH_USER /data/dataio
 EXPOSE 4848
 

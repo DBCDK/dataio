@@ -47,14 +47,16 @@ ARTIFACT=%s
 ln ../${ARTIFACT} ${ARTIFACT}
 
 TAG=${NAME}-devel
+BUILD_ARG="build_number=devel"
 if [ -n "${BUILD_NUMBER}" ] ; then
    TAG=docker-io.dbc.dk/${NAME}:${BUILD_NUMBER}
+   BUILD_ARG="build_number=${BUILD_NUMBER}"
 fi
 
 echo building image with tag ${TAG}
 
 ##
-time docker build -t ${TAG} -f Dockerfile .
+time docker build -t ${TAG} --build-arg ${BUILD_ARG} -f Dockerfile .
 rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest

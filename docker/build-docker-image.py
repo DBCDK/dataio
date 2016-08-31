@@ -36,10 +36,11 @@ set -e
 BUILD_NUMBER=${BUILD_NUMBER}
 NAME=%s
 
-function die() {
-  echo "ERROR: "$@
-  exit 1
-}
+eval skip=\$$SKIP_BUILD_DOCKER_IMAGE
+if [  -z "$skip" ]; then
+  echo skipping building of $NAME docker image
+  exit 0
+fi
 
 ARTIFACT=%s
 [ -e ${ARTIFACT} ] && rm ${ARTIFACT}

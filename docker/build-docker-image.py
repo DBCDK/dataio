@@ -35,7 +35,7 @@ def write_build_script(path, artifact, image_name, log):
     script_content = """#!/usr/bin/env bash
 
 set -e
-ARTIFACTORY=docker-io.dbc.dk
+REGISTRY=docker-io.dbc.dk
 BUILD_NUMBER=${BUILD_NUMBER}
 NAME=%s
 
@@ -51,7 +51,7 @@ ln ../${ARTIFACT} ${ARTIFACT}
 TAG=${NAME}-devel
 BUILD_ARG="build_number=devel"
 if [ -n "${BUILD_NUMBER}" ] ; then
-   TAG=${ARTIFACTORY}/${NAME}:${BUILD_NUMBER}
+   TAG=${REGISTRY}/${NAME}:${BUILD_NUMBER}
    BUILD_ARG="build_number=${BUILD_NUMBER}"
 fi
 
@@ -64,10 +64,10 @@ rm ${ARTIFACT}
 docker tag ${TAG} ${TAG%%:*}:latest
 
 if [ -n "${BUILD_NUMBER}" ] ; then
-  echo pushing to ${ARTIFACTORY}
-  docker push ${ARTIFACTORY}/${NAME}:${BUILD_NUMBER}
-  docker push ${ARTIFACTORY}/${NAME}:latest
-  echo ${ARTIFACTORY}/${NAME} >> %s
+  echo pushing to ${REGISTRY}
+  docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
+  docker push ${REGISTRY}/${NAME}:latest
+  echo ${REGISTRY}/${NAME} >> %s
 fi
 """ % (image_name, artifact, log)
     with open(path, "w") as script_file:

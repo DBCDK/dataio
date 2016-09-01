@@ -8,14 +8,14 @@ from requests.auth import HTTPBasicAuth
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Script for promoting docker images')
+    parser = argparse.ArgumentParser(description='Script for promoting docker repositories')
     parser.add_argument('--registry-baseurl', default='https://artifactory.dbc.dk/artifactory',
                         help='base URL of docker registry service')
     parser.add_argument('--src', default="docker-io", help='source registry')
     parser.add_argument('--target', default="docker-io", help='target registry')
     parser.add_argument('--username', required=True, help='registry service username')
     parser.add_argument('--password', required=True, help='registry service password')
-    parser.add_argument('repository_name', help='name of docker repository')
+    parser.add_argument('repository_name', help='short name of docker repository')
     parser.add_argument('src_tag', help='tag of source repository')
     parser.add_argument('target_tag', help='tag of target repository')
     return parser.parse_args()

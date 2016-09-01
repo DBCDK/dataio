@@ -14,6 +14,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Script for building of dataIO docker images')
     parser.add_argument('--src-directory', required=True, help='directory containing Dockerfile')
     parser.add_argument('--build-directory', required=True, help='directory from where docker image will be built')
+    parser.add_argument('--images-log', default='docker-images.log',
+                        help='name of docker image built is appended to this file')
     parser.add_argument('artifact_name', help='name of artifact')
     parser.add_argument('image_name', help='name of docker image')
     return parser.parse_args()
@@ -29,7 +31,7 @@ def get_basename(path):
     return os.path.basename(os.path.normpath(path))
 
 
-def write_build_script(path, artifact, image_name):
+def write_build_script(path, artifact, image_name, log):
     script_content = """#!/usr/bin/env bash
 
 set -e
@@ -65,8 +67,9 @@ if [ -n "${BUILD_NUMBER}" ] ; then
   echo pushing to ${ARTIFACTORY}
   docker push ${ARTIFACTORY}/${NAME}:${BUILD_NUMBER}
   docker push ${ARTIFACTORY}/${NAME}:latest
+  echo ${ARTIFACTORY}/${NAME} >> %s
 fi
-""" % (image_name, artifact)
+""" % (image_name, artifact, log)
     with open(path, "w") as script_file:
         script_file.write(script_content)
     make_executable(path)
@@ -102,10 +105,9 @@ if __name__ == "__main__":
     sys.stdout.flush()
 
     copy_and_overwrite(args.src_directory, working_directory)
-    write_build_script(build_script_path, args.artifact_name, args.image_name)
+    write_build_script(build_script_path, args.artifact_name, args.image_name, args.images_log)
 
     os.chdir(working_directory)
     execute_script(os.path.join(".", build_script))
 
     os.chdir(return_directory)
-

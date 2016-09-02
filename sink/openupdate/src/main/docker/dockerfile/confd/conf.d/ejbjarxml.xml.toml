@@ -1,0 +1,7 @@
+[template]
+src = "ejbjarxml.xml.tmpl"
+dest = "/home/gfish/dataio-sink-openupdate-1.0-SNAPSHOT/WEB-INF/ejb-jar.xml"
+
+keys = [
+  "/params/updatejndi"
+]

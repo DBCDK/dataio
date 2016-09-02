@@ -3,6 +3,8 @@
 FROM docker-io.dbc.dk/dbc-glassfish
 
 MAINTAINER dataio
+ARG build_number=unknown
+LABEL BuildNumber=$build_number
 
 # UPDATEJNDI is a naming convention used when filtering messages from a queue.
 #   I think the queue name is hardcoded, and the filtering is done on the message names,

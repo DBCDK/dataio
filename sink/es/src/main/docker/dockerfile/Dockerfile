@@ -1,6 +1,8 @@
 FROM docker-io.dbc.dk/dbc-glassfish
 
 MAINTAINER dataio
+ARG build_number=unknown
+LABEL BuildNumber=$build_number
 
 ENV DBC_ES_ENV_USER test_brond_upd
 ENV DBC_ES_ENV_PASSWORD test
@@ -8,6 +10,7 @@ ENV DBC_ES_ENV_TNSNAME tora1.dbc.dk
 ENV DBC_ES_ENV_PORT 1521
 ENV DBC_ES_ENV_DB danbib_int_base
 ENV ES_USER_ID 0
+ENV SINK_ID -1
 
 ENV ES_DATABASENAME danbib_int_base
 
@@ -27,7 +30,6 @@ ADD confd /etc/confd
 ADD *.war $GLASSFISH_USER_HOME
 
 RUN chown -R $GLASSFISH_USER:$GLASSFISH_USER $GLASSFISH_USER_HOME && \
-    chown -R $GLASSFISH_USER:$GLASSFISH_USER $GLASSFISH_HOME && \
     mkdir -p /data/dataio && chown -R $GLASSFISH_USER:$GLASSFISH_USER /data/dataio
 EXPOSE 4848
 

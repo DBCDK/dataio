@@ -48,6 +48,7 @@ import java.util.Collections;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
@@ -97,7 +98,7 @@ public class FlowsBeanTest {
 
     @Test(expected = JSONBException.class)
     public void createFlow_invalidJSON_throwsJsonException() throws JSONBException {
-        newFlowsBeanWithMockedEntityManager().createFlow(null, "invalid Json");
+        newFlowsBeanWithMockedEntityManager().createFlow(mockedUriInfo, "invalid Json");
     }
 
     @Test
@@ -199,7 +200,9 @@ public class FlowsBeanTest {
         when(flowsBean.jsonbContext.unmarshall(anyString(), eq(FlowContent.class))).thenReturn(flowContent);
         when(ENTITY_MANAGER.find(eq(FlowComponent.class), any())).thenReturn(null);
 
-        flowsBean.updateFlow(null, null, 123L, 4321L, true);
+
+        String flowContentJSON=new JSONBContext().marshall( flowContent);
+        flowsBean.updateFlow( flowContentJSON, null, 123L, 4321L, true);
     }
 
     @Test
@@ -208,7 +211,7 @@ public class FlowsBeanTest {
 
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(null);
 
-        final Response response = flowsBean.updateFlow(null, null, 123L, 4321L, true);
+        final Response response = flowsBean.updateFlow(createEmptyFlowContentJSON(), null, 123L, 4321L, true);
         assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
     }
 
@@ -232,7 +235,7 @@ public class FlowsBeanTest {
         when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(new FlowComponent());
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
-        final Response response = flowsBean.updateFlow("", mockedUriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
+        final Response response = flowsBean.updateFlow(createEmptyFlowContentJSON(), mockedUriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
 
         verify(flow).setContent(flowsBean.jsonbContext.marshall(flowContent));
         verify(flow).setVersion(DEFAULT_TEST_VERSION);
@@ -308,6 +311,34 @@ public class FlowsBeanTest {
         assertThat(response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
     }
 
+
+    private String createEmptyFlowContentJSON( ) {
+        try {
+            final dk.dbc.dataio.commons.types.FlowComponent flowComponent = new FlowComponentBuilder().build();
+            final FlowContent flowContent = new FlowContentBuilder()
+                    .setComponents(Collections.singletonList(flowComponent))
+                    .build();
+            return jsonbContext.marshall(flowContent);
+        } catch (JSONBException e) {
+            fail("Internal Error Shut not happen");
+        }
+        return "";
+    }
+
+    private String createEmptyFlowJson(long id, long version) {
+        try {
+            final Flow flow=new Flow();
+            flow.setId( id );
+            flow.setVersion( version );
+            flow.setContent( createEmptyFlowContentJSON() );
+
+            return jsonbContext.marshall(flow);
+        } catch (JSONBException e) {
+            fail("Internal Error Shut not happen");
+        }
+        return "";
+
+    }
 
     public static FlowsBean newFlowsBeanWithMockedEntityManager() {
         final FlowsBean flowsBean = new FlowsBean();

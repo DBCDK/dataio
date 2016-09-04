@@ -25,14 +25,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Index;
-import javax.persistence.Lob;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 
 /**
  * Persistence domain class for flow objects where id is auto
@@ -40,37 +33,28 @@ import javax.persistence.UniqueConstraint;
  * given as JSON string
  */
 @Entity
-@Table(name = Flow.TABLE_NAME,
-    uniqueConstraints = {
-        @UniqueConstraint(columnNames = { Flow.NAME_INDEX_COLUMN })
-    },
-    indexes = @Index(columnList = Flow.NAME_INDEX_COLUMN)
-)
-@NamedQueries({
-    @NamedQuery(name = Flow.QUERY_FIND_ALL, query = "SELECT flow FROM Flow flow ORDER BY flow.nameIndexValue ASC")
+@Table(name = Flow.TABLE_NAME)
+@NamedNativeQueries({
+    @NamedNativeQuery(
+                name = Flow.QUERY_FIND_ALL,
+                query = "SELECT * FROM Flows ORDER BY content->'name' ASC",
+                resultClass = Flow.class
+    )
 })
-public class Flow extends VersionedEntity {
+public class Flow extends Versioned {
     public static final String TABLE_NAME = "flows";
     public static final String QUERY_FIND_ALL = "Flow.findAll";
-    static final String NAME_INDEX_COLUMN = "name_idx";
 
-    @Lob
-    @Column(name = NAME_INDEX_COLUMN, nullable = false)
-    private String nameIndexValue;
-
-    String getNameIndexValue() {
-        return nameIndexValue;
-    }
-
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException if given null-valued data argument
-     * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JSONBException if non-json JSON string or if given JSON is invalid FlowContent
-     */
     @Override
-    protected void preProcessContent(String data) throws JSONBException {
-        final FlowContent flowContent = new JSONBContext().unmarshall(data, FlowContent.class);
-        nameIndexValue = flowContent.getName();
+    public boolean equals(Object o) {
+        try {
+            final FlowContent thisFlowContent = new JSONBContext().unmarshall(getContent(), FlowContent.class);
+            final FlowContent otherFlowContent = new JSONBContext().unmarshall(((Versioned) o).getContent(), FlowContent.class);
+
+            return thisFlowContent.equals(otherFlowContent);
+        } catch (JSONBException e) {
+            return false;
+        }
     }
+
 }

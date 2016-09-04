@@ -62,7 +62,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  */
 @Stateless
 @Path("/")
-public class FlowsBean {
+public class FlowsBean extends AbstractResourceBean {
     private static final Logger log = LoggerFactory.getLogger(FlowsBean.class);
     private static final String FLOW_CONTENT_DISPLAY_TEXT = "flowContent";
     private static final String NULL_ENTITY = "";
@@ -119,6 +119,8 @@ public class FlowsBean {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
 
+        new JSONBContext().unmarshall(flowContent, FlowContent.class);
+
         final Flow flow = saveAsVersionedEntity(entityManager, Flow.class, flowContent);
         entityManager.flush();
         final String flowJson = jsonbContext.marshall(flow);
@@ -158,6 +160,8 @@ public class FlowsBean {
         if(isRefresh != null && isRefresh) {
             response = refreshFlowComponents(uriInfo, id, version);
         }else {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
+            jsonbContext.unmarshall(flowContent, FlowContent.class);
             response = updateFlowContent(flowContent, id, version);
         }
         return response;

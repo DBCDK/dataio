@@ -25,7 +25,10 @@ import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
+import javax.persistence.Table;
 
 /**
  * Persistence domain class for flow objects where id is auto
@@ -45,11 +48,13 @@ public class Flow extends Versioned {
     public static final String TABLE_NAME = "flows";
     public static final String QUERY_FIND_ALL = "Flow.findAll";
 
+    public static JSONBContext jsonbContext= new JSONBContext();
+
     @Override
     public boolean equals(Object o) {
         try {
-            final FlowContent thisFlowContent = new JSONBContext().unmarshall(getContent(), FlowContent.class);
-            final FlowContent otherFlowContent = new JSONBContext().unmarshall(((Versioned) o).getContent(), FlowContent.class);
+            final FlowContent thisFlowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
+            final FlowContent otherFlowContent = jsonbContext.unmarshall(((Versioned) o).getContent(), FlowContent.class);
 
             return thisFlowContent.equals(otherFlowContent);
         } catch (JSONBException e) {
@@ -61,7 +66,7 @@ public class Flow extends Versioned {
     public int hashCode() {
         final FlowContent thisFlowContent;
         try {
-            thisFlowContent = new JSONBContext().unmarshall(getContent(), FlowContent.class);
+            thisFlowContent = jsonbContext.unmarshall(getContent(), FlowContent.class);
             return thisFlowContent.hashCode();
         } catch (Exception e) {
             return 0;

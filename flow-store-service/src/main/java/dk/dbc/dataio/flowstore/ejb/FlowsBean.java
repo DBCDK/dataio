@@ -119,7 +119,7 @@ public class FlowsBean extends AbstractResourceBean {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
 
-        new JSONBContext().unmarshall(flowContent, FlowContent.class);
+        jsonbContext.unmarshall(flowContent, FlowContent.class);
 
         final Flow flow = saveAsVersionedEntity(entityManager, Flow.class, flowContent);
         entityManager.flush();

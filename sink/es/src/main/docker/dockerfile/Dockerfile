@@ -16,7 +16,6 @@ ENV ES_DATABASENAME danbib_int_base
 
 # Mechanism to select messages in queue based on name
 ENV MESSAGE_NAME_FILTER jdbc/dataio/sinks/es/test3
-ENV QUEUE_PORT 7676
 
 ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/es-logback-docker-stg.xml
 

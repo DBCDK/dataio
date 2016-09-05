@@ -69,7 +69,7 @@ public class StartupDBMigrator {
 
 	/**
 	 * For Integration test only
-	 * @param dataSource
+	 * @param dataSource dataSource to use
 	 * @return this
 	 */
 	public StartupDBMigrator withDataSource(DataSource dataSource) {

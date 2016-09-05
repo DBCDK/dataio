@@ -95,7 +95,7 @@ public class FlowIT {
 
     @Test
     public void ListAllQuery() throws Exception {
-        JPATestUtils.runSqlFromResource(em, this, "flowIT_testData.sql");
+        JPATestUtils.runSqlFromResource(em, this, "flowIT_testdata.sql");
 
         Query q=em.createNamedQuery(Flow.QUERY_FIND_ALL);
         List<Flow> result=q.getResultList();

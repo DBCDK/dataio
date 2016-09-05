@@ -1,0 +1,7 @@
+[template]
+src = "jmsconfig.cmd.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/11-jmsconfig.cmd"
+
+keys = [
+  "/dbc/openmq/env/mq/port"
+]

@@ -132,6 +132,7 @@
 
   <build>
     <plugins>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>
@@ -154,6 +155,20 @@
             </resource>
           </webResources>
         </configuration>
+      </plugin>
+        <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <executions>
+          <execution>
+            <id>build-docker-image</id>
+            <configuration>
+              <arguments combine.children="append">
+                <argument>dbc-glassfish-es-sink</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

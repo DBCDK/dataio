@@ -164,7 +164,7 @@
             <id>build-docker-image</id>
             <configuration>
               <arguments combine.children="append">
-                <argument>dbc-glassfish-es-sink</argument>
+                <argument>dbc-glassfish-jobprocessor</argument>
               </arguments>
             </configuration>
           </execution>

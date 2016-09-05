@@ -24,12 +24,13 @@ package dk.dbc.dataio.jobstore.service.partitioner;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
-import org.flywaydb.core.Flyway;
+import dk.dbc.dataio.jobstore.service.ejb.StartupDBMigrator;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -43,8 +44,9 @@ public class Iso2709ReorderingDataPartitionerIT {
     private TransactionScopedPersistenceContext persistenceContext;
 
     @Before
-    public void setupDatabase() {
-        migrateDb();
+    public void setupDatabase() throws SQLException {
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        startupDBMigrator.onStartup();
     }
 
     @Before
@@ -83,12 +85,4 @@ public class Iso2709ReorderingDataPartitionerIT {
         });
     }
 
-    private void migrateDb() {
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setSchemas("public");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
-        flyway.migrate();
-    }
 }

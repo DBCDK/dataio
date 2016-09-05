@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.flowstore.ejb;
 
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
@@ -54,7 +55,7 @@ import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
  */
 @Stateless
 @Path("/")
-public class FlowComponentsBean {
+public class FlowComponentsBean extends AbstractResourceBean {
     private static final String FLOW_COMPONENT_CONTENT_DISPLAY_TEXT = "flowComponentContent";
     private static final Logger log = LoggerFactory.getLogger(FlowComponentsBean.class);
     private static final String NULL_ENTITY = "";
@@ -107,6 +108,7 @@ public class FlowComponentsBean {
     public Response createComponent(@Context UriInfo uriInfo, String componentContent) throws JSONBException {
         log.trace("Called with: '{}'", componentContent);
         InvariantUtil.checkNotNullNotEmptyOrThrow(componentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
+        jsonbContext.unmarshall(componentContent, FlowComponentContent.class);
 
         final FlowComponent component = saveAsVersionedEntity(entityManager, FlowComponent.class, componentContent);
         entityManager.flush();
@@ -152,6 +154,8 @@ public class FlowComponentsBean {
                                @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) throws JSONBException {
 
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowComponentContent, FLOW_COMPONENT_CONTENT_DISPLAY_TEXT);
+        jsonbContext.unmarshall(flowComponentContent, FlowComponentContent.class);
+
         final FlowComponent flowComponentEntity = entityManager.find(FlowComponent.class, id);
         if (flowComponentEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();

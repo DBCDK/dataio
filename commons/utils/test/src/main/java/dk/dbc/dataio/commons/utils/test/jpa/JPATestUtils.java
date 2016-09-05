@@ -78,7 +78,7 @@ public class JPATestUtils {
         return DriverManager.getConnection(getTestConnectInfo.getJdbc(), getTestConnectInfo.getLogin(), getTestConnectInfo.getPassword());
     }
 
-    public static DataSource getTestDataSource( String dataBaseName ) {
+    public static DataSource getTestDataSource( String dataBaseName ) throws SQLException {
         if ( System.getProperty(POSTGRESQL_PORT) == null) {
             // Hack
             dataBaseName = System.getenv("USER");
@@ -89,6 +89,14 @@ public class JPATestUtils {
         dataSource.setPortNumber(Integer.parseInt(System.getProperty(POSTGRESQL_PORT, "5432")));
         dataSource.setUser(System.getProperty("user.name"));
         dataSource.setPassword(System.getProperty("user.name"));
+        // Fail early if unable to open connection
+        try {
+            Connection c = dataSource.getConnection();
+            c.close();
+        } catch ( SQLException e) {
+            System.out.println("Error getting connection to Port " + dataSource.getPortNumber());
+            throw e;
+        }
         return dataSource;
     }
 

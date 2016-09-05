@@ -24,17 +24,10 @@ public class JobSchedulerTransactionsBeanIT {
 
     @Before
     public void setUp() throws Exception {
-        em = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
-        // Execute flyway upgrade
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
-        for (MigrationInfo i : flyway.info().all()) {
-            LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-        }
-        flyway.migrate();
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        startupDBMigrator.onStartup();
 
+        em = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
         JPATestUtils.runSqlFromResource(em, this, "JobSchedulerBeanIT_findWaitForChunks.sql");
     }
 

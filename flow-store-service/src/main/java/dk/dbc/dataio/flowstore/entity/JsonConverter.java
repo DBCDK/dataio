@@ -46,6 +46,9 @@ public class JsonConverter implements AttributeConverter<String, PGobject> {
 
     @Override
     public String convertToEntityAttribute(PGobject pgObject) {
+        if (pgObject == null) {
+            return null;
+        }
         return pgObject.getValue();
     }
 }

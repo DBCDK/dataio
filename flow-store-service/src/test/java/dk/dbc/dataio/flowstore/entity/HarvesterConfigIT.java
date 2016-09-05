@@ -1,6 +1,7 @@
 package dk.dbc.dataio.flowstore.entity;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
+import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
@@ -25,23 +26,17 @@ import static org.junit.Assert.assertThat;
 public class HarvesterConfigIT {
     private EntityManager em;
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterConfigIT.class);
+    final static String testDbName="testdb";
+
 
     @Before
     public void setUp() throws Exception {
         // Execute flyway upgrade
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
-        for (MigrationInfo i : flyway.info().all()) {
-            LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-        }
-        flyway.migrate();
-
         em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
-        em.getTransaction().begin();
-        em.createNativeQuery("delete from harvester_configs").executeUpdate();
-        em.getTransaction().commit();
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource(testDbName) );
+        startupDBMigrator.onStartup();
+
+        drop();
     }
 
     @After

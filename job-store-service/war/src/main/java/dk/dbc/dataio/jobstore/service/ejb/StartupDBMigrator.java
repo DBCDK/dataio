@@ -52,4 +52,15 @@ public class StartupDBMigrator {
    		}
    		flyway.migrate();
    	}
+
+
+	/**
+	 * For Integration test only
+	 * @param dataSource
+	 * @return this
+	 */
+	public StartupDBMigrator withDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+		return this;
+	}
 }

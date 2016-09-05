@@ -48,7 +48,6 @@ public class StartupDBMigrator {
 
    	@PostConstruct
    	public void onStartup() {
-		log.error("ja7 in onStartup");
     	if (dataSource == null) {
    			log.error("no datasource found to execute the db migrations!");
             throw new EJBException(
@@ -67,4 +66,14 @@ public class StartupDBMigrator {
    		flyway.migrate();
    	}
 
+
+	/**
+	 * For Integration test only
+	 * @param dataSource
+	 * @return this
+	 */
+	public StartupDBMigrator withDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+		return this;
+	}
 }

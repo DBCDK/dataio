@@ -87,7 +87,7 @@ public class ITUtil {
         Class.forName("org.postgresql.Driver");
 
         final String dbUrl = String.format("jdbc:postgresql://localhost:%s/%s",
-                System.getProperty("postgresql.port"), dbName);
+                System.getProperty("postgresql.port","5432"), dbName);
         final Connection connection = DriverManager.getConnection(dbUrl,
                 System.getProperty("user.name"), System.getProperty("user.name"));
         connection.setAutoCommit(true);

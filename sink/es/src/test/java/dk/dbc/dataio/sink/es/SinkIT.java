@@ -81,8 +81,12 @@ public abstract class SinkIT {
     protected FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
     static {
-        ES_INFLIGHT_DATASOURCE = JPATestUtils.getTestDataSource( ES_INFLIGHT_DATABASE_NAME );
-        ES_DATASOURCE = JPATestUtils.getTestDataSource( ES_INFLIGHT_DATABASE_NAME );
+        try {
+            ES_INFLIGHT_DATASOURCE = JPATestUtils.getTestDataSource(ES_INFLIGHT_DATABASE_NAME);
+            ES_DATASOURCE = JPATestUtils.getTestDataSource(ES_INFLIGHT_DATABASE_NAME);
+        } catch( SQLException e) {
+            throw new RuntimeException("Test Setup error Unable to connect to test database");
+        }
     }
 
     @BeforeClass

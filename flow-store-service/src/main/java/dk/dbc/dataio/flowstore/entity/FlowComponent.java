@@ -26,12 +26,14 @@ import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
+
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.Lob;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
+import javax.persistence.NamedNativeQueries;
+import javax.persistence.NamedNativeQuery;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -47,24 +49,24 @@ import javax.persistence.UniqueConstraint;
     },
     indexes = @Index(columnList = FlowComponent.NAME_INDEX_COLUMN)
 )
-@NamedQueries({
-    @NamedQuery(name = FlowComponent.QUERY_FIND_ALL, query = "SELECT component FROM FlowComponent component ORDER BY component.nameIndexValue ASC")
+@NamedNativeQueries({
+        @NamedNativeQuery(
+                name = FlowComponent.QUERY_FIND_ALL,
+                query = "SELECT * FROM flow_components ORDER BY content->'name' ASC",
+                resultClass = FlowComponent.class
+
+        )
 })
-public class FlowComponent extends VersionedEntity {
+public class FlowComponent extends Versioned {
     public static final String TABLE_NAME = "flow_components";
     public static final String QUERY_FIND_ALL = "FlowComponent.findAll";
     static final String NAME_INDEX_COLUMN = "name_idx";
+    static final JSONBContext jsonbContext=new JSONBContext();
 
     @Lob
-    @Column(name = NAME_INDEX_COLUMN, nullable = false)
-    private String nameIndexValue;
-
-    @Lob
+    @Column(nullable = true, columnDefinition = "json")
+    @Convert(converter = JsonConverter.class)
     private String next;
-
-    String getNameIndexValue() {
-        return nameIndexValue;
-    }
 
     @JsonRawValue
     public String getNext() {
@@ -77,15 +79,62 @@ public class FlowComponent extends VersionedEntity {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @throws NullPointerException if given null-valued data argument
-     * @throws IllegalArgumentException if given empty-valued data argument
-     * @throws JSONBException if non-json JSON string or if given JSON is invalid FlowComponentContent.
-     */
+
+    FlowComponent withId(long id) {
+        setId(id);
+        return this;
+    }
+
+    FlowComponent withVersion( long version ) {
+        setVersion( version );
+        return this;
+    }
+
+    public FlowComponent withContent( String content ) {
+        this.setContent( content );
+        return this;
+    }
+
+    public FlowComponent withNext(String next) {
+        this.next = next;
+        return this;
+    }
+
+
     @Override
-    protected void preProcessContent(String data) throws JSONBException {
-        final FlowComponentContent flowComponentContent = new JSONBContext().unmarshall(data, FlowComponentContent.class);
-        nameIndexValue = flowComponentContent.getName();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        FlowComponent that = (FlowComponent) o;
+
+        try {
+            final FlowComponentContent thisContent=jsonbContext.unmarshall(getContent(), FlowComponentContent.class);
+            final FlowComponentContent thatContent=jsonbContext.unmarshall(that.getContent(), FlowComponentContent.class);
+
+            final FlowComponentContent thisNext=next != null ? jsonbContext.unmarshall(next, FlowComponentContent.class): null;
+            final FlowComponentContent thatNext=next != null ? jsonbContext.unmarshall(that.getNext(), FlowComponentContent.class): null;
+
+
+
+            if (next != null ? !thisNext.equals(thatNext) : that.next != null) return false;
+            return thisContent.equals(thatContent);
+
+        } catch (JSONBException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        try {
+            int result=jsonbContext.unmarshall(getContent(), FlowComponentContent.class).hashCode();
+
+            result = 31 * result + (next != null ? jsonbContext.unmarshall(next, FlowComponentContent.class).hashCode() : 0);
+        return result;
+        } catch (JSONBException e) {
+            return 0;
+        }
+
     }
 }

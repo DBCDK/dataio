@@ -5,6 +5,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
+import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import org.flywaydb.core.Flyway;
@@ -37,26 +38,22 @@ public class FlowIT {
         // Execute flyway upgrade
 
         em = JPATestUtils.createEntityManagerForIntegrationTest("flowStoreIT");
-        JPATestUtils.clearDatabase( em );
 
-        final Flyway flyway = new Flyway();
-        flyway.setTable("schema_version");
-        flyway.setBaselineOnMigrate(true);
-        flyway.setDataSource(JPATestUtils.getTestDataSource("testdb"));
-        for (MigrationInfo i : flyway.info().all()) {
-            LOGGER.debug("db task {} : {} from file '{}'", i.getVersion(), i.getDescription(), i.getScript());
-        }
-        flyway.migrate();
+        // Execute flyway upgrade
+        StartupDBMigrator startupDBMigrator=new StartupDBMigrator().withDataSource( JPATestUtils.getTestDataSource("testdb") );
+        startupDBMigrator.onStartup();
 
-        em.getTransaction().begin();
-        em.createNativeQuery("delete from flows").executeUpdate();
-        em.getTransaction().commit();
+        drop();
     }
 
     @After
     public void drop() {
         if( em.getTransaction().isActive() ) em.getTransaction().rollback();
         em.getTransaction().begin();
+        em.createNativeQuery("delete from flow_binders_search_index").executeUpdate();
+        em.createNativeQuery("delete from flow_binders_submitters").executeUpdate();
+        em.createNativeQuery("delete from flow_components").executeUpdate();
+        em.createNativeQuery("delete from flow_binders").executeUpdate();
         em.createNativeQuery("delete from flows").executeUpdate();
         em.getTransaction().commit();
     }
@@ -101,7 +98,9 @@ public class FlowIT {
         List<Flow> result=q.getResultList();
 
         assertThat( result.size(), is(8));
-        assertThat( result.get(0).getContent(), is("{\"name\": \"FFU2RR\", \"components\": [{\"id\": 854, \"next\": {\"name\": \"FFU forbehandling\", \"description\": \"Forbehandling af poster fra FFU-bibliotekerne på vej til råpost repo\", \"javascripts\": [], \"svnRevision\": 102019, \"requireCache\": \"\", \"invocationMethod\": \"prepareResearchRecordForRawRepo\", \"invocationJavascriptName\": \"trunk/js/marcx_io_raw_repo.js\", \"svnProjectForInvocationJavascript\": \"datawell-convert\"}, \"content\": {\"name\": \"FFU forbehandling\", \"description\": \"Forbehandling af poster fra FFU-bibliotekerne på vej til råpost repo\", \"javascripts\": [], \"svnRevision\": 102019, \"requireCache\": \"\", \"invocationMethod\": \"prepareResearchRecordForRawRepo\", \"invocationJavascriptName\": \"trunk/js/marcx_io_raw_repo.js\", \"svnProjectForInvocationJavascript\": \"datawell-convert\"}, \"version\": 64}], \"description\": \"Forbehandling af FFU-poster på vej til Råpost Repo\"}"));
+        assertThat( result.get(0).getId(), is( 2352L ));
+        assertThat( result.get(1).getId(), is( 3151L ));
+        assertThat( result.get(7).getId(), is( 53L ));
     }
 
 }

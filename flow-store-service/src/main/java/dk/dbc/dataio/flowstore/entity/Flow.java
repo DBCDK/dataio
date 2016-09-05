@@ -55,10 +55,16 @@ public class Flow extends Versioned {
         } catch (JSONBException e) {
             return false;
         }
-    }
+         }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        final FlowContent thisFlowContent;
+        try {
+            thisFlowContent = new JSONBContext().unmarshall(getContent(), FlowContent.class);
+            return thisFlowContent.hashCode();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

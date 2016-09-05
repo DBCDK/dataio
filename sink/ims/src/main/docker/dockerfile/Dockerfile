@@ -7,7 +7,6 @@ LABEL BuildNumber=$build_number
 
 # Mechanism to select messages in queue based on name
 ENV MESSAGE_NAME_FILTER dataio/sinks/ims/ws
-ENV QUEUE_PORT 7676
 
 ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/ims-logback-docker-stg.xml
 

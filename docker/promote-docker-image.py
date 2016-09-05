@@ -45,6 +45,8 @@ if __name__ == "__main__":
     print "[%s]" % (execute_http_post('/'.join([args.registry_baseurl, 'api', 'docker', args.src, 'v2', 'promote']),
                                       request, args.username, args.password))
 
+    print "TEST"
+
 
 
 

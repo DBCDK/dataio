@@ -3,7 +3,9 @@
 # -*- mode: python -*-
 
 import argparse
+import os
 import requests
+import sys
 from requests.auth import HTTPBasicAuth
 
 
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     print "[%s]" % (execute_http_post('/'.join([args.registry_baseurl, 'api', 'docker', args.src, 'v2', 'promote']),
                                       request, args.username, args.password))
 
-
+    sys.exit(os.EX_OK)
 
 
 

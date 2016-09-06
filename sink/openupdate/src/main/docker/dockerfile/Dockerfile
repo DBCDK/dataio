@@ -12,7 +12,7 @@ LABEL BuildNumber=$build_number
 ENV PARAMS_UPDATEJNDI url/dataio/openupdate/ws
 
 ENV WAR dataio-sink-openupdate-1.0-SNAPSHOT
-ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/update-sink-logback-docker.xml
+ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/logback-docker-generic.xml
 
 
 ADD dbc-glassfish.d/* $GLASSFISH_USER_HOME/dbc-glassfish.d/

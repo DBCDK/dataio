@@ -8,7 +8,7 @@ LABEL BuildNumber=$build_number
 # Mechanism to select messages in queue based on name
 ENV MESSAGE_NAME_FILTER dataio/sinks/ims/ws
 
-ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/ims-logback-docker-stg.xml
+ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/logback-docker-generic.xml
 
 ADD dbc-glassfish.d/* $GLASSFISH_USER_HOME/dbc-glassfish.d/
 

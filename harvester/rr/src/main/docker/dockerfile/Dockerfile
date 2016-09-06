@@ -7,7 +7,7 @@ MAINTAINER dataio
 ARG build_number=unknown
 LABEL BuildNumber=$build_number
 
-ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/rr-harvester-docker-logback.xml
+ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/logback-docker-generic.xml
 
 ENV DBC_POSTGRES_HARVESTER_ENV_POSTGRES_DB harvester_rr_db
 ENV DBC_POSTGRES_HARVESTER_ENV_POSTGRES_PASSWORD harvester_rr

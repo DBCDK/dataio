@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+<resources>
+
+    <jdbc-connection-pool datasource-classname="org.postgresql.ds.PGSimpleDataSource" name="jdbc/dataio/harvester/rr/pool">
+      <property name="user" value="{{getv "/dbc/postgres/harvester/env/postgres/user"}}"></property>
+      <property name="PortNumber" value="5432"></property>
+      <property name="password" value="{{getv "/dbc/postgres/harvester/env/postgres/password"}}"></property>
+      <property name="DriverClass" value="org.postgresql.Driver"></property>
+      <property name="DatabaseName" value="{{getv "/dbc/postgres/harvester/env/postgres/db"}}"></property>
+      <property name="serverName" value="dbc-postgres-harvester"></property>
+    </jdbc-connection-pool>
+
+    <jdbc-resource pool-name="jdbc/dataio/harvester/rr/pool" jndi-name="jdbc/dataio/harvester/rr"></jdbc-resource>
+
+     <jdbc-connection-pool validate-atmost-once-period-in-seconds="10" datasource-classname="org.postgresql.xa.PGXADataSource" name="jdbc/dataio/harvester-xa/rr/pool" is-connection-validation-required="true" connection-validation-method="meta-data" res-type="javax.sql.XADataSource">
+      <property name="user" value="{{getv "/dbc/postgres/harvester/xa/env/postgres/user"}}"></property>
+      <property name="PortNumber" value="5432"></property>
+      <property name="password" value="{{getv "/dbc/postgres/harvester/xa/env/postgres/password"}}"></property>
+      <property name="DriverClass" value="org.postgresql.Driver"></property>
+      <property name="DatabaseName" value="{{getv "/dbc/postgres/harvester/xa/env/postgres/db"}}"></property>
+      <property name="serverName" value="dbc-postgres-harvester-xa"></property>
+    </jdbc-connection-pool>
+
+    <jdbc-resource pool-name="jdbc/dataio/harvester-xa/rr/pool" jndi-name="jdbc/dataio/harvester-xa/rr"></jdbc-resource>
+
+</resources>

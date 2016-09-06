@@ -40,7 +40,7 @@ import javax.persistence.Table;
 @NamedNativeQueries({
     @NamedNativeQuery(
                 name = Flow.QUERY_FIND_ALL,
-                query = "SELECT * FROM Flows ORDER BY content->'name' ASC",
+                query = "SELECT * FROM Flows ORDER BY lower(content->>'name') ASC",
                 resultClass = Flow.class
     )
 })

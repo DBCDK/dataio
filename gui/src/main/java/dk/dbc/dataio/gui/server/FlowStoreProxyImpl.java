@@ -247,6 +247,17 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public void deleteFlowComponent(long flowComponentId, long version) throws NullPointerException, ProxyException {
+        final String callerMethodName = "deleteFlowComponent";
+        log.trace("FlowStoreProxy: " + callerMethodName + "({}, {});", flowComponentId, version);
+        try {
+            flowStoreServiceConnector.deleteFlowComponent(flowComponentId, version);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+    }
+
+    @Override
     public List<FlowComponentModel> findAllFlowComponents() throws ProxyException {
         final String callerMethodName = "findAllFlowComponents";
         List<FlowComponent> result = null;

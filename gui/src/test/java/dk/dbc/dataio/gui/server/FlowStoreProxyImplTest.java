@@ -669,6 +669,50 @@ public class FlowStoreProxyImplTest {
         }
     }
 
+     /*
+     * Test deleteFlow
+     */
+
+    @Test
+    public void deleteFlowComponent_remoteServiceReturnsHttpStatusNoContent() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        try {
+            flowStoreProxy.deleteFlowComponent(ID, 1L);
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: deleteFlowComponent()");
+        }
+    }
+
+    @Test
+    public void deleteFlowComponent_remoteServiceReturnsHttpStatusNotFound_throws() throws Exception {
+        deleteFlowComponent_genericTestImplForHttpErrors(404, ProxyError.ENTITY_NOT_FOUND, "ENTITY_NOT_FOUND");
+    }
+
+    @Test
+    public void deleteFlowComponent_remoteServiceReturnsHttpStatusConflict_throws() throws Exception {
+        deleteFlowComponent_genericTestImplForHttpErrors(409, ProxyError.CONFLICT_ERROR, "CONFLICT_ERROR");
+    }
+
+    @Test
+    public void deleteFlowComponent_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        deleteFlowComponent_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    private void deleteFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+
+        doThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("msg", errorCodeToReturn)).when(flowStoreServiceConnector).deleteFlowComponent(eq(ID), (eq(1L)));
+        try {
+            flowStoreProxy.deleteFlowComponent(ID, 1);
+            fail("No " + expectedErrorName + " error was thrown by deleteFlowComponent()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
     /*
      * Test findAllFlowComponents
      */

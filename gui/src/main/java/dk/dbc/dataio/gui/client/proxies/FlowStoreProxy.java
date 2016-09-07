@@ -43,7 +43,6 @@ public interface FlowStoreProxy extends RemoteService {
     FlowModel createFlow(FlowModel model) throws NullPointerException, ProxyException;
     FlowModel updateFlow(FlowModel FlowContent) throws NullPointerException, ProxyException;
     void deleteFlow(long flowId, long version) throws ProxyException;
-
     List<FlowModel> findAllFlows() throws ProxyException;
     FlowModel getFlow(Long id) throws ProxyException;
 
@@ -51,6 +50,7 @@ public interface FlowStoreProxy extends RemoteService {
     FlowComponentModel createFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
     FlowComponentModel updateFlowComponent(FlowComponentModel model) throws NullPointerException, ProxyException;
     FlowModel refreshFlowComponents(Long id, Long version) throws NullPointerException, ProxyException;
+    void deleteFlowComponent(long flowComponentId, long version) throws ProxyException;
     List<FlowComponentModel> findAllFlowComponents() throws ProxyException;
     FlowComponentModel getFlowComponent(Long id) throws ProxyException;
 

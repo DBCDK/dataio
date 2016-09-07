@@ -507,6 +507,37 @@ public class FlowStoreServiceConnector {
         }
     }
 
+    /**
+     * Deletes an existing flow component from the flow-store
+     *
+     * @param flowComponentId, the database related ID
+     * @param version, the current JPA version of the sink - Optimistic Locking
+     *
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorUnexpectedStatusCodeException if an unexpected HTTP code is returned
+     */
+    public void deleteFlowComponent(long flowComponentId, long version) throws ProcessingException, FlowStoreServiceConnectorUnexpectedStatusCodeException {
+        log.trace("FlowStoreServiceConnector: deleteFlowComponent({})", flowComponentId);
+        final StopWatch stopWatch = new StopWatch();
+
+        final PathBuilder pathBuilder = new PathBuilder(
+                FlowStoreServiceConstants.FLOW_COMPONENT)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(flowComponentId));
+
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, Long.toString(version));
+
+        final Response response = doDelete(httpClient, headers, baseUrl, pathBuilder.build());
+
+        try {
+            verifyResponseStatus(response, NO_CONTENT);
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: deleteFlowComponent took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+
     // ************************************************** Flow **************************************************
 
     /**

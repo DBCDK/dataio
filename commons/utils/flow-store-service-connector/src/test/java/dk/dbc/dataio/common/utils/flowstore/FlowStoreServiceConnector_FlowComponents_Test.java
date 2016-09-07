@@ -310,4 +310,43 @@ public class FlowStoreServiceConnector_FlowComponents_Test {
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllFlowComponents();
     }
+
+
+    // **************************************** delete flow component tests ****************************************
+    @Test
+    public void deleteFlowComponent_flowComponentIsDeleted() throws FlowStoreServiceConnectorException, JSONBException {
+        final FlowComponent flowComponentToDelete = new FlowComponentBuilder().build();
+        deleteFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NO_CONTENT.getStatusCode(), flowComponentToDelete.getId(), flowComponentToDelete.getVersion());
+    }
+
+    @Test(expected = FlowStoreServiceConnectorException.class)
+    public void deleteFlowComponent_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        deleteFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteFlowComponent_responseWithVersionConflict_throws() throws FlowStoreServiceConnectorException{
+        deleteFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.CONFLICT.getStatusCode(), ID, VERSION);
+    }
+
+    @Test(expected = FlowStoreServiceConnectorUnexpectedStatusCodeException.class)
+    public void deleteFlowComponent_responseWithNotFound_throws() throws FlowStoreServiceConnectorException{
+        deleteFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), ID, VERSION);
+    }
+
+    // Helper method
+    private void deleteFlowComponent_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, long id, long version) throws FlowStoreServiceConnectorException {
+        final Map<String, String> headers = new HashMap<>(1);
+        headers.put(FlowStoreServiceConstants.IF_MATCH_HEADER, "1");
+
+        final PathBuilder path = new PathBuilder(FlowStoreServiceConstants.FLOW_COMPONENT)
+                .bind(FlowStoreServiceConstants.ID_VARIABLE, Long.toString(id));
+
+        when(HttpClient.doDelete(CLIENT, headers, FLOW_STORE_URL, path.build()))
+                .thenReturn(new MockedResponse<>(statusCode, null));
+
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        instance.deleteFlowComponent(id, version);
+    }
+
 }

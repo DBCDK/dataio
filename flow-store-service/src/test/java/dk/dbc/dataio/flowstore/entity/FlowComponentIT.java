@@ -1,12 +1,11 @@
 package dk.dbc.dataio.flowstore.entity;
 
-import dk.dbc.dataio.commons.types.*;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.json.FlowComponentContentJsonBuilder;
 import dk.dbc.dataio.flowstore.ejb.StartupDBMigrator;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
-import org.flywaydb.core.Flyway;
-import org.flywaydb.core.api.MigrationInfo;
+import static org.eclipse.persistence.logging.SessionLog.JPA;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import org.junit.After;
 import static org.junit.Assert.assertThat;
@@ -14,9 +13,13 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
+import javax.persistence.RollbackException;
 import java.util.List;
 
 /**
@@ -47,9 +50,9 @@ public class FlowComponentIT {
 
         em.createNativeQuery("delete from flow_binders_search_index").executeUpdate();
         em.createNativeQuery("delete from flow_binders_submitters").executeUpdate();
+        em.createNativeQuery("delete from flows").executeUpdate();
         em.createNativeQuery("delete from flow_components").executeUpdate();
         em.createNativeQuery("delete from flow_binders").executeUpdate();
-        em.createNativeQuery("delete from flows").executeUpdate();
         em.getTransaction().commit();
     }
 
@@ -89,4 +92,38 @@ public class FlowComponentIT {
         ));
     }
 
+    @Test
+    public void DeleteRows() throws Exception {
+        JPATestUtils.runSqlFromResource(em, this, "flowIT_testdata.sql");
+
+        assertThat(() -> {
+            em.getTransaction().begin();
+            FlowComponent component = em.find( FlowComponent.class,  1001L );
+            em.remove(component);
+            em.getTransaction().commit();
+        }, isThrowing(RollbackException.class));
+
+        assertThat(() -> {
+            em.getTransaction().begin();
+            FlowComponent component = em.find( FlowComponent.class,  1002L );
+            em.remove(component);
+            em.getTransaction().commit();
+        }, isThrowing(RollbackException.class));
+
+        em.getTransaction().begin();
+        FlowComponent component = em.find( FlowComponent.class,  901L );
+        em.remove(component);
+        em.getTransaction().commit();
+
+        JPATestUtils.clearEntityManagerCache( em );
+        component = em.find( FlowComponent.class,  1001L );
+        assertThat(component.getId(), is( 1001L));
+
+        component = em.find( FlowComponent.class,  1002L );
+        assertThat(component.getId(), is( 1002L));
+
+        component = em.find( FlowComponent.class,  901L );
+        assertThat(component, is( nullValue()));
+
+    }
 }

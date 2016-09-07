@@ -52,9 +52,9 @@ public class FlowIT {
         em.getTransaction().begin();
         em.createNativeQuery("delete from flow_binders_search_index").executeUpdate();
         em.createNativeQuery("delete from flow_binders_submitters").executeUpdate();
-        em.createNativeQuery("delete from flow_components").executeUpdate();
         em.createNativeQuery("delete from flow_binders").executeUpdate();
         em.createNativeQuery("delete from flows").executeUpdate();
+        em.createNativeQuery("delete from flow_components").executeUpdate();
         em.getTransaction().commit();
     }
 

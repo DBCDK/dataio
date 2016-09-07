@@ -402,6 +402,7 @@ public class FlowsIT {
         }catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
 
             // And...
+
             assertThat(e.getStatusCode(), is(409));
 
             // And... Find the flowComponent used by the flow, with the latest revision

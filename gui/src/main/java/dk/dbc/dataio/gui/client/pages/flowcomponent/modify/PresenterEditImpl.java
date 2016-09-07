@@ -21,6 +21,9 @@
 
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
+import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowComponentModel;
@@ -40,6 +43,21 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         super(header);
         id = place.getFlowComponentId();
     }
+
+    /**
+     * start method
+     * Is called by PlaceManager, whenever the PlaceCreate or PlaceEdit are being invoked
+     * This method is the start signal for the presenter
+     *
+     * @param containerWidget the widget to use
+     * @param eventBus        the eventBus to use
+     */
+    @Override
+    public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
+        super.start(containerWidget, eventBus);
+        getView().deleteButton.setVisible(true);
+    }
+
     /**
      * Initializing the model
      * The method fetches the stored flow component, as given in the Place (referenced by this.id)
@@ -58,10 +76,28 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         commonInjector.getFlowStoreProxyAsync().updateFlowComponent(model, new SaveFlowComponentModelFilteredAsyncCallback());
     }
 
+    /**
+     * A signal to the presenter, saying that the delete button has been pressed
+     */
+    public void deleteButtonPressed() {
+        if (model != null) {
+            deleteModel();
+        }
+    }
+
     // Private methods
     private void getFlowComponent(final long flowComponentId) {
         commonInjector.getFlowStoreProxyAsync().getFlowComponent(flowComponentId, new GetFlowComponentModelFilteredAsyncCallback());
     }
+
+    /**
+     * Deletes the embedded model as a FlowBinder in the database
+     */
+    void deleteModel() {
+        // To Be Implemented
+        Window.alert("Slet Flowkomponent");
+    }
+
 
     /**
      * Call back class to be instantiated in the call to getFlowComponent in flowStoreProxy

@@ -55,4 +55,9 @@ public class PresenterCreateImpl extends PresenterImpl {
         commonInjector.getFlowStoreProxyAsync().createFlowComponent(model, new SaveFlowComponentModelFilteredAsyncCallback());
     }
 
+    /**
+     * This has no implementation because "Create" does not have a delete button!
+     */
+    public void deleteButtonPressed() {}
+
 }

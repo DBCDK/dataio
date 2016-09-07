@@ -50,7 +50,6 @@ public class PresenterCreateImpl extends PresenterImpl {
     @Override
     public void start(AcceptsOneWidget containerWidget, EventBus eventBus) {
         super.start(containerWidget, eventBus);
-        getView().deleteButton.setVisible(true);
     }
 
     /**

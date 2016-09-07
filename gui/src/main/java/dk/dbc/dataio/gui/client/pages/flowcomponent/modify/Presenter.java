@@ -33,4 +33,5 @@ public interface Presenter extends GenericPresenter {
     void invocationMethodChanged(String selectedInvocationMethod);
     void keyPressed();
     void saveButtonPressed();
+    void deleteButtonPressed();
 }

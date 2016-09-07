@@ -40,6 +40,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -95,6 +96,19 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedPlace).getFlowComponentId();
     }
 
+
+    @Test
+    public void start_callStart_ok() {
+        // Setup
+        setupPresenterEdit();
+
+        // Subject Under Test
+        presenterEditImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Verifications
+        verify(editView.deleteButton).setVisible(true);
+        verifyNoMoreInteractions(editView.deleteButton);
+    }
 
     @Test
     public void initializeModel_callPresenterStart_modelIsInitializedCorrectly() {

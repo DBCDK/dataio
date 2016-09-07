@@ -33,9 +33,14 @@
         <li><dio:PromptedList ui:field="next" guiId="flowcomponentnextrevisionpanel" prompt="{txt.label_SvnNext}" multiSelect="false" visibleItems="1"/></li>
         <li><dio:PromptedList ui:field="script" guiId="flowcomponentscriptnamepanel" prompt="{txt.label_ScriptName}" multiSelect="false" visibleItems="1"/></li>
         <li><dio:PromptedList ui:field="method" guiId="flowcomponentinvocationmethodpanel" prompt="{txt.label_InvocationMethod}" multiSelect="false" visibleItems="1"/></li>
-        <li><g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button></li>
+        <li>
+            <g:Button ui:field="saveButton"><ui:text from="{txt.button_Save}"/></g:Button>
+            <g:Button ui:field="deleteButton" visible="false" addStyleNames="deleteButton"><ui:text from="{txt.button_Delete}"/></g:Button>
+        </li>
         <li><g:Label ui:field="status"></g:Label></li>
         <li><g:Label ui:field="busy"><ui:text from="{txt.status_Busy}"/></g:Label> </li>
+
+        <dio:PopupBox ui:field="confirmation" okButtonText="{txt.button_Yes}" cancelButtonText="{txt.button_Cancel}" dialogTitle="{txt.caption_DeleteFlowcomponent}" />
 
     </g:HTMLPanel>
 

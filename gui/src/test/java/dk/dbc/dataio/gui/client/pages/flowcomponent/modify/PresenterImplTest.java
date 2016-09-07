@@ -104,10 +104,16 @@ public class PresenterImplTest extends PresenterImplTestBase {
             saveModelHasBeenCalled = true;
         }
 
+        @Override
+        public void deleteButtonPressed() {
+
+        }
+
         // The following instances of the callback classes allows a unit test for each of them
         public FetchRevisionsFilteredAsyncCallback fetchRevisionsFilteredAsyncCallback = new FetchRevisionsFilteredAsyncCallback();
         public FetchScriptsFilteredAsyncCallback fetchScriptsFilteredAsyncCallback = new FetchScriptsFilteredAsyncCallback();
         public FetchInvocationMethodsFilteredAsyncCallback fetchInvocationMethodsFilteredAsyncCallback = new FetchInvocationMethodsFilteredAsyncCallback();
+
         public SaveFlowComponentModelFilteredAsyncCallback saveFlowComponentModelFilteredAsyncCallback = new SaveFlowComponentModelFilteredAsyncCallback();
     }
 

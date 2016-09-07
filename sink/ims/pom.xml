@@ -129,7 +129,8 @@
                 <vmArg>-Djavax.xml.accessExternalSchema=all</vmArg>
               </vmArgs>
               <target>2.2</target>
-              <wsdlDirectory>${basedir}/src/main/wsdl</wsdlDirectory>
+              <wsdlLocation>http://localhost/wsdl/updateMarcXchange.wsdl</wsdlLocation>
+              <wsdlDirectory>${basedir}/src/main/resources/META-INF/wsdl</wsdlDirectory>
             </configuration>
           </execution>
         </executions>

@@ -13,13 +13,11 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Script for promoting docker repositories')
     parser.add_argument('--registry-baseurl', default='https://artifactory.dbc.dk/artifactory',
                         help='base URL of docker registry service')
-    parser.add_argument('--src', default="docker-io", help='source registry')
-    parser.add_argument('--target', default="docker-io", help='target registry')
     parser.add_argument('--username', required=True, help='registry service username')
     parser.add_argument('--password', required=True, help='registry service password')
-    parser.add_argument('repository_name', help='name of docker repository')
-    parser.add_argument('src_tag', help='tag of source repository')
-    parser.add_argument('target_tag', help='tag of target repository')
+    parser.add_argument('repository_name', help='name of docker repository including registry')
+    parser.add_argument('src_tag', help='tag of repository to promote')
+    parser.add_argument('target_tag', help='tag of promoted repository')
     return parser.parse_args()
 
 
@@ -29,23 +27,27 @@ def execute_http_post(url, request, username, password):
         raise Exception("error promoting repository: " + response.content)
     return response.status_code
 
+
+def trim_registry(registry):
+    return registry.split('.')[0]
+
 if __name__ == "__main__":
     args = parse_args()
-    repository_name = args.repository_name.split('/')[-1]
+    (registry, repository_name) = args.repository_name.split('/')
 
-    print "promoting %s/%s/%s to %s/%s/%s" % (args.src, repository_name, args.src_tag, args.target, repository_name,
+    print "promoting %s/%s:%s to %s/%s:%s" % (registry, repository_name, args.src_tag, registry, repository_name,
                                               args.target_tag),
 
     request = {
-        "targetRepo": args.target,
+        "targetRepo": trim_registry(registry),
         "dockerRepository": repository_name,
         "tag": args.src_tag,
         "targetTag": args.target_tag,
         "copy": True
     }
 
-    print "[%s]" % (execute_http_post('/'.join([args.registry_baseurl, 'api', 'docker', args.src, 'v2', 'promote']),
-                                      request, args.username, args.password))
+    print "[%s]" % (execute_http_post('/'.join([args.registry_baseurl, 'api', 'docker', trim_registry(registry), 'v2',
+                                                'promote']), request, args.username, args.password))
 
     sys.exit(os.EX_OK)
 

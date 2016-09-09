@@ -22,7 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.flowcomponent.modify;
 
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.user.client.History;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -94,8 +94,7 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
      * Deletes the embedded model as a FlowBinder in the database
      */
     void deleteModel() {
-        // To Be Implemented
-        Window.alert("Slet Flowkomponent");
+        commonInjector.getFlowStoreProxyAsync().deleteFlowComponent(model.getId(), model.getVersion(), new DeleteFlowComponentFilteredAsyncCallback());
     }
 
 
@@ -112,6 +111,23 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
         public void onSuccess(FlowComponentModel model) {
             setFlowComponentModel(model);
             updateAllFieldsAccordingToCurrentState();
+        }
+    }
+
+    /**
+     * Local call back class to be instantiated in the call to deleteFlowBinder in flowstore proxy
+     */
+    class DeleteFlowComponentFilteredAsyncCallback extends FilteredAsyncCallback<Void> {
+        @Override
+        public void onFilteredFailure(Throwable e) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
+        }
+
+        @Override
+        public void onSuccess(Void aVoid) {
+            getView().status.setText(getTexts().status_FlowComponentSuccessfullyDeleted());
+            setFlowComponentModel(null);
+            History.back();
         }
     }
 }

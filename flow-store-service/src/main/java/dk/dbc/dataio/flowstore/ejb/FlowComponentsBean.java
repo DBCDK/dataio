@@ -24,6 +24,7 @@ package dk.dbc.dataio.flowstore.ejb;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.flowstore.entity.Flow;
 import dk.dbc.dataio.flowstore.entity.FlowComponent;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -35,6 +36,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
@@ -169,6 +171,43 @@ public class FlowComponentsBean extends AbstractResourceBean {
         final String flowComponentJson = jsonbContext.marshall(updatedFlowComponent);
         return Response.ok(getResourceUriOfVersionedEntity(uriInfo.getAbsolutePathBuilder(), updatedFlowComponent)).entity(flowComponentJson).build();
     }
+
+
+    /**
+     * Deletes an existing flowComponent
+     *
+     * @param flowComponentId The flow ID
+     * @param version The version of the flow
+     *
+     * @return a HTTP 204 response with no content,
+     *         a HTTP 404 response in case of flow ID not found,
+     *         a HTTP 409 response in case an OptimisticLock or Constraint violation occurs,
+     *         a HTTP 500 response in case of general error.
+     */
+    @DELETE
+    @Path(FlowStoreServiceConstants.FLOW_COMPONENT)
+    public Response deleteFlowComponent(
+            @PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long flowComponentId,
+            @HeaderParam(FlowStoreServiceConstants.IF_MATCH_HEADER) Long version) {
+
+        final FlowComponent flowComponent = entityManager.find(FlowComponent.class, flowComponentId);
+
+        if(flowComponent== null) {
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+        }
+
+        // First we need to update the version no to see if any Optimistic Locking occurs!
+        entityManager.detach(flowComponent);
+        flowComponent.setVersion(version);
+        FlowComponent versionUpdatedAndNoOptimisticLocking = entityManager.merge(flowComponent);
+
+        // If no Optimistic Locking - delete it!
+        entityManager.remove(versionUpdatedAndNoOptimisticLocking);
+        entityManager.flush();
+
+        return Response.noContent().build();
+    }
+
 
     /**
      * Updates an existing flow component with next

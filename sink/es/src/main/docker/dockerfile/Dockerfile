@@ -1,23 +1,9 @@
 FROM docker-io.dbc.dk/dbc-glassfish
 
 MAINTAINER dataio
+
 ARG build_number=unknown
 LABEL BuildNumber=$build_number
-
-ENV DBC_ES_ENV_USER test_brond_upd
-ENV DBC_ES_ENV_PASSWORD test
-ENV DBC_ES_ENV_TNSNAME tora1.dbc.dk
-ENV DBC_ES_ENV_PORT 1521
-ENV DBC_ES_ENV_DB danbib_int_base
-ENV ES_USER_ID 0
-ENV SINK_ID -1
-
-ENV ES_DATABASENAME danbib_int_base
-
-# Mechanism to select messages in queue based on name
-ENV MESSAGE_NAME_FILTER jdbc/dataio/sinks/es/test3
-
-ENV LOGBACK_URL https://svn.dbc.dk/repos/dataio/trunk/deploy/config/logback-docker-generic.xml
 
 ADD dbc-glassfish.d/* $GLASSFISH_USER_HOME/dbc-glassfish.d/
 

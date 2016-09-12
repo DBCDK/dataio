@@ -36,7 +36,6 @@ def write_build_script(path, artifact, image_name, log):
 
 set -e
 REGISTRY=docker-io.dbc.dk
-BUILD_NUMBER=${BUILD_NUMBER}
 NAME=%s
 
 if [ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]; then
@@ -49,21 +48,19 @@ ARTIFACT=%s
 ln ../${ARTIFACT} ${ARTIFACT}
 
 TAG=${NAME}-devel
-BUILD_ARG="build_number=devel"
 if [ -n "${BUILD_NUMBER}" ] ; then
    TAG=${REGISTRY}/${NAME}:${BUILD_NUMBER}
-   BUILD_ARG="build_number=${BUILD_NUMBER}"
 fi
 
 echo building ${NAME} docker image
 
 ##
-time docker build -t ${TAG} --build-arg ${BUILD_ARG} -f Dockerfile .
+time docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg svn_revision=${SVN_REVISION:=devel} -f Dockerfile .
 rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest
 
-if [ -n "${BUILD_NUMBER}" ] ; then
+if [ "${BUILD_NUMBER}" != "devel" ] ; then
   echo pushing to ${REGISTRY}
   docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
   docker push ${REGISTRY}/${NAME}:latest

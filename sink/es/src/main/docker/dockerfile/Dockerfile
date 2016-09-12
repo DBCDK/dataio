@@ -4,6 +4,8 @@ MAINTAINER dataio
 
 ARG build_number=unknown
 LABEL BuildNumber=$build_number
+ARG svn_revision=unknown
+LABEL SvnRevision=$svn_revision
 
 ADD dbc-glassfish.d/* $GLASSFISH_USER_HOME/dbc-glassfish.d/
 

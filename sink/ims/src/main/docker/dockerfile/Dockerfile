@@ -4,6 +4,8 @@ MAINTAINER dataio
 
 ARG build_number=unknown
 LABEL BuildNumber=$build_number
+ARG svn_revision=unknown
+LABEL SvnRevision=$svn_revision
 
 # Mechanism to select messages in queue based on name
 ENV MESSAGE_NAME_FILTER dataio/sinks/ims/ws

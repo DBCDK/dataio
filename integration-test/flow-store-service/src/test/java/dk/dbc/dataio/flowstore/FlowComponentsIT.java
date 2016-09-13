@@ -38,6 +38,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.core.Response;
 import java.sql.Connection;
@@ -46,9 +47,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static dk.dbc.dataio.integrationtest.ITUtil.*;
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
+import static dk.dbc.dataio.integrationtest.ITUtil.clearAllDbTables;
+import static dk.dbc.dataio.integrationtest.ITUtil.createFlowComponent;
+import static dk.dbc.dataio.integrationtest.ITUtil.newIntegrationTestConnection;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * Integration tests for the flow components collection part of the flow store service
@@ -496,5 +506,60 @@ public class FlowComponentsIT {
         final List<FlowComponent> flowComponents = flowStoreServiceConnector.findAllFlowComponents();
         assertThat("1 flow component stored in the underlying database", flowComponents.size(), is(1));
     }
+
+    /**
+     * Given: a deployed flow-store service and a none referenced flow component is stored
+     * When : attempting to delete the flow component
+     * Then : the flow component is deleted
+     */
+    @Test
+    public void deleteFlowComponent_Ok() throws FlowStoreServiceConnectorException {
+
+        // Given...
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        // And...
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+        assertThat("created flowComponent.getNext() is null", flowComponent.getNext(), is(nullValue()));
+
+        // When...
+        flowStoreServiceConnector.deleteFlowComponent(flowComponent.getId(), flowComponent.getVersion());
+
+        // Then... Verify that the flow component is deleted
+        try {
+            flowStoreServiceConnector.getFlowComponent(flowComponent.getId());
+            fail("Flow component was not deleted");
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
+    /**
+     * Given: a deployed flow-store service
+     * When : attempting to delete a flow component that does not exist
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
+    @Test
+    public void deleteFlowComponent_NoFlowComponentToDelete() throws ProcessingException {
+
+        // Given...
+        final long flowComponentIdNotExists = 9999;
+        final long versionNotExists = 9;
+        final FlowStoreServiceConnector flowStoreServiceConnector = new FlowStoreServiceConnector(restClient, baseUrl);
+
+        try {
+            // When...
+            flowStoreServiceConnector.deleteFlowComponent(flowComponentIdNotExists, versionNotExists);
+            fail("None existing flow component was not detected");
+
+            // Then ...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException fssce) {
+            // And...
+            assertThat(Response.Status.fromStatusCode(fssce.getStatusCode()), is(NOT_FOUND));
+        }
+    }
+
 
 }

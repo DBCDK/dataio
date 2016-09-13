@@ -17,7 +17,6 @@ ADD confd /etc/confd
 ADD *.war $GLASSFISH_USER_HOME
 
 USER root
-RUN apt-get update &&  apt-get install -y python
 
 RUN chown -R $GLASSFISH_USER:$GLASSFISH_USER $GLASSFISH_USER_HOME && \
     mkdir -p /data/dataio && chown -R $GLASSFISH_USER:$GLASSFISH_USER /data/dataio

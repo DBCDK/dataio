@@ -16,6 +16,7 @@ ADD dbc-glassfish.d/* $GLASSFISH_USER_HOME/dbc-glassfish.d/
 
 USER root
 
+
 # Use confd to substitute
 ADD confd /etc/confd
 

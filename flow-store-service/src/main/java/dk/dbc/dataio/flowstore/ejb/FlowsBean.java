@@ -53,9 +53,6 @@ import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.getResourceUriOfVersionedEntity;
-import static dk.dbc.dataio.flowstore.util.ServiceUtil.saveAsVersionedEntity;
-
 /**
  * This Enterprise Java Bean (EJB) class acts as a JAX-RS root resource
  * exposed by the '/{@code FLOWS_ENTRY_POINT}' entry point
@@ -87,6 +84,7 @@ public class FlowsBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.FLOW)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getFlow(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
+        log.debug("getFlow called with: '{}'", id);
         final Flow flow = entityManager.find(Flow.class, id);
         if (flow == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();

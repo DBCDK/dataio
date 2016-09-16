@@ -75,7 +75,7 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINK)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSink(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
-        log.debug("getSink called with: '{}'", id);
+        log.info("getSink called with: '{}'", id);
         final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, id);
         if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();

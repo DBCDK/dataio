@@ -1,7 +1,7 @@
 [template]
-src = "flowstore.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/flowstore.xml"
+src = "ush-harvester.xml.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/ush-harvester.xml"
 
 keys = [
-    "/flowstore/url"
+    "/ush/harvester/url"
 ]

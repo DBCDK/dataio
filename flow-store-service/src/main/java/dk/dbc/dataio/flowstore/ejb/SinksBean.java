@@ -27,6 +27,8 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.flowstore.entity.SinkEntity;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
@@ -49,6 +51,7 @@ import java.util.List;
 @Stateless
 @Path("/")
 public class SinksBean extends AbstractResourceBean {
+    private static final Logger log = LoggerFactory.getLogger(SinksBean.class);
     private static final String SINK_CONTENT_DISPLAY_TEXT = "sinkContent";
     private static final String NULL_ENTITY = "";
 
@@ -72,6 +75,7 @@ public class SinksBean extends AbstractResourceBean {
     @Path(FlowStoreServiceConstants.SINK)
     @Produces({MediaType.APPLICATION_JSON})
     public Response getSink(@PathParam(FlowStoreServiceConstants.ID_VARIABLE) Long id) throws JSONBException {
+        log.debug("getSink called with: '{}'", id);
         final SinkEntity sinkEntity = entityManager.find(SinkEntity.class, id);
         if (sinkEntity == null) {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();

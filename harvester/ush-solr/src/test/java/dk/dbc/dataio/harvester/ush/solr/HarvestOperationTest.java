@@ -21,12 +21,10 @@
 
 package dk.dbc.dataio.harvester.ush.solr;
 
-import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.bfs.api.BinaryFileStoreFsImpl;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
@@ -40,7 +38,6 @@ import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrConnector;
 import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
 import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,7 +53,6 @@ import java.util.Date;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -171,40 +167,6 @@ public class HarvestOperationTest {
 
         verify(fileStoreServiceConnector, times(1)).addFile(any(InputStream.class));
         verify(flowStoreServiceConnector, times(1)).updateHarvesterConfig(any(HarvesterConfig.class));
-    }
-
-    @Test
-    public void toAddiRecord_trimsOaiTags() throws HarvesterException {
-        final UshSolrDocument ushSolrDocument = createUshSolrDocument(marcXchangeWrappedInOai);
-        final HarvestOperation harvestOperation = newHarvestOperation(newUshSolrHarvesterConfig());
-        final AddiRecord addiRecord = harvestOperation.toAddiRecord(ushSolrDocument);
-        assertThat(new String(addiRecord.getContentData()).startsWith("<record xmlns='info:lc/xmlns/marcxchange-v1'"), is(true));
-    }
-
-    @Test
-    public void toAddiRecord_solrDocumentContainsNoMarcXchange_returnsAddiRecordWithDiagnostic() throws HarvesterException, JSONBException {
-        final byte[] originalContent = "<record/>".getBytes();
-        final UshSolrDocument ushSolrDocument = createUshSolrDocument(originalContent);
-        final HarvestOperation harvestOperation = newHarvestOperation(newUshSolrHarvesterConfig());
-
-        final AddiRecord addiRecord = harvestOperation.toAddiRecord(ushSolrDocument);
-        assertThat("Addi record content data", addiRecord.getContentData(), is(originalContent));
-
-        final AddiMetaData addiMetaData = jsonbContext.unmarshall(new String(addiRecord.getMetaData()), AddiMetaData.class);
-        assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic(), is(notNullValue()));
-    }
-
-    @Test
-    public void toAddiRecord_solrDocumentHasNonXmlRecordContent_returnsAddiRecordWithDiagnostic() throws HarvesterException, JSONBException {
-        final byte[] originalContent = "not xml".getBytes();
-        final UshSolrDocument ushSolrDocument = createUshSolrDocument(originalContent);
-        final HarvestOperation harvestOperation = newHarvestOperation(newUshSolrHarvesterConfig());
-
-        final AddiRecord addiRecord = harvestOperation.toAddiRecord(ushSolrDocument);
-        assertThat("Addi record content data", addiRecord.getContentData(), is(originalContent));
-
-        final AddiMetaData addiMetaData = jsonbContext.unmarshall(new String(addiRecord.getMetaData()), AddiMetaData.class);
-        assertThat("Addi record metadata has diagnostic", addiMetaData.diagnostic(), is(notNullValue()));
     }
 
     @Test

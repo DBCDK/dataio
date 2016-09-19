@@ -26,7 +26,6 @@ import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -39,15 +38,10 @@ import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.marc.binding.MarcRecord;
-import dk.dbc.marc.reader.MarcReaderException;
-import dk.dbc.marc.reader.MarcXchangeV1Reader;
 import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -170,12 +164,7 @@ public class HarvestOperation {
                 .withBibliographicRecordId(document.id)
                 .withTrackingId(document.id + "." + document.version);
 
-        try {
-            return createAddiRecord(addiMetaData, trimOaiTags(document));
-        } catch (MarcReaderException e) {
-            addiMetaData.withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage()));
-            return createAddiRecord(addiMetaData, document.originalRecord());
-        }
+        return createAddiRecord(addiMetaData, document.originalRecord());
     }
 
     private UshSolrConnector.ResultSet findDatabaseDocumentsHarvestedInInterval() {
@@ -191,20 +180,6 @@ public class HarvestOperation {
         } catch (JSONBException e) {
             throw new HarvesterException("Error marshalling Addi metadata", e);
         }
-    }
-
-    private byte[] trimOaiTags(UshSolrDocument document) throws MarcReaderException {
-        final byte[] originalRecord = document.originalRecord();
-        if (originalRecord == null) {
-            throw new MarcReaderException("Original record content was null");
-        }
-        final BufferedInputStream inputStream = new BufferedInputStream(new ByteArrayInputStream(originalRecord));
-        final MarcXchangeV1Reader marcReader = new MarcXchangeV1Reader(inputStream, StandardCharsets.UTF_8);
-        final MarcRecord marcRecord = marcReader.read();
-        if (marcRecord == null) {
-            throw new MarcReaderException("No marcXchange record found in document");
-        }
-        return marcWriter.write(marcRecord, StandardCharsets.UTF_8);
     }
 
     private UshSolrHarvesterConfig updateHarvesterConfig(UshSolrHarvesterConfig config) throws HarvesterException {

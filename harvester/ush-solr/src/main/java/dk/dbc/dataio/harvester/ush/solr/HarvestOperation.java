@@ -38,7 +38,6 @@ import dk.dbc.dataio.harvester.utils.ush.UshSolrDocument;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.marc.writer.MarcXchangeV1Writer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,7 +54,6 @@ public class HarvestOperation {
     private final BinaryFileStore binaryFileStore;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
-    private final MarcXchangeV1Writer marcWriter;
 
     private UshSolrHarvesterConfig config;
     private final UshHarvesterProperties ushHarvesterProperties;
@@ -86,8 +84,6 @@ public class HarvestOperation {
         this.ushHarvesterProperties = config.getContent().getUshHarvesterProperties();
         this.ushSolrConnector = new UshSolrConnector(ushHarvesterProperties.getStorageUrl());
         this.jsonbContext = new JSONBContext();
-        this.marcWriter = new MarcXchangeV1Writer()
-                .setProperty(MarcXchangeV1Writer.Property.ADD_XML_DECLARATION, Boolean.FALSE);
     }
 
     /**
@@ -157,7 +153,7 @@ public class HarvestOperation {
         }
     }
 
-    AddiRecord toAddiRecord(UshSolrDocument document) throws HarvesterException {
+    private AddiRecord toAddiRecord(UshSolrDocument document) throws HarvesterException {
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withSubmitterNumber(config.getContent().getSubmitterNumber())
                 .withFormat(config.getContent().getFormat())

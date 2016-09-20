@@ -20,8 +20,8 @@
 #
 
 [template]
-src = "harvester.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/harvester.xml"
+src = "ush-harvester.xml.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/ush-harvester.xml"
 
 keys = [
     "/ush/harvester/url"

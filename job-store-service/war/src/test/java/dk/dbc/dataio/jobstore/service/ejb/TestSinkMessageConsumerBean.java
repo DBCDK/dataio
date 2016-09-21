@@ -35,17 +35,15 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
 
     JSONBContext jsonbContext = new JSONBContext();
 
-     public static List<Chunk> getChunksReceived() {
-         return chunksReceived;
-     }
-
-     static void waitForDeliveringOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
+    @SuppressWarnings("EjbClassWarningsInspection")
+    static void waitForDeliveringOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
          StopWatch timer=new StopWatch();
          if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
              throw new Exception("Unittest Errors unable to Acquire "+ numberOfChunksToWaitFor + " in 10 Seconds : "+message);
          }
          LOGGER.info("Waiting in took waitForDeliveringOfChunks {}  {} ms", numberOfChunksToWaitFor, timer.getElapsedTime());
      }
+
 
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
@@ -58,10 +56,19 @@ public class TestSinkMessageConsumerBean extends AbstractSinkMessageConsumerBean
 
     }
 
+    @SuppressWarnings("EjbClassWarningsInspection")
     public static void reset() {
         synchronized (chunksReceived) {
             chunksReceived.clear();
             processBlocker.drainPermits();
         }
     }
+
+    @SuppressWarnings("EjbClassWarningsInspection")
+    public static int getChunksReceivedCount() {
+        synchronized (( chunksReceived )) {
+            return chunksReceived.size();
+        }
+    }
+
 }

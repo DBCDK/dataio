@@ -72,6 +72,9 @@ public class JobSchedulerBeanArquillianIT {
     @EJB
     JobSchedulerBean jobSchedulerBean;
 
+    @EJB
+    JobSchedulerBulkSubmitterBean bulkSubmitterBean;
+
     @Inject
     @JobstoreDB
     EntityManager entityManager;
@@ -196,7 +199,7 @@ public class JobSchedulerBeanArquillianIT {
         // Then
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
 
-        assertThat(TestJobProcessorMessageConsumerBean.getChunksReceived().size(), is(1));
+        assertThat(TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(1));
 
         DependencyTrackingEntity dependencyTrackingEntity = getDependencyTrackingEntity(3, 0);
 
@@ -268,8 +271,8 @@ public class JobSchedulerBeanArquillianIT {
 
 
     /*
-      The Tests use a queue limit on 10 chunks. And tests by submitting 13 chunks.
-      and forces handle 3 chunks one at a time.
+      The Tests use a queue limit on 10 chunks. And tests by submitting 16 chunks.
+      and forces bulk handle 3 chunks one at a time.
      */
     @Test
     public void RateLimits() throws Exception {
@@ -296,7 +299,7 @@ public class JobSchedulerBeanArquillianIT {
 
 
 
-        for( int i=10; i <= 12; ++i ) {
+        for( int i=10; i <= 15; ++i ) {
             jobSchedulerBean.scheduleChunk(new ChunkEntity()
                             .withJobId(3).withChunkId(i)
                             .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
@@ -311,28 +314,50 @@ public class JobSchedulerBeanArquillianIT {
         for( int i=0 ; i<=9 ; ++i) {
             assertThat("Check QUEUED to PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
         }
-        for( int i=10; i <= 12 ; ++i ) {
+        for( int i=10; i <= 15 ; ++i ) {
             assertThat("Check READY_TO_PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
         }
 
-        // when chunk 3.[0-9] is done..
-        for( int i=0; i<=9; ++i) {
+        // when chunk 3.[0-2]s is done.. only 10-12 shut be submitted to processing once.
+        for( int i=0; i<=2; ++i) {
             jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(i)
                     .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
                     .build()
             );
-            int chunkExpected=10+i;
-            if( chunkExpected <= 12) { // only wait for the 3 extra chunks
-                TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("chunk "+chunkExpected,1);
-                assertThat("Check QUEUED to PROCESS for chunk " + chunkExpected, getDependencyTrackingEntity(3, chunkExpected).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
-                assertThat("Processing status after chunk "+chunkExpected, sinkStatus.processingStatus.isDirectSubmitMode(),is(false));
-            }
         }
 
+        for( int i=10; i<=12; ++i) {
+            TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("chunk "+i,1);
+            assertThat("Check QUEUED to PROCESS for chunk " + i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_PROCESS));
+            assertThat("Processing status after chunk "+i, sinkStatus.processingStatus.isDirectSubmitMode(),is(false));
+        }
+
+        for( int i=13; i <= 15 ; ++i ) {
+            assertThat("Check READY_TO_PROCESS for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_PROCESS));
+        }
+
+
+        assertThat( TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(13));
+        for(int i=0 ; i<=2 ; ++i ) {
+            bulkSubmitterBean.bulkScheduleChunksForProcessing();
+            LOGGER.info("UnitTest Waiting one Second");
+            TimeUnit.SECONDS.sleep(1);
+            assertThat( TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(13));
+        }
+
+        for( int i=3; i<=9; ++i) {
+            jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3).setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
+                    .build()
+            );
+        }
+
+        TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("chunks 13-15 ",3);
 
         // Mark last chunks done for chunks 10-12
-        for( int i=10; i<=12; ++i) {
+        for( int i=10; i<=15; ++i) {
             jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(i)
                     .appendItem(new ChunkItemBuilder().setData("Processed Chunk").build())
@@ -340,28 +365,36 @@ public class JobSchedulerBeanArquillianIT {
             );
         }
 
-        assertThat("DeliveringStatus after 13 chunks went tru processing ", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueSubmitMode.BULK));
+        assertThat( TestJobProcessorMessageConsumerBean.getChunksReceivedCount(), is(16));
+
+
+
+        assertThat("DeliveringStatus after 16 chunks went tru processing ", sinkStatus.deliveringStatus.getMode(),is(JobSchedulerBean.QueueSubmitMode.BULK));
+        waitForDirectSubmitModeIs( sinkStatus.processingStatus, JobSchedulerBean.QueueSubmitMode.DIRECT);
+        assertThat("Processing is back to directMode", sinkStatus.processingStatus.getMode(),is(JobSchedulerBean.QueueSubmitMode.DIRECT));
+
+        LOGGER.info("Processing Testing DONE ");
 
         //
-        // Done Testing processing Queue.. 21 chunks passed on for Delivery
+        // Done Testing processing Queue.. 16 chunks passed on for Delivery
         //
         TestSinkMessageConsumerBean.waitForDeliveringOfChunks("0-9", 10);
         for( int i=0; i<=9; ++i) {
             assertThat("Check QUEUED_TO_DELIVERY for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.QUEUED_TO_DELIVERY));
         }
-        for( int i=10; i<=12; ++i ) {
+        for( int i=10; i<=15; ++i ) {
             assertThat("Check READY_TO_DELIVER for chunk "+i, getDependencyTrackingEntity(3, i).getStatus(), is(ChunkProcessStatus.READY_TO_DELIVER));
         }
 
+        assertThat( TestSinkMessageConsumerBean.getChunksReceivedCount(),is( 10));
         // Mark Chunks Done from delivering one by one
         // when chunk 3.[0-9] is done..
-        for( int i=0; i<=10; ++i) {
+        for( int i=0; i<=2; ++i) {
             jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(i)
                     .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
                     .build()
             );
-
             int chunkExpected=10+i;
             if( chunkExpected <= 12 ) {
                 TestSinkMessageConsumerBean.waitForDeliveringOfChunks(" chunk "+chunkExpected, 1);
@@ -369,9 +402,28 @@ public class JobSchedulerBeanArquillianIT {
             }
         }
 
+        assertThat( TestSinkMessageConsumerBean.getChunksReceivedCount(),is( 13 ));
+        for(int i=0 ; i<=2 ; ++i ) {
+            bulkSubmitterBean.bulkScheduleChunksForDelivering();
+            LOGGER.info("UnitTest Waiting one Second");
+            TimeUnit.SECONDS.sleep(1);
+            assertThat( TestSinkMessageConsumerBean.getChunksReceivedCount(), is(13));
+        }
+
+        for( int i=3; i<=9; ++i) {
+            jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
+                    .setJobId(3).setChunkId(i)
+                    .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
+                    .build()
+            );
+        };
+
+        TestSinkMessageConsumerBean.waitForDeliveringOfChunks(" chunk 13-15", 3);
+
+
 
         // Mark last chunks done for chunks 11-12
-        for( int i=11; i<=12; ++i) {
+        for( int i=10; i<=12; ++i) {
             jobSchedulerBean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(i)
                     .appendItem(new ChunkItemBuilder().setData("Delivered Chunk").build())
@@ -400,7 +452,7 @@ public class JobSchedulerBeanArquillianIT {
 
     }
 
-    Set<String> makeSet(String... s) {
+    private Set<String> makeSet(String... s) {
         Set<String> res = new HashSet<>();
         Collections.addAll(res, s);
         return res;

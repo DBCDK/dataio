@@ -155,10 +155,9 @@ public class JobSchedulerTransactionsBean {
         if (!sinkStatus.isDirectSubmitMode()) return;
 
 
-        int queuedToDelivering = sinkStatus.jmsEnqueued.incrementAndGet();
-        if (queuedToDelivering > MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
+        int queuedToDelivering = sinkStatus.jmsEnqueued.intValue();
+        if (queuedToDelivering >= MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK) {
             sinkStatus.setMode(JobSchedulerBean.QueueSubmitMode.BULK);
-            sinkStatus.jmsEnqueued.decrementAndGet();
             LOGGER.info("chunk {} blocked by queue size {} ", dependencyTrackingEntity.getKey(), queuedToDelivering);
             return;
         }
@@ -187,6 +186,7 @@ public class JobSchedulerTransactionsBean {
         // Chunk is ready for Sink
         try {
             sinkMessageProducerBean.send(chunk, jobEntity);
+            sinkStatus.jmsEnqueued.incrementAndGet();
             LOGGER.info("chunk {} submitted to Delivering", dependencyTrackingEntity.getKey());
             dependencyTrackingEntity.setStatus(DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY);
         } catch (JobStoreException e) {

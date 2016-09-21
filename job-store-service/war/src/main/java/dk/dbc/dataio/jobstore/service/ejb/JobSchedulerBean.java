@@ -69,6 +69,10 @@ public class JobSchedulerBean {
     @SuppressWarnings("EjbClassWarningsInspection")
     static int MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK = 1000;
 
+    // if Number of Chunks in JMS Quque
+    @SuppressWarnings("EjbClassWarningsInspection")
+    static int TRANSITION_TO_DIRECT_MARK = 50;
+
 
     // Hash use to keep a count of pending jobs in JMS queues pr sink.
     // Small EJB violation for performance.

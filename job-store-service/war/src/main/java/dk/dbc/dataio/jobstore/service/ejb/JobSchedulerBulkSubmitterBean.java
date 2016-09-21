@@ -2,8 +2,6 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.BULK;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.DIRECT;
 import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.QueueSubmitMode.TRANSITION_TO_DIRECT;
@@ -44,7 +42,7 @@ public class JobSchedulerBulkSubmitterBean {
     @Schedule(second="*/1", minute="*",hour="*", persistent=false)
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRED)
-    void bulkScheduleChunksForDelivering() {
+    public void bulkScheduleChunksForDelivering() {
 
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
             try {
@@ -53,7 +51,7 @@ public class JobSchedulerBulkSubmitterBean {
 
                 if (queueStatus.getMode() == DIRECT) return;
 
-                doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering, MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK);
+                doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Delivering);
             }catch (Exception e) {
                 LOGGER.error("Error in sink for sink {}", sinkId,e);
             }
@@ -64,7 +62,7 @@ public class JobSchedulerBulkSubmitterBean {
     @Schedule(second = "*/1", minute = "*", hour = "*", persistent = false)
     @Stopwatch
     @TransactionAttribute( TransactionAttributeType.REQUIRED )
-    void bulkScheduleChunksForProcessing() {
+    public void bulkScheduleChunksForProcessing() {
         sinkStatusMap.forEach( (sinkId, sinkQueueStatus) -> {
             try {
                 JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus = sinkQueueStatus.processingStatus;
@@ -72,7 +70,7 @@ public class JobSchedulerBulkSubmitterBean {
 
                 if (queueStatus.getMode() == DIRECT) return;
 
-                doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing, MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK);
+                doBulkJmsQueueSubmit(sinkId, queueStatus, ProcessingOrDelivering.Processing);
             } catch (Exception e) {
                 LOGGER.error("Error in Processing for sink {}", sinkId, e);
             }
@@ -86,10 +84,10 @@ public class JobSchedulerBulkSubmitterBean {
     }
 
 
-    private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase, int maxNumberOfChunksInQueuePerSink) {
-        LOGGER.info("prSink {} queue test {} < {} -> {} ", phase, queueStatus.readyForQueue.intValue(), ( maxNumberOfChunksInQueuePerSink / 2 ),queueStatus.readyForQueue.intValue() < ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 2 ));
+    private void doBulkJmsQueueSubmit(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase) {
+        LOGGER.info("prSink {} queue test {} < {} -> {} ", phase, queueStatus.readyForQueue.intValue(), JobSchedulerBean.TRANSITION_TO_DIRECT_MARK ,queueStatus.readyForQueue.intValue() < (JobSchedulerBean.TRANSITION_TO_DIRECT_MARK ));
         if( (queueStatus.getMode() == BULK) &&
-            (queueStatus.readyForQueue.intValue() < ( MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK / 3 )) )
+            (queueStatus.readyForQueue.intValue() < JobSchedulerBean.TRANSITION_TO_DIRECT_MARK) )
         {
             LOGGER.info("prSink {} Queue starting switch to DirectMode", phase);
             queueStatus.setMode(TRANSITION_TO_DIRECT);
@@ -123,10 +121,9 @@ public class JobSchedulerBulkSubmitterBean {
         // Check of done transition to directMode is complete
 
         if(( queueStatus.bulkToDirectCleanUpPushes > 2) && lastAsyncPushedToQueue == 0)   {
-            Query q=entityManager.createQuery("select count(dt) from DependencyTrackingEntity dt where ( dt.status=:statusProcess or dt.status=:statusDelivering) and dt.sinkid=:sinkid")
+            Query q=entityManager.createQuery("select count(dt) from DependencyTrackingEntity dt where dt.status=:statusPhase and dt.sinkid=:sinkid")
                     .setParameter("sinkid", sinkId)
-                    .setParameter("statusProcess", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS)
-                    .setParameter("statusDelivering", DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
+                    .setParameter("statusPhase", getReadyForPhase( phase ));
             Long count= (Long) q.getSingleResult();
             if( count == 0 ) {
                 LOGGER.info("prSink {} {} queue switched to {}",sinkId, phase, DIRECT);
@@ -140,11 +137,23 @@ public class JobSchedulerBulkSubmitterBean {
     private Future<Integer> doAsyncBulkScheduleCallForPhase(Long sinkId, JobSchedulerPrSinkQueueStatuses.QueueStatus queueStatus, ProcessingOrDelivering phase) {
         switch (phase) {
             case Processing:
-                return queueStatus.lastAsyncPushResult = jobSchedulerBean.bulkScheduleToProcessingForSink( sinkId, queueStatus );
+                return jobSchedulerBean.bulkScheduleToProcessingForSink( sinkId, queueStatus );
             case Delivering:
-                return  jobSchedulerBean.bulkScheduleToDeliveringForSink( sinkId, queueStatus);
+                return jobSchedulerBean.bulkScheduleToDeliveringForSink( sinkId, queueStatus );
             default:
                 throw new IllegalArgumentException("Unknown Phase "+ phase);
         }
+    }
+
+    private DependencyTrackingEntity.ChunkProcessStatus getReadyForPhase( ProcessingOrDelivering phase ) {
+        switch (phase) {
+            case Processing:
+                return DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS;
+            case Delivering:
+                return DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER;
+            default:
+                throw new IllegalArgumentException("Unknown Phase "+ phase);
+        }
+
     }
 }

@@ -22,5 +22,6 @@ public class TestJobSchedulerConfigOverWrite {
         LOGGER.info("in do_startupQueueSizeOverWrite()");
         JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK=10;
         JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK=10;
+        JobSchedulerBean.TRANSITION_TO_DIRECT_MARK = 5;
     }
 }

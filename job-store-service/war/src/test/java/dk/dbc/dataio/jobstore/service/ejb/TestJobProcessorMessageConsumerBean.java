@@ -57,10 +57,8 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
 
     JSONBContext jsonbContext = new JSONBContext();
 
-    public static List<Chunk> getChunksReceived() {
-        return chunksReceived;
-    }
 
+    @SuppressWarnings("EjbClassWarningsInspection")
     static void waitForProcessingOfChunks(String message, int numberOfChunksToWaitFor) throws Exception {
         StopWatch timer=new StopWatch();
         if( ! processBlocker.tryAcquire( numberOfChunksToWaitFor, 10, TimeUnit.SECONDS ) ) {
@@ -94,10 +92,18 @@ public class TestJobProcessorMessageConsumerBean extends AbstractMessageConsumer
         }
     }
 
+    @SuppressWarnings("EjbClassWarningsInspection")
     public static void reset() {
         synchronized (chunksReceived) {
             chunksReceived.clear();
             processBlocker.drainPermits();
+        }
+    }
+
+    @SuppressWarnings("EjbClassWarningsInspection")
+    public static int getChunksReceivedCount() {
+        synchronized (( chunksReceived )) {
+            return chunksReceived.size();
         }
     }
 }

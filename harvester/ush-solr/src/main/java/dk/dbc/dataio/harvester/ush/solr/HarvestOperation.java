@@ -97,7 +97,7 @@ public class HarvestOperation {
                 binaryFileStore,
                 fileStoreServiceConnector,
                 jobStoreServiceConnector,
-                getJobSpecificationTemplate(JobSpecification.Type.TRANSIENT)))
+                getJobSpecificationTemplate(config.getContent().getType())))
         {
             final UshSolrConnector.ResultSet resultSet = findDatabaseDocumentsHarvestedInInterval();
             LOGGER.info("Found {} records on Solr", resultSet.getSize());
@@ -144,8 +144,17 @@ public class HarvestOperation {
     JobSpecification getJobSpecificationTemplate(JobSpecification.Type type) throws HarvesterException {
         try {
             final UshSolrHarvesterConfig.Content configFields = config.getContent();
-            return new JobSpecification("addi-xml", configFields.getFormat(), "utf8", configFields.getDestination(), configFields.getSubmitterNumber(),
-                    "placeholder", "placeholder", "placeholder", "placeholder", type,
+            return new JobSpecification(
+                    configFields.getPackaging(),
+                    configFields.getFormat(),
+                    configFields.getCharset(),
+                    configFields.getDestination(),
+                    configFields.getSubmitterNumber(),
+                    "placeholder",
+                    "placeholder",
+                    "placeholder",
+                    "placeholder",
+                    type,
                     new JobSpecification.Ancestry()
                             .withHarvesterToken(config.getHarvesterToken()));
         } catch (RuntimeException e) {

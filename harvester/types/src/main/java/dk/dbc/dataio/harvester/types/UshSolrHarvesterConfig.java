@@ -25,9 +25,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import dk.dbc.dataio.commons.types.JobSpecification;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import static dk.dbc.dataio.commons.types.JobSpecification.Type.TRANSIENT;
 
 /**
  * DTO class for USH-Solr harvester configuration
@@ -65,12 +68,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
 
         private String name;
         private String description;
-        private String frame;
+        private String packaging = "addi-xml";
         private String format;
-        private String charset;
+        private String charset = "utf8";
         private String destination;
         private Integer submitterNumber;
-        private String type;
+        private JobSpecification.Type type = TRANSIENT;
         private Integer ushHarvesterJobId;
         private UshHarvesterProperties ushHarvesterProperties;
         private Date timeOfLastHarvest;
@@ -105,12 +108,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return this;
         }
 
-        public String getFrame() {
-            return frame;
+        public String getPackaging() {
+            return packaging;
         }
 
-        public Content withFrame(String frame) {
-            this.frame = frame;
+        public Content withPackaging(String frame) {
+            this.packaging = frame;
             return this;
         }
 
@@ -164,11 +167,11 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return this;
         }
 
-        public String getType() {
+        public JobSpecification.Type getType() {
             return type;
         }
 
-        public Content withType(String type) {
+        public Content withType(JobSpecification.Type type) {
             this.type = type;
             return this;
         }
@@ -202,14 +205,14 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             if (name != null ? !name.equals(content.name) : content.name != null) return false;
             if (description != null ? !description.equals(content.description) : content.description != null)
                 return false;
-            if (frame != null ? !frame.equals(content.frame) : content.frame != null) return false;
+            if (packaging != null ? !packaging.equals(content.packaging) : content.packaging != null) return false;
             if (format != null ? !format.equals(content.format) : content.format != null) return false;
             if (charset != null ? !charset.equals(content.charset) : content.charset != null) return false;
             if (destination != null ? !destination.equals(content.destination) : content.destination != null)
                 return false;
             if (submitterNumber != null ? !submitterNumber.equals(content.submitterNumber) : content.submitterNumber != null)
                 return false;
-            if (type != null ? !type.equals(content.type) : content.type != null) return false;
+            if (type != content.type) return false;
             if (ushHarvesterJobId != null ? !ushHarvesterJobId.equals(content.ushHarvesterJobId) : content.ushHarvesterJobId != null)
                 return false;
             if (ushHarvesterProperties != null ? !ushHarvesterProperties.equals(content.ushHarvesterProperties) : content.ushHarvesterProperties != null)
@@ -222,7 +225,7 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
         public int hashCode() {
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result + (description != null ? description.hashCode() : 0);
-            result = 31 * result + (frame != null ? frame.hashCode() : 0);
+            result = 31 * result + (packaging != null ? packaging.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (charset != null ? charset.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
@@ -240,12 +243,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return "Content{" +
                     "name='" + name + '\'' +
                     ", description='" + description + '\'' +
-                    ", frame='" + frame + '\'' +
+                    ", packaging='" + packaging + '\'' +
                     ", format='" + format + '\'' +
                     ", charset='" + charset + '\'' +
                     ", destination='" + destination + '\'' +
                     ", submitterNumber=" + submitterNumber +
-                    ", type='" + type + '\'' +
+                    ", type=" + type +
                     ", ushHarvesterJobId=" + ushHarvesterJobId +
                     ", ushHarvesterProperties=" + ushHarvesterProperties +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +

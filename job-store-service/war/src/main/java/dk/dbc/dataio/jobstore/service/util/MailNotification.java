@@ -66,7 +66,6 @@ public class MailNotification {
     private final MailDestination mailDestination;
     private final NotificationEntity notification;
     private final StringBuilder builder;
-    private final JobSpecification.Ancestry ancestry;
     private final Map<String, String> overwrites;
 
     private Attachment attachment;
@@ -78,7 +77,6 @@ public class MailNotification {
     public MailNotification(MailDestination mailDestination, NotificationEntity notification) throws JobStoreException {
         this.mailDestination = mailDestination;
         this.notification = notification;
-        this.ancestry = notification.getJob().getSpecification().getAncestry();
         this.overwrites = new HashMap<>();
         if (isUndefined(notification.getContent())) {
             format();
@@ -115,9 +113,7 @@ public class MailNotification {
             switch (notification.getType()) {
                 case JOB_CREATED:
                 case JOB_COMPLETED:
-                    if(ancestry != null && ancestry.getPreviousJobId() > 0) {
-                        setJobIdOverwrite();
-                    }
+                    overwriteJobIdIfPreviousJobIdExists();
                     notification.setContent(templateEngine.apply(getNotificationTemplate(),
                             jsonbContext.marshall(toJobInfoSnapshot(notification.getJob())), overwrites));
 
@@ -131,9 +127,13 @@ public class MailNotification {
         }
     }
 
-    private void setJobIdOverwrite() {
-        final String overwrite = String.format("%d (genkørsel af job %d)", notification.getJobId(), ancestry.getPreviousJobId());
-        overwrites.put("jobId", overwrite);
+    private void overwriteJobIdIfPreviousJobIdExists() {
+        final JobSpecification.Ancestry ancestry = notification.getJob().getSpecification().getAncestry();
+        if (ancestry != null && ancestry.getPreviousJobId() > 0) {
+            final String overwrite = String.format("%d (genkørsel af job %d)", notification.getJobId(),
+                    ancestry.getPreviousJobId());
+            overwrites.put("jobId", overwrite);
+        }
     }
 
     private String getNotificationTemplate() {

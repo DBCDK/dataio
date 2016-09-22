@@ -239,7 +239,7 @@ public class MailNotificationTest {
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
-        final Attachment attachment = new Attachment("**This is an unreadable record".getBytes(), "lin");
+        final Attachment attachment = new Attachment("**This is an unreadable record".getBytes(), "test.lin", StandardCharsets.UTF_8);
         mailNotification.attach(attachment);
         mailNotification.append(bytes);
         mailNotification.send();
@@ -266,7 +266,7 @@ public class MailNotificationTest {
         updateStateForJobCompletedWithFailures(notification.getJob().getState());
 
         final MailNotification mailNotification = getMailNotification(notification);
-        final Attachment attachment = new Attachment(readTestRecord("/broken-iso2709-2.iso"), "iso");
+        final Attachment attachment = new Attachment(readTestRecord("/broken-iso2709-2.iso"), "test.iso2709", StandardCharsets.ISO_8859_1);
         mailNotification.attach(attachment);
         mailNotification.send();
 

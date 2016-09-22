@@ -30,6 +30,7 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.NotificationEntity;
+import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -308,6 +309,33 @@ public class JobNotificationRepositoryIT extends AbstractJobStoreIT {
         final Writer writer = new StringWriter();
         IOUtils.copy(mailAttachment.getInputStream(), writer);
         assertThat("Notification attachment content", writer.toString(), is(StringUtil.asString(partitioningOutcome.getData())));
+    }
+
+    /**
+     * Given: an empty repository
+     * When : a notification for a type without an associated job is processed
+     * Then : notification is updated with completed status
+     */
+    @Test
+    public void processNotification_withoutJob() {
+        // Given...
+        final InvalidTransfileNotificationContext notificationContext =
+                new InvalidTransfileNotificationContext("transfile", "content", "cause");
+
+        final JobNotificationRepository jobNotificationRepository = newJobNotificationRepository();
+
+        // When...
+        final NotificationEntity notification = persistenceContext.run(() ->
+                jobNotificationRepository.addNotification(JobNotification.Type.INVALID_TRANSFILE, "mail@company.com",
+                        notificationContext));
+
+        persistenceContext.run(() ->
+                jobNotificationRepository.processNotification(notification));
+
+        // Then...
+        final List<NotificationEntity> notifications = findAllNotifications();
+        assertThat("Number of notifications", notifications.size(), is(1));
+        assertThat("getStatus()", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
     }
 
     /**

@@ -51,6 +51,7 @@ import javax.ejb.TransactionAttributeType;
 import javax.mail.Session;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
@@ -214,7 +215,15 @@ public class JobNotificationRepository extends RepositoryBase {
     }
 
     private Attachment createAttachment(JobEntity job, JobExporter jobExporter) throws JobStoreException {
+        Charset charset;
+        try {
+            charset = Attachment.decipherCharset(job.getSpecification().getCharset());
+        } catch (IllegalArgumentException e) {
+            charset = StandardCharsets.UTF_8;
+        }
+        final String filename = String.format("fejl_i_poststruktur.%s",
+                Attachment.decipherFileNameExtensionFromPackaging(job.getSpecification().getPackaging()));
         return new Attachment(jobExporter.exportFailedItems(job.getId(), Collections.singletonList(State.Phase.PARTITIONING),
-                ChunkItem.Type.BYTES, StandardCharsets.UTF_8).toByteArray(), job.getSpecification().getPackaging());
+                ChunkItem.Type.BYTES, StandardCharsets.UTF_8).toByteArray(), filename, charset);
     }
 }

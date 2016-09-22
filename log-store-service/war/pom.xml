@@ -117,6 +117,11 @@
       <artifactId>dataio-commons-utils-logback</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-utils-service</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
 </project>

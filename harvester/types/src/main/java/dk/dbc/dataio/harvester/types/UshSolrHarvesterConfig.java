@@ -65,9 +65,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
 
         private String name;
         private String description;
+        private String frame;
         private String format;
+        private String charset;
         private String destination;
         private Integer submitterNumber;
+        private String type;
         private Integer ushHarvesterJobId;
         private UshHarvesterProperties ushHarvesterProperties;
         private Date timeOfLastHarvest;
@@ -102,12 +105,30 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return this;
         }
 
+        public String getFrame() {
+            return frame;
+        }
+
+        public Content withFrame(String frame) {
+            this.frame = frame;
+            return this;
+        }
+
         public String getFormat() {
             return format;
         }
 
         public Content withFormat(String format) {
             this.format = format;
+            return this;
+        }
+
+        public String getCharset() {
+            return charset;
+        }
+
+        public Content withCharset(String charset) {
+            this.charset = charset;
             return this;
         }
 
@@ -143,6 +164,15 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return this;
         }
 
+        public String getType() {
+            return type;
+        }
+
+        public Content withType(String type) {
+            this.type = type;
+            return this;
+        }
+
         public Integer getUshHarvesterJobId() {
             return ushHarvesterJobId;
         }
@@ -163,39 +193,27 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
+            if (this == o) return true;
+            if (!(o instanceof Content)) return false;
 
             Content content = (Content) o;
 
-            if (enabled != content.enabled) {
+            if (enabled != content.enabled) return false;
+            if (name != null ? !name.equals(content.name) : content.name != null) return false;
+            if (description != null ? !description.equals(content.description) : content.description != null)
                 return false;
-            }
-            if (name != null ? !name.equals(content.name) : content.name != null) {
+            if (frame != null ? !frame.equals(content.frame) : content.frame != null) return false;
+            if (format != null ? !format.equals(content.format) : content.format != null) return false;
+            if (charset != null ? !charset.equals(content.charset) : content.charset != null) return false;
+            if (destination != null ? !destination.equals(content.destination) : content.destination != null)
                 return false;
-            }
-            if (description != null ? !description.equals(content.description) : content.description != null) {
+            if (submitterNumber != null ? !submitterNumber.equals(content.submitterNumber) : content.submitterNumber != null)
                 return false;
-            }
-            if (format != null ? !format.equals(content.format) : content.format != null) {
+            if (type != null ? !type.equals(content.type) : content.type != null) return false;
+            if (ushHarvesterJobId != null ? !ushHarvesterJobId.equals(content.ushHarvesterJobId) : content.ushHarvesterJobId != null)
                 return false;
-            }
-            if (destination != null ? !destination.equals(content.destination) : content.destination != null) {
+            if (ushHarvesterProperties != null ? !ushHarvesterProperties.equals(content.ushHarvesterProperties) : content.ushHarvesterProperties != null)
                 return false;
-            }
-            if (submitterNumber != null ? !submitterNumber.equals(content.submitterNumber) : content.submitterNumber != null) {
-                return false;
-            }
-            if (ushHarvesterJobId != null ? !ushHarvesterJobId.equals(content.ushHarvesterJobId) : content.ushHarvesterJobId != null) {
-                return false;
-            }
-            if (ushHarvesterProperties != null ? !ushHarvesterProperties.equals(content.ushHarvesterProperties) : content.ushHarvesterProperties != null) {
-                return false;
-            }
             return timeOfLastHarvest != null ? timeOfLastHarvest.equals(content.timeOfLastHarvest) : content.timeOfLastHarvest == null;
 
         }
@@ -204,9 +222,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
         public int hashCode() {
             int result = name != null ? name.hashCode() : 0;
             result = 31 * result + (description != null ? description.hashCode() : 0);
+            result = 31 * result + (frame != null ? frame.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
+            result = 31 * result + (charset != null ? charset.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (submitterNumber != null ? submitterNumber.hashCode() : 0);
+            result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (ushHarvesterJobId != null ? ushHarvesterJobId.hashCode() : 0);
             result = 31 * result + (ushHarvesterProperties != null ? ushHarvesterProperties.hashCode() : 0);
             result = 31 * result + (timeOfLastHarvest != null ? timeOfLastHarvest.hashCode() : 0);
@@ -219,9 +240,12 @@ public class UshSolrHarvesterConfig extends HarvesterConfig<UshSolrHarvesterConf
             return "Content{" +
                     "name='" + name + '\'' +
                     ", description='" + description + '\'' +
+                    ", frame='" + frame + '\'' +
                     ", format='" + format + '\'' +
+                    ", charset='" + charset + '\'' +
                     ", destination='" + destination + '\'' +
                     ", submitterNumber=" + submitterNumber +
+                    ", type='" + type + '\'' +
                     ", ushHarvesterJobId=" + ushHarvesterJobId +
                     ", ushHarvesterProperties=" + ushHarvesterProperties +
                     ", timeOfLastHarvest=" + timeOfLastHarvest +

@@ -61,9 +61,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Mock private PromptedTextBox mockedName;
     @Mock private PromptedTextArea mockedDescription;
-    @Mock private PromptedTextBox mockedSubmitter;
+    @Mock private PromptedTextBox mockedPackaging;
     @Mock private PromptedTextBox mockedFormat;
+    @Mock private PromptedTextBox mockedCharset;
     @Mock private PromptedTextBox mockedDestination;
+    @Mock private PromptedTextBox mockedSubmitter;
+    @Mock private PromptedTextBox mockedType;
     @Mock private PromptedCheckBox mockedEnabled;
     @Mock private Button mockedSaveButton;
     @Mock private Label mockedStatus;
@@ -121,9 +124,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         mockedView.name = mockedName;
         mockedView.description = mockedDescription;
-        mockedView.submitter = mockedSubmitter;
+        mockedView.packaging = mockedPackaging;
         mockedView.format = mockedFormat;
+        mockedView.charset = mockedCharset;
         mockedView.destination = mockedDestination;
+        mockedView.submitter = mockedSubmitter;
+        mockedView.type = mockedType;
         mockedView.enabled = mockedEnabled;
         mockedView.saveButton = mockedSaveButton;
         mockedView.status = mockedStatus;
@@ -223,53 +229,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void submitterChanged_null_noAction() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setUshSolrHarvesterConfig(null);
-
-        // Test
-        presenter.submitterChanged("submitter");
-
-        // Test verification
-        verifyStart();
-        commonPostVerification();
-    }
-
-    @Test
-    public void submitterChanged_invalidSubmitter_submitterSetToZeroAndError() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setUshSolrHarvesterConfig(mockedConfig);
-
-        // Test
-        presenter.submitterChanged("xyz");
-
-        // Test verification
-        verifyStart();
-        verify(mockedTexts).error_SubmitterNumberValidationError();
-        verify(mockedView).setErrorText("SubmitterNumberValidationError");
-        verify(mockedConfig, times(2)).getContent();
-        commonPostVerification();
-    }
-
-    @Test
-    public void submitterChanged_validSubmitter_submitterSet() {
-        // Test preparation
-        presenter.start(mockedContainerWidget, mockedEventBus);
-        presenter.setUshSolrHarvesterConfig(mockedConfig);
-
-        // Test
-        presenter.submitterChanged("123");
-
-        // Test verification
-        verifyStart();
-        verify(mockedConfig).getContent();
-        verify(mockedContent).withSubmitterNumber(123);
-        commonPostVerification();
-    }
-
-    @Test
     public void formatChanged_null_noAction() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
@@ -326,6 +285,54 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(mockedConfig).getContent();
         verify(mockedContent).withDestination("destination");
+        commonPostVerification();
+    }
+
+    @Test
+    public void submitterChanged_null_noAction() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setUshSolrHarvesterConfig(null);
+
+        // Test
+        presenter.submitterChanged("submitter");
+
+        // Test verification
+        verifyStart();
+        commonPostVerification();
+    }
+
+    @Test
+    public void submitterChanged_invalidSubmitter_submitterSetToZeroAndError() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setUshSolrHarvesterConfig(mockedConfig);
+
+        // Test
+        presenter.submitterChanged("xyz");
+
+        // Test verification
+        verifyStart();
+        verify(mockedTexts).error_SubmitterNumberValidationError();
+        verify(mockedView).setErrorText("SubmitterNumberValidationError");
+        verify(mockedConfig, times(2)).getContent();
+        verify(mockedContent).withSubmitterNumber(0);
+        commonPostVerification();
+    }
+
+    @Test
+    public void submitterChanged_validSubmitter_submitterSet() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setUshSolrHarvesterConfig(mockedConfig);
+
+        // Test
+        presenter.submitterChanged("123");
+
+        // Test verification
+        verifyStart();
+        verify(mockedConfig).getContent();
+        verify(mockedContent).withSubmitterNumber(123);
         commonPostVerification();
     }
 
@@ -534,12 +541,18 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedName).setEnabled(false);
         verify(mockedDescription).setText("");
         verify(mockedDescription).setEnabled(false);
-        verify(mockedSubmitter).setText("");
-        verify(mockedSubmitter).setEnabled(false);
+        verify(mockedPackaging).setText("");
+        verify(mockedPackaging).setEnabled(false);
         verify(mockedFormat).setText("");
         verify(mockedFormat).setEnabled(false);
+        verify(mockedCharset).setText("");
+        verify(mockedCharset).setEnabled(false);
         verify(mockedDestination).setText("");
         verify(mockedDestination).setEnabled(false);
+        verify(mockedSubmitter).setText("");
+        verify(mockedSubmitter).setEnabled(false);
+        verify(mockedType).setText("");
+        verify(mockedType).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
         verify(mockedStatus, times(statusCount)).setText("");
@@ -548,18 +561,23 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private void commonPostVerification() {
         verifyNoMoreInteractions(mockedTexts);
         verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedWidget);
         verifyNoMoreInteractions(presenter.commonInjector);
         verifyNoMoreInteractions(mockedContainerWidget);
         verifyNoMoreInteractions(mockedEventBus);
         verifyNoMoreInteractions(mockedName);
         verifyNoMoreInteractions(mockedDescription);
-        verifyNoMoreInteractions(mockedSubmitter);
+        verifyNoMoreInteractions(mockedPackaging);
         verifyNoMoreInteractions(mockedFormat);
+        verifyNoMoreInteractions(mockedCharset);
         verifyNoMoreInteractions(mockedDestination);
+        verifyNoMoreInteractions(mockedSubmitter);
+        verifyNoMoreInteractions(mockedType);
         verifyNoMoreInteractions(mockedEnabled);
         verifyNoMoreInteractions(mockedSaveButton);
         verifyNoMoreInteractions(mockedStatus);
         verifyNoMoreInteractions(mockedConfig);
+        verifyNoMoreInteractions(mockedContent);
     }
 
 

@@ -195,28 +195,37 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             Boolean viewEnabled,
             String name,
             String description,
-            Integer submitter,
+            String packaging,
             String format,
+            String charset,
             String destination,
+            Integer submitter,
+            String type,
             Boolean enabled) {
         View view = getView();
         view.name.setText(name);
-        view.name.setEnabled(false);  // The name should be hardcoded to disabled
+        view.name.setEnabled(false);  // Name is hardcoded to disabled
         view.description.setText(description);
         view.description.setEnabled(viewEnabled);
-        view.submitter.setText(submitter == null ? "" : String.valueOf(submitter));
-        view.submitter.setEnabled(viewEnabled);
+        view.packaging.setText(packaging);
+        view.packaging.setEnabled(false);  // Packaging is hardcoded to disabled
         view.format.setText(format);
         view.format.setEnabled(viewEnabled);
+        view.charset.setText(charset);
+        view.charset.setEnabled(false);  // Charset is hardcoded to disabled
         view.destination.setText(destination);
         view.destination.setEnabled(viewEnabled);
+        view.submitter.setText(submitter == null ? "" : String.valueOf(submitter));
+        view.submitter.setEnabled(viewEnabled);
+        view.type.setText(type);
+        view.type.setEnabled(false);  // Type is hardcoded to disabled
         view.enabled.setValue(enabled);
         view.enabled.setEnabled(viewEnabled);
         view.status.setText("");
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", null, "", "", false);
+        initializeViewFields(false, "", "", "", "", "", "", null, "", false);
     }
 
     /**
@@ -227,9 +236,12 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 true, // Enable all fields
                 config.getContent().getName(),
                 config.getContent().getDescription(),
-                config.getContent().getSubmitterNumber(),
+                config.getContent().getPackaging(),
                 config.getContent().getFormat(),
+                config.getContent().getCharset(),
                 config.getContent().getDestination(),
+                config.getContent().getSubmitterNumber(),
+                config.getContent().getType().toString(),
                 config.getContent().isEnabled());
     }
 

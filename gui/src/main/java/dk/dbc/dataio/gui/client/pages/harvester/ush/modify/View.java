@@ -48,9 +48,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
     @UiField PromptedTextBox name;
     @UiField PromptedTextArea description;
-    @UiField PromptedTextBox submitter;
+    @UiField PromptedTextBox packaging;
     @UiField PromptedTextBox format;
+    @UiField PromptedTextBox charset;
     @UiField PromptedTextBox destination;
+    @UiField PromptedTextBox submitter;
+    @UiField PromptedTextBox type;
     @UiField PromptedCheckBox enabled;
     @UiField Button saveButton;
     @UiField Label status;
@@ -68,12 +71,6 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
-    @UiHandler("submitter")
-    void submitterChanged(ValueChangeEvent<String> event) {
-        presenter.submitterChanged(submitter.getText());
-        presenter.keyPressed();
-    }
-
     @UiHandler("format")
     void formatChanged(ValueChangeEvent<String> event) {
         presenter.formatChanged(format.getText());
@@ -83,6 +80,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("destination")
     void destinationChanged(ValueChangeEvent<String> event) {
         presenter.destinationChanged(destination.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("submitter")
+    void submitterChanged(ValueChangeEvent<String> event) {
+        presenter.submitterChanged(submitter.getText());
         presenter.keyPressed();
     }
 

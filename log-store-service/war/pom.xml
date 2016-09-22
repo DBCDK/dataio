@@ -36,23 +36,25 @@
   <packaging>war</packaging>
 
   <properties>
-    <logback.staging.directory>${project.build.directory}/logback</logback.staging.directory>
     <logback.jndi.resource>${jndi.url.logstore.logback}</logback.jndi.resource>
   </properties>
 
   <build>
-    <resources>
-      <resource>
-        <directory>${logback.staging.directory}</directory>
-        <filtering>true</filtering>
-      </resource>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
-
     <plugins>
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <executions>
+          <execution>
+            <id>build-docker-image</id>
+            <configuration>
+              <arguments combine.children="append">
+                <argument>dbc-glassfish-logstore</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-war-plugin</artifactId>

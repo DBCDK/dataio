@@ -1,0 +1,7 @@
+[template]
+src = "logback.xml.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/logback.xml"
+
+keys = [
+    "/logback/url"
+]

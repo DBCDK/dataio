@@ -35,8 +35,6 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -87,19 +85,13 @@ public class JobFilterTest {
         when(mockedJobFilter2.getAddCommand(any(JobFilter.class))).thenReturn(mockedAddCommand2);
         addCommand1Executed = false;
         addCommand2Executed = false;
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                addCommand1Executed = true;
-                return null;
-            }
+        Mockito.doAnswer(invocationOnMock -> {
+            addCommand1Executed = true;
+            return null;
         }).when(mockedAddCommand1).execute();
-        Mockito.doAnswer(new Answer() {
-            @Override
-            public Object answer(InvocationOnMock invocationOnMock) throws Throwable {
-                addCommand2Executed = true;
-                return null;
-            }
+        Mockito.doAnswer(invocationOnMock -> {
+            addCommand2Executed = true;
+            return null;
         }).when(mockedAddCommand2).execute();
         mockedJobFilterItem1.activeOnStartup = false;
         mockedJobFilterItem2.activeOnStartup = true;
@@ -174,6 +166,8 @@ public class JobFilterTest {
 
         // Verify test
         verify(jobFilter.jobFilterPanel).add(mockedJobFilterPanel);
+        verify(mockedJobFilter1).addChangeHandler(any(ChangeHandler.class));
+        verify(mockedJobFilter1).setFocus(true);
         verifyNoMoreInteractions(mockedChangeHandler);
 
         // Setup a change handler
@@ -184,6 +178,9 @@ public class JobFilterTest {
 
         // Verify test
         verify(mockedChangeHandler).onChange(any(ChangeEvent.class));
+        verify(mockedJobFilter1, times(2)).addChangeHandler(any(ChangeHandler.class));
+        verify(mockedJobFilter1, times(2)).setFocus(true);
+        verifyNoMoreInteractions(mockedJobFilter1);
     }
 
     @Test
@@ -254,7 +251,7 @@ public class JobFilterTest {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
         JobListCriteria filterModel = new JobListCriteria()
-                .where(new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
+                .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
 
         setupJobFilterToReturnModel(jobFilter, filterModel);
 

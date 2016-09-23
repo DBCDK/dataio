@@ -56,24 +56,45 @@ public class SubmitterJobFilter extends BaseJobFilter {
 
     @UiField PromptedTextBox submitter;
 
+
+    /**
+     * Gets the name of the job filter
+     * @return the name of the job filter
+     */
     @Override
     public String getName() {
         return texts.submitterFilter_name();
     }
 
+    /**
+     * Adds a changehandler to the job filter
+     * @param changeHandler the changehandler
+     * @return a Handler Registration object
+     */
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
         return submitter.addChangeHandler( changeHandler );
     }
 
-
-
+    /**
+     *  Gets the current value of the job filter
+     * @return the current value of the filter
+     */
     @Override
     public JobListCriteria getValue() {
         if( submitter.getValue().isEmpty() ) return new JobListCriteria();
 
-        String jsonMatch= new StringBuilder().append("{ \"submitterId\": ").append(submitter.getValue()).append("}").toString();
-        return new JobListCriteria().where( new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS,
-                               jsonMatch ));
+        String jsonMatch = new StringBuilder().append("{ \"submitterId\": ").append(submitter.getValue()).append("}").toString();
+        return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonMatch));
     }
+
+    /**
+     * Explicitly focus/unfocus this widget. Only one widget can have focus at a time, and the widget that does will receive all keyboard events.
+     * @param focused whether this widget should take focus or release it
+     */
+    @Override
+    public void setFocus(boolean focused) {
+        submitter.setFocus(focused);
+    }
+
 }

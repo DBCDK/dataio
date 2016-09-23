@@ -110,12 +110,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
         this.changeHandler = changeHandler;
-        return new HandlerRegistration() {
-            @Override
-            public void removeHandler() {
-                removeChangeHandler();
-            }
-        };
+        return this::removeChangeHandler;
     }
 
 
@@ -130,13 +125,9 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     public void add(BaseJobFilter jobFilter) {
         if (jobFilter != null) {
             jobFilterPanel.add(jobFilter.filterPanel);
-            jobFilter.addChangeHandler(new ChangeHandler() {
-                @Override
-                public void onChange(ChangeEvent changeEvent) {
-                    valueChanged();
-                }
-            });
+            jobFilter.addChangeHandler(changeEvent -> valueChanged());
             valueChanged();  // Do assure, that whenever a filter is being applied, do the filtering
+            jobFilter.setFocus(true);
         }
     }
 

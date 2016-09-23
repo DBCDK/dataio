@@ -23,11 +23,10 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.event.dom.client.ClickEvent;
-import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
+import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.resources.Resources;
@@ -36,7 +35,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 /**
  * This is the base class for Job Filters
  */
-public abstract class BaseJobFilter extends Composite implements HasChangeHandlers {
+public abstract class BaseJobFilter extends Composite implements HasChangeHandlers, Focusable {
 
     protected Texts texts;
     protected Resources resources;
@@ -58,13 +57,6 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     }
 
     /**
-     * This is the abstract method, to be used for naming the actual Job Filter
-     * @return The actual name of the Job Filter
-     */
-    public abstract String getName();
-
-
-    /**
      * This method codes the behavior when adding the actual Job Filter (activating the menu)
      * @param parentJobFilter The JobFilter, where the current JobFilter is being added to
      * @return The Scheduler command to be used, when adding the Job Filter
@@ -74,14 +66,10 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
             return null;
         } else {
             this.parentJobFilter = parentJobFilter;
-            return new Scheduler.ScheduledCommand() {
-                @Override
-                public void execute() {
-                    addJobFilter();
-                }
-            };
+            return this::addJobFilter;
         }
     }
+
 
     /**
      * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen.
@@ -93,12 +81,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
         if (filterPanel == null) {
             GWT.log("Add Job Filter: " + getName());
             filterPanel = new JobFilterPanel(getName(), resources.deleteButton());
-            clickHandlerRegistration = filterPanel.addClickHandler(new ClickHandler() {
-                @Override
-                public void onClick(ClickEvent clickEvent) {
-                    removeJobFilter();
-                }
-            });
+            clickHandlerRegistration = filterPanel.addClickHandler(clickEvent -> removeJobFilter());
             filterPanel.add(thisAsWidget);
             parentJobFilter.add(this);
         }
@@ -117,6 +100,59 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
             parentJobFilter.remove(this);
         }
     }
+
+
+    /*
+     * Empty default implementation of the Focusable Interface
+     * To be overridden if a specific implementation is wanted.
+     */
+
+    /**
+     * Gets the widget's position in the tab index.
+     * @return the widget's tab index
+     */
+    public int getTabIndex() {
+        // No default implementation
+        return 0;
+    }
+
+    /**
+     * Sets the widget's 'access key'. This key is used (in conjunction with a browser-specific modifier key) to automatically focus the widget.
+     * @param accessKey the widget's access key
+     */
+    public void setAccessKey(char accessKey) {
+        // No default implementation
+    }
+
+    /**
+     * Explicitly focus/unfocus this widget. Only one widget can have focus at a time, and the widget that does will receive all keyboard events.
+     * @param focused whether this widget should take focus or release it
+     */
+    public void setFocus(boolean focused) {
+        // No default implementation
+    }
+
+    /**
+     *  Sets the widget's position in the tab index. If more than one widget has the same tab index, each such widget will receive focus in an arbitrary order. Setting the tab index to -1 will cause this widget to be removed from the tab order.
+     * @param index the widget's tab index
+     */
+    public void setTabIndex(int index) {
+        // No default implementation
+    }
+
+
+
+    /*
+     * Abstract Methods
+     */
+
+
+    /**
+     * Gets the name of the actual Job Filter
+     * @return The name of the Job Filter
+     */
+    public abstract String getName();
+
 
     /**
      * Gets the value of the current Job List Criteria Model

@@ -34,14 +34,16 @@ def parse_arguments():
     parser = argparse.ArgumentParser("")
     parser.add_argument("filename", help="datafile")
     parser.add_argument("jobspecification", help="job specification file in json")
-    parser.add_argument("--host", help="host for the dataio system, choose dataio-be-s01:8080 for staging or dataio-be-p01:8080 for prod", required=True)
+    parser.add_argument("--jobstorehost",  help="jobstore host for the dataio system, choose jobstore.dataio.staging.mcp1.dbc.dk for staging or jobstore.dataio.prod.mcp1.dbc.dk for prod", required=True)
+    parser.add_argument("--filestorehost", help="filestore host for the dataio system, choose dataio-be-s01:8080 for staging or dataio-be-p01:8080 for prod", required=True)
+
 
     args = parser.parse_args()
 
 
 def post_file(dataFileName):
     data = open(dataFileName, 'rb')
-    response = requests.post("http://" + args.host + "/dataio/file-store-service/files", data=data)
+    response = requests.post("http://" + args.filestorehost + "/dataio/file-store-service/files", data=data)
 
     if response.status_code == requests.codes.CREATED:
         return response.headers['location'].split("/")[-1]
@@ -59,7 +61,7 @@ def create_job(fileId, job_specification):
     job_specification['dataFile'] = "urn:dataio-fs:" + str(fileId)
     add_job_args = {"jobSpecification": job_specification, "isEndOfJob": True, "partNumber": 0}
 
-    createJobUrl = "http://" + args.host + "/dataio/job-store-service/jobs"
+    createJobUrl = "http://" + args.jobstorehost + "/dataio/job-store-service/jobs"
     r = requests.post(createJobUrl, json.dumps(add_job_args))
 
     if r.status_code == requests.codes.CREATED:

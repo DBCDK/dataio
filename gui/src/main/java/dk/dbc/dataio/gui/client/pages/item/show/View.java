@@ -31,6 +31,8 @@ import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.Header;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -237,7 +239,7 @@ public class View extends ViewWidget {
      * @return the constructed Tracking ID column
      */
     Column constructTrackingIdColumn() {
-        Column<ItemModel, String> column = new Column<ItemModel, String>(new ButtonCell()) {
+        Column<ItemModel, String> column = new Column<ItemModel, String>(new TrackingButtonCell()) {
             @Override
             public String getValue(ItemModel model) {
                 return getTexts().button_Trace();
@@ -332,4 +334,16 @@ public class View extends ViewWidget {
         }
     }
 
+    /**
+     * Specialized version of a ButtonCell, sets up a Mouseover text with the tracking id
+     */
+    class TrackingButtonCell extends ButtonCell {
+        @Override
+        public void render(Context context, SafeHtml data, SafeHtmlBuilder sb) {
+            ItemModel model = (ItemModel) context.getKey();
+            sb.appendHtmlConstant("<span title='" + getTexts().text_TrackingId() + " " + model.getTrackingId() + "'>");
+            super.render(context, data, sb);
+            sb.appendHtmlConstant("</span>");
+        }
+    }
 }

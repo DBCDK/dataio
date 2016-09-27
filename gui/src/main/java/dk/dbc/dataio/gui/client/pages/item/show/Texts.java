@@ -101,6 +101,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String text_Sink();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String text_TrackingId();
+
 
     // Lifecycles
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

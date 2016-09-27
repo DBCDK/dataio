@@ -21,8 +21,11 @@
 
 package dk.dbc.dataio.gui.client.pages.item.show;
 
+import com.google.gwt.cell.client.Cell;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
+import com.google.gwt.safehtml.shared.SafeHtml;
+import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.SimplePager;
@@ -47,8 +50,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
@@ -123,6 +128,7 @@ public class ViewTest {
     final static String MOCKED_TEXT_JOBID = "Mocked Job Id:";
     final static String MOCKED_TEXT_SUBMITTER = "Mocked Submitter:";
     final static String MOCKED_TEXT_SINK = "Mocked Sink:";
+    final static String MOCKED_TEXT_TRACKING_ID = "Mocked Text Tracking Id";
     final static String MOCKED_LIFECYCLE_PARTITIONING = "Mocked Partitioning";
     final static String MOCKED_LIFECYCLE_PROCESSING = "Mocked Processing";
     final static String MOCKED_LIFECYCLE_DELIVERING = "Mocked Delivering";
@@ -144,6 +150,7 @@ public class ViewTest {
         when(mockedTexts.text_JobId()).thenReturn(MOCKED_TEXT_JOBID);
         when(mockedTexts.text_Submitter()).thenReturn(MOCKED_TEXT_SUBMITTER);
         when(mockedTexts.text_Sink()).thenReturn(MOCKED_TEXT_SINK);
+        when(mockedTexts.text_TrackingId()).thenReturn(MOCKED_TEXT_TRACKING_ID);
         when(mockedTexts.lifecycle_Partitioning()).thenReturn(MOCKED_LIFECYCLE_PARTITIONING);
         when(mockedTexts.lifecycle_Processing()).thenReturn(MOCKED_LIFECYCLE_PROCESSING);
         when(mockedTexts.lifecycle_Delivering()).thenReturn(MOCKED_LIFECYCLE_DELIVERING);
@@ -202,35 +209,6 @@ public class ViewTest {
         Texts getTexts() {
             return mockedTexts;
         }
-    }
-
-    @Test
-    public void selectionChangeHandlerClass_callEventHandler_verify() {
-        // Test setup
-        ConcreteView concreteView = setupViewConcrete();
-        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedItemModel);
-        concreteView.setPresenter(mockedPresenter);
-
-        // Subject Under Test
-        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
-
-        // Verification
-        verify(mockedPresenter).itemSelected(mockedItemsList, mockedItemModel);
-    }
-
-
-    @Test
-    public void selectionChangeHandlerClass_callEventHandlerWithEmptySelection_verifyNoSelectionSetToPresenter() {
-        // Test setup
-        ConcreteView concreteView = setupViewConcrete();
-        when(mockedSelectionModel.getSelectedObject()).thenReturn(null);
-        concreteView.setPresenter(mockedPresenter);
-
-        // Subject Under Test
-        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
-
-        // Verification
-        verifyZeroInteractions(mockedPresenter);
     }
 
     @Test
@@ -308,9 +286,71 @@ public class ViewTest {
         assertThat(column.getValue(diagnosticModel), is(diagnosticModel.getMessage()));
     }
 
+    @Test
+    public void selectionChangeHandlerClass_callEventHandler_verify() {
+        // Test setup
+        ConcreteView concreteView = setupViewConcrete();
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(mockedItemModel);
+        concreteView.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
+
+        // Verification
+        verify(mockedPresenter).itemSelected(mockedItemsList, mockedItemModel);
+    }
+
+
+    @Test
+    public void selectionChangeHandlerClass_callEventHandlerWithEmptySelection_verifyNoSelectionSetToPresenter() {
+        // Test setup
+        ConcreteView concreteView = setupViewConcrete();
+        when(mockedSelectionModel.getSelectedObject()).thenReturn(null);
+        concreteView.setPresenter(mockedPresenter);
+
+        // Subject Under Test
+        concreteView.selectionChangeHandler.onSelectionChange(mockedSelectionChangeEvent);
+
+        // Verification
+        verifyZeroInteractions(mockedPresenter);
+    }
+
+    @Test
+    public void trackingButtonCell_render_rendersCorrectly() {
+        // Test setup
+        ConcreteView view = setupViewConcrete();
+        View.TrackingButtonCell trackingButtonCell = view.new TrackingButtonCell();
+        Cell.Context mockedContext = mock(Cell.Context.class);
+        SafeHtml mockedSafeHtml = mock(SafeHtml.class);
+        SafeHtmlBuilder mockedSafeHtmlBuilder = mock(SafeHtmlBuilder.class);
+        when(mockedContext.getKey()).thenReturn(mockedItemModel);
+        when(mockedItemModel.getTrackingId()).thenReturn("This Is Tracking Id");
+
+        // Subject Under Test
+        trackingButtonCell.render(mockedContext, mockedSafeHtml, mockedSafeHtmlBuilder);
+
+        // Verification
+        verify(mockedContext).getKey();
+        verify(mockedItemModel).getTrackingId();
+        verify(mockedSafeHtmlBuilder).appendHtmlConstant("<span title='" + MOCKED_TEXT_TRACKING_ID + " This Is Tracking Id'>");
+        verify(mockedSafeHtmlBuilder).appendHtmlConstant("<button type=\"button\" tabindex=\"-1\">");
+        verify(mockedSafeHtmlBuilder).append(mockedSafeHtml);
+        verify(mockedSafeHtmlBuilder).appendHtmlConstant("</button>");
+        verify(mockedSafeHtmlBuilder).appendHtmlConstant("</span>");
+        verifyNoMoreInteractions(mockedContext);
+        verifyNoMoreInteractions(mockedSafeHtml);
+        verifyNoMoreInteractions(mockedSafeHtmlBuilder);
+        verifyNoMoreInteractions(mockedItemModel);
+    }
+
+
+    /*
+     * Private methods
+     */
     private ConcreteView setupViewConcrete() {
         return new ConcreteView();
     }
+
     private void setupView() {
         view = new ConcreteView();
         view.viewInjector = mockedViewInjector;

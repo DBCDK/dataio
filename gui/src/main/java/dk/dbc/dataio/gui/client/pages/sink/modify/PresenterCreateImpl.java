@@ -85,6 +85,8 @@ public class PresenterCreateImpl extends PresenterImpl {
                 model.setSinkConfig(new ImsSinkConfig());
                 view.imsSinkSection.setVisible(true);
                 break;
+            default:
+                model.setSinkConfig(null);
         }
     }
 

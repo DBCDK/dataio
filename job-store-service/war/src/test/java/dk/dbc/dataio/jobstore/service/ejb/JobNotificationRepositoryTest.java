@@ -29,7 +29,6 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.NotificationContext;
 import dk.dbc.dataio.jobstore.types.State;
-import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.openagency.OpenAgencyConnector;
 import dk.dbc.dataio.openagency.ejb.OpenAgencyConnectorBean;
@@ -64,7 +63,6 @@ public class JobNotificationRepositoryTest {
     private final EntityManager entityManager = mock(EntityManager.class);
     private final OpenAgencyConnectorBean openAgencyConnectorBean = mock(OpenAgencyConnectorBean.class);
     private final OpenAgencyConnector openAgencyConnector = mock(OpenAgencyConnector.class);
-    private final JSONBContext jsonbContext = new JSONBContext();
     private final String destination = "mail@example.com";
     private final String mailToFallback = "default@dbc.dk";
     private final String mailFrom = "dataio@dbc.dk";
@@ -141,6 +139,31 @@ public class JobNotificationRepositoryTest {
         for (NotificationEntity notification : notifications) {
             assertThat("notification status", notification.getStatus(), is(JobNotification.Status.FAILED));
         }
+    }
+
+    @Test
+    public void flushNotifications_processingThrowsRuntimeException_allNotificationsAreProcessed() {
+        final JobSpecification jobSpecification = new JobSpecificationBuilder()
+                .setMailForNotificationAboutVerification("verification@company.com")
+                .build();
+        final List<NotificationEntity> notifications = Arrays.asList(
+                getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification),
+                getNotificationEntity(JobNotification.Type.JOB_CREATED, (JobSpecification) null),
+                getNotificationEntity(JobNotification.Type.JOB_CREATED, jobSpecification)
+        );
+
+        final Query query = mock(Query.class);
+        when(entityManager.createQuery(anyString())).thenReturn(query);
+        when(query.setParameter(anyString(), any())).thenReturn(query);
+        when(query.setMaxResults(anyInt())).thenReturn(query);
+        when(query.getResultList()).thenReturn(notifications);
+
+        final JobNotificationRepository jobNotificationRepository = createJobNotificationRepository();
+        jobNotificationRepository.flushNotifications();
+
+        assertThat("1st notification status", notifications.get(0).getStatus(), is(JobNotification.Status.COMPLETED));
+        assertThat("2nd notification status", notifications.get(1).getStatus(), is(JobNotification.Status.WAITING));
+        assertThat("3rd notification status", notifications.get(2).getStatus(), is(JobNotification.Status.COMPLETED));
     }
 
     @Test

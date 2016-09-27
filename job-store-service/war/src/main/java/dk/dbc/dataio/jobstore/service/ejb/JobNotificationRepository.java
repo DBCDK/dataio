@@ -113,7 +113,13 @@ public class JobNotificationRepository extends RepositoryBase {
             numberOfNotificationsFound = waitingNotifications.size();
             if (numberOfNotificationsFound > 0) {
                 final JobNotificationRepository jobNotifyProxy = getProxyToSelf();
-                waitingNotifications.forEach(jobNotifyProxy::processNotification);
+                for (NotificationEntity notification : waitingNotifications) {
+                    try {
+                        jobNotifyProxy.processNotification(notification);
+                    } catch (RuntimeException e) {
+                        LOGGER.error("Unhandled exception caught during processing of notification " + notification.getId(), e);
+                    }
+                }
             }
         } while (numberOfNotificationsFound == MAX_NUMBER_OF_NOTIFICATIONS_PER_RESULT);
     }

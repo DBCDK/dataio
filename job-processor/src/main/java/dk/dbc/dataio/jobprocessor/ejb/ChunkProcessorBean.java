@@ -24,9 +24,11 @@ package dk.dbc.dataio.jobprocessor.ejb;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
+import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
 import dk.dbc.dataio.jobprocessor.util.FlowCache;
@@ -73,7 +75,7 @@ public class ChunkProcessorBean {
         try {
             MDC.put(FLOW_NAME_MDC_KEY, flow.getContent().getName());
             MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
-            LOGGER.info("Processing chunk {} in job {}", chunk.getChunkId(), chunk.getJobId());
+            LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
             final Chunk processedChunk = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
             processedChunk.setEncoding(Charset.defaultCharset());// todo: Remove once Chunk gets encoding from ChunkItem
             if (chunk.size() > 0) {
@@ -89,12 +91,14 @@ public class ChunkProcessorBean {
                 } catch (Throwable t) {
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
                     // with the Throwable.
+                    LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}",
+                            chunk.getJobId(), chunk.getChunkId(), t);
                     processedChunk.addAllItems(failItemsWithThrowable(chunk, t));
                 }
             }
             return processedChunk;
         } finally {
-            LOGGER.info("processing of chunk (jobId/chunkId) ({}/{}) took {} milliseconds",
+            LOGGER.info("process(): processing of chunk {}/{} took {} milliseconds",
                     chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
             MDC.remove(FLOW_NAME_MDC_KEY);
             MDC.remove(FLOW_VERSION_MDC_KEY);
@@ -110,12 +114,12 @@ public class ChunkProcessorBean {
                 cacheKey += ".acctest";
             }
             if (flowCache.containsKey(cacheKey)) {
-                LOGGER.info("Cache hit for flow (id.version) ({})", cacheKey);
+                LOGGER.info("cacheFlow(): cache hit for flow (id.version) ({})", cacheKey);
                 return flowCache.get(cacheKey);
             }
             return flowCache.put(cacheKey, flow);
         } finally {
-            LOGGER.debug("Flow caching took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("cacheFlow(): flow caching took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 
@@ -130,7 +134,7 @@ public class ChunkProcessorBean {
 
                 if (item.getStatus() != ChunkItem.Status.SUCCESS) {
                     processedItems.add(skipItem(item));
-                    LOGGER.info("processing of item (jobId/chunkId/itemId) ({}/{}/{}) skipped since item.Status was {}",
+                    LOGGER.info("processItems(): processing of item {}/{}/{} skipped since item.Status was {}",
                             chunk.getJobId(), chunk.getChunkId(), item.getId(), item.getStatus());
                 } else {
                     try {
@@ -140,7 +144,7 @@ public class ChunkProcessorBean {
                                 supplementaryData, jsWrappers);
                         processedItems.add(processedItem);
                     } finally {
-                        LOGGER.info("Javascript execution for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+                        LOGGER.info("processItems(): javascript execution for item {}/{}/{} took {} milliseconds",
                                 chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
                     }
                 }
@@ -166,7 +170,7 @@ public class ChunkProcessorBean {
             LOGGER.info("Done");
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
             MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
-            LOGGER.info("LogStore batch insert for (job/chunk/item) ({}/{}/{}) took {} milliseconds",
+            LOGGER.info("processItemWithLogStoreTracking(): log-store batch insert for item {}/{}/{} took {} milliseconds",
                     trackingId.getJobId(), trackingId.getChunkId(), trackingId.getItemId(), stopWatchForLogStoreBatch.getElapsedTime());
         }
         return processedItem;
@@ -198,14 +202,14 @@ public class ChunkProcessorBean {
                 processedItem = ObjectFactory.buildSuccessfulChunkItem(item.getId(), data, ChunkItem.Type.UNKNOWN, item.getTrackingId());
             }
         } catch (IgnoreRecord e) {
-            LOGGER.error("Record Ignored by JS with Message: {}", e.getMessage());
+            LOGGER.error("processItem(): record ignored by javascript with message: {}", e.getMessage());
             processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), e.getMessage(), item.getTrackingId());
         } catch (FailRecord e) {
-            LOGGER.error("RecordProcessing Terminated by JS with Message: {}", e.getMessage());
+            LOGGER.error("processItem(): record processing terminated by javascript with message: {}", e.getMessage());
             processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage(), ChunkItem.Type.STRING, item.getTrackingId());
             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
         } catch (Throwable t) {
-            LOGGER.error("Exception caught during JavaScript processing", t);
+            LOGGER.error("processItem(): unhandled exception caught during javascript processing", t);
             processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Type.STRING, item.getTrackingId());
             processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught during JavaScript processing", t));
         }
@@ -213,7 +217,8 @@ public class ChunkProcessorBean {
     }
 
     private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) throws Throwable {
-        LOGGER.info("Starting javascript [{}] with invocation method: [{}] and logging ID [{}]", jsWrapper.getScriptId(), jsWrapper.getInvocationMethod(), trackingId.toString());
+        LOGGER.info("invokeJavaScript(): starting javascript [{}] with invocation method: [{}] and logging ID [{}]",
+                jsWrapper.getScriptId(), jsWrapper.getInvocationMethod(), trackingId.toString());
         final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
         return (String) result;
     }
@@ -227,11 +232,18 @@ public class ChunkProcessorBean {
     }
 
     private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable t) {
+        InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
+        InvariantUtil.checkNotNullOrThrow(t, "t");
         final List<ChunkItem> failedItems = new ArrayList<>();
+        int itemNo = 0;
         for (ChunkItem item : chunk) {
-            final ChunkItem processedChunkItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Type.STRING, item.getTrackingId());
-            processedChunkItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Chunk item failed during processing", t));
-            failedItems.add(processedChunkItem);
+            InvariantUtil.checkNotNullOrThrow(item, "item" + itemNo++);
+            failedItems.add(ChunkItem.failedChunkItem()
+                    .withId(item.getId())
+                    .withData(StringUtil.getStackTraceString(t))
+                    .withType(ChunkItem.Type.STRING)
+                    .withTrackingId(item.getTrackingId())
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, "Chunk item failed during processing", t)));
         }
         return failedItems;
     }

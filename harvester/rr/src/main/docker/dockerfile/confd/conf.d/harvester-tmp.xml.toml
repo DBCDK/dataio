@@ -20,9 +20,9 @@
 #
 
 [template]
-src = "harvester-temp.xml.tmpl"
-dest = "/home/gfish/dbc-glassfish.d/harvester-temp.xml"
+src = "harvester-tmp.xml.tmpl"
+dest = "/home/gfish/dbc-glassfish.d/harvester-tmp.xml"
 
 keys = [
-    "/harvester/temp"
+    "/harvester/tmp"
 ]

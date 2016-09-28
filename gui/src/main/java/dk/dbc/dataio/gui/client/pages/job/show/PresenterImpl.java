@@ -152,8 +152,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      * @param jobModels The JobModels to rerun
      */
     public void rerunJobs(List<JobModel> jobModels) {
-        for (JobModel model: jobModels) {
-            commonInjector.getJobStoreProxyAsync().reRunJob(model, new RerunJobFilteredAsyncCallback() );
+        if (!jobModels.isEmpty()) {
+            commonInjector.getJobStoreProxyAsync().reRunJobs(jobModels, new RerunJobsFilteredAsyncCallback() );
         }
     }
 
@@ -262,14 +262,13 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
     }
 
-    protected class RerunJobFilteredAsyncCallback extends FilteredAsyncCallback<JobModel> {
+    protected class RerunJobsFilteredAsyncCallback extends FilteredAsyncCallback<List<JobModel>> {
         @Override
         public void onFilteredFailure(Throwable e) {
-            String msg = "jobId: " + jobId;
-            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), msg));
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
         }
         @Override
-        public void onSuccess(JobModel jobModel) {
+        public void onSuccess(List<JobModel> jobModels) {
         }
     }
 

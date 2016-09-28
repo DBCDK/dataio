@@ -43,6 +43,7 @@ import org.mockito.Mock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -107,13 +108,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
     class PresenterImplConcrete extends PresenterImpl {
         public CountExistingJobsWithJobIdCallBack getJobCountCallback;
         public SetWorkflowNoteCallBack getWorkflowNoteCallback;
-        public RerunJobFilteredAsyncCallback getRerunJobFilteredAsyncCallback;
+        public RerunJobsFilteredAsyncCallback getRerunJobsFilteredAsyncCallback;
         public PresenterImplConcrete(PlaceController placeController, String header) {
             super(placeController, mockedView, header);
             this.commonInjector = mockedCommonGinjector;
             this.getJobCountCallback = new CountExistingJobsWithJobIdCallBack();
             this.getWorkflowNoteCallback = new SetWorkflowNoteCallBack();
-            this.getRerunJobFilteredAsyncCallback = new RerunJobFilteredAsyncCallback();
+            this.getRerunJobsFilteredAsyncCallback = new RerunJobsFilteredAsyncCallback();
         }
 
         @Override
@@ -379,13 +380,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         setupPresenter();
 
         // Subject under test
-        JobModel model1 = new JobModelBuilder().setJobId("123").build();
-        JobModel model2 = new JobModelBuilder().setJobId("234").build();
-        presenterImpl.rerunJobs(Arrays.asList(model1, model2));
+        List<JobModel> jobModelList = Arrays.asList(new JobModelBuilder().setJobId("123").build(), new JobModelBuilder().setJobId("234").build());
+        presenterImpl.rerunJobs(jobModelList);
 
         // Verify Test
-        verify(mockedJobStore).reRunJob(eq(model1), any(PresenterImpl.RerunJobFilteredAsyncCallback.class));
-        verify(mockedJobStore).reRunJob(eq(model2), any(PresenterImpl.RerunJobFilteredAsyncCallback.class));
+        verify(mockedJobStore).reRunJobs(eq(jobModelList), any(PresenterImpl.RerunJobsFilteredAsyncCallback.class));
         verifyNoMoreInteractions(mockedJobStore);
     }
 
@@ -418,7 +417,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getRerunJobFilteredAsyncCallback.onFailure(mockedException);
+        presenterImpl.getRerunJobsFilteredAsyncCallback.onFailure(mockedException);
 
         // Verify Test
         verify(mockedView).setErrorText(anyString());
@@ -437,8 +436,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.getWorkflowNoteCallback.onSuccess(mockedSingleSelectionModel.getSelectedObject());
-        presenterImpl.getRerunJobFilteredAsyncCallback.onSuccess(new JobModel());
+        presenterImpl.getRerunJobsFilteredAsyncCallback.onSuccess(Arrays.asList(new JobModelBuilder().build(), new JobModelBuilder().build()));
 
         // Verify Test
         verify(mockedView).setPresenter(presenterImpl);

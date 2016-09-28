@@ -59,6 +59,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class JobStoreProxyImpl implements JobStoreProxy {
@@ -303,6 +304,22 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     }
 
     @Override
+    public List<JobModel> reRunJobs(List<JobModel> jobModels) throws NullPointerException, ProxyException {
+        final String callerMethodName = "reRunJobs";
+        List<JobInfoSnapshot> jobInfoSnapshots = new ArrayList<>();
+        log.trace("JobStoreProxy: " + callerMethodName + "(\"{}\");", getJobModelIdList(jobModels));
+        try {
+            for (JobModel jobModel: jobModels) {
+                jobModel.setPreviousJobIdAncestry(jobModel.getJobId());  // Remember the job id for the previous run
+                jobInfoSnapshots.add(jobStoreServiceConnector.addJob(JobModelMapper.toJobInputStream(jobModel)));
+            }
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return JobModelMapper.toModel(jobInfoSnapshots);
+    }
+
+    @Override
     public JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException {
         final JobInfoSnapshot jobInfoSnapshot;
         log.trace("JobStoreProxy: setWorkflowNote({})", jobId);
@@ -385,7 +402,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
      * @param exception generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
      * @throws ProxyException GUI exception
-     * @throws NullPointerException
+     * @throws NullPointerException Null pointer exception
      */
     private void handleExceptions(Exception exception, String callerMethodName) throws ProxyException, NullPointerException {
 
@@ -415,5 +432,14 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     public void close() {
         HttpClient.closeClient(client);
     }
+
+    private String getJobModelIdList(List<JobModel> jobModels) {
+        String jobIdList = "";
+        for (JobModel jobModel: jobModels) {
+            jobIdList += jobIdList.isEmpty() ? jobModel.getJobId() : ", " + jobModel.getJobId();
+        }
+        return jobIdList;
+    }
+
 
 }

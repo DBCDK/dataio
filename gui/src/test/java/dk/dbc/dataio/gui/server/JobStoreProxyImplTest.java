@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
@@ -38,6 +39,7 @@ import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
@@ -53,6 +55,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -91,17 +94,12 @@ public class JobStoreProxyImplTest {
         when(HttpClient.newClient(any(ClientConfig.class))).thenReturn(client);
     }
 
-    @Test
-    public void noArgs_jobStoreProxyConstructorJobStoreService_EndpointCanNotBeLookedUp_throws() throws Exception{
+    @Test(expected = NamingException.class)
+    public void noArgs_jobStoreProxyConstructorJobStoreService_EndpointCanNotBeLookedUp_throws() throws Exception {
         when(ServiceUtil.getJobStoreServiceEndpoint()).thenThrow(new NamingException());
-        try{
-            new JobStoreProxyImpl();
-            fail();
-        }catch (NamingException e){
 
-        }
+        new JobStoreProxyImpl();
     }
-
 
     @Test(expected = ProxyException.class)
     public void listJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
@@ -110,7 +108,6 @@ public class JobStoreProxyImplTest {
         final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
         jobStoreProxy.listJobs(new JobListCriteria());
     }
-
 
     @Test
     public void listJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
@@ -265,6 +262,51 @@ public class JobStoreProxyImplTest {
             assertThat(jobNotifications, is(testJobNotifications));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: listJobs()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void reRunJob_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.reRunJob(new JobModelBuilder().build());
+    }
+
+    @Test
+    public void reRunJob_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(new JobInfoSnapshotBuilder().setJobId(4321).build());
+
+        try {
+            JobModel jobModel = jobStoreProxy.reRunJob(new JobModelBuilder().build());
+            assertThat(jobModel.getJobId(), is("4321"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: reRunJobs()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void reRunJobs_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException("Testing"));
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+
+        jobStoreProxy.reRunJobs(Arrays.asList(new JobModelBuilder().setJobId("1000").build(), new JobModelBuilder().setJobId("2000").build()));
+    }
+
+    @Test
+    public void reRunJobs_remoteServiceReturnsHttpStatusOk_returnsListOfJobModelEntities() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).
+                thenReturn(new JobInfoSnapshotBuilder().setJobId(1000).build()).
+                thenReturn(new JobInfoSnapshotBuilder().setJobId(2000).build());
+
+        try {
+            List<JobModel> jobModels = jobStoreProxy.reRunJobs(Arrays.asList(new JobModelBuilder().setJobId("100").build(), new JobModelBuilder().setJobId("200").build()));
+            assertThat(jobModels.get(0).getJobId(), is("1000"));
+            assertThat(jobModels.get(1).getJobId(), is("2000"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: reRunJobs()");
         }
     }
 

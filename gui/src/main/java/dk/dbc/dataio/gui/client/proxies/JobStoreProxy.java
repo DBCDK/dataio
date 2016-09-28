@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.gui.client.proxies;
 
-
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.user.client.rpc.RemoteService;
 import com.google.gwt.user.client.rpc.RemoteServiceRelativePath;
@@ -37,24 +36,17 @@ import java.util.List;
 
 @RemoteServiceRelativePath("JobStoreProxy")
 public interface JobStoreProxy extends RemoteService {
-
     List<JobModel> listJobs(JobListCriteria model) throws ProxyException;
     long countJobs(JobListCriteria model) throws ProxyException;
-
     List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException;
     long countItems(ItemListCriteria criteria) throws ProxyException;
-
     String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException;
     String getProcessedNextResult(int jobId, int chunkId, short itemId) throws ProxyException;
-
     List<JobNotification> listJobNotificationsForJob(int jobId) throws ProxyException;
-
     JobModel reRunJob(JobModel jobModel) throws ProxyException;
-
+    List<JobModel> reRunJobs(List<JobModel> jobModels) throws ProxyException;
     JobModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId) throws ProxyException;
-
     ItemModel setWorkflowNote(WorkflowNoteModel workflowNoteModel, int jobId, int chunkId, short itemId) throws ProxyException;
-
 
     void close();
     class Factory {

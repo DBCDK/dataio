@@ -61,7 +61,7 @@ public class JobModelBuilder {
     private String mailForNotificationAboutProcessing = "-mailForNotificationAboutProcessing-";
     private String resultMailInitials = "-resultmailInitials-";
     private JobModel.Type type = JobModel.Type.TRANSIENT;
-    private String dataFile = "";
+    private String dataFile = "-dataFile-";
     private int partNumber = 0;
     private WorkflowNoteModel workflowNoteModel = new WorkflowNoteModelBuilder().build();
     private String transFileAncestry = "-transFileAncestry-";

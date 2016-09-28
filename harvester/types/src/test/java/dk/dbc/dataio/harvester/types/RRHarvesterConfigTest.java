@@ -41,6 +41,7 @@ public class RRHarvesterConfigTest {
                         .withOpenAgencyTarget(new OpenAgencyTarget())
                         .withImsHarvester(false)
                         .withImsHoldingsTarget("ImsHoldingsTarget")
+                        .withNote("Note")
         );
         final String configAsString = jsonbContext.marshall(config);
 

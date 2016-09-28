@@ -101,6 +101,9 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
         /** The IMS Holdings Target Url */
         private String imsHoldingsTarget;
 
+        /** Note */
+        private String note;
+
 
         // Getters and Setters
 
@@ -239,6 +242,15 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             return this;
         }
 
+        public String getNote() {
+            return note;
+        }
+
+        public Content withNote(String note) {
+            this.note = note;
+            return this;
+        }
+
 
         // Other methods
 
@@ -265,7 +277,10 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                 return false;
             if (openAgencyTarget != null ? !openAgencyTarget.equals(content.openAgencyTarget) : content.openAgencyTarget != null)
                 return false;
-            return imsHoldingsTarget != null ? imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget == null;
+            if (imsHoldingsTarget != null ? !imsHoldingsTarget.equals(content.imsHoldingsTarget) : content.imsHoldingsTarget != null)
+                return false;
+            return note != null ? note.equals(content.note) : content.note == null;
+
         }
 
         @Override
@@ -284,6 +299,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
             result = 31 * result + (openAgencyTarget != null ? openAgencyTarget.hashCode() : 0);
             result = 31 * result + (imsHarvester ? 1 : 0);
             result = 31 * result + (imsHoldingsTarget != null ? imsHoldingsTarget.hashCode() : 0);
+            result = 31 * result + (note != null ? note.hashCode() : 0);
             return result;
         }
 
@@ -304,6 +320,7 @@ public class RRHarvesterConfig extends HarvesterConfig<RRHarvesterConfig.Content
                     ", openAgencyTarget=" + openAgencyTarget +
                     ", imsHarvester=" + imsHarvester +
                     ", imsHoldingsTarget='" + imsHoldingsTarget + '\'' +
+                    ", note='" + note + '\'' +
                     '}';
         }
     }

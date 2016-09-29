@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.components.PopupMapEntry;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
@@ -71,6 +72,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedTextBox mockedType;
+    @Mock private PromptedTextArea mockedNote;
     @Mock private PromptedCheckBox mockedEnabled;
     @Mock private Button mockedUpdateButton;
     @Mock private Label mockedStatus;
@@ -105,6 +107,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
                     withDestination("Destination123").
                     withFormat("Format123").
                     withType(JobSpecification.Type.TEST).
+                    withNote("Note123").
                     withEnabled(true);
     private final RRHarvesterConfig rrHarvesterConfig = new RRHarvesterConfig(123L, 234L, content);
     @Before
@@ -143,6 +146,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
+        mockedView.note = mockedNote;
         mockedView.enabled = mockedEnabled;
         mockedView.updateButton = mockedUpdateButton;
         mockedView.status = mockedStatus;
@@ -267,6 +271,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedFormat).setEnabled(true);
         verify(mockedType).setText("TEST");
         verify(mockedType).setEnabled(true);
+        verify(mockedNote).setText("Note123");
+        verify(mockedNote).setEnabled(true);
         verify(mockedEnabled).setValue(true);
         verify(mockedEnabled).setEnabled(true);
         verify(mockedStatus, times(1)).setText("");
@@ -354,6 +360,8 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verify(mockedFormat).setEnabled(false);
         verify(mockedType).setText("");
         verify(mockedType).setEnabled(false);
+        verify(mockedNote).setText("");
+        verify(mockedNote).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
         verify(mockedStatus).setText("");
@@ -382,6 +390,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedDestination);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractions(mockedNote);
         verifyNoMoreInteractions(mockedEnabled);
         verifyNoMoreInteractions(mockedUpdateButton);
         verifyNoMoreInteractions(mockedStatus);

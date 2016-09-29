@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.components.PopupMapEntry;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.harvester.types.OpenAgencyTarget;
@@ -81,6 +82,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
     @Mock private PromptedTextBox mockedType;
+    @Mock private PromptedTextArea mockedNote;
     @Mock private PromptedCheckBox mockedEnabled;
     @Mock private Button mockedUpdateButton;
     @Mock private Label mockedStatus;
@@ -126,7 +128,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         }
 
         @Override
-        public void deleteButtonPressed() {  };
+        public void deleteButtonPressed() {}
     }
 
 
@@ -157,6 +159,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.destination = mockedDestination;
         mockedView.format = mockedFormat;
         mockedView.type = mockedType;
+        mockedView.note = mockedNote;
         mockedView.enabled = mockedEnabled;
         mockedView.updateButton = mockedUpdateButton;
         mockedView.status = mockedStatus;
@@ -762,7 +765,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void typeChanged_validFormat_typeSet() {
+    public void typeChanged_validType_typeSet() {
         // Test preparation
         presenter.start(mockedContainerWidget, mockedEventBus);
         presenter.setRRHarvesterConfig(mockedConfig);
@@ -774,6 +777,36 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyStart();
         verify(mockedConfig).getContent();
         verify(mockedContent).withType(JobSpecification.Type.TEST);
+        commonPostVerification();
+    }
+
+    @Test
+    public void noteChanged_null_noAction() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(null);
+
+        // Test
+        presenter.noteChanged("note");
+
+        // Test verification
+        verifyStart();
+        commonPostVerification();
+    }
+
+    @Test
+    public void noteChanged_validNote_noteSet() {
+        // Test preparation
+        presenter.start(mockedContainerWidget, mockedEventBus);
+        presenter.setRRHarvesterConfig(mockedConfig);
+
+        // Test
+        presenter.noteChanged("note");
+
+        // Test verification
+        verifyStart();
+        verify(mockedConfig).getContent();
+        verify(mockedContent).withNote("note");
         commonPostVerification();
     }
 
@@ -1196,6 +1229,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedFormat).setEnabled(false);
         verify(mockedType).setText("");
         verify(mockedType).setEnabled(false);
+        verify(mockedNote).setText("");
+        verify(mockedNote).setEnabled(false);
         verify(mockedEnabled).setValue(false);
         verify(mockedEnabled).setEnabled(false);
         verify(mockedStatus, times(statusCount)).setText("");
@@ -1222,6 +1257,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verifyNoMoreInteractions(mockedDestination);
         verifyNoMoreInteractions(mockedFormat);
         verifyNoMoreInteractions(mockedType);
+        verifyNoMoreInteractions(mockedNote);
         verifyNoMoreInteractions(mockedEnabled);
         verifyNoMoreInteractions(mockedUpdateButton);
         verifyNoMoreInteractions(mockedStatus);

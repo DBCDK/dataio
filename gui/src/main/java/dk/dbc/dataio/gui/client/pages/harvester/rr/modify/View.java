@@ -37,6 +37,7 @@ import dk.dbc.dataio.gui.client.components.PopupMapEntry;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
+import dk.dbc.dataio.gui.client.components.PromptedTextArea;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.events.DialogEvent;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -79,6 +80,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
     @UiField PromptedTextBox type;
+    @UiField PromptedTextArea note;
     @UiField PromptedCheckBox enabled;
     @UiField Label status;
     @UiField PopupMapEntry popupFormatOverrideEntry;
@@ -175,6 +177,12 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiHandler("type")
     void typeChanged(ValueChangeEvent<String> event) {
         presenter.typeChanged(type.getText());
+        presenter.keyPressed();
+    }
+
+    @UiHandler("note")
+    void noteChanged(ValueChangeEvent<String> event) {
+        presenter.noteChanged(note.getText());
         presenter.keyPressed();
     }
 

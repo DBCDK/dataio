@@ -79,6 +79,7 @@ public class ViewTest {
         when(view.destination.getText()).thenReturn("-destination-");
         when(view.format.getText()).thenReturn("-format-");
         when(view.type.getText()).thenReturn("-type-");
+        when(view.note.getText()).thenReturn("-note-");
         when(view.enabled.getValue()).thenReturn(true);
     }
 
@@ -104,6 +105,7 @@ public class ViewTest {
         verifyNoMoreInteractions(view.destination);
         verifyNoMoreInteractions(view.format);
         verifyNoMoreInteractions(view.type);
+        verifyNoMoreInteractions(view.note);
         verifyNoMoreInteractions(view.enabled);
         verifyNoMoreInteractions(view.status);
         verifyNoMoreInteractions(view.popupFormatOverrideEntry);
@@ -283,6 +285,17 @@ public class ViewTest {
         // Test verification
         verify(view.type).getText();
         verify(mockedPresenter).typeChanged("-type-");
+        verify(mockedPresenter).keyPressed();
+    }
+
+    @Test
+    public void noteChanged_call_noteChanged() {
+        // Subject Under Test
+        view.noteChanged(mockedValueChangeEvent);
+
+        // Test verification
+        verify(view.note).getText();
+        verify(mockedPresenter).noteChanged("-note-");
         verify(mockedPresenter).keyPressed();
     }
 

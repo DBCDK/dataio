@@ -254,6 +254,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     /**
+     * A signal to the presenter, saying that the note field has been changed
+     * @param note, the new note value
+     */
+    @Override
+    public void noteChanged(String note) {
+        if (config != null) {
+            config.getContent().withNote(note);
+        }
+    }
+
+    /**
      * A signal to the presenter, saying that the enabled field has been changed
      * @param enabled, the new enabled value
      */
@@ -392,6 +403,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             String destination,
             String format,
             String type,
+            String note,
             Boolean enabled,
             Boolean updateButtonVisible) {
         View view = getView();
@@ -427,6 +439,8 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.format.setEnabled(viewEnabled);
         view.type.setText(type);
         view.type.setEnabled(viewEnabled);
+        view.note.setText(note);
+        view.note.setEnabled(viewEnabled);
         view.enabled.setValue(enabled);
         view.enabled.setEnabled(viewEnabled);
         view.updateButton.setVisible(updateButtonVisible);
@@ -435,7 +449,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     }
 
     private void initializeViewFields() {
-        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, "", "", "", "", false, false);
+        initializeViewFields(false, "", "", "", "", "", "", "", "", new HashMap<>(), false, false, false, "", "", "", "", "", false, false);
     }
 
     /**
@@ -461,6 +475,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
                 config.getContent().getDestination(),
                 config.getContent().getFormat(),
                 config.getContent().getType().toString(),
+                config.getContent().getNote(),
                 config.getContent().isEnabled(),
                 config.getType().equals(OLDRRHarvesterConfig.class.getName()));
     }

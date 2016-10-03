@@ -75,4 +75,11 @@ public class SinkCacheEntity {
     public Sink getSink() {
         return sink;
     }
+
+    /* for test */
+    public static SinkCacheEntity create(Sink sink) {
+        final SinkCacheEntity sinkCacheEntity = new SinkCacheEntity();
+        sinkCacheEntity.sink = sink;
+        return sinkCacheEntity;
+    }
 }

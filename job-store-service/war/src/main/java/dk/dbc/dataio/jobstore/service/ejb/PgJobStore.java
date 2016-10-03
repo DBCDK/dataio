@@ -25,7 +25,6 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -35,6 +34,7 @@ import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
+import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
@@ -59,6 +59,8 @@ import javax.ejb.Asynchronous;
 import javax.ejb.EJB;
 import javax.ejb.SessionContext;
 import javax.ejb.Stateless;
+import javax.ejb.TransactionAttribute;
+import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.IOException;
@@ -66,6 +68,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * This stateless Enterprise Java Bean (EJB) facilitates access to the job-store database through persistence layer
@@ -108,17 +111,21 @@ public class PgJobStore {
      *                    If the list contains any diagnostic with level FATAL, the job will be marked as finished
      *                    before partitioning is attempted.
      * @return information snapshot of added job
-     * @throws NullPointerException if given any null-valued argument
      * @throws JobStoreException on failure to add job
      */
     @Stopwatch
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
         // Creates job entity in its own transactional scope to enable external visibility
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
-        LOGGER.info("Adding job with job ID: {}", jobEntity.getId());
+        LOGGER.info("addJob(): adding job with job ID: {}", jobEntity.getId());
 
-        if(!jobEntity.hasFatalError()) {
-            getProxyToSelf().handlePartitioningAsynchronously(jobEntity, addJobParam.getFlowBinder().getContent().getRecordSplitter());
+        if (!jobEntity.hasFatalError()) {
+            jobQueueRepository.addWaiting(new JobQueueEntity()
+                .withJob(jobEntity)
+                .withSinkId(addJobParam.getSink().getId())
+                .withTypeOfDataPartitioner(addJobParam.getFlowBinder().getContent().getRecordSplitter()));
+
+            self().partitionNextJobForSinkIfAvailable(addJobParam.getSink());
         } else {
             addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
         }
@@ -126,73 +133,58 @@ public class PgJobStore {
         return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
     }
 
-    private PgJobStore getProxyToSelf() {
+    private PgJobStore self() {
         return sessionContext.getBusinessObject(PgJobStore.class);
     }
 
     /**
-     * This method is a wrapper of the handlePartitioning method to support asynchronous behavior
-     * @param jobEntity job to partition
-     * @param dataPartitionerType type of data partitioner
-     * @throws JobStoreException on failure to partition job
+     * Attempts to partition next job in line for a given {@link Sink}
+     * @param sink {@link Sink} for which a job is to be partitioned
      */
+    @Stopwatch
     @Asynchronous
-    public void handlePartitioningAsynchronously(JobEntity jobEntity, RecordSplitterConstants.RecordSplitter dataPartitionerType) throws JobStoreException {
-        handlePartitioning(new PartitioningParam(jobEntity, fileStoreServiceConnectorBean.getConnector(),
-                entityManager, dataPartitionerType));
+    public void partitionNextJobForSinkIfAvailable(Sink sink) {
+        final Optional<JobQueueEntity> nextToPartition = jobQueueRepository.seizeHeadOfQueueIfWaiting(sink);
+        if (nextToPartition.isPresent()) {
+            try {
+                self().partition(new PartitioningParam(
+                        nextToPartition.get().getJob(),
+                        fileStoreServiceConnectorBean.getConnector(),
+                        entityManager,
+                        nextToPartition.get().getTypeOfDataPartitioner()));
+                jobQueueRepository.remove(nextToPartition.get());
+            } catch(Exception e) {
+                LOGGER.error("partitionNextJobForSinkIfAvailable(): unexpected exception caught while partitioning job {}",
+                        nextToPartition.get().getJob().getId(), e);
+            } finally {
+                self().partitionNextJobForSinkIfAvailable(sink);
+            }
+        }
     }
 
     /**
-     * Attempts to partition a job into chunks as specified by given partitioning parameter
-     * if first in line for its sink destination, otherwise the job is queued for later partitioning
+     * Partitions a job into chunks as specified by given partitioning parameter
      * @param partitioningParam containing the state required to partition a new job
      * @return JobInfoSnapshot information snapshot of added job
      * @throws JobStoreException on failure to partition job
      */
-    public JobInfoSnapshot handlePartitioning(PartitioningParam partitioningParam) throws JobStoreException {
-        try {  // This try has a 'finally' block ensuring that the input stream is closed even if an unhandled exception is thrown
-            // We have to merge the job entity since this method is called asynchronously
-            // and therefore in a different persistence context from the one used when
-            // the partitioning parameter was created.
-            JobEntity jobEntity = jobStoreRepository.merge(partitioningParam.getJobEntity());
-            if (!partitioningParam.getDiagnostics().isEmpty()) {
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
+        try {
+            JobEntity jobEntity = partitioningParam.getJobEntity();
+            if (partitioningParam.getDiagnostics().isEmpty()) {
+                jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
+                jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
+            } else {
                 jobEntity = abortJob(jobEntity, partitioningParam.getDiagnostics());
-            }
-
-            if (!jobEntity.hasFatalError()) {
-                // This does not ensure FIFO behaviour and is in my opinion a flawed design (JBN)
-                final boolean sinkAvailable = isSinkAvailableAndAddJobToJobQueue(jobEntity, jobEntity.getCachedSink().getSink(),
-                        partitioningParam.getRecordSplitterType());
-
-                if (sinkAvailable) {
-                    jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
-                    jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
-                    jobQueueRepository.removeJobFromJobQueueIfExists(jobEntity);
-                }
             }
 
             jobStoreRepository.flushEntityManager();
             logTimerMessage(jobEntity);
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
-
         } finally {
             partitioningParam.closeDataFile();
-        }
-    }
-
-    // Important that the Sink ID is the real Sink's ID and not the cached ones because the Cache can hold the same Sink in different versions.
-    private boolean isSinkAvailableAndAddJobToJobQueue(JobEntity job, Sink sink, RecordSplitterConstants.RecordSplitter recordSplitterType) {
-
-        final boolean SINK_OCCUPIED = false;
-        final boolean SINK_AVAILABLE = true;
-
-        boolean sinkOccupied = this.jobQueueRepository.addJobToJobQueueInDatabase(sink.getId(), job, recordSplitterType);
-
-        LOGGER.info(String.format("Sink (ID: %s) - occupied: %s", sink.getId(), sinkOccupied));
-        if(sinkOccupied) {
-            return SINK_OCCUPIED;
-        } else {
-            return SINK_AVAILABLE;
         }
     }
 

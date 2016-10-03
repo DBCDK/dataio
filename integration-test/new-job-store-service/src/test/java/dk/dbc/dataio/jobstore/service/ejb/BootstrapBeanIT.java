@@ -30,14 +30,32 @@ import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
 import dk.dbc.dataio.jobstore.service.entity.ReorderedItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.types.MarcRecordInfo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import org.junit.Before;
 import org.junit.Test;
 
+import javax.ejb.ScheduleExpression;
+import javax.ejb.Timer;
+import javax.ejb.TimerConfig;
+import javax.ejb.TimerService;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class BootstrapBeanIT extends AbstractJobStoreIT {
+    private final TimerService timerService = mock(TimerService.class);
+    private final Timer timer = mock(Timer.class);
+
+    @Before
+    public void setupMocks() {
+        when(timerService.createCalendarTimer(any(ScheduleExpression.class), any(TimerConfig.class)))
+                .thenReturn(timer);
+    }
+
     /**
      * Given: a job queue with multiple entries marked as in-progress
      * When : job-store bootstrap process is executed
@@ -68,8 +86,8 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
             job1.setCachedSink(cachedSink);
             job2.setCachedSink(cachedSink);
             job3.setCachedSink(cachedSink);
-            job1QueueEntry.setState(JobQueueEntity.State.IN_PROGRESS);
-            job2QueueEntry.setState(JobQueueEntity.State.IN_PROGRESS);
+            job1QueueEntry.withState(JobQueueEntity.State.IN_PROGRESS);
+            job2QueueEntry.withState(JobQueueEntity.State.IN_PROGRESS);
         });
 
         // When...
@@ -112,6 +130,7 @@ public class BootstrapBeanIT extends AbstractJobStoreIT {
         bootstrapBean.jobStoreRepository = newPgJobStoreRepository();
         bootstrapBean.jobQueueRepository = newJobQueueRepository();
         bootstrapBean.jobSchedulerBean = newJobSchedulerBean();
+        bootstrapBean.timerService = timerService;
         return bootstrapBean;
     }
 

@@ -67,7 +67,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public abstract class PgJobStoreBaseTest {
-
     protected final EntityManager entityManager = mock(EntityManager.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     protected static final FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
@@ -85,6 +84,7 @@ public abstract class PgJobStoreBaseTest {
             ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>tenth</record></records>"),
             ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>eleventh</record></records>"));
     protected static final int EXPECTED_NUMBER_OF_ITEMS = EXPECTED_DATA_ENTRIES.size();
+    static final int EXPECTED_NUMBER_OF_CHUNKS = (int) Math.ceil((float) EXPECTED_NUMBER_OF_ITEMS / 10);
     protected final FlowStoreServiceConnector mockedFlowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     protected final PgJobStoreRepository mockedJobStoreRepository = mock(PgJobStoreRepository.class);
     protected final JobQueueRepository mockedJobQueueReposity = mock(JobQueueRepository.class);
@@ -233,6 +233,7 @@ public abstract class PgJobStoreBaseTest {
         jobEntity.setSpecification(new JobSpecificationBuilder().build());
         jobEntity.setCachedFlow(mockedFlowCacheEntity);
         jobEntity.setCachedSink(mockedSinkCacheEntity);
+        jobEntity.setState(new State());
 
         when(entityManager.find(JobEntity.class, jobId)).thenReturn(jobEntity);
 

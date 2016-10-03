@@ -21,131 +21,66 @@
 
 package dk.dbc.dataio.jobstore.service.ejb;
 
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
+import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
-import org.slf4j.LoggerFactory;
 
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import javax.persistence.NoResultException;
+import javax.persistence.LockModeType;
+import javax.persistence.TypedQuery;
 import java.util.List;
+import java.util.Optional;
 
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.AVAILABLE;
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.OCCUPIED;
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State.IN_PROGRESS;
-import static dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State.WAITING;
-
+/**
+ * DAO for job queue repository
+ */
 @Stateless
 public class JobQueueRepository extends RepositoryBase {
-
-    private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(JobQueueRepository.class);
-
     /**
-     *
-     * @return list of unique Sink id's.
-     */
-    public List<Long> getUniqueSinkIds() {
-
-        return entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_UNIQUE_SINKS).getResultList();
-    }
-
-    /**
-
-             1. hvis sinken er optaget så tilføj job i status WAITING
-             2. Hvis sinken ikke er optaget og jobbet allerede venter så opdater jobbet til status IN_PROGRESS
-             3. hvis sinken ikke er optaget og jobbet ikke venter så tilføj job i status IN_PROGRESS
-
-     * @param sinkId                Id of the concrete Sink - NOT the CachedSink
-     * @param job                   Id of the job
-     * @param recordSplitterType    type of the Record Splitter
-     * @return                      true if sink is occupied
+     * Adds given {@link JobQueueEntity} to queue in waiting state
+     * @param jobQueueEntity entry to be added to queue
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public boolean addJobToJobQueueInDatabase(long sinkId, JobEntity job, RecordSplitterConstants.RecordSplitter recordSplitterType) {
-
-        final boolean sinkOccupied = isSinkOccupied(sinkId);
-
-        if(sinkOccupied) {
-            this.addAsWaiting(sinkId, job, recordSplitterType);
-        } else {
-
-            if(this.isAlreadyWaiting(job)) {
-                this.updateJobToBeInProgressIfExists(job);
-            } else {
-                this.addAsInProgress(sinkId, job, recordSplitterType);
-            }
-        }
-
-        return sinkOccupied;
+    public void addWaiting(JobQueueEntity jobQueueEntity) {
+        entityManager.persist(jobQueueEntity
+                .withState(JobQueueEntity.State.WAITING));
     }
 
     /**
-     *
-     * @param job JobEntity to delete in database
+     * Removes given {@link JobQueueEntity} from queue
+     * @param jobQueueEntity entry to be removed
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void removeJobFromJobQueueIfExists(JobEntity job) {
-
-        try {
-            JobQueueEntity jobQueueEntityToDelete = this.getJobQueueEntityByJob(job);
-            entityManager.remove(jobQueueEntityToDelete);
-            entityManager.flush();
-        } catch (NoResultException nre) {
-            LOGGER.info("Did not find any Job Queue Entity...");
+    public void remove(JobQueueEntity jobQueueEntity) {
+        if (!entityManager.contains(jobQueueEntity)) {
+            jobQueueEntity = entityManager.merge(jobQueueEntity);
         }
-
+        entityManager.remove(jobQueueEntity);
     }
 
     /**
-     *
-     * @param sinkId    The SinkId of the Sink to see if occupied.
-     * @return          true if Sink is occupied
+     * Exclusively seizes head of queue for given {@link Sink} if it
+     * is in {@link dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State#WAITING} state
+     * and updates it to {@link dk.dbc.dataio.jobstore.service.entity.JobQueueEntity.State#IN_PROGRESS}
+     * @param sink {@link Sink} for which the head entry is to be seized
+     * @return {@link JobQueueEntity} if the head entry was seized, empty if not
      */
-    public boolean isSinkOccupied(long sinkId) {
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public Optional<JobQueueEntity> seizeHeadOfQueueIfWaiting(Sink sink) {
+        final TypedQuery<JobQueueEntity> query = entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_QUEUE_FOR_SINK, JobQueueEntity.class)
+                .setParameter(JobQueueEntity.FIELD_SINK_ID, sink.getId())
+                .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                .setMaxResults(1);
 
-        Long numberOfJobsBySink = (Long)entityManager
-                .createNamedQuery(JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK)
-                .setParameter(JobQueueEntity.FIELD_SINK_ID, sinkId)
-                .setParameter(JobQueueEntity.FIELD_STATE, JobQueueEntity.State.IN_PROGRESS)
-                .getSingleResult();
-
-        return numberOfJobsBySink > 0 ? OCCUPIED : AVAILABLE;
-    }
-
-    /**
-     *
-     * @param job   JobEntity
-     * @return      Job Queue element from the database
-     */
-    public JobQueueEntity getJobQueueEntityByJob(JobEntity job) {
-
-        return (JobQueueEntity)entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_JOB).setParameter(JobQueueEntity.FIELD_JOB_ID, job).getSingleResult();
-    }
-
-    /**
-     *
-     * @param sinkId    The SinkId of the Sink to find first waiting job for.
-     * @return          null if Queue element is not found
-     */
-    public JobQueueEntity getFirstWaitingJobQueueEntityBySink(Long sinkId) {
-
-        JobQueueEntity firstWaitingJob = null;
-        try {
-            firstWaitingJob = (JobQueueEntity)entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_WAITING_JOBS_BY_SINK)
-                    .setFirstResult(0)
-                    .setMaxResults(1)
-                    .setParameter(JobQueueEntity.FIELD_SINK_ID, sinkId)
-                    .setParameter(JobQueueEntity.FIELD_STATE, WAITING)
-                    .getSingleResult();
-
-        } catch (NoResultException nre) {
-            LOGGER.info("Did not find any Job Queue Entity...");
+        final List<JobQueueEntity> rs = query.getResultList();
+        if (rs.isEmpty() || rs.get(0).getState() != JobQueueEntity.State.WAITING) {
+            return Optional.empty();
         }
-
-        return firstWaitingJob;
+        return Optional.of(rs.get(0)
+            .withState(JobQueueEntity.State.IN_PROGRESS));
     }
 
     /**
@@ -153,53 +88,18 @@ public class JobQueueRepository extends RepositoryBase {
      */
     @Stopwatch
     public List<JobQueueEntity> getInProgress() {
-        @SuppressWarnings("unchecked")
-        final List<JobQueueEntity> inProgress = entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_STATE)
+        return entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_STATE, JobQueueEntity.class)
                 .setParameter(JobQueueEntity.FIELD_STATE, JobQueueEntity.State.IN_PROGRESS)
                 .getResultList();
-        return inProgress;
     }
 
-    /* Private methods */
-
-    private void updateJobToBeInProgressIfExists(JobEntity job) {
-
-        try {
-            JobQueueEntity jobQueueEntity = getJobQueueEntityByJob(job);
-            jobQueueEntity.setState(IN_PROGRESS);
-            entityManager.merge(jobQueueEntity);
-            entityManager.flush();
-        } catch (NoResultException nre) {
-            LOGGER.info("Did not find any Job Queue Entity...");
-        }
-
-    }
-    private boolean isAlreadyWaiting(JobEntity job) {
-
-        final boolean A_ALREADY_WAITING_JOB = true;
-        final boolean NEW_JOB = false;
-        try {
-            if(getJobQueueEntityByJob(job).getState() == WAITING) {
-                return A_ALREADY_WAITING_JOB;
-            } else {
-                return NEW_JOB;
-            }
-        } catch (NoResultException nre) {
-            return NEW_JOB;
-        }
-    }
-    private void addAsWaiting(
-            long sinkId,
-            JobEntity job,
-            RecordSplitterConstants.RecordSplitter recordSplitterType) {
-
-        persist(new JobQueueEntity(sinkId, job, WAITING, recordSplitterType));
-    }
-    private void addAsInProgress(
-            long sinkId,
-            JobEntity job,
-            RecordSplitterConstants.RecordSplitter recordSplitterType) {
-
-        persist(new JobQueueEntity(sinkId, job, IN_PROGRESS, recordSplitterType));
+    /**
+     * @return list of job queue entries currently marked as being waiting
+     */
+    @Stopwatch
+    public List<JobQueueEntity> getWaiting() {
+        return entityManager.createNamedQuery(JobQueueEntity.NQ_FIND_BY_STATE, JobQueueEntity.class)
+                .setParameter(JobQueueEntity.FIELD_STATE, JobQueueEntity.State.WAITING)
+                .getResultList();
     }
 }

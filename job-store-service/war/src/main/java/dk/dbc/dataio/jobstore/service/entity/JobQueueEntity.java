@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import java.sql.Timestamp;
@@ -21,36 +22,22 @@ import static dk.dbc.dataio.commons.types.RecordSplitterConstants.RecordSplitter
 @Entity
 @Table(name = "jobQueue")
 @NamedQueries({
-        @NamedQuery(name = JobQueueEntity.NQ_FIND_NUMBER_OF_JOBS_BY_SINK,
-                query = "SELECT count(jq) FROM JobQueueEntity jq WHERE jq.state = :" + JobQueueEntity.FIELD_STATE + " AND jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID),
-
-        @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_JOB,
-                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.job = :" + JobQueueEntity.FIELD_JOB_ID),
-
-        @NamedQuery(name = JobQueueEntity.NQ_FIND_WAITING_JOBS_BY_SINK,
-                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID + " AND jq.state = :" + JobQueueEntity.FIELD_STATE + " ORDER BY jq.timeOfEntry"),
-
         @NamedQuery(name = JobQueueEntity.NQ_FIND_UNIQUE_SINKS,
                 query = "SELECT DISTINCT(jq.sinkId) FROM JobQueueEntity jq"),
+
+        @NamedQuery(name = JobQueueEntity.NQ_FIND_QUEUE_FOR_SINK,
+                query = "SELECT jq FROM JobQueueEntity jq WHERE jq.sinkId = :" + JobQueueEntity.FIELD_SINK_ID + " ORDER BY jq.id ASC"),
 
         @NamedQuery(name = JobQueueEntity.NQ_FIND_BY_STATE,
                 query = "SELECT jq FROM JobQueueEntity jq WHERE jq.state = :" + JobQueueEntity.FIELD_STATE),
 })
 public class JobQueueEntity {
-
-    public final static boolean OCCUPIED = true;
-    public final static boolean AVAILABLE = false;
-
-    public static final String NQ_FIND_NUMBER_OF_JOBS_BY_SINK = "NQ_FIND_NUMBER_OF_JOBS_BY_SINK";
-    public static final String NQ_FIND_BY_JOB = "NQ_FIND_BY_JOB";
-    public static final String NQ_FIND_WAITING_JOBS_BY_SINK = "NQ_FIND_WAITING_JOBS_BY_SINK";
     public static final String NQ_FIND_UNIQUE_SINKS = "NQ_FIND_UNIQUE_SINKS";
+    public static final String NQ_FIND_QUEUE_FOR_SINK = "NQ_FIND_QUEUE_FOR_SINK";
     public static final String NQ_FIND_BY_STATE = "NQ_FIND_BY_STATE";
 
     public static final String FIELD_SINK_ID = "sinkId";
-    public static final String FIELD_JOB_ID = "job";
     public static final String FIELD_STATE = "state";
-
 
     public enum State {IN_PROGRESS, WAITING}
 
@@ -83,53 +70,58 @@ public class JobQueueEntity {
     private RecordSplitter recordSplitterType;
 
     public JobQueueEntity() {}
-    public JobQueueEntity(long sinkId, JobEntity job, State state, RecordSplitter recordSplitterType) {
-        this.sinkId = sinkId;
-        this.job = job;
-        this.state = state;
-        this.timeOfEntry = new Timestamp(System.currentTimeMillis());
-        this.recordSplitterType = recordSplitterType;
+
+    @PrePersist
+    public void setTimeOfEntry() {
+        timeOfEntry = new Timestamp(System.currentTimeMillis());
     }
 
     public int getId() {
         return id;
     }
-    public void setId(int id) {
+
+    public JobQueueEntity withId(int id) {
         this.id = id;
+        return this;
     }
 
     public JobEntity getJob() {
         return job;
     }
-    public void setJob(JobEntity job) {
+
+    public JobQueueEntity withJob(JobEntity job) {
         this.job = job;
+        return this;
     }
 
     public long getSinkId() {
         return sinkId;
     }
-    public void setSinkId(long sinkId) {
+
+    public JobQueueEntity withSinkId(long sinkId) {
         this.sinkId = sinkId;
+        return this;
     }
 
     public State getState() {
         return state;
     }
-    public void setState(State state) {
+
+    public JobQueueEntity withState(State state) {
         this.state = state;
+        return this;
     }
 
     public Timestamp getTimeOfEntry() {
         return timeOfEntry;
     }
-    public void setTimeOfEntry(Timestamp timeOfEntry) {
-        this.timeOfEntry = timeOfEntry;
-    }
 
-    public RecordSplitter getRecordSplitterType() {
+    public RecordSplitter getTypeOfDataPartitioner() {
         return recordSplitterType;
     }
-    public void setRecordSplitterType(RecordSplitter recordSplitterType) {
+
+    public JobQueueEntity withTypeOfDataPartitioner(RecordSplitter recordSplitterType) {
         this.recordSplitterType = recordSplitterType;
+        return this;
     }
 }

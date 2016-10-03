@@ -204,13 +204,11 @@ public class AbstractJobStoreIT {
     }
 
     protected JobQueueEntity newJobQueueEntity(JobEntity job) {
-        final JobQueueEntity jobQueueEntity = new JobQueueEntity();
-        jobQueueEntity.setJob(job);
-        jobQueueEntity.setRecordSplitterType(RecordSplitterConstants.RecordSplitter.XML);
-        jobQueueEntity.setSinkId(0);
-        jobQueueEntity.setState(JobQueueEntity.State.WAITING);
-        jobQueueEntity.setTimeOfEntry(new Timestamp(new Date().getTime()));
-        return jobQueueEntity;
+        return new JobQueueEntity()
+            .withJob(job)
+            .withTypeOfDataPartitioner(RecordSplitterConstants.RecordSplitter.XML)
+            .withSinkId(0)
+            .withState(JobQueueEntity.State.WAITING);
     }
 
     protected FlowCacheEntity newPersistedFlowCacheEntity() {

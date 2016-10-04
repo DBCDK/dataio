@@ -19,20 +19,29 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.server;
+package dk.dbc.dataio.commons.javascript;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
+import java.io.Serializable;
 
-public class FileUtil {
-    private FileUtil() { }
+public class JavaScriptProjectException extends Exception implements Serializable {
+    private static final long serialVersionUID = 6907428727283491685L;
+    private /* final */ JavaScriptProjectError errorCode;
 
-    public static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
-        return new InputStreamReader(new FileInputStream(file.toFile()), StandardCharsets.UTF_8);
+    public JavaScriptProjectException() {
+        this.errorCode = JavaScriptProjectError.UNKNOWN;
+    }
+
+    public JavaScriptProjectException(final JavaScriptProjectError errorCode, final Throwable cause) {
+        super(cause);
+        this.errorCode = errorCode;
+    }
+
+    public JavaScriptProjectException(final JavaScriptProjectError errorCode, final String errorMsg) {
+        super(errorMsg);
+        this.errorCode = errorCode;
+    }
+
+    public JavaScriptProjectError getErrorCode() {
+        return errorCode;
     }
 }

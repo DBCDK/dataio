@@ -22,6 +22,10 @@
 package dk.dbc.dataio.gui.server;
 
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
+import dk.dbc.dataio.commons.javascript.JavaScriptProject;
+import dk.dbc.dataio.commons.javascript.JavaScriptProjectError;
+import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
+import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
 import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
@@ -37,7 +41,7 @@ import java.util.List;
 
 public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implements JavaScriptProjectFetcher {
     private static final long serialVersionUID = 6080138003266070829L;
-    private transient JavaScriptProjectFetcher javaScriptProjectFetcher;
+    private transient JavaScriptSubversionProject javaScriptSubversionProject;
 
     @Override
     public void init() throws ServletException {
@@ -48,7 +52,7 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
         } catch (NamingException e) {
             throw new ServletException(e);
         }
-        javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
+        javaScriptSubversionProject = new JavaScriptSubversionProject(subversionScmEndpoint);
     }
 
     @Override
@@ -57,22 +61,39 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
         if (!hackedRevisionList.isEmpty()) { // To be removed when hack is removed
             return hackedRevisionList; // To be removed when hack is removed
         } // To be removed when hack is removed
-        return javaScriptProjectFetcher.fetchRevisions(projectName);
+        try {
+            return javaScriptSubversionProject.fetchRevisions(projectName);
+        } catch (JavaScriptProjectException e) {
+            throw asJavaScriptProjectFetcherException(e);
+        }
     }
 
     @Override
     public List<String> fetchJavaScriptFileNames(String projectName, long revision) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchJavaScriptFileNames(projectName, revision);
+        try {
+            return javaScriptSubversionProject.fetchJavaScriptFileNames(projectName, revision);
+        } catch (JavaScriptProjectException e) {
+            throw asJavaScriptProjectFetcherException(e);
+        }
     }
 
     @Override
     public List<String> fetchJavaScriptInvocationMethods(String projectName, long revision, String javaScriptFileName) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
+        try {
+            return javaScriptSubversionProject.fetchJavaScriptInvocationMethods(projectName, revision, javaScriptFileName);
+        } catch (JavaScriptProjectException e) {
+            throw asJavaScriptProjectFetcherException(e);
+        }
     }
 
     @Override
     public fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
+        try {
+            final JavaScriptProject javaScriptProject = javaScriptSubversionProject.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, javaScriptFunction);
+            return new fetchRequiredJavaScriptResult(javaScriptProject.getJavaScripts(), javaScriptProject.getRequireCache());
+        } catch (JavaScriptProjectException e) {
+            throw asJavaScriptProjectFetcherException(e);
+        }
     }
 
     // Remove this method and the obsolete lines in fetchRevisions when hack is removed.
@@ -83,11 +104,34 @@ public class JavaScriptProjectFetcherServlet extends RemoteServiceServlet implem
             String revision = ServiceUtil.getStringValueFromResource("dataioGuiSubversionScmRevision");
             hackedRevisionList.add(new RevisionInfo(Long.parseLong(revision), "", new Date(), "", Collections.EMPTY_LIST));
         } catch(NumberFormatException e) {
-            // throw in case the retrivied revision can not be parsed as a long
+            // throw in case the retrieved revision can not be parsed as a long
             throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.UNKNOWN, e);
         } catch(NamingException e) {
             // Ignoring this will let this method return an empty list.
         }
         return hackedRevisionList;
+    }
+
+    static JavaScriptProjectFetcherException asJavaScriptProjectFetcherException(JavaScriptProjectException e) {
+        if (e.getMessage() != null) {
+            return new JavaScriptProjectFetcherException(
+                    toJavaScriptProjectFetcherError(e.getErrorCode()), e.getMessage());
+        } else {
+            return new JavaScriptProjectFetcherException(
+                    toJavaScriptProjectFetcherError(e.getErrorCode()), e.getCause());
+        }
+    }
+
+    private static JavaScriptProjectFetcherError toJavaScriptProjectFetcherError(JavaScriptProjectError error) {
+        switch(error) {
+            case SCM_SERVER_ERROR:              return JavaScriptProjectFetcherError.SCM_SERVER_ERROR;
+            case SCM_INVALID_URL:               return JavaScriptProjectFetcherError.SCM_INVALID_URL;
+            case SCM_ILLEGAL_PROJECT_NAME:      return JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME;
+            case SCM_RESOURCE_NOT_FOUND:        return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
+            case JAVASCRIPT_EVAL_ERROR:         return JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR;
+            case JAVASCRIPT_REFERENCE_ERROR:    return JavaScriptProjectFetcherError.JAVASCRIPT_REFERENCE_ERROR;
+            case JAVASCRIPT_READ_ERROR:         return JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR;
+            default:                            return JavaScriptProjectFetcherError.UNKNOWN;
+        }
     }
 }

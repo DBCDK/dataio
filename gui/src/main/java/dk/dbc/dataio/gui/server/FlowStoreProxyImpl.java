@@ -24,6 +24,9 @@ package dk.dbc.dataio.gui.server;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.javascript.JavaScriptProject;
+import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
+import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowComponent;
@@ -42,7 +45,6 @@ import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher.fetchRequiredJavaScriptResult;
 import dk.dbc.dataio.gui.server.modelmappers.FlowBinderModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
@@ -70,7 +72,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     final String ushHarvesterUrl;
     final String subversionScmEndpoint;
     FlowStoreServiceConnector flowStoreServiceConnector;
-    JavaScriptProjectFetcher javaScriptProjectFetcher;
+    JavaScriptSubversionProject javaScriptSubversionProject;
 
     public FlowStoreProxyImpl() throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
@@ -79,7 +81,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
         subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
-        javaScriptProjectFetcher = new JavaScriptProjectFetcherImpl(subversionScmEndpoint);
+        javaScriptSubversionProject = new JavaScriptSubversionProject(subversionScmEndpoint);
         ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
     }
 
@@ -95,10 +97,10 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
-    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptProjectFetcherImpl javaScriptProjectFetcher) throws NamingException{
+    FlowStoreProxyImpl(FlowStoreServiceConnector flowStoreServiceConnector, JavaScriptSubversionProject javaScriptSubversionProject) throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         this.flowStoreServiceConnector = flowStoreServiceConnector;
-        this.javaScriptProjectFetcher = javaScriptProjectFetcher;
+        this.javaScriptSubversionProject = javaScriptSubversionProject;
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
@@ -814,19 +816,29 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     private fetchRequiredJavaScriptResult fetchRequiredJavaScripts(FlowComponentModel model) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchRequiredJavaScript(
-                model.getSvnProject(),
-                Long.valueOf(model.getSvnRevision()),
-                model.getInvocationJavascript(),
-                model.getInvocationMethod());
+        try {
+            final JavaScriptProject javaScriptProject = javaScriptSubversionProject.fetchRequiredJavaScript(
+                    model.getSvnProject(),
+                    Long.valueOf(model.getSvnRevision()),
+                    model.getInvocationJavascript(),
+                    model.getInvocationMethod());
+            return new fetchRequiredJavaScriptResult(javaScriptProject.getJavaScripts(), javaScriptProject.getRequireCache());
+        } catch (JavaScriptProjectException e) {
+            throw JavaScriptProjectFetcherServlet.asJavaScriptProjectFetcherException(e);
+        }
     }
 
     private fetchRequiredJavaScriptResult fetchRequiredJavaScriptsForNext(FlowComponentModel model) throws JavaScriptProjectFetcherException {
-        return javaScriptProjectFetcher.fetchRequiredJavaScript(
-                model.getSvnProject(),
-                Long.valueOf(model.getSvnNext()),
-                model.getInvocationJavascript(),
-                model.getInvocationMethod());
+        try {
+            final JavaScriptProject javaScriptProject = javaScriptSubversionProject.fetchRequiredJavaScript(
+                    model.getSvnProject(),
+                    Long.valueOf(model.getSvnNext()),
+                    model.getInvocationJavascript(),
+                    model.getInvocationMethod());
+            return new fetchRequiredJavaScriptResult(javaScriptProject.getJavaScripts(), javaScriptProject.getRequireCache());
+        } catch (JavaScriptProjectException e) {
+            throw JavaScriptProjectFetcherServlet.asJavaScriptProjectFetcherException(e);
+        }
     }
 
 }

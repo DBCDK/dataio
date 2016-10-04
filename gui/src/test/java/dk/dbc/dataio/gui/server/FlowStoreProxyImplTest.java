@@ -23,6 +23,8 @@ package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.javascript.JavaScriptProject;
+import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.FlowBinderContent;
@@ -57,7 +59,6 @@ import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SinkModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.SubmitterModelBuilder;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import dk.dbc.dataio.gui.server.modelmappers.FlowComponentModelMapper;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
@@ -442,12 +443,12 @@ public class FlowStoreProxyImplTest {
     @Test
     public void createFlowComponent_remoteServiceReturnsHttpStatusCreated_returnsFlowComponentModelEntity() throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
         final FlowComponent flowComponent = new FlowComponentBuilder().setNext(new FlowComponentContentBuilder().build()).build();
         final FlowComponentModel model = new FlowComponentModelBuilder().setSvnNext(String.valueOf(flowComponent.getNext().getSvnRevision())).build();
 
-        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+        when(javaScriptSubversionProject.fetchRequiredJavaScript(
                 anyString(),
                 anyLong(),
                 anyString(),
@@ -485,11 +486,11 @@ public class FlowStoreProxyImplTest {
 
     private void createFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
 
         FlowComponentModel model = new FlowComponentModelBuilder().build();
-        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+        when(javaScriptSubversionProject.fetchRequiredJavaScript(
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
                 model.getInvocationJavascript(),
@@ -508,11 +509,17 @@ public class FlowStoreProxyImplTest {
 
     private void createFlowComponent_testForProxyError(FlowComponentModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
 
         when(flowStoreServiceConnector.createFlowComponent(any(FlowComponentContent.class)))
                 .thenThrow(exception);
+        when(javaScriptSubversionProject.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod()))
+                .thenReturn(getDefaultJavaScripts());
 
         try {
             flowStoreProxy.createFlowComponent(model);
@@ -529,8 +536,8 @@ public class FlowStoreProxyImplTest {
     @Test
     public void updateFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentModelEntity() throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
 
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).setNext(new FlowComponentContentBuilder().build()).build();
         final FlowComponentModel model = new FlowComponentModelBuilder().setSvnNext(String.valueOf(flowComponent.getNext().getSvnRevision())).build();
@@ -539,7 +546,7 @@ public class FlowStoreProxyImplTest {
         when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(model.getId())), (eq(model.getVersion()))))
                 .thenReturn(flowComponent);
         when(flowStoreServiceConnector.updateNext(any(FlowComponentContent.class), eq(flowComponent.getId()), eq(flowComponent.getVersion()))).thenReturn(flowComponent);
-        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+        when(javaScriptSubversionProject.fetchRequiredJavaScript(
                 anyString(),
                 anyLong(),
                 anyString(),
@@ -579,12 +586,12 @@ public class FlowStoreProxyImplTest {
 
     private void updateFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
 
         FlowComponentModel model = new FlowComponentModelBuilder().build();
-        when(javaScriptProjectFetcher.fetchRequiredJavaScript(
+        when(javaScriptSubversionProject.fetchRequiredJavaScript(
                 model.getSvnProject(),
                 Long.valueOf(model.getSvnRevision()),
                 model.getInvocationJavascript(),
@@ -604,13 +611,19 @@ public class FlowStoreProxyImplTest {
 
     private void updateFlowComponent_testForProxyError(FlowComponentModel model, Exception exception, ProxyError expectedError, String expectedErrorName) throws Throwable {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).setVersion(1L).build();
 
         when(flowStoreServiceConnector.getFlowComponent(any(Long.class))).thenReturn(flowComponent);
         when(flowStoreServiceConnector.updateFlowComponent(any(FlowComponentContent.class), (eq(flowComponent.getId())), (eq(flowComponent.getVersion()))))
                 .thenThrow(exception);
+        when(javaScriptSubversionProject.fetchRequiredJavaScript(
+                model.getSvnProject(),
+                Long.valueOf(model.getSvnRevision()),
+                model.getInvocationJavascript(),
+                model.getInvocationMethod()))
+                .thenReturn(getDefaultJavaScripts());
 
         try {
             flowStoreProxy.updateFlowComponent(model);
@@ -754,8 +767,8 @@ public class FlowStoreProxyImplTest {
     @Test
     public void getFlowComponent_remoteServiceReturnsHttpStatusOk_returnsFlowComponentModelEntity() throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
         final FlowComponent flowComponent = new FlowComponentBuilder().setId(ID).build();
         when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenReturn(flowComponent);
 
@@ -779,8 +792,8 @@ public class FlowStoreProxyImplTest {
 
     private void getFlowComponent_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
         final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-        final JavaScriptProjectFetcherImpl javaScriptProjectFetcher = mock(JavaScriptProjectFetcherImpl.class);
-        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptProjectFetcher);
+        final JavaScriptSubversionProject javaScriptSubversionProject = mock(JavaScriptSubversionProject.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector, javaScriptSubversionProject);
         when(flowStoreServiceConnector.getFlowComponent(eq(ID))).thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
 
         try {
@@ -2375,10 +2388,10 @@ public class FlowStoreProxyImplTest {
 
     // Private methods
 
-    private JavaScriptProjectFetcher.fetchRequiredJavaScriptResult getDefaultJavaScripts() {
+    private JavaScriptProject getDefaultJavaScripts() {
         List<JavaScript> javaScripts = new ArrayList<>(2);
         javaScripts.add(new JavaScript("javascript1", "javaScriptName1"));
         javaScripts.add(new JavaScript("javascript2", "javaScriptName2"));
-        return new JavaScriptProjectFetcher.fetchRequiredJavaScriptResult(javaScripts, null);
+        return new JavaScriptProject(javaScripts, null);
     }
 }

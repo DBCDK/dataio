@@ -19,25 +19,25 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.server;
+package dk.dbc.dataio.commons.javascript;
 
-import dk.dbc.dataio.commons.javascript.JavascriptUtil;
-import dk.dbc.dataio.commons.javascript.SpecializedFileSchemeHandler;
 import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherError;
-import dk.dbc.dataio.gui.client.exceptions.JavaScriptProjectFetcherException;
-import dk.dbc.dataio.gui.client.proxies.JavaScriptProjectFetcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -49,20 +49,20 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
+public class JavaScriptSubversionProject {
     /** Path delimiter for project URLs
      */
     public static final String URL_DELIMITER = "/";
 
-    static final String TRUNK_PATH = "trunk";
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaScriptSubversionProject.class);
     private static final String JAVASCRIPT_FILENAME_EXTENSION = ".js";
     private static final String JAVASCRIPT_USE_MODULE_EXTENSION = ".use.js";
-    private static final Logger log = LoggerFactory.getLogger(JavaScriptProjectFetcherImpl.class);
     private static final Charset CHARSET = StandardCharsets.UTF_8;
+
+    static final String TRUNK_PATH = "trunk";
 
     private final String subversionScmEndpoint;
     private final List<String> dependencies;
@@ -75,27 +75,29 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
      * @throws NullPointerException if given null-valued subversionScmEndpoint argument
      * @throws IllegalArgumentException if given empty-valued subversionScmEndpoint argument
      */
-    public JavaScriptProjectFetcherImpl(final String subversionScmEndpoint)
+    public JavaScriptSubversionProject(final String subversionScmEndpoint)
             throws NullPointerException, IllegalArgumentException {
         this.subversionScmEndpoint = removeTrailingDelimiter(InvariantUtil.checkNotNullNotEmptyOrThrow(subversionScmEndpoint, "subversionScmEndpoint"));
-        this.dependencies = new ArrayList<String>(Arrays.asList("jscommon"));
-        log.info("JavaScriptProjectFetcher: Using SCM endpoint {}", subversionScmEndpoint);
+        this.dependencies = new ArrayList<>(Collections.singletonList("jscommon"));
+        LOGGER.info("JavaScriptSubversionProject(): Using SCM endpoint {}", subversionScmEndpoint);
     }
 
     /**
-     * {@inheritDoc}
+     * Fetches information from source control management system for
+     * all committed revisions for project identified by given name
+     * @param projectName project name
+     * @return list of revision information in descending revision order
      * @throws NullPointerException if given null-valued projectName
      * @throws IllegalArgumentException if given empty-valued projectName
-     * @throws JavaScriptProjectFetcherException with error code:
+     * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if given project name can not be found in the SCM system.
      *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      */
-    @Override
     public List<RevisionInfo> fetchRevisions(String projectName)
-            throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
-        log.trace("JavaScriptProjectFetcher: fetchRevisions(\"{}\");", projectName);
+            throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
+        LOGGER.trace("fetchRevisions(\"{}\");", projectName);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         final StopWatch stopWatch = new StopWatch();
         final String projectUrl = buildProjectUrl(projectName);
@@ -104,35 +106,39 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         try {
             revisions = SvnConnector.listAvailableRevisions(projectUrl);
         } catch (SVNException e) {
-            log.error(errorMessage, projectName, e);
-            throw new JavaScriptProjectFetcherException(interpretSvnException(e), e);
+            LOGGER.error(errorMessage, projectName, e);
+            throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            log.error(errorMessage, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+            LOGGER.error(errorMessage, projectName, e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } finally {
-            log.debug("JavaScriptProjectFetcher: fetchRevisions took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("fetchRevisions() took {} milliseconds", stopWatch.getElapsedTime());
         }
         return revisions;
     }
 
     /**
-     * {@inheritDoc}
+     * Fetches paths of all files with a .js extension contained in specified
+     * revision of project identified by given name
+     * @param projectUrl project URL
+     * @param revision project revision
+     * @return list of file names
      * @throws NullPointerException if given null-valued projectName
      * @throws IllegalArgumentException if given empty-valued projectName
-     * @throws JavaScriptProjectFetcherException with error code:
+     * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if given project name can not be found in the SCM system.
      *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      */
-    @Override
-    public List<String> fetchJavaScriptFileNames(String projectName, long revision) throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
-        log.trace("JavaScriptProjectFetcher: fetchJavaScriptFileNames(\"{}\", {});", projectName, revision);
+    public List<String> fetchJavaScriptFileNames(String projectName, long revision)
+            throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
+        LOGGER.trace("fetchJavaScriptFileNames(\"{}\", {});", projectName, revision);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         final StopWatch stopWatch = new StopWatch();
         final String projectUrl = buildProjectUrl(projectName);
         final String errorMessage = "Unable to retrieve javaScript file names from revision {} of project '{}'";
-        final List<String> fileNames = new ArrayList<String>();
+        final List<String> fileNames = new ArrayList<>();
         try {
             for (String path : SvnConnector.listAvailablePaths(projectUrl, revision)) {
                 if (path.endsWith(JAVASCRIPT_FILENAME_EXTENSION)
@@ -142,22 +148,27 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             }
             Collections.sort(fileNames);
         } catch (SVNException e) {
-            log.error(errorMessage, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(interpretSvnException(e), e);
+            LOGGER.error(errorMessage, revision, projectName, e);
+            throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            log.error(errorMessage, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+            LOGGER.error(errorMessage, revision, projectName, e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } finally {
-            log.debug("JavaScriptProjectFetcher: fetchJavaScriptFileNames took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("fetchJavaScriptFileNames() took {} milliseconds", stopWatch.getElapsedTime());
         }
         return fileNames;
     }
 
     /**
-     * {@inheritDoc}
+     * Fetches names of all potential invocation methods contained in specified
+     * javaScript file in given revision of project identified by given name
+     * @param projectUrl project URL
+     * @param revision project revision
+     * @param javaScriptFileName name of script file
+     * @return list of method names in alphabetical order
      * @throws NullPointerException if given null-valued projectName or javaScriptFileName
      * @throws IllegalArgumentException if given empty-valued projectName or javaScriptFileName
-     * @throws JavaScriptProjectFetcherException with error code:
+     * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
      *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
@@ -165,10 +176,9 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
      *          JAVASCRIPT_REFERENCE_ERROR - on failure to evaluate JavaScript with fake use functionality.
      *          JAVASCRIPT_EVAL_ERROR - on failure to evaluate JavaScript.
      */
-    @Override
     public List<String> fetchJavaScriptInvocationMethods(String projectName, long revision, String javaScriptFileName)
-            throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
-        log.trace("JavaScriptProjectFetcher: fetchJavaScriptInvocationMethods(\"{}\", {}, \"{}\");", projectName, revision, javaScriptFileName);
+            throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
+        LOGGER.trace("fetchJavaScriptInvocationMethods(\"{}\", {}, \"{}\");", projectName, revision, javaScriptFileName);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         final StopWatch stopWatch = new StopWatch();
@@ -183,36 +193,41 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
             SvnConnector.export(fileUrl, revision, exportFolder);
             methodNames = getJavaScriptFunctionsSortedByPathNameFromFile(exportFolder, trimmedJavaScriptFileName);
         } catch (SVNException e) {
-            log.error(errorMessage, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(interpretSvnException(e), e);
+            LOGGER.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            log.error(errorMessage, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+            LOGGER.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } catch (Exception e) {
-            log.error(errorMessage, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_EVAL_ERROR, e);
+            LOGGER.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.JAVASCRIPT_EVAL_ERROR, e);
         }  finally {
             deleteFolder(exportFolder);
-            log.debug("JavaScriptProjectFetcher: fetchJavaScriptInvocationMethods took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("fetchJavaScriptInvocationMethods() took {} milliseconds", stopWatch.getElapsedTime());
         }
         return methodNames;
     }
 
     /**
-     * {@inheritDoc}
+     * Fetches script content of specified javaScript file (and any of its dependencies)
+     * in given revision of project identified by name
+     * @param projectUrl project URL
+     * @param revision project revision
+     * @param javaScriptFileName name of script file
+     * @param javaScriptFunction name of invocation function in script file
+     * @return {@link JavaScriptProject} instance
      * @throws NullPointerException if given null-valued projectName, javaScriptFileName or javaScriptFunction
      * @throws IllegalArgumentException if given empty-valued projectName, javaScriptFileName or javaScriptFunction
-     * @throws JavaScriptProjectFetcherException with error code:
+     * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
      *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      *          JAVASCRIPT_READ_ERROR - on failure to read JavaScript exported from the SCM system.
      */
-    @Override
-    public fetchRequiredJavaScriptResult fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction)
-            throws NullPointerException, IllegalArgumentException, JavaScriptProjectFetcherException {
-        log.trace("JavaScriptProjectFetcher: fetchRequiredJavaScript(\"{}\", {}, \"{}\", \"{}\");", projectName, revision, javaScriptFileName, javaScriptFunction);
+    public JavaScriptProject fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction)
+            throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
+        LOGGER.trace("fetchRequiredJavaScript(\"{}\", {}, \"{}\", \"{}\");", projectName, revision, javaScriptFileName, javaScriptFunction);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFunction, "javaScriptFunction");
@@ -245,35 +260,39 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                 requireCache = StringUtil.base64encode(result.requireCache, CHARSET);
             }
         } catch (SVNException e) {
-            log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(interpretSvnException(e), e);
+            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } catch (Exception e) {
-            log.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.JAVASCRIPT_READ_ERROR, e);
+            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.JAVASCRIPT_READ_ERROR, e);
         } finally {
             deleteFolder(exportFolder);
-            log.debug("JavaScriptProjectFetcher: fetchRequiredJavaScript took {} milliseconds", stopWatch.getElapsedTime());
+            LOGGER.debug("fetchRequiredJavaScript() took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return new fetchRequiredJavaScriptResult(javaScripts, requireCache );
+        return new JavaScriptProject(javaScripts, requireCache);
     }
 
-    private String buildProjectUrl(final String projectName) throws JavaScriptProjectFetcherException {
+    static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
+        return new InputStreamReader(new FileInputStream(file.toFile()), StandardCharsets.UTF_8);
+    }
+
+    private String buildProjectUrl(final String projectName) throws JavaScriptProjectException {
         // first verify legal project name
         if (projectName.contains(URL_DELIMITER)) {
             final String message = String.format("Project name contains path elements: %s", projectName);
-            log.error(message);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_ILLEGAL_PROJECT_NAME, message);
+            LOGGER.error(message);
+            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_ILLEGAL_PROJECT_NAME, message);
         }
 
         URI projectUrl;
         try {
             projectUrl = new URI(join(URL_DELIMITER, subversionScmEndpoint, projectName, TRUNK_PATH));
         } catch (URISyntaxException e) {
-            log.error("Unable to build project URL", e);
-            throw new JavaScriptProjectFetcherException(JavaScriptProjectFetcherError.SCM_INVALID_URL, e);
+            LOGGER.error("Unable to build project URL", e);
+            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         }
         return removeTrailingDelimiter(projectUrl.toString());
     }
@@ -294,9 +313,9 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         Path folder = null;
         try {
             folder = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), prefix);
-            log.trace("Created temporary folder {}", folder);
+            LOGGER.trace("Created temporary folder {}", folder);
         } catch (IOException e) {
-            log.error("Error creating temporary folder", e);
+            LOGGER.error("Error creating temporary folder", e);
         }
         return folder;
     }
@@ -307,20 +326,20 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                 Files.walkFileTree(folder, new FileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        log.trace("Deleting {}", file);
+                        LOGGER.trace("Deleting {}", file);
                         Files.delete(file);
                         return FileVisitResult.CONTINUE;
                     }
 
                     @Override
                     public FileVisitResult visitFileFailed(Path file, IOException e) throws IOException {
-                        log.trace("Deletion of file {} failed", file, e);
+                        LOGGER.trace("Deletion of file {} failed", file, e);
                         return FileVisitResult.CONTINUE;
                     }
 
                     @Override
                     public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
-                        log.trace("Deleting {}", dir);
+                        LOGGER.trace("Deleting {}", dir);
                         Files.delete(dir);
                         return FileVisitResult.CONTINUE;
                     }
@@ -331,7 +350,7 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
                     }
                 });
             } catch (IOException e) {
-                log.error("Error deleting folder {}", folder);
+                LOGGER.error("Error deleting folder {}", folder);
             }
         }
     }
@@ -348,23 +367,23 @@ public class JavaScriptProjectFetcherImpl implements JavaScriptProjectFetcher {
         try {
             final List<String> functionNames = new ArrayList<String>(
                     JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(
-                            FileUtil.getReaderForFile(exportedFile), javaScriptFileName));
+                            getReaderForFile(exportedFile), javaScriptFileName));
             Collections.sort(functionNames);
             return functionNames;
         } catch (Throwable e) {
-            log.error("Caught unexpected exception trying to read javaScript file '{}'", exportedFile, e);
+            LOGGER.error("Caught unexpected exception trying to read javaScript file '{}'", exportedFile, e);
         }
         return Collections.emptyList();
     }
 
     @SuppressWarnings("PMD.CollapsibleIfStatements") // The code is more readable without collapsed if-statements
-    private static JavaScriptProjectFetcherError interpretSvnException(SVNException e) {
+    private static JavaScriptProjectError interpretSvnException(SVNException e) {
         final String message = e.getMessage();
         if (message != null) {
             if (message.contains("E160013") || message.contains("E180001") || message.contains("404 Not Found")) {
-                return JavaScriptProjectFetcherError.SCM_RESOURCE_NOT_FOUND;
+                return JavaScriptProjectError.SCM_RESOURCE_NOT_FOUND;
             }
         }
-        return JavaScriptProjectFetcherError.SCM_SERVER_ERROR;
+        return JavaScriptProjectError.SCM_SERVER_ERROR;
     }
 }

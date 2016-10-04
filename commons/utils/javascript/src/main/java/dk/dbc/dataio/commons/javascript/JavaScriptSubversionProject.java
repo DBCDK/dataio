@@ -120,7 +120,7 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches paths of all files with a .js extension contained in specified
      * revision of project identified by given name
-     * @param projectUrl project URL
+     * @param projectName project name
      * @param revision project revision
      * @return list of file names
      * @throws NullPointerException if given null-valued projectName
@@ -162,7 +162,7 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches names of all potential invocation methods contained in specified
      * javaScript file in given revision of project identified by given name
-     * @param projectUrl project URL
+     * @param projectName project name
      * @param revision project revision
      * @param javaScriptFileName name of script file
      * @return list of method names in alphabetical order
@@ -211,7 +211,7 @@ public class JavaScriptSubversionProject {
     /**
      * Fetches script content of specified javaScript file (and any of its dependencies)
      * in given revision of project identified by name
-     * @param projectUrl project URL
+     * @param projectName project name
      * @param revision project revision
      * @param javaScriptFileName name of script file
      * @param javaScriptFunction name of invocation function in script file

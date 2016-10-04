@@ -102,7 +102,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws SinkException, InvalidMessageException {
         retrieveVersionSpecificConfigValue(consumedMessage);
         final Chunk processedChunk = unmarshallPayload(consumedMessage);
-        final EsWorkload workload = getEsWorkloadFromChunkResult(processedChunk);
+        final EsWorkload workload = EsWorkload.create(processedChunk, sinkConfig, addiRecordPreprocessor);
         final Chunk deliveredChunk = workload.getDeliveredChunk();
 
         try {
@@ -120,7 +120,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 }
             } else {
                 final int targetReference = esConnector.insertEsTaskPackage(workload, sinkConfig);
-                esInFlightAdmin.addEsInFlight( buildEsInFlight(deliveredChunk, targetReference) );
+                esInFlightAdmin.addEsInFlight(buildEsInFlight(deliveredChunk, targetReference) );
                 LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}", targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             }
         } catch (Exception e) {
@@ -128,72 +128,7 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         }
     }
 
-    /**
-     * Generates ES workload based on given chunk content.
-     * <br/> All input ChunkItems with status SUCCESS containing valid Addi records are converted into ChunkItem placeholders with status SUCCESS in Delivered Chunk
-     * <br/> All input ChunkItems with status SUCCESS containing invalid Addi records are converted into ChunkItems with status FAILURE in Delivered Chunk
-     * <br/> All input ChunkItems with status IGNORE are converted into ChunkItems with status IGNORE in Delivered Chunk
-     * <br/> All input ChunkItems with status FAILURE are converted into ChunkItems with status IGNORE in Delivered Chunk
-     * @param processedChunk processor result
-     * @return ES workload
-     * @throws SinkException on unhandled ChunkItem status
-     */
-    EsWorkload getEsWorkloadFromChunkResult(Chunk processedChunk) throws SinkException {
-        final int numberOfItems = processedChunk.size();
-        final List<AddiRecord> addiRecords = new ArrayList<>(numberOfItems);
-        final Chunk incompleteDeliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
-        incompleteDeliveredChunk.setEncoding(processedChunk.getEncoding());
-        final StopWatch stopWatch = new StopWatch();
-
-        try {
-            for (ChunkItem chunkItem : processedChunk) {
-                final String trackingId = chunkItem.getTrackingId();
-                DBCTrackedLogContext.setTrackingId(trackingId);
-                switch (chunkItem.getStatus()) {
-                    case SUCCESS:
-                        try {
-                            final List<AddiRecord> addiRecordsFromItem = getAddiRecords(chunkItem);
-                            addiRecords.addAll(addiRecordsFromItem);
-                            // We use the data property of the ChunkItem placeholder kept in the ES
-                            // in-flight database to store the number of Addi records from the
-                            // original record - this information is used by the EsCleanupBean
-                            // when creating the resulting sink chunk.
-                            incompleteDeliveredChunk.insertItem(ObjectFactory.buildSuccessfulChunkItem(
-                                    chunkItem.getId(), Integer.toString(addiRecordsFromItem.size()), ChunkItem.Type.UNKNOWN, trackingId));
-                        } catch (RuntimeException | IOException e) {
-                            ChunkItem processedItem = ObjectFactory.buildFailedChunkItem(chunkItem.getId(),
-                                    "Exception caught while retrieving addi records, t", ChunkItem.Type.STRING, trackingId);
-                            processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught while retrieving addi records", e));
-                            incompleteDeliveredChunk.insertItem(processedItem);
-                        } finally {
-                            LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
-                        }
-                        break;
-                    case FAILURE:
-                        incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Failed by processor", trackingId));
-                        break;
-                    case IGNORE:
-                        incompleteDeliveredChunk.insertItem(ObjectFactory.buildIgnoredChunkItem(chunkItem.getId(), "Ignored by processor", trackingId));
-                        break;
-                    default:
-                        throw new SinkException("Unknown chunk item state: " + chunkItem.getStatus().name());
-                }
-            }
-        } finally {
-            DBCTrackedLogContext.remove();
-        }
-        return new EsWorkload(incompleteDeliveredChunk, addiRecords, sinkConfig.getUserId(), TaskSpecificUpdateEntity.UpdateAction.valueOf(sinkConfig.getEsAction()));
-    }
-
-    private List<AddiRecord> getAddiRecords(ChunkItem chunkItem) throws IllegalArgumentException, IOException {
-        final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
-        final List<AddiRecord> preprocessedAddiRecords = new ArrayList<>(addiRecords.size());
-        preprocessedAddiRecords.addAll(addiRecords.stream().map(addiRecord -> addiRecordPreprocessor.execute(addiRecord, chunkItem.getTrackingId())).collect(Collectors.toList()));
-        return preprocessedAddiRecords;
-    }
-
     private EsInFlight buildEsInFlight(Chunk deliveredChunk, int targetReference) throws JSONBException {
-
         final EsInFlight esInFlight = new EsInFlight();
         esInFlight.setSinkId(sinkId);
         esInFlight.setDatabaseName(sinkConfig.getDatabaseName());
@@ -201,7 +136,6 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
         esInFlight.setChunkId(deliveredChunk.getChunkId());
         esInFlight.setTargetReference(targetReference);
         esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(deliveredChunk));
-
         return esInFlight;
     }
 

@@ -58,6 +58,9 @@ public class EsInFlight {
     @Column(nullable = false)
     private String databaseName;
 
+    @Column(nullable = false)
+    private int redelivered;
+
     public Long getSinkId() {
         return sinkId;
     }
@@ -104,5 +107,13 @@ public class EsInFlight {
 
     public void setIncompleteDeliveredChunk(String incompleteDeliveredChunk) {
         this.chunk = incompleteDeliveredChunk;
+    }
+
+    public int getRedelivered() {
+        return redelivered;
+    }
+
+    public void setRedelivered(int redelivered) {
+        this.redelivered = redelivered;
     }
 }

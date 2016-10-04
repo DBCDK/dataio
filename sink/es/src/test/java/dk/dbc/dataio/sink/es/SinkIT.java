@@ -78,7 +78,7 @@ public abstract class SinkIT {
     protected JobStoreServiceConnectorBean jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
     protected MockedJobStoreServiceConnector jobStoreServiceConnector;
     protected FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
-    protected FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+    protected FlowStoreServiceConnector flowStoreServiceConnector;
 
     static {
         try {
@@ -137,6 +137,7 @@ public abstract class SinkIT {
 
     @Before
     public void mockFlowStoreServiceConnector() {
+        flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
         when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
     }
 
@@ -177,6 +178,7 @@ public abstract class SinkIT {
         esCleanupBean.esConnector = getEsConnectorBean();
         esCleanupBean.esInFlightAdmin = getEsInFlightBean();
         esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        esCleanupBean.flowStoreServiceConnectorbean = flowStoreServiceConnectorBean;
         return esCleanupBean;
     }
 

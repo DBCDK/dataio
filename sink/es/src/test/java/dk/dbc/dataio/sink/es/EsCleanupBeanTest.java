@@ -21,13 +21,23 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
@@ -52,6 +62,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyShort;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -66,6 +78,9 @@ public class EsCleanupBeanTest {
     private EsConnectorBean esConnector;
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     private JobStoreServiceConnector jobStoreServiceConnector;
+    private FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
+    private FlowStoreServiceConnector flowStoreServiceConnector;
+    private AddiRecordPreprocessor addiRecordPreprocessor;
     private EsInFlight esInFlight41_1;
     private EsInFlight esInFlight42_1;
     private EsInFlight esInFlight42_2;
@@ -77,6 +92,9 @@ public class EsCleanupBeanTest {
     private List<EsInFlight> emptyEsInFlightList = Collections.emptyList();
     private final static int SINK_ID = 333;
     private EntityManager entityManager = mock(EntityManager.class);
+    private final SinkContent sinkContent = new SinkContentBuilder().setSinkConfig(new EsSinkConfig().withUserId(42).withDatabaseName("dbname")).build();
+    private final Sink sink = new SinkBuilder().setId(SINK_ID).setContent(sinkContent).build();
+    private final String simpleAddiString = "1\na\n1\nb\n";
 
     @Before
     public void setup() throws JSONBException {
@@ -108,6 +126,7 @@ public class EsCleanupBeanTest {
         esInFlight43_1.setChunkId(1L);
         esInFlight43_1.setTargetReference(125);
         esInFlight43_1.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
+        esInFlight43_1.setRedelivered(10);
 
         taskStatus_122 = new TaskStatus(TaskPackageEntity.TaskStatus.ABORTED, 122);
         taskStatus_123 = new TaskStatus(TaskPackageEntity.TaskStatus.COMPLETE, 123);
@@ -122,8 +141,13 @@ public class EsCleanupBeanTest {
         esConnector = mock(EsConnectorBean.class);
         jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
+        flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
+        flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
 
         when(jobStoreServiceConnectorBean.getConnector()).thenReturn(jobStoreServiceConnector);
+        when(flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
+
+        addiRecordPreprocessor = mock(AddiRecordPreprocessor.class);
     }
 
     @Test
@@ -163,14 +187,43 @@ public class EsCleanupBeanTest {
     }
 
     @Test
-    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JSONBException, JobStoreServiceConnectorException {
+    public void cleanup_InFlightNoTargetReferenceFound_chunkIsRedelivered() throws SinkException, JSONBException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight41_1));
+        when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
+                .thenReturn(Collections.emptyMap());
+
+        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class)))
+                .thenReturn(new ChunkItem().withId(0).withStatus(ChunkItem.Status.SUCCESS).withData(simpleAddiString.getBytes()));
+
+        when(flowStoreServiceConnector.getSink(anyInt())).thenReturn(sink);
+
+        EsCleanupBean esCleanupBean = getEsCleanupBean();
+        when(esCleanupBean.addiRecordPreprocessor.execute(any(AddiRecord.class), anyString())).thenReturn(new AddiRecord("meta".getBytes(), "content".getBytes()));
+        esCleanupBean.cleanup();
+
+        verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight41_1));
+        verify(esInFlightAdmin).addEsInFlight(any(EsInFlight.class));
+        verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
+        verify(jobStoreServiceConnector, times(0)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
+    }
+
+    @Test
+    public void cleanup_InFlightNoTargetReferenceFound_lostChunkIsCleanedUp() throws SinkException, JSONBException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
         when(esInFlightAdmin.listEsInFlight(SINK_ID)).thenReturn(Collections.singletonList(esInFlight43_1));
         when(esConnector.getCompletionStatusForESTaskpackages(anyListOf(Integer.class)))
                 .thenReturn(Collections.emptyMap());
 
-        getEsCleanupBean().cleanup();
+        when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class)))
+                .thenReturn(new ChunkItem().withId(0).withStatus(ChunkItem.Status.SUCCESS).withData(simpleAddiString.getBytes()));
+
+        when(flowStoreServiceConnector.getSink(anyInt())).thenReturn(sink);
+
+        EsCleanupBean esCleanupBean = getEsCleanupBean();
+        when(esCleanupBean.addiRecordPreprocessor.execute(any(AddiRecord.class), anyString())).thenReturn(new AddiRecord("meta".getBytes(), "content".getBytes()));
+        esCleanupBean.cleanup();
 
         verify(esInFlightAdmin).removeEsInFlight(eq(esInFlight43_1));
+        verify(esInFlightAdmin, times(0)).addEsInFlight(any(EsInFlight.class));
         verify(esConnector, times(0)).deleteESTaskpackages(anyListOf(Integer.class));
         verify(jobStoreServiceConnector, times(1)).addChunkIgnoreDuplicates(any(Chunk.class), anyLong(), anyLong());
     }
@@ -227,8 +280,16 @@ public class EsCleanupBeanTest {
         final EsCleanupBean esCleanupBean = new EsCleanupBean();
         esCleanupBean.esInFlightAdmin = esInFlightAdmin;
         esCleanupBean.esConnector = esConnector;
+
         esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
+        esCleanupBean.jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
+
+        esCleanupBean.flowStoreServiceConnectorbean = flowStoreServiceConnectorBean;
+        esCleanupBean.flowStoreServiceConnector = flowStoreServiceConnectorBean.getConnector();
+
         esCleanupBean.sinkId = SINK_ID;
+        esCleanupBean.jsonbContext = new JSONBContext();
+        esCleanupBean.addiRecordPreprocessor = addiRecordPreprocessor;
         return esCleanupBean;
     }
 }

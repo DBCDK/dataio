@@ -21,16 +21,20 @@
 
 package dk.dbc.dataio.sink.es;
 
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.types.EsSinkConfig;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sink.es.ESTaskPackageUtil.TaskStatus;
@@ -58,6 +62,8 @@ import java.util.stream.Collectors;
 @Singleton
 public class EsCleanupBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsCleanupBean.class);
+    private final static int MAX_REDELIVERING_ATTEMPTS = 10;
+    AddiRecordPreprocessor addiRecordPreprocessor;
 
     @EJB
     EsConnectorBean esConnector;
@@ -68,11 +74,21 @@ public class EsCleanupBean {
     @EJB
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
-    private JSONBContext jsonbContext = new JSONBContext();
+    @EJB
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorbean;
+
+    // Packaged scoped due to unit test
+    JSONBContext jsonbContext;
+    JobStoreServiceConnector jobStoreServiceConnector;
+    FlowStoreServiceConnector flowStoreServiceConnector;
     long sinkId;
 
     @PostConstruct
     public void startup() {
+        jsonbContext = new JSONBContext();
+        addiRecordPreprocessor = new AddiRecordPreprocessor();
+        jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
+        flowStoreServiceConnector = flowStoreServiceConnectorbean.getConnector();
         sinkId = Long.parseLong(System.getenv().get(Constants.SINK_ID_ENV_VARIABLE));
         LOGGER.info("Startup of EsScheduledCleanupBean!");
         LOGGER.info("The following targetreferences are inFlight in the sink at startup: {}",
@@ -166,10 +182,20 @@ public class EsCleanupBean {
             LOGGER.info("Number of [taskstatus/esInFlight] : [{}/{}]", taskStatusMap.size(), esInFlightMap.size());
 
             for (Map.Entry<Integer, EsInFlight> esInFlightEntry : esInFlightMap.entrySet()) {
+                EsInFlight currentEsInFlight = esInFlightEntry.getValue();
+
                 if (!taskStatusMap.containsKey(esInFlightEntry.getKey())) {
-                    // The entry did not have a target reference -> create lost chunk and add it to the list
-                    lostChunks.add(createLostChunk(esInFlightEntry.getValue()));
-                    lostEsInFlight.add(esInFlightEntry.getValue());
+                    if (currentEsInFlight.getRedelivered() == MAX_REDELIVERING_ATTEMPTS) {
+                        lostChunks.add(createLostChunk(esInFlightEntry.getValue()));
+                        lostEsInFlight.add(currentEsInFlight);
+                        LOGGER.info("{} unsuccessful redelivering attempts. Lost chunk created for chunk {} in job {}",
+                                MAX_REDELIVERING_ATTEMPTS, currentEsInFlight.getChunkId(), currentEsInFlight.getJobId());
+                    } else {
+                        LOGGER.info("Preparing to redeliver due to missing task package for chunk {} in job {}",
+                                currentEsInFlight.getChunkId(), currentEsInFlight.getJobId());
+
+                        redeliver(currentEsInFlight);
+                    }
                 }
             }
             if (!lostEsInFlight.isEmpty()) {
@@ -179,6 +205,41 @@ public class EsCleanupBean {
             return lostChunks;
         } finally {
             LOGGER.info("Operation took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Redelivers processed chunk referenced by the EsInFlight given as input
+     * @param currentEsInFlight the EsInFlight needed to create target reference and processed chunk
+     * @throws SinkException on any failure
+     */
+    private void redeliver(EsInFlight currentEsInFlight) throws SinkException {
+        try {
+            final int redelivered = currentEsInFlight.getRedelivered() + 1;
+            final int jobId = currentEsInFlight.getJobId().intValue();
+            final int chunkId = currentEsInFlight.getChunkId().intValue();
+            final short numberOfItems = (short)(jsonbContext.unmarshall(currentEsInFlight.getIncompleteDeliveredChunk(), Chunk.class).getItems().size());
+
+            // Rebuild processed chunk
+            final Chunk processedChunk = new Chunk(currentEsInFlight.getJobId(), currentEsInFlight.getChunkId(), Chunk.Type.PROCESSED);
+
+            for (int i = 0; i < numberOfItems; i ++) {
+                processedChunk.insertItem(jobStoreServiceConnector.getChunkItem(jobId, chunkId, numberOfItems, State.Phase.PROCESSING));
+            }
+
+            final EsSinkConfig sinkConfig = (EsSinkConfig) flowStoreServiceConnectorbean.getConnector().getSink(sinkId).getContent().getSinkConfig();
+            final EsWorkload workload = EsWorkload.create(processedChunk, sinkConfig, addiRecordPreprocessor);
+
+            // Insert esTaskPackage
+            final int targetReference = esConnector.insertEsTaskPackage(workload, sinkConfig);
+
+            // Remove existing and add new esInFlight
+            esInFlightAdmin.removeEsInFlight(currentEsInFlight);
+            esInFlightAdmin.addEsInFlight(buildEsInFlight(processedChunk, targetReference, sinkConfig, redelivered));
+
+            LOGGER.info("{}. redelivering completed. Created ES task package with target reference {}", redelivered, targetReference);
+        } catch (Exception e) {
+            throw new SinkException("Exception occurred while redelivering chunk");
         }
     }
 
@@ -240,6 +301,20 @@ public class EsCleanupBean {
         }
         return deliveredChunks;
 
+    }
+
+    private EsInFlight buildEsInFlight(Chunk chunk, int targetReference, EsSinkConfig sinkConfig, int redelivered) throws JSONBException {
+
+        final EsInFlight esInFlight = new EsInFlight();
+        esInFlight.setSinkId(sinkId);
+        esInFlight.setDatabaseName(sinkConfig.getDatabaseName());
+        esInFlight.setJobId(chunk.getJobId());
+        esInFlight.setChunkId(chunk.getChunkId());
+        esInFlight.setTargetReference(targetReference);
+        esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(chunk));
+        esInFlight.setRedelivered(redelivered);
+
+        return esInFlight;
     }
 
     private List<Chunk> createDeliveredChunks(List<EsInFlight> finishedEsInFlight) throws SinkException {

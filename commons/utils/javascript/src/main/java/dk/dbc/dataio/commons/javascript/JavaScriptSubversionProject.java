@@ -30,6 +30,7 @@ import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.io.SVNRepository;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -84,32 +85,31 @@ public class JavaScriptSubversionProject {
 
     /**
      * Fetches information from source control management system for
-     * all committed revisions for project identified by given name
-     * @param projectName project name
+     * all committed revisions for given project path
+     * @param projectPath project path
      * @return list of revision information in descending revision order
      * @throws NullPointerException if given null-valued projectName
      * @throws IllegalArgumentException if given empty-valued projectName
      * @throws JavaScriptProjectException with error code:
-     *          SCM_RESOURCE_NOT_FOUND - if given project name can not be found in the SCM system.
-     *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
+     *          SCM_RESOURCE_NOT_FOUND - if given project path can not be found in the SCM system.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      */
-    public List<RevisionInfo> fetchRevisions(String projectName)
+    public List<RevisionInfo> fetchRevisions(String projectPath)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
-        LOGGER.trace("fetchRevisions(\"{}\");", projectName);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
+        LOGGER.trace("fetchRevisions(\"{}\");", projectPath);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(projectPath, "projectPath");
         final StopWatch stopWatch = new StopWatch();
-        final String projectUrl = buildProjectUrl(projectName);
+        final String projectUrl = buildProjectUrl(projectPath);
         final String errorMessage = "Unable to retrieve revisions from project '{}'";
         List<RevisionInfo> revisions;
         try {
             revisions = SvnConnector.listAvailableRevisions(projectUrl);
         } catch (SVNException e) {
-            LOGGER.error(errorMessage, projectName, e);
+            LOGGER.error(errorMessage, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            LOGGER.error(errorMessage, projectName, e);
+            LOGGER.error(errorMessage, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } finally {
             LOGGER.debug("fetchRevisions() took {} milliseconds", stopWatch.getElapsedTime());
@@ -119,24 +119,23 @@ public class JavaScriptSubversionProject {
 
     /**
      * Fetches paths of all files with a .js extension contained in specified
-     * revision of project identified by given name
-     * @param projectName project name
+     * revision of given project path
+     * @param projectPath project path
      * @param revision project revision
      * @return list of file names
-     * @throws NullPointerException if given null-valued projectName
-     * @throws IllegalArgumentException if given empty-valued projectName
+     * @throws NullPointerException if given null-valued projectPath
+     * @throws IllegalArgumentException if given empty-valued projectPath
      * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if given project name can not be found in the SCM system.
-     *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      */
-    public List<String> fetchJavaScriptFileNames(String projectName, long revision)
+    public List<String> fetchJavaScriptFileNames(String projectPath, long revision)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
-        LOGGER.trace("fetchJavaScriptFileNames(\"{}\", {});", projectName, revision);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
+        LOGGER.trace("fetchJavaScriptFileNames(\"{}\", {});", projectPath, revision);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(projectPath, "projectPath");
         final StopWatch stopWatch = new StopWatch();
-        final String projectUrl = buildProjectUrl(projectName);
+        final String projectUrl = buildProjectUrl(projectPath);
         final String errorMessage = "Unable to retrieve javaScript file names from revision {} of project '{}'";
         final List<String> fileNames = new ArrayList<>();
         try {
@@ -148,10 +147,10 @@ public class JavaScriptSubversionProject {
             }
             Collections.sort(fileNames);
         } catch (SVNException e) {
-            LOGGER.error(errorMessage, revision, projectName, e);
+            LOGGER.error(errorMessage, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            LOGGER.error(errorMessage, revision, projectName, e);
+            LOGGER.error(errorMessage, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } finally {
             LOGGER.debug("fetchJavaScriptFileNames() took {} milliseconds", stopWatch.getElapsedTime());
@@ -161,29 +160,28 @@ public class JavaScriptSubversionProject {
 
     /**
      * Fetches names of all potential invocation methods contained in specified
-     * javaScript file in given revision of project identified by given name
-     * @param projectName project name
+     * javaScript file in given revision of given project path
+     * @param projectPath project path
      * @param revision project revision
      * @param javaScriptFileName name of script file
      * @return list of method names in alphabetical order
-     * @throws NullPointerException if given null-valued projectName or javaScriptFileName
-     * @throws IllegalArgumentException if given empty-valued projectName or javaScriptFileName
+     * @throws NullPointerException if given null-valued projectPath or javaScriptFileName
+     * @throws IllegalArgumentException if given empty-valued projectPath or javaScriptFileName
      * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
-     *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      *          JAVASCRIPT_REFERENCE_ERROR - on failure to evaluate JavaScript with fake use functionality.
      *          JAVASCRIPT_EVAL_ERROR - on failure to evaluate JavaScript.
      */
-    public List<String> fetchJavaScriptInvocationMethods(String projectName, long revision, String javaScriptFileName)
+    public List<String> fetchJavaScriptInvocationMethods(String projectPath, long revision, String javaScriptFileName)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
-        LOGGER.trace("fetchJavaScriptInvocationMethods(\"{}\", {}, \"{}\");", projectName, revision, javaScriptFileName);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
+        LOGGER.trace("fetchJavaScriptInvocationMethods(\"{}\", {}, \"{}\");", projectPath, revision, javaScriptFileName);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(projectPath, "projectPath");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         final StopWatch stopWatch = new StopWatch();
         final String errorMessage = "Unable to retrieve method names from file '{}' in revision {} of project '{}'";
-        final String projectUrl = buildProjectUrl(projectName);
+        final String projectUrl = buildProjectUrl(projectPath);
         final List<String> methodNames;
         Path exportFolder = null;
         try {
@@ -193,13 +191,13 @@ public class JavaScriptSubversionProject {
             SvnConnector.export(fileUrl, revision, exportFolder);
             methodNames = getJavaScriptFunctionsSortedByPathNameFromFile(exportFolder, trimmedJavaScriptFileName);
         } catch (SVNException e) {
-            LOGGER.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            LOGGER.error(errorMessage, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            LOGGER.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            LOGGER.error(errorMessage, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } catch (Exception e) {
-            LOGGER.error(errorMessage, javaScriptFileName, revision, projectName, e);
+            LOGGER.error(errorMessage, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.JAVASCRIPT_EVAL_ERROR, e);
         }  finally {
             deleteFolder(exportFolder);
@@ -210,39 +208,38 @@ public class JavaScriptSubversionProject {
 
     /**
      * Fetches script content of specified javaScript file (and any of its dependencies)
-     * in given revision of project identified by name
-     * @param projectName project name
+     * in given revision of given project path
+     * @param projectPath project path
      * @param revision project revision
      * @param javaScriptFileName name of script file
      * @param javaScriptFunction name of invocation function in script file
      * @return {@link JavaScriptProject} instance
-     * @throws NullPointerException if given null-valued projectName, javaScriptFileName or javaScriptFunction
-     * @throws IllegalArgumentException if given empty-valued projectName, javaScriptFileName or javaScriptFunction
+     * @throws NullPointerException if given null-valued projectPath, javaScriptFileName or javaScriptFunction
+     * @throws IllegalArgumentException if given empty-valued projectPath, javaScriptFileName or javaScriptFunction
      * @throws JavaScriptProjectException with error code:
      *          SCM_RESOURCE_NOT_FOUND - if project resource can not be found in the SCM system.
-     *          SCM_ILLEGAL_PROJECT_NAME - if given project name contains {@code URL_DELIMITER}.
      *          SCM_INVALID_URL - if requested project URL is invalid.
      *          SCM_SERVER_ERROR - on general failure to communicate with the SCM system.
      *          JAVASCRIPT_READ_ERROR - on failure to read JavaScript exported from the SCM system.
      */
-    public JavaScriptProject fetchRequiredJavaScript(String projectName, long revision, String javaScriptFileName, String javaScriptFunction)
+    public JavaScriptProject fetchRequiredJavaScript(String projectPath, long revision, String javaScriptFileName, String javaScriptFunction)
             throws NullPointerException, IllegalArgumentException, JavaScriptProjectException {
-        LOGGER.trace("fetchRequiredJavaScript(\"{}\", {}, \"{}\", \"{}\");", projectName, revision, javaScriptFileName, javaScriptFunction);
-        InvariantUtil.checkNotNullNotEmptyOrThrow(projectName, "projectName");
+        LOGGER.trace("fetchRequiredJavaScript(\"{}\", {}, \"{}\", \"{}\");", projectPath, revision, javaScriptFileName, javaScriptFunction);
+        InvariantUtil.checkNotNullNotEmptyOrThrow(projectPath, "projectPath");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFileName, "javaScriptFileName");
         InvariantUtil.checkNotNullNotEmptyOrThrow(javaScriptFunction, "javaScriptFunction");
         final StopWatch stopWatch = new StopWatch();
         final String errorMessage = "Unable to retrieve required javaScript for function '{}' in script in file '{}' in revision {} of project '{}'";
-        final String projectUrl = buildProjectUrl(projectName);
-        final List<JavaScript> javaScripts = new ArrayList<JavaScript>();
-        String requireCache=null;
+        final String projectUrl = buildProjectUrl(projectPath);
+        final List<JavaScript> javaScripts = new ArrayList<>();
+        String requireCache = null;
         Path exportFolder = null;
         try {
             exportFolder = createTmpFolder(getClass().getName());
-            final Path projectPath = Paths.get(exportFolder.toString(), projectName);
-            SvnConnector.export(projectUrl, revision, projectPath);
+            final Path exportPath = Paths.get(exportFolder.toString(), projectPath);
+            SvnConnector.export(projectUrl, revision, exportPath);
 
-            final Path mainJsPath = Paths.get(projectPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
+            final Path mainJsPath = Paths.get(exportPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
             final String mainJsContent = new String(Files.readAllBytes(mainJsPath), CHARSET);
             final JavaScript mainJs = new JavaScript(StringUtil.base64encode(mainJsContent, CHARSET), "");
             javaScripts.add(mainJs);
@@ -260,13 +257,13 @@ public class JavaScriptSubversionProject {
                 requireCache = StringUtil.base64encode(result.requireCache, CHARSET);
             }
         } catch (SVNException e) {
-            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
         } catch (URISyntaxException e) {
-            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         } catch (Exception e) {
-            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectName, e);
+            LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.JAVASCRIPT_READ_ERROR, e);
         } finally {
             deleteFolder(exportFolder);
@@ -275,22 +272,19 @@ public class JavaScriptSubversionProject {
         return new JavaScriptProject(javaScripts, requireCache);
     }
 
-    static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
+    private static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
         return new InputStreamReader(new FileInputStream(file.toFile()), StandardCharsets.UTF_8);
     }
 
-    private String buildProjectUrl(final String projectName) throws JavaScriptProjectException {
-        // first verify legal project name
-        if (projectName.contains(URL_DELIMITER)) {
-            final String message = String.format("Project name contains path elements: %s", projectName);
-            LOGGER.error(message);
-            throw new JavaScriptProjectException(JavaScriptProjectError.SCM_ILLEGAL_PROJECT_NAME, message);
-        }
-
+    private String buildProjectUrl(final String projectPath) throws JavaScriptProjectException {
         URI projectUrl;
         try {
-            projectUrl = new URI(join(URL_DELIMITER, subversionScmEndpoint, projectName, TRUNK_PATH));
-        } catch (URISyntaxException e) {
+            projectUrl = new URI(join(URL_DELIMITER, subversionScmEndpoint, projectPath));
+            final SVNRepository repository = SvnConnector.getRepository(projectUrl.toString());
+            if (SvnConnector.dirExists(repository, TRUNK_PATH)) {
+                projectUrl = new URI(join(URL_DELIMITER, subversionScmEndpoint, projectPath, TRUNK_PATH));
+            }
+        } catch (URISyntaxException | SVNException e) {
             LOGGER.error("Unable to build project URL", e);
             throw new JavaScriptProjectException(JavaScriptProjectError.SCM_INVALID_URL, e);
         }
@@ -365,7 +359,7 @@ public class JavaScriptSubversionProject {
         final String javaScriptFileName = new File(javaScriptFileNameWithPath).getName();
         final Path exportedFile = Paths.get(exportFolder.toString(), javaScriptFileName);
         try {
-            final List<String> functionNames = new ArrayList<String>(
+            final List<String> functionNames = new ArrayList<>(
                     JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(
                             getReaderForFile(exportedFile), javaScriptFileName));
             Collections.sort(functionNames);

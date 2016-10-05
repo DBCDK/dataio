@@ -34,6 +34,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.tmatesoft.svn.core.SVNErrorCode;
 import org.tmatesoft.svn.core.SVNErrorMessage;
 import org.tmatesoft.svn.core.SVNException;
+import org.tmatesoft.svn.core.io.SVNRepository;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -41,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -53,6 +55,7 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.doNothing;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -73,7 +76,6 @@ public class JavaScriptSubversionProjectTest {
     private static String originalTmpDir;
 
     private final String subversionScmEndpoint = "file:///test/repos";
-    private final String illegalProjectName = "name/with/path/elements";
     private final String projectName = "project";
     private final String javaScriptFileName = String.format("%s%s%sfile.js",
             JavaScriptSubversionProject.URL_DELIMITER,
@@ -83,6 +85,7 @@ public class JavaScriptSubversionProjectTest {
     private final long revision = 1;
     private final URISyntaxException uriSyntaxException = new URISyntaxException("input", "reason");
     private final SVNException svnException = new SVNException(SVNErrorMessage.create(SVNErrorCode.UNKNOWN));
+    private final SVNRepository svnRepository = mock(SVNRepository.class);
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -102,6 +105,10 @@ public class JavaScriptSubversionProjectTest {
     public void setup() throws Exception {
         mockStatic(JavascriptUtil.class);
         mockStatic(SvnConnector.class);
+        when(SvnConnector.dirExists(svnRepository, JavaScriptSubversionProject.TRUNK_PATH))
+                .thenReturn(true);
+        when(SvnConnector.getRepository(anyString()))
+                .thenReturn(svnRepository);
     }
 
     @Test(expected = NullPointerException.class)
@@ -130,17 +137,6 @@ public class JavaScriptSubversionProjectTest {
     public void fetchRevisions_projectNameArgIsEmpty_throws() throws Exception {
         final JavaScriptSubversionProject instance = newInstance();
         instance.fetchRevisions("");
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchRevisions_projectNameArgIsIllegal_throws() throws Exception {
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchRevisions(illegalProjectName);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_ILLEGAL_PROJECT_NAME));
-            throw e;
-        }
     }
 
     @Test(expected = JavaScriptProjectException.class)
@@ -175,13 +171,13 @@ public class JavaScriptSubversionProjectTest {
         final RevisionInfo.ChangedItem item1 = new RevisionInfo.ChangedItem("/path/file1", "D");
         final RevisionInfo.ChangedItem item2 = new RevisionInfo.ChangedItem("/path/file2", "A");
         final RevisionInfo.ChangedItem item3 = new RevisionInfo.ChangedItem("/path/file1", "A");
-        final RevisionInfo rev42 = new RevisionInfo(42L, "bob", now, "message for revision 42", new ArrayList<RevisionInfo.ChangedItem>(Arrays.asList(item1, item2)));
-        final RevisionInfo rev10 = new RevisionInfo(10L, "joe", new Date(now.getTime() - 1000000), "message for revision 10", new ArrayList<RevisionInfo.ChangedItem>(Arrays.asList(item3)));
-        final List<RevisionInfo> expectedRevisions = new ArrayList<RevisionInfo>(Arrays.asList(rev42, rev10));
+        final RevisionInfo rev42 = new RevisionInfo(42L, "bob", now, "message for revision 42", new ArrayList<>(Arrays.asList(item1, item2)));
+        final RevisionInfo rev10 = new RevisionInfo(10L, "joe", new Date(now.getTime() - 1000000), "message for revision 10", new ArrayList<>(Collections.singletonList(item3)));
+        final List<RevisionInfo> expectedRevisions = new ArrayList<>(Arrays.asList(rev42, rev10));
         final String projectUrl = subversionScmEndpoint + JavaScriptSubversionProject.URL_DELIMITER
                 + projectName + JavaScriptSubversionProject.URL_DELIMITER + JavaScriptSubversionProject.TRUNK_PATH;
 
-        when(SvnConnector.listAvailableRevisions(eq(projectUrl))).thenReturn(expectedRevisions);
+        when(SvnConnector.listAvailableRevisions(projectUrl)).thenReturn(expectedRevisions);
 
         final JavaScriptSubversionProject instance = newInstance();
         final List<RevisionInfo> revisions = instance.fetchRevisions(projectName);
@@ -198,17 +194,6 @@ public class JavaScriptSubversionProjectTest {
     public void fetchJavaScriptFileNames_projectNameArgIsEmpty_throws() throws Exception {
         final JavaScriptSubversionProject instance = newInstance();
         instance.fetchJavaScriptFileNames("", revision);
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchJavaScriptFileNames_projectNameArgIsIllegal_throws() throws Exception {
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchJavaScriptFileNames(illegalProjectName, revision);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_ILLEGAL_PROJECT_NAME));
-            throw e;
-        }
     }
 
     @Test(expected = JavaScriptProjectException.class)
@@ -283,17 +268,6 @@ public class JavaScriptSubversionProjectTest {
     }
 
     @Test(expected = JavaScriptProjectException.class)
-    public void fetchJavaScriptInvocationMethods_projectNameArgIsIllegal_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchJavaScriptInvocationMethods(illegalProjectName, revision, javaScriptFileName);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_ILLEGAL_PROJECT_NAME));
-            throw e;
-        }
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
     public void fetchJavaScriptInvocationMethods_svnConnectorThrowsUriSyntaxException_throws() throws Throwable {
         doThrow(uriSyntaxException).when(SvnConnector.class, "export", anyString(), anyLong(), any(Path.class));
 
@@ -357,17 +331,6 @@ public class JavaScriptSubversionProjectTest {
     public void fetchRequiredJavaScript_javaScriptFunctionArgIsEmpty_throws() throws Throwable {
         final JavaScriptSubversionProject instance = newInstance();
         instance.fetchRequiredJavaScript(projectName, revision, javaScriptFileName, "");
-    }
-
-    @Test(expected = JavaScriptProjectException.class)
-    public void fetchRequiredJavaScript_projectNameArgIsIllegal_throws() throws Throwable {
-        final JavaScriptSubversionProject instance = newInstance();
-        try {
-            instance.fetchRequiredJavaScript(illegalProjectName, revision, javaScriptFileName, javaScriptFunction);
-        } catch (JavaScriptProjectException e) {
-            assertThat(e.getErrorCode(), is(JavaScriptProjectError.SCM_ILLEGAL_PROJECT_NAME));
-            throw e;
-        }
     }
 
     @Test(expected = JavaScriptProjectException.class)

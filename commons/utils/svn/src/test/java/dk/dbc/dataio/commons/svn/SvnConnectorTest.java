@@ -28,6 +28,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
+import org.tmatesoft.svn.core.io.SVNRepository;
 import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.admin.SVNAdminClient;
@@ -45,6 +46,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.junit.Assert.assertThat;
 
@@ -220,8 +222,48 @@ public class SvnConnectorTest {
         assertThat(exportedWorldFileContent.get(0), is(expectedWorldFileContent.get(0)));
     }
 
+    @Test
+    public void getRepository() throws Exception {
+        final SVNURL repositoryUrl = createNewRepository();
+        final SVNRepository repository = SvnConnector.getRepository(repositoryUrl.toString() + "/" + projectName);
+        assertThat(repository, is(notNullValue()));
+        repository.testConnection();
+    }
 
-    public static List<String> fileList(Path directory) {
+    @Test
+    public void dirExists_directoryDoesNotExistInRepository_returnsFalse() throws Exception {
+        final SVNURL repositoryUrl = createTemporaryTestRepository();
+        final SVNRepository repository = SvnConnector.getRepository(repositoryUrl.toString());
+        assertThat(SvnConnector.dirExists(repository, "non-existing-dir"), is(false));
+    }
+
+    @Test
+    public void dirExists_pathExistsInRepositoryButIsNotDirectory_returnsFalse() throws Exception {
+        final SVNURL repositoryUrl = createTemporaryTestRepository();
+        final SVNRepository repository = SvnConnector.getRepository(repositoryUrl.toString());
+        assertThat(SvnConnector.dirExists(repository, projectName + "/" + helloFile), is(false));
+    }
+
+    @Test
+    public void dirExists_repositoryArgIsNull_returnsFalse() throws Exception {
+        assertThat(SvnConnector.dirExists(null, projectName), is(false));
+    }
+
+    @Test
+    public void dirExists_dirArgIsNull_returnsFalse() throws Exception {
+        final SVNURL repositoryUrl = createTemporaryTestRepository();
+        final SVNRepository repository = SvnConnector.getRepository(repositoryUrl.toString());
+        assertThat(SvnConnector.dirExists(repository, null), is(false));
+    }
+
+    @Test
+    public void dirExists_directoryExistsInRepository_returnsTrue() throws Exception {
+        final SVNURL repositoryUrl = createTemporaryTestRepository();
+        final SVNRepository repository = SvnConnector.getRepository(repositoryUrl.toString());
+        assertThat(SvnConnector.dirExists(repository, projectName), is(true));
+    }
+
+    private static List<String> fileList(Path directory) {
         List<String> fileNames = new ArrayList<>();
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directory)) {
             for (Path path : directoryStream) {
@@ -269,5 +311,4 @@ public class SvnConnectorTest {
         final File newFolder = tempFolder.newFolder(repositoryName);
         return SVNRepositoryFactory.createLocalRepository(newFolder, true, true);
     }
-
 }

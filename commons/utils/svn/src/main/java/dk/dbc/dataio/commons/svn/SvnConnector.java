@@ -115,6 +115,30 @@ public class SvnConnector {
     }
 
     /**
+     * Creates a SVNRepository driver according to the protocol that is to be used to access a repository
+     * @param projectUrl unencoded project URL on the form http(s)://... or file://...
+     * @return protocol specific {@link SVNRepository} driver
+     * @throws URISyntaxException if given project URL could not be parsed as a URI reference
+     * @throws SVNException if there's no implementation for the specified protocol
+     */
+    public static SVNRepository getRepository(final String projectUrl) throws URISyntaxException, SVNException {
+        InvariantUtil.checkNotNullNotEmptyOrThrow(projectUrl, "projectUrl");
+        return SVNRepositoryFactory.create(asSvnUrl(projectUrl));
+    }
+
+    /**
+     * Tests if given directory exists in given repository
+     * @param svnRepository subversion repository
+     * @param dir directory name
+     * @return true if directory exists, otherwise false
+     * @throws SVNException if a failure occurs while connecting to a repository
+     */
+    public static boolean dirExists(final SVNRepository svnRepository, final String dir) throws SVNException {
+        return dir != null && svnRepository != null
+                && svnRepository.checkPath(dir, -1) == SVNNodeKind.DIR;
+    }
+
+    /**
      * Retrieves all available paths in given revision of project pointed to by
      * given URL from Subversion source control management system
      *

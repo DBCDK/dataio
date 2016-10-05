@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 @Singleton
 public class EsCleanupBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsCleanupBean.class);
-    private final static int MAX_REDELIVERING_ATTEMPTS = 10;
+    final static int MAX_REDELIVERING_ATTEMPTS = 10;
     AddiRecordPreprocessor addiRecordPreprocessor;
 
     @EJB
@@ -75,7 +75,7 @@ public class EsCleanupBean {
     JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
 
     @EJB
-    FlowStoreServiceConnectorBean flowStoreServiceConnectorbean;
+    FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
     // Packaged scoped due to unit test
     JSONBContext jsonbContext;
@@ -88,7 +88,7 @@ public class EsCleanupBean {
         jsonbContext = new JSONBContext();
         addiRecordPreprocessor = new AddiRecordPreprocessor();
         jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
-        flowStoreServiceConnector = flowStoreServiceConnectorbean.getConnector();
+        flowStoreServiceConnector = flowStoreServiceConnectorBean.getConnector();
         sinkId = Long.parseLong(System.getenv().get(Constants.SINK_ID_ENV_VARIABLE));
         LOGGER.info("Startup of EsScheduledCleanupBean!");
         LOGGER.info("The following targetreferences are inFlight in the sink at startup: {}",
@@ -218,7 +218,7 @@ public class EsCleanupBean {
             final int redelivered = currentEsInFlight.getRedelivered() + 1;
             final int jobId = currentEsInFlight.getJobId().intValue();
             final int chunkId = currentEsInFlight.getChunkId().intValue();
-            final short numberOfItems = (short)(jsonbContext.unmarshall(currentEsInFlight.getIncompleteDeliveredChunk(), Chunk.class).getItems().size());
+            final short numberOfItems = (short)(jsonbContext.unmarshall(currentEsInFlight.getIncompleteDeliveredChunk(), Chunk.class).size());
 
             // Rebuild processed chunk
             final Chunk processedChunk = new Chunk(currentEsInFlight.getJobId(), currentEsInFlight.getChunkId(), Chunk.Type.PROCESSED);
@@ -227,7 +227,7 @@ public class EsCleanupBean {
                 processedChunk.insertItem(jobStoreServiceConnector.getChunkItem(jobId, chunkId, numberOfItems, State.Phase.PROCESSING));
             }
 
-            final EsSinkConfig sinkConfig = (EsSinkConfig) flowStoreServiceConnectorbean.getConnector().getSink(sinkId).getContent().getSinkConfig();
+            final EsSinkConfig sinkConfig = (EsSinkConfig) flowStoreServiceConnectorBean.getConnector().getSink(sinkId).getContent().getSinkConfig();
             final EsWorkload workload = EsWorkload.create(processedChunk, sinkConfig, addiRecordPreprocessor);
 
             // Insert esTaskPackage
@@ -235,7 +235,8 @@ public class EsCleanupBean {
 
             // Remove existing and add new esInFlight
             esInFlightAdmin.removeEsInFlight(currentEsInFlight);
-            esInFlightAdmin.addEsInFlight(buildEsInFlight(processedChunk, targetReference, sinkConfig, redelivered));
+            final EsInFlight newEsInFlight = esInFlightAdmin.buildEsInFlight(processedChunk, targetReference, sinkConfig.getDatabaseName(), redelivered, sinkId);
+            esInFlightAdmin.addEsInFlight(newEsInFlight);
 
             LOGGER.info("{}. redelivering completed. Created ES task package with target reference {}", redelivered, targetReference);
         } catch (Exception e) {
@@ -301,20 +302,6 @@ public class EsCleanupBean {
         }
         return deliveredChunks;
 
-    }
-
-    private EsInFlight buildEsInFlight(Chunk chunk, int targetReference, EsSinkConfig sinkConfig, int redelivered) throws JSONBException {
-
-        final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setSinkId(sinkId);
-        esInFlight.setDatabaseName(sinkConfig.getDatabaseName());
-        esInFlight.setJobId(chunk.getJobId());
-        esInFlight.setChunkId(chunk.getChunkId());
-        esInFlight.setTargetReference(targetReference);
-        esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(chunk));
-        esInFlight.setRedelivered(redelivered);
-
-        return esInFlight;
     }
 
     private List<Chunk> createDeliveredChunks(List<EsInFlight> finishedEsInFlight) throws SinkException {

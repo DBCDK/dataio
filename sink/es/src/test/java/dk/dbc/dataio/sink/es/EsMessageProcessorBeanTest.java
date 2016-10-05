@@ -79,6 +79,7 @@ public class EsMessageProcessorBeanTest {
     private final String chunkResultWithOneValidAddiRecord = generateChunkResultJsonWithResource("/1record.addi");
     private EsConnectorBean esConnector;
     private EsInFlightBean esInFlightAdmin;
+    private AddiRecordPreprocessor addiRecordPreprocessor;
     private JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
     private FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
     private JobStoreServiceConnector jobStoreServiceConnector;
@@ -91,6 +92,7 @@ public class EsMessageProcessorBeanTest {
     public void setupMocks() {
         esConnector = mock(EsConnectorBean.class);
         esInFlightAdmin = mock(EsInFlightBean.class);
+        addiRecordPreprocessor = mock(AddiRecordPreprocessor.class);
 
         jobStoreServiceConnectorBean = mock(JobStoreServiceConnectorBean.class);
         jobStoreServiceConnector = mock(JobStoreServiceConnector.class);
@@ -204,6 +206,7 @@ public class EsMessageProcessorBeanTest {
         testableMessageConsumerBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         testableMessageConsumerBean.flowStoreServiceConnector = flowStoreServiceConnector;
         testableMessageConsumerBean.sinkId = SINK_ID;
+        testableMessageConsumerBean.addiRecordPreprocessor = addiRecordPreprocessor;
         return testableMessageConsumerBean;
     }
 

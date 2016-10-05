@@ -35,6 +35,7 @@ import dk.dbc.dataio.sink.types.SinkException;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -48,7 +49,10 @@ public class EsWorkloadTest {
     private final int userId = 42;
     private final TaskSpecificUpdateEntity.UpdateAction action = TaskSpecificUpdateEntity.UpdateAction.INSERT;
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
-    private final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).build();
+    private static final String ADDI_OK = "1\na\n1\nb\n";
+
+    private final ChunkItem chunkItem = new ChunkItemBuilder().setId(0).setData(StringUtil.asBytes(ADDI_OK)).build();
+    private final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED).setItems(Collections.singletonList(chunkItem)).build();
     private final String trackingId = "rr:1234io:5353";
     private final String processingTag = "dataio:sink-processing";
     private EsSinkConfig sinkConfig = new EsSinkConfig().withUserId(42).withDatabaseName("dbname");
@@ -87,8 +91,7 @@ public class EsWorkloadTest {
 
     @Test
     public void create_addiRecordPreprocessorArgIsNull_returnsEsWorkloadWithFailedItem() throws SinkException {
-        EsWorkload esWorkload = EsWorkload.create(chunk, sinkConfig, null);
-        assertThat(esWorkload.getDeliveredChunk().getItems().get(0).getStatus(), is(ChunkItem.Status.FAILURE)); // TODO: 03/10/16 is this the behavior we want? this error would mean the code is wrong.
+        Assert.assertThat(() -> EsWorkload.create(chunk, sinkConfig, null), isThrowing(NullPointerException.class));
     }
 
     @Test

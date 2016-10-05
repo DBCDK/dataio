@@ -69,6 +69,10 @@ public class EsWorkload {
 
 
     public static EsWorkload create(Chunk processedChunk, EsSinkConfig sinkConfig, AddiRecordPreprocessor addiRecordPreprocessor) throws SinkException {
+        InvariantUtil.checkNotNullOrThrow(processedChunk, "processedChunk");
+        InvariantUtil.checkNotNullOrThrow(sinkConfig, "sinkConfig");
+        InvariantUtil.checkNotNullOrThrow(addiRecordPreprocessor, "addiRecordPreprocessor");
+
         final int numberOfItems = processedChunk.size();
         final List<AddiRecord> addiRecords = new ArrayList<>(numberOfItems);
         final Chunk incompleteDeliveredChunk = new Chunk(processedChunk.getJobId(), processedChunk.getChunkId(), Chunk.Type.DELIVERED);
@@ -112,11 +116,10 @@ public class EsWorkload {
         return new EsWorkload(incompleteDeliveredChunk, addiRecords, sinkConfig.getUserId(), TaskSpecificUpdateEntity.UpdateAction.valueOf(sinkConfig.getEsAction()));
     }
 
-    private static List<AddiRecord> getAddiRecords(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor) throws IllegalArgumentException, IOException {
+    private static List<AddiRecord> getAddiRecords(ChunkItem chunkItem, AddiRecordPreprocessor addiRecordPreprocessor) throws IllegalArgumentException, IOException, SinkException {
         final List<AddiRecord> addiRecords = AddiUtil.getAddiRecordsFromChunkItem(chunkItem);
         final List<AddiRecord> preprocessedAddiRecords = new ArrayList<>(addiRecords.size());
         preprocessedAddiRecords.addAll(addiRecords.stream().map(addiRecord -> addiRecordPreprocessor.execute(addiRecord, chunkItem.getTrackingId())).collect(Collectors.toList()));
         return preprocessedAddiRecords;
     }
-
 }

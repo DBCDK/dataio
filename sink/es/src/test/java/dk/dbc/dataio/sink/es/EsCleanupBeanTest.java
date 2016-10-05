@@ -126,7 +126,7 @@ public class EsCleanupBeanTest {
         esInFlight43_1.setChunkId(1L);
         esInFlight43_1.setTargetReference(125);
         esInFlight43_1.setIncompleteDeliveredChunk(incompleteDeliveredChunkJson);
-        esInFlight43_1.setRedelivered(10);
+        esInFlight43_1.setRedelivered(EsCleanupBean.MAX_REDELIVERING_ATTEMPTS);
 
         taskStatus_122 = new TaskStatus(TaskPackageEntity.TaskStatus.ABORTED, 122);
         taskStatus_123 = new TaskStatus(TaskPackageEntity.TaskStatus.COMPLETE, 123);
@@ -284,7 +284,7 @@ public class EsCleanupBeanTest {
         esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         esCleanupBean.jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
 
-        esCleanupBean.flowStoreServiceConnectorbean = flowStoreServiceConnectorBean;
+        esCleanupBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         esCleanupBean.flowStoreServiceConnector = flowStoreServiceConnectorBean.getConnector();
 
         esCleanupBean.sinkId = SINK_ID;

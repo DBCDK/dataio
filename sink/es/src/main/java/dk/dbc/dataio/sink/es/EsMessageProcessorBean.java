@@ -61,7 +61,6 @@ import java.util.stream.Collectors;
 @MessageDriven
 public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(EsMessageProcessorBean.class);
-    private JSONBContext jsonbContext = new JSONBContext();
 
     // Packaged scoped due to unit test
     AddiRecordPreprocessor addiRecordPreprocessor;
@@ -120,23 +119,13 @@ public class EsMessageProcessorBean extends AbstractSinkMessageConsumerBean {
                 }
             } else {
                 final int targetReference = esConnector.insertEsTaskPackage(workload, sinkConfig);
-                esInFlightAdmin.addEsInFlight(buildEsInFlight(deliveredChunk, targetReference) );
+                final EsInFlight esInFlight = esInFlightAdmin.buildEsInFlight(deliveredChunk, targetReference, sinkConfig.getDatabaseName(), 0, sinkId);
+                esInFlightAdmin.addEsInFlight(esInFlight);
                 LOGGER.info("Created ES task package with target reference {} for chunk {} of job {}", targetReference, deliveredChunk.getChunkId(), deliveredChunk.getJobId());
             }
         } catch (Exception e) {
             throw new SinkException("Exception caught during workload processing", e);
         }
-    }
-
-    private EsInFlight buildEsInFlight(Chunk deliveredChunk, int targetReference) throws JSONBException {
-        final EsInFlight esInFlight = new EsInFlight();
-        esInFlight.setSinkId(sinkId);
-        esInFlight.setDatabaseName(sinkConfig.getDatabaseName());
-        esInFlight.setJobId(deliveredChunk.getJobId());
-        esInFlight.setChunkId(deliveredChunk.getChunkId());
-        esInFlight.setTargetReference(targetReference);
-        esInFlight.setIncompleteDeliveredChunk(jsonbContext.marshall(deliveredChunk));
-        return esInFlight;
     }
 
     /**

@@ -624,6 +624,7 @@ public class FlowStoreServiceConnector {
     /**
      * Retrieves uniquely named flow from the flow-store
      *
+     * @param name name of Flow to look lookup
      * @return the flow found
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows

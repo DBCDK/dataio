@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -90,6 +91,43 @@ public class FlowsBean extends AbstractResourceBean {
             return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
         }
         return Response.ok().entity(jsonbContext.marshall(flow)).build();
+    }
+
+    /**
+     * Retrieves flow from underlying data store
+     *
+     * @param name flow identifier
+     *
+     * @return a HTTP 200 response with flow content as JSON,
+     *         a HTTP 404 response with error content as JSON if not found,
+     *         a HTTP 500 response in case of general error.
+     *
+     * @throws JSONBException if unable to marshall value type into its JSON representation
+     */
+    @GET
+    @Path(FlowStoreServiceConstants.FLOWS)
+    @Produces({MediaType.APPLICATION_JSON})
+    public Response findFlows(@QueryParam("name") String name) throws JSONBException {
+        if(name != null) {
+            return findFlowByName(name);
+        } else {
+            return findAll();
+        }
+    }
+
+    private Response findFlowByName(String name) throws JSONBException {
+        final Query query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME)
+                .setParameter(1, name);
+        List<Flow> flows = query.getResultList();
+        if (flows.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+        }
+        return Response.ok().entity(jsonbContext.marshall(flows)).build();
+    }
+
+    private Response findAll() throws JSONBException {
+        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
+        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
     }
 
     /**
@@ -172,13 +210,13 @@ public class FlowsBean extends AbstractResourceBean {
      *
      * @throws JSONBException on failure to create result list as JSON
      */
-    @GET
-    @Path(FlowStoreServiceConstants.FLOWS)
-    @Produces({ MediaType.APPLICATION_JSON })
-    public Response findAllFlows() throws JSONBException {
-        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
-        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
-    }
+//    @GET
+//    @Path(FlowStoreServiceConstants.FLOWS)
+//    @Produces({ MediaType.APPLICATION_JSON })
+//    public Response findAll() throws JSONBException {
+//        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
+//        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
+//    }
 
     // private methods
 

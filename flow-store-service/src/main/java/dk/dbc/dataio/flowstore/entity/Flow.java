@@ -26,8 +26,10 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityResult;
 import javax.persistence.NamedNativeQueries;
 import javax.persistence.NamedNativeQuery;
+import javax.persistence.SqlResultSetMapping;
 import javax.persistence.Table;
 
 /**
@@ -37,16 +39,24 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = Flow.TABLE_NAME)
+@SqlResultSetMapping(name="Flow.implicit", entities = {
+        @EntityResult(entityClass = Flow.class)}
+)
 @NamedNativeQueries({
-    @NamedNativeQuery(
+        @NamedNativeQuery(
                 name = Flow.QUERY_FIND_ALL,
                 query = "SELECT * FROM Flows ORDER BY lower(content->>'name') ASC",
-                resultClass = Flow.class
-    )
+                resultSetMapping = "Flow.implicit"
+        ),
+        @NamedNativeQuery(name = Flow.QUERY_FIND_BY_NAME,
+                query = "SELECT * FROM flows WHERE CAST(content->>'name' AS TEXT) = ?",
+                resultSetMapping = "Flow.implicit"
+        )
 })
 public class Flow extends Versioned {
     public static final String TABLE_NAME = "flows";
     public static final String QUERY_FIND_ALL = "Flow.findAll";
+    public static final String QUERY_FIND_BY_NAME = "Flow.findByName";
 
     public static JSONBContext jsonbContext= new JSONBContext();
 

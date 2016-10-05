@@ -49,6 +49,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -589,24 +590,46 @@ public class FlowStoreServiceConnector {
     }
 
     /**
+     * Retrieves the specified flow from the flow-store
+     *
+     * @param queryParameters defining flow criteria
+     * @return the list of flows found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve flow
+     */
+    public List<Flow> findFlows(Map<String, Object> queryParameters) throws ProcessingException, FlowStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        final Response response = HttpClient.doGet(httpClient, queryParameters, baseUrl, FlowStoreServiceConstants.FLOWS);
+
+        try {
+            verifyResponseStatus(response, Response.Status.OK);
+            return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() {});
+        } finally {
+            response.close();
+            log.debug("FlowStoreServiceConnector: getFlowByName took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
      * Retrieves all flows from the flow-store
      *
      * @return a list containing the flows found
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
      */
-    public List<Flow> findAllFlows()throws ProcessingException, FlowStoreServiceConnectorException{
-        log.trace("FlowStoreServiceConnector: findAllFlows();");
-        final StopWatch stopWatch = new StopWatch();
-        final Response response = HttpClient.doGet(httpClient, baseUrl, FlowStoreServiceConstants.FLOWS);
-        try {
-            verifyResponseStatus(response, Response.Status.OK);
-            return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() {
-            });
-        } finally {
-            response.close();
-            log.debug("FlowStoreServiceConnector: findAllFlows took {} milliseconds", stopWatch.getElapsedTime());
-        }
+    public List<Flow> findAllFlows() throws ProcessingException, FlowStoreServiceConnectorException {
+        return findFlows(Collections.emptyMap());
+    }
+
+    /**
+     * Retrieves uniquely named flow from the flow-store
+     *
+     * @return the flow found
+     * @throws ProcessingException on general communication error
+     * @throws FlowStoreServiceConnectorException on failure to retrieve the flows
+     */
+    public Flow findFlowByName(String name) throws ProcessingException, FlowStoreServiceConnectorException {
+        return findFlows(Collections.singletonMap("name", name)).get(0);
     }
 
     /**

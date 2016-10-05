@@ -53,6 +53,8 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.eq;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
 
@@ -288,7 +290,7 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     // Helper method
     private List<Flow> findAllFlows_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue) throws FlowStoreServiceConnectorException {
-        when(HttpClient.doGet(CLIENT, FLOW_STORE_URL, FlowStoreServiceConstants.FLOWS))
+        when(HttpClient.doGet(eq(CLIENT), anyMap(), eq(FLOW_STORE_URL), eq(FlowStoreServiceConstants.FLOWS)))
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllFlows();

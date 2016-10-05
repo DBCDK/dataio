@@ -104,6 +104,7 @@ public class FlowsBean extends AbstractResourceBean {
      *
      * @throws JSONBException if unable to marshall value type into its JSON representation
      */
+
     @GET
     @Path(FlowStoreServiceConstants.FLOWS)
     @Produces({MediaType.APPLICATION_JSON})
@@ -113,21 +114,6 @@ public class FlowsBean extends AbstractResourceBean {
         } else {
             return findAll();
         }
-    }
-
-    private Response findFlowByName(String name) throws JSONBException {
-        final Query query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME)
-                .setParameter(1, name);
-        List<Flow> flows = query.getResultList();
-        if (flows.isEmpty()) {
-            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
-        }
-        return Response.ok().entity(jsonbContext.marshall(flows)).build();
-    }
-
-    private Response findAll() throws JSONBException {
-        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
-        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
     }
 
     /**
@@ -203,6 +189,26 @@ public class FlowsBean extends AbstractResourceBean {
         return response;
     }
 
+    // private methods
+
+
+    /**
+     * Returns list containing one flow uniquely identified by the flow name given as input
+     *
+     * @return a HTTP OK response with result list as JSON
+     *
+     * @throws JSONBException on failure to create result list as JSON
+     */
+    private Response findFlowByName(String name) throws JSONBException {
+        final Query query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME)
+                .setParameter(1, name);
+        List<Flow> flows = query.getResultList();
+        if (flows.isEmpty()) {
+            return Response.status(Response.Status.NOT_FOUND).entity(NULL_ENTITY).build();
+        }
+        return Response.ok().entity(jsonbContext.marshall(flows)).build();
+    }
+
     /**
      * Returns list of all versions of all stored flows sorted by name in ascending order
      *
@@ -210,15 +216,10 @@ public class FlowsBean extends AbstractResourceBean {
      *
      * @throws JSONBException on failure to create result list as JSON
      */
-//    @GET
-//    @Path(FlowStoreServiceConstants.FLOWS)
-//    @Produces({ MediaType.APPLICATION_JSON })
-//    public Response findAll() throws JSONBException {
-//        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
-//        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
-//    }
-
-    // private methods
+    private Response findAll() throws JSONBException {
+        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_ALL, Flow.class);
+        return Response.ok().entity(jsonbContext.marshall(query.getResultList())).build();
+    }
 
     /**
      * Updates the versioned flow components contained within the flow. Each is replaced with latest version

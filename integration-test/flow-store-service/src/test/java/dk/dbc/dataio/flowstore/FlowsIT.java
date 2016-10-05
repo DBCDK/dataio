@@ -258,6 +258,45 @@ public class FlowsIT {
     }
 
     /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the flows path with a valid identifier
+     * Then : a flow is found and returned
+     * And  : assert that the flow found has an id, a version and contains the same information as the flow created
+     */
+    @Test
+    public void findFlowByName_ok() throws Exception {
+
+        // When...
+        final FlowContent flowContent = new FlowContentBuilder().setName("test flow").build();
+
+        // Then...
+        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+        Flow flowToGet = flowStoreServiceConnector.findFlowByName(flowContent.getName());
+
+        // And...
+        assertNotNull(flowToGet);
+        assertNotNull(flowToGet.getContent());
+        assertThat(flowToGet.getContent().getName(), is(flowToGet.getContent().getName()));
+        assertThat(flowToGet.getContent().getDescription(), is(flow.getContent().getDescription()));
+    }
+
+    @Test
+    public void findFlowByName_notFound() throws Exception {
+
+            try{
+                // When...
+                flowStoreServiceConnector.findFlowByName("test flow");
+
+                fail("Invalid request to findFlowByName() was not detected.");
+                // Then...
+            } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+                // And...
+                assertThat(e.getStatusCode(), is(404));
+            }
+
+    }
+
+    /**
      * Given: a deployed flow-store service where a valid flow with given id is already stored
      * When : valid JSON is POSTed to the flow path with an identifier (update)
      * Then : assert the correct fields have been set with the correct values

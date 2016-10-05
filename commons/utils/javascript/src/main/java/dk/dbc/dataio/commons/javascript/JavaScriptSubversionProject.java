@@ -52,18 +52,18 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class JavaScriptSubversionProject {
-    /** Path delimiter for project URLs
-     */
-    public static final String URL_DELIMITER = "/";
+    /* Path delimiter for project URLs */
+    static final String URL_DELIMITER = "/";
+    static final String TRUNK_PATH = "trunk";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaScriptSubversionProject.class);
     private static final String JAVASCRIPT_FILENAME_EXTENSION = ".js";
     private static final String JAVASCRIPT_USE_MODULE_EXTENSION = ".use.js";
-    private static final Charset CHARSET = StandardCharsets.UTF_8;
-
-    static final String TRUNK_PATH = "trunk";
+    private static final Charset ENCODING = StandardCharsets.UTF_8;
 
     private final String subversionScmEndpoint;
     private final List<String> dependencies;
@@ -102,9 +102,8 @@ public class JavaScriptSubversionProject {
         final StopWatch stopWatch = new StopWatch();
         final String projectUrl = buildProjectUrl(projectPath);
         final String errorMessage = "Unable to retrieve revisions from project '{}'";
-        List<RevisionInfo> revisions;
         try {
-            revisions = SvnConnector.listAvailableRevisions(projectUrl);
+            return SvnConnector.listAvailableRevisions(projectUrl);
         } catch (SVNException e) {
             LOGGER.error(errorMessage, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
@@ -114,7 +113,6 @@ public class JavaScriptSubversionProject {
         } finally {
             LOGGER.debug("fetchRevisions() took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return revisions;
     }
 
     /**
@@ -137,15 +135,11 @@ public class JavaScriptSubversionProject {
         final StopWatch stopWatch = new StopWatch();
         final String projectUrl = buildProjectUrl(projectPath);
         final String errorMessage = "Unable to retrieve javaScript file names from revision {} of project '{}'";
-        final List<String> fileNames = new ArrayList<>();
         try {
-            for (String path : SvnConnector.listAvailablePaths(projectUrl, revision)) {
-                if (path.endsWith(JAVASCRIPT_FILENAME_EXTENSION)
-                        && !path.endsWith(JAVASCRIPT_USE_MODULE_EXTENSION)) {
-                    fileNames.add(path);
-                }
-            }
-            Collections.sort(fileNames);
+            return SvnConnector.listAvailablePaths(projectUrl, revision).stream()
+                    .filter(path -> path.endsWith(JAVASCRIPT_FILENAME_EXTENSION) && !path.endsWith(JAVASCRIPT_USE_MODULE_EXTENSION))
+                    .sorted(String::compareTo)
+                    .collect(Collectors.toList());
         } catch (SVNException e) {
             LOGGER.error(errorMessage, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
@@ -155,7 +149,6 @@ public class JavaScriptSubversionProject {
         } finally {
             LOGGER.debug("fetchJavaScriptFileNames() took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return fileNames;
     }
 
     /**
@@ -182,14 +175,13 @@ public class JavaScriptSubversionProject {
         final StopWatch stopWatch = new StopWatch();
         final String errorMessage = "Unable to retrieve method names from file '{}' in revision {} of project '{}'";
         final String projectUrl = buildProjectUrl(projectPath);
-        final List<String> methodNames;
         Path exportFolder = null;
         try {
             exportFolder = createTmpFolder(getClass().getName());
             final String trimmedJavaScriptFileName = leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName);
-            final String fileUrl = removeTrailingDelimiter(join(URL_DELIMITER, projectUrl, trimmedJavaScriptFileName));
+            final String fileUrl = removeTrailingDelimiter(urlJoin(projectUrl, trimmedJavaScriptFileName));
             SvnConnector.export(fileUrl, revision, exportFolder);
-            methodNames = getJavaScriptFunctionsSortedByPathNameFromFile(exportFolder, trimmedJavaScriptFileName);
+            return getJavaScriptFunctionsSortedByPathNameFromFile(exportFolder, trimmedJavaScriptFileName);
         } catch (SVNException e) {
             LOGGER.error(errorMessage, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
@@ -203,7 +195,6 @@ public class JavaScriptSubversionProject {
             deleteFolder(exportFolder);
             LOGGER.debug("fetchJavaScriptInvocationMethods() took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return methodNames;
     }
 
     /**
@@ -240,21 +231,23 @@ public class JavaScriptSubversionProject {
             SvnConnector.export(projectUrl, revision, exportPath);
 
             final Path mainJsPath = Paths.get(exportPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
-            final String mainJsContent = new String(Files.readAllBytes(mainJsPath), CHARSET);
-            final JavaScript mainJs = new JavaScript(StringUtil.base64encode(mainJsContent, CHARSET), "");
+            final String mainJsContent = new String(Files.readAllBytes(mainJsPath), ENCODING);
+            final JavaScript mainJs = new JavaScript(StringUtil.base64encode(mainJsContent, ENCODING), "");
             javaScripts.add(mainJs);
 
             for (String dependency : dependencies) {
                 SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(exportFolder.toString(), dependency));
             }
 
-            JavascriptUtil.getAllDependentJavascriptsResult result=JavascriptUtil.getAllDependentJavascripts(exportFolder,mainJsPath);
-            for (SpecializedFileSchemeHandler.JS js : result.javaScripts) {
-                javaScripts.add(new JavaScript(StringUtil.base64encode(js.javascript, CHARSET), js.modulename));
-            }
+            final JavascriptUtil.getAllDependentJavascriptsResult result =
+                    JavascriptUtil.getAllDependentJavascripts(exportFolder, mainJsPath);
 
-            if( result.requireCache != null ) {
-                requireCache = StringUtil.base64encode(result.requireCache, CHARSET);
+            javaScripts.addAll(result.javaScripts.stream()
+                    .map(js -> new JavaScript(StringUtil.base64encode(js.javascript, ENCODING), js.modulename))
+                    .collect(Collectors.toList()));
+
+            if (result.requireCache != null) {
+                requireCache = StringUtil.base64encode(result.requireCache, ENCODING);
             }
         } catch (SVNException e) {
             LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
@@ -279,10 +272,10 @@ public class JavaScriptSubversionProject {
     private String buildProjectUrl(final String projectPath) throws JavaScriptProjectException {
         URI projectUrl;
         try {
-            projectUrl = new URI(join(URL_DELIMITER, subversionScmEndpoint, projectPath));
+            projectUrl = new URI(urlJoin(subversionScmEndpoint, projectPath));
             final SVNRepository repository = SvnConnector.getRepository(projectUrl.toString());
             if (SvnConnector.dirExists(repository, TRUNK_PATH)) {
-                projectUrl = new URI(join(URL_DELIMITER, subversionScmEndpoint, projectPath, TRUNK_PATH));
+                projectUrl = new URI(urlJoin(subversionScmEndpoint, projectPath, TRUNK_PATH));
             }
         } catch (URISyntaxException | SVNException e) {
             LOGGER.error("Unable to build project URL", e);
@@ -291,12 +284,9 @@ public class JavaScriptSubversionProject {
         return removeTrailingDelimiter(projectUrl.toString());
     }
 
-    private static String join(final String delimiter, String... elements) {
-        final StringBuilder stringbuilder = new StringBuilder();
-        for (String s : elements) {
-            stringbuilder.append(s).append(delimiter);
-        }
-        return stringbuilder.toString();
+    private static String urlJoin(String... elements) {
+        return Stream.of(elements)
+                .collect(Collectors.joining(URL_DELIMITER));
     }
 
     private static String removeTrailingDelimiter(final String in) {
@@ -359,11 +349,10 @@ public class JavaScriptSubversionProject {
         final String javaScriptFileName = new File(javaScriptFileNameWithPath).getName();
         final Path exportedFile = Paths.get(exportFolder.toString(), javaScriptFileName);
         try {
-            final List<String> functionNames = new ArrayList<>(
-                    JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(
-                            getReaderForFile(exportedFile), javaScriptFileName));
-            Collections.sort(functionNames);
-            return functionNames;
+            final Reader exportedFileReader = getReaderForFile(exportedFile);
+            return JavascriptUtil.getAllToplevelFunctionsInJavascriptWithFakeUseFunction(exportedFileReader, javaScriptFileName).stream()
+                    .sorted(String::compareTo)
+                    .collect(Collectors.toList());
         } catch (Throwable e) {
             LOGGER.error("Caught unexpected exception trying to read javaScript file '{}'", exportedFile, e);
         }

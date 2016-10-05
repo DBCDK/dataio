@@ -178,7 +178,7 @@ public abstract class SinkIT {
         esCleanupBean.esConnector = getEsConnectorBean();
         esCleanupBean.esInFlightAdmin = getEsInFlightBean();
         esCleanupBean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
-        esCleanupBean.flowStoreServiceConnectorbean = flowStoreServiceConnectorBean;
+        esCleanupBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
         return esCleanupBean;
     }
 

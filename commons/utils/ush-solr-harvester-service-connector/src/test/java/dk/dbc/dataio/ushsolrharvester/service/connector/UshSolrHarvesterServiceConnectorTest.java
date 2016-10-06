@@ -78,12 +78,6 @@ public class UshSolrHarvesterServiceConnectorTest {
         assertThat(ushSolrHarvesterServiceConnector.getBaseUrl(), is(USH_SOLR_HARVESTER_URL));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void runTestHarvest_idIsNegative_throws() throws UshSolrHarvesterServiceConnectorException {
-        final UshSolrHarvesterServiceConnector logStoreServiceConnector = newUshSolrHarvesterServiceConnector();
-        logStoreServiceConnector.runTestHarvest(-1);
-    }
-
     @Test(expected = UshSolrHarvesterServiceConnectorException.class)
     public void runTestHarvest_responseWithInternalServerErrorStatusCode_throws() throws UshSolrHarvesterServiceConnectorException {
         runTestHarvest_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "");

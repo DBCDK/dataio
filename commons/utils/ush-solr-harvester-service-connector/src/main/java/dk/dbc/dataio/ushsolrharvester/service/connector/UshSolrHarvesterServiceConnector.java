@@ -42,12 +42,6 @@ import javax.ws.rs.core.Response;
  * <p>
  * This class is thread safe, as long as the given web resources client remains thread safe.
  * </p>
- * <p>
- * Be advised that in order to add files of sizes exceeding the heap size of the JVM a
- * web resources client connector able to use chunked encoding needs to be provided. Note
- * that the default jersey client connector does not adhere to the CHUNKED_ENCODING_SIZE
- * property. Consider using the Apache HttpClient connector instead.
- * </p>
  */
 public class UshSolrHarvesterServiceConnector {
     private static final Logger log = LoggerFactory.getLogger(UshSolrHarvesterServiceConnector.class);
@@ -58,7 +52,7 @@ public class UshSolrHarvesterServiceConnector {
     /**
      * Class constructor
      * @param httpClient web resources client
-     * @param baseUrl base URL for job-store service endpoint
+     * @param baseUrl base URL for ush-solr-harvester service endpoint
      * @throws NullPointerException if given null-valued argument
      * @throws IllegalArgumentException if given empty-valued {@code baseUrl} argument
      */
@@ -71,17 +65,14 @@ public class UshSolrHarvesterServiceConnector {
      * Runs a Solr test harvest
      * @param id the is of the harvest to test run
      * @return the harvester id
-     * @throws NullPointerException if given null-valued dataSource argument
      * @throws ProcessingException on general communication error
      * @throws UshSolrHarvesterServiceConnectorException on failure
-     * @throws UshSolrHarvesterServiceConnectorUnexpectedStatusCodeException on unexpected response status code
      */
-    public String runTestHarvest(final int id) throws NullPointerException, ProcessingException, UshSolrHarvesterServiceConnectorException {
+    public String runTestHarvest(final int id) throws ProcessingException, UshSolrHarvesterServiceConnectorException {
         final String NO_DATA = "";
         log.trace("UshSolrHarvesterServiceConnector: runTestHarvest({});", id);
         final StopWatch stopWatch = new StopWatch();
         try {
-            InvariantUtil.checkIntLowerBoundOrThrow(id, "id", 0);
             final PathBuilder path = new PathBuilder(UshServiceConstants.HARVESTERS_USH_SOLR_TEST).bind(UshServiceConstants.ID_VARIABLE, id);
             final Response response = HttpClient.doPostWithJson(httpClient, NO_DATA, baseUrl, path.build());
             try {

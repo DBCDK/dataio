@@ -38,7 +38,7 @@ import javax.ws.rs.client.Client;
 
 /**
  * This Enterprise Java Bean (EJB) singleton is used as a connector
- * to the file-store REST interface.
+ * to the ush-sorl-harvester REST interface.
  */
 
 @Singleton

@@ -144,6 +144,18 @@ public class ServiceUtil {
     }
 
     /**
+     * Looks up USH Solr Harvester endpoint through Java Naming and Directory Interface (JNDI)
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR_HARVESTER_RS}'.
+     * For testing purposes the JNDI lookup can be bypassed by defining a '{@value
+     * dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_USH_SOLR_HARVESTER_RS}' system property.
+     * @return USH Solr Harvester URL as String
+     * @throws NamingException if unable to lookup name
+     */
+    public static String getUshSolrHarvesterServiceEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS);
+    }
+
+    /**
      * Looks up Open Agency service endpoint through Java Naming and Directory Interface (JNDI)
      * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#URL_RESOURCE_OPEN_AGENCY}'.
      * For testing purposes the JNDI lookup can be bypassed by defining a '{@value

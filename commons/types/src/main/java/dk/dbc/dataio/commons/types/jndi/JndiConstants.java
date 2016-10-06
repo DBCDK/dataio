@@ -33,6 +33,8 @@ public class JndiConstants {
     public static final String URL_RESOURCE_FILESTORE_RS = "url/dataio/filestore/rs";
     public static final String URL_RESOURCE_LOGSTORE_RS = "url/dataio/logstore/rs";
     public static final String URL_RESOURCE_JOBSTORE_RS = "url/dataio/jobstore/rs";
+    public static final String URL_RESOURCE_USH_SOLR_HARVESTER_RS = "url/dataio/ush/solr/harvester/rs";
+
     public static final String URL_RESOURCE_GUI_FTP = "url/dataio/gui/ftp";
     public static final String URL_RESOURCE_OPEN_AGENCY = "url/dataio/openagency";
     public static final String URL_RESOURCE_USH_SOLR = "url/dataio/ush/solr";

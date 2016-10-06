@@ -36,7 +36,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
@@ -129,9 +128,9 @@ public class FlowsBeanTest {
         final Flow flow = new Flow();
         flow.setContent(new FlowContentJsonBuilder().setName("testFlow").build());
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
-        final Query query = mock(Query.class);
+        final TypedQuery<Flow> query = mock(TypedQuery.class);
 
-        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_BY_NAME)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class)).thenReturn(query);
         when(query.setParameter(1, "testFlow")).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.singletonList(flow));
 
@@ -148,9 +147,9 @@ public class FlowsBeanTest {
         final Flow flow = new Flow();
         flow.setContent(new FlowContentJsonBuilder().setName("testFlow").build());
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
-        final Query query = mock(Query.class);
+        final TypedQuery<Flow> query = mock(TypedQuery.class);
 
-        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_BY_NAME)).thenReturn(query);
+        when(ENTITY_MANAGER.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class)).thenReturn(query);
         when(query.setParameter(1, "testFlow")).thenReturn(query);
         when(query.getResultList()).thenReturn(Collections.emptyList());
 

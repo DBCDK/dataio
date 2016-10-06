@@ -49,7 +49,7 @@ import javax.persistence.Table;
                 resultSetMapping = "Flow.implicit"
         ),
         @NamedNativeQuery(name = Flow.QUERY_FIND_BY_NAME,
-                query = "SELECT * FROM flows WHERE CAST(content->>'name' AS TEXT) = ?",
+                query = "SELECT * FROM flows WHERE (content->>'name') = ?",
                 resultSetMapping = "Flow.implicit"
         )
 })

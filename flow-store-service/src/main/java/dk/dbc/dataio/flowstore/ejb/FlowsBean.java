@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -200,7 +199,7 @@ public class FlowsBean extends AbstractResourceBean {
      * @throws JSONBException on failure to create result list as JSON
      */
     private Response findFlowByName(String name) throws JSONBException {
-        final Query query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME)
+        final TypedQuery<Flow> query = entityManager.createNamedQuery(Flow.QUERY_FIND_BY_NAME, Flow.class)
                 .setParameter(1, name);
         List<Flow> flows = query.getResultList();
         if (flows.isEmpty()) {

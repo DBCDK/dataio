@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.common.utils.flowstore;
 
+import dk.dbc.commons.testutil.Assert;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -39,10 +40,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.ID;
@@ -294,6 +297,35 @@ public class FlowStoreServiceConnector_Flows_Test {
                 .thenReturn(new MockedResponse<>(statusCode, returnValue));
         final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
         return instance.findAllFlows();
+    }
+
+    // ************************************* find flow by name tests *************************************
+    @Test
+    public void findFlowByName_flowRetrieved_returnsFlow() throws FlowStoreServiceConnectorException {
+        final String flowName = "testFlow";
+        final Flow expectedFlowResult = new FlowBuilder().setContent(new FlowContentBuilder().setName(flowName).build()).build();
+        final Flow flow = findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.OK.getStatusCode(), Collections.singletonList(expectedFlowResult), flowName);
+        assertThat(flow, is(expectedFlowResult));
+    }
+
+    @Test
+    public void findFlowByName_noResults() throws FlowStoreServiceConnectorException {
+        Assert.assertThat(() -> findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null, null),
+                isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
+    }
+
+    @Test
+    public void findFlowByName_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
+        Assert.assertThat(() -> findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", null),
+                isThrowing(FlowStoreServiceConnectorException.class));
+    }
+
+    // Helper method
+    private Flow findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(int statusCode, Object returnValue, String queryParamName) throws FlowStoreServiceConnectorException {
+        when(HttpClient.doGet(eq(CLIENT), anyMap(), eq(FLOW_STORE_URL), eq(FlowStoreServiceConstants.FLOWS)))
+                .thenReturn(new MockedResponse<>(statusCode, returnValue));
+        final FlowStoreServiceConnector instance = newFlowStoreServiceConnector();
+        return instance.findFlowByName(queryParamName);
     }
 
     // **************************************** delete flow tests ****************************************

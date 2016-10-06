@@ -590,9 +590,9 @@ public class FlowStoreServiceConnector {
     }
 
     /**
-     * Retrieves the specified flow from the flow-store
+     * Retrieves the specified flows from the flow-store
      *
-     * @param queryParameters defining flow criteria
+     * @param queryParameters containing none or many flow criterias
      * @return the list of flows found
      * @throws ProcessingException on general communication error
      * @throws FlowStoreServiceConnectorException on failure to retrieve flow
@@ -600,13 +600,12 @@ public class FlowStoreServiceConnector {
     public List<Flow> findFlows(Map<String, Object> queryParameters) throws ProcessingException, FlowStoreServiceConnectorException {
         final StopWatch stopWatch = new StopWatch();
         final Response response = HttpClient.doGet(httpClient, queryParameters, baseUrl, FlowStoreServiceConstants.FLOWS);
-
         try {
             verifyResponseStatus(response, Response.Status.OK);
             return readResponseGenericTypeEntity(response, new GenericType<List<Flow>>() {});
         } finally {
             response.close();
-            log.debug("FlowStoreServiceConnector: getFlowByName took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("findFlows took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

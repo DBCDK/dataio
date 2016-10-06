@@ -280,20 +280,24 @@ public class FlowsIT {
         assertThat(flowToGet.getContent().getDescription(), is(flow.getContent().getDescription()));
     }
 
+    /**
+     * Given: a deployed flow-store service
+     * When : valid JSON is POSTed to the flows path with an none existing identifier
+     * Then : assume that the exception thrown is of the type: FlowStoreServiceConnectorUnexpectedStatusCodeException
+     * And  : request returns with a NOT_FOUND http status code
+     */
     @Test
     public void findFlowByName_notFound() throws Exception {
+        try {
+            // When...
+            flowStoreServiceConnector.findFlowByName("test flow");
 
-            try{
-                // When...
-                flowStoreServiceConnector.findFlowByName("test flow");
-
-                fail("Invalid request to findFlowByName() was not detected.");
-                // Then...
-            } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
-                // And...
-                assertThat(e.getStatusCode(), is(404));
-            }
-
+            fail("Invalid request to findFlowByName() was not detected.");
+            // Then...
+        } catch(FlowStoreServiceConnectorUnexpectedStatusCodeException e){
+            // And...
+            assertThat(e.getStatusCode(), is(404));
+        }
     }
 
     /**

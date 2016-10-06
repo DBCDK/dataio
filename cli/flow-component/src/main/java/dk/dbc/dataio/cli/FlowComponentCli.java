@@ -32,7 +32,7 @@ import dk.dbc.dataio.cli.options.Options;
  * <p>
  *     To show usage run
  *
- *     %> java -jar dataio-cli-flow-component.jar
+ *     %&gt java -jar dataio-cli-flow-component.jar
  * </p>
  */
 public class FlowComponentCli {

@@ -16,7 +16,7 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        os.system('rm -vrf ./build ./dist **/*.pyc **/*.jar **/*.egg-info')
+        os.system('rm -vrf ./build ./dist **/*.pyc **/*.egg-info src/acceptance_test/bin/dataio-cli-flow-component.jar')
 
 setup(name='dataio-cli-acceptance-test',
       version=1.0,

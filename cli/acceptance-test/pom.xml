@@ -32,15 +32,14 @@
 
   <artifactId>dataio-cli-acceptance-test</artifactId>
   <name>dataio-cli-acceptance-test</name>
-  <packaging>jar</packaging>
 
-  <dependencies>
+<!--  <dependencies>
     <dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-cli-flow-component</artifactId>
       <version>${project.version}</version>
     </dependency>
-  </dependencies>
+  </dependencies>-->
 
   <build>
     <plugins>

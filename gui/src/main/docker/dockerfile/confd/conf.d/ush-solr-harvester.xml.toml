@@ -20,7 +20,7 @@
 #
 
 [template]
-src = "ush-harvester.xml.tmpl"
+src = "ush-solr-harvester.xml.tmpl"
 dest = "/home/gfish/dbc-glassfish.d/ush-solr-harvester.xml"
 
 keys = [

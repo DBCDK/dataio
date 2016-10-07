@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# -*- mode: python -*-
+
+if __name__ == "__main__":
+    print "Hello from acceptance test"

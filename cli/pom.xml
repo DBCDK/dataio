@@ -35,6 +35,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>acceptance-test</module>
     <module>flow-component</module>
   </modules>
 

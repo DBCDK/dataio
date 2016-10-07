@@ -35,11 +35,11 @@
   <packaging>pom</packaging>
 
   <dependencies>
-    <dependency>
+    <!--<dependency>
       <groupId>dk.dbc</groupId>
       <artifactId>dataio-cli-flow-component</artifactId>
       <version>${project.version}</version>
-    </dependency>
+    </dependency>-->
   </dependencies>
 
   <build>

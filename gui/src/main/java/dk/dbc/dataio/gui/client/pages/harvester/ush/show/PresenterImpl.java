@@ -91,6 +91,15 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
     /**
+     * This method runs a Ush Solr Test Harvest
+     * @param id The id of the harvester to test run
+     */
+    @Override
+    public void runUshSolrTestHarvest(long id) {
+        commonInjector.getUshSolrHarvesterProxyAsync().runTestHarvest((int)id, new RunUshSolrTestHarvesterCallback());
+    }
+
+    /**
      * Opens a new window, containing the USH Harvester Admin Page
      */
     @Override
@@ -149,5 +158,16 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
     }
 
-
+    /**
+     * This class is the callback class for the runTestHarvest method in the UshSolrHarvester Proxy
+     */
+    protected class RunUshSolrTestHarvesterCallback implements AsyncCallback<String> {
+        @Override
+        public void onFailure(Throwable caught) {
+            getView().setErrorText(viewInjector.getTexts().error_RunUshSolrTestError());
+        }
+        @Override
+        public void onSuccess(String harvestId) {
+        }
+    }
 }

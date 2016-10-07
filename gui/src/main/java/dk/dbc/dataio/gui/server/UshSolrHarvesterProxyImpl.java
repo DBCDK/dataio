@@ -59,7 +59,7 @@ public class UshSolrHarvesterProxyImpl implements UshSolrHarvesterProxy {
     }
 
     @Override
-    public String runTestHarvest(int id) throws ProxyException {
+    public String runTestHarvest(long id) throws ProxyException {
         final String itemLog;
         log.trace("UshSolrHarvesterProxy: getItemLog({});", id);
         final StopWatch stopWatch = new StopWatch();

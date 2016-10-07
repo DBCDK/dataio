@@ -29,7 +29,7 @@ import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 @RemoteServiceRelativePath("UshSolrHarvesterProxy")
 public interface UshSolrHarvesterProxy extends RemoteService {
 
-    String runTestHarvest(int id) throws ProxyException;
+    String runTestHarvest(long id) throws ProxyException;
     void close();
 
     class Factory {

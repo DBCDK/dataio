@@ -66,6 +66,9 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_Harvest();
+
 
     // Help texts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
@@ -78,6 +81,9 @@ public interface Texts extends Constants {
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String button_UshButton();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String button_TestSolrHarvest();
 
 
     // Value texts
@@ -100,4 +106,6 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String error_JndiFetchError();
 
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_RunUshSolrTestError();
 }

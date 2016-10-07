@@ -22,7 +22,6 @@
 package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
 
 import com.google.gwt.cell.client.ButtonCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.cell.client.SafeHtmlCell;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
@@ -74,6 +73,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructDestinationColumn(), textWithToolTip(texts.columnHeader_Destination()));
         addColumn(constructEnabledColumn(), textWithToolTip(texts.columnHeader_Enabled()));
         addColumn(constructActionColumn(), textWithToolTip(texts.columnHeader_Action()));
+        addColumn(constructHarvestColumn(), textWithToolTip(texts.columnHeader_Harvest()));
 
         setSelectionModel(selectionModel);
         addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
@@ -301,12 +301,23 @@ public class HarvestersTable extends CellTable {
                 return texts.button_Edit();
             }
         };
-        column.setFieldUpdater(new FieldUpdater<UshSolrHarvesterConfig, String>() {
+        column.setFieldUpdater((index, config, buttonText) -> editUshHarvester((UshSolrHarvesterConfig) config));
+        return column;
+    }
+
+    /**
+     * This method constructs the Harvest column
+     * @return The constructed Harvest column
+     */
+    private Column constructHarvestColumn() {
+        Column column = new Column<UshSolrHarvesterConfig, String>(new ButtonCell()) {
             @Override
-            public void update(int index, UshSolrHarvesterConfig config, String buttonText) {
-                editUshHarvester(config);
+            public String getValue(UshSolrHarvesterConfig harvester) {
+                // The value to display in the button.
+                return texts.button_TestSolrHarvest();
             }
-        });
+        };
+        column.setFieldUpdater((index, config, buttonText) -> runUshSolrTestHarvest((UshSolrHarvesterConfig) config));
         return column;
     }
 
@@ -335,6 +346,16 @@ public class HarvestersTable extends CellTable {
     private void editUshHarvester(UshSolrHarvesterConfig harvester) {
         if (harvester != null) {
             presenter.editHarvesterConfig(String.valueOf(harvester.getId()));
+        }
+    }
+
+    /**
+     * Sends a request to the presenter to make at test run of the Ush Solr Harvester
+     * @param harvester The harvester to run
+     */
+    private void runUshSolrTestHarvest(UshSolrHarvesterConfig harvester) {
+        if (harvester != null) {
+            presenter.runUshSolrTestHarvest(harvester.getId());
         }
     }
 

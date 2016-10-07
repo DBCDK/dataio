@@ -127,7 +127,7 @@ public class HarvestOperation {
                 binaryFileStore,
                 fileStoreServiceConnector,
                 jobStoreServiceConnector,
-                getJobSpecificationTemplate(JobSpecification.Type.TEST)))
+                getJobSpecificationTemplate(JobSpecification.Type.ACCTEST)))
         {
             final UshSolrConnector.ResultSet resultSet = findDatabaseDocumentsHarvestedInInterval();
 

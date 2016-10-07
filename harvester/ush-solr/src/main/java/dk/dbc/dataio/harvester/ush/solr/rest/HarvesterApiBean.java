@@ -71,7 +71,7 @@ public class HarvesterApiBean {
     @POST
     @Path(UshServiceConstants.HARVESTERS_USH_SOLR_TEST)
     @Produces({MediaType.APPLICATION_JSON})
-    public Response runTestHarvest(@Context UriInfo uriInfo, @PathParam(UshServiceConstants.ID_VARIABLE) int id) {
+    public Response runTestHarvest(@Context UriInfo uriInfo, @PathParam(UshServiceConstants.ID_VARIABLE) long id) {
         LOGGER.trace("Called with ushSolrHarvesterConfig.id: '{}'", id);
         try {
             UshSolrHarvesterConfig ushSolrHarvesterConfig = flowStoreServiceConnectorBean.getConnector().getHarvesterConfig(id, UshSolrHarvesterConfig.class);

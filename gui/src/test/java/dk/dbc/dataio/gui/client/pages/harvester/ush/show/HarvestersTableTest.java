@@ -94,6 +94,7 @@ public class HarvestersTableTest {
         when(mockedTexts.value_Enabled()).thenReturn("UshEnabled");
         when(mockedTexts.value_Disabled()).thenReturn("UshDisabled");
         when(mockedTexts.button_Edit()).thenReturn("UshEditButton");
+        when(mockedTexts.button_TestSolrHarvest()).thenReturn("TestSolrHarvestButton");
         when(mockedTexts.pre_First()).thenReturn("PreFirst");
         when(mockedTexts.pre_Second()).thenReturn("PreSecond");
         when(mockedTexts.help_ColumnHeader()).thenReturn("Help ColumnHeader");
@@ -146,7 +147,7 @@ public class HarvestersTableTest {
         harvestersTable.texts = mockedTexts;
 
         // Verify Test
-        assertThat(harvestersTable.getColumnCount(), is(13));
+        assertThat(harvestersTable.getColumnCount(), is(14));
         int i = 0;
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("22"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshName"));
@@ -161,6 +162,7 @@ public class HarvestersTableTest {
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshDestination"));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1).toString(), is("safe: \"UshEnabled<br>UshEnabled\""));
         assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("UshEditButton"));
+        assertThat(harvestersTable.getColumn(i++).getValue(testHarvesterConfigEntry1), is("TestSolrHarvestButton"));
     }
 
     @Test

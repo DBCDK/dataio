@@ -80,6 +80,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     public void setupTexts() {
         when(mockedMenuTexts.menu_UshHarvesters()).thenReturn("UshHarvestersMenu");
         when(mockedTexts.error_JndiFetchError()).thenReturn("JndiFetchError");
+        when(mockedTexts.error_RunUshSolrTestError()).thenReturn("RunUshSolrTestError");
     }
 
     private List<UshSolrHarvesterConfig> testHarvesterConfig = new ArrayList<>();
@@ -101,6 +102,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         }
         public GetUshHarvestersCallback getUshHarvestersCallback = new GetUshHarvestersCallback();
         public GetUshAdminUrlCallback getUshAdminUrlCallback = new GetUshAdminUrlCallback();
+        public RunUshSolrTestHarvesterCallback runUshSolrTestHarvesterCallback = new RunUshSolrTestHarvesterCallback();
     }
 
 
@@ -150,6 +152,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // The following is called from GetHarvestersCallback
         verify(mockedView).setErrorText(any(String.class));
         verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
     }
 
     @Test
@@ -169,6 +172,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // The following is called from GetHarvestersCallback
         verify(mockedView).setHarvesters(testHarvesterConfig);
         verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
     }
 
     @Test
@@ -189,6 +193,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedTexts).error_JndiFetchError();
         verify(mockedView).setErrorText("JndiFetchError");
         verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
     }
 
     @Test
@@ -206,6 +211,45 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).asWidget();
         assertThat(presenterImpl.getUshAdminPage(), is("UshAdminUrl/../harvester-admin/"));
         verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
+    }
+
+    @Test
+    public void runUshSolrTestHarvesterCallback_callbackWithError_errorMessageInView() {
+        // Test preparation
+        setupPresenterImpl();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.runUshSolrTestHarvesterCallback.onFailure(new Exception());
+
+        // Verify Test
+        // The following is called from start()
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).asWidget();
+        // The following is called from GetHarvestersCallback
+        verify(mockedTexts).error_RunUshSolrTestError();
+        verify(mockedView).setErrorText("RunUshSolrTestError");
+        verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
+    }
+
+    @Test
+    public void runUshSolrTestHarvesterCallback_callbackWithSuccess_doNothing() {
+        // Test preparation
+        setupPresenterImpl();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.runUshSolrTestHarvesterCallback.onSuccess("12345");
+
+        // Verify Test
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).asWidget();
+        verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
     }
 
     // Private methods

@@ -44,7 +44,7 @@ public class UshSolrHarvesterProxyServlet extends RemoteServiceServlet implement
     }
 
     @Override
-    public String runTestHarvest(int id) throws ProxyException {
+    public String runTestHarvest(long id) throws ProxyException {
         return ushSolrHarvesterProxy.runTestHarvest(id);
     }
 

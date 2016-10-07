@@ -25,7 +25,7 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 
 public interface UshSolrHarvesterProxyAsync {
 
-    void runTestHarvest(int id, AsyncCallback<String> async);
+    void runTestHarvest(long id, AsyncCallback<String> async);
 
     void close(AsyncCallback<Void> async);
 }

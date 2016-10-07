@@ -63,12 +63,12 @@ public class UshSolrHarvesterServiceConnector {
 
     /**
      * Runs a Solr test harvest
-     * @param id the is of the harvest to test run
+     * @param id the id of the harvest to test run
      * @return the harvester id
      * @throws ProcessingException on general communication error
      * @throws UshSolrHarvesterServiceConnectorException on failure
      */
-    public String runTestHarvest(final int id) throws ProcessingException, UshSolrHarvesterServiceConnectorException {
+    public String runTestHarvest(final long id) throws ProcessingException, UshSolrHarvesterServiceConnectorException {
         final String NO_DATA = "";
         log.trace("UshSolrHarvesterServiceConnector: runTestHarvest({});", id);
         final StopWatch stopWatch = new StopWatch();

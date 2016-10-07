@@ -53,7 +53,7 @@ public class UshSolrHarvesterProxyImplTest {
     private final String ushSolrHarvesterServiceUrl;
     private final Client client = mock(Client.class);
 
-    private static final int HARVEST_ID = 444;
+    private static final long HARVEST_ID = 444;
 
     public UshSolrHarvesterProxyImplTest() {
         ushSolrHarvesterServiceUrl = "http://dataio/ush-solr-harvester";
@@ -124,7 +124,7 @@ public class UshSolrHarvesterProxyImplTest {
         }
     }
 
-    private void runTestHarvest_GenericTestImplForJobIdValidationErrors(int harvestId, ProxyError expectedError, String expectedErrorName) throws Exception {
+    private void runTestHarvest_GenericTestImplForJobIdValidationErrors(long harvestId, ProxyError expectedError, String expectedErrorName) throws Exception {
         final UshSolrHarvesterServiceConnector ushSolrHarvesterServiceConnector = mock(UshSolrHarvesterServiceConnector.class);
         final UshSolrHarvesterProxyImpl ushSolrHarvesterProxy = new UshSolrHarvesterProxyImpl(ushSolrHarvesterServiceConnector);
         when(ushSolrHarvesterServiceConnector.runTestHarvest(eq(harvestId))).thenThrow(new IllegalArgumentException());

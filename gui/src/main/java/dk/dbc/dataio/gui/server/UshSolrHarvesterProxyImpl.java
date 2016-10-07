@@ -46,7 +46,7 @@ public class UshSolrHarvesterProxyImpl implements UshSolrHarvesterProxy {
     public UshSolrHarvesterProxyImpl() throws NamingException {
         client = HttpClient.newClient();
         baseUrl = ServiceUtil.getUshSolrHarvesterServiceEndpoint();
-        log.info("UshSolrHarvesterProxy: Using Base URL {}", baseUrl);
+        log.info("Using Base URL {}", baseUrl);
         ushSolrHarvesterServiceConnector = new UshSolrHarvesterServiceConnector(client, baseUrl);
     }
 
@@ -55,30 +55,27 @@ public class UshSolrHarvesterProxyImpl implements UshSolrHarvesterProxy {
         this.ushSolrHarvesterServiceConnector = ushSolrHarvesterServiceConnector;
         client = HttpClient.newClient();
         baseUrl = ServiceUtil.getUshSolrHarvesterServiceEndpoint();
-        log.info("UshSolrHarvesterProxy: Using Base URL {}", baseUrl);
+        log.info("Using Base URL {}", baseUrl);
     }
 
     @Override
     public String runTestHarvest(long id) throws ProxyException {
         final String itemLog;
-        log.trace("UshSolrHarvesterProxy: getItemLog({});", id);
+        log.trace("runTestHarvest({});", id);
         final StopWatch stopWatch = new StopWatch();
         try {
             itemLog = ushSolrHarvesterServiceConnector.runTestHarvest(id);
-        } catch (NullPointerException e) {
-            log.error("UshSolrHarvesterProxy: getItemLog - Null Pointer Exception", e);
-            throw new ProxyException(ProxyError.BAD_REQUEST, e);
-        } catch (IllegalArgumentException e) {
-            log.error("UshSolrHarvesterProxy: getItemLog - Illegal Argument Exception", e);
+        } catch (NullPointerException | IllegalArgumentException e) {
+            log.error("runTestHarvest - Exception", e);
             throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } catch (UshSolrHarvesterServiceConnectorUnexpectedStatusCodeException e) {
-            log.error("UshSolrHarvesterProxy: getItemLog - Unexpected Status Code Exception", e);
+            log.error("runTestHarvest - Unexpected Status Code Exception", e);
             throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
         } catch (UshSolrHarvesterServiceConnectorException e) {
-            log.error("UshSolrHarvesterProxy: getItemLog - Service Connector Exception", e);
+            log.error("runTestHarvest - Service Connector Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } finally {
-            log.debug("UshSolrHarvesterProxy: getItemLog took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("runTestHarvest took {} milliseconds", stopWatch.getElapsedTime());
         }
         return itemLog;
     }

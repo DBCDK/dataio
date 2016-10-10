@@ -55,17 +55,17 @@ public class JavaScriptProject {
 
     /**
      * Creates self-contained javascript project for given script
-     * @param scriptDirectory directory used to find script dependencies
      * @param script path to javascript
+     * @param searchPath path used to find script dependencies
      * @return {@link JavaScriptProject}
      * @throws Exception on failure to create self-contained javascript project
      */
-    public static JavaScriptProject of(Path scriptDirectory, Path script) throws Exception {
+    public static JavaScriptProject of(Path script, Path searchPath) throws Exception {
         final List<JavaScript> javaScripts = new ArrayList<>();
         javaScripts.add(read(script));
 
         final JavascriptUtil.getAllDependentJavascriptsResult scriptsUsed =
-                JavascriptUtil.getAllDependentJavascripts(scriptDirectory, script);
+                JavascriptUtil.getAllDependentJavascripts(searchPath, script);
 
         javaScripts.addAll(scriptsUsed.javaScripts.stream()
                 .map(js -> new JavaScript(base64encode(js.javascript, SCRIPT_ENCODING), js.modulename))

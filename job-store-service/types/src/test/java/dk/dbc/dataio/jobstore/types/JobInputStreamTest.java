@@ -25,37 +25,41 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import org.junit.Test;
 
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static dk.dbc.commons.testutil.Assert.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.nullValue;
 
 public class JobInputStreamTest {
 
     private static final int PART_NUMBER = 12345678;
+    private final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jobSpecificationArgIsNull_throws() {
-        new JobInputStream(null, false, PART_NUMBER);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void constructor_partNumberLessThanZero_throws() {
-        new JobInputStream(new JobSpecificationBuilder().build(), false, -1);
+        assertThat(() -> new JobInputStream(null, false, PART_NUMBER), isThrowing(NullPointerException.class));
     }
 
     @Test
-    public void setJobSpecification_inputIsValid_jobSpecificationCreated() {
-        final String FORMAT = "thisIsATestFormat";
-        JobSpecification jobSpecification = new JobSpecificationBuilder()
-                .setFormat(FORMAT).build();
-        JobInputStream jobInputStream = new JobInputStream(jobSpecification, false, PART_NUMBER);
-
-        assertThat(jobInputStream.getPartNumber(), not(nullValue()));
-        assertThat(jobInputStream.getPartNumber(), is(PART_NUMBER));
-        assertThat(jobInputStream.getIsEndOfJob(), is(false));
-        assertThat(jobInputStream.getJobSpecification(), not(nullValue()));
-        assertThat(jobInputStream.getJobSpecification().getFormat(), is(FORMAT));
+    public void constructor_partNumberLessThanZero_throws() {
+        assertThat(() -> new JobInputStream(jobSpecification, false, -1), isThrowing(IllegalArgumentException.class));
     }
 
-}
+    @Test
+    public void constructor_allArgsAreValid_returnsJobInputStream() {
+        JobInputStream jobInputStream = new JobInputStream(jobSpecification, true, PART_NUMBER);
+
+        assertThat(jobInputStream.getPartNumber(), is(PART_NUMBER));
+        assertThat(jobInputStream.getIsEndOfJob(), is(true));
+        assertThat(jobInputStream.getJobSpecification(), is(jobSpecification));
+    }
+
+    @Test
+    public void constructorWithOneArg_argIsValid_returnsJobInputStream() {
+        JobInputStream jobInputStream = new JobInputStream(jobSpecification);
+
+        assertThat(jobInputStream.getPartNumber(), is(0));      // default value
+        assertThat(jobInputStream.getIsEndOfJob(), is(false));  // default value
+        assertThat(jobInputStream.getJobSpecification(), is(jobSpecification));
+    }
+ }

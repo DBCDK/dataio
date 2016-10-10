@@ -22,30 +22,19 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
-import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.FlowBinder;
-import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.Sink;
-import dk.dbc.dataio.commons.types.Submitter;
-import dk.dbc.dataio.commons.utils.test.model.FlowBinderBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
-import dk.dbc.dataio.commons.utils.test.model.SubmitterBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
 import dk.dbc.dataio.jobstore.service.entity.FlowCacheEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
-import dk.dbc.dataio.jobstore.service.param.AddJobParam;
-import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
-import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
-import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.StateChange;
@@ -55,7 +44,6 @@ import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -95,8 +83,6 @@ public abstract class PgJobStoreBaseTest {
 
     protected final static Sink EXPECTED_SINK = new SinkBuilder().build();
     protected final static Flow EXPECTED_FLOW = new FlowBuilder().build();
-
-    protected final static boolean OCCUPIED = true;
 
     protected static final int DEFAULT_JOB_ID = 1;
     protected static final int DEFAULT_CHUNK_ID = 0;
@@ -178,23 +164,6 @@ public abstract class PgJobStoreBaseTest {
         return pgJobStore;
     }
 
-    protected JobInputStream getJobInputStream(String datafile) {
-        JobSpecification jobSpecification = new JobSpecificationBuilder().setCharset("utf8").setDataFile(datafile).build();
-        return new JobInputStream(jobSpecification, true, 3);
-    }
-
-    protected void setupSuccessfulMockedReturnsFromFlowStore(JobSpecification jobSpecification) throws FlowStoreServiceConnectorException {
-        final FlowBinder flowBinder = new FlowBinderBuilder().build();
-        final Flow flow = new FlowBuilder().build();
-        final Sink sink = new SinkBuilder().build();
-        final Submitter submitter = new SubmitterBuilder().build();
-
-        whenGetFlowBinderThenReturnFlowBinder(jobSpecification, flowBinder);
-        when(mockedFlowStoreServiceConnector.getFlow(flowBinder.getContent().getFlowId())).thenReturn(flow);
-        when(mockedFlowStoreServiceConnector.getSink(flowBinder.getContent().getSinkId())).thenReturn(sink);
-        when(mockedFlowStoreServiceConnector.getSubmitterBySubmitterNumber(jobSpecification.getSubmitterId())).thenReturn(submitter);
-    }
-
     protected String getXml() {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
                 + "<records>"
@@ -240,15 +209,6 @@ public abstract class PgJobStoreBaseTest {
         return jobEntity;
     }
 
-    private void whenGetFlowBinderThenReturnFlowBinder(JobSpecification jobSpecification, FlowBinder flowBinder) throws FlowStoreServiceConnectorException {
-        when(mockedFlowStoreServiceConnector.getFlowBinder(
-                jobSpecification.getPackaging(),
-                jobSpecification.getFormat(),
-                jobSpecification.getCharset(),
-                jobSpecification.getSubmitterId(),
-                jobSpecification.getDestination())).thenReturn(flowBinder);
-    }
-
     protected Query whenCreateQueryThenReturn() {
         final Query query = mock(Query.class);
         when(query.setParameter(anyString(), anyInt())).thenReturn(query);
@@ -262,34 +222,5 @@ public abstract class PgJobStoreBaseTest {
         when(entityManager.createNativeQuery(anyString(), any(Class.class))).thenReturn(query);
         when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         return query;
-    }
-
-    class MockedAddJobParam extends AddJobParam {
-
-        public MockedAddJobParam() {
-            this(new JobSpecificationBuilder().build());
-        }
-
-        public MockedAddJobParam(JobSpecification jobSpecification) {
-            super(
-                    new JobInputStream(jobSpecification, true, 0),
-                    mockedFlowStoreServiceConnector);
-
-            submitter = new SubmitterBuilder().build();
-            flow = new FlowBuilder().build();
-            sink = new SinkBuilder().build();
-            flowBinder = new FlowBinderBuilder().build();
-            flowStoreReferences = new FlowStoreReferencesBuilder().build();
-            diagnostics = new ArrayList<>();
-        }
-
-        public void setFlowStoreReferences(FlowStoreReferences flowStoreReferences) {
-            this.flowStoreReferences = flowStoreReferences;
-        }
-
-        public void setDiagnostics(List<Diagnostic> diagnostics) {
-            this.diagnostics.clear();
-            this.diagnostics.addAll(diagnostics);
-        }
     }
 }

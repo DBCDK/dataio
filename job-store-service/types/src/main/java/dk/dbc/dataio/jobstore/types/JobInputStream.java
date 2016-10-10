@@ -48,8 +48,16 @@ public class JobInputStream {
 
         this.jobSpecification = InvariantUtil.checkNotNullOrThrow(jobSpecification, "jobSpecification");
         this.isEndOfJob = isEndOfJob;
-        this.partNumber = (int)InvariantUtil.checkLowerBoundOrThrow(partNumber, "partNumber", 0);
+        if(partNumber < 0) {
+            throw new IllegalArgumentException("partNumber must be greater than 0");
+        }
+        this.partNumber = partNumber;
     }
+
+    public JobInputStream(JobSpecification jobSpecification) {
+        this(jobSpecification, false, 0);
+    }
+
     public JobSpecification getJobSpecification() {
         return jobSpecification;
     }
@@ -61,6 +69,4 @@ public class JobInputStream {
     public int getPartNumber() {
         return partNumber;
     }
-
-
 }

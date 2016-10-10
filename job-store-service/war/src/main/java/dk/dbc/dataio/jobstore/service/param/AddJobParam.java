@@ -30,8 +30,11 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowBinder;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.ObjectFactory;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.Submitter;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -51,11 +54,12 @@ import java.util.List;
  */
 public class AddJobParam {
 
-    protected final FlowStoreServiceConnector flowStoreServiceConnector;
-    protected final JobInputStream jobInputStream;
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
+    final JobInputStream jobInputStream;
     protected List<Diagnostic> diagnostics;
     protected Submitter submitter;
-    protected FlowBinder flowBinder;
+    private FlowBinder flowBinder;
+    protected RecordSplitterConstants.RecordSplitter typeOfDataPartitioner;
     protected Flow flow;
     protected Sink sink;
     protected FlowStoreReferences flowStoreReferences;
@@ -70,6 +74,7 @@ public class AddJobParam {
             this.submitter = lookupSubmitter();
             this.flow = lookupFlow();
             this.sink = lookupSink();
+            this.typeOfDataPartitioner = lookupTypeOfDataPartitioner();
         }
         this.flowStoreReferences = newFlowStoreReferences();
     }
@@ -83,14 +88,14 @@ public class AddJobParam {
     public Submitter getSubmitter() {
         return submitter;
     }
-    public FlowBinder getFlowBinder() {
-        return flowBinder;
-    }
     public Flow getFlow() {
         return flow;
     }
     public Sink getSink() {
         return sink;
+    }
+    public RecordSplitterConstants.RecordSplitter getTypeOfDataPartitioner() {
+        return typeOfDataPartitioner;
     }
     public FlowStoreReferences getFlowStoreReferences() {
         return flowStoreReferences;
@@ -143,6 +148,13 @@ public class AddJobParam {
         return null;
     }
 
+    protected RecordSplitterConstants.RecordSplitter lookupTypeOfDataPartitioner() {
+        if (flowBinder != null) {
+            return flowBinder.getContent().getRecordSplitter();
+        }
+        return null;
+    }
+
     private Submitter lookupSubmitter() {
         final long submitterNumber = jobInputStream.getJobSpecification().getSubmitterId();
         try {
@@ -156,7 +168,7 @@ public class AddJobParam {
         return null;
     }
 
-    private Flow lookupFlow() {
+    protected Flow lookupFlow() {
         if (flowBinder != null) {
             final long flowId = flowBinder.getContent().getFlowId();
             try {
@@ -170,7 +182,10 @@ public class AddJobParam {
     }
 
     private Sink lookupSink() {
-        if (flowBinder != null) {
+        if(jobInputStream.getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
+            return createDiffSink();
+        }
+        else if (flowBinder != null) {
             final long sinkId = flowBinder.getContent().getSinkId();
             try {
                 return flowStoreServiceConnector.getSink(sinkId);
@@ -201,5 +216,10 @@ public class AddJobParam {
                     new FlowStoreReference(submitter.getId(), submitter.getVersion(),submitter.getContent().getName()));
         }
         return flowStoreReferences;
+    }
+
+    static Sink createDiffSink() {
+        return new Sink(1, 1, new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF,
+                "Internal sink used for acceptance test diff functionality", SinkContent.SequenceAnalysisOption.ID_ONLY));
     }
 }

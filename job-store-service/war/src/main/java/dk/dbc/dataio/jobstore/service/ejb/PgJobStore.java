@@ -117,15 +117,16 @@ public class PgJobStore {
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
         // Creates job entity in its own transactional scope to enable external visibility
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
-        LOGGER.info("addJob(): adding job with job ID: {}", jobEntity.getId());
+        LOGGER.info("adding job with job ID: {}", jobEntity.getId());
 
         if (!jobEntity.hasFatalError()) {
+            final Sink sink = jobEntity.getCachedSink().getSink();
             jobQueueRepository.addWaiting(new JobQueueEntity()
                 .withJob(jobEntity)
-                .withSinkId(addJobParam.getSink().getId())
-                .withTypeOfDataPartitioner(addJobParam.getFlowBinder().getContent().getRecordSplitter()));
+                .withSinkId(sink.getId())
+                .withTypeOfDataPartitioner(addJobParam.getTypeOfDataPartitioner()));
 
-            self().partitionNextJobForSinkIfAvailable(addJobParam.getSink());
+            self().partitionNextJobForSinkIfAvailable(sink);
         } else {
             addNotificationIfSpecificationHasDestination(JobNotification.Type.JOB_CREATED, jobEntity);
         }

@@ -205,7 +205,7 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(jobSpecification.toString()), is(true));
-        assertThat(addJobParam.getFlowBinder(), is(nullValue()));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(nullValue()));
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }
 
@@ -230,7 +230,7 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(diagnostics.size(), is(1));
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage(), is(FLOW_STORE_ERROR_DESCRIPTION));
-        assertThat(addJobParam.getFlowBinder(), is(nullValue()));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(nullValue()));
         assertThat(addJobParam.getFlowStoreReferences(), is(new FlowStoreReferences()));
     }
 
@@ -248,7 +248,7 @@ public class AddJobParamTest extends ParamBaseTest {
         final AddJobParam addJobParam = constructAddJobParam();
 
         assertThat(addJobParam.getDiagnostics().size(), is(0));
-        assertThat(addJobParam.getFlowBinder(), is(notNullValue()));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(notNullValue()));
 
         final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
         final FlowStoreReference flowBinderReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
@@ -276,7 +276,7 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(flowBinder.getContent().getFlowId()).toString()), is(true));
 
-        assertThat(addJobParam.getFlowBinder(), is(notNullValue()));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(notNullValue()));
         assertThat(addJobParam.getFlow(), is(nullValue()));
 
         final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
@@ -332,7 +332,7 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(diagnostics.get(0).getLevel(), is(Diagnostic.Level.FATAL));
         assertThat(diagnostics.get(0).getMessage().contains(Long.valueOf(flowBinder.getContent().getSinkId()).toString()), is(true));
 
-        assertThat(addJobParam.getFlowBinder(), is(notNullValue()));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(notNullValue()));
         assertThat(addJobParam.getSink(), is(nullValue()));
         final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
         final FlowStoreReference flowStoreReference = new FlowStoreReference(flowBinder.getId(), flowBinder.getVersion(), flowBinder.getContent().getName());
@@ -357,7 +357,7 @@ public class AddJobParamTest extends ParamBaseTest {
         final AddJobParam addJobParam = constructAddJobParam();
         assertThat(addJobParam.getDiagnostics().size(), is(0));
 
-        assertThat(addJobParam.getFlowBinder(), is(notNullValue()));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(notNullValue()));
         assertThat(addJobParam.getSink(), is(notNullValue()));
 
         final FlowStoreReferences flowStoreReferences = new FlowStoreReferences();
@@ -380,7 +380,7 @@ public class AddJobParamTest extends ParamBaseTest {
         assertThat(addJobParam.getFlowStoreReferences(), is(getFlowStoreReferencesWithAllReferencesSet(submitter, flow, sink, flowBinder)));
 
         assertThat(addJobParam.getSubmitter(), is(submitter));
-        assertThat(addJobParam.getFlowBinder(), is(flowBinder));
+        assertThat(addJobParam.getTypeOfDataPartitioner(), is(flowBinder.getContent().getRecordSplitter()));
         assertThat(addJobParam.getFlow(), is(flow));
         assertThat(addJobParam.getSink(), is(sink));
     }

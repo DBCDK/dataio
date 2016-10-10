@@ -14,6 +14,7 @@ import java.util.List;
 
 public class TestableAddJobParam extends AddJobParam {
     private String records;
+    private FlowBinder flowBinder;
 
     public TestableAddJobParam(String records,
                                JobInputStream jobInputStream,
@@ -31,13 +32,17 @@ public class TestableAddJobParam extends AddJobParam {
         this.flow = flow;
         this.sink = sink;
         this.flowBinder = flowBinder;
+        this.typeOfDataPartitioner = flowBinder.getContent().getRecordSplitter();
         this.flowStoreReferences = flowStoreReferences;
         this.diagnostics = diagnostics;
-
         this.records = records;
     }
 
     public String getRecords() {
         return records;
+    }
+
+    public FlowBinder getFlowBinder() {
+        return flowBinder;
     }
 }

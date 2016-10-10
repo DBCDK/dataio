@@ -212,18 +212,11 @@ public class PgJobStoreRepository extends RepositoryBase {
             jobState.getPhase(State.Phase.PARTITIONING).setBeginDate(new Date());
             try {
                 String flowJson = jsonbContext.marshall(addJobParam.getFlow());
-                String sinkJson;
-                if (addJobParam.getJobInputStream().getJobSpecification().getType() == JobSpecification.Type.ACCTEST) {
-                    LOGGER.info("Forcing diff sink on ACCTEST job");
-                    sinkJson = jsonbContext.marshall(
-                            new Sink(1, 1,
-                                    new SinkContent("DiffSink", JndiConstants.JDBC_RESOURCE_SINK_DIFF, "Internal sink used for acceptance test diff functionality", SinkContent.SequenceAnalysisOption.ID_ONLY)));
-                } else {
+                if (addJobParam.getJobInputStream().getJobSpecification().getType() != JobSpecification.Type.ACCTEST) {
                     flowJson = new FlowTrimmer(jsonbContext).trim(flowJson);
-                    sinkJson = jsonbContext.marshall(addJobParam.getSink());
                 }
                 jobEntity.setCachedFlow(cacheFlow(flowJson));
-                jobEntity.setCachedSink(cacheSink(sinkJson));
+                jobEntity.setCachedSink(cacheSink(jsonbContext.marshall(addJobParam.getSink())));
             } catch (JSONBException e) {
                 throw new JobStoreException("Exception caught during job-store operation", e);
             }

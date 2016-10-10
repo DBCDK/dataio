@@ -53,6 +53,13 @@ public class JavaScriptProject {
         return requireCache;
     }
 
+    /**
+     * Creates self-contained javascript project for given script
+     * @param scriptDirectory directory used to find script dependencies
+     * @param script path to javascript
+     * @return {@link JavaScriptProject}
+     * @throws Exception on failure to create self-contained javascript project
+     */
     public static JavaScriptProject of(Path scriptDirectory, Path script) throws Exception {
         final List<JavaScript> javaScripts = new ArrayList<>();
         javaScripts.add(read(script));

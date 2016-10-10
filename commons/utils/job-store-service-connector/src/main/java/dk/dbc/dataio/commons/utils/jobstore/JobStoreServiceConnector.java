@@ -28,6 +28,7 @@ import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.httpclient.PathBuilder;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
+import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobError;
@@ -104,6 +105,35 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: addJob took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Creates new acceptance test job defined by given job specification in the job-store
+     * @param jobInputStream containing the job specification
+     * @return JobInfoSnapshot displaying job information from one exact moment in time.
+     * @throws NullPointerException if given null-valued argument
+     * @throws JobStoreServiceConnectorException on general communication failure
+     * @throws JobStoreServiceConnectorUnexpectedStatusCodeException on unexpected response status code
+     */
+    public JobInfoSnapshot addAccTestJob(AccTestJobInputStream jobInputStream) throws NullPointerException, JobStoreServiceConnectorException {
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
+            final Response response;
+            try {
+                response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_ACCTEST);
+            } catch (ProcessingException e) {
+                throw new JobStoreServiceConnectorException("job-store communication error", e);
+            }
+            try {
+                verifyResponseStatus(response, Response.Status.CREATED);
+                return readResponseEntity(response, JobInfoSnapshot.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("addAccTestJob took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

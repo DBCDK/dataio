@@ -25,6 +25,7 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
@@ -40,6 +41,7 @@ import dk.dbc.dataio.commons.utils.test.rest.MockedResponse;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
+import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.AddNotificationRequest;
 import dk.dbc.dataio.jobstore.types.InvalidTransfileNotificationContext;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -65,6 +67,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -161,6 +165,52 @@ public class JobStoreServiceConnectorTest {
     public void addJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
         final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshotBuilder().build();
         final JobInfoSnapshot jobInfoSnapshot = callAddJobWithMockedHttpResponse(getNewJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
+        assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
+    }
+
+    // **************************************** add accTestJob tests *****************************************
+
+    @Test
+    public void addAccTestJob_jobInputStreamArgIsNull_throws() throws JobStoreServiceConnectorException {
+        assertThat(() -> newJobStoreServiceConnector().addAccTestJob(null),
+                isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void addJAccTestJob_responseWithNullEntity_throws() throws JobStoreServiceConnectorException {
+        assertThat(() -> callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, null),
+                isThrowing(JobStoreServiceConnectorException.class));
+    }
+
+    @Test
+    public void addAccTestJob_responseWithUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        final JobError jobError = new JobError(JobError.Code.INVALID_JSON, "description", null);
+        try {
+            callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.BAD_REQUEST, jobError);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+        }
+    }
+
+    @Test
+    public void addAccTestJob_onProcessingException_throws() {
+        final AccTestJobInputStream jobInputStream = getNewAccTestJobInputStream();
+        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_ACCTEST))
+                .thenThrow(new ProcessingException("Connection reset"));
+        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+        try {
+            jobStoreServiceConnector.addAccTestJob(jobInputStream);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void addAccTestJob_jobIsAdded_returnsJobInfoSnapshot() throws JobStoreServiceConnectorException {
+        final JobInfoSnapshot expectedJobInfoSnapshot = new JobInfoSnapshotBuilder().build();
+        final JobInfoSnapshot jobInfoSnapshot = callAddAccTestJobWithMockedHttpResponse(getNewAccTestJobInputStream(), Response.Status.CREATED, expectedJobInfoSnapshot);
         assertThat(jobInfoSnapshot, is(expectedJobInfoSnapshot));
     }
 
@@ -752,6 +802,15 @@ public class JobStoreServiceConnectorTest {
         return instance.addJob(jobInputStream);
     }
 
+    // Helper method
+    private JobInfoSnapshot callAddAccTestJobWithMockedHttpResponse(AccTestJobInputStream jobInputStream, Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_ACCTEST))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.addAccTestJob(jobInputStream);
+    }
+
     private JobInfoSnapshot callAddChunkWithMockedHttpResponse(Chunk chunk, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
         final String basePath = getAddChunkBasePath(chunk);
@@ -903,6 +962,17 @@ public class JobStoreServiceConnectorTest {
         try {
             final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
             return new JobInputStream(jobSpecification, false, PART_NUMBER);
+        } catch (Exception e) {
+            fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static AccTestJobInputStream getNewAccTestJobInputStream() {
+        try {
+            final JobSpecification jobSpecification = new JobSpecificationBuilder().build();
+            final Flow flow = new FlowBuilder().build();
+            return new AccTestJobInputStream(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.XML);
         } catch (Exception e) {
             fail("Caught unexpected exception " + e.getClass().getCanonicalName() + ": " + e.getMessage());
             throw new IllegalStateException(e);

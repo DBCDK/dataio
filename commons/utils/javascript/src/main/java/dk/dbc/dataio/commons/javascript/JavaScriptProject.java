@@ -23,9 +23,20 @@ package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.dataio.commons.types.JavaScript;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static dk.dbc.dataio.commons.utils.lang.StringUtil.base64encode;
 
 public class JavaScriptProject {
+    private static final Charset SCRIPT_ENCODING = StandardCharsets.UTF_8;
+
     private final List<JavaScript> javaScripts;
     private final String requireCache;
 
@@ -40,5 +51,29 @@ public class JavaScriptProject {
 
     public String getRequireCache() {
         return requireCache;
+    }
+
+    public static JavaScriptProject of(Path scriptDirectory, Path script) throws Exception {
+        final List<JavaScript> javaScripts = new ArrayList<>();
+        javaScripts.add(read(script));
+
+        final JavascriptUtil.getAllDependentJavascriptsResult scriptsUsed =
+                JavascriptUtil.getAllDependentJavascripts(scriptDirectory, script);
+
+        javaScripts.addAll(scriptsUsed.javaScripts.stream()
+                .map(js -> new JavaScript(base64encode(js.javascript, SCRIPT_ENCODING), js.modulename))
+                .collect(Collectors.toList()));
+
+        String requireCache = null;
+        if (scriptsUsed.requireCache != null) {
+            requireCache = base64encode(scriptsUsed.requireCache, SCRIPT_ENCODING);
+        }
+
+        return new JavaScriptProject(javaScripts, requireCache);
+    }
+
+    private static JavaScript read(Path script) throws IOException {
+        final String content = new String(Files.readAllBytes(script), SCRIPT_ENCODING);
+        return new JavaScript(base64encode(content, SCRIPT_ENCODING), "");
     }
 }

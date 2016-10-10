@@ -23,10 +23,8 @@ package dk.dbc.dataio.commons.javascript;
 
 import dk.dbc.dataio.commons.svn.SvnConnector;
 import dk.dbc.dataio.commons.time.StopWatch;
-import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.types.RevisionInfo;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.tmatesoft.svn.core.SVNException;
@@ -41,7 +39,6 @@ import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -63,7 +60,6 @@ public class JavaScriptSubversionProject {
     private static final Logger LOGGER = LoggerFactory.getLogger(JavaScriptSubversionProject.class);
     private static final String JAVASCRIPT_FILENAME_EXTENSION = ".js";
     private static final String JAVASCRIPT_USE_MODULE_EXTENSION = ".use.js";
-    private static final Charset ENCODING = StandardCharsets.UTF_8;
 
     private final String subversionScmEndpoint;
     private final List<String> dependencies;
@@ -177,7 +173,7 @@ public class JavaScriptSubversionProject {
         final String projectUrl = buildProjectUrl(projectPath);
         Path exportFolder = null;
         try {
-            exportFolder = createTmpFolder(getClass().getName());
+            exportFolder = createTmpDirectory(getClass().getName());
             final String trimmedJavaScriptFileName = leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName);
             final String fileUrl = removeTrailingDelimiter(urlJoin(projectUrl, trimmedJavaScriptFileName));
             SvnConnector.export(fileUrl, revision, exportFolder);
@@ -222,33 +218,18 @@ public class JavaScriptSubversionProject {
         final StopWatch stopWatch = new StopWatch();
         final String errorMessage = "Unable to retrieve required javaScript for function '{}' in script in file '{}' in revision {} of project '{}'";
         final String projectUrl = buildProjectUrl(projectPath);
-        final List<JavaScript> javaScripts = new ArrayList<>();
-        String requireCache = null;
-        Path exportFolder = null;
+        Path tmpDir = null;
         try {
-            exportFolder = createTmpFolder(getClass().getName());
-            final Path exportPath = Paths.get(exportFolder.toString(), projectPath);
-            SvnConnector.export(projectUrl, revision, exportPath);
-
-            final Path mainJsPath = Paths.get(exportPath.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
-            final String mainJsContent = new String(Files.readAllBytes(mainJsPath), ENCODING);
-            final JavaScript mainJs = new JavaScript(StringUtil.base64encode(mainJsContent, ENCODING), "");
-            javaScripts.add(mainJs);
+            tmpDir = createTmpDirectory(getClass().getName());
+            final Path exportDir = Paths.get(tmpDir.toString(), projectPath);
+            SvnConnector.export(projectUrl, revision, exportDir);
 
             for (String dependency : dependencies) {
-                SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(exportFolder.toString(), dependency));
+                SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(tmpDir.toString(), dependency));
             }
 
-            final JavascriptUtil.getAllDependentJavascriptsResult result =
-                    JavascriptUtil.getAllDependentJavascripts(exportFolder, mainJsPath);
-
-            javaScripts.addAll(result.javaScripts.stream()
-                    .map(js -> new JavaScript(StringUtil.base64encode(js.javascript, ENCODING), js.modulename))
-                    .collect(Collectors.toList()));
-
-            if (result.requireCache != null) {
-                requireCache = StringUtil.base64encode(result.requireCache, ENCODING);
-            }
+            return JavaScriptProject.of(exportDir,
+                    Paths.get(exportDir.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName)));
         } catch (SVNException e) {
             LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);
@@ -259,10 +240,9 @@ public class JavaScriptSubversionProject {
             LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(JavaScriptProjectError.JAVASCRIPT_READ_ERROR, e);
         } finally {
-            deleteFolder(exportFolder);
+            deleteFolder(tmpDir);
             LOGGER.debug("fetchRequiredJavaScript() took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return new JavaScriptProject(javaScripts, requireCache);
     }
 
     private static Reader getReaderForFile(Path file) throws FileNotFoundException, UnsupportedEncodingException {
@@ -293,7 +273,7 @@ public class JavaScriptSubversionProject {
         return in.replaceFirst(String.format("%s$", URL_DELIMITER), "");
     }
 
-    private static Path createTmpFolder(final String prefix) {
+    private static Path createTmpDirectory(final String prefix) {
         Path folder = null;
         try {
             folder = Files.createTempDirectory(Paths.get(System.getProperty("java.io.tmpdir")), prefix);

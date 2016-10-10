@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.common.utils.flowstore;
 
-import dk.dbc.commons.testutil.Assert;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
@@ -45,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.CLIENT;
 import static dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorTestHelper.FLOW_STORE_URL;
@@ -310,13 +310,13 @@ public class FlowStoreServiceConnector_Flows_Test {
 
     @Test
     public void findFlowByName_noResults() throws FlowStoreServiceConnectorException {
-        Assert.assertThat(() -> findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null, null),
+        assertThat(() -> findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.NOT_FOUND.getStatusCode(), null, null),
                 isThrowing(FlowStoreServiceConnectorUnexpectedStatusCodeException.class));
     }
 
     @Test
     public void findFlowByName_responseWithUnexpectedStatusCode_throws() throws FlowStoreServiceConnectorException {
-        Assert.assertThat(() -> findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", null),
+        assertThat(() -> findFlowByName_mockedHttpWithSpecifiedReturnErrorCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), "", null),
                 isThrowing(FlowStoreServiceConnectorException.class));
     }
 

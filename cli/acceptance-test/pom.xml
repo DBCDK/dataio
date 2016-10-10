@@ -36,73 +36,29 @@
   <build>
     <plugins>
       <plugin>
-        <artifactId>maven-resources-plugin</artifactId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>dk.dbc.dataio.cli.AcceptanceTestCli</mainClass>
+            </manifest>
+          </archive>
+          <appendAssemblyId>false</appendAssemblyId>
+          <attach>false</attach>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
         <executions>
           <execution>
-            <id>copy-resources</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>copy-resources</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>src/acceptance_test/bin</outputDirectory>
-              <resources>
-                <resource>
-                  <directory>${basedir}/../flow-component/target</directory>
-                  <includes>
-                    <include>dataio-cli-flow-component.jar</include>
-                  </includes>
-                  <filtering>false</filtering>
-                </resource>
-              </resources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>exec-maven-plugin</artifactId>
-        <groupId>org.codehaus.mojo</groupId>
-        <executions>
-          <execution>
-            <!-- this overrides default build-docker-image execution from parent pom -->
-            <id>build-docker-image</id>
+            <id>package-jar-with-dependencies</id>
             <phase>package</phase>
             <goals>
-              <goal>exec</goal>
+              <goal>single</goal>
             </goals>
             <configuration>
-              <executable>echo</executable>
-              <arguments>
-                <argument>no docker image is to be built</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>package-dist</id>
-            <phase>package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>python</executable>
-              <arguments>
-                <argument>setup.py</argument>
-                <argument>sdist</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>clean-dist</id>
-            <phase>pre-clean</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>python</executable>
-              <arguments>
-                <argument>setup.py</argument>
-                <argument>clean</argument>
-              </arguments>
+              <finalName>dataio-cli-acctest</finalName>
             </configuration>
           </execution>
         </executions>

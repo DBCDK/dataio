@@ -23,7 +23,7 @@ package dk.dbc.dataio.harvester.ush.solr.rest;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -35,6 +35,9 @@ import java.util.Set;
 public class HarvesterApplication extends Application {
     @Override
     public Set<Class<?>> getClasses() {
-        return new HashSet<>(Collections.singletonList(StatusBean.class));
+        return new HashSet<>(Arrays.asList(
+                StatusBean.class,
+                HarvesterApiBean.class
+        ));
     }
 }

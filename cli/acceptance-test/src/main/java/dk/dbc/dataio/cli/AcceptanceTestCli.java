@@ -28,11 +28,11 @@ import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.cli.options.Options;
 
 /**
- * dataIO flow component command line interface
+ * dataIO acceptance test command line interface
  * <p>
  *     To show usage run
  *
- *     %&gt; java -jar dataio-cli-flow-component.jar
+ *     %&gt; java -jar dataio-cli-acctest.jar
  * </p>
  */
 public class AcceptanceTestCli {

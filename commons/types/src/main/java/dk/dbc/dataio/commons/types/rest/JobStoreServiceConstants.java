@@ -27,6 +27,8 @@ public class JobStoreServiceConstants {
     public static final String ITEM_ID_VARIABLE = "itemId";
     public static final String SINK_ID_VARIABLE = "sinkId";
 
+    public static final String JOB_COLLECTION_ACCTEST = "jobs/acctests";
+
     public static final String JOB_COLLECTION                   = "jobs";
     public static final String JOB_COLLECTION_SEARCHES          = "jobs/searches";
     public static final String JOB_COLLECTION_SEARCHES_COUNT    = "jobs/searches/count";
@@ -44,7 +46,6 @@ public class JobStoreServiceConstants {
     public static final String ITEM_WORKFLOW_NOTE               = "jobs/{jobId}/chunks/{chunkId}/items/{itemId}/workflownote";
 
     public static final String NOTIFICATIONS                    = "notifications";
-    public static final String NOTIFICATIONS_TEST               = "notifications/test";
 
     public static final String EXPORT_ITEMS_PARTITIONED_FAILED = "jobs/{jobId}/exports/items/partitioned/failed";
     public static final String EXPORT_ITEMS_PROCESSED_FAILED   = "jobs/{jobId}/exports/items/processed/failed";

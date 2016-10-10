@@ -26,7 +26,9 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBean;
@@ -35,11 +37,13 @@ import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.ItemEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobQueueEntity;
+import dk.dbc.dataio.jobstore.service.param.AddAccTestJobParam;
 import dk.dbc.dataio.jobstore.service.param.AddJobParam;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
 import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
 import dk.dbc.dataio.jobstore.service.util.ItemInfoSnapshotConverter;
 import dk.dbc.dataio.jobstore.service.util.JobInfoSnapshotConverter;
+import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -102,6 +106,12 @@ public class PgJobStore {
     @Stopwatch
     public JobInfoSnapshot addAndScheduleJob(JobInputStream jobInputStream) throws JobStoreException {
         AddJobParam param = new AddJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector());
+        return addJob(param);
+    }
+
+    @Stopwatch
+    public JobInfoSnapshot addAndScheduleAccTestJob(AccTestJobInputStream jobInputStream) throws JobStoreException {
+        AddAccTestJobParam param = new AddAccTestJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector());
         return addJob(param);
     }
 

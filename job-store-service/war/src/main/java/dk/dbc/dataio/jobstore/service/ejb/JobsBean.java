@@ -25,8 +25,8 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
-import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.InvalidInputException;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
@@ -118,6 +118,44 @@ public class JobsBean {
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, JobInputStream.class);
             jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
+            return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
+                    .entity(jsonbContext.marshall(jobInfoSnapshot))
+                    .build();
+
+        } catch (JSONBException e) {
+            return Response.status(BAD_REQUEST)
+                    .entity(jsonbContext.marshall(new JobError(JobError.Code.INVALID_JSON, e.getMessage(), ServiceUtil.stackTraceToString(e))))
+                    .build();
+        } catch(InvalidInputException e) {
+            return Response.status(BAD_REQUEST).entity(jsonbContext.marshall(e.getJobError())).build();
+        }
+    }
+
+    /**
+     * Adds new acceptance test job based on POSTed job input stream, and persists it in the underlying data store
+     *
+     * @param uriInfo application and request URI information
+     * @param jobInputStreamData job input stream data as json
+     *
+     * @return a HTTP 201 CREATED response with a Location header containing the URL value of the newly created resource,
+     *         a HTTP 400 BAD_REQUEST response on invalid json content,
+     *         a HTTP 400 BAD_REQUEST response on referenced entities not found,
+     *
+     * @throws JSONBException on marshalling failure
+     * @throws JobStoreException on failure to add job
+     */
+    @POST
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_ACCTEST)
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
+    public Response addAccTestJob(@Context UriInfo uriInfo, String jobInputStreamData) throws JSONBException, JobStoreException {
+        final AccTestJobInputStream jobInputStream;
+        JobInfoSnapshot jobInfoSnapshot;
+
+        try {
+            jobInputStream = jsonbContext.unmarshall(jobInputStreamData, AccTestJobInputStream.class);
+            jobInfoSnapshot = jobStore.addAndScheduleAccTestJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();

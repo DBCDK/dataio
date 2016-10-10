@@ -26,9 +26,9 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
+import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.types.jms.JmsConstants;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsProducer;
 import dk.dbc.dataio.commons.utils.test.jms.MockedJmsTextMessage;
@@ -44,6 +44,7 @@ import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.test.types.JobNotificationBuilder;
 import dk.dbc.dataio.jobstore.test.types.WorkflowNoteBuilder;
+import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.DuplicateChunkException;
 import dk.dbc.dataio.jobstore.types.FlowStoreReference;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
@@ -61,22 +62,11 @@ import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 import org.junit.After;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import javax.jms.JMSContext;
-import javax.jms.JMSException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriBuilder;
@@ -88,8 +78,24 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
+
+import static dk.dbc.commons.testutil.Assert.isThrowing;
+import static dk.dbc.commons.testutil.Assert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyShort;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class JobsBeanTest {
     private final static String LOCATION = "location";
@@ -169,6 +175,49 @@ public class JobsBeanTest {
         assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
     }
 
+    // ********************************** ADD ACCTEST JOB TESTS ********************************************************
+
+    @Test
+    public void addAccTestJob_addAndScheduleJobFailure_throwsJobStoreException() throws Exception {
+        final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(
+                new JobSpecificationBuilder().build(),
+                new FlowBuilder().build(),
+                RecordSplitterConstants.RecordSplitter.XML);
+
+        when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenThrow(new JobStoreException("Error"));
+        assertThat(() ->  jobsBean.addAccTestJob(mockedUriInfo, asJson(jobInputStream)), isThrowing(JobStoreException.class));
+    }
+
+    @Test
+    public void addAccTestJob_marshallingFailure_returnsResponseWithHttpStatusBadRequest() throws Exception {
+        final Response response = jobsBean.addJob(mockedUriInfo, "invalid JSON");
+
+        assertBadRequestResponse(response, JobError.Code.INVALID_JSON);
+    }
+
+    @Test
+    public void addAccTestJob_returnsResponseWithHttpStatusCreated_returnsJobInfoSnapshot() throws Exception {
+        final JobInfoSnapshot jobInfoSnapshot = new JobInfoSnapshotBuilder().setJobId(JOB_ID).build();
+        final Flow flow = new FlowBuilder().build();
+        final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobInfoSnapshot.getSpecification(), flow, RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
+        final String jobInputStreamJson = asJson(jobInputStream);
+
+        when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenReturn(jobInfoSnapshot);
+
+        final Response response = jobsBean.addAccTestJob(mockedUriInfo, jobInputStreamJson);
+        assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
+        assertThat(response.getLocation().toString(), is(LOCATION));
+        assertThat(response.hasEntity(), is(true));
+
+        final JobInfoSnapshot returnedJobInfoSnapshot = jsonbContext.unmarshall((String) response.getEntity(), JobInfoSnapshot.class);
+        assertThat(returnedJobInfoSnapshot, is(notNullValue()));
+        assertThat(returnedJobInfoSnapshot.hasFatalError(), is(false));
+        assertThat(returnedJobInfoSnapshot.getJobId(), is(jobInfoSnapshot.getJobId()));
+        assertThat(returnedJobInfoSnapshot.getSpecification(), is(jobInfoSnapshot.getSpecification()));
+        assertThat(returnedJobInfoSnapshot.getState(), is(jobInfoSnapshot.getState()));
+        assertThat(returnedJobInfoSnapshot.getFlowStoreReferences(), is(jobInfoSnapshot.getFlowStoreReferences()));
+    }
+
 
     // ************************************* ADD CHUNK TESTS **************************************************************
 
@@ -232,24 +281,6 @@ public class JobsBeanTest {
         assertThat(response.hasEntity(), is(true));
 
         verify( jobSchedulerBean, atLeastOnce()).chunkProcessingDone( any( Chunk.class ));
-    }
-
-    private Chunk assertProcessorMessageForSink(MockedJmsTextMessage message, String resource) throws JMSException, JSONBException {
-        assertThat("sink JMS msg", message, is(notNullValue()));
-        assertThat("sink JMS msg source", message.getStringProperty(JmsConstants.SOURCE_PROPERTY_NAME), is(JmsConstants.PROCESSOR_SOURCE_VALUE));
-        assertThat("sink JMS msg payload", message.getStringProperty(JmsConstants.PAYLOAD_PROPERTY_NAME), is(JmsConstants.CHUNK_PAYLOAD_TYPE));
-        assertThat("sink JMS msg resource", message.getStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME), is(resource));
-        return jsonbContext.unmarshall(message.getText(), Chunk.class);
-    }
-    private void assertChunk(Chunk in, Chunk out) {
-        assertThat("chunk type", out.getType(), is(Chunk.Type.PROCESSED));
-        assertThat("chunk jobId", out.getJobId(), is(in.getJobId()));
-        assertThat("chunk chunkId", out.getChunkId(), is(in.getChunkId()));
-        assertThat("chunk size", out.size(), is(in.size()));
-        final Iterator<ChunkItem> inIterator = in.iterator();
-        for (ChunkItem item : out) {
-            assertThat("chunk item data", StringUtil.asString(item.getData()), is(StringUtil.asString(inIterator.next().getData())));
-        }
     }
 
     @Test
@@ -317,7 +348,7 @@ public class JobsBeanTest {
 
     @Test
     public void listJobs_jobStoreReturnsEmptyList_returnsStatusOkResponseWithEmptyList() throws JSONBException {
-        when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(Collections.<JobInfoSnapshot>emptyList());
+        when(jobsBean.jobStoreRepository.listJobs(any(JobListCriteria.class))).thenReturn(Collections.emptyList());
 
         final Response response = jobsBean.listJobs(asJson(new JobListCriteria()));
         assertOkResponse(response);
@@ -358,7 +389,7 @@ public class JobsBeanTest {
 
     @Test
     public void listItems_jobStoreReturnsEmptyList_returnsStatusOkResponseWithEmptyList() throws JSONBException {
-        when(jobsBean.jobStoreRepository.listItems(any(ItemListCriteria.class))).thenReturn(Collections.<ItemInfoSnapshot>emptyList());
+        when(jobsBean.jobStoreRepository.listItems(any(ItemListCriteria.class))).thenReturn(Collections.emptyList());
 
         final Response response = jobsBean.listItems(asJson(new ItemListCriteria()));
         assertOkResponse(response);

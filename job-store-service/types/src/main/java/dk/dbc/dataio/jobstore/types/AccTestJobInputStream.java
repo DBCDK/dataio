@@ -37,12 +37,11 @@ public class AccTestJobInputStream extends JobInputStream {
      * @param flow             the flow to use
      * @param typeOfDataPartitioner the type of data partitioner to use
      * @throws NullPointerException if given null-valued argument
-     * @throws IllegalArgumentException if super constructor fails due to value of partNumber less than 0
      */
     public AccTestJobInputStream(
             @JsonProperty("jobSpecification") JobSpecification jobSpecification,
             @JsonProperty("flow")Flow flow,
-            @JsonProperty("typeOfDataPartitioner") RecordSplitterConstants.RecordSplitter typeOfDataPartitioner) throws NullPointerException, IllegalArgumentException {
+            @JsonProperty("typeOfDataPartitioner") RecordSplitterConstants.RecordSplitter typeOfDataPartitioner) throws NullPointerException {
 
         super(jobSpecification);
         this.flow = InvariantUtil.checkNotNullOrThrow(flow, "flow");

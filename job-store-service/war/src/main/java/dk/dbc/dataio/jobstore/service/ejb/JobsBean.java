@@ -145,7 +145,7 @@ public class JobsBean {
      * @throws JobStoreException on failure to add job
      */
     @POST
-    @Path(JobStoreServiceConstants.JOB_COLLECTION_ACCTEST)
+    @Path(JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS)
     @Consumes({ MediaType.APPLICATION_JSON })
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
@@ -155,7 +155,7 @@ public class JobsBean {
 
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, AccTestJobInputStream.class);
-            jobInfoSnapshot = jobStore.addAndScheduleAccTestJob(jobInputStream);
+            jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();

@@ -122,7 +122,7 @@ public class JobStoreServiceConnector {
             InvariantUtil.checkNotNullOrThrow(jobInputStream, "jobInputStream");
             final Response response;
             try {
-                response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_ACCTEST);
+                response = HttpClient.doPostWithJson(httpClient, jobInputStream, baseUrl, JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS);
             } catch (ProcessingException e) {
                 throw new JobStoreServiceConnectorException("job-store communication error", e);
             }

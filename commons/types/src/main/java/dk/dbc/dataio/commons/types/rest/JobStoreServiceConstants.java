@@ -27,7 +27,7 @@ public class JobStoreServiceConstants {
     public static final String ITEM_ID_VARIABLE = "itemId";
     public static final String SINK_ID_VARIABLE = "sinkId";
 
-    public static final String JOB_COLLECTION_ACCTEST = "jobs/acctests";
+    public static final String JOB_COLLECTION_ACCTESTS = "jobs/acctests";
 
     public static final String JOB_COLLECTION                   = "jobs";
     public static final String JOB_COLLECTION_SEARCHES          = "jobs/searches";

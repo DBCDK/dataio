@@ -107,12 +107,6 @@ public class PgJobStore {
         return addJob(param);
     }
 
-    @Stopwatch
-    public JobInfoSnapshot addAndScheduleAccTestJob(AccTestJobInputStream jobInputStream) throws JobStoreException {
-        AddAccTestJobParam param = new AddAccTestJobParam(jobInputStream, flowStoreServiceConnectorBean.getConnector());
-        return addJob(param);
-    }
-
     /**
      * Adds new job job, chunk and item entities in the underlying data store from given job input stream
      * @param addJobParam containing the elements required to create a new job as well as a list of Diagnostics.
@@ -125,7 +119,7 @@ public class PgJobStore {
     public JobInfoSnapshot addJob(AddJobParam addJobParam) throws JobStoreException {
         // Creates job entity in its own transactional scope to enable external visibility
         JobEntity jobEntity = jobStoreRepository.createJobEntity(addJobParam);
-        LOGGER.info("adding job with job ID: {}", jobEntity.getId());
+        LOGGER.info("addJob(): adding job with job ID: {}", jobEntity.getId());
 
         if (!jobEntity.hasFatalError()) {
             final Sink sink = jobEntity.getCachedSink().getSink();

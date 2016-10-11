@@ -197,7 +197,7 @@ public class JobStoreServiceConnectorTest {
     @Test
     public void addAccTestJob_onProcessingException_throws() {
         final AccTestJobInputStream jobInputStream = getNewAccTestJobInputStream();
-        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_ACCTEST))
+        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS))
                 .thenThrow(new ProcessingException("Connection reset"));
         final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
         try {
@@ -805,7 +805,7 @@ public class JobStoreServiceConnectorTest {
     // Helper method
     private JobInfoSnapshot callAddAccTestJobWithMockedHttpResponse(AccTestJobInputStream jobInputStream, Response.Status statusCode, Object returnValue)
             throws JobStoreServiceConnectorException {
-        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_ACCTEST))
+        when(HttpClient.doPostWithJson(CLIENT, jobInputStream, JOB_STORE_URL, JobStoreServiceConstants.JOB_COLLECTION_ACCTESTS))
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.addAccTestJob(jobInputStream);

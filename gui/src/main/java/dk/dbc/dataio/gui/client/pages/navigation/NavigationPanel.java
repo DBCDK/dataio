@@ -32,6 +32,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.Tree;
 import com.google.gwt.user.client.ui.TreeItem;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 
@@ -44,6 +45,7 @@ public class NavigationPanel extends FlowPanel {
     @UiField Tree menu;
     @UiField TreeItem jobs;
     @UiField TreeItem testJobs;
+    @UiField TreeItem acctestJobs;
     @UiField TreeItem submitters;
     @UiField TreeItem flows;
     @UiField TreeItem flowComponents;
@@ -69,6 +71,7 @@ public class NavigationPanel extends FlowPanel {
         add(uiBinder.createAndBindUi(this));
         jobs.setUserObject(new ShowJobsPlace());
         testJobs.setUserObject(new ShowTestJobsPlace());
+        acctestJobs.setUserObject(new ShowAcctestJobsPlace());
         flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
         flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());

@@ -62,6 +62,9 @@ public interface Texts extends Constants {
     String menu_TestJobs();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_AcctestJobs();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_SinkCreation();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -10,6 +10,7 @@
 @def boxFrameColor #4f6853;
 @def tableBorderColor #6F7277;
 @def testTableHeaderColor #ffd982;
+@def acctestTableHeaderColor #d5ffd1;
 
 /*
  * Externals
@@ -31,6 +32,7 @@
 @external .deleteButton;
 @external .job-filter-list;
 @external .test-jobs-table;
+@external .acctest-jobs-table;
 @external .application-panel;
 @external .hide-cell, .show-cell;
 @external .invisible, .center;
@@ -323,6 +325,10 @@ table.status-popup tr td:first-child {  /* Do not center leftmost column */
 
 .test-jobs-table thead th {
     background-color: testTableHeaderColor;
+}
+
+.acctest-jobs-table thead th {
+    background-color: acctestTableHeaderColor;
 }
 
 #sinkqueueproviders .multilistremovebutton {

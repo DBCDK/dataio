@@ -19,33 +19,30 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.cli.command;
+package dk.dbc.dataio.cli;
 
-import dk.dbc.dataio.cli.FlowManager;
-import dk.dbc.dataio.cli.options.CreateOptions;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
+
+import javax.ws.rs.client.Client;
 
 /**
- * Acceptance test command line interface for 'create' sub command
+ * Class managing all interactions with the dataIO flow-store needed for acceptance test operation
  */
-public class CreateCommand extends Command {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CreateCommand.class);
+public class FlowManager {
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
 
-    private final CreateOptions options;
-    private final FlowManager flowManager;
-
-    public CreateCommand(CreateOptions options) {
-        this.options = options;
-        flowManager = new FlowManager(options.flowStoreUrl);
+    public FlowManager(String flowStoreEndpoint) {
+        final Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        flowStoreServiceConnector = new FlowStoreServiceConnector(client, flowStoreEndpoint);
     }
 
-    @Override
-    public void execute() throws FlowStoreServiceConnectorException {
-        LOGGER.info("Looking up flow '{}'", options.flowName);
-        final Flow flow = flowManager.getFlow(options.flowName);
-        LOGGER.debug("found {}", flow.getId());
+    public Flow getFlow(String name) throws FlowStoreServiceConnectorException {
+        return flowStoreServiceConnector.findFlowByName(name);
     }
 }

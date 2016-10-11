@@ -25,38 +25,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <artifactId>dataio-commons</artifactId>
+    <artifactId>dataio-commons-utils</artifactId>
     <groupId>dk.dbc</groupId>
     <version>1.0-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dataio-commons-utils</artifactId>
-  <name>dataio-commons-utils</name>
-  <packaging>pom</packaging>
+  <artifactId>dataio-commons-utils-junit-xml</artifactId>
+  <name>dataio-commons-utils-junit-xml</name>
 
-  <modules>
-    <module>addi-binding</module>
-    <module>binary-file-store</module>
-    <module>cache</module>
-    <module>file-store-service-connector</module>
-    <module>httpclient</module>
-    <module>invariant</module>
-    <module>javascript</module>
-    <module>junit-xml</module>
-    <module>lang</module>
-    <module>log-store-service-connector</module>
-    <module>flow-store-service-connector</module>
-    <module>job-store-service-connector</module>
-    <module>ush-solr-harvester-service-connector</module>
-    <module>ush-harvester-connector</module>
-    <module>io</module>
-    <module>json-binding</module>
-    <module>logback</module>
-    <module>open-agency-connector</module>
-    <module>svn</module>
-    <module>service</module>
-    <module>stopwatch</module>
-    <module>test</module>
-  </modules>
-
+  <dependencies>
+  </dependencies>
 </project>

@@ -157,14 +157,10 @@ public class SvnConnector {
         log.debug("Listing available paths for revision {} URL '{}'", revision, projectUrl);
         InvariantUtil.checkNotNullNotEmptyOrThrow(projectUrl, "projectUrl");
 
-        final String[] urlParts = projectUrl.split("/");
-        final String urlNamePart = urlParts[urlParts.length - 1];
-        final String parentUrl = projectUrl.replaceAll(String.format("/%s$", urlNamePart), "");
-
-        final SVNRepository svnRepository = SVNRepositoryFactory.create(asSvnUrl(parentUrl));
+        final SVNRepository svnRepository = SVNRepositoryFactory.create(asSvnUrl(projectUrl));
         final List<String> availablePaths = new ArrayList<>();
         try {
-            processPath(svnRepository, revision, urlNamePart, availablePaths);
+            processPath(svnRepository, revision, "", availablePaths);
         } finally {
             svnRepository.closeSession();
         }
@@ -199,7 +195,7 @@ public class SvnConnector {
             final SvnExport export = svnOperationFactory.createExport();
             export.setSource(SvnTarget.fromURL(asSvnUrl(projectUrl), SVNRevision.create(revision)));
             export.setSingleTarget(SvnTarget.fromFile(exportTo.toFile()));
-            export.setIgnoreExternals( true );
+            export.setIgnoreExternals(false);
             export.run();
         } finally {
             svnOperationFactory.dispose();
@@ -250,7 +246,8 @@ public class SvnConnector {
         final Collection<SVNDirEntry> dirEntries = new ArrayList<>();
         repository.getDir(path, revision, false, dirEntries);
         for (SVNDirEntry dirEntry : dirEntries) {
-            final String fullPath = String.format("%s/%s", path, dirEntry.getName());
+            String fullPath = String.format("%s/%s", path, dirEntry.getName());
+            fullPath = fullPath.replaceFirst("^/", "");  // trim leading slash
             pathEntries.add(fullPath);
             if (dirEntry.getKind() == SVNNodeKind.DIR) {
                 processPath(repository, revision, fullPath, pathEntries);

@@ -33,7 +33,9 @@ import org.tmatesoft.svn.core.io.SVNRepositoryFactory;
 import org.tmatesoft.svn.core.wc.SVNClientManager;
 import org.tmatesoft.svn.core.wc.admin.SVNAdminClient;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
@@ -144,10 +146,7 @@ public class SvnConnectorTest {
 
     @Test
     public void listAvailablePaths_projectUrlExists_returnsListOfProjectPaths() throws Exception {
-        final List<String> expectedPaths = new ArrayList<>(Arrays.asList(
-                String.format("%s/sub", projectName),
-                String.format("%s/%s", projectName, worldFile),
-                String.format("%s/%s", projectName, helloFile)));
+        final List<String> expectedPaths = new ArrayList<>(Arrays.asList("sub", worldFile, helloFile));
         final SVNURL reposUrl= createTemporaryTestRepository();
         final SVNURL projectUrl = reposUrl.appendPath(projectName, false);
         final List<String> paths = SvnConnector.listAvailablePaths(projectUrl.toDecodedString(), revision);
@@ -211,9 +210,9 @@ public class SvnConnectorTest {
 
         final List<String> files=fileList( exportFolder.toPath());
 
-        final String[] expectedFiles = {"hello.txt", "sub"};
+        final String[] expectedFiles = {"hello.txt", "sub", "external-project"};
 
-        assertThat( files , Matchers.containsInAnyOrder(expectedFiles));
+        assertThat(files , Matchers.containsInAnyOrder(expectedFiles));
 
         // Compare original file content with exported file content
         assertThat(exportedHelloFileContent.size(), is(expectedHelloFileContent.size()));

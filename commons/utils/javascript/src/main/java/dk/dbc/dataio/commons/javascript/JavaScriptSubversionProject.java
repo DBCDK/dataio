@@ -229,7 +229,7 @@ public class JavaScriptSubversionProject {
             }
 
             final Path scriptPath = Paths.get(exportDir.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));
-            return JavaScriptProject.of(scriptPath, exportDir);
+            return JavaScriptProject.of(scriptPath, tmpDir);
         } catch (SVNException e) {
             LOGGER.error(errorMessage, javaScriptFunction, javaScriptFileName, revision, projectPath, e);
             throw new JavaScriptProjectException(interpretSvnException(e), e);

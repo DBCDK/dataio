@@ -47,6 +47,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -75,7 +76,7 @@ public class JavaScriptSubversionProject {
     public JavaScriptSubversionProject(final String subversionScmEndpoint)
             throws NullPointerException, IllegalArgumentException {
         this.subversionScmEndpoint = removeTrailingDelimiter(InvariantUtil.checkNotNullNotEmptyOrThrow(subversionScmEndpoint, "subversionScmEndpoint"));
-        this.dependencies = new ArrayList<>(Collections.singletonList("jscommon"));
+        this.dependencies = new ArrayList<>(Arrays.asList("jscommon", "datawell-convert"));
         LOGGER.info("JavaScriptSubversionProject(): Using SCM endpoint {}", subversionScmEndpoint);
     }
 
@@ -225,7 +226,10 @@ public class JavaScriptSubversionProject {
             SvnConnector.export(projectUrl, revision, exportDir);
 
             for (String dependency : dependencies) {
-                SvnConnector.export(buildProjectUrl(dependency), revision, Paths.get(tmpDir.toString(), dependency));
+                final Path dependencyPath = Paths.get(tmpDir.toString(), dependency);
+                if (!Files.exists(dependencyPath)) {
+                    SvnConnector.export(buildProjectUrl(dependency), revision, dependencyPath);
+                }
             }
 
             final Path scriptPath = Paths.get(exportDir.toString(), leftTrimFileNameByRemovingDelimiterAndTrunkPath(javaScriptFileName));

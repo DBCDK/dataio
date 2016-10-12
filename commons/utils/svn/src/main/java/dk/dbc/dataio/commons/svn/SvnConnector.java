@@ -195,7 +195,7 @@ public class SvnConnector {
             final SvnExport export = svnOperationFactory.createExport();
             export.setSource(SvnTarget.fromURL(asSvnUrl(projectUrl), SVNRevision.create(revision)));
             export.setSingleTarget(SvnTarget.fromFile(exportTo.toFile()));
-            export.setIgnoreExternals(false);
+            export.setIgnoreExternals(true);
             export.run();
         } finally {
             svnOperationFactory.dispose();

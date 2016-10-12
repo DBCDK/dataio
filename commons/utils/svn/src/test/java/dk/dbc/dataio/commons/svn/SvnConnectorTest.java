@@ -210,7 +210,7 @@ public class SvnConnectorTest {
 
         final List<String> files=fileList( exportFolder.toPath());
 
-        final String[] expectedFiles = {"hello.txt", "sub", "external-project"};
+        final String[] expectedFiles = {"hello.txt", "sub"};
 
         assertThat(files , Matchers.containsInAnyOrder(expectedFiles));
 

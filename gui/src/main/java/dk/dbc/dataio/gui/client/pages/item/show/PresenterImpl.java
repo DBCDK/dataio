@@ -536,6 +536,17 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
         }
         if (model == null || urlDataioFilestoreRs == null || model.getDataFile() == null || model.getDataFile().isEmpty()) {
             anchor.setVisible(false);
+            if (model == null) {
+                setDebugInfoText(anchor, "Filestore er usynlig fordi model er null");
+            } else if (urlDataioFilestoreRs == null) {
+                setDebugInfoText(anchor, "Filestore er usynlig fordi urlDataioFilestoreRs er null");
+            } else if (model.getDataFile() == null) {
+                setDebugInfoText(anchor, "Filestore er usynlig fordi model.getDataFile() er null");
+            } else if(model.getDataFile().isEmpty()) {
+                setDebugInfoText(anchor, "Filestore er usynlig fordi model.getDataFile().isEmpty()");
+            } else {
+                setDebugInfoText(anchor, "Filestore er usynlig fordi - øhhh....???");
+            }
         } else {
             final String[] numbers = model.getDataFile().split(":");
             if (numbers.length > 1) {
@@ -543,8 +554,15 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                 anchor.setVisible(true);
             } else {
                 anchor.setVisible(false);
+                setDebugInfoText(anchor, "Filestore er usynlig fordi nummeret ikke kunne findes i: '" + model.getDataFile() + "'");
             }
         }
+    }
+
+    private void setDebugInfoText(PromptedAnchor anchor, String text) {
+        anchor.setVisible(true);
+        anchor.setText("Debug Info (se bug #20623 - lav venligst et Screen Dump og send til Steen): " + text);
+        anchor.setHref("http://bugs.dbc.dk/show_bug.cgi?id=20623");
     }
 
     private void setAncestryView(String value, View view, PromptedLabel widget) {

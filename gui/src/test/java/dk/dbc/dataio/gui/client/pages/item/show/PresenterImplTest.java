@@ -1442,7 +1442,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.setFileStoreUrl(mockedFileStore, null);
 
         // Verify Test
+//        verify(mockedFileStore).setVisible(false);
         verify(mockedFileStore).setVisible(false);
+        verify(mockedFileStore).setVisible(true);
+        verify(mockedFileStore).setText(anyString());
+        verify(mockedFileStore).setHref(anyString());
         verifyNoMoreInteractions(mockedFileStore);
     }
 
@@ -1456,7 +1460,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
 
         // Verify Test
+//        verify(mockedFileStore).setVisible(false);
         verify(mockedFileStore).setVisible(false);
+        verify(mockedFileStore).setVisible(true);
+        verify(mockedFileStore).setText(anyString());
+        verify(mockedFileStore).setHref(anyString());
         verifyNoMoreInteractions(mockedFileStore);
     }
 
@@ -1470,7 +1478,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
 
         // Verify Test
+//        verify(mockedFileStore).setVisible(false);
         verify(mockedFileStore).setVisible(false);
+        verify(mockedFileStore).setVisible(true);
+        verify(mockedFileStore).setText(anyString());
+        verify(mockedFileStore).setHref(anyString());
         verifyNoMoreInteractions(mockedFileStore);
     }
 
@@ -1484,7 +1496,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.setFileStoreUrl(mockedFileStore, model);
 
         // Verify Test
+//        verify(mockedFileStore).setVisible(false);
         verify(mockedFileStore).setVisible(false);
+        verify(mockedFileStore).setVisible(true);
+        verify(mockedFileStore).setText(anyString());
+        verify(mockedFileStore).setHref(anyString());
         verifyNoMoreInteractions(mockedFileStore);
     }
 

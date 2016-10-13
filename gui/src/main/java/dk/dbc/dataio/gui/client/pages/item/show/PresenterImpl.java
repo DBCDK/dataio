@@ -94,7 +94,7 @@ public class PresenterImpl<P extends Place> extends AbstractActivity implements 
                     }
                     @Override
                     public void onSuccess(String jndiUrl) {
-                        endpoint = jndiUrl.replace(".dbc.dk", "");
+                        endpoint = jndiUrl;
                     }
                 });
         commonInjector.getJndiProxyAsync().getJndiResource(

@@ -34,16 +34,16 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Abstract GWT Place
- * Allows multiple arguments in the URL, and supplies methods for accessing them
- *
- * The place wraps the following URL:
- *    key1=value1&key2=value2&key3=value3 (etc)
- *
- * Keys are converted to lowercase, when entering the Place
- *
- * Inspired by:
- *    https://groups.google.com/d/msg/google-web-toolkit/PzlyZ3Gjazg/ZlJGC2wqNyAJ
+ * <p>Abstract GWT Place</p>
+ * <p>Allows multiple arguments in the URL, and supplies methods for accessing them</p>
+ * <br/>
+ * <p>The place wraps the following URL:</p>
+ * <pre>   key1=value1&amp;key2=value2&amp;key3=value3 (etc)</pre>
+ * <br/>
+ * <p>Keys are converted to lowercase, when entering the Place</p>
+ * <br/>
+ * <p>Inspired by:</p>
+ * <pre>   https://groups.google.com/d/msg/google-web-toolkit/PzlyZ3Gjazg/ZlJGC2wqNyAJ</pre>
  */
 public abstract class AbstractBasePlace extends Place {
     protected CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -114,9 +114,9 @@ public abstract class AbstractBasePlace extends Place {
     }
 
     /**
-     * Checks whether 'this' is constructed with the required parameters. The
-     * list of required parameters must be passed as argument.
-     * If any tokens are missing, they are logged with GWT.log
+     * <p>Checks whether 'this' is constructed with the required parameters. The
+     * list of required parameters must be passed as argument.</p>
+     * <p>If any tokens are missing, they are logged with GWT.log</p>
      *
      * @param keys List of required parameters
      * @return True if validation is ok, false if not

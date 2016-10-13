@@ -29,14 +29,14 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
 import dk.dbc.dataio.gui.client.model.JobModel;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 
 /**
  * EditPlace
  */
-public class EditPlace extends DataioPlace {
+public class EditPlace extends AbstractBasePlace {
     private Long jobId;
 
     public EditPlace(String url) {

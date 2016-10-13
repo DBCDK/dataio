@@ -24,7 +24,7 @@ package dk.dbc.dataio.gui.client.activities;
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.place.shared.Place;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class AppActivityMapper implements ActivityMapper {
@@ -37,6 +37,6 @@ public class AppActivityMapper implements ActivityMapper {
 
     @Override
     public Activity getActivity(Place place) {
-        return clientFactory.getPresenter((DataioPlace)place);
+        return clientFactory.getPresenter((AbstractBasePlace)place);
     }
 }

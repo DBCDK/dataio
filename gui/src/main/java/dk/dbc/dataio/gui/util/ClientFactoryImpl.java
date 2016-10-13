@@ -26,7 +26,7 @@ import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.SimpleEventBus;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 
 public class ClientFactoryImpl implements ClientFactory {
 
@@ -67,7 +67,7 @@ public class ClientFactoryImpl implements ClientFactory {
     }
 
     // getPresenter
-    public com.google.gwt.activity.shared.Activity getPresenter(DataioPlace place) {
+    public com.google.gwt.activity.shared.Activity getPresenter(AbstractBasePlace place) {
         return place.createPresenter(this);
     }
 }

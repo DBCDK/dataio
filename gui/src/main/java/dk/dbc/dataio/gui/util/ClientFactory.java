@@ -25,7 +25,7 @@ import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.web.bindery.event.shared.EventBus;
 import dk.dbc.dataio.gui.client.places.AppPlaceHistoryMapper;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 
 /**
  * Provides access to common objects across the application including:
@@ -43,6 +43,6 @@ public interface ClientFactory {
 
     // Place Controller
     PlaceController getPlaceController();
-    Activity getPresenter(DataioPlace place);
+    Activity getPresenter(AbstractBasePlace place);
     AppPlaceHistoryMapper getHistoryMapper();
 }

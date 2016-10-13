@@ -28,13 +28,13 @@ package dk.dbc.dataio.gui.client.pages.item.show;
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 /**
  * Place
  */
-public class Place extends DataioPlace {
+public class Place extends AbstractBasePlace {
     public static final String TOKEN = "ShowItems";
     private String jobId;
 

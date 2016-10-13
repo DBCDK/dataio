@@ -24,10 +24,10 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.activity.shared.Activity;
 import com.google.gwt.place.shared.PlaceTokenizer;
 import com.google.gwt.place.shared.Prefix;
-import dk.dbc.dataio.gui.client.places.DataioPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
-public class ShowJobsPlace extends DataioPlace {
+public class ShowJobsPlace extends AbstractBasePlace {
     private String jobsShowName;
 
     public ShowJobsPlace() {

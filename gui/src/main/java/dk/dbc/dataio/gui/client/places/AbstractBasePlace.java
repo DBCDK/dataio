@@ -36,12 +36,12 @@ import java.util.Set;
 /**
  * <p>Abstract GWT Place</p>
  * <p>Allows multiple arguments in the URL, and supplies methods for accessing them</p>
- * <br/>
+ * <br>
  * <p>The place wraps the following URL:</p>
  * <pre>   key1=value1&amp;key2=value2&amp;key3=value3 (etc)</pre>
- * <br/>
+ * <br>
  * <p>Keys are converted to lowercase, when entering the Place</p>
- * <br/>
+ * <br>
  * <p>Inspired by:</p>
  * <pre>   https://groups.google.com/d/msg/google-web-toolkit/PzlyZ3Gjazg/ZlJGC2wqNyAJ</pre>
  */

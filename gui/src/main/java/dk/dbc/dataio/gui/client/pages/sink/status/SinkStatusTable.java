@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.pages.sink.status;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
@@ -38,13 +39,15 @@ import java.util.List;
 public class SinkStatusTable extends CellTable {
 
     static class SinkStatusModel {
+        long sinkId;
         String type;
         String name;
         long outstandingJobs;
         long outstandingItemsChunks;
         long latestMovement;
 
-        public SinkStatusModel(String type, String name, long outstandingJobs, long outstandingItemsChunks, long latestMovement) {
+        public SinkStatusModel(long sinkId, String type, String name, long outstandingJobs, long outstandingItemsChunks, long latestMovement) {
+            this.sinkId = sinkId;
             this.type = type;
             this.name = name;
             this.outstandingJobs = outstandingJobs;
@@ -52,6 +55,7 @@ public class SinkStatusTable extends CellTable {
             this.latestMovement = latestMovement;
         }
 
+        public long getSinkId() {return sinkId;}
         public String getType() {return type;}
         public String getName() {return name;}
         public long getOutstandingJobs() {return outstandingJobs;}
@@ -79,6 +83,7 @@ public class SinkStatusTable extends CellTable {
         addColumn(constructLatestMovementColumn(), texts.columnHeader_LatestMovement());
 
         setSelectionModel(selectionModel);
+        addDomHandler(doubleClickEvent -> presenter.showJobsFilteredBySink(selectionModel.getSelectedObject().getSinkId()), DoubleClickEvent.getType());
     }
 
 
@@ -101,11 +106,10 @@ public class SinkStatusTable extends CellTable {
 
     /*
      * Local methods
-     * /
+     */
 
     /**
      * This method constructs the JobId column
-     * Should have been private, but is package-private to enable unit test
      *
      * @return the constructed JobId column
      */
@@ -120,7 +124,6 @@ public class SinkStatusTable extends CellTable {
 
     /**
      * This method constructs the Name column
-     * Should have been private, but is package-private to enable unit test
      *
      * @return the constructed Name column
      */
@@ -135,7 +138,6 @@ public class SinkStatusTable extends CellTable {
 
     /**
      * This method constructs the OutstandingJobs column
-     * Should have been private, but is package-private to enable unit test
      *
      * @return the constructed OutstandingJobs column
      */
@@ -150,7 +152,6 @@ public class SinkStatusTable extends CellTable {
 
     /**
      * This method constructs the OutstandingItemsChunks column
-     * Should have been private, but is package-private to enable unit test
      *
      * @return the constructed OutstandingItemsChunks column
      */
@@ -165,7 +166,6 @@ public class SinkStatusTable extends CellTable {
 
     /**
      * This method constructs the LatestMovement column
-     * Should have been private, but is package-private to enable unit test
      *
      * @return the constructed LatestMovement column
      */

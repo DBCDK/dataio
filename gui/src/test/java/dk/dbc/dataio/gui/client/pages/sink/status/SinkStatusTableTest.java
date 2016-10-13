@@ -59,17 +59,17 @@ public class SinkStatusTableTest {
     @Mock SingleSelectionModel<SinkStatusTable.SinkStatusModel> mockedSelectionModel;
 
     // Test Data
-    List<SinkStatusTable.SinkStatusModel> testData = Arrays.asList(
-            new SinkStatusTable.SinkStatusModel("Dummy sink",  "Dummy sink",            0,     0, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("Dummy sink",  "Tracer bullit sink",    0,     0, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("ES sink",     "Basis22",               2,     4, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("ES sink",     "Danbib3",               0,     0, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("Hive sink",   "Cisterne sink",        34,    56, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("Hive sink",   "Boblebad sink",        32,    54, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("Update sink", "Cisterne Update sink",  1, 56023, 1234567890L),
-            new SinkStatusTable.SinkStatusModel("IMS sink",    "IMS cisterne sink",     7,     8, 1234567890L)
+    private List<SinkStatusTable.SinkStatusModel> testData = Arrays.asList(
+            new SinkStatusTable.SinkStatusModel(  54, "Dummy sink", "Dummy sink", 0, 0, 1234567890L),
+            new SinkStatusTable.SinkStatusModel(6601, "Dummy sink", "Tracer bullit sink", 0, 0, 1234567890L),
+            new SinkStatusTable.SinkStatusModel(1551, "ES sink", "Basis22", 2, 4, 1234567890L),
+            new SinkStatusTable.SinkStatusModel(5701, "ES sink", "Danbib3", 0, 0, 1234567890L),
+            new SinkStatusTable.SinkStatusModel( 752, "Hive sink", "Cisterne sink", 34, 56, 1234567890L),
+            new SinkStatusTable.SinkStatusModel(   8, "Hive sink", "Boblebad sink", 32, 54, 1234567890L),
+            new SinkStatusTable.SinkStatusModel(1651, "Update sink", "Cisterne Update sink", 1, 56023, 1234567890L),
+            new SinkStatusTable.SinkStatusModel(5401, "IMS sink", "IMS cisterne sink", 7, 8, 1234567890L)
     );
-    SinkStatusTable.SinkStatusModel testSinkStatus = new SinkStatusTable.SinkStatusModel("Test sink", "Sink name", 111, 222, 1234567890L);
+    private SinkStatusTable.SinkStatusModel testSinkStatus = new SinkStatusTable.SinkStatusModel(3333, "Test sink", "Sink name", 111, 222, 1234567890L);
 
 
     // Subject Under Test

@@ -64,7 +64,7 @@ public abstract class AbstractBasePlace extends Place {
         for (int i = 0; i < tokens.length; i++) {
             if (tokens[i] == null || tokens[i].isEmpty()) break;
             final String key = tokens[i++].toLowerCase();
-            final String value = ((i >= tokens.length) || (tokens[i] == null)) ? "" : tokens[i];
+            final String value = i>=tokens.length || tokens[i]==null ? "" : tokens[i];
             // build parameters map
             parameters.put(key, value);
             // build url

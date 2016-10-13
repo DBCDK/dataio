@@ -74,6 +74,9 @@ public interface Texts extends Constants {
     String menu_Sinks();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String menu_SinkStatus();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String menu_SubmitterCreation();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

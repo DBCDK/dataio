@@ -31,6 +31,7 @@ import dk.dbc.dataio.filestore.service.connector.ejb.FileStoreServiceConnectorBe
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.ush.solr.HarvestOperation;
+import dk.dbc.dataio.harvester.ush.solr.HarvesterConfigurationBean;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,6 @@ import java.util.Optional;
 @Stateless
 @Path("/")
 public class HarvesterApiBean {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvesterApiBean.class);
 
     @EJB
@@ -67,30 +67,44 @@ public class HarvesterApiBean {
     @EJB 
     public FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
+    @EJB
+    HarvesterConfigurationBean configs;
 
     @POST
     @Path(UshServiceConstants.HARVESTERS_USH_SOLR_TEST)
     @Produces({MediaType.APPLICATION_JSON})
     public Response runTestHarvest(@Context UriInfo uriInfo, @PathParam(UshServiceConstants.ID_VARIABLE) long id) {
-        LOGGER.trace("Called with ushSolrHarvesterConfig.id: '{}'", id);
         try {
-            UshSolrHarvesterConfig ushSolrHarvesterConfig = flowStoreServiceConnectorBean.getConnector().getHarvesterConfig(id, UshSolrHarvesterConfig.class);
-            HarvestOperation harvestOperation = getHarvestOperation(ushSolrHarvesterConfig);
-            Optional<JobInfoSnapshot> jobInfoSnapshot = harvestOperation.executeTest();
+            final UshSolrHarvesterConfig ushSolrHarvesterConfig = getConfig(id).orElse(null);
+            if (ushSolrHarvesterConfig == null) {
+                LOGGER.info("runTestHarvest(): no config found with ID {}", id);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
 
+            LOGGER.info("runTestHarvest(): running test for {}", ushSolrHarvesterConfig);
+            final HarvestOperation harvestOperation = getHarvestOperation(ushSolrHarvesterConfig);
+            final Optional<JobInfoSnapshot> jobInfoSnapshot = harvestOperation.executeTest();
             if (jobInfoSnapshot.isPresent()) {
                 return Response.created(new URI(Long.valueOf(jobInfoSnapshot.get().getJobId()).toString()))
                         .build();
-            } else {
-                return Response.noContent().build();
             }
-        } catch (FlowStoreServiceConnectorException | HarvesterException | URISyntaxException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ServiceUtil.asJsonError(e, "Error occurred while executing test harvest")).build();
+            return Response.noContent().build();
+        } catch (HarvesterException | URISyntaxException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(ServiceUtil.asJsonError(e, "Error occurred while running test harvest"))
+                    .build();
         }
     }
 
-    public HarvestOperation getHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
+    HarvestOperation getHarvestOperation(UshSolrHarvesterConfig config) throws HarvesterException {
         return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
                 binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector());
+    }
+
+    private Optional<UshSolrHarvesterConfig> getConfig(long id) throws HarvesterException {
+        configs.reload();
+        return configs.get().stream()
+                .filter(config -> config.getId() == id)
+                .findFirst();
     }
 }

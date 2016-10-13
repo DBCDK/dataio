@@ -22,12 +22,12 @@
 package dk.dbc.dataio.harvester.ush.solr.rest;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.ServiceError;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import dk.dbc.dataio.harvester.ush.solr.HarvestOperation;
+import dk.dbc.dataio.harvester.ush.solr.HarvesterConfigurationBean;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -38,6 +38,7 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.is;
@@ -45,24 +46,21 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvesterApiBeanTest {
-
-    private final static int USH_SOLR_HARVESTER_CONFIG_ID = 42;
-    private final static String EXCEPTION_MSG = "msg";
-
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
     private final HarvestOperation harvestOperation = mock(HarvestOperation.class);
-    private final static UriInfo mockedUriInfo = mock(UriInfo.class);
+    private final UriInfo mockedUriInfo = mock(UriInfo.class);
+
+    private final UshSolrHarvesterConfig config = new UshSolrHarvesterConfig(42, 1, new UshSolrHarvesterConfig.Content());
+    private final HarvesterException harvesterException = new HarvesterException("message");
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     private HarvesterApiBean harvesterApiBean;
-    private final JSONBContext jsonbContext = new JSONBContext();
 
     @Before
     public void setup() {
@@ -70,13 +68,22 @@ public class HarvesterApiBeanTest {
     }
 
     @Test
-    public void runTestHarvest_executeTestJobIsCreated_returnsResponseCreatedWithLocationSet() throws HarvesterException {
+    public void runTestHarvest_noConfigurationFoundForId_returnsResponseNonFound() {
+        // Subject under test
+        final Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, config.getId() + 1);
+
+        // Verification
+        assertThat("Response.status", response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+    }
+
+    @Test
+    public void runTestHarvest_jobIsCreated_returnsResponseCreatedWithLocationSet() throws HarvesterException {
         final int jobId = 123;
         Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.of(new JobInfoSnapshotBuilder().setJobId(jobId).build());
         doReturn(jobInfoSnapshot).when(harvestOperation).executeTest();
 
         // Subject under test
-        Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, USH_SOLR_HARVESTER_CONFIG_ID);
+        final Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, config.getId());
 
         // Verification
         assertThat("Response.status", response.getStatus(), is(Response.Status.CREATED.getStatusCode()));
@@ -85,12 +92,12 @@ public class HarvesterApiBeanTest {
     }
 
     @Test
-    public void runTestHarvest_ExecuteTestJobNotCreated_returnsResponseNoContent() throws HarvesterException {
-        Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.empty();
+    public void runTestHarvest_noJobCreated_returnsResponseNoContent() throws HarvesterException {
+        final Optional<JobInfoSnapshot> jobInfoSnapshot = Optional.empty();
         doReturn(jobInfoSnapshot).when(harvestOperation).executeTest();
 
         // Subject under test
-        Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, USH_SOLR_HARVESTER_CONFIG_ID);
+        final Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, config.getId());
 
         // Verification
         assertThat("Response.status", response.getStatus(), is(Response.Status.NO_CONTENT.getStatusCode()));
@@ -99,11 +106,11 @@ public class HarvesterApiBeanTest {
     }
 
     @Test
-    public void runTestHarvest_executeTestThrows_returnsResponseInternalServerErrorWithServiceErrorAsEntity() throws HarvesterException {
-        doThrow(new HarvesterException(EXCEPTION_MSG)).when(harvestOperation).executeTest();
+    public void runTestHarvest_harvestOperationThrows_returnsResponseInternalServerErrorWithServiceErrorAsEntity() throws HarvesterException {
+        doThrow(harvesterException).when(harvestOperation).executeTest();
 
         // Subject under test
-        Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, USH_SOLR_HARVESTER_CONFIG_ID);
+        final Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, config.getId());
 
         // Verification
         assertThat("Response.status", response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
@@ -112,31 +119,14 @@ public class HarvesterApiBeanTest {
 
         assertServiceError((String) response.getEntity());
     }
-
-    @Test
-    public void runTestHarvest_getHarvesterConfigThrows_returnsResponseInternalServerErrorWithServiceErrorAsEntity() throws FlowStoreServiceConnectorException, JSONBException {
-        when(flowStoreServiceConnector.getHarvesterConfig(anyLong(), eq(UshSolrHarvesterConfig.class))).thenThrow(new FlowStoreServiceConnectorException(EXCEPTION_MSG));
-
-        // Subject under test
-        Response response = harvesterApiBean.runTestHarvest(mockedUriInfo, USH_SOLR_HARVESTER_CONFIG_ID);
-
-        // Verification
-        assertThat("Response.status", response.getStatus(), is(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()));
-        assertThat("Response.location", response.getLocation(), is(nullValue()));
-        assertThat("Response.hasEntity", response.hasEntity(), is(true));
-
-        assertServiceError((String) response.getEntity());
-    }
-
-    /*
-     * Private methods
-     */
 
     private HarvesterApiBean initializeHarvesterApiBean() {
         try {
-            HarvesterApiBean harvesterApiBean = Mockito.spy(new HarvesterApiBean());
+            final HarvesterApiBean harvesterApiBean = Mockito.spy(new HarvesterApiBean());
             harvesterApiBean.flowStoreServiceConnectorBean =  mock(FlowStoreServiceConnectorBean.class);
+            harvesterApiBean.configs = mock(HarvesterConfigurationBean.class);
 
+            when(harvesterApiBean.configs.get()).thenReturn(Collections.singletonList(config));
             when(harvesterApiBean.flowStoreServiceConnectorBean.getConnector()).thenReturn(flowStoreServiceConnector);
             doReturn(harvestOperation).when(harvesterApiBean).getHarvestOperation(any(UshSolrHarvesterConfig.class));
             return harvesterApiBean;
@@ -146,15 +136,13 @@ public class HarvesterApiBeanTest {
     }
 
     private void assertServiceError(String entityString) {
-        final ServiceError serviceError;
         try {
-            serviceError = jsonbContext.unmarshall(entityString, ServiceError.class);
+            final ServiceError serviceError = jsonbContext.unmarshall(entityString, ServiceError.class);
             assertThat("ServiceError.msg", serviceError.getMessage(), is(notNullValue()));
-            assertThat("ServiceError.details", serviceError.getDetails(), is(EXCEPTION_MSG));
+            assertThat("ServiceError.details", serviceError.getDetails(), is(harvesterException.getMessage()));
             assertThat("ServiceError.stacktrace", serviceError.getStacktrace(), is(notNullValue()));
         } catch (JSONBException e) {
-            throw new IllegalStateException("Error occurred unmarshalling ServiceError");
+            throw new IllegalStateException("Error occurred while unmarshalling ServiceError");
         }
-
     }
 }

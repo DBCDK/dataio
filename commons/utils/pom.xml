@@ -48,6 +48,7 @@
     <module>flow-store-service-connector</module>
     <module>job-store-service-connector</module>
     <module>ush-solr-harvester-service-connector</module>
+    <module>url-resolver-service-connector</module>
     <module>ush-harvester-connector</module>
     <module>io</module>
     <module>json-binding</module>

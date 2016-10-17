@@ -22,15 +22,11 @@
 package dk.dbc.dataio.cli.command;
 
 import dk.dbc.dataio.cli.FlowManager;
-import dk.dbc.dataio.cli.UrlManager;
 import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 /**
  * Acceptance test command line interface for 'create' sub command
@@ -40,21 +36,16 @@ public class CreateCommand extends Command {
 
     private final CreateOptions options;
     private final FlowManager flowManager;
-    private final UrlManager urlManager;
 
     public CreateCommand(CreateOptions options) {
         this.options = options;
         flowManager = new FlowManager(options.flowStoreUrl);
-        urlManager = new UrlManager(options.guiUrl);
     }
 
     @Override
-    public void execute() throws FlowStoreServiceConnectorException, UrlResolverServiceConnectorException {
+    public void execute() throws FlowStoreServiceConnectorException {
         LOGGER.info("Looking up flow '{}'", options.flowName);
         final Flow flow = flowManager.getFlow(options.flowName);
-        LOGGER.info("found {}", flow.getId());
-        LOGGER.info("Looking up endpoints");
-        final Map<String, String> endpoints = urlManager.getUrls();
-        LOGGER.info("found {}", endpoints.toString());
+        LOGGER.debug("found {}", flow.getId());
     }
 }

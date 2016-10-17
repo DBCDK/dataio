@@ -39,10 +39,6 @@ import java.io.StringWriter;
  */
 public class ServiceUtil {
     private static final Logger log = LoggerFactory.getLogger(ServiceUtil.class);
-
-    public static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
-    private static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
-
     private static final JSONBContext jsonbContext = new JSONBContext();
 
     private ServiceUtil() { }
@@ -79,7 +75,7 @@ public class ServiceUtil {
 
     /**
      * Looks up flow-store service endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value #FLOW_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#FLOW_STORE_SERVICE_ENDPOINT_RESOURCE}'. For testing purposes
      * the JNDI lookup can be bypassed by defining a 'flowStoreURL' system property.
      *
      * @return flow-store service URL as String
@@ -87,7 +83,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getFlowStoreServiceEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE);
     }
 
     /**
@@ -107,8 +103,8 @@ public class ServiceUtil {
 
     /**
      * Looks up subversion SCM endpoint through Java Naming and Directory Interface (JNDI)
-     * using the name '{@value #SUBVERSION_SCM_ENDPOINT_RESOURCE}'. For testing purposes
-     * the JNDI lookup can be bypassed by defining a '{@value #SUBVERSION_SCM_ENDPOINT_RESOURCE}'
+     * using the name '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#SUBVERSION_SCM_ENDPOINT_RESOURCE}'. For testing purposes
+     * the JNDI lookup can be bypassed by defining a '{@value dk.dbc.dataio.commons.types.jndi.JndiConstants#SUBVERSION_SCM_ENDPOINT_RESOURCE}'
      * system property.
      *
      * @return subversion repository URL as String
@@ -116,7 +112,7 @@ public class ServiceUtil {
      * @throws NamingException if unable to lookup name
      */
     public static String getSubversionScmEndpoint() throws NamingException {
-        return getStringValueFromSystemPropertyOrJndi(SUBVERSION_SCM_ENDPOINT_RESOURCE);
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE);
     }
 
     /**
@@ -165,6 +161,18 @@ public class ServiceUtil {
      */
     public static String getOpenAgencyEndpoint() throws NamingException {
         return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_OPEN_AGENCY);
+    }
+
+    public static String getFbsEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_FBS_WS);
+    }
+
+    public static String getGuiFtpEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_GUI_FTP);
+    }
+
+    public static String getElkEndpoint() throws NamingException {
+        return getStringValueFromSystemPropertyOrJndi(JndiConstants.URL_RESOURCE_ELK);
     }
 
     /**

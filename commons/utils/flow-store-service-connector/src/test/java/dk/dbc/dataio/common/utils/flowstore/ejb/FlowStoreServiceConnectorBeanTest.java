@@ -22,7 +22,7 @@
 package dk.dbc.dataio.common.utils.flowstore.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.commons.utils.service.ServiceUtil;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.test.jndi.InMemoryInitialContextFactory;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -65,7 +65,7 @@ public class FlowStoreServiceConnectorBeanTest {
 
     @Test
     public void initializeConnector_connectorIsInitialized_connectorIsNotNull() {
-        InMemoryInitialContextFactory.bind(ServiceUtil.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE, "someURL");
+        InMemoryInitialContextFactory.bind(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE, "someURL");
         FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = newFlowStoreServiceConnectorBean();
         flowStoreServiceConnectorBean.initializeConnector();
         assertThat(flowStoreServiceConnectorBean.getConnector(), not(nullValue()));

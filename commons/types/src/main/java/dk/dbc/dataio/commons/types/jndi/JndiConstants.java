@@ -22,6 +22,9 @@
 package dk.dbc.dataio.commons.types.jndi;
 
 public class JndiConstants {
+    public static final String FLOW_STORE_SERVICE_ENDPOINT_RESOURCE = "dataioGuiFlowStoreServiceEndpoint";
+    public static final String SUBVERSION_SCM_ENDPOINT_RESOURCE = "dataioGuiSubversionScmEndpoint";
+
     public static final String JDBC_RESOURCE_JOBSTORE = "jdbc/dataio/jobstore";
     public static final String JDBC_RESOURCE_LOGSTORE = "jdbc/dataio/logstore";
     public static final String JDBC_RESOURCE_ES_INFLIGHT = "jdbc/dataio/sinks/esInFlight";

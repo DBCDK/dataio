@@ -38,6 +38,8 @@ public class CreateOptions extends Options {
     @Parameter(names = "--job-store-url", description = "URL of dataIO job-store service")
     public String jobStoreUrl = "http://jobstore.dataio.prod.mcp1.dbc.dk/dataio/job-store-service";
 
+    public String guiUrl = "http://dataio-staging.dbc.dk";
+
     @Parameter(names = {"-f", "--flow-name"}, description = "Name of dataIO flow", required = true)
     public String flowName;
 

@@ -63,12 +63,12 @@ public class UrlResolverServlet extends HttpServlet {
         urls.put(JndiConstants.URL_RESOURCE_FILESTORE_RS, resolve(ServiceUtil::getFileStoreServiceEndpoint, JndiConstants.URL_RESOURCE_FILESTORE_RS));
         urls.put(JndiConstants.URL_RESOURCE_LOGSTORE_RS, resolve(ServiceUtil::getLogStoreServiceEndpoint, JndiConstants.URL_RESOURCE_LOGSTORE_RS));
 //        urls.put(JndiConstants.URL_RESOURCE_USH_SOLR, resolve(ServiceUtil::getUshSolrEndpoint, JndiConstants.URL_RESOURCE_USH_SOLR));
-//        urls.put(JndiConstants.URL_RESOURCE_USH_HARVESTER, resolve(ServiceUtil::getUshHarvesterEndpoint, JndiConstants.URL_RESOURCE_USH_HARVESTER));
-//        urls.put(JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS, resolve(ServiceUtil::getUshSolrHarvesterServiceEndpoint, JndiConstants.URL_RESOURCE_USH_HARVESTER));
-//        urls.put(JndiConstants.URL_RESOURCE_FBS_WS, resolve(ServiceUtil::getFbsEndpoint, JndiConstants.URL_RESOURCE_FBS_WS));
-//        urls.put(JndiConstants.URL_RESOURCE_GUI_FTP, resolve(ServiceUtil::getGuiFtpEndpoint, JndiConstants.URL_RESOURCE_GUI_FTP));
-//        urls.put(JndiConstants.URL_RESOURCE_OPEN_AGENCY, resolve(ServiceUtil::getOpenAgencyEndpoint, JndiConstants.URL_RESOURCE_OPEN_AGENCY));
-//        urls.put(JndiConstants.URL_RESOURCE_ELK, resolve(ServiceUtil::getElkEndpoint, JndiConstants.URL_RESOURCE_ELK));
+        urls.put(JndiConstants.URL_RESOURCE_USH_HARVESTER, resolve(ServiceUtil::getUshHarvesterEndpoint, JndiConstants.URL_RESOURCE_USH_HARVESTER));
+        urls.put(JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS, resolve(ServiceUtil::getUshSolrHarvesterServiceEndpoint, JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS));
+        urls.put(JndiConstants.URL_RESOURCE_FBS_WS, resolve(ServiceUtil::getFbsEndpoint, JndiConstants.URL_RESOURCE_FBS_WS));
+        urls.put(JndiConstants.URL_RESOURCE_GUI_FTP, resolve(ServiceUtil::getGuiFtpEndpoint, JndiConstants.URL_RESOURCE_GUI_FTP));
+        urls.put(JndiConstants.URL_RESOURCE_OPEN_AGENCY, resolve(ServiceUtil::getOpenAgencyEndpoint, JndiConstants.URL_RESOURCE_OPEN_AGENCY));
+        urls.put(JndiConstants.URL_RESOURCE_ELK, resolve(ServiceUtil::getElkEndpoint, JndiConstants.URL_RESOURCE_ELK));
         return urls;
     }
 
@@ -79,11 +79,12 @@ public class UrlResolverServlet extends HttpServlet {
     }
 
     private String resolve(JndiNameResolver<String> resolver, String jndiName) {
+        String value = null;
         try {
-            return resolver.get();
+            value = resolver.get();
         } catch (NamingException e) {
             log.info("{} not found", jndiName);
         }
-        return null;
+        return value;
     }
 }

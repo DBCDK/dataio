@@ -38,6 +38,8 @@ import java.util.Map;
 
 public class UrlResolverServlet extends HttpServlet {
 
+    private static final long serialVersionUID = -6885510844881237998L;
+
     private static final Logger log = LoggerFactory.getLogger(UrlResolverServlet.class);
     private final JSONBContext jsonbContext = new JSONBContext();
 

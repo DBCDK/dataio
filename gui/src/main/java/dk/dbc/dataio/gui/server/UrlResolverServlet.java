@@ -62,7 +62,6 @@ public class UrlResolverServlet extends HttpServlet {
         urls.put(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE, resolve(ServiceUtil::getSubversionScmEndpoint, JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
         urls.put(JndiConstants.URL_RESOURCE_FILESTORE_RS, resolve(ServiceUtil::getFileStoreServiceEndpoint, JndiConstants.URL_RESOURCE_FILESTORE_RS));
         urls.put(JndiConstants.URL_RESOURCE_LOGSTORE_RS, resolve(ServiceUtil::getLogStoreServiceEndpoint, JndiConstants.URL_RESOURCE_LOGSTORE_RS));
-//        urls.put(JndiConstants.URL_RESOURCE_USH_SOLR, resolve(ServiceUtil::getUshSolrEndpoint, JndiConstants.URL_RESOURCE_USH_SOLR));
         urls.put(JndiConstants.URL_RESOURCE_USH_HARVESTER, resolve(ServiceUtil::getUshHarvesterEndpoint, JndiConstants.URL_RESOURCE_USH_HARVESTER));
         urls.put(JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS, resolve(ServiceUtil::getUshSolrHarvesterServiceEndpoint, JndiConstants.URL_RESOURCE_USH_SOLR_HARVESTER_RS));
         urls.put(JndiConstants.URL_RESOURCE_FBS_WS, resolve(ServiceUtil::getFbsEndpoint, JndiConstants.URL_RESOURCE_FBS_WS));
@@ -74,7 +73,6 @@ public class UrlResolverServlet extends HttpServlet {
 
     @FunctionalInterface
     interface JndiNameResolver<T> extends Serializable {
-        long serialVersionUID = 6867510891881237998L;
         T get() throws NamingException;
     }
 

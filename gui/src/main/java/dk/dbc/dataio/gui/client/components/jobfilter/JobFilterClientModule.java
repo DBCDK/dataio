@@ -23,11 +23,15 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.inject.client.AbstractGinModule;
 
+import static com.google.inject.name.Names.named;
+
 /**
  * This class contains bindings for JobFilter Dependency Injections
  */
-public class JobFilterClientModule extends AbstractGinModule {
+class JobFilterClientModule extends AbstractGinModule {
     @Override
     protected void configure() {
+        bindConstant().annotatedWith(named("Empty")).to("");
+        bindConstant().annotatedWith(named("True")).to("true");
     }
 }

@@ -39,6 +39,7 @@ import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -64,7 +65,7 @@ public class ErrorJobFilterTest {
     @Test
     public void constructor_instantiate_instantiatedCorrectly() {
         // Activate Subject Under Test
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
 
         // Verify test
         assertThat(jobFilter.texts, is(mockedTexts));
@@ -78,7 +79,7 @@ public class ErrorJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
         when(mockedTexts.errorFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -89,49 +90,9 @@ public class ErrorJobFilterTest {
     }
 
     @Test
-    public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
-        // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
-
-        // Activate Subject Under Test
-        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
-
-        // Verify test
-        assertThat(jobFilter.callbackChangeHandler, is(mockedChangeHandler));
-        verify(mockedChangeHandler).onChange(null);
-        assertThat(handlerRegistration, not(nullValue()));
-    }
-
-    @Test
-    public void addChangeHandler_callHandlerRegistrationRemoveHandler_changeHandlerRemoved() {
-        // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
-
-        // Activate Subject Under Test
-        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
-        handlerRegistration.removeHandler();
-
-        // Verify test
-        assertThat(jobFilter.callbackChangeHandler, nullValue());
-    }
-
-    @Test
-    public void changeHandlerCallback_default_callback() {
-        // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
-        jobFilter.addChangeHandler(mockedChangeHandler);
-
-        // Activate Subject Under Test
-        jobFilter.checkboxValueChanged(null);
-
-        // Verify test
-        verify(mockedChangeHandler, times(2)).onChange(null);
-    }
-
-    @Test
     public void getValue_defaultValue_returnEmptyJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
 
         // Activate Subject Under Test
         JobListCriteria criteria = jobFilter.getValue();
@@ -143,7 +104,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_processingValue_returnProcessingJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -158,7 +119,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_deliveringValue_returnDeliveringJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.deliveringCheckBox.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -173,7 +134,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_jobCreationValue_returnJobCreationJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
 
         // Activate Subject Under Test
@@ -188,7 +149,7 @@ public class ErrorJobFilterTest {
     @Test
     public void getValue_combinedValue_returnCombinedJobListCriteria() {
         // Test Preparation
-        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources);
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
         when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
 
@@ -200,6 +161,141 @@ public class ErrorJobFilterTest {
                 where(new ListFilter<>(JobListCriteria.Field.STATE_PROCESSING_FAILED)).
                 or(new ListFilter<>(JobListCriteria.Field.WITH_FATAL_ERROR))
         ));
+    }
+
+    @Test
+    public void setParameterData_emptyParameter_noErrorsSet() {
+        // Activate Subject Under Test
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.processingCheckBox);
+        verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
+        verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void setParameterData_processingParameter_processingSet() {
+        // Activate Subject Under Test
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.deliveringCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.jobCreationCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.processingCheckBox).setValue(true);
+        verifyNoMoreInteractions(jobFilter.processingCheckBox);
+        verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
+        verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void setParameterData_processingAndJobCreationParameter_processingAndJobCreationSet() {
+        // Activate Subject Under Test
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing,jobcreation");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.deliveringCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.jobCreationCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.processingCheckBox).setValue(true);
+        verify(jobFilter.jobCreationCheckBox).setValue(true);
+        verifyNoMoreInteractions(jobFilter.processingCheckBox);
+        verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
+        verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void setParameterData_processingAllParameterOrderMixed_processingAllSet() {
+        // Activate Subject Under Test
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "delivering,processing,jobcreation");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.deliveringCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.jobCreationCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.processingCheckBox).setValue(true);
+        verify(jobFilter.deliveringCheckBox).setValue(true);
+        verify(jobFilter.jobCreationCheckBox).setValue(true);
+        verifyNoMoreInteractions(jobFilter.processingCheckBox);
+        verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
+        verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void setParameterData_misSpelledParameter_onlyCorrectlySpelledSet() {
+        // Activate Subject Under Test
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "deliveringggggggg,processing");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.deliveringCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.jobCreationCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.processingCheckBox).setValue(true);
+        verifyNoMoreInteractions(jobFilter.processingCheckBox);
+        verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
+        verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void setParameterData_capitalLetterParameter_accepted() {
+        // Activate Subject Under Test
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "DELiveriNg");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.deliveringCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.jobCreationCheckBox).setValue(false);  // Set upon initialization
+        verify(jobFilter.deliveringCheckBox).setValue(true);
+        verifyNoMoreInteractions(jobFilter.processingCheckBox);
+        verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
+        verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+
+        // Activate Subject Under Test
+        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
+
+        // Verify test
+        assertThat(jobFilter.callbackChangeHandler, is(mockedChangeHandler));
+        verify(mockedChangeHandler).onChange(null);
+        assertThat(handlerRegistration, not(nullValue()));
+    }
+
+    @Test
+    public void addChangeHandler_callHandlerRegistrationRemoveHandler_changeHandlerRemoved() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+
+        // Activate Subject Under Test
+        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
+        handlerRegistration.removeHandler();
+
+        // Verify test
+        assertThat(jobFilter.callbackChangeHandler, nullValue());
+    }
+
+    @Test
+    public void changeHandlerCallback_default_callback() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        jobFilter.addChangeHandler(mockedChangeHandler);
+
+        // Activate Subject Under Test
+        jobFilter.checkboxValueChanged(null);
+
+        // Verify test
+        verify(mockedChangeHandler, times(2)).onChange(null);
     }
 
 }

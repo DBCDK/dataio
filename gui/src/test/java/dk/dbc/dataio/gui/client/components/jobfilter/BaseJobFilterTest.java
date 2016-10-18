@@ -38,9 +38,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsNull.nullValue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 /**
  * Base Job Filter unit tests
@@ -51,15 +51,13 @@ import static org.mockito.Mockito.when;
  */
 @RunWith(GwtMockitoTestRunner.class)
 public class BaseJobFilterTest {
-    String name;
-    Widget thisAsWidget;
-    JobFilter parentJobFilter;
-    JobFilterPanel filterPanel;
-    HandlerRegistration clickHandlerRegistration;
-    boolean addJobFilterMethodCalled = false;
+    private String name;
+    private Widget thisAsWidget;
+    private JobFilter parentJobFilter;
+    private JobFilterPanel filterPanel;
+    private HandlerRegistration clickHandlerRegistration;
+    private boolean addJobFilterMethodCalled = false;
 
-    @Mock Texts mockedTexts;
-    @Mock Resources mockedResources;
     @Mock ImageResource mockedImageResource;
     @Mock JobFilter mockedJobFilter;
     @Mock JobFilterPanel mockedJobFilterPanel;
@@ -68,45 +66,44 @@ public class BaseJobFilterTest {
 
     class ConcreteBaseJobFilter extends BaseJobFilter {
         String storedName;
-        public ConcreteBaseJobFilter(String name) {
-            super(mockedTexts, mockedResources);
+        ConcreteBaseJobFilter(String name) {
+            super(mock(Texts.class), mock(Resources.class), "");
             this.storedName = name;
         }
         @Override
         public String getName() {
             return storedName;
         }
-
         @Override
         public JobListCriteria getValue() {
             return new JobListCriteria();
         }
-
+        @Override
+        public void setParameterData() {
+            parameter = "";
+        }
         public Texts getTexts() {
             return texts;
         }
-        public Resources getResources() {
-            return resources;
-        }
-        public Widget getThisAsWidget() {
+        Widget getThisAsWidget() {
             return thisAsWidget;
         }
-        public void setParentJobFilter(JobFilter jobFilter) {
+        void setParentJobFilter(JobFilter jobFilter) {
             parentJobFilter = jobFilter;
         }
-        public JobFilter getParentJobFilter() {
+        JobFilter getParentJobFilter() {
             return parentJobFilter;
         }
-        public void setFilterPanel(JobFilterPanel filterPanel) {
+        void setFilterPanel(JobFilterPanel filterPanel) {
             this.filterPanel = filterPanel;
         }
-        public JobFilterPanel getFilterPanel() {
+        JobFilterPanel getFilterPanel() {
             return filterPanel;
         }
-        public void setClickHandlerRegistration(HandlerRegistration reg) {
+        void setClickHandlerRegistration(HandlerRegistration reg) {
             this.clickHandlerRegistration = reg;
         }
-        public HandlerRegistration getClickHandlerRegistration() {
+        HandlerRegistration getClickHandlerRegistration() {
             return clickHandlerRegistration;
         }
         @Override
@@ -116,7 +113,7 @@ public class BaseJobFilterTest {
     }
 
     class BaseJobFilterWithOverriddenAddMethod extends ConcreteBaseJobFilter {
-        public BaseJobFilterWithOverriddenAddMethod(String name) {
+        BaseJobFilterWithOverriddenAddMethod(String name) {
             super(name);
             addJobFilterMethodCalled = false;
         }
@@ -128,8 +125,6 @@ public class BaseJobFilterTest {
 
     private void getAttributes(ConcreteBaseJobFilter jobFilter) {
         name = jobFilter.getName();
-        mockedTexts = jobFilter.getTexts();
-        mockedResources = jobFilter.getResources();
         thisAsWidget = jobFilter.getThisAsWidget();
         parentJobFilter = jobFilter.getParentJobFilter();
         filterPanel = jobFilter.getFilterPanel();
@@ -157,8 +152,6 @@ public class BaseJobFilterTest {
         // Verify test
         getAttributes(jobFilter);
         assertThat(name, is("-test name-"));
-        assertThat(mockedTexts, is(mockedTexts));
-        assertThat(mockedResources, is(mockedResources));
         assertThat(thisAsWidget, is(notNullValue()));
         assertThat(parentJobFilter, is(nullValue()));
         assertThat(filterPanel, is(nullValue()));
@@ -220,7 +213,6 @@ public class BaseJobFilterTest {
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
         jobFilter.setFilterPanel(null);
         jobFilter.getAddCommand(mockedJobFilter);
-        when(mockedResources.deleteButton()).thenReturn(mockedImageResource);
 
         // Activate Subject Under Test
         jobFilter.addJobFilter();

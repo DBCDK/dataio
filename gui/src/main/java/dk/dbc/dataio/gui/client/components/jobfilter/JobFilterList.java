@@ -30,15 +30,14 @@ import java.util.List;
  * This class is the configuration of which filters constitutes the list of Job Filters
  * in the Jobs List
  */
-final public class JobFilterList {
-    JobFilterGinjector ginjector;
+final class JobFilterList {
     private List<JobFilterItem> jobFilterList;
 
     class JobFilterItem {
         BaseJobFilter jobFilter;
         boolean activeOnStartup;
 
-        public JobFilterItem(BaseJobFilter jobFilter, boolean activeOnStartup) {
+        JobFilterItem(BaseJobFilter jobFilter, boolean activeOnStartup) {
             this.jobFilter = jobFilter;
             this.activeOnStartup = activeOnStartup;
         }
@@ -49,8 +48,8 @@ final public class JobFilterList {
      * Here, the list of all available Job Filters are listed.
      * Add new Job Filters to the end of the list
      */
-    public JobFilterList() {
-        ginjector = GWT.create(JobFilterGinjector.class);
+    JobFilterList() {
+        JobFilterGinjector ginjector = GWT.create(JobFilterGinjector.class);
         jobFilterList = Arrays.asList(
                 new JobFilterItem(ginjector.getSinkJobFilter(), false),
                 new JobFilterItem(ginjector.getSubmitterJobFilter(), false),
@@ -61,7 +60,7 @@ final public class JobFilterList {
         );
     }
 
-    public JobFilterList(List<JobFilterItem> jobFilterList) {
+    JobFilterList(List<JobFilterItem> jobFilterList) {
         this.jobFilterList = jobFilterList;
     }
 
@@ -69,7 +68,7 @@ final public class JobFilterList {
      * Getter for the Job Filter List
      * @return The list of Job Filters
      */
-    public List<JobFilterItem> getJobFilterList() {
+    List<JobFilterItem> getJobFilterList() {
         return jobFilterList;
     }
 }

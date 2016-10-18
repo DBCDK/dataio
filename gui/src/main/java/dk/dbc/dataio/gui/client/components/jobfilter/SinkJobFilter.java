@@ -29,6 +29,7 @@ import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -44,7 +45,6 @@ import java.util.List;
  * This is the Sink Job Filter
  */
 public class SinkJobFilter extends BaseJobFilter {
-    final String NO_SINK_ID_SELECTED = "0";  // Setting SinkId to zero means no filtering
 
     interface SinkJobFilterUiBinder extends UiBinder<HTMLPanel, SinkJobFilter> {
     }
@@ -55,17 +55,19 @@ public class SinkJobFilter extends BaseJobFilter {
     ChangeHandler sinkJobValueChangeHandler = null;
 
 
+    @SuppressWarnings("unused")
     @UiConstructor
     public SinkJobFilter() {
-        this((Texts) GWT.create(Texts.class), (Resources) GWT.create(Resources.class), (FlowStoreProxyAsync) GWT.create(FlowStoreProxy.class));
+        this(GWT.create(Texts.class), GWT.create(Resources.class), "", GWT.create(FlowStoreProxy.class));
     }
 
     @Inject
-    public SinkJobFilter(Texts texts, Resources resources, FlowStoreProxyAsync flowStoreProxy) {
-        super(texts, resources);
+    public SinkJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter, FlowStoreProxyAsync flowStoreProxy) {
+        super(texts, resources, parameter);
         this.flowStoreProxy = flowStoreProxy;
         initWidget(ourUiBinder.createAndBindUi(this));
         flowStoreProxy.findAllSinks(new FetchSinksCallback());
+        setParameterData();
     }
 
     @UiField PromptedList sinkList;
@@ -79,6 +81,29 @@ public class SinkJobFilter extends BaseJobFilter {
         return texts.sinkFilter_name();
     }
 
+
+    /**
+     * Gets the value of this job filter, which is the JobListCriteria to be used in the filter search
+     * @return The JobListCriteria constructed by this job filter
+     */
+    @Override
+    public JobListCriteria getValue() {
+        String selectedKey = sinkList.getSelectedKey();
+        if (selectedKey == null || selectedKey.isEmpty() || selectedKey.equals("0")) return new JobListCriteria();
+
+        return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, selectedKey));
+    }
+
+    /**
+     * Sets the selection according to the key value, setup in the parameter attribute<br>
+     * The value is given in url as a plain integer, as an index to the sink
+     */
+    @Override
+    public void setParameterData() {
+        if (!parameter.isEmpty()) {
+            sinkList.setSelectedValue(parameter);
+        }
+    }
 
     /*
      * Override HasChangeHandlers Interface Methods
@@ -102,19 +127,14 @@ public class SinkJobFilter extends BaseJobFilter {
         }
         @Override
         public void onSuccess(List<SinkModel> models) {
+            String NO_SINK_ID_SELECTED = "0";
             sinkList.addAvailableItem(texts.sinkFilter_ChooseASinkName(), NO_SINK_ID_SELECTED);
             for (SinkModel model: models) {
                 sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
             }
             sinkList.setEnabled(true);
+            setParameterData();
         }
-    }
-
-    @Override
-    public JobListCriteria getValue() {
-        if( sinkList.getSelectedKey().equals("0")) return new JobListCriteria();
-
-        return new JobListCriteria().where( new ListFilter<JobListCriteria.Field>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, sinkList.getSelectedKey()));
     }
 
 }

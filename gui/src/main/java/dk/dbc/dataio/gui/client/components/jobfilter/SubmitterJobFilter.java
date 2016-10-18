@@ -29,6 +29,7 @@ import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -43,15 +44,17 @@ public class SubmitterJobFilter extends BaseJobFilter {
 
     private static SubmitterJobFilterUiBinder ourUiBinder = GWT.create(SubmitterJobFilterUiBinder.class);
 
+    @SuppressWarnings("unused")
     @UiConstructor
     public SubmitterJobFilter() {
-        this((Texts) GWT.create(Texts.class), (Resources) GWT.create(Resources.class) );
+        this(GWT.create(Texts.class), GWT.create(Resources.class), "");
     }
 
     @Inject
-    public SubmitterJobFilter(Texts texts, Resources resources) {
-        super(texts, resources);
+    public SubmitterJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+        super(texts, resources, parameter);
         initWidget(ourUiBinder.createAndBindUi(this));
+        setParameterData();
     }
 
     @UiField PromptedTextBox submitter;
@@ -67,25 +70,27 @@ public class SubmitterJobFilter extends BaseJobFilter {
     }
 
     /**
-     * Adds a changehandler to the job filter
-     * @param changeHandler the changehandler
-     * @return a Handler Registration object
-     */
-    @Override
-    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        return submitter.addChangeHandler( changeHandler );
-    }
-
-    /**
      *  Gets the current value of the job filter
      * @return the current value of the filter
      */
     @Override
     public JobListCriteria getValue() {
-        if( submitter.getValue().isEmpty() ) return new JobListCriteria();
+        String value = submitter.getValue();
+        if (value == null || value.isEmpty() ) return new JobListCriteria();
 
-        String jsonMatch = new StringBuilder().append("{ \"submitterId\": ").append(submitter.getValue()).append("}").toString();
+        String jsonMatch = "{ \"submitterId\": " + value + "}";
         return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, jsonMatch));
+    }
+
+    /**
+     * Sets the selection according to the key value, setup in the parameter attribute<br>
+     * The value is given in url as a plain integer, as the submitter number
+     */
+    @Override
+    public void setParameterData() {
+        if (!parameter.isEmpty()) {
+            submitter.setValue(parameter, true);
+        }
     }
 
     /**
@@ -96,5 +101,17 @@ public class SubmitterJobFilter extends BaseJobFilter {
     public void setFocus(boolean focused) {
         submitter.setFocus(focused);
     }
+
+
+    /**
+     * Adds a changehandler to the job filter
+     * @param changeHandler the changehandler
+     * @return a Handler Registration object
+     */
+    @Override
+    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        return submitter.addChangeHandler( changeHandler );
+    }
+
 
 }

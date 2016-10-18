@@ -39,27 +39,22 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import java.util.Iterator;
 
 /**
- * This class implements the generic Jobs Filter as a UI Binder component.
- * To be added in the top of the Jobs List.
+ * This class implements the generic Jobs Filter as a UI Binder component.<br>
+ * To be added in the top of the Jobs List.<br>
  * The component contains an "Add Filter" menu and a button to be used to activate the filter:
- *
  * <pre>
  * <code>
  * +---------------+
  * | Tilføj Filter |
  * +---------------+
- * }
  * </code>
  * </pre>
- *
- * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters
- * These filters are configured in the {@link JobFilterList} class
- *
+ * When the menu "Add Filter" is clicked, a sub menu will appear, containing the names of all available filters.<br>
+ * These filters are configured in the {@link JobFilterList} class.<br>
  * In UI Binder, add the following:
- *
  * <pre>
  * <code>
- *  &lt;jobs:JobFilter ui:field="jobFilter" /&gt;
+ *  &lt;jobs:JobFilter ui:field="jobFilter"/&gt;
  * </code>
  * </pre>
  */
@@ -78,6 +73,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     /**
      * Default empty Constructor
      */
+    @SuppressWarnings("unused")
     @UiConstructor
     public JobFilter() {
         this(new JobFilterList());
@@ -87,7 +83,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * Constructor with list of Available Job Filters to be shown upon startup
      * @param availableJobFilters The list of Available Job Filters
      */
-    public JobFilter(JobFilterList availableJobFilters) {
+    JobFilter(JobFilterList availableJobFilters) {
         initWidget(ourUiBinder.createAndBindUi(this));
         for (JobFilterList.JobFilterItem filter: availableJobFilters.getJobFilterList()) {
             filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
@@ -176,9 +172,9 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         changeHandler = null;
     }
 
-    class JobFilterChangeEvent extends ChangeEvent {}
+    private class JobFilterChangeEvent extends ChangeEvent {}
 
-    void valueChanged() {
+    private void valueChanged() {
         if (changeHandler != null) {
             changeHandler.onChange(new JobFilterChangeEvent());
         }

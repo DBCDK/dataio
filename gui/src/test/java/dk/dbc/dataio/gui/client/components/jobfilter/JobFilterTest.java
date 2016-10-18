@@ -69,11 +69,11 @@ public class JobFilterTest {
     @Mock ChangeHandler mockedChangeHandler;
     @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock BaseJobFilter mockedBaseJobFilterWidget;
-    List<JobFilterList.JobFilterItem> twoJobFilters = new ArrayList<JobFilterList.JobFilterItem>();
-    List<JobFilterList.JobFilterItem> emptyJobFilters = new ArrayList<JobFilterList.JobFilterItem>();
+    private List<JobFilterList.JobFilterItem> twoJobFilters = new ArrayList<>();
+    private List<JobFilterList.JobFilterItem> emptyJobFilters = new ArrayList<>();
 
-    boolean addCommand1Executed;
-    boolean addCommand2Executed;
+    private boolean addCommand1Executed;
+    private boolean addCommand2Executed;
 
     @Before
     public void prepareJobFilters() {

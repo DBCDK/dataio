@@ -32,6 +32,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -63,7 +65,7 @@ public class DateJobFilterTest {
     @Test
     public void constructor_instantiate_instantiatedCorrectly() {
         // Activate Subject Under Test
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
 
         // Verify test
         assertThat(jobFilter.texts, is(mockedTexts));
@@ -78,7 +80,7 @@ public class DateJobFilterTest {
     @Test
     public void dateChanged_callDateChangedChangeHandlerIsNull_nop() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         jobFilter.callbackChangeHandler = null;
 
         // Activate Subject Under Test
@@ -88,11 +90,10 @@ public class DateJobFilterTest {
         // Nothing to verify - apart from assuring no exceptions is thrown
     }
 
-
     @Test
     public void dateChanged_callDateChangedChangeHandlerIsValid_ok() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         jobFilter.callbackChangeHandler = mockedChangeHandler;
 
         // Activate Subject Under Test
@@ -110,7 +111,7 @@ public class DateJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         when(mockedTexts.jobDateFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -122,28 +123,9 @@ public class DateJobFilterTest {
 
 
     @Test
-    public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
-        // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
-
-        // Activate Subject Under Test
-        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
-
-        // Verify test
-        assertThat(jobFilter.callbackChangeHandler, is(mockedChangeHandler));
-        verify(mockedChangeHandler).onChange(null);
-        assertThat(handlerRegistration, not(nullValue()));
-
-        // Call returned HandlerRegistration object and test result
-        handlerRegistration.removeHandler();
-        assertThat(jobFilter.callbackChangeHandler, is(nullValue()));
-    }
-
-
-    @Test
     public void getValue_fromDateEmptyAndToDateEmpty_emptyCriteria() {
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.fromDate.getValue()).thenReturn("");
         when(jobFilter.toDate.getValue()).thenReturn("");
 
@@ -156,12 +138,13 @@ public class DateJobFilterTest {
         assertThat(criteria, equalTo(new JobListCriteria()));
     }
 
+
     @Test
     public void getValue_fromDateNotEmptyAndToDateEmpty_fromCriteria() {
         final String FROM_DATE = "2015-10-21 10:00:00";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.fromDate.getValue()).thenReturn(FROM_DATE);
         when(jobFilter.toDate.getValue()).thenReturn("");
 
@@ -186,7 +169,7 @@ public class DateJobFilterTest {
         final String TO_DATE = "2015-10-21 20:00:00";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.fromDate.getValue()).thenReturn("");
         when(jobFilter.toDate.getValue()).thenReturn(TO_DATE);
 
@@ -212,7 +195,7 @@ public class DateJobFilterTest {
         final String TO_DATE =   "2015-10-21 20:00:00";
 
         // Test Preparation
-        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources);
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
         when(jobFilter.fromDate.getValue()).thenReturn(FROM_DATE);
         when(jobFilter.toDate.getValue()).thenReturn(TO_DATE);
 
@@ -237,6 +220,92 @@ public class DateJobFilterTest {
                 )
         );
         assertThat(criteria, equalTo(expectedCriteria));
+    }
+
+    @Test
+    public void setParameterData_emptyParameter_noDatesSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_fromDateParameter_fromDateSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue("2016-10-16 22:11:00", true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_twoDatesParameter_twoDatesSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,2016-10-16 22:11:01");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue("2016-10-16 22:11:00", true);
+        verify(jobFilter.toDate).setValue("2016-10-16 22:11:01", true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_toDateParameter_toDateSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",2016-10-16 22:11:02");
+        // setParameterData is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue("", true);
+        verify(jobFilter.toDate).setValue("2016-10-16 22:11:02", true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void addValueChangeHandler_callAddValueChangeHandler_valueChangeHandlerAdded() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+
+        // Activate Subject Under Test
+        HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
+
+        // Verify test
+        assertThat(jobFilter.callbackChangeHandler, is(mockedChangeHandler));
+        verify(mockedChangeHandler).onChange(null);
+        assertThat(handlerRegistration, not(nullValue()));
+
+        // Call returned HandlerRegistration object and test result
+        handlerRegistration.removeHandler();
+        assertThat(jobFilter.callbackChangeHandler, is(nullValue()));
+    }
+
+
+    /*
+     * Private methods
+     */
+    private String defaultFromDate() {
+        final Integer TWO_DAYS_IN_MILLISECONDS = 2*24*60*60*1000;
+        final String DEFAULT_EMPTY_TIME = "00:00:00";
+        String date = Format.formatLongDate(new Date(System.currentTimeMillis()-TWO_DAYS_IN_MILLISECONDS));
+        return date.substring(0, date.length() - DEFAULT_EMPTY_TIME.length()) + DEFAULT_EMPTY_TIME;
     }
 
 }

@@ -67,12 +67,8 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
 
     private static TitledJobFilterPanelUiBinder ourUiBinder = GWT.create(TitledJobFilterPanelUiBinder.class);
 
-    public JobFilterPanel() {
-        initWidget(ourUiBinder.createAndBindUi(this));
-    }
-
     @UiField PushButton button;
-    protected @UiField SimplePanel content;
+    @UiField SimplePanel content;
 
     /**
      * Constructor taking the title of the panel and the button image as parameters (mandatory in UI Binder)
@@ -80,7 +76,7 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
      * @param buttonImage the button image
      */
     @UiConstructor
-    public JobFilterPanel(String title, ImageResource buttonImage) {
+    JobFilterPanel(String title, ImageResource buttonImage) {
         initWidget(ourUiBinder.createAndBindUi(this));
         setTitle(title);
         setButtonImage(buttonImage);
@@ -136,7 +132,7 @@ public class JobFilterPanel extends Composite implements HasWidgets, HasClickHan
      * Sets the button image
      * @param buttonImage The image to be shown on the button
      */
-    public void setButtonImage(ImageResource buttonImage) {
+    private void setButtonImage(ImageResource buttonImage) {
         this.button.getUpFace().setImage(new Image(buttonImage));
     }
 

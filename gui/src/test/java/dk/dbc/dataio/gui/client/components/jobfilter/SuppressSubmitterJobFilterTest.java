@@ -26,6 +26,8 @@ import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.resources.Resources;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -35,6 +37,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -54,78 +57,30 @@ public class SuppressSubmitterJobFilterTest {
     }
 
     @Test
-    public void uiHandlerSelectionChanged_callFilterItemsRadioButtonPressedTestCallback_changeCallbackCalled() {
+    public void filterItemsRadioButtonPressed_validCallback_changeCallbackCalled() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(true);
-        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(false);
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
         jobFilter.callbackChangeHandler = mockedChangeHandler;
 
         // Activate Subject Under Test
         jobFilter.filterItemsRadioButtonPressed(new TestClickEvent());
 
         // Verify Test
-        verify(jobFilter.callbackChangeHandler).onChange(null);
+        verify(mockedChangeHandler).onChange(null);
+        verifyNoMoreInteractions(mockedChangeHandler);
     }
 
     @Test
-    public void uiHandlerSelectionChanged_callFilterItemsRadioButtonPressedNoRadioButtonsSet_noJobListCriteriaSet() {
+    public void filterItemsRadioButtonPressed_invalidCallback_changeCallbackNotCalled() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(false);
-        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(false);
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        jobFilter.callbackChangeHandler = null;
 
         // Activate Subject Under Test
         jobFilter.filterItemsRadioButtonPressed(new TestClickEvent());
 
         // Verify Test
-// Verify that Criteria has been setup correctly - No Criteria set
-// To be implemented when ListCriteria has been refactored
-    }
-
-    @Test
-    public void uiHandlerSelectionChanged_callFilterItemsRadioButtonPressedAllRadioButtonsSet_allJobListCriteriaSet() {
-        // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(true);
-        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(true);
-
-        // Activate Subject Under Test
-        jobFilter.filterItemsRadioButtonPressed(new TestClickEvent());
-
-        // Verify Test
-// Verify that Criteria has been setup correctly - Show All Submitters Criteria set
-// To be implemented when ListCriteria has been refactored
-    }
-
-    @Test
-    public void uiHandlerSelectionChanged_callFilterItemsRadioButtonPressedAllSubmittersRadioButtonsSet_allSubmittersJobListCriteriaSet() {
-        // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(true);
-        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(false);
-
-        // Activate Subject Under Test
-        jobFilter.filterItemsRadioButtonPressed(new TestClickEvent());
-
-        // Verify Test
-// Verify that Criteria has been setup correctly - Show All Submitters Criteria set
-// To be implemented when ListCriteria has been refactored
-    }
-
-    @Test
-    public void uiHandlerSelectionChanged_callFilterItemsRadioButtonPressedSuppressSubmitterRadioButtonsSet_suppressSubmittersJobListCriteriaSet() {
-        // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
-        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(false);
-        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(true);
-
-        // Activate Subject Under Test
-        jobFilter.filterItemsRadioButtonPressed(new TestClickEvent());
-
-        // Verify Test
-// Verify that Criteria has been setup correctly - Show All Submitters Criteria set
-// To be implemented when ListCriteria has been refactored
+        verifyNoMoreInteractions(mockedChangeHandler);
     }
 
     @Test
@@ -134,7 +89,7 @@ public class SuppressSubmitterJobFilterTest {
         final String MOCKED_NAME = "name from mocked Texts";
 
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
         when(mockedTexts.suppressSubmitterFilter_name()).thenReturn(MOCKED_NAME);
 
         // Activate Subject Under Test
@@ -145,9 +100,59 @@ public class SuppressSubmitterJobFilterTest {
     }
 
     @Test
+    public void getValue_suppressButtonNotSet_emptyCriteria() {
+        // Test Preparation
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(false);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        assertThat(criteria, is(new JobListCriteria()));  // Empty criteria
+    }
+
+    @Test
+    public void getValue_suppressButtonSet_criteriaSet() {
+        // Test Preparation
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.suppressSubmittersButton.getValue()).thenReturn(true);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        assertThat(criteria, is(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_NOT_LEFT_CONTAINS, "{ \"submitterId\": 870970}"))));
+    }
+
+    @Test
+    public void setParameterData_emptyValue_showAllButtonSet() {
+        // Activate Subject Under Test
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
+
+        // Verify test
+        verify(jobFilter.showAllSubmittersButton).setValue(true, true);
+        verify(jobFilter.suppressSubmittersButton).setValue(false, true);
+        verifyNoMoreInteractions(jobFilter.showAllSubmittersButton);
+        verifyNoMoreInteractions(jobFilter.suppressSubmittersButton);
+    }
+
+    @Test
+    public void setParameterData_nonEmptyValue_suppressButtonSet() {
+        // Activate Subject Under Test
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "non-empty");
+
+        // Verify test
+        verify(jobFilter.showAllSubmittersButton).setValue(false, true);
+        verify(jobFilter.suppressSubmittersButton).setValue(true, true);
+        verifyNoMoreInteractions(jobFilter.showAllSubmittersButton);
+        verifyNoMoreInteractions(jobFilter.suppressSubmittersButton);
+    }
+
+    @Test
     public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
         // Test Preparation
-        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources);
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);

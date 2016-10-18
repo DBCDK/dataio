@@ -32,9 +32,11 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.RadioButton;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+
 
 /**
  * This is the Submitter Job Filter
@@ -45,15 +47,17 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
 
     private static SubmitterJobFilterUiBinder ourUiBinder = GWT.create(SubmitterJobFilterUiBinder.class);
 
+    @SuppressWarnings("unused")
     @UiConstructor
     public SuppressSubmitterJobFilter() {
-        this((Texts) GWT.create(Texts.class), (Resources) GWT.create(Resources.class) );
+        this(GWT.create(Texts.class), GWT.create(Resources.class), "true");
     }
 
     @Inject
-    public SuppressSubmitterJobFilter(Texts texts, Resources resources) {
-        super(texts, resources);
+    public SuppressSubmitterJobFilter(Texts texts, Resources resources, @Named("True") String parameter) {
+        super(texts, resources, parameter);
         initWidget(ourUiBinder.createAndBindUi(this));
+        setParameterData();
     }
 
     ChangeHandler callbackChangeHandler = null;
@@ -67,6 +71,7 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
      * Event handler for handling changes in the suppressed submitter
      * @param event The ValueChangeEvent
      */
+    @SuppressWarnings("unused")
     @UiHandler(value={"showAllSubmittersButton", "suppressSubmittersButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
         // Signal change to caller
@@ -75,11 +80,19 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
         }
     }
 
+    /**
+     * Gets the  name of the filter
+     * @return The name of the filter
+     */
     @Override
     public String getName() {
         return texts.suppressSubmitterFilter_name();
     }
 
+    /**
+     * Gets the JobListCriteria constructed by this job filter
+     * @return The JobListCriteria constructed by this job filter
+     */
     @Override
     public JobListCriteria getValue() {
         if (suppressSubmittersButton.getValue()) {
@@ -90,16 +103,27 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
         }
     }
 
+    /**
+     * Sets the selection according to the key value, setup in the parameter attribute<br>
+     * If the value given in url is a not-empty string, this filter is set to active
+     */
+    @Override
+    public void setParameterData() {
+        showAllSubmittersButton.setValue(parameter.isEmpty(), true);
+        suppressSubmittersButton.setValue(!parameter.isEmpty(), true);
+    }
+
+    /**
+     * Adds a ChangeHandler for this job filter
+     * @param changeHandler The ChangeHandler for this job filter
+     * @return A HandlerRegistration object to be used to remove the job filter
+     */
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
         callbackChangeHandler = changeHandler;
         callbackChangeHandler.onChange(null);
-        return new HandlerRegistration() {
-            @Override
-            public void removeHandler() {
-                callbackChangeHandler = null;
-            }
-        };
+        return () -> callbackChangeHandler = null;
     }
+
 
 }

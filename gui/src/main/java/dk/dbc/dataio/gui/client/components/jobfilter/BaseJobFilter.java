@@ -29,6 +29,7 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -39,21 +40,24 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     protected Texts texts;
     protected Resources resources;
+    protected String parameter = "";
 
-    protected final Widget thisAsWidget = this.asWidget();
-    protected JobFilter parentJobFilter = null;
-    protected JobFilterPanel filterPanel = null;
-    protected HandlerRegistration clickHandlerRegistration = null;
+    final Widget thisAsWidget = this.asWidget();
+    JobFilter parentJobFilter = null;
+    JobFilterPanel filterPanel = null;
+    HandlerRegistration clickHandlerRegistration = null;
 
     /**
      * Constructor
      * @param texts Internationalized texts to be used by this class
      * @param resources Resources to be used by this class
+     * @param parameter Parameter to used upon initialization. Interpreted by the concrete sub class.
      */
     @Inject
-    public BaseJobFilter(Texts texts, Resources resources) {
+    public BaseJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
         this.texts = texts;
         this.resources = resources;
+        this.parameter = parameter;
     }
 
     /**
@@ -61,7 +65,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * @param parentJobFilter The JobFilter, where the current JobFilter is being added to
      * @return The Scheduler command to be used, when adding the Job Filter
      */
-    public Scheduler.ScheduledCommand getAddCommand(final JobFilter parentJobFilter) {
+    Scheduler.ScheduledCommand getAddCommand(final JobFilter parentJobFilter) {
         if (parentJobFilter == null) {
             return null;
         } else {
@@ -91,7 +95,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * Removes the Job Filter from the list of active filters.
      * The associated Click Handler is de-registered to assure, that no ghost events will be triggered
      */
-    public void removeJobFilter() {
+    void removeJobFilter() {
         GWT.log("Remove Job Filter: " + getName());
         if (filterPanel != null) {
             clickHandlerRegistration.removeHandler();
@@ -159,5 +163,11 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * @return The current value of the Job List Criteria Model
      */
     abstract public JobListCriteria getValue();
+
+
+    /**
+     * Sets the value of the parameter, to be used when initializing the filter
+     */
+    abstract public void setParameterData();
 
 }

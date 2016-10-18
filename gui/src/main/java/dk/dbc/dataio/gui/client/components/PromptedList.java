@@ -253,11 +253,7 @@ public class PromptedList extends PromptedData implements HasValue<String>, HasV
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> handler) {
         if (!valueChangeHandlerInitialized) {
             valueChangeHandlerInitialized = true;
-            addChangeHandler(new ChangeHandler() {
-                public void onChange(ChangeEvent event) {
-                    ValueChangeEvent.fire(PromptedList.this, getValue());
-                }
-            });
+            addChangeHandler(event -> ValueChangeEvent.fire(PromptedList.this, getValue()));
         }
         return addHandler(handler, ValueChangeEvent.getType());
     }

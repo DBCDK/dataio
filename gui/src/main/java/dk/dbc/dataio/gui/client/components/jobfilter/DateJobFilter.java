@@ -31,6 +31,7 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.components.PromptedDateTimeBox;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
@@ -59,23 +60,26 @@ public class DateJobFilter extends BaseJobFilter {
     @UiField PromptedDateTimeBox toDate;
 
 
+    @SuppressWarnings("unused")
     @UiConstructor
     public DateJobFilter() {
-        this((Texts) GWT.create(Texts.class), (Resources) GWT.create(Resources.class));
+        this(GWT.create(Texts.class), GWT.create(Resources.class), "");
     }
 
     @Inject
-    public DateJobFilter(Texts texts, Resources resources) {
-        super(texts, resources);
+    public DateJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+        super(texts, resources, parameter);
         initWidget(ourUiBinder.createAndBindUi(this));
         fromDate.setValue(defaultFromDate());
         toDate.setValue(DEFAULT_TO_DATE);
+        setParameterData();
     }
 
     /**
      * Event handler for handling changes in the selection of from and to dates
      * @param event The ValueChangeEvent
      */
+    @SuppressWarnings("unused")
     @UiHandler(value={"fromDate", "toDate"})
     void dateChanged(ValueChangeEvent<String> event) {
         // Signal change to caller
@@ -84,6 +88,10 @@ public class DateJobFilter extends BaseJobFilter {
         }
     }
 
+
+     /*
+     * Abstract methods from BaseJobFilter
+     */
 
     /**
      * Fetches the name of this filter
@@ -94,27 +102,10 @@ public class DateJobFilter extends BaseJobFilter {
         return texts.jobDateFilter_name();
     }
 
-    /*
-     * Override HasChangeHandlers Interface Methods
+    /**
+     * Gets the value of the job filter, which is the constructed JobListCriteria to be used in the filter search
+     * @return The constructed JobListCriteria filter
      */
-
-    @Override
-    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        callbackChangeHandler = changeHandler;
-        callbackChangeHandler.onChange(null);
-        return new HandlerRegistration() {
-            @Override
-            public void removeHandler() {
-                callbackChangeHandler = null;
-            }
-        };
-    }
-
-
-    /*
-     * Abstract methods from BaseJobFilter
-     */
-
     @Override
     public JobListCriteria getValue() {
         JobListCriteria criteria = new JobListCriteria();
@@ -133,8 +124,34 @@ public class DateJobFilter extends BaseJobFilter {
         return criteria;
     }
 
+    /**
+     * Sets the selection according to the value, setup in the parameter attribute<br>
+     * The value is one or two dates, separated by commas
+     */
+    @Override
+    public void setParameterData() {
+        if (!parameter.isEmpty()) {
+            String[] data = parameter.split(",", 2);
+            fromDate.setValue(data[0], true);
+            if (data.length == 2) {
+                toDate.setValue(data[1], true);
+            }
+        }
+    }
 
-     /*
+    /*
+     * Override HasChangeHandlers Interface Methods
+     */
+
+    @Override
+    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        callbackChangeHandler = changeHandler;
+        callbackChangeHandler.onChange(null);
+        return () -> callbackChangeHandler = null;
+    }
+
+
+    /*
      * Private
      */
 

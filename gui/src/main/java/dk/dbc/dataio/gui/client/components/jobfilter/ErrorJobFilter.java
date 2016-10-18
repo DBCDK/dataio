@@ -32,15 +32,22 @@ import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+
+import static dk.dbc.dataio.jobstore.types.criteria.JobListCriteria.Field.STATE_PROCESSING_FAILED;
 
 
 /**
  * This is the Sink Job Filter
  */
 public class ErrorJobFilter extends BaseJobFilter {
+    private final String PROCESSING_TEXT = "processing";
+    private final String DELIVERING_TEXT = "delivering";
+    private final String JOB_CREATION_TEXT = "jobcreation";
+
     interface SinkJobFilterUiBinder extends UiBinder<HTMLPanel, ErrorJobFilter> {
     }
 
@@ -49,15 +56,17 @@ public class ErrorJobFilter extends BaseJobFilter {
     ChangeHandler callbackChangeHandler = null;
 
 
+    @SuppressWarnings("unused")
     @UiConstructor
     public ErrorJobFilter() {
-        this(GWT.create(Texts.class), GWT.create(Resources.class));
+        this(GWT.create(Texts.class), GWT.create(Resources.class), "");
     }
 
     @Inject
-    public ErrorJobFilter(Texts texts, Resources resources) {
-        super(texts, resources);
+    public ErrorJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+        super(texts, resources, parameter);
         initWidget(ourUiBinder.createAndBindUi(this));
+        setParameterData();
     }
 
     @UiField CheckBox processingCheckBox;
@@ -87,6 +96,48 @@ public class ErrorJobFilter extends BaseJobFilter {
         return texts.errorFilter_name();
     }
 
+    /**
+     * Gets the value of the job filter, which is the constructed JobListCriteria for this job filter
+     * @return The constructed JobListCriteria for this job filter
+     */
+    @Override
+    public JobListCriteria getValue() {
+        CriteriaClass criteriaClass = new CriteriaClass();
+        criteriaClass.or(processingCheckBox.getValue(), STATE_PROCESSING_FAILED);
+        criteriaClass.or(deliveringCheckBox.getValue(), JobListCriteria.Field.STATE_DELIVERING_FAILED);
+        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.WITH_FATAL_ERROR);
+        return criteriaClass.getCriteria();
+    }
+
+    /**
+     * Sets the selection according to the value, setup in the parameter attribute<br>
+     * The value is one (or more) of the texts: Processing, Delivering og JobCreation<br>
+     * If more that one of the texts are given, they are separated by commas.<br>
+     * The case of the texts is not important
+     */
+    @Override
+    public void setParameterData() {
+        if (!parameter.isEmpty()) {
+            String[] data = parameter.split(",", 3);
+            processingCheckBox.setValue(false);
+            deliveringCheckBox.setValue(false);
+            jobCreationCheckBox.setValue(false);
+            for (String item: data) {
+                switch (item.toLowerCase()) {
+                    case PROCESSING_TEXT:
+                        processingCheckBox.setValue(true);
+                        break;
+                    case DELIVERING_TEXT:
+                        deliveringCheckBox.setValue(true);
+                        break;
+                    case JOB_CREATION_TEXT:
+                        jobCreationCheckBox.setValue(true);
+                        break;
+                }
+            }
+        }
+    }
+
     /*
      * Override HasChangeHandlers Interface Methods
      */
@@ -97,18 +148,9 @@ public class ErrorJobFilter extends BaseJobFilter {
         return () -> callbackChangeHandler = null;
     }
 
-    @Override
-    public JobListCriteria getValue() {
-        CriteriaClass criteriaClass = new CriteriaClass();
-        criteriaClass.or(processingCheckBox.getValue(), JobListCriteria.Field.STATE_PROCESSING_FAILED);
-        criteriaClass.or(deliveringCheckBox.getValue(), JobListCriteria.Field.STATE_DELIVERING_FAILED);
-        criteriaClass.or(jobCreationCheckBox.getValue(), JobListCriteria.Field.WITH_FATAL_ERROR);
-        return criteriaClass.getCriteria();
-    }
-
 
     /*
-     * Private classes
+     * Private
      */
 
     private class CriteriaClass {
@@ -130,4 +172,5 @@ public class ErrorJobFilter extends BaseJobFilter {
             return criteria;
         }
     }
+
 }

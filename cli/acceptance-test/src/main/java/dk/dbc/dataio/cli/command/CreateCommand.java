@@ -65,8 +65,6 @@ public class CreateCommand extends Command {
         LOGGER.info("Updating flow with next content");
         final Flow updatedFlow = flowManager.updateFlow(flow, next);
         LOGGER.debug("flow with id {} is now at version {}", updatedFlow.getId(), updatedFlow.getVersion());
-        LOGGER.info("next: {}", updatedFlow.getContent().getComponents().get(0).getNext().getSvnRevision());
-        LOGGER.info("current: {}", updatedFlow.getContent().getComponents().get(0).getContent().getSvnRevision());
     }
 
     /*

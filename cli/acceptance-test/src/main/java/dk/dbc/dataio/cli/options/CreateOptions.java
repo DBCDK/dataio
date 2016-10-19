@@ -29,14 +29,10 @@ import com.beust.jcommander.Parameters;
  */
 @Parameters(separators = "=", commandDescription = "Create dataIO acceptance test")
 public class CreateOptions extends Options {
-    @Parameter(names = "--file-store-url", description = "URL of dataIO file-store service")
-    public String fileStoreUrl = "http://dataio-be-p01.dbc.dk:8080/dataio/file-store-service";
 
-    @Parameter(names = "--flow-store-url", description = "URL of dataIO flow-store service")
-    public String flowStoreUrl = "http://flowstore.dataio.prod.mcp1.dbc.dk/dataio/flow-store-service";
-
-    @Parameter(names = "--job-store-url", description = "URL of dataIO job-store service")
-    public String jobStoreUrl = "http://jobstore.dataio.prod.mcp1.dbc.dk/dataio/job-store-service";
+    // FIXME: 19/10/16 parameter needed to test towards staging (UlrResolverServlet is not yet published to prod)
+    @Parameter(names = {"-g", "--gui-url"}, description = "URL of dataIO gui")
+    public String guiUrl = "http://dataio.dbc.dk";
 
     @Parameter(names = {"-f", "--flow-name"}, description = "Name of dataIO flow", required = true)
     public String flowName;

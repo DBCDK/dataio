@@ -23,7 +23,10 @@ package dk.dbc.dataio.cli;
 
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.javascript.JavaScriptProject;
+import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -44,5 +47,22 @@ public class FlowManager {
 
     public Flow getFlow(String name) throws FlowStoreServiceConnectorException {
         return flowStoreServiceConnector.findFlowByName(name);
+    }
+
+    public Flow updateFlow(Flow flow, FlowComponentContent next) throws FlowStoreServiceConnectorException {
+        flow.getContent().getComponents().get(0).withNext(next);
+        return flowStoreServiceConnector.updateFlow(flow.getContent(), flow.getId(), flow.getVersion());
+    }
+
+    public FlowComponentContent getNextContent(FlowComponentContent current, JavaScriptProject javaScriptProject, Long revision) throws JavaScriptProjectException {
+        return new FlowComponentContent(
+                current.getName(),
+                current.getSvnProjectForInvocationJavascript(),
+                revision,
+                current.getInvocationJavascriptName(),
+                javaScriptProject.getJavaScripts(),
+                current.getInvocationMethod(),
+                current.getDescription(),
+                javaScriptProject.getRequireCache());
     }
 }

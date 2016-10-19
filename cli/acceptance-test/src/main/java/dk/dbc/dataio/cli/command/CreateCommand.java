@@ -22,11 +22,20 @@
 package dk.dbc.dataio.cli.command;
 
 import dk.dbc.dataio.cli.FlowManager;
+import dk.dbc.dataio.cli.SubversionManager;
+import dk.dbc.dataio.cli.UrlManager;
 import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.javascript.JavaScriptProject;
+import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.jndi.JndiConstants;
+import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * Acceptance test command line interface for 'create' sub command
@@ -35,17 +44,45 @@ public class CreateCommand extends Command {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateCommand.class);
 
     private final CreateOptions options;
-    private final FlowManager flowManager;
+    private FlowManager flowManager;
+    private SubversionManager subversionManager;
 
     public CreateCommand(CreateOptions options) {
         this.options = options;
-        flowManager = new FlowManager(options.flowStoreUrl);
     }
 
     @Override
-    public void execute() throws FlowStoreServiceConnectorException {
+    public void execute() throws FlowStoreServiceConnectorException, UrlResolverServiceConnectorException, JavaScriptProjectException {
+        initializeManagers();
         LOGGER.info("Looking up flow '{}'", options.flowName);
         final Flow flow = flowManager.getFlow(options.flowName);
-        LOGGER.debug("found {}", flow.getId());
+        LOGGER.debug("found flow with id {} and version {}", flow.getId(), flow.getVersion());
+        final FlowComponentContent current = flow.getContent().getComponents().get(0).getContent();
+        LOGGER.info("Extracting Javascript project with from subversion");
+        final JavaScriptProject javaScriptProject = subversionManager.getJavaScriptProject(options.revision, current);
+        LOGGER.info("creating next content with revision '{}'", options.revision);
+        final FlowComponentContent next = flowManager.getNextContent(current, javaScriptProject, options.revision);
+        LOGGER.info("Updating flow with next content");
+        final Flow updatedFlow = flowManager.updateFlow(flow, next);
+        LOGGER.debug("flow with id {} is now at version {}", updatedFlow.getId(), updatedFlow.getVersion());
+        LOGGER.info("next: {}", updatedFlow.getContent().getComponents().get(0).getNext().getSvnRevision());
+        LOGGER.info("current: {}", updatedFlow.getContent().getComponents().get(0).getContent().getSvnRevision());
     }
+
+    /*
+     * Private methods
+     */
+
+    private void initializeManagers() throws UrlResolverServiceConnectorException {
+        LOGGER.info("initializing UrlManager using endpoint: {}", options.guiUrl);
+        final UrlManager urlManager = new UrlManager(options.guiUrl);
+        final Map<String, String> urls = urlManager.getUrls();
+
+        LOGGER.info("initializing FlowManager using endpoint: {}", urls.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE));
+        flowManager = new FlowManager(urls.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE));
+
+        LOGGER.info("initializing SubversionManager using endpoint: {}", urls.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
+        subversionManager = new SubversionManager(urls.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
+    }
+
 }

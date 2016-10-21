@@ -155,7 +155,7 @@ public class JobsBean {
 
         try {
             jobInputStream = jsonbContext.unmarshall(jobInputStreamData, AccTestJobInputStream.class);
-            jobInfoSnapshot = jobStore.addAndScheduleJob(jobInputStream);
+            jobInfoSnapshot = jobStore.addAndScheduleAccTestJob(jobInputStream);
             return Response.created(getUri(uriInfo, Integer.toString(jobInfoSnapshot.getJobId())))
                     .entity(jsonbContext.marshall(jobInfoSnapshot))
                     .build();

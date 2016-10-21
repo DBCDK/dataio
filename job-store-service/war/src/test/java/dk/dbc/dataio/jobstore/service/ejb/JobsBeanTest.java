@@ -184,7 +184,7 @@ public class JobsBeanTest {
                 new FlowBuilder().build(),
                 RecordSplitterConstants.RecordSplitter.XML);
 
-        when(jobsBean.jobStore.addAndScheduleJob(any(AccTestJobInputStream.class))).thenThrow(new JobStoreException("Error"));
+        when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenThrow(new JobStoreException("Error"));
         assertThat(() ->  jobsBean.addAccTestJob(mockedUriInfo, asJson(jobInputStream)), isThrowing(JobStoreException.class));
     }
 
@@ -202,7 +202,7 @@ public class JobsBeanTest {
         final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobInfoSnapshot.getSpecification(), flow, RecordSplitterConstants.RecordSplitter.DANMARC2_LINE_FORMAT);
         final String jobInputStreamJson = asJson(jobInputStream);
 
-        when(jobsBean.jobStore.addAndScheduleJob(any(AccTestJobInputStream.class))).thenReturn(jobInfoSnapshot);
+        when(jobsBean.jobStore.addAndScheduleAccTestJob(any(AccTestJobInputStream.class))).thenReturn(jobInfoSnapshot);
 
         final Response response = jobsBean.addAccTestJob(mockedUriInfo, jobInputStreamJson);
         assertThat(response.getStatus(), is(Response.Status.CREATED.getStatusCode()));

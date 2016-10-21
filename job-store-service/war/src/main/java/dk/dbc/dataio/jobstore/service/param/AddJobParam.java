@@ -126,7 +126,7 @@ public class AddJobParam {
         return isJobSpecificationValid;
     }
 
-    private FlowBinder lookupFlowBinder() {
+    protected FlowBinder lookupFlowBinder() {
         final JobSpecification jobSpec = jobInputStream.getJobSpecification();
         try {
             return flowStoreServiceConnector.getFlowBinder(

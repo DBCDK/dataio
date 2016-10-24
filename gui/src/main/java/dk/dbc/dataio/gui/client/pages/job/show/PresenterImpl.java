@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -80,6 +81,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         getView().setPresenter(this);
         getView().setHeader(this.header);
         containerWidget.setWidget(getView().asWidget());
+        getView().jobFilter.setupFilterParameters(((AbstractBasePlace) placeController.getWhere()).getParameters());
         updateBaseQuery();
         refresh();
     }

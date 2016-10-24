@@ -175,4 +175,13 @@ public abstract class AbstractBasePlace extends Place {
         return parameters.containsKey(key);
     }
 
+    /**
+     * Gets all parameters, stored in this Place
+     *
+     * @return All parameters, stored in this Place as a Map
+     */
+    public Map<String, String> getParameters() {
+        return parameters;
+    }
+
 }

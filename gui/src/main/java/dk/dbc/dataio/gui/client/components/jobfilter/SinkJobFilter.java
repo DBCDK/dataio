@@ -51,6 +51,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     private static SinkJobFilterUiBinder ourUiBinder = GWT.create(SinkJobFilterUiBinder.class);
 
+    private final String filterParameter;
     FlowStoreProxyAsync flowStoreProxy;
     ChangeHandler sinkJobValueChangeHandler = null;
 
@@ -63,11 +64,11 @@ public class SinkJobFilter extends BaseJobFilter {
 
     @Inject
     public SinkJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter, FlowStoreProxyAsync flowStoreProxy) {
-        super(texts, resources, parameter);
+        super(texts, resources);
         this.flowStoreProxy = flowStoreProxy;
         initWidget(ourUiBinder.createAndBindUi(this));
         flowStoreProxy.findAllSinks(new FetchSinksCallback());
-        setParameterData();
+        filterParameter = parameter;
     }
 
     @UiField PromptedList sinkList;
@@ -97,11 +98,12 @@ public class SinkJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain integer, as an index to the sink
+     * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData() {
-        if (!parameter.isEmpty()) {
-            sinkList.setSelectedValue(parameter);
+    public void setParameterData(String filterParameter) {
+        if (!filterParameter.isEmpty()) {
+            sinkList.setSelectedValue(filterParameter);
         }
     }
 
@@ -133,7 +135,7 @@ public class SinkJobFilter extends BaseJobFilter {
                 sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
             }
             sinkList.setEnabled(true);
-            setParameterData();
+            setParameterData(filterParameter);
         }
     }
 

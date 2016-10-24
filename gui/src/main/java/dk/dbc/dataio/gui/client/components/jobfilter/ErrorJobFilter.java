@@ -64,9 +64,9 @@ public class ErrorJobFilter extends BaseJobFilter {
 
     @Inject
     public ErrorJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
-        super(texts, resources, parameter);
+        super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameterData();
+        setParameterData(parameter);
     }
 
     @UiField CheckBox processingCheckBox;
@@ -114,11 +114,12 @@ public class ErrorJobFilter extends BaseJobFilter {
      * The value is one (or more) of the texts: Processing, Delivering og JobCreation<br>
      * If more that one of the texts are given, they are separated by commas.<br>
      * The case of the texts is not important
+     * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData() {
-        if (!parameter.isEmpty()) {
-            String[] data = parameter.split(",", 3);
+    public void setParameterData(String filterParameter) {
+        if (!filterParameter.isEmpty()) {
+            String[] data = filterParameter.split(",", 3);
             processingCheckBox.setValue(false);
             deliveringCheckBox.setValue(false);
             jobCreationCheckBox.setValue(false);

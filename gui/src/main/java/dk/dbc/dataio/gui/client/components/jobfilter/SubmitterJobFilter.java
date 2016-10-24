@@ -52,9 +52,9 @@ public class SubmitterJobFilter extends BaseJobFilter {
 
     @Inject
     public SubmitterJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
-        super(texts, resources, parameter);
+        super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameterData();
+        setParameterData(parameter);
     }
 
     @UiField PromptedTextBox submitter;
@@ -85,11 +85,12 @@ public class SubmitterJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain integer, as the submitter number
+     * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData() {
-        if (!parameter.isEmpty()) {
-            submitter.setValue(parameter, true);
+    public void setParameterData(String filterParameter) {
+        if (!filterParameter.isEmpty()) {
+            submitter.setValue(filterParameter, true);
         }
     }
 

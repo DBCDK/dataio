@@ -28,30 +28,11 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ShowAcctestJobsPlace extends AbstractBasePlace {
-    private String jobsShowName;
-
     public ShowAcctestJobsPlace() {
-        this.jobsShowName = "";
+        super();
     }
-
-    public ShowAcctestJobsPlace(String jobsShowName) {
-        this.jobsShowName = jobsShowName;
-    }
-
-    public String getJobsShowName() {
-        return jobsShowName;
-    }
-
-    @Prefix("ShowAcctestJobs")
-    public static class Tokenizer implements PlaceTokenizer<ShowAcctestJobsPlace> {
-        @Override
-        public String getToken(ShowAcctestJobsPlace place) {
-            return place.getJobsShowName();
-        }
-           @Override
-        public ShowAcctestJobsPlace getPlace(String token) {
-            return new ShowAcctestJobsPlace(token);
-        }
+    public ShowAcctestJobsPlace(String token) {
+        super(token);
     }
 
     @Override
@@ -60,6 +41,18 @@ public class ShowAcctestJobsPlace extends AbstractBasePlace {
                 clientFactory.getPlaceController(),
                 clientFactory.getGlobalViewsFactory().getAcctestJobsView(),
                 commonInjector.getMenuTexts().menu_AcctestJobs());
+    }
+
+    @Prefix("ShowAcctestJobs")
+    public static class Tokenizer implements PlaceTokenizer<ShowAcctestJobsPlace> {
+        @Override
+        public String getToken(ShowAcctestJobsPlace place) {
+            return place.getUrl();
+        }
+        @Override
+        public ShowAcctestJobsPlace getPlace(String token) {
+            return new ShowAcctestJobsPlace(token);
+        }
     }
 }
 

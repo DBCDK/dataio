@@ -67,7 +67,7 @@ public class BaseJobFilterTest {
     class ConcreteBaseJobFilter extends BaseJobFilter {
         String storedName;
         ConcreteBaseJobFilter(String name) {
-            super(mock(Texts.class), mock(Resources.class), "");
+            super(mock(Texts.class), mock(Resources.class));
             this.storedName = name;
         }
         @Override
@@ -79,8 +79,7 @@ public class BaseJobFilterTest {
             return new JobListCriteria();
         }
         @Override
-        public void setParameterData() {
-            parameter = "";
+        public void setParameterData(String filterParameter) {
         }
         public Texts getTexts() {
             return texts;

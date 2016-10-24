@@ -37,6 +37,7 @@ import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * This class implements the generic Jobs Filter as a UI Binder component.<br>
@@ -60,10 +61,11 @@ import java.util.Iterator;
  */
 public class JobFilter extends Composite implements HasChangeHandlers {
     interface JobFilterUiBinder extends UiBinder<HTMLPanel, JobFilter> {
-    }
 
+    }
     private static JobFilterUiBinder ourUiBinder = GWT.create(JobFilterUiBinder.class);
 
+    private final JobFilterList availableJobFilters;
     ChangeHandler changeHandler = null;
 
     @UiField FlowPanel jobFilterPanel;
@@ -84,13 +86,14 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @param availableJobFilters The list of Available Job Filters
      */
     JobFilter(JobFilterList availableJobFilters) {
+        this.availableJobFilters = availableJobFilters;
         initWidget(ourUiBinder.createAndBindUi(this));
-        for (JobFilterList.JobFilterItem filter: availableJobFilters.getJobFilterList()) {
+        availableJobFilters.getJobFilterList().forEach(filter -> {
             filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
             if (filter.activeOnStartup) {
                 filter.jobFilter.getAddCommand(this).execute();
             }
-        }
+        });
     }
 
 
@@ -164,10 +167,24 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         return jobListCriteria;
     }
 
+    /**
+     * Setup parameters for all filters<br>
+     * Each filter is identified by the key to the map - a string with the ClassName of the Job Filter<br>
+     *
+     * @param parameters A map containing the setup parameters for the job filters
+     */
+    public void setupFilterParameters(Map<String, String> parameters) {
+        if (!parameters.isEmpty()) {
+            availableJobFilters.getJobFilterList().forEach(filter -> filter.jobFilter.removeJobFilter());
+            parameters.forEach(this::setupFilterParameterFor);
+        }
+    }
 
     /*
      * Private methods and classes
      */
+
+
     private void removeChangeHandler() {
         changeHandler = null;
     }
@@ -178,6 +195,15 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         if (changeHandler != null) {
             changeHandler.onChange(new JobFilterChangeEvent());
         }
+    }
+
+    private void setupFilterParameterFor(String filterName, String filterParameter) {
+        availableJobFilters.getJobFilterList().forEach(filter -> {
+            if (filter.jobFilter.getClass().getSimpleName().toLowerCase().equals(filterName.toLowerCase())) {
+                filter.jobFilter.setParameterData(filterParameter);
+                filter.jobFilter.addJobFilter();
+            }
+        });
     }
 
 }

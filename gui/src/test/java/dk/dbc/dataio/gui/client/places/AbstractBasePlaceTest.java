@@ -27,6 +27,8 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Map;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -276,5 +278,24 @@ public class AbstractBasePlaceTest {
         assertThat(place.hasValue("key2"), is(true));
         assertThat(place.hasValue("key3"), is(false));
     }
+
+
+    // Test getParameters
+
+    @Test
+    public void getParameters_threeValidParameters_validDataFetched() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        Map<String, String> parameters = place.getParameters();
+
+        // Test validation
+        assertThat(parameters.size(), is(3));
+        assertThat(parameters.get("key1"), is("value1"));
+        assertThat(parameters.get("key2"), is("value2"));
+        assertThat(parameters.get("key3"), is("value3"));
+    }
+
 
 }

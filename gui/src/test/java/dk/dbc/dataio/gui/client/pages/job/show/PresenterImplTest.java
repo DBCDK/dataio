@@ -23,16 +23,19 @@
 package dk.dbc.dataio.gui.client.pages.job.show;
 
 
+import com.google.gwt.dev.util.collect.HashMap;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxyAsync;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -44,6 +47,7 @@ import org.mockito.Mock;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -70,6 +74,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
     @Mock JobStoreProxyAsync mockedJobStore;
     @Mock View mockedView;
+    @Mock JobFilter mockedJobFilter;
+    @Mock AbstractBasePlace mockedPlace;
     @Mock ViewJobsGinjector mockedViewInjector;
     @Mock Throwable mockedException;
     @Mock SingleSelectionModel<JobModel> mockedSingleSelectionModel;
@@ -83,6 +89,8 @@ public class PresenterImplTest extends PresenterImplTestBase {
     final static String MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR = "mocked error_InputFieldValidationError";
     final static String MOCKED_JOB_NOT_FOUND_ERROR = "mocked error_JobNotFound()";
 
+    final Map<String, String> testParameters = new HashMap<>();
+
 
     // Setup mocked data
     @Before
@@ -95,6 +103,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.dataProvider = mockedAsyncJobViewDataProvider;
         mockedView.jobsTable = mockedJobsTable;
         mockedView.jobIdInputField = mockedJobIdInputField;
+        mockedView.jobFilter = mockedJobFilter;
+        when(mockedPlaceController.getWhere()).thenReturn(mockedPlace);
+        when(mockedPlace.getParameters()).thenReturn(testParameters);
         when(mockedText.error_InputFieldValidationError()).thenReturn(MOCKED_INPUT_FIELD_VALIDATION_ERROR);
         when(mockedText.error_NumericInputFieldValidationError()).thenReturn(MOCKED_NUMERIC_INPUT_FIELD_VALIDATION_ERROR);
         when(mockedText.error_JobNotFound()).thenReturn(MOCKED_JOB_NOT_FOUND_ERROR);
@@ -152,6 +163,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedJobFilter).setupFilterParameters(testParameters);
     }
 
     @Test

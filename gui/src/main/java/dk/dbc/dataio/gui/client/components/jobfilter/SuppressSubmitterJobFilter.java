@@ -55,9 +55,9 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
 
     @Inject
     public SuppressSubmitterJobFilter(Texts texts, Resources resources, @Named("True") String parameter) {
-        super(texts, resources, parameter);
+        super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameterData();
+        setParameterData(parameter);
     }
 
     ChangeHandler callbackChangeHandler = null;
@@ -106,11 +106,12 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * If the value given in url is a not-empty string, this filter is set to active
+     * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData() {
-        showAllSubmittersButton.setValue(parameter.isEmpty(), true);
-        suppressSubmittersButton.setValue(!parameter.isEmpty(), true);
+    public void setParameterData(String filterParameter) {
+        showAllSubmittersButton.setValue(filterParameter.isEmpty(), true);
+        suppressSubmittersButton.setValue(!filterParameter.isEmpty(), true);
     }
 
     /**

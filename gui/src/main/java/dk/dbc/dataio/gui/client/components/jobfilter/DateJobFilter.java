@@ -68,11 +68,11 @@ public class DateJobFilter extends BaseJobFilter {
 
     @Inject
     public DateJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
-        super(texts, resources, parameter);
+        super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
         fromDate.setValue(defaultFromDate());
         toDate.setValue(DEFAULT_TO_DATE);
-        setParameterData();
+        setParameterData(parameter);
     }
 
     /**
@@ -127,11 +127,12 @@ public class DateJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the value, setup in the parameter attribute<br>
      * The value is one or two dates, separated by commas
+     * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData() {
-        if (!parameter.isEmpty()) {
-            String[] data = parameter.split(",", 2);
+    public void setParameterData(String filterParameter) {
+        if (!filterParameter.isEmpty()) {
+            String[] data = filterParameter.split(",", 2);
             fromDate.setValue(data[0], true);
             if (data.length == 2) {
                 toDate.setValue(data[1], true);

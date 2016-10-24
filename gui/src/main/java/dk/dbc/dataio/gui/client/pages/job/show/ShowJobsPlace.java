@@ -28,18 +28,11 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ShowJobsPlace extends AbstractBasePlace {
-    private String jobsShowName;
-
     public ShowJobsPlace() {
-        this.jobsShowName = "";
+        super();
     }
-
-    public ShowJobsPlace(String jobsShowName) {
-        this.jobsShowName = jobsShowName;
-    }
-
-    public String getJobsShowName() {
-        return jobsShowName;
+    public ShowJobsPlace(String token) {
+        super(token);
     }
 
     @Override
@@ -54,7 +47,7 @@ public class ShowJobsPlace extends AbstractBasePlace {
     public static class Tokenizer implements PlaceTokenizer<ShowJobsPlace> {
         @Override
         public String getToken(ShowJobsPlace place) {
-            return place.getJobsShowName();
+            return place.getUrl();
         }
         @Override
         public ShowJobsPlace getPlace(String token) {

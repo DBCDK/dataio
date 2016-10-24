@@ -29,7 +29,6 @@ import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -40,7 +39,6 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     protected Texts texts;
     protected Resources resources;
-    protected String parameter = "";
 
     final Widget thisAsWidget = this.asWidget();
     JobFilter parentJobFilter = null;
@@ -51,13 +49,11 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * Constructor
      * @param texts Internationalized texts to be used by this class
      * @param resources Resources to be used by this class
-     * @param parameter Parameter to used upon initialization. Interpreted by the concrete sub class.
      */
     @Inject
-    public BaseJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+    public BaseJobFilter(Texts texts, Resources resources) {
         this.texts = texts;
         this.resources = resources;
-        this.parameter = parameter;
     }
 
     /**
@@ -167,7 +163,8 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
     /**
      * Sets the value of the parameter, to be used when initializing the filter
+     * @param filterParameter The filter parameter for the specific job filter
      */
-    abstract public void setParameterData();
+    abstract public void setParameterData(String filterParameter);
 
 }

@@ -33,7 +33,7 @@ Install acceptance test environment on a server where the is.dbc.dk package is a
 
     ./configure
 
-Run acceptance test(s) by calling:
+Run acceptance test(s) which must be located in a 'testsuites' directory by calling:
 
     ./js-acctest /path/to/testsuites-file-or-directory
 
@@ -50,4 +50,4 @@ a directory called 'svn.dbc.dk'.
 
 Run these datawell-convert acceptance test(s) by calling:
 
-    ./run_acctest.sh /path/to/testsuites-file-or-directory
+    ./run_acctest.sh svn.dbc.dk/jsshell-acctest/path/to/testsuites-file-or-directory

@@ -20,8 +20,8 @@
 # along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-ACCEPTANCE_TESTER_JOB=http://is.dbc.dk/job/acceptance-tester
-BUILD_NUMBER=`curl --silent ${ACCEPTANCE_TESTER_JOB}/lastSuccessfulBuild/buildNumber`
+MASTER_PROJECT=acceptance-tester
+BUILD_NUMBER=`curl --silent http://is.dbc.dk/job/${MASTER_PROJECT}/lastSuccessfulBuild/buildNumber`
 BUILDSCRIPT_DIR=/usr/local/lib/is.dbc.dk
 JAIL_DIR=testarea
 
@@ -38,8 +38,8 @@ rm -f dependencies.txt
 rm -f ${EGGS}/*
 
 DEPENDENCY_MANAGER=$BUILDSCRIPT_DIR/dependency_manager/bin/dependency-manager
-${DEPENDENCY_MANAGER} ${JOB_NAME} ${BUILD_NUMBER}
-${DEPENDENCY_MANAGER} ${JOB_NAME} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose
+${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER}
+${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose
 ${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose
 
 ${BUILDSCRIPT_DIR}/envbuilder.sh -v -s -f -e ${VENV} ${EGGS}

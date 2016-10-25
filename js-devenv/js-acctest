@@ -29,7 +29,6 @@ get_js_revision() {
     local path=$1
     while [ "$(basename $path)" != "testsuites" ]
     do
-        echo $path
         path="$(dirname $path)"
         if [ "$path" == "." ] || [ "$path" == "/" ]; then
             echo "No directory named <<testsuites>> found"

@@ -20,42 +20,27 @@
 # along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-get_js_revision() {
-    if [ "$#" -ne 1 ]; then
-        echo "Missing path argument"
-        return 1
-    fi
-
-    local path=$1
-    while [ "$(basename ${path})" != "testsuites" ]
-    do
-        path="$(dirname ${path})"
-        if [ "$path" == "." ] || [ "$path" == "/" ]; then
-            echo "No directory named <<testsuites>> found"
-            return 1
-        fi
-    done
-
-    svn info "$(dirname ${path})" | grep 'Last Changed Rev' | awk '{ print $4; }' > js-revision.txt
-
-    return 0
-}
-
-TEST_SUITE=`readlink -f $1`
-
-echo "Running test suite $TEST_SUITE"
-
+BUILDSCRIPT_DIR=/usr/local/lib/is.dbc.dk
 JAIL_DIR=testarea
+
+rm -rf ${JAIL_DIR}
+mkdir ${JAIL_DIR}
 cd ${JAIL_DIR}
 
-source ENV/bin/activate
+# Start port allocator
+BUILD_ID=dontKillMe ${BUILDSCRIPT_DIR}/port_allocator_service_daemon.py
 
-rm -f logs.zip suite-test.log test-report.txt
+VENV=`pwd`/ENV
+EGGS=`pwd`/dependencies
+rm -f dependencies.txt
+rm -f ${EGGS}/*
 
-suite_test ${TEST_SUITE} -c --verbose --pool-size 1
+DEPENDENCY_MANAGER=$BUILDSCRIPT_DIR/dependency_manager/bin/dependency-manager
+${DEPENDENCY_MANAGER} ${JOB_NAME} ${BUILD_NUMBER}
+${DEPENDENCY_MANAGER} ${JOB_NAME} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose
+${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose
 
-deactivate
-
+${BUILDSCRIPT_DIR}/envbuilder.sh -v -s -f -e ${VENV} ${EGGS}
 cd ..
 
-get_js_revision ${TEST_SUITE}
+exit 0

@@ -20,6 +20,8 @@
 # along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+ACCEPTANCE_TESTER_JOB=http://is.dbc.dk/job/acceptance-tester
+BUILD_NUMBER=`curl --silent ${ACCEPTANCE_TESTER_JOB}/lastSuccessfulBuild/buildNumber`
 BUILDSCRIPT_DIR=/usr/local/lib/is.dbc.dk
 JAIL_DIR=testarea
 

@@ -45,16 +45,20 @@ public class FlowManager {
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, flowStoreEndpoint);
     }
 
-    public Flow getFlow(String name) throws FlowStoreServiceConnectorException {
-        return flowStoreServiceConnector.findFlowByName(name);
-    }
-
-    public Flow updateFlow(Flow flow, FlowComponentContent next) throws FlowStoreServiceConnectorException {
+    public Flow getFlow(String flowName, SubversionManager subversionManager, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException {
+        final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
+        final FlowComponentContent current = flow.getContent().getComponents().get(0).getContent();
+        final JavaScriptProject javaScriptProject = subversionManager.getJavaScriptProject(revision, current);
+        final FlowComponentContent next = getNextContent(current, javaScriptProject, revision);
         flow.getContent().getComponents().get(0).withNext(next);
-        return flowStoreServiceConnector.updateFlow(flow.getContent(), flow.getId(), flow.getVersion());
+        return flow;
     }
 
-    public FlowComponentContent getNextContent(FlowComponentContent current, JavaScriptProject javaScriptProject, Long revision) throws JavaScriptProjectException {
+    /*
+     * Private methods
+     */
+
+    private FlowComponentContent getNextContent(FlowComponentContent current, JavaScriptProject javaScriptProject, Long revision) throws JavaScriptProjectException {
         return new FlowComponentContent(
                 current.getName(),
                 current.getSvnProjectForInvocationJavascript(),

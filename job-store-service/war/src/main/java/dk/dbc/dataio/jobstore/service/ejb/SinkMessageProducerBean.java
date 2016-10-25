@@ -117,8 +117,11 @@ public class SinkMessageProducerBean {
         message.setStringProperty(JmsConstants.RESOURCE_PROPERTY_NAME, destination.getContent().getResource());
         message.setLongProperty(JmsConstants.SINK_ID_PROPERTY_NAME, sinkReference.getId());
         message.setLongProperty(JmsConstants.SINK_VERSION_PROPERTY_NAME, sinkReference.getVersion());
-        message.setLongProperty(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME, flowBinderReference.getId());
-        message.setLongProperty(JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME, flowBinderReference.getVersion());
+        // if the execution is towards the diff sink during an acceptance test run
+        if(flowBinderReference != null) {
+            message.setLongProperty(JmsConstants.FLOW_BINDER_ID_PROPERTY_NAME, flowBinderReference.getId());
+            message.setLongProperty(JmsConstants.FLOW_BINDER_VERSION_PROPERTY_NAME, flowBinderReference.getVersion());
+        }
         return message;
     }
 }

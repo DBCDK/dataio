@@ -25,6 +25,8 @@ BUILD_NUMBER=`curl --silent http://is.dbc.dk/job/${MASTER_PROJECT}/lastSuccessfu
 BUILDSCRIPT_DIR=/usr/local/lib/is.dbc.dk
 JAIL_DIR=testarea
 
+echo "using build ${BUILD_NUMBER} of master project ${MASTER_PROJECT}"
+
 rm -rf ${JAIL_DIR}
 mkdir ${JAIL_DIR}
 cd ${JAIL_DIR}

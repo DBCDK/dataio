@@ -38,7 +38,6 @@
     <module>openupdate</module>
     <module>dummy</module>
     <module>es</module>
-    <module>fbs</module>
     <module>ims</module>
     <module>diff</module>
     <module>testutil</module>

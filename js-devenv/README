@@ -37,6 +37,9 @@ Run acceptance test(s) which must be located in a 'testsuites' directory by call
 
     ./js-acctest /path/to/testsuites-file-or-directory
 
+Note that paths specified in testsuite files pointing to test data and javascript must be relative to the testsuite
+file in question.
+
 
 This software bundle also contains the (hopefully) soon-to-be deprecated scripts setup_devenv.sh and run_acctest.sh
 targeted specifically at datawell-convert project acceptance testing.

@@ -40,6 +40,6 @@ public class CreateOptions extends Options {
     @Parameter(names = {"-r", "--revision"}, description = "Revision of NEXT component of dataIO flow", required = true)
     public Long revision;
 
-    @Parameter(names = {"-t", "--testsuite"}, description = "Name of testsuite", required = true)
+    @Parameter(names = {"-t", "--testsuite"}, description = "Name of testsuite")
     public String testsuite;
 }

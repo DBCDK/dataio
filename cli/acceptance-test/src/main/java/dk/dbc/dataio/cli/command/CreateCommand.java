@@ -25,6 +25,7 @@ import dk.dbc.dataio.cli.FileManager;
 import dk.dbc.dataio.cli.FlowManager;
 import dk.dbc.dataio.cli.JobManager;
 import dk.dbc.dataio.cli.SubversionManager;
+import dk.dbc.dataio.cli.TestSuite;
 import dk.dbc.dataio.cli.UrlManager;
 import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
@@ -44,9 +45,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Optional;
 
 /**
  * Acceptance test command line interface for 'create' sub command
@@ -76,31 +79,40 @@ public class CreateCommand extends Command {
         final Flow flow = flowManager.getFlow(options.flowName, subversionManager, options.revision);
         LOGGER.debug("found flow with id {}", flow.getId());
 
-        LOGGER.info("Searching for files in '{}'", options.testsuite);
-        final List<Path> testSuite = fileManager.getTestSuite(options.testsuite);
-        LOGGER.debug("found {} files: {}", testSuite.size(), testSuite.toString());
+        final List<TestSuite> testSuites = getTestSuites();
+        if (testSuites.isEmpty()) {
+            throw new IllegalStateException("No test suites found");
+        }
 
-        LOGGER.info("Adding datafile to file-store");
-        final String fileId = fileManager.addDataFile(testSuite);
-        LOGGER.debug("added file with id {}", fileId);
+        for (TestSuite testSuite : testSuites) {
+            LOGGER.info("Running test suite {}", testSuite.getName());
 
-        LOGGER.info("Retrieving JobProperties from testsuite");
-        final Properties jobProperties = fileManager.getJobProperties(testSuite);
-        LOGGER.debug("found {}", jobProperties.toString());
+            LOGGER.info("Adding datafile to file-store");
+            final String fileId = fileManager.addDataFile(testSuite.getDataFile());
+            LOGGER.debug("added file with id {}", fileId);
 
-        LOGGER.info("Creating JobSpecification");
-        final JobSpecification jobSpecification = jobManager.createJobSpecification(jobProperties, fileId);
-        LOGGER.debug("JobSpecification: {}", jobSpecification.toString());
+            LOGGER.info("Creating JobSpecification");
+            final JobSpecification jobSpecification = jobManager.createJobSpecification(testSuite.getProperties(), fileId);
+            LOGGER.debug("JobSpecification: {}", jobSpecification.toString());
 
-        LOGGER.info("Adding job");
-        final JobInfoSnapshot jobInfoSnapshot = jobManager.addAccTestJob(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.valueOf((String)jobProperties.get("recordSplitter")));
-        LOGGER.debug("added job with id {}", jobInfoSnapshot.getJobId());
+            LOGGER.info("Adding job");
+            final JobInfoSnapshot jobInfoSnapshot = jobManager.addAccTestJob(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.valueOf((String) testSuite.getProperties().get("recordSplitter")));
+            LOGGER.debug("added job with id {}", jobInfoSnapshot.getJobId());
+        }
     }
 
-
-    /*
-     * Private methods
-     */
+    private List<TestSuite> getTestSuites() throws IOException {
+        final List<TestSuite> testSuites = new ArrayList<>();
+        if (options.testsuite == null) {
+            testSuites.addAll(TestSuite.findAllTestSuites(getCurrentWorkingDirectory()));
+        } else {
+            final Optional<TestSuite> testSuite = TestSuite.findTestSuite(getCurrentWorkingDirectory(), options.testsuite);
+            if (testSuite.isPresent()) {
+                testSuites.add(testSuite.get());
+            }
+        }
+        return testSuites;
+    }
 
     private void initializeManagers() throws UrlResolverServiceConnectorException, JSONBException {
         LOGGER.info("initializing UrlManager using endpoint: {}", options.guiUrl);
@@ -118,5 +130,9 @@ public class CreateCommand extends Command {
 
         LOGGER.info("initializing JobManager using endpoint: {}", urls.get(JndiConstants.URL_RESOURCE_JOBSTORE_RS));
         jobManager = new JobManager(urls.get(JndiConstants.URL_RESOURCE_JOBSTORE_RS));
+    }
+
+    private static Path getCurrentWorkingDirectory() {
+        return Paths.get(".").toAbsolutePath().normalize();
     }
 }

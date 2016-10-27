@@ -35,7 +35,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser("")
     parser.add_argument("filename", help="datafile")
     parser.add_argument("jobspecification", help="job specification file in json")
-    parser.add_argument("--dataio-instance", help="dataio system instance, e.g. dataio.dbc.dk or dataio-staging.dbc.dk",
+    parser.add_argument("--dataio-instance",
+                        help="dataio system instance, e.g. dataio.dbc.dk (default) or dataio-staging.dbc.dk",
                         default="dataio.dbc.dk")
     parser.add_argument("--jobstorehost",
                         help="jobstore host for the dataio system, overrides value reported by dataio instance")

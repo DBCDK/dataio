@@ -1,8 +1,8 @@
 {
     "charset": "utf8", 
-    "destination": "broend3", 
+    "destination": "broend-boblebad", 
     "format": "katalog", 
-    "mailForNotificationAboutProcessing": "", 
+    "mailForNotificationAboutProcessing": "kwc@dbc.dk", 
     "mailForNotificationAboutVerification": "", 
     "packaging": "xml", 
     "resultmailInitials": "", 

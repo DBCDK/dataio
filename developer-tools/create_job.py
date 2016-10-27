@@ -27,6 +27,7 @@
 import argparse
 import requests
 import json
+from urlparse import urlparse
 
 
 def parse_arguments():
@@ -34,11 +35,28 @@ def parse_arguments():
     parser = argparse.ArgumentParser("")
     parser.add_argument("filename", help="datafile")
     parser.add_argument("jobspecification", help="job specification file in json")
-    parser.add_argument("--jobstorehost",  help="jobstore host for the dataio system, choose jobstore.dataio.staging.mcp1.dbc.dk for staging or jobstore.dataio.prod.mcp1.dbc.dk for prod", required=True)
-    parser.add_argument("--filestorehost", help="filestore host for the dataio system, choose dataio-be-s01:8080 for staging or dataio-be-p01:8080 for prod", required=True)
-
+    parser.add_argument("--dataio-instance", help="dataio system instance, e.g. dataio.dbc.dk or dataio-staging.dbc.dk",
+                        default="dataio.dbc.dk")
+    parser.add_argument("--jobstorehost",
+                        help="jobstore host for the dataio system, overrides value reported by dataio instance")
+    parser.add_argument("--filestorehost",
+                        help="filestore host for the dataio system, overrides value reported by dataio instance")
 
     args = parser.parse_args()
+
+
+def resolve_hosts():
+    response = requests.get("http://" + args.dataio_instance + "/urls")
+    if response.status_code == requests.codes.OK:
+        urls = json.loads(response.content)
+        if args.filestorehost is None:
+            args.filestorehost = urlparse(urls['url/dataio/filestore/rs']).hostname
+        if args.jobstorehost is None:
+            args.jobstorehost = urlparse(urls['url/dataio/jobstore/rs']).hostname
+        return
+
+    print response.content
+    raise Exception("error resolving hosts")
 
 
 def post_file(dataFileName):
@@ -74,6 +92,10 @@ def create_job(fileId, job_specification):
 
 
 parse_arguments()
+resolve_hosts()
+
+print "Using filestore host %s" % args.filestorehost
+print "Using jobstore host %s" % args.jobstorehost
 
 fileStoreId = post_file(args.filename)
 create_job(fileStoreId, load_specification(args.jobspecification))

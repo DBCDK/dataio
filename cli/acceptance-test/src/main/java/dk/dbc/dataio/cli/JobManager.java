@@ -28,15 +28,25 @@ import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
+import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.AccTestJobInputStream;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.util.Properties;
 
 /**
@@ -47,15 +57,23 @@ public class JobManager {
     private static final long SLEEP_INTERVAL_IN_MS = 10000; // 10 minutes
     private static final long MAX_WAIT_IN_MS = 28800000;    // 8 hours
     private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final FileStoreServiceConnector fileStoreServiceConnector;
 
-    public JobManager(String jobStoreEndpoint) {
+    public JobManager(String jobStoreEndpoint, String fileStoreEndPoint) {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
         jobStoreServiceConnector = new JobStoreServiceConnector(client, jobStoreEndpoint);
+        fileStoreServiceConnector = initializeFileStoreServiceConnector(fileStoreEndPoint);
     }
 
-    public JobInfoSnapshot addAccTestJob(JobSpecification jobSpecification, Flow flow, RecordSplitterConstants.RecordSplitter typeOfDataPartitioner) throws JobStoreServiceConnectorException {
-        final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(jobSpecification, flow, typeOfDataPartitioner);
+    public JobInfoSnapshot addAccTestJob(TestSuite testSuite, Flow flow) throws JobStoreServiceConnectorException, FileStoreServiceConnectorException, IOException {
+        final String fileId = addDataFile(testSuite.getDataFile());
+        final JobSpecification jobSpecification = createJobSpecification(testSuite.getProperties(), fileId);
+        final AccTestJobInputStream jobInputStream = new AccTestJobInputStream(
+                jobSpecification,
+                flow,
+                RecordSplitterConstants.RecordSplitter.valueOf((String) testSuite.getProperties().get("recordSplitter")));
+
         final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addAccTestJob(jobInputStream);
         return waitForJobCompletion(jobInfoSnapshot.getJobId());
     }
@@ -83,6 +101,21 @@ public class JobManager {
     /*
      * Private methods
      */
+
+    private FileStoreServiceConnector initializeFileStoreServiceConnector(String fileStoreEndpoint) {
+        final ClientConfig config = new ClientConfig();
+        config.connectorProvider(new ApacheConnectorProvider());
+        config.property(ClientProperties.CHUNKED_ENCODING_SIZE, 8 * 1024);
+        config.property(ApacheClientProperties.CONNECTION_MANAGER, new PoolingHttpClientConnectionManager());
+        Client client = HttpClient.newClient(config);
+        return new FileStoreServiceConnector(client, fileStoreEndpoint);
+    }
+
+    private String addDataFile(Path dataFile) throws FileStoreServiceConnectorException, IOException {
+        try (final InputStream is = new FileInputStream(dataFile.toFile())) {
+            return fileStoreServiceConnector.addFile(is);
+        }
+    }
 
     private JobInfoSnapshot waitForJobCompletion(long jobId) throws JobStoreServiceConnectorException {
         final JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, jobId));

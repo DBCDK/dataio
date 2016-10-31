@@ -21,27 +21,27 @@
 
 package dk.dbc.dataio.cli.command;
 
-import dk.dbc.dataio.cli.FileManager;
 import dk.dbc.dataio.cli.FlowManager;
 import dk.dbc.dataio.cli.JobManager;
-import dk.dbc.dataio.cli.SubversionManager;
 import dk.dbc.dataio.cli.TestSuite;
-import dk.dbc.dataio.cli.UrlManager;
 import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.JobSpecification;
-import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
+import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -56,13 +56,8 @@ import java.util.Optional;
  */
 public class CreateCommand extends Command {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateCommand.class);
-
-
-
     private final CreateOptions options;
     private FlowManager flowManager;
-    private SubversionManager subversionManager;
-    private FileManager fileManager;
     private JobManager jobManager;
 
     public CreateCommand(CreateOptions options) {
@@ -76,9 +71,10 @@ public class CreateCommand extends Command {
 
         initializeManagers();
         LOGGER.info("Looking up flow '{}'", options.flowName);
-        final Flow flow = flowManager.getFlow(options.flowName, subversionManager, options.revision);
+        final Flow flow = flowManager.getFlow(options.flowName, options.revision);
         LOGGER.debug("found flow with id {}", flow.getId());
 
+        LOGGER.info("retrieving test suite");
         final List<TestSuite> testSuites = getTestSuites();
         if (testSuites.isEmpty()) {
             throw new IllegalStateException("No test suites found");
@@ -86,18 +82,9 @@ public class CreateCommand extends Command {
 
         for (TestSuite testSuite : testSuites) {
             LOGGER.info("Running test suite {}", testSuite.getName());
-
-            LOGGER.info("Adding datafile to file-store");
-            final String fileId = fileManager.addDataFile(testSuite.getDataFile());
-            LOGGER.debug("added file with id {}", fileId);
-
-            LOGGER.info("Creating JobSpecification");
-            final JobSpecification jobSpecification = jobManager.createJobSpecification(testSuite.getProperties(), fileId);
-            LOGGER.debug("JobSpecification: {}", jobSpecification.toString());
-
             LOGGER.info("Adding job");
-            final JobInfoSnapshot jobInfoSnapshot = jobManager.addAccTestJob(jobSpecification, flow, RecordSplitterConstants.RecordSplitter.valueOf((String) testSuite.getProperties().get("recordSplitter")));
-            LOGGER.debug("added job with id {}", jobInfoSnapshot.getJobId());
+            final JobInfoSnapshot jobInfoSnapshot = jobManager.addAccTestJob(testSuite, flow);
+            LOGGER.info("added job with id {}", jobInfoSnapshot.getJobId());
         }
     }
 
@@ -115,24 +102,28 @@ public class CreateCommand extends Command {
     }
 
     private void initializeManagers() throws UrlResolverServiceConnectorException, JSONBException {
-        LOGGER.info("initializing UrlManager using endpoint: {}", options.guiUrl);
-        final UrlManager urlManager = new UrlManager(options.guiUrl);
-        final Map<String, String> urls = urlManager.getUrls();
+        LOGGER.info("Retrieving endpoints using {}", options.guiUrl);
+        final Map<String, String> endpoints = getEndpoints();
 
-        LOGGER.info("initializing FlowManager using endpoint: {}", urls.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE));
-        flowManager = new FlowManager(urls.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE));
+        LOGGER.info("initializing FlowManager");
+        flowManager = new FlowManager(
+                endpoints.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE),
+                endpoints.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
 
-        LOGGER.info("initializing SubversionManager using endpoint: {}", urls.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
-        subversionManager = new SubversionManager(urls.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
-
-        LOGGER.info("initializing FileManager using endpoint: {}", urls.get(JndiConstants.URL_RESOURCE_FILESTORE_RS));
-        fileManager = new FileManager(urls.get(JndiConstants.URL_RESOURCE_FILESTORE_RS));
-
-        LOGGER.info("initializing JobManager using endpoint: {}", urls.get(JndiConstants.URL_RESOURCE_JOBSTORE_RS));
-        jobManager = new JobManager(urls.get(JndiConstants.URL_RESOURCE_JOBSTORE_RS));
+        LOGGER.info("initializing JobManager");
+        jobManager = new JobManager(
+                endpoints.get(JndiConstants.URL_RESOURCE_JOBSTORE_RS),
+                endpoints.get(JndiConstants.URL_RESOURCE_FILESTORE_RS));
     }
 
     private static Path getCurrentWorkingDirectory() {
         return Paths.get(".").toAbsolutePath().normalize();
+    }
+
+    private Map<String, String> getEndpoints() throws UrlResolverServiceConnectorException {
+        final Client client = HttpClient.newClient(new ClientConfig()
+                .register(new JacksonFeature()));
+        final UrlResolverServiceConnector urlResolverServiceConnector = new UrlResolverServiceConnector(client, options.guiUrl);
+        return urlResolverServiceConnector.getUrls();
     }
 }

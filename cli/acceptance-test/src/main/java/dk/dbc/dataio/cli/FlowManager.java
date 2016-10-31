@@ -25,6 +25,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.javascript.JavaScriptProject;
 import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
+import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -38,18 +39,23 @@ import javax.ws.rs.client.Client;
  */
 public class FlowManager {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
+    private final JavaScriptSubversionProject subversionProject;
 
-    public FlowManager(String flowStoreEndpoint) {
+    public FlowManager(String flowStoreEndpoint, String scmEndpoint) {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, flowStoreEndpoint);
+        subversionProject = new JavaScriptSubversionProject(scmEndpoint);
     }
 
-    public Flow getFlow(String flowName, SubversionManager subversionManager, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException {
+    public Flow getFlow(String flowName, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException, IllegalStateException {
         final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
         final FlowComponentContent current = flow.getContent().getComponents().get(0).getContent();
-        final JavaScriptProject javaScriptProject = subversionManager.getJavaScriptProject(revision, current);
+        final JavaScriptProject javaScriptProject = getJavaScriptProject(revision, current);
         final FlowComponentContent next = getNextContent(current, javaScriptProject, revision);
+        if(flow.getContent().getComponents().size() > 1) {
+            throw new IllegalStateException("more than one flow component referenced by flow");
+        }
         flow.getContent().getComponents().get(0).withNext(next);
         return flow;
     }
@@ -57,6 +63,14 @@ public class FlowManager {
     /*
      * Private methods
      */
+
+    private JavaScriptProject getJavaScriptProject(Long revision, FlowComponentContent current) throws JavaScriptProjectException {
+        return subversionProject.fetchRequiredJavaScript(
+                current.getSvnProjectForInvocationJavascript(),
+                revision,
+                current.getInvocationJavascriptName(),
+                current.getInvocationMethod());
+    }
 
     private FlowComponentContent getNextContent(FlowComponentContent current, JavaScriptProject javaScriptProject, Long revision) throws JavaScriptProjectException {
         return new FlowComponentContent(

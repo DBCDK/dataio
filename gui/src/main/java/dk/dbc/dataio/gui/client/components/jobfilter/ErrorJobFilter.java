@@ -31,11 +31,12 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.CheckBox;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static dk.dbc.dataio.jobstore.types.criteria.JobListCriteria.Field.STATE_PROCESSING_FAILED;
 
@@ -59,14 +60,17 @@ public class ErrorJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public ErrorJobFilter() {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), "");
+        this("");
     }
 
-    @Inject
-    public ErrorJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+    public ErrorJobFilter(String parameter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    }
+
+    public ErrorJobFilter(Texts texts, Resources resources, String parameter) {
         super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameterData(parameter);
+        setParameter(parameter);
     }
 
     @UiField CheckBox processingCheckBox;
@@ -81,7 +85,7 @@ public class ErrorJobFilter extends BaseJobFilter {
     @UiHandler(value = {"processingCheckBox", "deliveringCheckBox", "jobCreationCheckBox"})
     @SuppressWarnings("unused")
     void checkboxValueChanged(ValueChangeEvent<Boolean> event) {
-        // Signal change to caller
+        filterChanged();
         if (callbackChangeHandler != null) {
             callbackChangeHandler.onChange(null);
         }
@@ -113,11 +117,12 @@ public class ErrorJobFilter extends BaseJobFilter {
      * Sets the selection according to the value, setup in the parameter attribute<br>
      * The value is one (or more) of the texts: Processing, Delivering og JobCreation<br>
      * If more that one of the texts are given, they are separated by commas.<br>
+     * Example:  'Processing,jobcreation'  <br>
      * The case of the texts is not important
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData(String filterParameter) {
+    public void setParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             String[] data = filterParameter.split(",", 3);
             processingCheckBox.setValue(false);
@@ -137,6 +142,25 @@ public class ErrorJobFilter extends BaseJobFilter {
                 }
             }
         }
+    }
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    @Override
+    public String getParameter() {
+        List<String> errors = new ArrayList<>();
+        if (processingCheckBox.getValue()) {
+            errors.add(PROCESSING_TEXT);
+        }
+        if (deliveringCheckBox.getValue()) {
+            errors.add(DELIVERING_TEXT);
+        }
+        if (jobCreationCheckBox.getValue()) {
+            errors.add(JOB_CREATION_TEXT);
+        }
+        return String.join(",", errors);
     }
 
     /*

@@ -23,13 +23,13 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.SinkModel;
@@ -51,19 +51,22 @@ public class SinkJobFilter extends BaseJobFilter {
 
     private static SinkJobFilterUiBinder ourUiBinder = GWT.create(SinkJobFilterUiBinder.class);
 
-    private final String filterParameter;
+    private String filterParameter;  // This variable is used while the list of available sinks is being built up - whenever it has been fetched in the callback class, it is not used anymore...
     FlowStoreProxyAsync flowStoreProxy;
-    ChangeHandler sinkJobValueChangeHandler = null;
 
 
     @SuppressWarnings("unused")
     @UiConstructor
     public SinkJobFilter() {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), "", GWT.create(FlowStoreProxy.class));
+        this("");
     }
 
-    @Inject
-    public SinkJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter, FlowStoreProxyAsync flowStoreProxy) {
+    SinkJobFilter(String parameter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter, GWT.create(FlowStoreProxy.class));
+    }
+
+
+    SinkJobFilter(Texts texts, Resources resources, String parameter, FlowStoreProxyAsync flowStoreProxy) {
         super(texts, resources);
         this.flowStoreProxy = flowStoreProxy;
         initWidget(ourUiBinder.createAndBindUi(this));
@@ -72,6 +75,18 @@ public class SinkJobFilter extends BaseJobFilter {
     }
 
     @UiField PromptedList sinkList;
+
+
+    /**
+     * Event handler for handling changes in the sink selection
+     * @param event The ValueChangeEvent
+     */
+    @UiHandler("sinkList")
+    @SuppressWarnings("unused")
+    void sinkSelectionChanged(ValueChangeEvent<String> event) {
+        filterChanged();
+    }
+
 
     /**
      * Fetches the name of this filter
@@ -89,7 +104,7 @@ public class SinkJobFilter extends BaseJobFilter {
      */
     @Override
     public JobListCriteria getValue() {
-        String selectedKey = sinkList.getSelectedKey();
+        String selectedKey = getParameter();
         if (selectedKey == null || selectedKey.isEmpty() || selectedKey.equals("0")) return new JobListCriteria();
 
         return new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, selectedKey));
@@ -98,13 +113,22 @@ public class SinkJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain integer, as an index to the sink
-     * @param filterParameter The filter parameters to be used by this job filter
+     * @param parameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData(String filterParameter) {
-        if (!filterParameter.isEmpty()) {
-            sinkList.setSelectedValue(filterParameter);
+    public void setParameter(String parameter) {
+        if (!parameter.isEmpty()) {
+            sinkList.setSelectedValue(parameter);
         }
+    }
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    @Override
+    public String getParameter() {
+        return filterParameter != null ? filterParameter : sinkList.getSelectedKey();
     }
 
     /*
@@ -112,7 +136,6 @@ public class SinkJobFilter extends BaseJobFilter {
      */
     @Override
     public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
-        sinkJobValueChangeHandler = changeHandler;
         return sinkList.addChangeHandler(changeHandler);
     }
 
@@ -135,7 +158,8 @@ public class SinkJobFilter extends BaseJobFilter {
                 sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
             }
             sinkList.setEnabled(true);
-            setParameterData(filterParameter);
+            setParameter(filterParameter);
+            filterParameter = null;
         }
     }
 

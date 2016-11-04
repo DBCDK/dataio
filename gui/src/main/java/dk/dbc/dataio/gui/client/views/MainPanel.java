@@ -41,7 +41,7 @@ public class MainPanel extends DockLayoutPanel {
     private static final String GUIID_APPLICATION_PANEL = "application-panel";
 
     public final ScrollPanel applicationPanel;
-
+    public NavigationPanel navigationPanel;
 
     /**
      * Constructor for Main Panel
@@ -52,7 +52,7 @@ public class MainPanel extends DockLayoutPanel {
         super(Style.Unit.PX);
         getElement().setId(GUIID_MAIN_PANEL);
 
-        NavigationPanel navigationPanel = new NavigationPanel(clientFactory.getPlaceController());
+        navigationPanel = new NavigationPanel(clientFactory.getPlaceController());
         navigationPanel.getElement().setId(GUIID_NAVIGATION_PANEL);
         addWest(navigationPanel, 220);
 

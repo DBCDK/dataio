@@ -22,6 +22,7 @@ package dk.dbc.dataio.gui.client.components;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.BlurEvent;
+import com.google.gwt.event.dom.client.ChangeEvent;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.FocusEvent;
 import com.google.gwt.event.dom.client.KeyCodes;
@@ -107,21 +108,18 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     }
 
     @UiHandler("textBox")
+    void textBoxGotFocus(FocusEvent event) {
+        textBox.setValue(normalizeStringDate(textBox.getValue()));
+    }
+
+    @UiHandler("textBox")
     void textBoxLostFocus(BlurEvent event) {
         acceptEnteredData();
     }
 
-    private void acceptEnteredData() {
-        String formattedData = formatStringDate(textBox.getValue());
-        textBox.setValue(formattedData, true);
-        if (!formattedData.isEmpty()) {
-            datePicker.setValue(Format.parseLongDateAsDate(formattedData), true);
-        }
-    }
-
     @UiHandler("textBox")
-    void textBoxGotFocus(FocusEvent event) {
-        textBox.setValue(normalizeStringDate(textBox.getValue()));
+    void textBoxChanged(ChangeEvent event) {
+        acceptEnteredData();
     }
 
     @UiHandler("calendarIcon")
@@ -159,6 +157,14 @@ public class DateTimeBox extends Composite implements HasValue<String> {
     @Override
     public HandlerRegistration addValueChangeHandler(ValueChangeHandler<String> valueChangeHandler) {
         return textBox.addValueChangeHandler(valueChangeHandler);
+    }
+
+
+    // Widget Overrides
+
+    @Override
+    protected void onLoad() {
+        acceptEnteredData();  // The textBoxChanged method does not work during startup - therefore we need to accept data entered during startup here
     }
 
 
@@ -370,4 +376,16 @@ public class DateTimeBox extends Composite implements HasValue<String> {
             return defaultString.substring(0, defaultString.length() - text.length()) + text;
         }
     }
+
+    /**
+     * Accepts the data entered in the textbox field
+     */
+    private void acceptEnteredData() {
+        String formattedData = formatStringDate(textBox.getValue());
+        textBox.setValue(formattedData, true);
+        if (!formattedData.isEmpty()) {
+            datePicker.setValue(Format.parseLongDateAsDate(formattedData), true);
+        }
+    }
+
 }

@@ -70,9 +70,9 @@ public class NavigationPanel extends FlowPanel {
         super();
         this.placeController = placeController;
         add(uiBinder.createAndBindUi(this));
-        jobs.setUserObject(new ShowJobsPlace());
-        testJobs.setUserObject(new ShowTestJobsPlace());
-        acctestJobs.setUserObject(new ShowAcctestJobsPlace());
+        jobs.setUserObject(ShowJobsPlace.getInstance());
+        testJobs.setUserObject(ShowTestJobsPlace.getInstance());
+        acctestJobs.setUserObject(ShowAcctestJobsPlace.getInstance());
         flowBinders.setUserObject(new dk.dbc.dataio.gui.client.pages.flowbinder.show.Place());
         flows.setUserObject(new dk.dbc.dataio.gui.client.pages.flow.show.Place());
         flowComponents.setUserObject(new dk.dbc.dataio.gui.client.pages.flowcomponent.show.Place());

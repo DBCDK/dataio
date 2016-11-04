@@ -21,8 +21,6 @@
 
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
-import com.google.gwt.core.client.GWT;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,13 +47,12 @@ final class JobFilterList {
      * Add new Job Filters to the end of the list
      */
     JobFilterList() {
-        JobFilterGinjector ginjector = GWT.create(JobFilterGinjector.class);
         jobFilterList = Arrays.asList(
-                new JobFilterItem(ginjector.getSinkJobFilter(), false),
-                new JobFilterItem(ginjector.getSubmitterJobFilter(), false),
-                new JobFilterItem(ginjector.getSuppressSubmitterJobFilter(), true),
-                new JobFilterItem(ginjector.getDateJobFilter(), false),
-                new JobFilterItem(ginjector.getErrorJobFilter(), false)
+                new JobFilterItem(new SinkJobFilter(""), false),
+                new JobFilterItem(new SubmitterJobFilter(""), false),
+                new JobFilterItem(new SuppressSubmitterJobFilter("true"), true),
+                new JobFilterItem(new DateJobFilter(""), false),
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false)
                 // Add new Job Filters here...
         );
     }

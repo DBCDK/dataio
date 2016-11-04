@@ -100,9 +100,48 @@ public class SinkJobFilterTest {
     }
 
     @Test
-    public void getValue_nullListEmpty_emptyCriteria() {
+    public void getValue_beforeSinksHaveBeenFetchedAndFilterValid_validCriteria() {
+        // Test Preparation
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "345", mockedFlowStoreProxy);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.sinkList);
+        assertThat(criteria, equalTo(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "345"))));
+    }
+
+    @Test
+    public void getValue_beforeSinksHaveBeenFetchedAndZeroFilter_emptyCriteria() {
+        // Test Preparation
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "0", mockedFlowStoreProxy);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.sinkList);
+        assertThat(criteria, equalTo(new JobListCriteria()));
+    }
+
+    @Test
+    public void getValue_beforeSinksHaveBeenFetchedAndEmptyFilter_emptyCriteria() {
         // Test Preparation
         SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+
+        // Activate Subject Under Test
+        JobListCriteria criteria = jobFilter.getValue();
+
+        // Verify test
+        verifyNoMoreInteractions(jobFilter.sinkList);
+        assertThat(criteria, equalTo(new JobListCriteria()));
+    }
+
+    @Test
+    public void getValue_nullListEmpty_emptyCriteria() {
+        // Test Preparation
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn(null);
 
         // Activate Subject Under Test
@@ -117,7 +156,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_emptyListEmpty_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn("");
 
         // Activate Subject Under Test
@@ -132,7 +171,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_zeroListEmpty_emptyCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn("0");
 
         // Activate Subject Under Test
@@ -147,7 +186,7 @@ public class SinkJobFilterTest {
     @Test
     public void getValue_nonZeroListEmpty_validCriteria() {
         // Test Preparation
-        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "", mockedFlowStoreProxy);
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, null, mockedFlowStoreProxy);
         when(jobFilter.sinkList.getSelectedKey()).thenReturn("123");
 
         // Activate Subject Under Test
@@ -165,7 +204,7 @@ public class SinkJobFilterTest {
         SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy);
 
         // Activate Subject Under Test
-        jobFilter.setParameterData("");
+        jobFilter.setParameter("");
 
         // Verify test
         verifyNoMoreInteractions(jobFilter.sinkList);
@@ -177,7 +216,7 @@ public class SinkJobFilterTest {
         SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy);
 
         // Activate Subject Under Test
-        jobFilter.setParameterData("0");
+        jobFilter.setParameter("0");
 
         // Verify test
         verify(jobFilter.sinkList).setSelectedValue("0");
@@ -190,11 +229,23 @@ public class SinkJobFilterTest {
         SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "123", mockedFlowStoreProxy);
 
         // Activate Subject Under Test
-        jobFilter.setParameterData("321");
+        jobFilter.setParameter("321");
 
         // Verify test
         verify(jobFilter.sinkList).setSelectedValue("321");
         verifyNoMoreInteractions(jobFilter.sinkList);
+    }
+
+    @Test
+    public void getParameterData_validValue_correctValueFetched() {
+        // Test Preparation
+        SinkJobFilter jobFilter = new SinkJobFilter(mockedTexts, mockedResources, "4321", mockedFlowStoreProxy);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("4321"));
     }
 
     @Test
@@ -207,7 +258,6 @@ public class SinkJobFilterTest {
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
 
         // Verify test
-        assertThat(jobFilter.sinkJobValueChangeHandler, is(mockedChangeHandler));
         verify(jobFilter.sinkList).addChangeHandler(mockedChangeHandler);
         assertThat(handlerRegistration, not(nullValue()));
         assertThat(handlerRegistration, is(mockedSinkListHandlerRegistration));

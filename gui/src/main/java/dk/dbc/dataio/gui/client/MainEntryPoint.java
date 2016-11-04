@@ -26,8 +26,8 @@ import com.google.gwt.activity.shared.ActivityMapper;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
-import com.google.gwt.core.client.Scheduler.ScheduledCommand;
 import com.google.gwt.dom.client.Document;
+import com.google.gwt.place.shared.PlaceChangeEvent;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.place.shared.PlaceHistoryHandler;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
@@ -59,12 +59,7 @@ public class MainEntryPoint implements EntryPoint {
         // The new Uncaught Exception Handler will take effect when onModuleLoad has completed.
         // Therefore, we need to defer the remaining part of the onModuleLoad
         // Please refer to: http://www.summa-tech.com/blog/2012/06/11/7-tips-for-exception-handling-in-gwt/
-        Scheduler.get().scheduleDeferred(new ScheduledCommand() {
-          @Override
-          public void execute() {
-            deferredOnModuleLoad();
-          }
-        });
+        Scheduler.get().scheduleDeferred(this::deferredOnModuleLoad);
     }
 
     /**
@@ -89,7 +84,7 @@ public class MainEntryPoint implements EntryPoint {
         // Start PlaceHistoryHandler with our PlaceHistoryMapper
         AppPlaceHistoryMapper historyMapper = clientFactory.getHistoryMapper();
         PlaceHistoryHandler historyHandler = new PlaceHistoryHandler(historyMapper);
-        historyHandler.register(placeController, eventBus, new ShowJobsPlace());
+        historyHandler.register(placeController, eventBus, ShowJobsPlace.getInstance());
         historyHandler.handleCurrentHistory();
 
         // Set the title of the Browser Window
@@ -99,5 +94,13 @@ public class MainEntryPoint implements EntryPoint {
 
         // Show the root panel
         RootLayoutPanel.get().add(appPanel);
+
+//        extra();
     }
+
+    private void extra() {
+        EventBus eventBus = clientFactory.getEventBus();
+        eventBus.addHandler(PlaceChangeEvent.TYPE, event -> GWT.log("++++> PlaceChangeEvent - New Place: -> " + event.getNewPlace()));
+    }
+
 }

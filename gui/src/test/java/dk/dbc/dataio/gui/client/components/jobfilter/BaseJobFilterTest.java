@@ -79,8 +79,13 @@ public class BaseJobFilterTest {
             return new JobListCriteria();
         }
         @Override
-        public void setParameterData(String filterParameter) {
+        public void setParameter(String filterParameter) {
         }
+        @Override
+        public String getParameter() {
+            return "";
+        }
+
         public Texts getTexts() {
             return texts;
         }

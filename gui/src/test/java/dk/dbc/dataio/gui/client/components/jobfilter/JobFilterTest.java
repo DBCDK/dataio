@@ -107,10 +107,44 @@ public class JobFilterTest {
     //
     // Tests starts here...
     //
+
     @Test
-    public void constructor_instantiate_instantiatedCorrectly() {
+    public void constructor_emptyConstructor_instantiatedCorrectly() {
         // Activate Subject Under Test
+        JobFilter jobFilter = new JobFilter();
+        JobFilterList jobFilterList = new JobFilterList();
+
+        // Verify test
+        assertThat(jobFilter.availableJobFilters, is(notNullValue()));
+        assertThat(jobFilter.availableJobFilters.getJobFilterList().size(), is(jobFilterList.getJobFilterList().size()));
+    }
+
+    @Test
+    public void constructor_nullJobFilterList_instantiatedCorrectly() {
+        // Activate Subject Under Test
+        JobFilter jobFilter = new JobFilter(null);
+
+        // Verify test
+        assertThat(jobFilter.availableJobFilters, is(nullValue()));
+    }
+
+    @Test
+    public void constructor_validJobFilterList_instantiatedCorrectly() {
+        // Activate Subject Under Test
+        JobFilterList jobFilterList = new JobFilterList(twoJobFilters);
+        JobFilter jobFilter = new JobFilter(jobFilterList);
+
+        // Verify test
+        assertThat(jobFilter.availableJobFilters, is(jobFilterList));
+    }
+
+    @Test
+    public void onLoad_instantiate_instantiatedCorrectly() {
+        // Test preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
+
+        // Activate Subject Under Test
+        jobFilter.onLoad();
 
         // Verify test
         ArgumentCaptor<String> menuTextArgument = ArgumentCaptor.forClass(String.class);
@@ -130,6 +164,7 @@ public class JobFilterTest {
     public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
+        jobFilter.onLoad();
 
         // Activate Subject Under Test
         HandlerRegistration handlerRegistration = jobFilter.addChangeHandler(mockedChangeHandler);
@@ -149,6 +184,7 @@ public class JobFilterTest {
     public void add_callAddWithNullValue_addNoJobFilters() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        jobFilter.onLoad();
 
         // Activate Subject Under Test
         jobFilter.add(null);
@@ -161,6 +197,7 @@ public class JobFilterTest {
     public void add_callAddWithNotNullValue_addJobFilter() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        jobFilter.onLoad();
         mockedJobFilterItem1.jobFilter.filterPanel = mockedJobFilterPanel;
         jobFilter.changeHandler = null;
 
@@ -190,6 +227,7 @@ public class JobFilterTest {
     public void remove_callRemoveWithNullValue_removeNoJobFilters() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        jobFilter.onLoad();
         mockedJobFilter1.filterPanel = mockedJobFilterPanel;
         jobFilter.add(mockedJobFilter1);
 
@@ -205,6 +243,7 @@ public class JobFilterTest {
     public void remove_callRemoveWithNullPanelValue_removeNoJobFilters() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        jobFilter.onLoad();
         mockedJobFilter1.filterPanel = mockedJobFilterPanel;
         jobFilter.add(mockedJobFilter1);
         mockedJobFilter1.filterPanel = null;
@@ -222,6 +261,7 @@ public class JobFilterTest {
     public void remove_callRemoveWithNotNullValue_removeJobFilter() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        jobFilter.onLoad();
         mockedJobFilter1.filterPanel = mockedJobFilterPanel;
         jobFilter.add(mockedJobFilter1);
         jobFilter.changeHandler = mockedChangeHandler;
@@ -241,6 +281,7 @@ public class JobFilterTest {
     public void getValue_getValueWithNoFilters_returnNonMergedModel() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(emptyJobFilters));
+        jobFilter.onLoad();
 
         // Activate Subject Under Test
         JobListCriteria model = jobFilter.getValue();
@@ -253,6 +294,7 @@ public class JobFilterTest {
     public void getValue_getValueWithOneSinkFilter_returnSinkMergedModel() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
+        jobFilter.onLoad();
         JobListCriteria filterModel = new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "12345"));
 
@@ -267,6 +309,7 @@ public class JobFilterTest {
     public void setupFilterParameters_nullInput_throw() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
+        jobFilter.onLoad();
 
         // Activate Subject Under Test
         jobFilter.setupFilterParameters(null);
@@ -277,6 +320,7 @@ public class JobFilterTest {
         // Test Preparation
         List<JobFilterList.JobFilterItem> mockedJobFilters = mock(List.class);
         JobFilter jobFilter = new JobFilter(new JobFilterList(mockedJobFilters));
+        jobFilter.onLoad();
 
         // Activate Subject Under Test
         jobFilter.setupFilterParameters(new HashMap<>());
@@ -290,6 +334,7 @@ public class JobFilterTest {
     public void setupFilterParameters_twoValidParametersOneActual_addActualFilterParameter() {
         // Test Preparation
         JobFilter jobFilter = new JobFilter(new JobFilterList(twoJobFilters));
+        jobFilter.onLoad();
         mockedJobFilterItem1.jobFilter = mockedJobFilter1;
         mockedJobFilterItem2.jobFilter = mockedJobFilter2;
 
@@ -303,14 +348,12 @@ public class JobFilterTest {
         verify(mockedJobFilter1).getName();
         verify(mockedJobFilter1).getAddCommand(any());
         verify(mockedJobFilter1).removeJobFilter();
-        verify(mockedJobFilter1).setParameterData("filterparameter=2");
+        verify(mockedJobFilter1).setParameter("filterparameter=2");
         verify(mockedJobFilter1).addJobFilter();
         verifyNoMoreInteractions(mockedJobFilter1);
         verify(mockedJobFilter2).getName();
         verify(mockedJobFilter2, times(2)).getAddCommand(any());  // Filter 2 has activeOnStartup set to true
         verify(mockedJobFilter2).removeJobFilter();
-        verify(mockedJobFilter2).setParameterData("filterparameter=2");
-        verify(mockedJobFilter2).addJobFilter();
         verifyNoMoreInteractions(mockedJobFilter2);
     }
 

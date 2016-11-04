@@ -34,9 +34,11 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -65,8 +67,10 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     }
     private static JobFilterUiBinder ourUiBinder = GWT.create(JobFilterUiBinder.class);
 
-    private final JobFilterList availableJobFilters;
+    final JobFilterList availableJobFilters;
     ChangeHandler changeHandler = null;
+    AbstractBasePlace place = null;
+    private boolean filterMenuNotYetInitialized = true;
 
     @UiField FlowPanel jobFilterPanel;
     @UiField MenuBar filterMenu;
@@ -88,14 +92,26 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     JobFilter(JobFilterList availableJobFilters) {
         this.availableJobFilters = availableJobFilters;
         initWidget(ourUiBinder.createAndBindUi(this));
-        availableJobFilters.getJobFilterList().forEach(filter -> {
-            filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
-            if (filter.activeOnStartup) {
-                filter.jobFilter.getAddCommand(this).execute();
-            }
-        });
     }
 
+    /**
+     * This method is called immediately after the filter becomes attached to the browser's document <br>
+     * Go through all filters in the JobFilterList, add them to the menu, and start the ones up, that have been marked for it.<br>
+     * The reason why this piece of code is delayed (not called in the constructor) is, that the actual filter calls the place,
+     * which has not been initialized in the constructor.
+     */
+    @Override
+    public void onLoad() {
+        if (filterMenuNotYetInitialized) {
+            filterMenuNotYetInitialized = false;
+            availableJobFilters.getJobFilterList().forEach(filter -> {
+                filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
+                if (filter.activeOnStartup) {
+                    filter.jobFilter.getAddCommand(this).execute();
+                }
+            });
+        }
+    }
 
     /*
      * HasChangeHandlers Interface Methods
@@ -118,7 +134,18 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
 
     /**
-     * Adds a child Job Filter to the list of Job Filters
+     * Injects the place into the filter. <br>
+     * If set, it allows the filter to maintain the url, while adding and removing filters
+     *
+     * @param place The place to inject into the filter
+     */
+    public void setPlace(AbstractBasePlace place) {
+        this.place = place;
+    }
+
+    /**
+     * Adds a child Job Filter to the list of Job Filters <br>
+     * These jobs are listed in the Job Filter Menu
      * @param jobFilter The job filter to add to the list of Job Filters
      */
     public void add(BaseJobFilter jobFilter) {
@@ -169,21 +196,29 @@ public class JobFilter extends Composite implements HasChangeHandlers {
 
     /**
      * Setup parameters for all filters<br>
-     * Each filter is identified by the key to the map - a string with the ClassName of the Job Filter<br>
+     * Each filter is identified by the key to the map - a string with the ClassName of the Job Filter (getSimpleName())
      *
      * @param parameters A map containing the setup parameters for the job filters
+     * @return A map of parameters, that was recognized and set by the filter
      */
-    public void setupFilterParameters(Map<String, String> parameters) {
+    public Map<String, String> setupFilterParameters(Map<String, String> parameters) {
+        Map<String, String> recognizedParameters = new LinkedHashMap<>();
         if (!parameters.isEmpty()) {
             availableJobFilters.getJobFilterList().forEach(filter -> filter.jobFilter.removeJobFilter());
-            parameters.forEach(this::setupFilterParameterFor);
+            parameters.forEach((filterName, filterParameter) -> {
+                String foundFilterName = JobFilter.this.setupFilterParameterFor(filterName, filterParameter);
+                if (foundFilterName != null) {
+                    recognizedParameters.put(foundFilterName, filterParameter);
+                }
+            });
         }
+        return recognizedParameters;
     }
+
 
     /*
      * Private methods and classes
      */
-
 
     private void removeChangeHandler() {
         changeHandler = null;
@@ -197,13 +232,21 @@ public class JobFilter extends Composite implements HasChangeHandlers {
         }
     }
 
-    private void setupFilterParameterFor(String filterName, String filterParameter) {
-        availableJobFilters.getJobFilterList().forEach(filter -> {
+    /**
+     * Setup filter parameters for the filter, whose name is given as a parameter
+     * @param filterName The filter to setup
+     * @param filterParameter The parameter to send to the filter
+     * @return If a match is found, then the filter name of that filter is returned, if no math is found - null is returned
+     */
+    private String setupFilterParameterFor(String filterName, String filterParameter) {
+        for (JobFilterList.JobFilterItem filter: availableJobFilters.getJobFilterList()) {
             if (filter.jobFilter.getClass().getSimpleName().toLowerCase().equals(filterName.toLowerCase())) {
-                filter.jobFilter.setParameterData(filterParameter);
+                filter.jobFilter.setParameter(filterParameter);
                 filter.jobFilter.addJobFilter();
+                return filterName;  // This is the found match
             }
-        });
+        }
+        return null;
     }
 
 }

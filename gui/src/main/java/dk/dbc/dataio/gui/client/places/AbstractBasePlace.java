@@ -40,16 +40,12 @@ import java.util.Set;
  * <p>The place wraps the following URL:</p>
  * <pre>   key1=value1&amp;key2=value2&amp;key3=value3 (etc)</pre>
  * <br>
- * <p>Keys are converted to lowercase, when entering the Place</p>
- * <br>
  * <p>Inspired by:</p>
  * <pre>   https://groups.google.com/d/msg/google-web-toolkit/PzlyZ3Gjazg/ZlJGC2wqNyAJ</pre>
  */
 public abstract class AbstractBasePlace extends Place {
     protected CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     public abstract Activity createPresenter(ClientFactory clientFactory);
-
-    private static final String VALIDATE_TOKENS_MESSAGE_PREFIX = "Missing token(s): ";
 
     private String url = "";
     private Map<String, String> parameters = new LinkedHashMap<>();
@@ -60,23 +56,8 @@ public abstract class AbstractBasePlace extends Place {
      * @param tokens will be parsed to extract the parameters passed as part of url
      */
     protected AbstractBasePlace(String... tokens) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < tokens.length; i++) {
-            if (tokens[i] == null || tokens[i].isEmpty()) break;
-            final String key = tokens[i++].toLowerCase();
-            final String value = i>=tokens.length || tokens[i]==null ? "" : tokens[i];
-            // build parameters map
-            parameters.put(key, value);
-            // build url
-            if (i >= 2) {
-                result.append("&");
-            }
-            result.append(key);
-            if (!value.isEmpty()) {
-                result.append("=").append(value);
-            }
-        }
-        url = result.toString();
+        parameters = tokens2Map(tokens);
+        url = parameters2Url(parameters);
     }
 
     /**
@@ -85,54 +66,23 @@ public abstract class AbstractBasePlace extends Place {
      * @param url The url to be used
      */
     protected AbstractBasePlace(String url) {
-        if (url == null || url.isEmpty()) {
-            GWT.log("AbstractBasePlace: Url is empty, no-op");
-            return;
-        }
-        List<String> list = Arrays.asList(url.split("&"));
-        for (String listItem : list) {
-            List<String> valuePairs = Arrays.asList(listItem.split("=", 2));
-            if (valuePairs.size() == 0) {
-                GWT.log("AbstractBasePlace: Invalid parameters");
-            } else if (valuePairs.size() == 1) {  // Key without value
-                parameters.put(valuePairs.get(0).toLowerCase(), "");
-            } else {  // Both key and value
-                parameters.put(valuePairs.get(0).toLowerCase(), valuePairs.get(1));
-            }
-        }
-        StringBuilder result = new StringBuilder();
-        for (String key: parameters.keySet()) {
-            if (!result.toString().isEmpty()) {
-                result.append("&");
-            }
-            result.append(key);
-            if (!parameters.get(key).isEmpty()) {
-                result.append("=").append(parameters.get(key));
-            }
-        }
-        this.url = result.toString();
+        parameters = url2Parameters(url);
+        this.url = parameters2Url(parameters);
     }
 
     /**
      * <p>Checks whether 'this' is constructed with the required parameters. The
      * list of required parameters must be passed as argument.</p>
-     * <p>If any tokens are missing, they are logged with GWT.log</p>
      *
      * @param keys List of required parameters
      * @return True if validation is ok, false if not
      */
     public boolean validate(String... keys) {
         boolean validationOk = true;
-        StringBuilder message = new StringBuilder(VALIDATE_TOKENS_MESSAGE_PREFIX);
         for (String key: keys) {
             if (!parameters.containsKey(key)) {
-                message.append(key).append(" ");
                 validationOk = false;
             }
-        }
-        // if something is added to the string show
-        if (!message.toString().equals(VALIDATE_TOKENS_MESSAGE_PREFIX)) {
-            GWT.log("AbstractBasePlace: " + message.toString());
         }
         return validationOk;
     }
@@ -147,25 +97,6 @@ public abstract class AbstractBasePlace extends Place {
     }
 
     /**
-     * Gets the URL, that is wrapped in this Place
-     *
-     * @return The Url, wrapped in this Place
-     */
-    public String getUrl() {
-        return url;
-    }
-
-    /**
-     * Gets the value, associated with a given key
-     *
-     * @param key The Key for the parameter to get
-     * @return The value
-     */
-    public String getValue(String key) {
-        return parameters.get(key);
-    }
-
-    /**
      * Tests whether there is a parameter with a given key
      *
      * @param key The key to test
@@ -176,12 +107,141 @@ public abstract class AbstractBasePlace extends Place {
     }
 
     /**
+     * Gets the URL, that is wrapped in this Place
+     *
+     * @return The Url, wrapped in this Place
+     */
+    public String getUrl() {
+        return url;
+    }
+
+    /**
+     * Sets the URL, that is wrapped in this Place
+     *
+     * @param url The Url, wrapped in this Place
+     */
+    public void setUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return;
+        }
+        parameters = url2Parameters(url);
+        this.url = parameters2Url(parameters);
+    }
+
+    /**
      * Gets all parameters, stored in this Place
      *
      * @return All parameters, stored in this Place as a Map
      */
     public Map<String, String> getParameters() {
         return parameters;
+    }
+
+    /**
+     * Replaces all parameters in this place, with the values supplied
+     *
+     * @param parameters New parameters to be stored instead of the old values
+     */
+    public void setParameters(Map<String, String> parameters) {
+        this.parameters = parameters;
+        url = parameters2Url(parameters);
+    }
+
+    /**
+     * Fetches a named parameter from the list of stored parameters <br>
+     * If no parameters exists with the given name, null is returned.
+     *
+     * @param key The name of the parameter
+     * @return The value of the parameter if it exists, null if no matches are found
+     */
+    public String getParameter(String key) {
+        return parameters.get(key);
+    }
+
+    /**
+     * Adds a named parameter to the place.
+     *
+     * @param key The name of the parameter
+     * @param value The value of the parameter
+     */
+    public void addParameter(String key, String value) {
+        parameters.put(key, value);
+        url = parameters2Url(parameters);
+    }
+
+    /**
+     * Removes a parameter from the place
+     *
+     * @param key The name of the parameter
+     * @return The former value of the parameter indexed by key
+     */
+    public String removeParameter(String key) {
+        final String formerValue = parameters.remove(key);
+        url = parameters2Url(parameters);
+        return formerValue;
+    }
+
+
+    /*
+     * Public static methods
+     */
+
+    /**
+     * Maps a list of tokens to a Map (ordered map - LinkedHashMap) <br>
+     * The tokens: key1, value1, key2, value2 etc...
+     *
+     * @param tokens The list of tokens
+     * @return The Map containing all the key/value pairs
+     */
+    public static Map<String, String> tokens2Map(String... tokens) {
+        Map<String, String> map = new LinkedHashMap<>();
+        for (int i = 0; i < tokens.length; i++) {
+            if (tokens[i] == null || tokens[i].isEmpty()) break;
+            map.put(tokens[i++], i>=tokens.length || tokens[i]==null ? "" : tokens[i]);
+        }
+        return map;
+    }
+
+    /**
+     * Maps a Map&lt;String, String&gt; to an Url (String) in the form: <br>
+     *     key1=value1&amp;key2=value2 etc...
+     *
+     * @param parameters The Map of key/value pairs
+     * @return The resulting Url
+     */
+    public static String parameters2Url(Map<String, String> parameters) {
+        StringBuilder result = new StringBuilder();
+        for (String key: parameters.keySet()) {
+            if (result.length() > 0) {
+                result.append("&");
+            }
+            result.append(key);
+            String value = parameters.get(key);
+            if (value != null && !parameters.get(key).isEmpty()) {
+                result.append("=").append(parameters.get(key));
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Maps an Url in the form key1=value2&amp;key2=value2... to a Map (ordered LinkedHashMap)
+     *
+     * @param url The Url string to map to a LinkedHashMap
+     * @return The resulting Map consisting of key/value pairs from the url
+     */
+    public static Map<String, String> url2Parameters(String url) {
+        Map<String, String> map = new LinkedHashMap<>();
+        if (url == null || url.isEmpty()) return map;
+        for (String listItem : Arrays.asList(url.split("&"))) {
+            List<String> valuePairs = Arrays.asList(listItem.split("=", 2));
+            if (valuePairs.size() == 1) {  // Key without value
+                map.put(valuePairs.get(0), "");
+            } else {  // Both key and value
+                map.put(valuePairs.get(0), valuePairs.get(1));
+            }
+        }
+        return map;
     }
 
 }

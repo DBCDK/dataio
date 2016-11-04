@@ -27,10 +27,12 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.nullValue;
 
 
 /**
@@ -97,7 +99,7 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key"));
         assertThat(place.getKeys().size(), is(1));
-        assertThat(place.getValue("key"), is(""));
+        assertThat(place.getParameter("key"), is(""));
     }
 
     @Test
@@ -108,7 +110,7 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value"));
         assertThat(place.getKeys().size(), is(1));
-        assertThat(place.getValue("key"), is("value"));
+        assertThat(place.getParameter("key"), is("value"));
     }
 
     @Test
@@ -119,7 +121,7 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=val=ue"));
         assertThat(place.getKeys().size(), is(1));
-        assertThat(place.getValue("key"), is("val=ue"));
+        assertThat(place.getParameter("key"), is("val=ue"));
     }
 
     @Test
@@ -130,8 +132,8 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value&key2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("value"));
-        assertThat(place.getValue("key2"), is(""));
+        assertThat(place.getParameter("key"), is("value"));
+        assertThat(place.getParameter("key2"), is(""));
     }
 
     @Test
@@ -142,8 +144,8 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value&key2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("value"));
-        assertThat(place.getValue("key2"), is(""));
+        assertThat(place.getParameter("key"), is("value"));
+        assertThat(place.getParameter("key2"), is(""));
     }
 
     @Test
@@ -154,8 +156,8 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value&key2=value2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("value"));
-        assertThat(place.getValue("key2"), is("value2"));
+        assertThat(place.getParameter("key"), is("value"));
+        assertThat(place.getParameter("key2"), is("value2"));
     }
 
 
@@ -189,7 +191,7 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key"));
         assertThat(place.getKeys().size(), is(1));
-        assertThat(place.getValue("key"), is(""));
+        assertThat(place.getParameter("key"), is(""));
     }
 
     @Test
@@ -200,7 +202,7 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key"));
         assertThat(place.getKeys().size(), is(1));
-        assertThat(place.getValue("key"), is(""));
+        assertThat(place.getParameter("key"), is(""));
     }
 
     @Test
@@ -211,7 +213,7 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value"));
         assertThat(place.getKeys().size(), is(1));
-        assertThat(place.getValue("key"), is("value"));
+        assertThat(place.getParameter("key"), is("value"));
     }
 
     @Test
@@ -222,8 +224,8 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value&key2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("value"));
-        assertThat(place.getValue("key2"), is(""));
+        assertThat(place.getParameter("key"), is("value"));
+        assertThat(place.getParameter("key2"), is(""));
     }
 
     @Test
@@ -234,8 +236,8 @@ public class AbstractBasePlaceTest {
         // Test validation
         assertThat(place.getUrl(), is("key=value&key2=value2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("value"));
-        assertThat(place.getValue("key2"), is("value2"));
+        assertThat(place.getParameter("key"), is("value"));
+        assertThat(place.getParameter("key2"), is("value2"));
     }
 
 
@@ -247,10 +249,10 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("Key=valuE&kEY2=vALue2");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=valuE&key2=vALue2"));
+        assertThat(place.getUrl(), is("Key=valuE&kEY2=vALue2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("valuE"));
-        assertThat(place.getValue("key2"), is("vALue2"));
+        assertThat(place.getParameter("Key"), is("valuE"));
+        assertThat(place.getParameter("kEY2"), is("vALue2"));
     }
 
     @Test
@@ -259,10 +261,10 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("kEy", "vaLue", "keY2", "Value2");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=vaLue&key2=Value2"));
+        assertThat(place.getUrl(), is("kEy=vaLue&keY2=Value2"));
         assertThat(place.getKeys().size(), is(2));
-        assertThat(place.getValue("key"), is("vaLue"));
-        assertThat(place.getValue("key2"), is("Value2"));
+        assertThat(place.getParameter("kEy"), is("vaLue"));
+        assertThat(place.getParameter("keY2"), is("Value2"));
     }
 
 
@@ -297,5 +299,235 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.get("key3"), is("value3"));
     }
 
+
+    // Test setParameters
+
+    @Test
+    public void setParameters_threeValidParameters_validDataStored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        Map<String, String> newParameters = new LinkedHashMap<>();
+        newParameters.put("key6", "value6");
+        newParameters.put("key5", "value5");
+        place.setParameters(newParameters);
+
+        // Test validation
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(2));
+        assertThat(parameters.get("key6"), is("value6"));
+        assertThat(parameters.get("key5"), is("value5"));
+        assertThat(place.getUrl(), is("key6=value6&key5=value5"));
+    }
+
+
+    // Test getParameter
+
+    @Test
+    public void getParameter_null_nullValue() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        String value = place.getParameter(null);
+
+        // Test validation
+        assertThat(value, is(nullValue()));
+    }
+
+    @Test
+    public void getParameter_notFound_nullValue() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        String value = place.getParameter("key7");
+
+        // Test validation
+        assertThat(value, is(nullValue()));
+    }
+
+    @Test
+    public void getParameter_found_value() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        String value = place.getParameter("key3");
+
+        // Test validation
+        assertThat(value, is("value3"));
+    }
+
+
+    // Test addParameter
+
+    @Test
+    public void addParameter_null_stored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        place.addParameter(null, "fido");
+
+        // Test validation
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(4));
+        assertThat(parameters.get(null), is("fido"));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&null=fido"));
+    }
+
+    @Test
+    public void addParameter_empty_stored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        place.addParameter("", "monkey");
+
+        // Test validation
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(4));
+        assertThat(parameters.get(""), is("monkey"));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&=monkey"));
+    }
+
+    @Test
+    public void addParameter_valid_stored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        place.addParameter("high", "fidelity");
+
+        // Test validation
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(4));
+        assertThat(parameters.get("high"), is("fidelity"));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&high=fidelity"));
+    }
+
+    @Test
+    public void addParameter_validKeyNullValue_stored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        place.addParameter("high", null);
+
+        // Test validation
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(4));
+        assertThat(parameters.get("high"), is(nullValue()));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&high"));
+    }
+
+    @Test
+    public void addParameter_existingKey_newValueStored() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        place.addParameter("key1", "New Value");
+
+        // Test validation
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(3));
+        assertThat(parameters.get("key1"), is("New Value"));
+        assertThat(place.getUrl(), is("key1=New Value&key3=value3&key2=value2"));
+    }
+
+
+    // Test removeParameter
+
+    @Test
+    public void removeParameter_null_noAction() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        final String formerValue = place.removeParameter(null);
+
+        // Test validation
+        assertThat(formerValue, is(nullValue()));
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(3));
+        assertThat(parameters.get("key1"), is("value1"));
+        assertThat(parameters.get("key3"), is("value3"));
+        assertThat(parameters.get("key2"), is("value2"));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2"));
+    }
+
+    @Test
+    public void removeParameter_emptyNotFound_noAction() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        final String formerValue = place.removeParameter("");
+
+        // Test validation
+        assertThat(formerValue, is(nullValue()));
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(3));
+        assertThat(parameters.get("key1"), is("value1"));
+        assertThat(parameters.get("key3"), is("value3"));
+        assertThat(parameters.get("key2"), is("value2"));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2"));
+    }
+
+    @Test
+    public void removeParameter_emptyFound_removed() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key3", "value3", "key2", "value2");
+        place.addParameter("", "empty");
+
+        // Subject under test
+        final String formerValue = place.removeParameter("");
+
+        // Test validation
+        assertThat(formerValue, is("empty"));
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(2));
+        assertThat(parameters.get("key3"), is("value3"));
+        assertThat(parameters.get("key2"), is("value2"));
+        assertThat(place.getUrl(), is("key3=value3&key2=value2"));
+    }
+
+    @Test
+    public void removeParameter_validNotFound_noAction() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        final String formerValue = place.removeParameter("what");
+
+        // Test validation
+        assertThat(formerValue, is(nullValue()));
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(3));
+        assertThat(parameters.get("key1"), is("value1"));
+        assertThat(parameters.get("key3"), is("value3"));
+        assertThat(parameters.get("key2"), is("value2"));
+        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2"));
+    }
+
+    @Test
+    public void removeParameter_validFound_removed() {
+        // Test preparation
+        AbstractBasePlace place = new ConcreteAbstractBasePlace("key1", "value1", "key3", "value3", "key2", "value2");
+
+        // Subject under test
+        final String formerValue = place.removeParameter("key3");
+
+        // Test validation
+        assertThat(formerValue, is("value3"));
+        Map<String, String> parameters = place.getParameters();
+        assertThat(parameters.size(), is(2));
+        assertThat(parameters.get("key1"), is("value1"));
+        assertThat(parameters.get("key2"), is("value2"));
+        assertThat(place.getUrl(), is("key1=value1&key2=value2"));
+    }
 
 }

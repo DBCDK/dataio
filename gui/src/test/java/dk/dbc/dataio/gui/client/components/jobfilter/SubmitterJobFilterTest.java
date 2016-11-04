@@ -163,6 +163,19 @@ public class SubmitterJobFilterTest {
     }
 
     @Test
+    public void getParameterData_validValue_correctValueFetched() {
+        // Test Preparation
+        SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        when(jobFilter.submitter.getValue()).thenReturn("4321");
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("4321"));
+    }
+
+    @Test
     public void setFocus_trueValue_focusEnabled() {
         // Test Preparation
         SubmitterJobFilter jobFilter = new SubmitterJobFilter(mockedTexts, mockedResources, "");

@@ -28,7 +28,7 @@ import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 /**
  *
  */
-public class PresenterTestJobsImpl extends PresenterImpl {
+class PresenterTestJobsImpl extends PresenterImpl {
     /**
      * Default constructor
      *
@@ -36,7 +36,7 @@ public class PresenterTestJobsImpl extends PresenterImpl {
      * @param globalJobsView    Global Jobs View, necessary for keeping filter state etc.
      * @param header            Breadcrumb header text
      */
-    public PresenterTestJobsImpl(PlaceController placeController, View globalJobsView, String header) {
+    PresenterTestJobsImpl(PlaceController placeController, View globalJobsView, String header) {
         super(placeController, globalJobsView, header);
         globalJobsView.jobsTable.getElement().addClassName("test-jobs-table");
     }
@@ -51,6 +51,6 @@ public class PresenterTestJobsImpl extends PresenterImpl {
         JobListCriteria criteria=new JobListCriteria()
                 .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
                 .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
-        getView().dataProvider.setBaseCriteria( criteria );
+        view.dataProvider.setBaseCriteria( criteria );
     }
 }

@@ -135,13 +135,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
                      .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
                      .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
 
-            getView().dataProvider.setBaseCriteria( criteria );
+            view.dataProvider.setBaseCriteria( criteria );
         }
 
-        @Override
-        View getView() {
-            return mockedView;
-        }
     }
 
     @Test
@@ -163,7 +159,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedView).setPresenter(presenterImpl);
-        verify(mockedJobFilter).setupFilterParameters(testParameters);
     }
 
     @Test

@@ -150,6 +150,32 @@ public class SuppressSubmitterJobFilterTest {
     }
 
     @Test
+    public void getParameterData_trueValue_correctValueFetched() {
+        // Test Preparation
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(true);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is(""));
+    }
+
+    @Test
+    public void getParameterData_falseValue_correctValueFetched() {
+        // Test Preparation
+        SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "8888");
+        when(jobFilter.showAllSubmittersButton.getValue()).thenReturn(false);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("true"));
+    }
+
+    @Test
     public void addChangeHandler_callAddChangeHandler_changeHandlerAdded() {
         // Test Preparation
         SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");

@@ -23,13 +23,13 @@ package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ChangeHandler;
+import com.google.gwt.event.logical.shared.ValueChangeEvent;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.components.PromptedTextBox;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
@@ -47,18 +47,31 @@ public class SubmitterJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public SubmitterJobFilter() {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), "");
+        this("");
     }
 
-    @Inject
-    public SubmitterJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+    SubmitterJobFilter(String parameter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    }
+
+    SubmitterJobFilter(Texts texts, Resources resources, String parameter) {
         super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameterData(parameter);
+        setParameter(parameter);
     }
 
     @UiField PromptedTextBox submitter;
 
+
+    /**
+     * Event handler for handling changes in the submitter value
+     * @param event The ValueChangeEvent
+     */
+    @UiHandler("submitter")
+    @SuppressWarnings("unused")
+    void submitterValueChanged(ValueChangeEvent<String> event) {
+        filterChanged();
+    }
 
     /**
      * Gets the name of the job filter
@@ -88,10 +101,19 @@ public class SubmitterJobFilter extends BaseJobFilter {
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData(String filterParameter) {
+    public void setParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             submitter.setValue(filterParameter, true);
         }
+    }
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    @Override
+    public String getParameter() {
+        return submitter.getValue();
     }
 
     /**

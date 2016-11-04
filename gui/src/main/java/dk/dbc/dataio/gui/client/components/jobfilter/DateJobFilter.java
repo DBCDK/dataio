@@ -30,8 +30,6 @@ import com.google.gwt.uibinder.client.UiConstructor;
 import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.components.PromptedDateTimeBox;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.gui.client.util.Format;
@@ -63,16 +61,19 @@ public class DateJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public DateJobFilter() {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), "");
+        this("");
     }
 
-    @Inject
-    public DateJobFilter(Texts texts, Resources resources, @Named("Empty") String parameter) {
+    DateJobFilter(String parameter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    }
+
+    DateJobFilter(Texts texts, Resources resources, String parameter) {
         super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
         fromDate.setValue(defaultFromDate());
         toDate.setValue(DEFAULT_TO_DATE);
-        setParameterData(parameter);
+        setParameter(parameter);
     }
 
     /**
@@ -82,7 +83,7 @@ public class DateJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiHandler(value={"fromDate", "toDate"})
     void dateChanged(ValueChangeEvent<String> event) {
-        // Signal change to caller
+        filterChanged();
         if (callbackChangeHandler != null) {
             callbackChangeHandler.onChange(null);
         }
@@ -130,7 +131,7 @@ public class DateJobFilter extends BaseJobFilter {
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData(String filterParameter) {
+    public void setParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             String[] data = filterParameter.split(",", 2);
             fromDate.setValue(data[0], true);
@@ -139,6 +140,16 @@ public class DateJobFilter extends BaseJobFilter {
             }
         }
     }
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    @Override
+    public String getParameter() {
+        return fromDate.getValue() + (toDate.getValue().isEmpty() ? "" : "," + toDate.getValue());
+    }
+
 
     /*
      * Override HasChangeHandlers Interface Methods

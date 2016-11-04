@@ -167,7 +167,7 @@ public class ErrorJobFilterTest {
     public void setParameterData_emptyParameter_noErrorsSet() {
         // Activate Subject Under Test
         ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verifyNoMoreInteractions(jobFilter.processingCheckBox);
@@ -179,7 +179,7 @@ public class ErrorJobFilterTest {
     public void setParameterData_processingParameter_processingSet() {
         // Activate Subject Under Test
         ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
@@ -195,7 +195,7 @@ public class ErrorJobFilterTest {
     public void setParameterData_processingAndJobCreationParameter_processingAndJobCreationSet() {
         // Activate Subject Under Test
         ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "processing,jobcreation");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
@@ -212,7 +212,7 @@ public class ErrorJobFilterTest {
     public void setParameterData_processingAllParameterOrderMixed_processingAllSet() {
         // Activate Subject Under Test
         ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "delivering,processing,jobcreation");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
@@ -230,7 +230,7 @@ public class ErrorJobFilterTest {
     public void setParameterData_misSpelledParameter_onlyCorrectlySpelledSet() {
         // Activate Subject Under Test
         ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "deliveringggggggg,processing");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
@@ -246,7 +246,7 @@ public class ErrorJobFilterTest {
     public void setParameterData_capitalLetterParameter_accepted() {
         // Activate Subject Under Test
         ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "DELiveriNg");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.processingCheckBox).setValue(false);  // Set upon initialization
@@ -256,6 +256,81 @@ public class ErrorJobFilterTest {
         verifyNoMoreInteractions(jobFilter.processingCheckBox);
         verifyNoMoreInteractions(jobFilter.deliveringCheckBox);
         verifyNoMoreInteractions(jobFilter.jobCreationCheckBox);
+    }
+
+    @Test
+    public void getParameter_allUnset_correctValueFetched() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.processingCheckBox.getValue()).thenReturn(false);
+        when(jobFilter.deliveringCheckBox.getValue()).thenReturn(false);
+        when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(false);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is(""));
+    }
+
+    @Test
+    public void getParameter_processingSet_correctValueFetched() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
+        when(jobFilter.deliveringCheckBox.getValue()).thenReturn(false);
+        when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(false);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("processing"));
+    }
+
+    @Test
+    public void getParameter_deliveringSet_correctValueFetched() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.processingCheckBox.getValue()).thenReturn(false);
+        when(jobFilter.deliveringCheckBox.getValue()).thenReturn(true);
+        when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(false);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("delivering"));
+    }
+
+    @Test
+    public void getParameter_jobcreationSet_correctValueFetched() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.processingCheckBox.getValue()).thenReturn(false);
+        when(jobFilter.deliveringCheckBox.getValue()).thenReturn(false);
+        when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("jobcreation"));
+    }
+
+    @Test
+    public void getParameter_allSet_correctValueFetched() {
+        // Test Preparation
+        ErrorJobFilter jobFilter = new ErrorJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.processingCheckBox.getValue()).thenReturn(true);
+        when(jobFilter.deliveringCheckBox.getValue()).thenReturn(true);
+        when(jobFilter.jobCreationCheckBox.getValue()).thenReturn(true);
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("processing,delivering,jobcreation"));
     }
 
     @Test

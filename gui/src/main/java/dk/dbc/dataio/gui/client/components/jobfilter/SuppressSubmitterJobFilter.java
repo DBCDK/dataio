@@ -31,8 +31,6 @@ import com.google.gwt.uibinder.client.UiField;
 import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.RadioButton;
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
@@ -50,14 +48,17 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public SuppressSubmitterJobFilter() {
-        this(GWT.create(Texts.class), GWT.create(Resources.class), "true");
+        this("true");
     }
 
-    @Inject
-    public SuppressSubmitterJobFilter(Texts texts, Resources resources, @Named("True") String parameter) {
+    SuppressSubmitterJobFilter(String parameter) {
+        this(GWT.create(Texts.class), GWT.create(Resources.class), parameter);
+    }
+
+    SuppressSubmitterJobFilter(Texts texts, Resources resources, String parameter) {
         super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        setParameterData(parameter);
+        setParameter(parameter);
     }
 
     ChangeHandler callbackChangeHandler = null;
@@ -74,7 +75,7 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiHandler(value={"showAllSubmittersButton", "suppressSubmittersButton"})
     void filterItemsRadioButtonPressed(ClickEvent event) {
-        // Signal change to caller
+        filterChanged();
         if (callbackChangeHandler != null) {
             callbackChangeHandler.onChange(null);
         }
@@ -109,9 +110,18 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
-    public void setParameterData(String filterParameter) {
+    public void setParameter(String filterParameter) {
         showAllSubmittersButton.setValue(filterParameter.isEmpty(), true);
         suppressSubmittersButton.setValue(!filterParameter.isEmpty(), true);
+    }
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    @Override
+    public String getParameter() {
+        return showAllSubmittersButton.getValue() ? "" : "true";
     }
 
     /**

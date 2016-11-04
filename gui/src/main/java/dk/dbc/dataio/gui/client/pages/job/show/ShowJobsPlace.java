@@ -28,19 +28,21 @@ import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.util.ClientFactory;
 
 public class ShowJobsPlace extends AbstractBasePlace {
-    public ShowJobsPlace() {
-        super();
-    }
-    public ShowJobsPlace(String token) {
-        super(token);
+    private final static ShowJobsPlace INSTANCE = new ShowJobsPlace();
+    private ShowJobsPlace() {}  // Prevents instantiation by new operator
+    private static Presenter presenter = null;
+
+    public static ShowJobsPlace getInstance() {
+        return INSTANCE;
     }
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(
+        presenter = new dk.dbc.dataio.gui.client.pages.job.show.PresenterJobsImpl(
                 clientFactory.getPlaceController(),
                 clientFactory.getGlobalViewsFactory().getJobsView(),
                 commonInjector.getMenuTexts().menu_Jobs());
+        return (Activity) presenter;
     }
 
     @Prefix("ShowJobs")
@@ -51,8 +53,10 @@ public class ShowJobsPlace extends AbstractBasePlace {
         }
         @Override
         public ShowJobsPlace getPlace(String token) {
-            return new ShowJobsPlace(token);
+            if (presenter != null) {
+                presenter.setPlaceToken(token);
+            }
+            return getInstance();
         }
     }
 }
-

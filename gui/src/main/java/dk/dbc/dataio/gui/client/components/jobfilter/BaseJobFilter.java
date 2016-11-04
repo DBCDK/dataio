@@ -21,14 +21,12 @@
 
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Focusable;
 import com.google.gwt.user.client.ui.Widget;
-import com.google.inject.Inject;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -40,7 +38,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     protected Texts texts;
     protected Resources resources;
 
-    final Widget thisAsWidget = this.asWidget();
+    final Widget thisAsWidget = asWidget();
     JobFilter parentJobFilter = null;
     JobFilterPanel filterPanel = null;
     HandlerRegistration clickHandlerRegistration = null;
@@ -50,7 +48,6 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * @param texts Internationalized texts to be used by this class
      * @param resources Resources to be used by this class
      */
-    @Inject
     public BaseJobFilter(Texts texts, Resources resources) {
         this.texts = texts;
         this.resources = resources;
@@ -72,18 +69,17 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
 
 
     /**
-     * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen.
-     * Apart from adding the Job Filter, two handlers are registered:
-     *  - A Click Handler is registered to assure, that a click on the remove button will remove the filter.
-     *  - A Change Handler is registered to signal changes in the Job Filter to the owner panel
+     * Adds a Job Filter to the list of active filters. If the actual filter has already been added, nothing will happen. <br>
+     * Apart from adding the Job Filter, a Click Handler is registered to assure, that a click on the remove button will remove the filter.
      */
     public void addJobFilter() {
         if (filterPanel == null) {
-            GWT.log("Add Job Filter: " + getName());
+//            GWT.log("Add Job Filter: " + getName());
             filterPanel = new JobFilterPanel(getName(), resources.deleteButton());
             clickHandlerRegistration = filterPanel.addClickHandler(clickEvent -> removeJobFilter());
             filterPanel.add(thisAsWidget);
             parentJobFilter.add(this);
+            filterChanged();
         }
     }
 
@@ -92,12 +88,27 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * The associated Click Handler is de-registered to assure, that no ghost events will be triggered
      */
     void removeJobFilter() {
-        GWT.log("Remove Job Filter: " + getName());
+//        GWT.log("Remove Job Filter: " + getName());
         if (filterPanel != null) {
             clickHandlerRegistration.removeHandler();
             clickHandlerRegistration = null;
             filterPanel.clear();
             parentJobFilter.remove(this);
+            filterChanged();
+        }
+    }
+
+    /**
+     * This method shall be called by subclasses, whenever the filter changes its value <br>
+     * The action is to reflect any changes in the URL
+     */
+    void filterChanged() {
+        if (parentJobFilter != null && parentJobFilter.place != null) {
+            String name = getClass().getSimpleName();
+            parentJobFilter.place.removeParameter(name);
+            if (filterPanel != null) {  // If filterPanel IS null, it means, that it has been removed
+                parentJobFilter.place.addParameter(name, getParameter());
+            }
         }
     }
 
@@ -153,18 +164,22 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      */
     public abstract String getName();
 
-
     /**
      * Gets the value of the current Job List Criteria Model
      * @return The current value of the Job List Criteria Model
      */
     abstract public JobListCriteria getValue();
 
-
     /**
-     * Sets the value of the parameter, to be used when initializing the filter
+     * Sets the parameter value for the filter
      * @param filterParameter The filter parameter for the specific job filter
      */
-    abstract public void setParameterData(String filterParameter);
+    abstract public void setParameter(String filterParameter);
+
+    /**
+     * Gets the parameter value for the filter
+     * @return The stored filter parameter for the specific job filter
+     */
+    abstract public String getParameter();
 
 }

@@ -226,7 +226,7 @@ public class DateJobFilterTest {
     public void setParameterData_emptyParameter_noDatesSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
@@ -239,7 +239,7 @@ public class DateJobFilterTest {
     public void setParameterData_fromDateParameter_fromDateSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
@@ -253,7 +253,7 @@ public class DateJobFilterTest {
     public void setParameterData_twoDatesParameter_twoDatesSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,2016-10-16 22:11:01");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
@@ -268,7 +268,7 @@ public class DateJobFilterTest {
     public void setParameterData_toDateParameter_toDateSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",2016-10-16 22:11:02");
-        // setParameterData is called upon initialization
+        // setParameter is called upon initialization
 
         // Verify test
         verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
@@ -277,6 +277,62 @@ public class DateJobFilterTest {
         verify(jobFilter.toDate).setValue("2016-10-16 22:11:02", true);
         verifyNoMoreInteractions(jobFilter.fromDate);
         verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void getParameter_emptyValue_correctValueFetched() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.fromDate.getValue()).thenReturn("");
+        when(jobFilter.toDate.getValue()).thenReturn("");
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is(""));
+    }
+
+    @Test
+    public void getParameter_validFromEmptyTo_correctValueFetched() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.fromDate.getValue()).thenReturn("A");
+        when(jobFilter.toDate.getValue()).thenReturn("");
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("A"));
+    }
+
+    @Test
+    public void getParameter_emptyFromValidTo_correctValueFetched() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.fromDate.getValue()).thenReturn("");
+        when(jobFilter.toDate.getValue()).thenReturn("B");
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is(",B"));
+    }
+
+    @Test
+    public void getParameter_validFromValidTo_correctValueFetched() {
+        // Test Preparation
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "");
+        when(jobFilter.fromDate.getValue()).thenReturn("A");
+        when(jobFilter.toDate.getValue()).thenReturn("B");
+
+        // Activate Subject Under Test
+        String result = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(result, is("A,B"));
     }
 
     @Test

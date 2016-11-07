@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.naming.NamingException;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.core.Response;
 
 public class UshSolrHarvesterProxyImpl implements UshSolrHarvesterProxy {
     private static final Logger log = LoggerFactory.getLogger(UshSolrHarvesterProxyImpl.class);
@@ -69,8 +70,13 @@ public class UshSolrHarvesterProxyImpl implements UshSolrHarvesterProxy {
             log.error("runTestHarvest - Exception", e);
             throw new ProxyException(ProxyError.BAD_REQUEST, e);
         } catch (UshSolrHarvesterServiceConnectorUnexpectedStatusCodeException e) {
-            log.error("runTestHarvest - Unexpected Status Code Exception", e);
-            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+            if (e.getStatusCode() == Response.Status.NO_CONTENT.getStatusCode()) {
+                log.error("runTestHarvest - No Content Status Code Exception", e);
+                throw new ProxyException(ProxyError.NO_CONTENT, e);
+            } else {
+                log.error("runTestHarvest - Unexpected Status Code Exception", e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()),e.getMessage());
+            }
         } catch (UshSolrHarvesterServiceConnectorException e) {
             log.error("runTestHarvest - Service Connector Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);

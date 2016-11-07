@@ -107,6 +107,11 @@ public class UshSolrHarvesterProxyImplTest {
     }
 
     @Test
+    public void runTestHarvest_remoteServiceReturnsHttpNoContent_throws() throws Exception {
+        runTestHarvest_genericTestImplForHttpErrors(204, ProxyError.NO_CONTENT, "NO_CONTENT");
+    }
+
+    @Test
     public void runTestHarvest_zeroValuedJobId_throws() throws Exception{
         runTestHarvest_GenericTestImplForJobIdValidationErrors(0, ProxyError.BAD_REQUEST, "BAD_REQUEST");
     }

@@ -30,7 +30,9 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.harvester.ush.modify.EditPlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
@@ -43,12 +45,12 @@ import java.util.List;
  */
 public class PresenterImpl extends AbstractActivity implements Presenter {
     private final String RELATIVE_USH_ADMIN_URL = "/../harvester-admin/";
-    protected String ushAdminUrl = "";
+    String ushAdminUrl = "";
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
-    PlaceController placeController;
+    private PlaceController placeController;
 
     /**
      * Default constructor
@@ -77,7 +79,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
 
-    /**
+    /*
      * Overridden methods
      */
 
@@ -133,7 +135,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the getJndiResource method in the JNDI Proxy
      */
-    protected class GetUshAdminUrlCallback implements AsyncCallback<String> {
+    class GetUshAdminUrlCallback implements AsyncCallback<String> {
         @Override
         public void onFailure(Throwable throwable) {
             getView().setErrorText(viewInjector.getTexts().error_JndiFetchError());
@@ -147,7 +149,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the findAllFlows method in the Flow Store
      */
-    protected class GetUshHarvestersCallback extends FilteredAsyncCallback<List<UshSolrHarvesterConfig>> {
+    class GetUshHarvestersCallback extends FilteredAsyncCallback<List<UshSolrHarvesterConfig>> {
         @Override
         public void onFilteredFailure(Throwable caught) {
             getView().setErrorText(ProxyErrorTranslator.toClientErrorFromFlowStoreProxy(caught, commonInjector.getProxyErrorTexts(), this.getClass().getCanonicalName()));
@@ -161,10 +163,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     /**
      * This class is the callback class for the runTestHarvest method in the UshSolrHarvester Proxy
      */
-    protected class RunUshSolrTestHarvesterCallback implements AsyncCallback<String> {
+    class RunUshSolrTestHarvesterCallback implements AsyncCallback<String> {
         @Override
         public void onFailure(Throwable caught) {
-            getView().setErrorText(viewInjector.getTexts().error_RunUshSolrTestError());
+            if (((ProxyException) caught).getErrorCode() == ProxyError.NO_CONTENT) {
+                getView().setErrorText(viewInjector.getTexts().error_NoHarvesterJobs());
+            } else {
+                getView().setErrorText(viewInjector.getTexts().error_RunUshSolrTestError());
+            }
         }
         @Override
         public void onSuccess(String harvestId) {

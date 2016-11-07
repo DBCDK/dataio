@@ -28,6 +28,8 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
+import dk.dbc.dataio.gui.client.exceptions.ProxyError;
+import dk.dbc.dataio.gui.client.exceptions.ProxyException;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
 import dk.dbc.dataio.gui.client.proxies.JndiProxyAsync;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
@@ -81,6 +83,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedMenuTexts.menu_UshHarvesters()).thenReturn("UshHarvestersMenu");
         when(mockedTexts.error_JndiFetchError()).thenReturn("JndiFetchError");
         when(mockedTexts.error_RunUshSolrTestError()).thenReturn("RunUshSolrTestError");
+        when(mockedTexts.error_NoHarvesterJobs()).thenReturn("NoHarvesterJobs");
     }
 
     private List<UshSolrHarvesterConfig> testHarvesterConfig = new ArrayList<>();
@@ -215,13 +218,13 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     @Test
-    public void runUshSolrTestHarvesterCallback_callbackWithError_errorMessageInView() {
+    public void runUshSolrTestHarvesterCallback_callbackWithUnknownError_errorMessageInView() {
         // Test preparation
         setupPresenterImpl();
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Test Subject Under Test
-        presenterImpl.runUshSolrTestHarvesterCallback.onFailure(new Exception());
+        presenterImpl.runUshSolrTestHarvesterCallback.onFailure(new ProxyException(ProxyError.ERROR_UNKNOWN, new Exception()));
 
         // Verify Test
         // The following is called from start()
@@ -231,6 +234,27 @@ public class PresenterImplTest extends PresenterImplTestBase {
         // The following is called from GetHarvestersCallback
         verify(mockedTexts).error_RunUshSolrTestError();
         verify(mockedView).setErrorText("RunUshSolrTestError");
+        verifyNoMoreInteractions(mockedView);
+        verifyNoMoreInteractions(mockedTexts);
+    }
+
+    @Test
+    public void runUshSolrTestHarvesterCallback_callbackWithNoContentError_errorMessageInView() {
+        // Test preparation
+        setupPresenterImpl();
+        presenterImpl.start(mockedContainerWidget, mockedEventBus);
+
+        // Test Subject Under Test
+        presenterImpl.runUshSolrTestHarvesterCallback.onFailure(new ProxyException(ProxyError.NO_CONTENT, new Exception()));
+
+        // Verify Test
+        // The following is called from start()
+        verify(mockedView).setPresenter(presenterImpl);
+        verify(mockedView).setHeader(any(String.class));
+        verify(mockedView).asWidget();
+        // The following is called from GetHarvestersCallback
+        verify(mockedTexts).error_NoHarvesterJobs();
+        verify(mockedView).setErrorText("NoHarvesterJobs");
         verifyNoMoreInteractions(mockedView);
         verifyNoMoreInteractions(mockedTexts);
     }

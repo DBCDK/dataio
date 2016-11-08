@@ -25,14 +25,11 @@ import dk.dbc.dataio.cli.FlowManager;
 import dk.dbc.dataio.cli.JobManager;
 import dk.dbc.dataio.cli.TestSuite;
 import dk.dbc.dataio.cli.options.CreateOptions;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
-import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
-import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
-import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
+import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
@@ -43,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.client.Client;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -65,9 +61,7 @@ public class CreateCommand extends Command {
     }
 
     @Override
-    public void execute() throws FlowStoreServiceConnectorException,
-            UrlResolverServiceConnectorException, JavaScriptProjectException, IOException,
-            JSONBException, FileStoreServiceConnectorException, URISyntaxException, JobStoreServiceConnectorException {
+    public void execute() throws Exception {
 
         initializeManagers();
         LOGGER.info("Looking up flow '{}'", options.flowName);
@@ -81,10 +75,11 @@ public class CreateCommand extends Command {
         }
 
         for (TestSuite testSuite : testSuites) {
-            LOGGER.info("Running test suite {}", testSuite.getName());
+            LOGGER.info("Running test suite: {}", testSuite.getName());
             LOGGER.info("Adding job");
             final JobInfoSnapshot jobInfoSnapshot = jobManager.addAccTestJob(testSuite, flow);
-            LOGGER.info("added job with id {}", jobInfoSnapshot.getJobId());
+            LOGGER.info("job {} finished. {}/{} items failed", jobInfoSnapshot.getJobId(), getFailed(jobInfoSnapshot.getState()), jobInfoSnapshot.getNumberOfItems());
+            LOGGER.debug("created " + testSuite.getName() + "JUnit.xml");
         }
     }
 
@@ -125,5 +120,11 @@ public class CreateCommand extends Command {
                 .register(new JacksonFeature()));
         final UrlResolverServiceConnector urlResolverServiceConnector = new UrlResolverServiceConnector(client, options.guiUrl);
         return urlResolverServiceConnector.getUrls();
+    }
+
+    private static int getFailed(State state) {
+        return state.getPhase(State.Phase.PARTITIONING).getFailed() +
+                state.getPhase(State.Phase.PROCESSING).getFailed() +
+                state.getPhase(State.Phase.DELIVERING).getFailed();
     }
 }

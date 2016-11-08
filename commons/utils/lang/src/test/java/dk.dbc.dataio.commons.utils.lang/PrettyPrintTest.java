@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.server.util;
+package dk.dbc.dataio.commons.utils.lang;
 
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Test;

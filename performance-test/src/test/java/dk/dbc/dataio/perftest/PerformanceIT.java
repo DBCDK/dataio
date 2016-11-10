@@ -348,12 +348,20 @@ public class PerformanceIT {
                 + "  }\n"
                 + "  return res;\n"
                 + "}").getBytes("UTF-8")), "NoModule");
-        JavaScript jsUse = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/Use.use.js").getBytes("UTF-8")), "Use");
-        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("javascript/jscommon/system/ModulesInfo.use.js").getBytes("UTF-8")), "ModulesInfo");
+        JavaScript jsUse = new JavaScript(Base64.encodeBase64String(
+                readResourceFromClassPath("javascript/jscommon/system/Use.use.js").getBytes("UTF-8")), "Use");
+        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String(
+                readResourceFromClassPath("javascript/jscommon/system/ModulesInfo.use.js").getBytes("UTF-8")), "ModulesInfo");
+        JavaScript jsUseRequiredModules = new JavaScript(Base64.encodeBase64String(
+                readResourceFromClassPath("javascript/jscommon/system/Use.RequiredModules.use.js").getBytes("UTF-8")), "Use.RequiredModules");
+        JavaScript jsES5 = new JavaScript(Base64.encodeBase64String(
+                readResourceFromClassPath("javascript/jscommon/external/ES5.use.js").getBytes("UTF-8")), "ES5");
+        JavaScript jsEngine = new JavaScript(Base64.encodeBase64String(
+                readResourceFromClassPath("javascript/jscommon/system/Engine.use.js").getBytes("UTF-8")), "Engine");
         // The following resources are located in the test/resources folder in the project.
         // All files are copied from jscommon and the filename is prefixed with "TestResource_".
         // This is in order to ensure that they are not confused with the actual javascripts.
-        // The purpose of these scripts are just to add bulk/volume to the chunk, and to ensure that a belivable
+        // The purpose of these scripts are just to add bulk/volume to the chunk, and to ensure that a believable
         // amount of javascript is read into the javascripts-environment during the test.
         List<String> testJSDependecies
                 = Arrays.asList(
@@ -367,7 +375,7 @@ public class PerformanceIT {
                         "UnitTest",
                         "Util");
 
-        List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(js, jsUse, jsModulesInfo));
+        List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(js, jsUse, jsModulesInfo, jsUseRequiredModules, jsES5, jsEngine));
         for (String jsDependency : testJSDependecies) {
             javascripts.add(new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("TestResource_" + jsDependency + ".use.js").getBytes("UTF-8")), jsDependency));
         }

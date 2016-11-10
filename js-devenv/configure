@@ -39,10 +39,16 @@ EGGS=`pwd`/dependencies
 rm -f dependencies.txt
 rm -f ${EGGS}/*
 
+if [ ! -z ${JENKINS_CREDENTIALS} ]; then
+    # JENKINS_CREDENTIALS is set and is not the empty string
+    # Prepend the -c option for the dependency manager
+    JENKINS_CREDENTIALS="-c ${JENKINS_CREDENTIALS}" 
+fi
+
 DEPENDENCY_MANAGER=$BUILDSCRIPT_DIR/dependency_manager/bin/dependency-manager
-${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -c ${JENKINS_CREDENTIALS}
-${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose -c ${JENKINS_CREDENTIALS}
-${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose -c ${JENKINS_CREDENTIALS}
+${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} ${JENKINS_CREDENTIALS}
+${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose ${JENKINS_CREDENTIALS}
+${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose ${JENKINS_CREDENTIALS}
 
 ${BUILDSCRIPT_DIR}/envbuilder.sh -v -s -f -e ${VENV} ${EGGS}
 cd ..

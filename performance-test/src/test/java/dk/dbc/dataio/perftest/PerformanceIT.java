@@ -334,50 +334,41 @@ public class PerformanceIT {
      * Creates realistic sized javascripts for use in the performance-test.
      */
     private List<JavaScript> getJavaScriptsForLargePerformanceTest() throws IOException {
-        // This method must return a list of javascripts where the first javascript has a function called
-        // invocationfunction for use as entrance to the javascripts.
+        final List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(
+                new JavaScript(Base64.encodeBase64String((
+                          "use(\"MarcClasses\")\n\n"
+                        + "function invocationFunction(record, supplementaryData) {\n"
+                        + "  var instance = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
+                        + "  instance.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
+                        + "  var md5 = instance.digest();\n"
+                        + "  var res = String();\n"
+                        + "  for(var i=0; i<md5.length; i++) {\n"
+                        + "    res += (md5[i] & 0xFF).toString(16);\n"
+                        + "  }\n"
+                        + "  return res;\n"
+                        + "}").getBytes("UTF-8")), ""),
+                getJavascriptFromClassPath("javascript/jscommon/system/Use.use.js", "Use"),
+                getJavascriptFromClassPath("javascript/jscommon/system/ModulesInfo.use.js", "ModulesInfo"),
+                getJavascriptFromClassPath("javascript/jscommon/system/Use.RequiredModules.use.js", "Use.RequiredModules"),
+                getJavascriptFromClassPath("javascript/jscommon/external/ES5.use.js", "ES5"),
+                getJavascriptFromClassPath("javascript/jscommon/system/Engine.use.js", "Engine")));
 
-        JavaScript js = new JavaScript(Base64.encodeBase64String(("use(\"MarcClasses\")\n\n"
-                + "function invocationFunction(record, supplementaryData) {\n"
-                + "  var instance = Packages.java.security.MessageDigest.getInstance(\"md5\");\n"
-                + "  instance.update((new Packages.java.lang.String(record)).getBytes(\"UTF-8\"));\n"
-                + "  var md5 = instance.digest();\n"
-                + "  var res = String();\n"
-                + "  for(var i=0; i<md5.length; i++) {\n"
-                + "    res += (md5[i] & 0xFF).toString(16);\n"
-                + "  }\n"
-                + "  return res;\n"
-                + "}").getBytes("UTF-8")), "NoModule");
-        JavaScript jsUse = new JavaScript(Base64.encodeBase64String(
-                readResourceFromClassPath("javascript/jscommon/system/Use.use.js").getBytes("UTF-8")), "Use");
-        JavaScript jsModulesInfo = new JavaScript(Base64.encodeBase64String(
-                readResourceFromClassPath("javascript/jscommon/system/ModulesInfo.use.js").getBytes("UTF-8")), "ModulesInfo");
-        JavaScript jsUseRequiredModules = new JavaScript(Base64.encodeBase64String(
-                readResourceFromClassPath("javascript/jscommon/system/Use.RequiredModules.use.js").getBytes("UTF-8")), "Use.RequiredModules");
-        JavaScript jsES5 = new JavaScript(Base64.encodeBase64String(
-                readResourceFromClassPath("javascript/jscommon/external/ES5.use.js").getBytes("UTF-8")), "ES5");
-        JavaScript jsEngine = new JavaScript(Base64.encodeBase64String(
-                readResourceFromClassPath("javascript/jscommon/system/Engine.use.js").getBytes("UTF-8")), "Engine");
         // The following resources are located in the test/resources folder in the project.
         // All files are copied from jscommon and the filename is prefixed with "TestResource_".
         // This is in order to ensure that they are not confused with the actual javascripts.
         // The purpose of these scripts are just to add bulk/volume to the chunk, and to ensure that a believable
         // amount of javascript is read into the javascripts-environment during the test.
-        List<String> testJSDependecies
-                = Arrays.asList(
-                        "Log",
-                        "LogCore",
-                        "Global",
-                        "MarcClasses",
-                        "MarcClassesCore",
-                        "System",
-                        "Underscore",
-                        "UnitTest",
-                        "Util");
-
-        List<JavaScript> javascripts = new ArrayList<>(Arrays.asList(js, jsUse, jsModulesInfo, jsUseRequiredModules, jsES5, jsEngine));
-        for (String jsDependency : testJSDependecies) {
-            javascripts.add(new JavaScript(Base64.encodeBase64String(readResourceFromClassPath("TestResource_" + jsDependency + ".use.js").getBytes("UTF-8")), jsDependency));
+        for (String jsDependency : Arrays.asList(
+                "Log",
+                "LogCore",
+                "Global",
+                "MarcClasses",
+                "MarcClassesCore",
+                "System",
+                "Underscore",
+                "UnitTest",
+                "Util")) {
+            javascripts.add(getJavascriptFromClassPath("TestResource_" + jsDependency + ".use.js", jsDependency));
         }
         return javascripts;
     }
@@ -414,7 +405,6 @@ public class PerformanceIT {
     }
 
     private String readResourceFromClassPath(String resource) throws IOException {
-
         URL url = this.getClass().getClassLoader().getResource(resource);
         assert url != null;
         LOGGER.info("Reading resource '{}' from '{}'", resource, url.toString());
@@ -423,7 +413,7 @@ public class PerformanceIT {
         StringBuilder sb = new StringBuilder();
         try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(resource)) {
             if (in == null) {
-                throw new AssertionError("The ressource '" + resource + "' could not be found on the classpath");
+                throw new AssertionError("The resource '" + resource + "' could not be found on the classpath");
             }
             int sz;
             do {
@@ -436,4 +426,8 @@ public class PerformanceIT {
         return sb.toString();
     }
 
+    private JavaScript getJavascriptFromClassPath(String resource, String moduleName) throws IOException {
+        final byte[] bytes = readResourceFromClassPath(resource).getBytes("UTF-8");
+        return new JavaScript(Base64.encodeBase64String(bytes), moduleName);
+    }
 }

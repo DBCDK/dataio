@@ -40,9 +40,9 @@ rm -f dependencies.txt
 rm -f ${EGGS}/*
 
 DEPENDENCY_MANAGER=$BUILDSCRIPT_DIR/dependency_manager/bin/dependency-manager
-${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER}
-${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose
-${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose
+${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -c ${JENKINS_CREDENTIALS}
+${DEPENDENCY_MANAGER} ${MASTER_PROJECT} ${BUILD_NUMBER} -a testrunner-jsshell-convert --verbose -c ${JENKINS_CREDENTIALS}
+${DEPENDENCY_MANAGER} --download ${EGGS} --pattern ".*\.(egg)$" --verbose -c ${JENKINS_CREDENTIALS}
 
 ${BUILDSCRIPT_DIR}/envbuilder.sh -v -s -f -e ${VENV} ${EGGS}
 cd ..

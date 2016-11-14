@@ -29,7 +29,6 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
-import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
@@ -78,7 +77,7 @@ public class CreateCommand extends Command {
             LOGGER.info("Running test suite: {}", testSuite.getName());
             LOGGER.info("Adding job");
             final JobInfoSnapshot jobInfoSnapshot = jobManager.addAccTestJob(testSuite, flow);
-            LOGGER.info("job {} finished. {}/{} items failed", jobInfoSnapshot.getJobId(), getFailed(jobInfoSnapshot.getState()), jobInfoSnapshot.getNumberOfItems());
+            LOGGER.info("job {} finished. {}/{} items failed", jobInfoSnapshot.getJobId(), JobManager.failedItems(jobInfoSnapshot.getState()), jobInfoSnapshot.getNumberOfItems());
             LOGGER.debug("created " + testSuite.getName() + "JUnit.xml");
         }
     }
@@ -120,11 +119,5 @@ public class CreateCommand extends Command {
                 .register(new JacksonFeature()));
         final UrlResolverServiceConnector urlResolverServiceConnector = new UrlResolverServiceConnector(client, options.guiUrl);
         return urlResolverServiceConnector.getUrls();
-    }
-
-    private static int getFailed(State state) {
-        return state.getPhase(State.Phase.PARTITIONING).getFailed() +
-                state.getPhase(State.Phase.PROCESSING).getFailed() +
-                state.getPhase(State.Phase.DELIVERING).getFailed();
     }
 }

@@ -52,8 +52,6 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
 import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -92,6 +90,12 @@ public class JobManager {
 
         final JobInfoSnapshot jobInfoSnapshot = jobStoreServiceConnector.addAccTestJob(jobInputStream);
         return waitForJobCompletion(jobInfoSnapshot.getJobId(), testSuite);
+    }
+
+    public static int failedItems(State state) {
+        return state.getPhase(State.Phase.PARTITIONING).getFailed() +
+                state.getPhase(State.Phase.PROCESSING).getFailed() +
+                state.getPhase(State.Phase.DELIVERING).getFailed();
     }
 
 
@@ -162,38 +166,47 @@ public class JobManager {
     }
 
     private void createAccTestResult(JobInfoSnapshot jobInfoSnapshot, TestSuite testSuite) throws Exception {
-        final ByteArrayOutputStream baos = createJunitXmlTestSuite(jobInfoSnapshot, testSuite.getName());
-        createJunitXmlFile(baos, testSuite.getDataFile().toAbsolutePath().getParent().getParent().toString(), testSuite.getName() + JUNIT_XML);
+        try (FileOutputStream fileOutputStream = new FileOutputStream(testSuite.getName() + JUNIT_XML)) {
+            createJunitXmlTestSuite(fileOutputStream, jobInfoSnapshot, testSuite.getName());
+        }
     }
 
-    private ByteArrayOutputStream createJunitXmlTestSuite(JobInfoSnapshot jobInfoSnapshot, String testSuiteName) throws Exception {
-
-        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (final JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(baos)) {
-            try (final JunitXmlTestSuite junitXmlTestSuite = new JunitXmlTestSuite("dataio.acctest."+ testSuiteName, junitXmlStreamWriter)) {
-                int chunkId = 0;
-                int itemsAddedToTestSuite = 0;
-                int itemId = 0;
-
-                while (itemsAddedToTestSuite < jobInfoSnapshot.getNumberOfItems()) {
-                    final ItemListCriteria itemListCriteria = getItemListCriteria(jobInfoSnapshot.getJobId(), chunkId);
-                    final Map<Integer, ItemInfoSnapshot> snapshots = jobStoreServiceConnector.listItems(itemListCriteria).stream()
-                            .collect(Collectors.toMap(c -> (int) c.getItemId(), c -> c));
-
-                    while (itemId < 10 && itemsAddedToTestSuite < jobInfoSnapshot.getNumberOfItems()) {
-                        if (snapshots.containsKey(itemId)) {
-                            junitXmlTestSuite.addTestCase(getFailedTestCase(snapshots.get(itemId), testSuiteName, jobInfoSnapshot.getJobId(), ++itemsAddedToTestSuite));
-                        } else {
-                            junitXmlTestSuite.addTestCase(getPassedTestCase(testSuiteName, jobInfoSnapshot.getJobId(), ++itemsAddedToTestSuite));
-                        }
-                        itemId++;
-                    }
-                    itemId = 0;
-                    chunkId++;
-                }
+    private void createJunitXmlTestSuite(FileOutputStream fileOutputStream, JobInfoSnapshot jobInfoSnapshot, String testSuiteName) throws Exception {
+        try (final JunitXmlStreamWriter junitXmlStreamWriter = new JunitXmlStreamWriter(fileOutputStream)) {
+            try (final JunitXmlTestSuite junitXmlTestSuite = new JunitXmlTestSuite("dataio.acctest." + testSuiteName, junitXmlStreamWriter)) {
+                createJunitXmlTestCases(junitXmlTestSuite, jobInfoSnapshot, testSuiteName);
             }
         }
-        return baos;
+    }
+
+    private void createJunitXmlTestCases(JunitXmlTestSuite junitXmlTestSuite, JobInfoSnapshot jobInfoSnapshot, String testSuiteName) throws JobStoreServiceConnectorException, XMLStreamException {
+        int itemsAddedToTestSuite = 0;
+        int chunkId = 0;
+        if (failedItems(jobInfoSnapshot.getState()) > 0) {
+            while (itemsAddedToTestSuite < jobInfoSnapshot.getNumberOfItems()) {
+                int itemId = 0;
+                final Map<Integer, ItemInfoSnapshot> failedSnapshots = getFailedItemInfoSnapshots(jobInfoSnapshot.getJobId(), chunkId);
+                while (itemId < 10 && itemsAddedToTestSuite < jobInfoSnapshot.getNumberOfItems()) {
+                    if (failedSnapshots.containsKey(itemId)) {
+                        junitXmlTestSuite.addTestCase(getFailedTestCase(failedSnapshots.get(itemId), testSuiteName, jobInfoSnapshot.getJobId(), ++itemsAddedToTestSuite));
+                    } else {
+                        junitXmlTestSuite.addTestCase(getPassedTestCase(testSuiteName, jobInfoSnapshot.getJobId(), ++itemsAddedToTestSuite));
+                    }
+                    itemId++;
+                }
+                chunkId++;
+            }
+        } else {
+            while (itemsAddedToTestSuite < jobInfoSnapshot.getNumberOfItems()) {
+                junitXmlTestSuite.addTestCase(getPassedTestCase(testSuiteName, jobInfoSnapshot.getJobId(), ++itemsAddedToTestSuite));
+            }
+        }
+    }
+
+    private Map<Integer, ItemInfoSnapshot> getFailedItemInfoSnapshots(int jobId, int chunkId) throws JobStoreServiceConnectorException {
+        final ItemListCriteria itemListCriteria = getItemListCriteria(jobId, chunkId);
+        return jobStoreServiceConnector.listItems(itemListCriteria).stream()
+                .collect(Collectors.toMap(c -> (int) c.getItemId(), c -> c));
     }
 
     private ItemListCriteria getItemListCriteria(int jobId, int chunkId) {
@@ -227,15 +240,5 @@ public class JobManager {
         return JunitXmlTestCase.passed(
                 String.format("job %d, post %s", jobId, String.format("%1$5d", recordNumber)),
                 String.format("dataio.acctest.%s.passed", testSuiteName));
-    }
-
-    private void createJunitXmlFile(ByteArrayOutputStream baos, String path, String name) throws IOException {
-        final File file = new File (new File(path), name);
-        try (FileOutputStream fop = new FileOutputStream(file)) {
-            file.createNewFile();
-            fop.write(baos.toByteArray());
-            fop.flush();
-            fop.close();
-        }
     }
 }

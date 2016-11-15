@@ -171,12 +171,12 @@ public class HarvesterJobBuilderTest {
     }
 
     @Test
-    public void build_creationOfFileStoreUrnThrowsURISyntaxException_throws() throws FileStoreServiceConnectorException, HarvesterException {
+    public void build_creationOfFileStoreUrnThrowsIllegalArgumentException_throws() throws FileStoreServiceConnectorException, HarvesterException {
         when(fileStoreServiceConnector.addFile(is)).thenReturn("\\");
 
         final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addRecord(addiRecord);
-        assertThat(() -> harvesterJobBuilder.build(), isThrowing(HarvesterException.class));
+        assertThat(() -> harvesterJobBuilder.build(), isThrowing(IllegalArgumentException.class));
     }
 
     @Test

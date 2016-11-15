@@ -81,7 +81,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -151,7 +150,7 @@ public class PerformanceIT {
 
     @Test
     public void lowContentPerformanceTest() throws IOException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, FileStoreServiceConnectorException, URISyntaxException {
+            FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
         final long submitterNumber = 424242;
 
         // Create test data
@@ -187,7 +186,7 @@ public class PerformanceIT {
 
     @Test
     public void highContentPerformanceTest() throws IOException, JobStoreServiceConnectorException,
-            FlowStoreServiceConnectorException, FileStoreServiceConnectorException, URISyntaxException {
+            FlowStoreServiceConnectorException, FileStoreServiceConnectorException {
         final long submitterNumber = 434343;
 
         // Create test data

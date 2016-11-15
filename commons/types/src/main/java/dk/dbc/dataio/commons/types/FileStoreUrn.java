@@ -94,9 +94,9 @@ public class FileStoreUrn {
      * @param fileId file ID to be expressed as URN
      * @return FileStoreUrn instance
      * @throws NullPointerException if given null-valued fileId argument
-     * @throws IllegalArgumentException if given empty-valued fileId argument
-     * @throws URISyntaxException if the given string does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
-     * */
+     * @throws IllegalArgumentException if given empty-valued fileId argument or if the given string
+     * does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
+     */
     public static FileStoreUrn create(String fileId) throws NullPointerException, IllegalArgumentException {
         try {
             InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");

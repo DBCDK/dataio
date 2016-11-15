@@ -29,10 +29,15 @@ import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
+import dk.dbc.dataio.jsonb.JSONBContext;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
 
 import javax.ws.rs.client.Client;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * Class managing all interactions with the dataIO flow-store needed for acceptance test operation
@@ -40,15 +45,18 @@ import javax.ws.rs.client.Client;
 public class FlowManager {
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final JavaScriptSubversionProject subversionProject;
+    private final String flowCommitTmp = "flow.commit.tmp";
+    private final JSONBContext jsonbContext;
 
     public FlowManager(String flowStoreEndpoint, String scmEndpoint) {
         final Client client = HttpClient.newClient(new ClientConfig()
                 .register(new JacksonFeature()));
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, flowStoreEndpoint);
         subversionProject = new JavaScriptSubversionProject(scmEndpoint);
+        jsonbContext = new JSONBContext();
     }
 
-    public Flow getFlow(String flowName, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException, IllegalStateException {
+    public Flow getFlow(String flowName, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException, IllegalStateException, IOException, JSONBException {
         final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
         final FlowComponentContent current = flow.getContent().getComponents().get(0).getContent();
         final JavaScriptProject javaScriptProject = getJavaScriptProject(revision, current);
@@ -57,6 +65,7 @@ public class FlowManager {
             throw new IllegalStateException("more than one flow component referenced by flow");
         }
         flow.getContent().getComponents().get(0).withNext(next);
+        createFlowCommitTmpFile(flow);
         return flow;
     }
 
@@ -82,5 +91,11 @@ public class FlowManager {
                 current.getInvocationMethod(),
                 current.getDescription(),
                 javaScriptProject.getRequireCache());
+    }
+
+    private void createFlowCommitTmpFile(Flow flow) throws IOException, JSONBException {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(flowCommitTmp)) {
+            fileOutputStream.write(StringUtil.asBytes(jsonbContext.marshall(flow)));
+        }
     }
 }

@@ -75,17 +75,17 @@ public class FileStoreUrnTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void create_fileIdArgIsNull_throws() throws URISyntaxException {
+    public void create_fileIdArgIsNull_throws() {
         FileStoreUrn.create(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void create_fileIdArgIsEmpty_throws() throws URISyntaxException {
+    public void create_fileIdArgIsEmpty_throws() {
         FileStoreUrn.create("");
     }
 
     @Test
-    public void create_fileIdArgIsValid_returnsNewInstance() throws URISyntaxException {
+    public void create_fileIdArgIsValid_returnsNewInstance() {
         final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
         assertThat(fileStoreUrn, is(notNullValue()));
         assertThat(fileStoreUrn.getFileId(), is(fileId));

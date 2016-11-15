@@ -12,7 +12,6 @@ import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import javax.persistence.EntityManager;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,15 +19,7 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 
 public class TestablePartitioningParamBuilder {
-    private static FileStoreUrn fileStoreUrn ;
-    static{
-        try {
-            fileStoreUrn = FileStoreUrn.create("42");
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
+    private static FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
     private JobEntity jobEntity = new TestableJobEntityBuilder().setJobSpecification(new JobSpecificationBuilder().setDataFile(fileStoreUrn.toString()).build()).build();
     private FileStoreServiceConnector fileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     private EntityManager entityManager = mock(EntityManager.class);

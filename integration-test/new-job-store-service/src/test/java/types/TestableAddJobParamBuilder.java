@@ -18,7 +18,6 @@ import dk.dbc.dataio.jobstore.test.types.FlowStoreReferencesBuilder;
 import dk.dbc.dataio.jobstore.types.FlowStoreReferences;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,14 +25,7 @@ import java.util.List;
 import static org.mockito.Mockito.mock;
 
 public class TestableAddJobParamBuilder {
-    private static FileStoreUrn fileStoreUrn ;
-    static{
-        try {
-            fileStoreUrn = FileStoreUrn.create("42");
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
+    private static FileStoreUrn fileStoreUrn = FileStoreUrn.create("42");
     private List<Diagnostic> diagnostics = new ArrayList<>();
     private JobSpecification jobSpecification = new JobSpecificationBuilder().setDataFile(fileStoreUrn.toString()).setCharset(StandardCharsets.UTF_8.name()).build();
     private boolean isEndOfJob = true;

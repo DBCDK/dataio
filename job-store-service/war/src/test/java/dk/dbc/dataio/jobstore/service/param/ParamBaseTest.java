@@ -5,8 +5,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import org.junit.Before;
 
-import java.net.URISyntaxException;
-
 public abstract class ParamBaseTest {
 
     protected static final String ERROR_MESSAGE = "Error Message";
@@ -17,12 +15,8 @@ public abstract class ParamBaseTest {
 
     @Before
     public void createJobSpecification() {
-        try {
-            jobSpecificationBuilder = new JobSpecificationBuilder()
-                    .setDataFile(FileStoreUrn.create(DATA_FILE_ID).toString());
-            jobSpecification = jobSpecificationBuilder.build();
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+        jobSpecificationBuilder = new JobSpecificationBuilder()
+                .setDataFile(FileStoreUrn.create(DATA_FILE_ID).toString());
+        jobSpecification = jobSpecificationBuilder.build();
     }
 }

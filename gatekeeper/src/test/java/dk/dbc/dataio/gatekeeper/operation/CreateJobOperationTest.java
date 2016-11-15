@@ -39,7 +39,6 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -187,7 +186,7 @@ public class CreateJobOperationTest {
     }
 
     @Test
-    public void execute_dataFileExists_uploadsToFileStore() throws IOException, OperationExecutionException, FileStoreServiceConnectorException, URISyntaxException {
+    public void execute_dataFileExists_uploadsToFileStore() throws IOException, OperationExecutionException, FileStoreServiceConnectorException {
         testFolder.newFile(transfileName);
         testFolder.newFile("123456.file");
 

@@ -27,8 +27,6 @@ import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.gatekeeper.transfile.TransFile;
 
-import java.net.URISyntaxException;
-
 /**
  * Factory class for the creation of job specifications from trans file entries
  */
@@ -112,11 +110,7 @@ public class JobSpecificationFactory {
         if (Constants.MISSING_FIELD_VALUE.equals(fileStoreId)) {
             return Constants.MISSING_FIELD_VALUE;
         }
-        try {
-            return FileStoreUrn.create(fileStoreId).toString();
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Unable to create FileStoreUrn", e);
-        }
+        return FileStoreUrn.create(fileStoreId).toString();
     }
 
     private static JobSpecification.Ancestry getAncestry(String transfileName, TransFile.Line line, byte[] rawTransfile) {

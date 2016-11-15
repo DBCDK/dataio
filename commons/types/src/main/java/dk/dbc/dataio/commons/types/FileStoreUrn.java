@@ -97,8 +97,12 @@ public class FileStoreUrn {
      * @throws IllegalArgumentException if given empty-valued fileId argument
      * @throws URISyntaxException if the given string does not match the format '{@value #SCHEME}:{@value #TYPE}:fileId'
      * */
-    public static FileStoreUrn create(String fileId) throws URISyntaxException, NullPointerException, IllegalArgumentException {
-        InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
-        return new FileStoreUrn(String.format("%s:%s:%s", SCHEME, TYPE, fileId));
+    public static FileStoreUrn create(String fileId) throws NullPointerException, IllegalArgumentException {
+        try {
+            InvariantUtil.checkNotNullNotEmptyOrThrow(fileId, "fileId");
+            return new FileStoreUrn(String.format("%s:%s:%s", SCHEME, TYPE, fileId));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Unable to create FileStoreUrn", e);
+        }
     }
 }

@@ -43,7 +43,6 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.UUID;
@@ -225,12 +224,7 @@ public class HarvesterJobBuilder implements AutoCloseable {
     /* Returns job specification for given file ID
     */
     private JobSpecification createJobSpecification(String fileId) throws HarvesterException {
-        final FileStoreUrn fileStoreUrn;
-        try {
-            fileStoreUrn = FileStoreUrn.create(fileId);
-        } catch (URISyntaxException e) {
-            throw new HarvesterException("Unable to create FileStoreUrn", e);
-        }
+        final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
         return new JobSpecification(
                 jobSpecificationTemplate.getPackaging(),
                 jobSpecificationTemplate.getFormat(),

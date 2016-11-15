@@ -56,7 +56,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
@@ -119,12 +118,7 @@ public class JobManager {
     }
 
     private JobSpecification createJobSpecification(Properties jobProperties, String fileId) {
-        final FileStoreUrn fileStoreUrn;
-        try {
-            fileStoreUrn = FileStoreUrn.create(fileId);
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException("Unable to create FileStoreUrn", e);
-        }
+        final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
         return new JobSpecification(
                 "undefined",
                 (String) jobProperties.get("format"),

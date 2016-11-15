@@ -39,7 +39,6 @@ import org.junit.Test;
 import types.TestableAddJobParam;
 import types.TestableAddJobParamBuilder;
 
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.util.Collections;
 
@@ -178,11 +177,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
      */
 
     private JobSpecification getJobSpecification(JobSpecification.Type type) {
-        try {
-            return new JobSpecificationBuilder().setType(type).setDataFile(FileStoreUrn.create("42").toString()).build();
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
+        return new JobSpecificationBuilder().setType(type).setDataFile(FileStoreUrn.create("42").toString()).build();
     }
 
     private Flow getFlowWithNextFlowComponent(int nextRevision) {

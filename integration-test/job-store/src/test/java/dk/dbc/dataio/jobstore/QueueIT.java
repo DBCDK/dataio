@@ -36,23 +36,23 @@ import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jsonb.JSONBException;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import javax.jms.JMSContext;
 import javax.jms.JMSException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /* Tests the connection from the JobStore bean and the JobScheduler bean
  *
@@ -76,7 +76,7 @@ public class QueueIT extends AbstractJobStoreTest {
 
     @Test
     public void addChunk_jobStateUpdatedAndWorkloadPublished()
-            throws IOException, JobStoreServiceConnectorException, JSONBException, JMSException, URISyntaxException {
+            throws IOException, JobStoreServiceConnectorException, JSONBException, JMSException {
         final int expectedNumberOfRecords = 11;
         final String fileId = createLineFormatDataFile();
         final JobSpecification jobSpecification = new JobSpecificationBuilder()

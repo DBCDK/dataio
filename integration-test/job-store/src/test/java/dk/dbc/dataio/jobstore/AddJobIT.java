@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
@@ -64,7 +63,7 @@ public class AddJobIT extends AbstractJobStoreTest {
      */
     @Test
     public void createJob_jobSpecificationReferencesLineFormatDataFile_newJobIsCreated()
-            throws IOException, JobStoreServiceConnectorException, URISyntaxException {
+            throws IOException, JobStoreServiceConnectorException {
         final int recordCount = 11;
         final String fileId = createLineFormatDataFile();
         final JobSpecification jobSpecification = new JobSpecificationBuilder()

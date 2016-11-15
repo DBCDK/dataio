@@ -43,7 +43,6 @@ import org.junit.Before;
 import javax.ejb.SessionContext;
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -58,7 +57,7 @@ public abstract class PgJobStoreBaseTest {
     protected final EntityManager entityManager = mock(EntityManager.class);
     protected final FileStoreServiceConnector mockedFileStoreServiceConnector = mock(FileStoreServiceConnector.class);
     protected static final FileStoreServiceConnectorUnexpectedStatusCodeException fileStoreUnexpectedException = new FileStoreServiceConnectorUnexpectedStatusCodeException("unexpected status code", 400);
-    protected static final FileStoreUrn FILE_STORE_URN;
+    protected static final FileStoreUrn FILE_STORE_URN = FileStoreUrn.create("42");
     protected static final List<String> EXPECTED_DATA_ENTRIES = Arrays.asList(
             ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>first</record></records>"),
             ("<?xml version=\"1.0\" encoding=\"UTF-8\"?><records><record>second</record></records>"),
@@ -93,15 +92,6 @@ public abstract class PgJobStoreBaseTest {
     private final FileStoreServiceConnectorBean mockedFileStoreServiceConnectorBean = mock(FileStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnectorBean mockedFlowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final SessionContext mockedSessionContext = mock(SessionContext.class);
-
-    static {
-        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace");
-        try {
-            FILE_STORE_URN = FileStoreUrn.create("42");
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(e);
-        }
-    }
 
     @Before
     public void setupExpectations() throws JobStoreException {

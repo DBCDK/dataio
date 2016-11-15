@@ -29,6 +29,19 @@ A dataIO javascript acceptance test environment can be obtained by calling:
 Documentation
 -------------
 
+The installation process requires access to is.dbc.dk. To enable the configure script to log in please place
+.netrc file in the users home dir with the following content:
+
+    machine is.dbc.dk
+    login [USER]
+    password [API_TOKEN]
+
+To get the API_TOKEN login to http://is.dbc.dk and click [USER_NAME]->configure->show api token.
+
+To ensure that only the user can read the content of .netrc consider doing
+
+    chmod 600 .netrc
+
 Install acceptance test environment on a server where the is.dbc.dk package is already setup by calling:
 
     ./configure

@@ -51,6 +51,7 @@ public class CommitCommand extends Command {
     @Override
     public void execute() throws IOException, JSONBException, UrlResolverServiceConnectorException, FlowStoreServiceConnectorException {
         initializeManagers();
+        LOGGER.debug("initialized flowManager {}", flowManager.toString()); // FIXME: 15/11/16 will be removed once flowManager is used
     }
 
     private void initializeManagers() throws UrlResolverServiceConnectorException, JSONBException {

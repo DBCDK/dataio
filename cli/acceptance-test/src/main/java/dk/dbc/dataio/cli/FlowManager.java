@@ -27,7 +27,9 @@ import dk.dbc.dataio.commons.javascript.JavaScriptProject;
 import dk.dbc.dataio.commons.javascript.JavaScriptProjectException;
 import dk.dbc.dataio.commons.javascript.JavaScriptSubversionProject;
 import dk.dbc.dataio.commons.types.Flow;
+import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
+import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.jsonb.JSONBContext;
@@ -38,6 +40,10 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import javax.ws.rs.client.Client;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * Class managing all interactions with the dataIO flow-store needed for acceptance test operation
@@ -58,20 +64,51 @@ public class FlowManager {
 
     public Flow getFlow(String flowName, Long revision) throws FlowStoreServiceConnectorException, JavaScriptProjectException, IllegalStateException, IOException, JSONBException {
         final Flow flow = flowStoreServiceConnector.findFlowByName(flowName);
-        final FlowComponentContent current = flow.getContent().getComponents().get(0).getContent();
-        final JavaScriptProject javaScriptProject = getJavaScriptProject(revision, current);
-        final FlowComponentContent next = getNextContent(current, javaScriptProject, revision);
         if(flow.getContent().getComponents().size() > 1) {
             throw new IllegalStateException("more than one flow component referenced by flow");
         }
+        validateSvnRevision(flow, revision);
+        final FlowComponentContent content = flow.getContent().getComponents().get(0).getContent();
+        final JavaScriptProject javaScriptProject = getJavaScriptProject(revision, content);
+        final FlowComponentContent next = getNextContent(content, javaScriptProject, revision);
         flow.getContent().getComponents().get(0).withNext(next);
         createFlowCommitTmpFile(flow);
         return flow;
     }
 
+    public Flow updateToSvnRevision(Path dir) throws IOException, JSONBException, FlowStoreServiceConnectorException {
+        final Optional<Path> path = findFlowCommitPath(dir.toString());
+        if(path.isPresent()) {
+            final Flow flowCommitTmp = findFlowCommitTmpFile(path.get());
+            final Flow updatedFlow = update(flowCommitTmp);
+            updateFlowComponent(flowCommitTmp);
+            Files.delete(path.get());
+            return updatedFlow;
+        } else {
+            throw new IllegalStateException(String.format("%s not found in directory %s", flowCommitTmp, dir));
+        }
+    }
+
     /*
      * Private methods
      */
+
+    private void validateSvnRevision(Flow flow, long svnRevision) throws FlowStoreServiceConnectorException {
+        final FlowComponent nestedFlowComponent = flow.getContent().getComponents().get(0);
+        if(nestedFlowComponent.getContent().getSvnRevision() > svnRevision) {
+            throw new IllegalStateException(String.format("flow: '%s' with svnRevision %s cannot be downgraded to svnRevision %s",
+                    nestedFlowComponent.getContent().getName(),
+                    nestedFlowComponent.getContent().getSvnRevision(),
+                    svnRevision));
+        }
+        final FlowComponent flowComponent = flowStoreServiceConnector.getFlowComponent(nestedFlowComponent.getId());
+        if(flowComponent.getContent().getSvnRevision() > svnRevision) {
+            throw new IllegalStateException(String.format("flowComponent: '%s' with svnRevision %s cannot be downgraded to svnRevision %s",
+                    flowComponent.getContent(),
+                    flowComponent.getContent().getSvnRevision(),
+                    svnRevision));
+        }
+    }
 
     private JavaScriptProject getJavaScriptProject(Long revision, FlowComponentContent current) throws JavaScriptProjectException {
         return subversionProject.fetchRequiredJavaScript(
@@ -93,9 +130,32 @@ public class FlowManager {
                 javaScriptProject.getRequireCache());
     }
 
+
     private void createFlowCommitTmpFile(Flow flow) throws IOException, JSONBException {
         try (FileOutputStream fileOutputStream = new FileOutputStream(flowCommitTmp)) {
             fileOutputStream.write(StringUtil.asBytes(jsonbContext.marshall(flow)));
         }
+    }
+
+    private Optional<Path> findFlowCommitPath(String dir) throws IOException {
+        return Files.walk(Paths.get(dir))
+                .filter(file -> file.toString().endsWith(flowCommitTmp))
+                .findFirst();
+    }
+
+    private Flow findFlowCommitTmpFile(Path path) throws IOException, JSONBException {
+        final byte[] bytes = Files.readAllBytes(Paths.get(path.toString()));
+        return jsonbContext.unmarshall(StringUtil.asString(bytes), Flow.class);
+    }
+
+    private void updateFlowComponent(Flow flow) throws IOException, JSONBException, FlowStoreServiceConnectorException {
+        final FlowComponent flowComponent = flow.getContent().getComponents().get(0);
+        flowStoreServiceConnector.updateFlowComponent(flowComponent.getNext(), flowComponent.getId(), flowComponent.getVersion());
+    }
+
+    private Flow update(Flow flow) throws FlowStoreServiceConnectorException {
+        final FlowContent flowContent = flow.getContent();
+        flowContent.getComponents().get(0).withContent(flowContent.getComponents().get(0).getNext());
+        return flowStoreServiceConnector.updateFlow(flowContent, flow.getId(), flow.getVersion());
     }
 }

@@ -37,7 +37,7 @@ public class FlowComponent implements Serializable {
 
     private final long id;
     private final long version;
-    private final FlowComponentContent content;
+    private FlowComponentContent content;
     private FlowComponentContent next;
 
     /**
@@ -68,6 +68,11 @@ public class FlowComponent implements Serializable {
 
     public long getVersion() {
         return version;
+    }
+
+    public FlowComponent withContent(FlowComponentContent content) {
+        this.content = content;
+        return this;
     }
 
     public FlowComponentContent getContent() {

@@ -30,7 +30,6 @@ import com.beust.jcommander.Parameters;
 @Parameters(separators = "=", commandDescription = "Create dataIO acceptance test")
 public class CreateOptions extends Options {
 
-    // FIXME: 19/10/16 parameter needed to test towards staging (UlrResolverServlet is not yet published to prod)
     @Parameter(names = {"-g", "--gui-url"}, description = "URL of dataIO gui")
     public String guiUrl = "http://dataio.dbc.dk";
 

@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 
 /**
  * Class managing all interactions with the dataIO flow-store needed for acceptance test operation
@@ -76,17 +75,13 @@ public class FlowManager {
         return flow;
     }
 
-    public Flow updateToSvnRevision(Path dir) throws IOException, JSONBException, FlowStoreServiceConnectorException {
-        final Optional<Path> path = findFlowCommitPath(dir.toString());
-        if(path.isPresent()) {
-            final Flow flowCommitTmp = findFlowCommitTmpFile(path.get());
-            final Flow updatedFlow = update(flowCommitTmp);
-            updateFlowComponent(flowCommitTmp);
-            Files.delete(path.get());
-            return updatedFlow;
-        } else {
-            throw new IllegalStateException(String.format("%s not found in directory %s", flowCommitTmp, dir));
-        }
+    public Flow commit() throws IOException, JSONBException, FlowStoreServiceConnectorException {
+        final Path flowPath = Paths.get(flowCommitTmp);
+        final Flow flow = jsonbContext.unmarshall(StringUtil.asString(Files.readAllBytes(flowPath)), Flow.class);
+        final Flow updatedFlow = commit(flow);
+        updateFlowComponent(flow);
+        Files.delete(flowPath);
+        return updatedFlow;
     }
 
     /*
@@ -137,23 +132,12 @@ public class FlowManager {
         }
     }
 
-    private Optional<Path> findFlowCommitPath(String dir) throws IOException {
-        return Files.walk(Paths.get(dir))
-                .filter(file -> file.toString().endsWith(flowCommitTmp))
-                .findFirst();
-    }
-
-    private Flow findFlowCommitTmpFile(Path path) throws IOException, JSONBException {
-        final byte[] bytes = Files.readAllBytes(Paths.get(path.toString()));
-        return jsonbContext.unmarshall(StringUtil.asString(bytes), Flow.class);
-    }
-
     private void updateFlowComponent(Flow flow) throws IOException, JSONBException, FlowStoreServiceConnectorException {
         final FlowComponent flowComponent = flow.getContent().getComponents().get(0);
         flowStoreServiceConnector.updateFlowComponent(flowComponent.getNext(), flowComponent.getId(), flowComponent.getVersion());
     }
 
-    private Flow update(Flow flow) throws FlowStoreServiceConnectorException {
+    private Flow commit(Flow flow) throws FlowStoreServiceConnectorException {
         final FlowContent flowContent = flow.getContent();
         flowContent.getComponents().get(0).withContent(flowContent.getComponents().get(0).getNext());
         return flowStoreServiceConnector.updateFlow(flowContent, flow.getId(), flow.getVersion());

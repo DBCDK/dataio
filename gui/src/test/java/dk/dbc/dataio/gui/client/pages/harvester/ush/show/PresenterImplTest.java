@@ -254,7 +254,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedView).asWidget();
         // The following is called from GetHarvestersCallback
         verify(mockedTexts).error_NoHarvesterJobs();
-        verify(mockedView).setErrorText("NoHarvesterJobs");
         verifyNoMoreInteractions(mockedView);
         verifyNoMoreInteractions(mockedTexts);
     }

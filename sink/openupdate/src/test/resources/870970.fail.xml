@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ DataIO - Data IO
   ~ Copyright (C) 2015 Dansk Bibliotekscenter a/s, Tempovej 7-11, DK-2750 Ballerup,
@@ -18,18 +19,8 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<configuration debug="false">
-	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are  by default assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
-    <encoder>
-      <pattern>%level %logger.%method - %msg%n</pattern>
-    </encoder>
-  </appender>
 
-  <root level="error">
-    <appender-ref ref="STDOUT" />
-  </root>
-
-  <logger name="ch.qos.logback" level="OFF" additivity="false" />
-</configuration>
+<marcx:collection xmlns:marcx="info:lc/xmlns/marcxchange-v1">
+  <marcx:record xmlns:marcx="info:lc/xmlns/marcxchange-v1" format="danMARC2" type="Bibliographic">
+  </marcx:record>
+</marcx:collection>

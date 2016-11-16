@@ -37,18 +37,16 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
 public class AbstractOpenUpdateSinkTestBase {
-    private static final String UPDATE_RECORD_RESULT_WITH_VALIDATION_ERROR = "/updateRecordResult.validationError.xml";
-    private static final String UPDATE_RECORD_RESULT_OK = "/updateRecordResult.ok.xml";
-    private static final String MARC_EXCHANGE_WEBSERVICE_OK = "/870970.ok.xml";
-    private static final String MARC_EXCHANGE_WEBSERVICE_VALIDATION_ERRORS = "/820040.validationError.xml";
-    public static final String ES_INFO_SUBMITTER_ATTRIBUTE_VALUE = "870970";
-    public static final String UPDATE_TEMPLATE_ATTRIBUTE_VALUE = "bog";
-    public static final String DBC_TRACKING_ID_VALUE = "dataio-tracking-id";
+    public static final String UPDATE_RECORD_RESULT_WITH_VALIDATION_ERROR = "/updateRecordResult.validationError.xml";
+    public static final String UPDATE_RECORD_RESULT_OK = "/updateRecordResult.ok.xml";
+    public static final String MARC_EXCHANGE_WEBSERVICE_FAIL = "/870970.fail.xml";
+    public static final String MARC_EXCHANGE_WEBSERVICE_OK = "/870970.ok.xml";
+
+    public static final String DBC_TRACKING_ID = "wiremock-test";
 
     protected static CompareMatcher isEquivalentTo(Object control) {
         return CompareMatcher.isSimilarTo(control)
@@ -57,10 +55,10 @@ public class AbstractOpenUpdateSinkTestBase {
                 .ignoreComments();
     }
 
-    protected String getMetaXml() {
+    protected String getMetaXml(String template, String submitter) {
         return "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
-                "<es:info format=\"basis\" language=\"dan\" DBCTrackingId=\"" + DBC_TRACKING_ID_VALUE + "\" submitter=\"" + ES_INFO_SUBMITTER_ATTRIBUTE_VALUE + "\"/>" +
-                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" updateTemplate=\"" + UPDATE_TEMPLATE_ATTRIBUTE_VALUE + "\"/>" +
+                "<es:info format=\"basis\" language=\"dan\" DBCTrackingId=\"" + DBC_TRACKING_ID + "\" submitter=\"" + submitter + "\"/>" +
+                "<dataio:sink-update-template xmlns:dataio=\"dk.dbc.dataio.processing\" updateTemplate=\"" + template + "\"/>" +
                 "</es:referencedata>";
     }
 
@@ -76,19 +74,6 @@ public class AbstractOpenUpdateSinkTestBase {
                 "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                 "<marcx:subfield code=\"a\">field1</marcx:subfield>" +
                 "</marcx:datafield></marcx:record></marcx:collection>";
-    }
-
-    protected String getSimpleMarcExchangeRecord() {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
-                "    <marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\">\n" +
-                "        <marcx:leader>00000cape 22000003 4500</marcx:leader>\n" +
-                "        <marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"001\">\n" +
-                "            <marcx:subfield code=\"a\">x7845232</marcx:subfield>\n" +
-                "            <marcx:subfield code=\"d\">19900326</marcx:subfield>\n" +
-                "            <marcx:subfield code=\"f\">a</marcx:subfield>\n" +
-                "            <marcx:subfield code=\"o\">d</marcx:subfield>\n" +
-                "        </marcx:datafield>\n" +
-                "    </marcx:record>";
     }
 
     protected AddiRecord newAddiRecord(String meta, String content) {
@@ -117,20 +102,10 @@ public class AbstractOpenUpdateSinkTestBase {
         return unmarshalUpdateRecordResponse(readTestRecord(UPDATE_RECORD_RESULT_WITH_VALIDATION_ERROR)).getUpdateRecordResult();
     }
 
-    protected String getMarcExchangeValidatedOkByWebservice() {
-        return StringUtil.asString(readTestRecord(MARC_EXCHANGE_WEBSERVICE_OK), StandardCharsets.UTF_8);
-    }
-
-    protected String getMarcExchangeCausingWebserviceValidationErrors() {
-        return StringUtil.asString(readTestRecord(MARC_EXCHANGE_WEBSERVICE_VALIDATION_ERRORS), StandardCharsets.UTF_8);
-    }
-
     protected byte[] readTestRecord(String resourceName) {
         try {
             final URL url = AbstractOpenUpdateSinkTestBase.class.getResource(resourceName);
-            final Path resPath;
-            resPath = Paths.get(url.toURI());
-            return Files.readAllBytes(resPath);
+            return Files.readAllBytes(Paths.get(url.toURI()));
         } catch (IOException | URISyntaxException e) {
             throw new IllegalStateException(e);
         }
@@ -138,7 +113,7 @@ public class AbstractOpenUpdateSinkTestBase {
 
     protected static UpdateRecordResponse unmarshalUpdateRecordResponse(byte[] xmlResponseToUnmarshal) throws JAXBException {
         final Unmarshaller unmarshaller = JAXBContext.newInstance(UpdateRecordResponse.class).createUnmarshaller();
-        StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
+        final StringReader reader = new StringReader(StringUtil.asString(xmlResponseToUnmarshal));
         return (UpdateRecordResponse) unmarshaller.unmarshal(reader);
     }
 }

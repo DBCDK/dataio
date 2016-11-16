@@ -1,26 +1,23 @@
 <updateRecordResponse xmlns="http://oss.dbc.dk/ns/catalogingUpdate">
   <updateRecordResult>
-    <updateStatus>validation_error</updateStatus>
-    <validateInstance>
-      <validateEntry>
-        <warningOrError>error</warningOrError>
-        <urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.5.htm</urlForDocumentation>
+    <updateStatus>failed</updateStatus>
+    <messages>
+      <messageEntry>
+        <type>error</type>
         <ordinalPositionOfField>1</ordinalPositionOfField>
         <ordinalPositionOfSubField>1</ordinalPositionOfSubField>
         <message>Værdien '191919' er ikke end del af de valide værdier: '870970'</message>
-      </validateEntry>
-      <validateEntry>
-        <warningOrError>error</warningOrError>
-        <urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.5.htm</urlForDocumentation>
+      </messageEntry>
+      <messageEntry>
+        <type>error</type>
         <ordinalPositionOfField>1</ordinalPositionOfField>
         <message>Delfelt 'a' mangler i felt '001'</message>
-      </validateEntry>
-      <validateEntry>
-        <warningOrError>error</warningOrError>
-        <urlForDocumentation>http://www.kat-format.dk/danMARC2/Danmarc2.5.htm</urlForDocumentation>
+      </messageEntry>
+      <messageEntry>
+        <type>error</type>
         <ordinalPositionOfField>1</ordinalPositionOfField>
         <message>Delfelt 'b' er gentaget '2' gange i feltet</message>
-      </validateEntry>
-    </validateInstance>
+      </messageEntry>
+    </messages>
   </updateRecordResult>
 </updateRecordResponse>

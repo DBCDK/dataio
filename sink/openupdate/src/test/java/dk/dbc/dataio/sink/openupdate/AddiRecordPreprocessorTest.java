@@ -43,8 +43,10 @@ import static org.junit.Assert.fail;
 public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
     private final AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private final DocumentTransformer documentTransformer = new DocumentTransformer();
-    private final AddiRecord addiRecord = newAddiRecord(getMetaXml(), getContentXml());
+    private final String submitter = "870970";
+    private final String updateTemplate = "bog";
     private final String queueProvider = null;
+    private final AddiRecord addiRecord = newAddiRecord(getMetaXml(updateTemplate, submitter), getContentXml());
 
     @Test(expected = NullPointerException.class)
     public void preprocess_addiArgIsNull_throws() {
@@ -91,7 +93,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
         // Verify
-        assertThat("update value", result.getTemplate(), is(UPDATE_TEMPLATE_ATTRIBUTE_VALUE));
+        assertThat("update value", result.getTemplate(), is(updateTemplate));
     }
 
     @Test
@@ -100,7 +102,7 @@ public class AddiRecordPreprocessorTest extends AbstractOpenUpdateSinkTestBase {
         final AddiRecordPreprocessor.Result result = addiRecordPreprocessor.preprocess(addiRecord, queueProvider);
 
         // Verify
-        assertThat("submitter value", result.getSubmitter(), is(ES_INFO_SUBMITTER_ATTRIBUTE_VALUE));
+        assertThat("submitter value", result.getSubmitter(), is(submitter));
     }
 
     @Test

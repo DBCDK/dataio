@@ -25,60 +25,71 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.oss.ns.catalogingupdate.Authentication;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
 import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdatePortType;
-import dk.dbc.oss.ns.catalogingupdate.CatalogingUpdateServices;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordRequest;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
+import dk.dbc.oss.ns.catalogingupdate.UpdateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.ws.BindingProvider;
 
 /**
- * Open Update web service connector
+ * Update web service connector
  */
 public class OpenUpdateServiceConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(OpenUpdateServiceConnector.class);
 
     private static final String CONNECT_TIMEOUT_PROPERTY   = "com.sun.xml.ws.connect.timeout";
     private static final String REQUEST_TIMEOUT_PROPERTY   = "com.sun.xml.ws.request.timeout";
-    private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 60 * 1000;    // 1 minute
-    private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 60 * 60 * 1000;    // 120 minutes -- Vi wait and wait on open update.
+    private static final int CONNECT_TIMEOUT_DEFAULT_IN_MS = 60 * 1000;       // 1 minute
+    private static final int REQUEST_TIMEOUT_DEFAULT_IN_MS = 60 * 60 * 1000;  // 60 minutes -- we wait and wait on open update.
 
     private final String endpoint;
     private final String userName;
     private final String password;
 
     /* JAX-WS class generated from WSDL */
-    private final CatalogingUpdateServices services;
+    private final UpdateService service;
+
+    /**
+     * Class constructor
+     * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
+     * @throws NullPointerException if passed null valued {@code endpoint}
+     * @throws IllegalArgumentException if passed empty valued {@code endpoint}
+     */
+    public OpenUpdateServiceConnector(String endpoint)
+            throws NullPointerException, IllegalArgumentException {
+        this(endpoint, "", "");
+    }
 
     /**
      * Class constructor
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
      * @param userName for authenticating any user requiring access to the webservice
      * @param password for authenticating any user requiring access to the webservice
-     * @throws NullPointerException if passed any null valued {@code endpoint}, {@code userName}, {@code password}
-     * @throws IllegalArgumentException if passed empty valued {@code endpoint}, {@code userName}, {@code password}
+     * @throws NullPointerException if passed any null valued argument
+     * @throws IllegalArgumentException if passed empty valued {@code endpoint}
      */
     public OpenUpdateServiceConnector(String endpoint, String userName, String password)
             throws NullPointerException, IllegalArgumentException {
-        this(new CatalogingUpdateServices(), endpoint, userName, password);
+        this(new UpdateService(), endpoint, userName, password);
     }
 
     /**
      * Class constructor
-     * @param services web service client view of the CatalogingUpdate Web service
+     * @param service web service client view of the CatalogingUpdate Web service
      * @param endpoint web service endpoint base URL on the form "http(s)://host:port/path"
      * @param userName for authenticating any user requiring access to the webservice
      * @param password for authenticating any user requiring access to the webservice
      * @throws NullPointerException if passed any null valued argument
      * @throws IllegalArgumentException if passed empty valued {@code endpoint}, {@code userName}, {@code password}
      */
-    OpenUpdateServiceConnector(CatalogingUpdateServices services, String endpoint, String userName, String password)
+    OpenUpdateServiceConnector(UpdateService service, String endpoint, String userName, String password)
             throws NullPointerException, IllegalArgumentException {
-        this.services = InvariantUtil.checkNotNullOrThrow(services, "services");
+        this.service = InvariantUtil.checkNotNullOrThrow(service, "service");
         this.endpoint = InvariantUtil.checkNotNullNotEmptyOrThrow(endpoint, "endpoint");
-        this.userName = InvariantUtil.checkNotNullNotEmptyOrThrow(userName, "userName");
-        this.password = InvariantUtil.checkNotNullNotEmptyOrThrow(password, "password");
+        this.userName = InvariantUtil.checkNotNullOrThrow(userName, "userName");
+        this.password = InvariantUtil.checkNotNullOrThrow(password, "password");
     }
 
     /**
@@ -100,10 +111,6 @@ public class OpenUpdateServiceConnector {
         final UpdateRecordRequest updateRecordRequest = buildUpdateRecordRequest(groupId, schemaName, bibliographicRecord, trackingId);
         return getProxy().updateRecord(updateRecordRequest);
     }
-
-    /*
-     * Private methods
-     */
 
     /**
      * Builds an UpdateRecordRequest
@@ -130,7 +137,7 @@ public class OpenUpdateServiceConnector {
         // getCatalogingUpdatePort() calls getPort() which is not thread safe.
         // Therefore, we cannot let the proxy be application scoped.
         // If performance is lacking we should consider options for reuse.
-        final CatalogingUpdatePortType proxy = services.getCatalogingUpdatePort();
+        final CatalogingUpdatePortType proxy = service.getCatalogingUpdatePort();
 
         // We don't want to rely on the endpoint from the WSDL
         BindingProvider bindingProvider = (BindingProvider)proxy;

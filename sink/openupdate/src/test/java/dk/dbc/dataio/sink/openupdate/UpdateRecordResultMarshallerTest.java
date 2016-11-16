@@ -21,60 +21,44 @@
 
 package dk.dbc.dataio.sink.openupdate;
 
+import dk.dbc.oss.ns.catalogingupdate.MessageEntry;
+import dk.dbc.oss.ns.catalogingupdate.Messages;
+import dk.dbc.oss.ns.catalogingupdate.Type;
 import dk.dbc.oss.ns.catalogingupdate.UpdateRecordResult;
 import dk.dbc.oss.ns.catalogingupdate.UpdateStatusEnum;
-import dk.dbc.oss.ns.catalogingupdate.ValidateEntry;
-import dk.dbc.oss.ns.catalogingupdate.ValidateInstance;
-import dk.dbc.oss.ns.catalogingupdate.ValidateWarningOrErrorEnum;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
-import java.math.BigInteger;
 
-import static junit.framework.TestCase.fail;
-import static org.hamcrest.core.Is.is;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
 public class UpdateRecordResultMarshallerTest {
-
     @Test
-    public void callAsXml_updateRecordResultIsNull_ok() {
-        try {
-            new UpdateRecordResultMarshaller().asXml(null);
-        } catch (JAXBException e) {
-            fail("Unexpected Exception thrown");
-        }
-    }
+    public void sXml_updateRecordResultIsNotNull_ok() throws JAXBException {
+        final MessageEntry messageEntry = new MessageEntry();
+        messageEntry.setType(Type.ERROR);
+        messageEntry.setOrdinalPositionOfField(1);
+        messageEntry.setOrdinalPositionOfSubfield(1);
+        messageEntry.setMessage("UpdateRecordResultMarshallerTest validation error");
 
-    @Test
-    public void callAsXml_updateRecordResultIsNotNull_ok() throws JAXBException {
-        final ValidateEntry validateEntry = new ValidateEntry();
-        validateEntry.setMessage("UpdateRecordResultMarshallerTest validation error");
-        validateEntry.setOrdinalPositionOfField(BigInteger.ONE);
-        validateEntry.setOrdinalPositionOfSubField(BigInteger.ONE);
-        validateEntry.setWarningOrError(ValidateWarningOrErrorEnum.ERROR);
+        final UpdateRecordResult updateRecordResult = new UpdateRecordResult();
+        updateRecordResult.setUpdateStatus(UpdateStatusEnum.FAILED);
+        updateRecordResult.setMessages(new Messages());
+        updateRecordResult.getMessages().getMessageEntry().add(messageEntry);
 
-        final ValidateInstance validateInstance = new ValidateInstance();
-        validateInstance.getValidateEntry().add(validateEntry);
-
-        UpdateRecordResult updateRecordResult = new UpdateRecordResult();
-        updateRecordResult.setUpdateStatus(UpdateStatusEnum.VALIDATION_ERROR);
-        updateRecordResult.setValidateInstance(validateInstance);
-        assertThat(new UpdateRecordResultMarshaller().asXml(updateRecordResult), is(getExpectedUpdateRecordResultAsXml()));
-    }
-
-    private String getExpectedUpdateRecordResultAsXml() {
-        return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                "<UpdateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
-                    "<updateStatus>validation_error</updateStatus>" +
-                    "<validateInstance>" +
-                        "<validateEntry>" +
-                            "<warningOrError>error</warningOrError>" +
+        assertThat(new UpdateRecordResultMarshaller().asXml(updateRecordResult), is(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
+                "<updateRecordResult xmlns=\"http://oss.dbc.dk/ns/catalogingUpdate\">" +
+                    "<updateStatus>failed</updateStatus>" +
+                    "<messages>" +
+                        "<messageEntry>" +
+                            "<type>error</type>" +
                             "<ordinalPositionOfField>1</ordinalPositionOfField>" +
-                            "<ordinalPositionOfSubField>1</ordinalPositionOfSubField>" +
+                            "<ordinalPositionOfSubfield>1</ordinalPositionOfSubfield>" +
                             "<message>UpdateRecordResultMarshallerTest validation error</message>" +
-                        "</validateEntry>" +
-                    "</validateInstance>" +
-                "</UpdateRecordResult>";
+                        "</messageEntry>" +
+                    "</messages>" +
+                "</updateRecordResult>"));
     }
 }

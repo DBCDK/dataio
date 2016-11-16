@@ -127,7 +127,7 @@ public class ChunkItemProcessor {
             crossAddiRecordsMessage.append(updateRecordResultMarshaller.asXml(webserviceResult));
 
             final UpdateRecordErrorInterpreter updateRecordErrorInterpreter = new UpdateRecordErrorInterpreter();
-            diagnostics.addAll(updateRecordErrorInterpreter.getDiagnostics(webserviceResult, addiRecord.getContentData()));
+            diagnostics.addAll(updateRecordErrorInterpreter.getDiagnostics(webserviceResult, addiRecord));
 
             return AddiStatus.FAILED_VALIDATION;
 

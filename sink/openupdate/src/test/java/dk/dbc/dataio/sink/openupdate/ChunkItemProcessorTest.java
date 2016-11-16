@@ -23,6 +23,7 @@ package dk.dbc.dataio.sink.openupdate;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
 import dk.dbc.dataio.sink.openupdate.connector.OpenUpdateServiceConnector;
 import dk.dbc.oss.ns.catalogingupdate.BibliographicRecord;
@@ -54,13 +55,19 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
     private AddiRecordPreprocessor addiRecordPreprocessor = new AddiRecordPreprocessor();
     private OpenUpdateServiceConnector mockedOpenUpdateServiceConnector = mock(OpenUpdateServiceConnector.class);
     private final UpdateRecordResultMarshaller updateRecordResultMarshaller = new UpdateRecordResultMarshaller();
-    private final ChunkItem chunkItemWithValidAddiRecords = buildChunkItemWithMultipleValidAddiRecords();
+    private final String submitter = "870970";
+    private final String updateTemplate = "bog";
     private final String queueProvider = "queue";
 
-    private final ChunkItem processedChunkItemValid = new ChunkItemBuilder()
-            .setData(newAddiRecord(getMetaXml(), getMarcExchangeValidatedOkByWebservice()).getBytes())
+    private final AddiRecord addiRecord = newAddiRecord(
+            getMetaXml(updateTemplate, submitter),
+            StringUtil.asString(readTestRecord(MARC_EXCHANGE_WEBSERVICE_OK), StandardCharsets.UTF_8));
+
+    private final ChunkItem chunkItem = new ChunkItemBuilder()
+            .setData(addiRecord.getBytes())
             .setStatus(SUCCESS).build();
 
+    private final ChunkItem chunkItemWithMultipleAddiRecords = buildChunkItemWithMultipleValidAddiRecords(addiRecord);
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordsForItemArgIsNull_throws() {
@@ -69,17 +76,17 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     @Test(expected = NullPointerException.class)
     public void constructor_addiRecordPreprocessorArgIsNull_throws() {
-        new ChunkItemProcessor(processedChunkItemValid, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
+        new ChunkItemProcessor(chunkItem, null, mockedOpenUpdateServiceConnector, updateRecordResultMarshaller);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_openUpdateServiceConnectorArgIsNull_throws() {
-        new ChunkItemProcessor(processedChunkItemValid, addiRecordPreprocessor, null, updateRecordResultMarshaller);
+        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, null, updateRecordResultMarshaller);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_updateRecordResultMarshallerArgIsNull_throws() {
-        new ChunkItemProcessor(processedChunkItemValid, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null);
+        new ChunkItemProcessor(chunkItem, addiRecordPreprocessor, mockedOpenUpdateServiceConnector, null);
     }
 
     @Test
@@ -99,7 +106,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
         assertTrue(asString(chunkItemForDelivery.getData()).contains("OK"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
-        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 
     @Test
@@ -120,7 +127,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertTrue(StringUtils.countMatches(chunkItemDataAsString, "<message>") == 3);
         assertThat(chunkItemForDelivery.getDiagnostics(), is(notNullValue()));
         assertThat(chunkItemForDelivery.getDiagnostics().size(), is(3));
-        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 
     @Test
@@ -139,7 +146,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertTrue(chunkItemDataAsString.contains("FAILED_STACKTRACE"));
         assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
         assertThat(chunkItemForDelivery.getDiagnostics().size(), is(1));
-        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 
     @Test
@@ -160,7 +167,7 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
         assertFalse(chunkItemDataAsString.contains("e01 00 *a"));
         assertThat(chunkItemForDelivery.getDiagnostics(), is(nullValue()));
         verify(mockedOpenUpdateServiceConnector, times(3)).updateRecord(anyString(), anyString(), any(BibliographicRecord.class), anyString());
-        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID_VALUE));
+        assertThat(chunkItemForDelivery.getTrackingId(), is(DBC_TRACKING_ID));
     }
 
     @Test
@@ -194,17 +201,16 @@ public class ChunkItemProcessorTest extends AbstractOpenUpdateSinkTestBase {
 
     private ChunkItemProcessor newChunkItemProcessor() {
         return new ChunkItemProcessor(
-                chunkItemWithValidAddiRecords,
+                chunkItemWithMultipleAddiRecords,
                 addiRecordPreprocessor,
                 mockedOpenUpdateServiceConnector,
                 updateRecordResultMarshaller);
     }
 
-    private ChunkItem buildChunkItemWithMultipleValidAddiRecords() {
-        final AddiRecord addiRecord = newAddiRecord(getMetaXml(), getMarcExchangeValidatedOkByWebservice());
+    private ChunkItem buildChunkItemWithMultipleValidAddiRecords(AddiRecord addiRecord) {
         return new ChunkItemBuilder()
                 .setData(addiToBytes(addiRecord, addiRecord, addiRecord))
-                .setTrackingId(DBC_TRACKING_ID_VALUE)
+                .setTrackingId(DBC_TRACKING_ID)
                 .setStatus(SUCCESS)
                 .build();
     }

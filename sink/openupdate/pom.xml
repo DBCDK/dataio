@@ -35,7 +35,8 @@
   <packaging>war</packaging>
 
   <properties>
-    <wsdl.url>http://oss-services.dbc.dk/opencat/WSContracts/catalogingUpdate/trunk</wsdl.url>
+    <!-- This URL must be updated when a DBC consensus is reached on where to expose these public contracts -->
+    <wsdl.url>https://svn.dbc.dk/repos/updateservice/trunk/src/wsdl/update/catalogingUpdate.wsdl</wsdl.url>
     <logback.jndi.resource>${jndi.url.sink.update.logback}</logback.jndi.resource>
   </properties>
 
@@ -150,7 +151,7 @@
               </vmArgs>
               <target>2.2</target>
               <wsdlUrls>
-                <wsdlUrl>${wsdl.url}/catalogingUpdate.wsdl</wsdlUrl>
+                <wsdlUrl>${wsdl.url}</wsdlUrl>
               </wsdlUrls>
             </configuration>
           </execution>

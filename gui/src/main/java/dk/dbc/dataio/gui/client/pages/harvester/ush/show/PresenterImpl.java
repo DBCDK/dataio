@@ -167,7 +167,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         @Override
         public void onFailure(Throwable caught) {
             if (((ProxyException) caught).getErrorCode() == ProxyError.NO_CONTENT) {
-                getView().setErrorText(viewInjector.getTexts().error_NoHarvesterJobs());
+                Window.alert(getView().getTexts().error_NoHarvesterJobs());
             } else {
                 getView().setErrorText(viewInjector.getTexts().error_RunUshSolrTestError());
             }

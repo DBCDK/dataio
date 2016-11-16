@@ -43,6 +43,10 @@ public class JobListCriteria extends ListCriteria<JobListCriteria.Field, JobList
          * job last modification time
          */
         TIME_OF_LAST_MODIFICATION,
+        /**
+         * job completion time
+         */
+        TIME_OF_COMPLETION,
         /*
          * jobs failed while processing
          */

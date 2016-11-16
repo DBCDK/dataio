@@ -131,6 +131,31 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
     }
 
     /**
+     * Given    : a job store containing three jobs where:
+     *            one has not yet completed, one has failed during processing, one has completed without failure.
+     * When     : requesting a job listing with a criteria selecting only jobs that has not yet completed
+     * Then     : only jobs that has not yet completed are returned.
+     */
+    @Test
+    public void listJobs_withOutTimeOfCompletionCriteria_returnsJobInfoSnapshotsForJobsWithoutTimeOfCompletion() {
+        // Given...
+        final List<JobEntity> jobEntities = Arrays.asList(
+                newPersistedJobEntityWithTimeOfCompletion(),
+                newPersistedFailedJobEntity(State.Phase.PROCESSING),
+                newPersistedJobEntity());
+
+        final JobListCriteria jobListCriteriaWithOutTimeOfCompletion = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL));
+
+        // When...
+        final List<JobInfoSnapshot> returnedSnapshots = pgJobStoreRepository.listJobs(jobListCriteriaWithOutTimeOfCompletion);
+
+        // Then...
+        assertThat("Number of returned snapshots", returnedSnapshots.size(), is(1));
+        assertThat("jobInfoSnapshot[0].jobId", returnedSnapshots.get(0).getJobId(), is(jobEntities.get(2).getId()));
+    }
+
+    /**
      * Given    : a job store containing three jobs, where two has failed during processing and one has failed during delivering
      * When     : requesting a job listing with a criteria selecting only jobs failed in processing
      * Then     : only jobs failed during processing are returned, sorted by job ids in descending order.
@@ -369,6 +394,12 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
      */
 
     // ************************** JobEntity creation **************************
+    private JobEntity newPersistedJobEntityWithTimeOfCompletion() {
+        JobEntity jobEntity = newJobEntity();
+        jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
+        persist(jobEntity);
+        return jobEntity;
+    }
 
     private JobEntity newPersistedFailedJobEntity(State.Phase failedPhase) {
         return newPersistedFailedJobEntity(failedPhase, false);
@@ -384,6 +415,7 @@ public class PgJobStoreRepositoryIT_QueryingIT extends PgJobStoreRepositoryAbstr
         final JobEntity jobEntity = newJobEntity();
         jobEntity.getState().getPhase(failedPhase).setFailed(1);
         jobEntity.setFatalError(hasFatalError);
+        jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         return jobEntity;
     }
 

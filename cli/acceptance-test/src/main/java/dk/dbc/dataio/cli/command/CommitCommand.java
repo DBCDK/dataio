@@ -27,27 +27,21 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.util.Map;
 
-public class CommitCommand extends Command {
+public class CommitCommand extends Command<CommitOptions> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommitCommand.class);
-    private final CommitOptions options;
     private FlowManager flowManager;
 
     public CommitCommand(CommitOptions options) {
-        this.options = options;
+        super(options);
     }
 
     @Override
@@ -70,12 +64,5 @@ public class CommitCommand extends Command {
         flowManager = new FlowManager(
                 endpoints.get(JndiConstants.FLOW_STORE_SERVICE_ENDPOINT_RESOURCE),
                 endpoints.get(JndiConstants.SUBVERSION_SCM_ENDPOINT_RESOURCE));
-    }
-
-    private Map<String, String> getEndpoints() throws UrlResolverServiceConnectorException {
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
-        final UrlResolverServiceConnector urlResolverServiceConnector = new UrlResolverServiceConnector(client, options.guiUrl);
-        return urlResolverServiceConnector.getUrls();
     }
 }

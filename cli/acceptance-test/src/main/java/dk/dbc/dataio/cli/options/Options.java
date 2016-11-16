@@ -26,4 +26,7 @@ import com.beust.jcommander.Parameter;
 public class Options {
     @Parameter(names = {"-h", "--help"}, description = "Show this help", help = true)
     public boolean help;
+
+    @Parameter(names = {"-g", "--gui-url"}, description = "URL of dataIO gui")
+    public String guiUrl = "http://dataio.dbc.dk";
 }

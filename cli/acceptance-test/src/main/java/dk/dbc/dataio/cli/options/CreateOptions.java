@@ -30,9 +30,6 @@ import com.beust.jcommander.Parameters;
 @Parameters(separators = "=", commandDescription = "Create dataIO acceptance test")
 public class CreateOptions extends Options {
 
-    @Parameter(names = {"-g", "--gui-url"}, description = "URL of dataIO gui")
-    public String guiUrl = "http://dataio.dbc.dk";
-
     @Parameter(names = {"-f", "--flow-name"}, description = "Name of dataIO flow", required = true)
     public String flowName;
 

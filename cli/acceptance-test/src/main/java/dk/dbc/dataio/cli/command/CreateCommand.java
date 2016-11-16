@@ -27,17 +27,12 @@ import dk.dbc.dataio.cli.TestSuite;
 import dk.dbc.dataio.cli.options.CreateOptions;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.jndi.JndiConstants;
-import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jsonb.JSONBException;
-import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnector;
 import dk.dbc.dataio.urlresolver.service.connector.UrlResolverServiceConnectorException;
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.client.Client;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -49,14 +44,13 @@ import java.util.Optional;
 /**
  * Acceptance test command line interface for 'create' sub command
  */
-public class CreateCommand extends Command {
+public class CreateCommand extends Command<CreateOptions> {
     private static final Logger LOGGER = LoggerFactory.getLogger(CreateCommand.class);
-    private final CreateOptions options;
     private FlowManager flowManager;
     private JobManager jobManager;
 
     public CreateCommand(CreateOptions options) {
-        this.options = options;
+        super(options);
     }
 
     @Override
@@ -112,12 +106,5 @@ public class CreateCommand extends Command {
 
     private static Path getCurrentWorkingDirectory() {
         return Paths.get(".").toAbsolutePath().normalize();
-    }
-
-    private Map<String, String> getEndpoints() throws UrlResolverServiceConnectorException {
-        final Client client = HttpClient.newClient(new ClientConfig()
-                .register(new JacksonFeature()));
-        final UrlResolverServiceConnector urlResolverServiceConnector = new UrlResolverServiceConnector(client, options.guiUrl);
-        return urlResolverServiceConnector.getUrls();
     }
 }

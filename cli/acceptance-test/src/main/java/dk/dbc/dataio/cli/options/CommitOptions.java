@@ -21,7 +21,6 @@
 
 package dk.dbc.dataio.cli.options;
 
-import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 
 /**
@@ -29,7 +28,4 @@ import com.beust.jcommander.Parameters;
  */
 @Parameters(separators = "=", commandDescription = "Commit dataIO acceptance test")
 public class CommitOptions extends Options {
-
-    @Parameter(names = {"-g", "--gui-url"}, description = "URL of dataIO gui")
-    public String guiUrl = "http://dataio.dbc.dk";
 }

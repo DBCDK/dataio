@@ -48,6 +48,7 @@ import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jobstore.types.criteria.ListOrderBy;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.glassfish.jersey.client.ClientConfig;
@@ -112,6 +113,37 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             log.debug("JobStoreProxy: listJobs took {} milliseconds", stopWatch.getElapsedTime());
         }
         return JobModelMapper.toModel(jobInfoSnapshotList);
+    }
+
+    public JobModel fetchEarliestActiveJob() throws ProxyException {
+        final List<JobInfoSnapshot> jobInfoSnapshots;
+        log.trace("JobStoreProxy: fetchEarliestActiveJob()");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            JobListCriteria criteria = new JobListCriteria()
+                    .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
+                    .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
+            criteria.and(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "5401")));
+            jobInfoSnapshots = jobStoreServiceConnector.listJobs(criteria);
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            if (e.getJobError() != null) {
+                log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
+            }
+            else {
+                log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            }
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: listJobs - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } catch (IllegalArgumentException e) {
+            log.error("JobStoreProxy: listJobs - Invalid Field Value Exception", e);
+            throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
+        } finally {
+            log.debug("JobStoreProxy: listJobs took {} milliseconds", stopWatch.getElapsedTime());
+        }
+        return JobModelMapper.toModel(jobInfoSnapshots.get(jobInfoSnapshots.size()-4));
     }
 
     @Override

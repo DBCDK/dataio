@@ -131,8 +131,8 @@ public class SuppressSubmitterJobFilterTest {
         SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "");
 
         // Verify test
-        verify(jobFilter.showAllSubmittersButton).setValue(true, true);
-        verify(jobFilter.suppressSubmittersButton).setValue(false, true);
+        verify(jobFilter.showAllSubmittersButton).setValue(false, true);
+        verify(jobFilter.suppressSubmittersButton).setValue(true, true);
         verifyNoMoreInteractions(jobFilter.showAllSubmittersButton);
         verifyNoMoreInteractions(jobFilter.suppressSubmittersButton);
     }
@@ -143,8 +143,8 @@ public class SuppressSubmitterJobFilterTest {
         SuppressSubmitterJobFilter jobFilter = new SuppressSubmitterJobFilter(mockedTexts, mockedResources, "non-empty");
 
         // Verify test
-        verify(jobFilter.showAllSubmittersButton).setValue(false, true);
-        verify(jobFilter.suppressSubmittersButton).setValue(true, true);
+        verify(jobFilter.showAllSubmittersButton).setValue(true, true);
+        verify(jobFilter.suppressSubmittersButton).setValue(false, true);
         verifyNoMoreInteractions(jobFilter.showAllSubmittersButton);
         verifyNoMoreInteractions(jobFilter.suppressSubmittersButton);
     }
@@ -159,7 +159,7 @@ public class SuppressSubmitterJobFilterTest {
         String result = jobFilter.getParameter();
 
         // Verify test
-        assertThat(result, is(""));
+        assertThat(result, is("disable"));
     }
 
     @Test
@@ -172,7 +172,7 @@ public class SuppressSubmitterJobFilterTest {
         String result = jobFilter.getParameter();
 
         // Verify test
-        assertThat(result, is("true"));
+        assertThat(result, is(""));
     }
 
     @Test

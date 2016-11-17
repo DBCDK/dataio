@@ -34,6 +34,7 @@ import com.google.gwt.user.client.ui.FlowPanel;
 import com.google.gwt.user.client.ui.HTMLPanel;
 import com.google.gwt.user.client.ui.MenuBar;
 import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.pages.job.show.Presenter;
 import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
@@ -106,10 +107,14 @@ public class JobFilter extends Composite implements HasChangeHandlers {
             filterMenuNotYetInitialized = false;
             availableJobFilters.getJobFilterList().forEach(filter -> {
                 filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
-                if (filter.activeOnStartup) {
+                if (place.getParameters().isEmpty() && filter.activeOnStartup) {  // Only use activeOnStartup if no parameters are given in the URL
                     filter.jobFilter.getAddCommand(this).execute();
                 }
             });
+            Presenter presenter = (Presenter) place.presenter;
+            if (presenter != null) {
+                presenter.setPlace(place);
+            }
         }
     }
 
@@ -204,8 +209,8 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     public Map<String, String> setupFilterParameters(Map<String, String> parameters) {
         Map<String, String> recognizedParameters = new LinkedHashMap<>();
         if (!parameters.isEmpty()) {
-            availableJobFilters.getJobFilterList().forEach(filter -> filter.jobFilter.removeJobFilter());
-            parameters.forEach((filterName, filterParameter) -> {
+            availableJobFilters.getJobFilterList().forEach(filter -> filter.jobFilter.removeJobFilter(false));
+            new LinkedHashMap<>(parameters).forEach((filterName, filterParameter) -> {  // Use a clone of parameters to avoid ConcurrentModificationException
                 String foundFilterName = JobFilter.this.setupFilterParameterFor(filterName, filterParameter);
                 if (foundFilterName != null) {
                     recognizedParameters.put(foundFilterName, filterParameter);

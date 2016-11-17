@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.TreeItem;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 
 public class NavigationPanel extends FlowPanel {
     interface NavigationBinder extends UiBinder<HTMLPanel, NavigationPanel> {}
@@ -114,7 +115,7 @@ public class NavigationPanel extends FlowPanel {
             if (object instanceof TreeItem) {
                 doSelect((TreeItem) object);
             } else if (object instanceof Place) {
-                placeController.goTo((Place) object);
+                placeController.goTo((AbstractBasePlace) object);
                 setSelection(item);
             }
         }

@@ -34,7 +34,7 @@ public class Place extends AbstractBasePlace {
 
     @Override
     public Activity createPresenter(ClientFactory clientFactory) {
-        return new PresenterImpl(commonInjector.getMenuTexts().menu_SinkStatus());
+        return new PresenterImpl(clientFactory.getPlaceController(), commonInjector.getMenuTexts().menu_SinkStatus());
     }
 
     @Prefix("SinkStatus")

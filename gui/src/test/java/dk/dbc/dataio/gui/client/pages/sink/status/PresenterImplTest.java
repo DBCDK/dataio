@@ -105,7 +105,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     }
 
     private void setupPresenterImpl() {
-        presenterImpl = new PresenterImpl("Sink Status");
+        presenterImpl = new PresenterImpl(mockedPlaceController, "Sink Status");
         presenterImpl.viewInjector = mockedViewGinjector;
     }
 }

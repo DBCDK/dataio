@@ -67,7 +67,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace();
 
         // Test validation
-        assertThat(place.getUrl(), is(""));
+        assertThat(place.getToken(), is(""));
         assertThat(place.getKeys().isEmpty(), is(true));
     }
 
@@ -77,7 +77,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace((String)null);
 
         // Test validation
-        assertThat(place.getUrl(), is(""));
+        assertThat(place.getToken(), is(""));
         assertThat(place.getKeys().isEmpty(), is(true));
     }
 
@@ -87,7 +87,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("");
 
         // Test validation
-        assertThat(place.getUrl(), is(""));
+        assertThat(place.getToken(), is(""));
         assertThat(place.getKeys().isEmpty(), is(true));
     }
 
@@ -97,7 +97,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key");
 
         // Test validation
-        assertThat(place.getUrl(), is("key"));
+        assertThat(place.getToken(), is("key"));
         assertThat(place.getKeys().size(), is(1));
         assertThat(place.getParameter("key"), is(""));
     }
@@ -108,7 +108,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key=value");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value"));
+        assertThat(place.getToken(), is("key=value"));
         assertThat(place.getKeys().size(), is(1));
         assertThat(place.getParameter("key"), is("value"));
     }
@@ -119,7 +119,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key=val=ue");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=val=ue"));
+        assertThat(place.getToken(), is("key=val=ue"));
         assertThat(place.getKeys().size(), is(1));
         assertThat(place.getParameter("key"), is("val=ue"));
     }
@@ -130,7 +130,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key=value&key2=");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value&key2"));
+        assertThat(place.getToken(), is("key=value&key2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("key"), is("value"));
         assertThat(place.getParameter("key2"), is(""));
@@ -142,7 +142,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key=value&key2");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value&key2"));
+        assertThat(place.getToken(), is("key=value&key2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("key"), is("value"));
         assertThat(place.getParameter("key2"), is(""));
@@ -154,7 +154,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key=value&key2=value2");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value&key2=value2"));
+        assertThat(place.getToken(), is("key=value&key2=value2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("key"), is("value"));
         assertThat(place.getParameter("key2"), is("value2"));
@@ -169,7 +169,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace(null, null);
 
         // Test validation
-        assertThat(place.getUrl(), is(""));
+        assertThat(place.getToken(), is(""));
         assertThat(place.getKeys().isEmpty(), is(true));
     }
 
@@ -179,7 +179,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("", null);
 
         // Test validation
-        assertThat(place.getUrl(), is(""));
+        assertThat(place.getToken(), is(""));
         assertThat(place.getKeys().isEmpty(), is(true));
     }
 
@@ -189,7 +189,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key", null);
 
         // Test validation
-        assertThat(place.getUrl(), is("key"));
+        assertThat(place.getToken(), is("key"));
         assertThat(place.getKeys().size(), is(1));
         assertThat(place.getParameter("key"), is(""));
     }
@@ -200,7 +200,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key", "");
 
         // Test validation
-        assertThat(place.getUrl(), is("key"));
+        assertThat(place.getToken(), is("key"));
         assertThat(place.getKeys().size(), is(1));
         assertThat(place.getParameter("key"), is(""));
     }
@@ -211,7 +211,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key", "value");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value"));
+        assertThat(place.getToken(), is("key=value"));
         assertThat(place.getKeys().size(), is(1));
         assertThat(place.getParameter("key"), is("value"));
     }
@@ -222,7 +222,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key", "value", "key2");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value&key2"));
+        assertThat(place.getToken(), is("key=value&key2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("key"), is("value"));
         assertThat(place.getParameter("key2"), is(""));
@@ -234,7 +234,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("key", "value", "key2", "value2");
 
         // Test validation
-        assertThat(place.getUrl(), is("key=value&key2=value2"));
+        assertThat(place.getToken(), is("key=value&key2=value2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("key"), is("value"));
         assertThat(place.getParameter("key2"), is("value2"));
@@ -249,7 +249,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("Key=valuE&kEY2=vALue2");
 
         // Test validation
-        assertThat(place.getUrl(), is("Key=valuE&kEY2=vALue2"));
+        assertThat(place.getToken(), is("Key=valuE&kEY2=vALue2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("Key"), is("valuE"));
         assertThat(place.getParameter("kEY2"), is("vALue2"));
@@ -261,7 +261,7 @@ public class AbstractBasePlaceTest {
         AbstractBasePlace place = new ConcreteAbstractBasePlace("kEy", "vaLue", "keY2", "Value2");
 
         // Test validation
-        assertThat(place.getUrl(), is("kEy=vaLue&keY2=Value2"));
+        assertThat(place.getToken(), is("kEy=vaLue&keY2=Value2"));
         assertThat(place.getKeys().size(), is(2));
         assertThat(place.getParameter("kEy"), is("vaLue"));
         assertThat(place.getParameter("keY2"), is("Value2"));
@@ -318,7 +318,7 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.size(), is(2));
         assertThat(parameters.get("key6"), is("value6"));
         assertThat(parameters.get("key5"), is("value5"));
-        assertThat(place.getUrl(), is("key6=value6&key5=value5"));
+        assertThat(place.getToken(), is("key6=value6&key5=value5"));
     }
 
 
@@ -375,7 +375,7 @@ public class AbstractBasePlaceTest {
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(4));
         assertThat(parameters.get(null), is("fido"));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&null=fido"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2&null=fido"));
     }
 
     @Test
@@ -390,7 +390,7 @@ public class AbstractBasePlaceTest {
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(4));
         assertThat(parameters.get(""), is("monkey"));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&=monkey"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2&=monkey"));
     }
 
     @Test
@@ -405,7 +405,7 @@ public class AbstractBasePlaceTest {
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(4));
         assertThat(parameters.get("high"), is("fidelity"));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&high=fidelity"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2&high=fidelity"));
     }
 
     @Test
@@ -420,7 +420,7 @@ public class AbstractBasePlaceTest {
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(4));
         assertThat(parameters.get("high"), is(nullValue()));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2&high"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2&high"));
     }
 
     @Test
@@ -435,7 +435,7 @@ public class AbstractBasePlaceTest {
         Map<String, String> parameters = place.getParameters();
         assertThat(parameters.size(), is(3));
         assertThat(parameters.get("key1"), is("New Value"));
-        assertThat(place.getUrl(), is("key1=New Value&key3=value3&key2=value2"));
+        assertThat(place.getToken(), is("key1=New Value&key3=value3&key2=value2"));
     }
 
 
@@ -456,7 +456,7 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.get("key1"), is("value1"));
         assertThat(parameters.get("key3"), is("value3"));
         assertThat(parameters.get("key2"), is("value2"));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2"));
     }
 
     @Test
@@ -474,7 +474,7 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.get("key1"), is("value1"));
         assertThat(parameters.get("key3"), is("value3"));
         assertThat(parameters.get("key2"), is("value2"));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2"));
     }
 
     @Test
@@ -492,7 +492,7 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.size(), is(2));
         assertThat(parameters.get("key3"), is("value3"));
         assertThat(parameters.get("key2"), is("value2"));
-        assertThat(place.getUrl(), is("key3=value3&key2=value2"));
+        assertThat(place.getToken(), is("key3=value3&key2=value2"));
     }
 
     @Test
@@ -510,7 +510,7 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.get("key1"), is("value1"));
         assertThat(parameters.get("key3"), is("value3"));
         assertThat(parameters.get("key2"), is("value2"));
-        assertThat(place.getUrl(), is("key1=value1&key3=value3&key2=value2"));
+        assertThat(place.getToken(), is("key1=value1&key3=value3&key2=value2"));
     }
 
     @Test
@@ -527,7 +527,7 @@ public class AbstractBasePlaceTest {
         assertThat(parameters.size(), is(2));
         assertThat(parameters.get("key1"), is("value1"));
         assertThat(parameters.get("key2"), is("value2"));
-        assertThat(place.getUrl(), is("key1=value1&key2=value2"));
+        assertThat(place.getToken(), is("key1=value1&key2=value2"));
     }
 
 }

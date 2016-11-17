@@ -30,7 +30,6 @@ import dk.dbc.dataio.gui.util.ClientFactory;
 public class ShowAcctestJobsPlace extends AbstractBasePlace {
     private final static ShowAcctestJobsPlace INSTANCE = new ShowAcctestJobsPlace();
     private ShowAcctestJobsPlace() {}  // Prevents instantiation by new operator
-    private static Presenter presenter = null;
 
     public static ShowAcctestJobsPlace getInstance() {
         return INSTANCE;
@@ -42,21 +41,24 @@ public class ShowAcctestJobsPlace extends AbstractBasePlace {
                 clientFactory.getPlaceController(),
                 clientFactory.getGlobalViewsFactory().getAcctestJobsView(),
                 commonInjector.getMenuTexts().menu_AcctestJobs());
-        return (Activity) presenter;
+        return presenter;
     }
 
     @Prefix("ShowAcctestJobs")
     public static class Tokenizer implements PlaceTokenizer<ShowAcctestJobsPlace> {
         @Override
         public String getToken(ShowAcctestJobsPlace place) {
-            return place.getUrl();
+            return place.getToken();
         }
         @Override
         public ShowAcctestJobsPlace getPlace(String token) {
+            ShowAcctestJobsPlace place = getInstance();
+            place.setToken(token);
+            Presenter presenter = (Presenter) place.presenter;
             if (presenter != null) {
-                presenter.setPlaceToken(token);
+                presenter.setPlace(place);
             }
-            return getInstance();
+            return place;
         }
     }
 }

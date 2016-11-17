@@ -27,6 +27,7 @@ import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.resources.client.ImageResource;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.resources.Resources;
 import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import org.junit.Before;
@@ -62,6 +63,7 @@ public class BaseJobFilterTest {
     @Mock JobFilter mockedJobFilter;
     @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock HandlerRegistration mockedClickHandlerRegistration;
+    @Mock AbstractBasePlace mockedPlace;
 
 
     class ConcreteBaseJobFilter extends BaseJobFilter {
@@ -83,7 +85,7 @@ public class BaseJobFilterTest {
         }
         @Override
         public String getParameter() {
-            return "";
+            return "parm";
         }
 
         public Texts getTexts() {
@@ -237,7 +239,7 @@ public class BaseJobFilterTest {
         jobFilter.setParentJobFilter(mockedJobFilter);
 
         // Activate Subject Under Test
-        jobFilter.removeJobFilter();
+        jobFilter.removeJobFilter(true);
 
         // Verify test
         verifyNoMoreInteractions(mockedClickHandlerRegistration);
@@ -246,17 +248,42 @@ public class BaseJobFilterTest {
     }
 
     @Test
-    public void removeJobFilter_jobFilterPanelIsNotNullParentPanelIsNull_okAction() {
+    public void removeJobFilter_jobFilterPanelIsNotNullParentPanelIsNullNotifyPlace_okAction() {
         // Test Preparation
         ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
         jobFilter.setFilterPanel(mockedJobFilterPanel);
         jobFilter.setClickHandlerRegistration(mockedClickHandlerRegistration);
         jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
 
         // Activate Subject Under Test
-        jobFilter.removeJobFilter();
+        jobFilter.removeJobFilter(true);
 
         // Verify test
+        verify(mockedPlace).removeParameter("ConcreteBaseJobFilter");
+        verify(mockedPlace).addParameter("ConcreteBaseJobFilter", "parm");
+        verifyNoMoreInteractions(mockedPlace);
+        getAttributes(jobFilter);
+        verify(mockedClickHandlerRegistration).removeHandler();
+        verify(mockedJobFilterPanel).clear();
+        verify(mockedJobFilter).remove(jobFilter);
+        assertThat(clickHandlerRegistration, is(nullValue()));
+    }
+
+    @Test
+    public void removeJobFilter_jobFilterPanelIsNotNullParentPanelIsNullDontNotifyPlace_okAction() {
+        // Test Preparation
+        ConcreteBaseJobFilter jobFilter = new ConcreteBaseJobFilter("-test name-");
+        jobFilter.setFilterPanel(mockedJobFilterPanel);
+        jobFilter.setClickHandlerRegistration(mockedClickHandlerRegistration);
+        jobFilter.setParentJobFilter(mockedJobFilter);
+        mockedJobFilter.place = mockedPlace;
+
+        // Activate Subject Under Test
+        jobFilter.removeJobFilter(false);
+
+        // Verify test
+        verifyNoMoreInteractions(mockedPlace);
         getAttributes(jobFilter);
         verify(mockedClickHandlerRegistration).removeHandler();
         verify(mockedJobFilterPanel).clear();

@@ -74,7 +74,6 @@ public class View extends ViewWidget {
 
     public AsyncJobViewDataProvider dataProvider;
     ProvidesKey<JobModel> keyProvider = jobModel -> (jobModel == null) ? null : jobModel.getJobId();
-
     SingleSelectionModel<JobModel> selectionModel = new SingleSelectionModel<>(keyProvider);
 
     // Enums
@@ -95,7 +94,7 @@ public class View extends ViewWidget {
         if( setupColumns ) {
             setupColumns();
         }
-        dataProvider = new AsyncJobViewDataProvider(this);
+        dataProvider = new AsyncJobViewDataProvider(this, keyProvider);
     }
 
 

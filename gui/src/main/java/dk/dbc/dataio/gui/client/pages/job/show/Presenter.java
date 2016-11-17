@@ -23,6 +23,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.places.AbstractBasePlace;
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
 import java.util.List;
@@ -36,5 +37,5 @@ public interface Presenter extends GenericPresenter {
     void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId);
     WorkflowNoteModel preProcessAssignee(String assignee);
     void rerunJobs(List<JobModel> jobModels);
-    void setPlaceToken(String token);
+    void setPlace(AbstractBasePlace place);
 }

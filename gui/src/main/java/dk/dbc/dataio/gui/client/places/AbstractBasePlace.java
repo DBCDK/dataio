@@ -37,7 +37,7 @@ import java.util.Set;
  * <p>Abstract GWT Place</p>
  * <p>Allows multiple arguments in the URL, and supplies methods for accessing them</p>
  * <br>
- * <p>The place wraps the following URL:</p>
+ * <p>The place wraps the following fragment identifier in the URL:</p>
  * <pre>   key1=value1&amp;key2=value2&amp;key3=value3 (etc)</pre>
  * <br>
  * <p>Inspired by:</p>
@@ -46,28 +46,29 @@ import java.util.Set;
 public abstract class AbstractBasePlace extends Place {
     protected CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     public abstract Activity createPresenter(ClientFactory clientFactory);
+    public Activity presenter = null;
 
-    private String url = "";
+    private String token = "";
     private Map<String, String> parameters = new LinkedHashMap<>();
 
     /**
      * Constructor for taking multiple tokens as key/value pairs
      *
-     * @param tokens will be parsed to extract the parameters passed as part of url
+     * @param tokens will be parsed to extract the parameters passed as part of token
      */
     protected AbstractBasePlace(String... tokens) {
         parameters = tokens2Map(tokens);
-        url = parameters2Url(parameters);
+        token = parameters2Token(parameters);
     }
 
     /**
-     * Constructor taking an URL
+     * Constructor taking a Token
      *
-     * @param url The url to be used
+     * @param token The token to be used
      */
-    protected AbstractBasePlace(String url) {
-        parameters = url2Parameters(url);
-        this.url = parameters2Url(parameters);
+    protected AbstractBasePlace(String token) {
+        parameters = token2Parameters(token);
+        this.token = parameters2Token(parameters);
     }
 
     /**
@@ -77,6 +78,7 @@ public abstract class AbstractBasePlace extends Place {
      * @param keys List of required parameters
      * @return True if validation is ok, false if not
      */
+    @SuppressWarnings("unused")
     public boolean validate(String... keys) {
         boolean validationOk = true;
         for (String key: keys) {
@@ -107,25 +109,24 @@ public abstract class AbstractBasePlace extends Place {
     }
 
     /**
-     * Gets the URL, that is wrapped in this Place
+     * Gets the Token, that is wrapped in this Place
      *
-     * @return The Url, wrapped in this Place
+     * @return The Token, wrapped in this Place
      */
-    public String getUrl() {
-        return url;
+    public String getToken() {
+        return token;
     }
 
     /**
-     * Sets the URL, that is wrapped in this Place
+     * Sets the Token, that is wrapped in this Place
      *
-     * @param url The Url, wrapped in this Place
+     * @param token The Token, wrapped in this Place
      */
-    public void setUrl(String url) {
-        if (url == null || url.isEmpty()) {
-            return;
+    public void setToken(String token) {
+        if (token != null && !token.isEmpty()) {
+            parameters = token2Parameters(token);
+            this.token = parameters2Token(parameters);
         }
-        parameters = url2Parameters(url);
-        this.url = parameters2Url(parameters);
     }
 
     /**
@@ -144,7 +145,7 @@ public abstract class AbstractBasePlace extends Place {
      */
     public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
-        url = parameters2Url(parameters);
+        token = parameters2Token(parameters);
     }
 
     /**
@@ -166,7 +167,7 @@ public abstract class AbstractBasePlace extends Place {
      */
     public void addParameter(String key, String value) {
         parameters.put(key, value);
-        url = parameters2Url(parameters);
+        token = parameters2Token(parameters);
     }
 
     /**
@@ -177,8 +178,21 @@ public abstract class AbstractBasePlace extends Place {
      */
     public String removeParameter(String key) {
         final String formerValue = parameters.remove(key);
-        url = parameters2Url(parameters);
+        token = parameters2Token(parameters);
         return formerValue;
+    }
+
+
+    /*
+     * Protected methods
+     */
+
+    /**
+     * Gets the presenter, stored in the place
+     * @return The presenter
+     */
+    protected Activity getPresenter() {
+        return presenter;
     }
 
 
@@ -203,13 +217,13 @@ public abstract class AbstractBasePlace extends Place {
     }
 
     /**
-     * Maps a Map&lt;String, String&gt; to an Url (String) in the form: <br>
+     * Maps a Map&lt;String, String&gt; to an Token (String) in the form: <br>
      *     key1=value1&amp;key2=value2 etc...
      *
      * @param parameters The Map of key/value pairs
-     * @return The resulting Url
+     * @return The resulting Token
      */
-    public static String parameters2Url(Map<String, String> parameters) {
+    public static String parameters2Token(Map<String, String> parameters) {
         StringBuilder result = new StringBuilder();
         for (String key: parameters.keySet()) {
             if (result.length() > 0) {
@@ -225,15 +239,15 @@ public abstract class AbstractBasePlace extends Place {
     }
 
     /**
-     * Maps an Url in the form key1=value2&amp;key2=value2... to a Map (ordered LinkedHashMap)
+     * Maps a Token in the form key1=value2&amp;key2=value2... to a Map (ordered LinkedHashMap)
      *
-     * @param url The Url string to map to a LinkedHashMap
-     * @return The resulting Map consisting of key/value pairs from the url
+     * @param token The Token string to map to a LinkedHashMap
+     * @return The resulting Map consisting of key/value pairs from the token
      */
-    public static Map<String, String> url2Parameters(String url) {
+    public static Map<String, String> token2Parameters(String token) {
         Map<String, String> map = new LinkedHashMap<>();
-        if (url == null || url.isEmpty()) return map;
-        for (String listItem : Arrays.asList(url.split("&"))) {
+        if (token == null || token.isEmpty()) return map;
+        for (String listItem : Arrays.asList(token.split("&"))) {
             List<String> valuePairs = Arrays.asList(listItem.split("=", 2));
             if (valuePairs.size() == 1) {  // Key without value
                 map.put(valuePairs.get(0), "");

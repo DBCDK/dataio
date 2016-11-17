@@ -48,7 +48,7 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
     @SuppressWarnings("unused")
     @UiConstructor
     public SuppressSubmitterJobFilter() {
-        this("true");
+        this("");
     }
 
     SuppressSubmitterJobFilter(String parameter) {
@@ -111,8 +111,8 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
      */
     @Override
     public void setParameter(String filterParameter) {
-        showAllSubmittersButton.setValue(filterParameter.isEmpty(), true);
-        suppressSubmittersButton.setValue(!filterParameter.isEmpty(), true);
+        showAllSubmittersButton.setValue(!filterParameter.isEmpty(), true);
+        suppressSubmittersButton.setValue(filterParameter.isEmpty(), true);
     }
 
     /**
@@ -121,7 +121,7 @@ public class SuppressSubmitterJobFilter extends BaseJobFilter {
      */
     @Override
     public String getParameter() {
-        return showAllSubmittersButton.getValue() ? "" : "true";
+        return showAllSubmittersButton.getValue() ? "disable" : "";
     }
 
     /**

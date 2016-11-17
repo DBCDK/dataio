@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.job.show;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.view.client.AsyncDataProvider;
 import com.google.gwt.view.client.HasData;
+import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.Range;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -44,7 +45,8 @@ public class AsyncJobViewDataProvider extends AsyncDataProvider<JobModel> {
     private int criteriaIncarnation=0;
     JobListCriteria currentCriteria = new JobListCriteria();
 
-    public AsyncJobViewDataProvider(View view) {
+    public AsyncJobViewDataProvider(View view, ProvidesKey keyProvider) {
+        super(keyProvider);
         this.view = view;
     }
 

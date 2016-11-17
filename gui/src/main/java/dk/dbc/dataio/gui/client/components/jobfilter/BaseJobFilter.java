@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
@@ -76,7 +77,7 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
         if (filterPanel == null) {
 //            GWT.log("Add Job Filter: " + getName());
             filterPanel = new JobFilterPanel(getName(), resources.deleteButton());
-            clickHandlerRegistration = filterPanel.addClickHandler(clickEvent -> removeJobFilter());
+            clickHandlerRegistration = filterPanel.addClickHandler(clickEvent -> removeJobFilter(true));
             filterPanel.add(thisAsWidget);
             parentJobFilter.add(this);
             filterChanged();
@@ -87,14 +88,23 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * Removes the Job Filter from the list of active filters.
      * The associated Click Handler is de-registered to assure, that no ghost events will be triggered
      */
-    void removeJobFilter() {
+    void removeJobFilter(boolean notifyPlace) {
 //        GWT.log("Remove Job Filter: " + getName());
+
+        if (parentJobFilter == null) {
+            GWT.log("                removeJobFilter - parentJobFilter er null");
+            return;
+        }
+//        GWT.log("        parentJobFilter = " + Integer.toHexString(this.parentJobFilter.hashCode()));
+
         if (filterPanel != null) {
             clickHandlerRegistration.removeHandler();
             clickHandlerRegistration = null;
             filterPanel.clear();
             parentJobFilter.remove(this);
-            filterChanged();
+            if (notifyPlace) {
+                filterChanged();
+            }
         }
     }
 

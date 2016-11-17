@@ -50,7 +50,7 @@ final class JobFilterList {
         jobFilterList = Arrays.asList(
                 new JobFilterItem(new SinkJobFilter(""), false),
                 new JobFilterItem(new SubmitterJobFilter(""), false),
-                new JobFilterItem(new SuppressSubmitterJobFilter("true"), true),
+                new JobFilterItem(new SuppressSubmitterJobFilter(""), true),
                 new JobFilterItem(new DateJobFilter(""), false),
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false)
                 // Add new Job Filters here...

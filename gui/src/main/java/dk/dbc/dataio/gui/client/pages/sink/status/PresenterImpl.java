@@ -24,8 +24,9 @@ package dk.dbc.dataio.gui.client.pages.sink.status;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
-import com.google.gwt.user.client.Window;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.Arrays;
@@ -38,7 +39,7 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
-
+    private PlaceController placeController;
     private String header;
 
     /**
@@ -46,7 +47,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      *
      * @param header breadcrumb Header text
      */
-    public PresenterImpl(String header) {
+    public PresenterImpl(PlaceController placeController, String header) {
+        this.placeController = placeController;
         this.header = header;
     }
 
@@ -73,7 +75,10 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
 
     public void showJobsFilteredBySink(long sinkId) {
-        Window.alert("Så er der klikket: " + sinkId);
+        ShowTestJobsPlace showTestJobsPlace = ShowTestJobsPlace.getInstance();
+        showTestJobsPlace.setToken("SuppressSubmitterJobFilter&SinkJobFilter=" + sinkId + "&ShowEarliestActive");
+        GWT.log("Place goto: SuppressSubmitterJobFilter&SinkJobFilter=" + sinkId + "&ShowEarliestActive");
+        placeController.goTo(showTestJobsPlace);
     }
 
 

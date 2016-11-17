@@ -25,6 +25,7 @@ import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
@@ -36,8 +37,6 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 
 import java.util.List;
-
-import static dk.dbc.dataio.gui.client.places.AbstractBasePlace.url2Parameters;
 
 
 /**
@@ -121,11 +120,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
             countExistingJobsWithJobId();
         }
     }
+
+    /**
+     * Method used to goto the job editor
+     * @param jobRow The JobModel to be edited
+     */
+    @Override
     public void editJob(JobModel jobRow) {
         this.jobId = jobRow.getJobId();
         placeController.goTo(new dk.dbc.dataio.gui.client.pages.job.modify.EditPlace(jobId));
     }
 
+    /**
+     * Method used to set a Workflow Note for this job
+     * @param workflowNoteModel The workflow model to set
+     * @param jobId The jobid for the Job, to which the Workflow Note should be attached
+     */
     @Override
     public void setWorkflowNote(WorkflowNoteModel workflowNoteModel, String jobId) {
         commonInjector.getJobStoreProxyAsync().setWorkflowNote(workflowNoteModel, Long.valueOf(jobId).intValue(), new SetWorkflowNoteCallBack());
@@ -163,12 +173,17 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     /**
      * Sets a new Place Token for the view
-     * @param token The token to use for setting up the filter
+     * @param place The place to use for setting up the filter
      */
     @Override
-    public void setPlaceToken(String token) {
+    public void setPlace(AbstractBasePlace place) {
+        final String SHOW_EARLIEST_ACTIVE = "ShowEarliestActive";
         if (view != null && view.jobFilter != null) {
-            view.jobFilter.setupFilterParameters(url2Parameters(token));
+            view.jobFilter.setupFilterParameters(place.getParameters());
+        }
+        if (place.getParameters().containsKey(SHOW_EARLIEST_ACTIVE)) {
+            place.removeParameter(SHOW_EARLIEST_ACTIVE);  // The token is a one-shot, meaning that it has to be deleted from the place
+            commonInjector.getJobStoreProxyAsync().fetchEarliestActiveJob(new FetchEarliestActiveJobAsyncCallback());
         }
     }
 
@@ -195,7 +210,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private boolean isJobIdValidNumber() {
-             try {
+         try {
             Long.valueOf(jobId);
         } catch (NumberFormatException e) {
             view.setErrorText(view.getTexts().error_NumericInputFieldValidationError());
@@ -263,10 +278,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     class SetWorkflowNoteCallBack extends FilteredAsyncCallback<JobModel> {
         @Override
-        public void onFilteredFailure(Throwable e) {
-            view.setErrorText(e.getClass().getName() + " - " + e.getMessage());
+        public void onFilteredFailure(Throwable throwable) {
+            view.setErrorText(throwable.getClass().getName() + " - " + throwable.getMessage());
         }
-
         @Override
         public void onSuccess(JobModel jobModel) {
             view.selectionModel.setSelected(jobModel, true);
@@ -275,12 +289,22 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
 
     class RerunJobsFilteredAsyncCallback extends FilteredAsyncCallback<List<JobModel>> {
         @Override
-        public void onFilteredFailure(Throwable e) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(e, commonInjector.getProxyErrorTexts(), null));
+        public void onFilteredFailure(Throwable throwable) {
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
         }
         @Override
         public void onSuccess(List<JobModel> jobModels) {
         }
     }
 
+    private class FetchEarliestActiveJobAsyncCallback implements AsyncCallback<JobModel> {
+        @Override
+        public void onFailure(Throwable throwable) {
+            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
+        }
+        @Override
+        public void onSuccess(JobModel jobModel) {
+            view.selectionModel.setSelected(jobModel, true);  // What if the table has not yet been fetched?
+        }
+    }
 }

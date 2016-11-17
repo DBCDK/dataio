@@ -57,6 +57,11 @@ public class JobStoreProxyServlet extends RemoteServiceServlet implements JobSto
     }
 
     @Override
+    public JobModel fetchEarliestActiveJob() throws ProxyException {
+        return jobStoreProxy.fetchEarliestActiveJob();
+    }
+
+    @Override
     public long countJobs(JobListCriteria model) throws ProxyException {
         return jobStoreProxy.countJobs(model);
     }

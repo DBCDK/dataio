@@ -21,6 +21,7 @@
 
 package dk.dbc.dataio.gui.client.pages.job.show;
 
+import com.google.gwt.view.client.ProvidesKey;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.components.jobfilter.JobFilter;
@@ -49,6 +50,7 @@ public class AsyncJobViewDataProviderTest {
     @Mock JobStoreProxyAsync mockedJobStoreProxy;
     @Mock SingleSelectionModel<JobModel> mockedSelectionModel;
     @Mock JobFilter mockedJobFilter;
+    @Mock ProvidesKey mockedKeyProvider;
 
     private AsyncJobViewDataProvider objectUnderTest;
 
@@ -62,12 +64,12 @@ public class AsyncJobViewDataProviderTest {
 
     @Test
     public void InitialSetup() throws Exception {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedView);
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView, mockedKeyProvider);
     }
 
     @Test
     public void testUpdateCurrentCriteria_jobFilterEmpty_baseCriteria() throws Exception {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedView );
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView, mockedKeyProvider);
         when(mockedJobFilter.getValue()).thenReturn(new JobListCriteria());
 
         JobListCriteria criteria = new JobListCriteria()
@@ -83,7 +85,7 @@ public class AsyncJobViewDataProviderTest {
 
     @Test
     public void testUpdateCurrentCriteria_jobFilterNotEmpty_baseCriteria() throws Exception {
-        objectUnderTest = new AsyncJobViewDataProvider(mockedView );
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView, mockedKeyProvider);
         when(mockedJobFilter.getValue()).thenReturn(new JobListCriteria().
                 where(new ListFilter<>(JobListCriteria.Field.JOB_ID, ListFilter.Op.EQUAL, "dummy")));
 
@@ -101,7 +103,7 @@ public class AsyncJobViewDataProviderTest {
     @Test
     public void testSetBaseCriteria() throws Exception {
 
-        objectUnderTest = new AsyncJobViewDataProvider(mockedView);
+        objectUnderTest = new AsyncJobViewDataProvider(mockedView, mockedKeyProvider);
         when(mockedView.jobFilter.getValue()).thenReturn(new JobListCriteria());
 
         JobListCriteria criteria = new JobListCriteria()

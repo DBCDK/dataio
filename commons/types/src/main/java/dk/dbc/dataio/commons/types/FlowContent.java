@@ -49,7 +49,7 @@ public class FlowContent implements Serializable {
      * @param name flow name
      * @param description flow description
      * @param components flow components attached to this flow (can be empty)
-     *
+     * @param timeOfFlowComponentUpdate time of last time the flow components nested within the flow were updated
      * @throws NullPointerException if given null-valued name, description or components argument
      * @throws IllegalArgumentException if given empty-valued name
      */

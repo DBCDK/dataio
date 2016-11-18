@@ -42,8 +42,10 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -266,7 +268,9 @@ public class FlowsBeanTest {
         when(flowsBean.jsonbContext.unmarshall(anyString(), eq(dk.dbc.dataio.commons.types.FlowComponent.class))).thenReturn(flowComponent);
         when(flowsBean.jsonbContext.marshall(eq(flowComponent))).thenReturn("test");
 
-        when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(new FlowComponent());
+        final FlowComponent persistedFlowComponent = mock(FlowComponent.class);
+        when(ENTITY_MANAGER.find(eq(dk.dbc.dataio.flowstore.entity.FlowComponent.class), any())).thenReturn(persistedFlowComponent);
+        when(persistedFlowComponent.getVersion()).thenReturn(flowComponent.getVersion() +1);
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
 
         final Response response = flowsBean.updateFlow(createEmptyFlowContentJSON(), mockedUriInfo, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, true);
@@ -305,16 +309,22 @@ public class FlowsBeanTest {
     @Test
     public void updateFlow_flowFound_returnsResponseWithHttpStatusOk_returnsFlow() throws JSONBException, ReferencedEntityNotFoundException {
         final Flow flow = mock(Flow.class);
+        List<dk.dbc.dataio.commons.types.FlowComponent> flowComponents = new ArrayList<>();
+        flowComponents.add(new FlowComponentBuilder().setVersion(2L).build());
+        FlowContent flowContent1 = new FlowContentBuilder().setComponents(flowComponents).build();
+
         final FlowsBean flowsBean = newFlowsBeanWithMockedEntityManager();
         final String flowContent = new FlowContentJsonBuilder().build();
 
         flowsBean.jsonbContext = mock(JSONBContext.class);
         when(flowsBean.jsonbContext.marshall(flow)).thenReturn("test");
+        when(flowsBean.jsonbContext.unmarshall(flow.getContent(), FlowContent.class)).thenReturn(flowContent1);
+        when(flowsBean.jsonbContext.unmarshall(flowContent, FlowContent.class)).thenReturn(jsonbContext.unmarshall(flowContent, FlowContent.class));
         when(ENTITY_MANAGER.find(eq(Flow.class), any())).thenReturn(flow);
         when(flow.getVersion()).thenReturn(DEFAULT_TEST_VERSION);
 
         final Response response = flowsBean.updateFlow(flowContent, null, DEFAULT_TEST_ID, DEFAULT_TEST_VERSION, false);
-        verify(flow).setContent(flowContent);
+        verify(flow).setContent(any(String.class));
         verify(flow).setVersion(DEFAULT_TEST_VERSION);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         assertThat(response.hasEntity(), is(true));

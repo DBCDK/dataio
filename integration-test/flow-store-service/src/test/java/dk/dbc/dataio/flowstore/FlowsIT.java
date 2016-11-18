@@ -36,6 +36,7 @@ import dk.dbc.dataio.commons.types.rest.FlowStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.test.json.FlowContentJsonBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowBinderContentBuilder;
+import dk.dbc.dataio.commons.utils.test.model.FlowComponentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowComponentContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.FlowContentBuilder;
 import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
@@ -64,6 +65,7 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -312,13 +314,10 @@ public class FlowsIT {
     public void refreshFlowComponents_ok() throws Exception{
 
         // Given...
-        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
-        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
-        final List<FlowComponent> flowComponents = new ArrayList<>();
-        flowComponents.add(flowComponent);
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(new FlowComponentContentBuilder().build());
 
         // Create flow containing the flow component created above
-        final FlowContent flowContent = new FlowContentBuilder().setComponents(flowComponents).build();
+        final FlowContent flowContent = new FlowContentBuilder().setComponents(Collections.singletonList(flowComponent)).build();
         Flow flow = flowStoreServiceConnector.createFlow(flowContent);
 
         // Update the component to a newer revision
@@ -346,12 +345,37 @@ public class FlowsIT {
 
         // And...
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
+        assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(notNullValue()));
 
         // And...
         final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
         assertThat(flows.size(), is(1));
         assertFlowEquals(true, flows.get(0), updatedFlow);
     }
+
+    /**
+     * Given: a deployed flow-store service where a valid flow with given id is already stored
+     * When : valid JSON is POSTed to the flow path with an identifier (update)
+     * Then : assert that the timeOfFlowComponentUpdate has been set
+     */
+    @Test
+    public void refreshFlowComponents_noFlowComponentChanges_ok() throws Exception{
+
+        // Given...
+        final FlowComponentContent flowComponentContent = new FlowComponentContentBuilder().build();
+        FlowComponent flowComponent = flowStoreServiceConnector.createFlowComponent(flowComponentContent);
+
+        final FlowContent flowContent = new FlowContentBuilder().setComponents(Collections.singletonList(flowComponent)).build();
+        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+
+        Flow updatedFlow = flowStoreServiceConnector.refreshFlowComponents(flow.getId(), flow.getVersion());
+
+        // Then...
+        assertFlowNotNull(updatedFlow);
+        assertThat(updatedFlow.getVersion(), is(flow.getVersion()));
+        assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(nullValue()));
+    }
+
 
     /**
      * Given: a deployed flow-store service
@@ -474,7 +498,8 @@ public class FlowsIT {
      * When : valid JSON is POSTed to the flows path with an identifier (update)
      * Then : assert the correct fields have been set with the correct values
      * And  : assert that the id of the flow has not changed
-     * And  : assert that the version number has been updated
+     * And  : assert that the version number has been updated and that the timeOfFlowComponentUpdate has been been set
+     *        as the nested flowComponents were unchanged
      * And  : assert that updated data can be found in the underlying database and only one flow exists
      */
     @Test
@@ -497,6 +522,37 @@ public class FlowsIT {
 
         // And...
         assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
+        assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(nullValue()));
+
+        // And...
+        final List<Flow> flows = flowStoreServiceConnector.findAllFlows();
+        assertThat(flows.size(), is(1));
+        assertFlowEquals(false, flows.get(0), updatedFlow);
+    }
+
+
+    @Test
+    public void updateFlowSetTimeOfFlowComponentUpdate_ok() throws Exception {
+
+        // Given...
+        final FlowContent flowContent = new FlowContentBuilder().build();
+        Flow flow = flowStoreServiceConnector.createFlow(flowContent);
+
+        // When...
+        final FlowComponent newFlowComponent = new FlowComponentBuilder().setContent(new FlowComponentContentBuilder().setSvnRevision(123456L).build()).build();
+        final FlowContent newFlowContent = new FlowContentBuilder().setComponents(Collections.singletonList(newFlowComponent)).build();
+        Flow updatedFlow = flowStoreServiceConnector.updateFlow(newFlowContent, flow.getId(), flow.getVersion());
+
+        // Then...
+        assertFlowNotNull(updatedFlow);
+        assertFlowContentEquals(false, updatedFlow.getContent(), newFlowContent);
+
+        // And...
+        assertThat(updatedFlow.getId(), is(flow.getId()));
+
+        // And...
+        assertThat(updatedFlow.getVersion(), is(flow.getVersion() + 1));
+        assertThat(updatedFlow.getContent().getTimeOfFlowComponentUpdate(), is(notNullValue()));
 
         // And...
         final List<Flow> flows = flowStoreServiceConnector.findAllFlows();

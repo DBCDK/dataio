@@ -41,6 +41,7 @@ import types.TestableAddJobParamBuilder;
 
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Date;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -101,13 +102,14 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
     @Test
     public void createJobEntity_trimsNonAcctestFlows() throws SQLException {
         // Given...
+        final Date timeOfFlowComponentUpdate = new Date();
         int nextRevision = 1;
         for (JobSpecification.Type type : JobSpecification.Type.values()) {
             if (type == JobSpecification.Type.ACCTEST)
                 continue;
 
             final JobSpecification jobSpecification = getJobSpecification(type);
-            final Flow flow = getFlowWithNextFlowComponent(nextRevision++);
+            final Flow flow = getFlowWithNextFlowComponent(nextRevision++, timeOfFlowComponentUpdate);
 
             final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
                     .setJobSpecification(jobSpecification)
@@ -120,7 +122,7 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
             assertThat("flow cache table size when flow is trimmed", getSizeOfTable(FLOW_CACHE_TABLE_NAME), is(1L));
         }
         final JobSpecification jobSpecification = getJobSpecification(JobSpecification.Type.ACCTEST);
-        final Flow flow = getFlowWithNextFlowComponent(nextRevision++);
+        final Flow flow = getFlowWithNextFlowComponent(nextRevision++, timeOfFlowComponentUpdate);
 
         final TestableAddJobParam testableAddJobParam = new TestableAddJobParamBuilder()
                 .setJobSpecification(jobSpecification)
@@ -180,9 +182,10 @@ public class PgJobStoreRepositoryIT_CachingIT extends PgJobStoreRepositoryAbstra
         return new JobSpecificationBuilder().setType(type).setDataFile(FileStoreUrn.create("42").toString()).build();
     }
 
-    private Flow getFlowWithNextFlowComponent(int nextRevision) {
+    private Flow getFlowWithNextFlowComponent(int nextRevision, Date timeOfFlowComponentUpdate) {
         return new FlowBuilder()
                 .setContent(new FlowContentBuilder()
+                        .setTimeOfFlowComponentUpdate(timeOfFlowComponentUpdate)
                         .setComponents(Collections.singletonList(getFlowComponentWithNext(nextRevision)))
                         .build())
                 .build();

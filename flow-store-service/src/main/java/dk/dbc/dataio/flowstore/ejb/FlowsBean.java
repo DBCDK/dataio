@@ -51,6 +51,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -236,8 +237,8 @@ public class FlowsBean extends AbstractResourceBean {
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Response refreshFlowComponents(UriInfo uriInfo, Long id, Long version) throws JSONBException, ReferencedEntityNotFoundException {
-
         List<dk.dbc.dataio.commons.types.FlowComponent> flowComponentsWithLatestVersion = new ArrayList<>();
+        boolean hasFlowComponentsChanged = false;
 
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
@@ -251,12 +252,18 @@ public class FlowsBean extends AbstractResourceBean {
             if (flowComponentWithLatestVersion == null) {
                 throw new ReferencedEntityNotFoundException("Flow component with id: " + flowComponent.getId() + "could not be found in the underlying database");
             }
+            if(!hasFlowComponentsChanged && flowComponentWithLatestVersion.getVersion() != flowComponent.getVersion()) {
+                hasFlowComponentsChanged = true;
+            }
             String flowComponentWithLatestVersionJson = jsonbContext.marshall(flowComponentWithLatestVersion);
             dk.dbc.dataio.commons.types.FlowComponent updatedFlowComponent = jsonbContext.unmarshall(flowComponentWithLatestVersionJson, dk.dbc.dataio.commons.types.FlowComponent.class);
             flowComponentsWithLatestVersion.add(updatedFlowComponent);
         }
 
         FlowContent updatedFlowContent = new FlowContent(flowContent.getName(), flowContent.getDescription(), flowComponentsWithLatestVersion);
+        if(hasFlowComponentsChanged) {
+            updatedFlowContent.withTimeOfFlowComponentUpdate(new Date());
+        }
 
         flowEntity.setContent(jsonbContext.marshall(updatedFlowContent));
         flowEntity.setVersion(version);
@@ -282,13 +289,15 @@ public class FlowsBean extends AbstractResourceBean {
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Response updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
-
+        log.info("SMA LOG");
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
             return Response.status(Response.Status.NOT_FOUND.getStatusCode()).entity(NULL_ENTITY).build();
         }
         entityManager.detach(flowEntity);
+
+        flowContent = setTimeOfFlowComponentUpdate(flowContent, flowEntity.getContent());
         flowEntity.setContent(flowContent);
         flowEntity.setVersion(version);
         entityManager.merge(flowEntity);
@@ -335,6 +344,15 @@ public class FlowsBean extends AbstractResourceBean {
         entityManager.flush();
 
         return Response.noContent().build();
+    }
+
+    private String setTimeOfFlowComponentUpdate(String newFlowContentJson, String existingFlowContentJson) throws JSONBException {
+        final FlowContent existingFlowContent = jsonbContext.unmarshall(existingFlowContentJson, FlowContent.class);
+        final FlowContent newFlowContent = jsonbContext.unmarshall(newFlowContentJson, FlowContent.class);
+        if(!existingFlowContent.getComponents().equals(newFlowContent.getComponents())){
+            newFlowContent.withTimeOfFlowComponentUpdate(new Date());
+        }
+        return jsonbContext.marshall(newFlowContent);
     }
 
 }

@@ -37,7 +37,7 @@ import static org.junit.Assert.assertThat;
 public class FlowTest {
     private static final long ID = 42L;
     private static final long VERSION = 1L;
-    private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstance();
+    private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstanceWithTimeOfFlowComponentUpdate();
 
     @Test(expected = NullPointerException.class)
     public void constructor_contentArgIsNull_throws() {

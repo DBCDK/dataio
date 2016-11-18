@@ -84,7 +84,13 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForFlowContent() throws Exception {
-        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstanceWithTimeOfFlowComponentUpdate());
+        jsonbContext.unmarshall(json, FlowContent.class);
+    }
+
+    @Test
+    public void verify_jsonMarshallingForFlowContentWithouTimeOfFlowComponentUpdate() throws Exception {
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstanceWithoutTimeOfFlowComponentUpdate());
         jsonbContext.unmarshall(json, FlowContent.class);
     }
 

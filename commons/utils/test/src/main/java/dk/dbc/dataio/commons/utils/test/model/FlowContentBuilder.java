@@ -26,6 +26,7 @@ import dk.dbc.dataio.commons.types.FlowContent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class FlowContentBuilder {
@@ -33,6 +34,7 @@ public class FlowContentBuilder {
     private String description = "description";
     private List<FlowComponent> components = new ArrayList<>(Collections.singletonList(
             new FlowComponentBuilder().build()));
+    private Date timeOfFlowComponentUpdate = null;
 
     public FlowContentBuilder setDescription(String description) {
         this.description = description;
@@ -49,7 +51,12 @@ public class FlowContentBuilder {
         return this;
     }
 
+    public FlowContentBuilder setTimeOfFlowComponentUpdate(Date timeOfFlowComponentUpdate) {
+        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
+        return this;
+    }
+
     public FlowContent build() {
-        return new FlowContent(name, description, components);
+        return new FlowContent(name, description, components, timeOfFlowComponentUpdate);
     }
 }

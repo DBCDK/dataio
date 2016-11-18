@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -42,41 +43,48 @@ public class FlowContentTest {
     private static final String NAME = "name";
     private static final String DESCRIPTION = "description";
     private static final List<FlowComponent> COMPONENTS = Collections.singletonList(FlowComponentTest.newFlowComponentInstance());
+    private static final Date TIME_OF_FLOW_COMPONENT_UPDATE = new Date();
 
     @Test(expected = NullPointerException.class)
     public void constructor_nameArgIsNull_throws() {
-        new FlowContent(null, DESCRIPTION, COMPONENTS);
+        new FlowContent(null, DESCRIPTION, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_nameArgIsEmpty_throws() {
-        new FlowContent("", DESCRIPTION, COMPONENTS);
+        new FlowContent("", DESCRIPTION, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_descriptionArgIsNull_throws() {
-        new FlowContent(NAME, null, COMPONENTS);
+        new FlowContent(NAME, null, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void constructor_descriptionArgIsEmpty_throws() {
-        new FlowContent(NAME, "", COMPONENTS);
+        new FlowContent(NAME, "", COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
     }
 
     @Test(expected = NullPointerException.class)
     public void constructor_componentsArgIsNull_throws() {
-        new FlowContent(NAME, DESCRIPTION, null);
+        new FlowContent(NAME, DESCRIPTION, null, TIME_OF_FLOW_COMPONENT_UPDATE);
     }
 
     @Test
     public void constructor_allArgsAreValid_returnsNewInstance() {
-        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, COMPONENTS);
+        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
         assertThat(instance, is(notNullValue()));
     }
 
     @Test
     public void constructor_componentsArgIsEmpty_returnsNewInstance() {
-        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, new ArrayList<FlowComponent>(0));
+        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, new ArrayList<>(0), TIME_OF_FLOW_COMPONENT_UPDATE);
+        assertThat(instance, is(notNullValue()));
+    }
+
+    @Test
+    public void constructor_timeOfFlowComponentUpdateArgIsNull_returnsNewInstance() {
+        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, COMPONENTS, null);
         assertThat(instance, is(notNullValue()));
     }
 
@@ -84,7 +92,7 @@ public class FlowContentTest {
     public void verify_defensiveCopyingOfComponentsList() {
         final List<FlowComponent> components = new ArrayList<>();
         components.add(FlowComponentTest.newFlowComponentInstance());
-        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, components);
+        final FlowContent instance = new FlowContent(NAME, DESCRIPTION, components, TIME_OF_FLOW_COMPONENT_UPDATE);
         assertThat(instance.getComponents().size(), is(1));
         components.add(null);
         final List<FlowComponent> returnedComponents = instance.getComponents();
@@ -93,7 +101,11 @@ public class FlowContentTest {
         assertThat(instance.getComponents().size(), is(1));
     }
 
-    public static FlowContent newFlowContentInstance() {
+    public static FlowContent newFlowContentInstanceWithTimeOfFlowComponentUpdate() {
+        return new FlowContent(NAME, DESCRIPTION, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
+    }
+
+    public static FlowContent newFlowContentInstanceWithoutTimeOfFlowComponentUpdate() {
         return new FlowContent(NAME, DESCRIPTION, COMPONENTS);
     }
 }

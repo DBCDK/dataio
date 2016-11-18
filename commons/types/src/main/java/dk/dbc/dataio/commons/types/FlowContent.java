@@ -23,21 +23,25 @@ package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * FlowContent DTO class.
  */
+@JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
 public class FlowContent implements Serializable {
     private static final long serialVersionUID = 5520247158829273054L;
 
     private final String name;
     private final String description;
     private final List<FlowComponent> components;
+    private Date timeOfFlowComponentUpdate;
 
     /**
      * Class constructor
@@ -52,7 +56,8 @@ public class FlowContent implements Serializable {
     @JsonCreator
     public FlowContent(@JsonProperty("name") String name,
                        @JsonProperty("description") String description,
-                       @JsonProperty("components") List<FlowComponent> components) {
+                       @JsonProperty("components") List<FlowComponent> components,
+                       @JsonProperty("timeOfFlowComponentUpdate") Date timeOfFlowComponentUpdate) {
 
         this.name = InvariantUtil.checkNotNullNotEmptyOrThrow(name, "name");
         this.description = InvariantUtil.checkNotNullNotEmptyOrThrow(description, "description");
@@ -60,6 +65,12 @@ public class FlowContent implements Serializable {
         // (or as near as) this should be sufficient to ensure immutability of this
         // class.
         this.components = new ArrayList<>(InvariantUtil.checkNotNullOrThrow(components, "components"));
+        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
+    }
+
+
+    public FlowContent(String name, String description, List<FlowComponent> components) {
+        this(name, description, components, null);
     }
 
     public List<FlowComponent> getComponents() {
@@ -72,6 +83,15 @@ public class FlowContent implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public Date getTimeOfFlowComponentUpdate() {
+        return timeOfFlowComponentUpdate;
+    }
+
+    public FlowContent withTimeOfFlowComponentUpdate(Date timeOfFlowComponentUpdate) {
+        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
+        return this;
     }
 
     @Override

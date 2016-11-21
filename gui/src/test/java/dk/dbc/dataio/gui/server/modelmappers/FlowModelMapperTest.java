@@ -33,13 +33,18 @@ import dk.dbc.dataio.gui.client.model.FlowComponentModel;
 import dk.dbc.dataio.gui.client.model.FlowModel;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowComponentModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.FlowModelBuilder;
+import dk.dbc.dataio.gui.client.util.Format;
 import org.junit.Test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -51,11 +56,12 @@ import static org.junit.Assert.fail;
  *  unitOfWork_stateUnderTest_expectedBehavior
  */
 public class FlowModelMapperTest {
-
+    private final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
     private static final long   ID = 746L;
     private static final long   VERSION = 8483L;
     private static final String NAME = "the name";
     private static final String DESCRIPTION = "the description";
+    private static final Date TIME_OF_FLOW_COMPONENT_UPDATE = new Date();
 
     private static final long   FLOW_COMPONENT_ID_1 = 364L;
     private static final long   FLOW_COMPONENT_VERSION_1 = 156L;
@@ -72,7 +78,7 @@ public class FlowModelMapperTest {
     public void toModel_validInputNoFlowComponents_returnsValidModelNoFlowComponents() {
 
         List<FlowComponent> components = new ArrayList<>();
-        FlowContent flowContent = new FlowContent(NAME, DESCRIPTION, components);
+        FlowContent flowContent = new FlowContent(NAME, DESCRIPTION, components, TIME_OF_FLOW_COMPONENT_UPDATE);
         Flow flow = new Flow(ID, VERSION, flowContent);
 
         FlowModel model = FlowModelMapper.toModel(flow);
@@ -80,11 +86,12 @@ public class FlowModelMapperTest {
         assertThat(model.getVersion(), is(VERSION));
         assertThat(model.getFlowName(), is(NAME));
         assertThat(model.getDescription(), is(DESCRIPTION));
+        assertThat(model.getTimeOfFlowComponentUpdate(), is(simpleDateFormat.format(TIME_OF_FLOW_COMPONENT_UPDATE)));
         assertThat(model.getFlowComponents().size(), is(0));
     }
 
     @Test
-    public void toModel_validInput_returnsValidModel() {
+    public void toModel_validInput_returnsValidModel() throws ParseException {
 
         List<FlowComponent> components = new ArrayList<>();
         components.add(new FlowComponentBuilder()
@@ -98,6 +105,7 @@ public class FlowModelMapperTest {
         FlowContent flowContent = new FlowContentBuilder()
                 .setName(NAME)
                 .setDescription(DESCRIPTION)
+                .setTimeOfFlowComponentUpdate(TIME_OF_FLOW_COMPONENT_UPDATE)
                 .setComponents(components)
                 .build();
 
@@ -122,6 +130,7 @@ public class FlowModelMapperTest {
         assertThat(flow.getVersion(), is(model.getVersion()));
         assertThat(flow.getContent().getName(), is(model.getFlowName()));
         assertThat(flow.getContent().getDescription(), is(model.getDescription()));
+        assertThat(simpleDateFormat.format(flow.getContent().getTimeOfFlowComponentUpdate()), is(model.getTimeOfFlowComponentUpdate()));
         assertThat(flow.getContent().getComponents().size(), is(2));
         assertFlowComponentEquals(flow.getContent().getComponents().get(0), model.getFlowComponents().get(0), null);
         assertFlowComponentEquals(flow.getContent().getComponents().get(1), model.getFlowComponents().get(1), null);
@@ -234,7 +243,7 @@ public class FlowModelMapperTest {
         flowComponents.add(flowComponent1);
         flowComponents.add(flowComponent2);
 
-        FlowModel model = new FlowModelBuilder().setId(ID).setVersion(VERSION).setName(NAME).setDescription(DESCRIPTION).setComponents(components).build();
+        FlowModel model = new FlowModelBuilder().setId(ID).setVersion(VERSION).setName(NAME).setDescription(DESCRIPTION).setTimeOfFlowComponentUpdate("").setComponents(components).build();
 
         // Convert model to flow content
         FlowContent flowContent = FlowModelMapper.toFlowContent(model, flowComponents);
@@ -247,6 +256,7 @@ public class FlowModelMapperTest {
         // Verify that the mapping between flow model object and flow object is correct
         assertThat(flowContent.getName(), is(model.getFlowName()));
         assertThat(flowContent.getDescription(), is(model.getDescription()));
+        assertThat(flowContent.getTimeOfFlowComponentUpdate(), is(nullValue()));
         assertThat(flowContent.getComponents().size(), is(2));
         assertFlowComponentEquals(flowContent.getComponents().get(0), flowComponentModel1, javaScript1.getJavascript());
         assertFlowComponentEquals(flowContent.getComponents().get(1), flowComponentModel2, javaScript2.getJavascript());

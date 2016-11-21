@@ -33,6 +33,7 @@ public class FlowModelBuilder {
     private long version = 1L;
     private String name = "name";
     private String description = "description";
+    private String timeOfFlowComponentUpdate = "2016-11-18 15:24:40";
     private List<FlowComponentModel> flowComponents = new ArrayList<FlowComponentModel>(Collections.singletonList(
             new FlowComponentModelBuilder().build()));
 
@@ -56,12 +57,17 @@ public class FlowModelBuilder {
         return this;
     }
 
+    public FlowModelBuilder setTimeOfFlowComponentUpdate(String timeOfFlowComponentUpdate) {
+        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
+        return this;
+    }
+
     public FlowModelBuilder setComponents(List<FlowComponentModel> flowComponents) {
-        this.flowComponents = new ArrayList<FlowComponentModel>(flowComponents);
+        this.flowComponents = new ArrayList<>(flowComponents);
         return this;
     }
 
     public FlowModel build() {
-        return new FlowModel(id, version, name, description, flowComponents);
+        return new FlowModel(id, version, name, description, timeOfFlowComponentUpdate, flowComponents);
     }
 }

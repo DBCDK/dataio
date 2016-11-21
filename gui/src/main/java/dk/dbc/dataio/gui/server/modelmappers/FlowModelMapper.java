@@ -25,11 +25,15 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowContent;
 import dk.dbc.dataio.gui.client.model.FlowModel;
+import dk.dbc.dataio.gui.client.util.Format;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class FlowModelMapper {
+    private final static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(Format.LONG_DATE_TIME_FORMAT);
 
     /**
      * Private Constructor prevents instantiation of this static class
@@ -47,6 +51,7 @@ public final class FlowModelMapper {
                 flow.getVersion(),
                 flow.getContent().getName(),
                 flow.getContent().getDescription(),
+                flow.getContent().getTimeOfFlowComponentUpdate() == null ? "" : simpleDateFormat.format(flow.getContent().getTimeOfFlowComponentUpdate()),
                 FlowComponentModelMapper.toListOfFlowComponentModels(flow.getContent().getComponents())
         );
     }
@@ -67,12 +72,16 @@ public final class FlowModelMapper {
         if(!matches.isEmpty()) {
            throw new IllegalArgumentException(buildPatternMatchesErrorMsg(matches));
         }
-
-        return new FlowContent(
-                model.getFlowName(),
-                model.getDescription(),
-                flowComponents
-        );
+        try {
+            return new FlowContent(
+                    model.getFlowName(),
+                    model.getDescription(),
+                    flowComponents,
+                    model.getTimeOfFlowComponentUpdate().isEmpty() ? null : simpleDateFormat.parse(model.getTimeOfFlowComponentUpdate())
+            );
+        } catch (ParseException e) {
+            throw new IllegalArgumentException("error parsing timeOfFlowComponentUpdate");
+        }
     }
 
     /**

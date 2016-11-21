@@ -42,6 +42,7 @@ public class FlowModelTest {
         assertThat(model.getVersion(), is(0L));
         assertThat(model.getFlowName(), is(""));
         assertThat(model.getDescription(), is(""));
+        assertThat(model.getTimeOfFlowComponentUpdate(), is(""));
         assertThat(model.getFlowComponents().size(), is(0));
     }
 
@@ -62,7 +63,7 @@ public class FlowModelTest {
     @Test
     public void isInputFieldsEmpty_emptyFlowDescriptionMapInput_returnsTrue() {
         FlowModel model = getTestModel();
-        model.setFlowComponents(new ArrayList<FlowComponentModel>());
+        model.setFlowComponents(new ArrayList<>());
         assertThat(model.isInputFieldsEmpty(), is(true));
     }
 
@@ -93,7 +94,7 @@ public class FlowModelTest {
     }
 
     private FlowModel getTestModel() {
-        return new FlowModel(11, 22, "Name", "Description", Collections.singletonList(new FlowComponentModelBuilder().build()));
+        return new FlowModel(11, 22, "Name", "Description", "2016-11-18 15:24:40", Collections.singletonList(new FlowComponentModelBuilder().build()));
     }
 
 }

@@ -30,12 +30,14 @@ public class FlowModel extends GenericBackendModel {
 
     private String flowName;
     private String description;
+    private String timeOfFlowComponentUpdate;
     private List<FlowComponentModel> flowComponents;
 
-    public FlowModel(long id, long version, String name, String description, List<FlowComponentModel> flowComponents) {
+    public FlowModel(long id, long version, String name, String description, String timeOfFlowComponentUpdate, List<FlowComponentModel> flowComponents) {
         super(id, version);
         this.flowName = name;
         this.description = description;
+        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
         this.flowComponents = flowComponents;
     }
 
@@ -43,7 +45,8 @@ public class FlowModel extends GenericBackendModel {
         super(0L, 0L);
         this.flowName = "";
         this.description = "";
-        this.flowComponents = new ArrayList<FlowComponentModel>();
+        this.timeOfFlowComponentUpdate = "";
+        this.flowComponents = new ArrayList<>();
     }
 
     /**
@@ -74,6 +77,13 @@ public class FlowModel extends GenericBackendModel {
      */
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    /**
+     * @return timeOfFlowComponentUpdate The time where the flowComponent within the flow was last updated
+     */
+    public String getTimeOfFlowComponentUpdate() {
+        return timeOfFlowComponentUpdate;
     }
 
     /**

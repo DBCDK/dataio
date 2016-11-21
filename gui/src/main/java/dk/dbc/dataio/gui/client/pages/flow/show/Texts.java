@@ -41,6 +41,9 @@ public interface Texts extends Constants {
     String columnHeader_FlowComponents();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String columnHeader_TimeOfFlowComponentUpdate();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Action_Refresh();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)

@@ -78,12 +78,13 @@ public class View extends ViewWidget {
      */
     @SuppressWarnings("unchecked")
     private void setupColumns() {
-        dataProvider = new ListDataProvider<FlowModel>();
+        dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(flowsTable);
 
         flowsTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
         flowsTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
         flowsTable.addColumn(constructFlowComponentsColumn(), getTexts().columnHeader_FlowComponents());
+        flowsTable.addColumn(constructTimeOfFlowComponentUpdateColumn(), getTexts().columnHeader_TimeOfFlowComponentUpdate());
         flowsTable.addColumn(constructRefreshActionColumn(), getTexts().columnHeader_Action_Refresh());
         flowsTable.addColumn(constructEditActionColumn(), getTexts().columnHeader_Action_Edit());
         flowsTable.setSelectionModel(selectionModel);
@@ -134,6 +135,22 @@ public class View extends ViewWidget {
             }
         };
     }
+
+    /**
+     * This method constructs the timeOfFlowComponentUpdate column
+     * Should have been private, but is package-private to enable unit test
+     *
+     * @return the constructed timeOfFlowComponentUpdate column
+     */
+    Column constructTimeOfFlowComponentUpdateColumn() {
+        return new TextColumn<FlowModel>() {
+            @Override
+            public String getValue(FlowModel model) {
+                return model.getTimeOfFlowComponentUpdate();
+            }
+        };
+    }
+
 
     /**
      * This method constructs the Action column

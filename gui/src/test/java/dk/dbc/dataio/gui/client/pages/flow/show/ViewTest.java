@@ -65,7 +65,7 @@ public class ViewTest {
     private FlowComponentModel flowComponentModel1 = new FlowComponentModelBuilder().setName("FCnam1").setSvnRevision("FCsrv1").setSvnNext("FCsrv1").build();
     private FlowComponentModel flowComponentModel2 = new FlowComponentModelBuilder().setName("FCnam2").setSvnRevision("FCsrv2").setSvnNext("FCsrv4").build();
     private FlowComponentModel flowComponentModel3 = new FlowComponentModelBuilder().setName("FCnam3").setSvnRevision("FCsrv3").setSvnNext("").build();
-    private FlowModel flowModel1 = new FlowModelBuilder().setName("Fnam1").setComponents(Collections.singletonList(flowComponentModel1)).build();
+    private FlowModel flowModel1 = new FlowModelBuilder().setName("Fnam1").setTimeOfFlowComponentUpdate("2016-11-18 15:24:40").setComponents(Collections.singletonList(flowComponentModel1)).build();
     private FlowModel flowModel2 = new FlowModelBuilder().setName("Fnam2").setComponents(Arrays.asList(flowComponentModel2, flowComponentModel3)).build();
     private FlowModel flowModel3 = new FlowModelBuilder().setName("Fnam3").setComponents(Collections.singletonList(flowComponentModel3)).build();
     private List<FlowModel> flowModels = Arrays.asList(flowModel1, flowModel2);
@@ -79,6 +79,7 @@ public class ViewTest {
     final static String MOCKED_COLUMNHEADER_NAME = "Mocked Text: columnHeader_Name";
     final static String MOCKED_COLUMNHEADER_DESCRIPTION = "Mocked Text: columnHeader_Description";
     final static String MOCKED_COLUMNHEADER_FLOWCOMPONENTS = "Mocked Text: columnHeader_FlowComponents";
+    final static String MOCKED_COLUMNHEADER_TIME_OF_FLOW_COMPONENT_UPDATE = "Mocked Text: columnHeader_TimeOfFlowComponentUpdate";
     final static String MOCKED_COLUMNHEADER_ACTION_REFRESH = "Mocked Text: columnHeader_Action_Refresh";
     final static String MOCKED_COLUMNHEADER_ACTION_EDIT = "Mocked Text: columnHeader_Action_edit";
     final static String MOCKED_BUTTON_REFRESH = "Mocked Text: button_Refresh";
@@ -107,6 +108,7 @@ public class ViewTest {
         when(mockedTexts.columnHeader_Name()).thenReturn(MOCKED_COLUMNHEADER_NAME);
         when(mockedTexts.columnHeader_Description()).thenReturn(MOCKED_COLUMNHEADER_DESCRIPTION);
         when(mockedTexts.columnHeader_FlowComponents()).thenReturn(MOCKED_COLUMNHEADER_FLOWCOMPONENTS);
+        when(mockedTexts.columnHeader_TimeOfFlowComponentUpdate()).thenReturn(MOCKED_COLUMNHEADER_TIME_OF_FLOW_COMPONENT_UPDATE);
         when(mockedTexts.columnHeader_Action_Refresh()).thenReturn(MOCKED_COLUMNHEADER_ACTION_REFRESH);
         when(mockedTexts.columnHeader_Action_Edit()).thenReturn(MOCKED_COLUMNHEADER_ACTION_EDIT);
         when(mockedTexts.button_Refresh()).thenReturn(MOCKED_BUTTON_REFRESH);
@@ -123,6 +125,7 @@ public class ViewTest {
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_NAME));
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_DESCRIPTION));
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_FLOWCOMPONENTS));
+        verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_TIME_OF_FLOW_COMPONENT_UPDATE));
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION_REFRESH));
         verify(view.flowsTable).addColumn(isA(Column.class), eq(MOCKED_COLUMNHEADER_ACTION_EDIT));
     }
@@ -166,7 +169,7 @@ public class ViewTest {
         Column column = view.constructNameColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowModel1), is(flowModel1.getFlowName()));
+        assertThat(column.getValue(flowModel1), is(flowModel1.getFlowName()));
     }
 
     @Test
@@ -178,7 +181,19 @@ public class ViewTest {
         Column column = view.constructDescriptionColumn();
 
         // Test that correct getValue handler has been setup
-        assertThat((String) column.getValue(flowModel1), is(flowModel1.getDescription()));
+        assertThat(column.getValue(flowModel1), is(flowModel1.getDescription()));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void constructTimeOfFlowComponentUpdate_call_correctlySetup() {
+        setupView();
+
+        // Subject Under Test
+        Column column = view.constructTimeOfFlowComponentUpdateColumn();
+
+        // Test that correct getValue handler has been setup
+        assertThat(column.getValue(flowModel1), is(flowModel1.getTimeOfFlowComponentUpdate()));
     }
 
     @Test
@@ -191,7 +206,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         String expected = flowComponentModel1.getName() + " (SVN Rev. " + flowComponentModel1.getSvnRevision() + ", SVN Next. " + flowComponentModel1.getSvnNext() + ")";
-        assertThat((String) column.getValue(flowModel1), is(expected));
+        assertThat(column.getValue(flowModel1), is(expected));
     }
 
     @Test
@@ -204,7 +219,7 @@ public class ViewTest {
 
         // Test that correct getValue handler has been setup
         String expected = flowComponentModel3.getName() + " (SVN Rev. " + flowComponentModel3.getSvnRevision() + ")";
-        assertThat((String) column.getValue(flowModel3), is(expected));
+        assertThat(column.getValue(flowModel3), is(expected));
     }
 
     @Test
@@ -219,7 +234,7 @@ public class ViewTest {
         String expected =
                 flowComponentModel2.getName() + " (SVN Rev. " + flowComponentModel2.getSvnRevision() + ", SVN Next. " + flowComponentModel2.getSvnNext() + "), " +
                 flowComponentModel3.getName() + " (SVN Rev. " + flowComponentModel3.getSvnRevision() + ")";
-        assertThat((String) column.getValue(flowModel2), is(expected));
+        assertThat(column.getValue(flowModel2), is(expected));
     }
 
     @Test

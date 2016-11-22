@@ -289,7 +289,6 @@ public class FlowsBean extends AbstractResourceBean {
      */
     @SuppressWarnings("PMD.UnusedPrivateMethod")
     private Response updateFlowContent(String flowContent, Long id, Long version) throws JSONBException {
-        log.info("SMA LOG");
         InvariantUtil.checkNotNullNotEmptyOrThrow(flowContent, FLOW_CONTENT_DISPLAY_TEXT);
         final Flow flowEntity = entityManager.find(Flow.class, id);
         if (flowEntity == null) {
@@ -351,8 +350,9 @@ public class FlowsBean extends AbstractResourceBean {
         final FlowContent newFlowContent = jsonbContext.unmarshall(newFlowContentJson, FlowContent.class);
         if(!existingFlowContent.getComponents().equals(newFlowContent.getComponents())){
             newFlowContent.withTimeOfFlowComponentUpdate(new Date());
+            return jsonbContext.marshall(newFlowContent);
         }
-        return jsonbContext.marshall(newFlowContent);
+        return newFlowContentJson;
     }
 
 }

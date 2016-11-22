@@ -68,7 +68,6 @@ public class FlowContent implements Serializable {
         this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
     }
 
-
     public FlowContent(String name, String description, List<FlowComponent> components) {
         this(name, description, components, null);
     }
@@ -90,7 +89,7 @@ public class FlowContent implements Serializable {
     }
 
     public FlowContent withTimeOfFlowComponentUpdate(Date timeOfFlowComponentUpdate) {
-        this.timeOfFlowComponentUpdate = timeOfFlowComponentUpdate;
+        this.timeOfFlowComponentUpdate = new Date(timeOfFlowComponentUpdate.getTime());
         return this;
     }
 

@@ -101,11 +101,7 @@ public class FlowContentTest {
         assertThat(instance.getComponents().size(), is(1));
     }
 
-    public static FlowContent newFlowContentInstanceWithTimeOfFlowComponentUpdate() {
-        return new FlowContent(NAME, DESCRIPTION, COMPONENTS, TIME_OF_FLOW_COMPONENT_UPDATE);
-    }
-
-    public static FlowContent newFlowContentInstanceWithoutTimeOfFlowComponentUpdate() {
+    public static FlowContent newFlowContentInstance() {
         return new FlowContent(NAME, DESCRIPTION, COMPONENTS);
     }
 }

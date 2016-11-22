@@ -23,6 +23,8 @@ package dk.dbc.dataio.commons.types;
 
 import org.junit.Test;
 
+import java.util.Date;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
@@ -37,7 +39,7 @@ import static org.junit.Assert.assertThat;
 public class FlowTest {
     private static final long ID = 42L;
     private static final long VERSION = 1L;
-    private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstanceWithTimeOfFlowComponentUpdate();
+    private static final FlowContent CONTENT = FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date());
 
     @Test(expected = NullPointerException.class)
     public void constructor_contentArgIsNull_throws() {

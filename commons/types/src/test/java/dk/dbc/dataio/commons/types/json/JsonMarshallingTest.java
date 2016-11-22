@@ -53,6 +53,7 @@ import dk.dbc.dataio.jsonb.JSONBContext;
 import org.junit.Test;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 public class JsonMarshallingTest {
 
@@ -84,13 +85,13 @@ public class JsonMarshallingTest {
 
     @Test
     public void verify_jsonMarshallingForFlowContent() throws Exception {
-        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstanceWithTimeOfFlowComponentUpdate());
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance().withTimeOfFlowComponentUpdate(new Date()));
         jsonbContext.unmarshall(json, FlowContent.class);
     }
 
     @Test
-    public void verify_jsonMarshallingForFlowContentWithouTimeOfFlowComponentUpdate() throws Exception {
-        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstanceWithoutTimeOfFlowComponentUpdate());
+    public void verify_jsonMarshallingForFlowContentWithoutTimeOfFlowComponentUpdate() throws Exception {
+        final String json = jsonbContext.marshall(FlowContentTest.newFlowContentInstance());
         jsonbContext.unmarshall(json, FlowContent.class);
     }
 

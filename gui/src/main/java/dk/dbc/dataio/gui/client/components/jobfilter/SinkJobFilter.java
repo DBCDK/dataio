@@ -51,7 +51,7 @@ public class SinkJobFilter extends BaseJobFilter {
 
     private static SinkJobFilterUiBinder ourUiBinder = GWT.create(SinkJobFilterUiBinder.class);
 
-    private String filterParameter;  // This variable is used while the list of available sinks is being built up - whenever it has been fetched in the callback class, it is not used anymore...
+    private String filterParameter = "";  // This variable is used while the list of available sinks is being built up - whenever it has been fetched in the callback class, it is not used anymore...
     FlowStoreProxyAsync flowStoreProxy;
 
 
@@ -113,13 +113,14 @@ public class SinkJobFilter extends BaseJobFilter {
     /**
      * Sets the selection according to the key value, setup in the parameter attribute<br>
      * The value is given in url as a plain integer, as an index to the sink
-     * @param parameter The filter parameters to be used by this job filter
+     * @param parameter The filter parameter to be used by this job filter
      */
     @Override
     public void setParameter(String parameter) {
-        if (!parameter.isEmpty()) {
-            sinkList.setSelectedValue(parameter);
+        if (filterParameter != null) {  // List of actual Sinks has not yet been found
+            filterParameter = parameter;  // Replace current temporary sink value parameter
         }
+        sinkList.setSelectedValue(parameter);
     }
 
     /**
@@ -154,9 +155,7 @@ public class SinkJobFilter extends BaseJobFilter {
         public void onSuccess(List<SinkModel> models) {
             String NO_SINK_ID_SELECTED = "0";
             sinkList.addAvailableItem(texts.sinkFilter_ChooseASinkName(), NO_SINK_ID_SELECTED);
-            for (SinkModel model: models) {
-                sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId()));
-            }
+            models.forEach(model -> sinkList.addAvailableItem(model.getSinkName(), String.valueOf(model.getId())));
             sinkList.setEnabled(true);
             setParameter(filterParameter);
             filterParameter = null;

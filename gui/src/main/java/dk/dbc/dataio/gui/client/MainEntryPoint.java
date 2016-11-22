@@ -95,10 +95,10 @@ public class MainEntryPoint implements EntryPoint {
         // Show the root panel
         RootLayoutPanel.get().add(appPanel);
 
-//        extra();
+//        eventBusDebug();
     }
 
-    private void extra() {
+    private void eventBusDebug() {
         EventBus eventBus = clientFactory.getEventBus();
         eventBus.addHandler(PlaceChangeEvent.TYPE, event -> GWT.log("++++> PlaceChangeEvent - New Place: -> " + event.getNewPlace()));
     }

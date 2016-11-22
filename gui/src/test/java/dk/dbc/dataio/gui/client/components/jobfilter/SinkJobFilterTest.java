@@ -207,6 +207,7 @@ public class SinkJobFilterTest {
         jobFilter.setParameter("");
 
         // Verify test
+        verify(jobFilter.sinkList).setSelectedValue("");
         verifyNoMoreInteractions(jobFilter.sinkList);
     }
 

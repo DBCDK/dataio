@@ -115,35 +115,37 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         return JobModelMapper.toModel(jobInfoSnapshotList);
     }
 
-    public JobModel fetchEarliestActiveJob() throws ProxyException {
+    public JobModel fetchEarliestActiveJob(int sinkId) throws ProxyException {
         final List<JobInfoSnapshot> jobInfoSnapshots;
         log.trace("JobStoreProxy: fetchEarliestActiveJob()");
         final StopWatch stopWatch = new StopWatch();
         try {
             JobListCriteria criteria = new JobListCriteria()
-                    .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TRANSIENT\"}"))
-                    .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"PERSISTENT\"}"));
-            criteria.and(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, "5401")));
+                    .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
+                    .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
+            criteria.and(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, String.valueOf(sinkId))));
+            criteria.and(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
+            criteria.orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
             jobInfoSnapshots = jobStoreServiceConnector.listJobs(criteria);
         } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
             if (e.getJobError() != null) {
-                log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
+                log.error("JobStoreProxy: fetchEarliestActiveJob - Unexpected Status Code Exception({}, {})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription(), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e.getJobError().getDescription());
             }
             else {
-                log.error("JobStoreProxy: listJobs - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+                log.error("JobStoreProxy: fetchEarliestActiveJob - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
                 throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
             }
         } catch (JobStoreServiceConnectorException e) {
-            log.error("JobStoreProxy: listJobs - Service Not Found Exception", e);
+            log.error("JobStoreProxy: fetchEarliestActiveJob - Service Not Found Exception", e);
             throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
         } catch (IllegalArgumentException e) {
-            log.error("JobStoreProxy: listJobs - Invalid Field Value Exception", e);
+            log.error("JobStoreProxy: fetchEarliestActiveJob - Invalid Field Value Exception", e);
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         } finally {
-            log.debug("JobStoreProxy: listJobs took {} milliseconds", stopWatch.getElapsedTime());
+            log.debug("JobStoreProxy: fetchEarliestActiveJob took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return JobModelMapper.toModel(jobInfoSnapshots.get(jobInfoSnapshots.size()-4));
+        return JobModelMapper.toModel(jobInfoSnapshots.get(0));
     }
 
     @Override

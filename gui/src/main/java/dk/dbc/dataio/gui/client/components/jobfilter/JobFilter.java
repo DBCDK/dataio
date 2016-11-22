@@ -111,10 +111,10 @@ public class JobFilter extends Composite implements HasChangeHandlers {
                     filter.jobFilter.getAddCommand(this).execute();
                 }
             });
-            Presenter presenter = (Presenter) place.presenter;
-            if (presenter != null) {
-                presenter.setPlace(place);
-            }
+        }
+        Presenter presenter = (Presenter) place.presenter;
+        if (presenter != null) {
+            presenter.setPlace(place);
         }
     }
 

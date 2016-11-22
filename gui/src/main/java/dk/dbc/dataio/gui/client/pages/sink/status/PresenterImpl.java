@@ -78,7 +78,6 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     public void showJobsFilteredBySink(long sinkId) {
         ShowTestJobsPlace showTestJobsPlace = ShowTestJobsPlace.getInstance();
         showTestJobsPlace.setToken("SuppressSubmitterJobFilter&SinkJobFilter=" + sinkId + "&ShowEarliestActive");
-        GWT.log("Place goto: SuppressSubmitterJobFilter&SinkJobFilter=" + sinkId + "&ShowEarliestActive");
         placeController.goTo(showTestJobsPlace);
     }
 

@@ -33,7 +33,7 @@ import java.util.List;
 
 public interface JobStoreProxyAsync {
     void listJobs(JobListCriteria model, AsyncCallback<List<JobModel>> async);
-    void fetchEarliestActiveJob(AsyncCallback<JobModel> async);
+    void fetchEarliestActiveJob(int sinkId, AsyncCallback<JobModel> async);
     void countJobs(JobListCriteria model, AsyncCallback<Long> async);
     void listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria, AsyncCallback<List<ItemModel>> async);
     void countItems(ItemListCriteria criteria, AsyncCallback<Long> async);

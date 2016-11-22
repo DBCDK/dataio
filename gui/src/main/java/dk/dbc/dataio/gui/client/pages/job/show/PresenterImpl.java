@@ -27,6 +27,7 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.JobModel;
@@ -183,7 +184,10 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         if (place.getParameters().containsKey(SHOW_EARLIEST_ACTIVE)) {
             place.removeParameter(SHOW_EARLIEST_ACTIVE);  // The token is a one-shot, meaning that it has to be deleted from the place
-            commonInjector.getJobStoreProxyAsync().fetchEarliestActiveJob(new FetchEarliestActiveJobAsyncCallback());
+            commonInjector.getJobStoreProxyAsync().fetchEarliestActiveJob(
+                    Integer.valueOf(place.getParameter(SinkJobFilter.class.getSimpleName())),
+                    new FetchEarliestActiveJobAsyncCallback()
+            );
         }
     }
 
@@ -300,11 +304,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
     private class FetchEarliestActiveJobAsyncCallback implements AsyncCallback<JobModel> {
         @Override
         public void onFailure(Throwable throwable) {
-            view.setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
+            // If no Earliest Active Jobs were found, do nothing - there is no job to select
         }
         @Override
         public void onSuccess(JobModel jobModel) {
-            view.selectionModel.setSelected(jobModel, true);  // What if the table has not yet been fetched?
+            view.selectionModel.setSelected(jobModel, true);
         }
     }
 }

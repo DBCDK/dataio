@@ -37,7 +37,7 @@ import java.util.List;
 @RemoteServiceRelativePath("JobStoreProxy")
 public interface JobStoreProxy extends RemoteService {
     List<JobModel> listJobs(JobListCriteria model) throws ProxyException;
-    JobModel fetchEarliestActiveJob() throws ProxyException;
+    JobModel fetchEarliestActiveJob(int sinkId) throws ProxyException;
     long countJobs(JobListCriteria model) throws ProxyException;
     List<ItemModel> listItems(ItemListCriteria.Field searchType, ItemListCriteria criteria) throws ProxyException;
     long countItems(ItemListCriteria criteria) throws ProxyException;

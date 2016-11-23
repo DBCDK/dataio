@@ -3,7 +3,7 @@
 <resources>
     <admin-object-resource res-adapter="jmsra" res-type="javax.jms.Queue" jndi-name="jms/dataio/dmq">
         <property name="AddressList" value="dbc-openmq:7676"></property>
-        <property name="Name" value="jmsDataioDmq"></property>
+        <property name="Name" value="mq.sys.dmq"></property>
     </admin-object-resource>
 
     <admin-object-resource res-adapter="jmsra" res-type="javax.jms.Queue" jndi-name="jms/dataio/sinks">

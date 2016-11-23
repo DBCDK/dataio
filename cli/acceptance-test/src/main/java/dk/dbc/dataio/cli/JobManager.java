@@ -219,7 +219,7 @@ public class JobManager {
                 itemInfoSnapshot.getChunkId(),
                 itemInfoSnapshot.getItemId() ,
                 State.Phase.DELIVERING);
-        final String recordId = itemInfoSnapshot.getRecordInfo().getId();
+        final String recordId = itemInfoSnapshot.getRecordInfo()!=null?itemInfoSnapshot.getRecordInfo().getId():"";
 
         // The fixed length string is used to make the ascending listing of items correct in jenkins
         return JunitXmlTestCase.failed(

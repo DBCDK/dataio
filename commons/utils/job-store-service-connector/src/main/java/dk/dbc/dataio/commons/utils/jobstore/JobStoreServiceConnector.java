@@ -504,6 +504,7 @@ public class JobStoreServiceConnector {
     /**
      * Retrieves status for a specific sinks
      *
+     * @param sinkId the id of the sink
      * @return sinkStatusSnapshot
      * @throws ProcessingException on general communication error
      * @throws JobStoreServiceConnectorException on general failure to produce sink status

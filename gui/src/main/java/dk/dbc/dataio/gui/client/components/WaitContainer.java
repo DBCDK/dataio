@@ -21,8 +21,6 @@
 
 package dk.dbc.dataio.gui.client.components;
 
-import com.google.gwt.core.client.GWT;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -57,15 +55,11 @@ public class WaitContainer {
      * @param object The object, that is delivered to the Await class
      */
     public void put(String key, Object object) {
-        GWT.log("WaitContainer.put('" + key + "')");
         if (waitingList.containsKey(key)) {
             waitingList.put(key, object);
         }
-        if (areAllReady()) {
-            if (callback != null) {
-                GWT.log("  -> callback, " + waitingList.size() + " items");
-                callback.accept(waitingList);
-            }
+        if (areAllReady() && callback != null) {
+            callback.accept(waitingList);
         }
     }
 

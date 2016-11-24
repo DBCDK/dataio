@@ -79,9 +79,13 @@ import java.util.Set;
         @NamedNativeQuery( name= "SinkIdStatusCount",
                 query = "select sinkid, status, count(*) from dependencytracking group by sinkid, status order by sinkid, status",
                 resultSetMapping = "SinkIdStatusCountResult"
+        ),
+        @NamedNativeQuery(name= DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT,
+                query = "select count (distinct jobid) as numberOfJobs, count(jobid) as NumberOfChunks from dependencytracking where sinkid = ?"
         )
 })
 public class DependencyTrackingEntity {
+    public static final String QUERY_JOB_COUNT_CHUNK_COUNT = "DependencyTracking.jobCountChunkCountResult";
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId) {
         this.key = new Key( chunk.getKey());
         this.sinkid= sinkId;

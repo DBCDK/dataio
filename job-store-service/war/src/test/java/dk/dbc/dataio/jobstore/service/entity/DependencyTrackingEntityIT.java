@@ -2,12 +2,8 @@ package dk.dbc.dataio.jobstore.service.entity;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
-import static java.lang.Integer.max;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.core.Is.is;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,6 +16,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static java.lang.Integer.max;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Created by ja7 on 07-04-16.
@@ -96,7 +97,6 @@ public class DependencyTrackingEntityIT {
 
         assertThat(result.size(), is(10));
 
-        SinkIdStatusCountResult res1=result.get(0);
         em.getTransaction().commit();
         assertThat("result[0]", result.get(0) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_PROCESS, 5)));
         assertThat("result[1]", result.get(1) ,is( new SinkIdStatusCountResult(1,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_PROCESS, 4)));
@@ -109,6 +109,17 @@ public class DependencyTrackingEntityIT {
         assertThat("result[7]", result.get(7) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.BLOCKED, 3)));
         assertThat("result[8]", result.get(8) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER, 4)));
         assertThat("result[9]", result.get(9) ,is( new SinkIdStatusCountResult(1551,DependencyTrackingEntity.ChunkProcessStatus.QUEUED_TO_DELIVERY, 5)));
+    }
+
+    @Test
+    public void FindAllForSinkResultQuery() throws Exception {
+        JPATestUtils.runSqlFromResource(em, this, "dependencyTracking_sinkStatusLoadTest.sql");
+
+        final Query query = em.createNamedQuery(DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT).setParameter(1, 1);
+        final Object[] resultList = (Object[]) query.getSingleResult();
+
+        assertThat(resultList[0], is(1L));  // numberOfJobs
+        assertThat(resultList[1], is(15L)); // numberOfChunks
     }
 
     private <T> Set<T> createSet(T... elements) {

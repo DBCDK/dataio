@@ -36,6 +36,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -474,6 +475,54 @@ public class JobStoreServiceConnector {
             }
         } finally {
             log.debug("JobStoreServiceConnector: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves statuses for all sinks
+     *
+     * @return a list containing status of sink
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on general failure to produce sink status listing
+     */
+    public List<SinkStatusSnapshot> getSinkStatusList() throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: getSinkStatusList()");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final Response response = HttpClient.doGet(httpClient, baseUrl, JobStoreServiceConstants.SINKS_STATUS);
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, new GenericType<List<SinkStatusSnapshot>>() {});
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: getSinkStatusList took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    /**
+     * Retrieves status for a specific sinks
+     *
+     * @return sinkStatusSnapshot
+     * @throws ProcessingException on general communication error
+     * @throws JobStoreServiceConnectorException on general failure to produce sink status
+     */
+    public SinkStatusSnapshot getSinkStatus(int sinkId) throws JobStoreServiceConnectorException {
+        log.trace("JobStoreServiceConnector: getSinkStatus({})", sinkId);
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            final PathBuilder path = new PathBuilder(JobStoreServiceConstants.SINK_STATUS)
+                    .bind(JobStoreServiceConstants.SINK_ID_VARIABLE, sinkId);
+            final Response response = HttpClient.doGet(httpClient, baseUrl, path.build());
+            try {
+                verifyResponseStatus(response, Response.Status.OK);
+                return readResponseEntity(response, SinkStatusSnapshot.class);
+            } finally {
+                response.close();
+            }
+        } finally {
+            log.debug("JobStoreServiceConnector: getSinkStatus took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

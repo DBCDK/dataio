@@ -27,6 +27,7 @@ import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
@@ -50,6 +51,7 @@ import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
+import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -638,6 +640,71 @@ public class JobStoreServiceConnectorTest {
         assertThat(returnedSnapshots, is(expectedSnapshots));
     }
 
+    // ********************************************** getSinkStatusList tests ***********************************************
+
+    @Test
+    public void getSinkStatusList_serviceReturnsUnexpectedStatusCode_throws() throws JobStoreServiceConnectorException {
+        try {
+            callGetSinkStatusListWithMockedHttpResponse(Response.Status.INTERNAL_SERVER_ERROR, null);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+            assertThat(e.getStatusCode(), is(500));
+        }
+    }
+
+    @Test
+    public void getSinkStatusList_serviceReturnsNullEntity_throws() throws JobStoreServiceConnectorException {
+        try {
+            callGetSinkStatusListWithMockedHttpResponse(Response.Status.OK, null);
+            fail("No exception thrown");
+        } catch (JobStoreServiceConnectorException e) {
+        }
+    }
+
+    @Test
+    public void getSinkStatusList_serviceReturnsNonEmptyListEntity_returnsNonEmptyList() throws JobStoreServiceConnectorException {
+        final List<SinkStatusSnapshot> expectedSnapshots = Collections.singletonList(new SinkStatusSnapshot().withName("name").withSinkType(SinkContent.SinkType.ES).withNumberOfChunks(1).withNumberOfJobs(1));
+        final List<SinkStatusSnapshot> returnedSnapshots = callGetSinkStatusListWithMockedHttpResponse(Response.Status.OK, expectedSnapshots);
+        assertThat(returnedSnapshots, is(expectedSnapshots));
+    }
+
+    // ********************************************* getSinkStatus tests ****************************************************
+
+//    @Test
+//    public void getResourceBundle_jobIdArgIsLessThanBound_throws() throws JobStoreServiceConnectorException {
+//        final JobStoreServiceConnector jobStoreServiceConnector = newJobStoreServiceConnector();
+//        try {
+//            jobStoreServiceConnector.getResourceBundle(-1);
+//            fail("No exception thrown");
+//        } catch (IllegalArgumentException e) {}
+//    }
+//
+//    @Test
+//    public void getResourceBundle_badRequestResponse_throws() throws JobStoreServiceConnectorException {
+//        final JobError jobError = new JobError(JobError.Code.INVALID_JOB_IDENTIFIER, "description", null);
+//        try {
+//            callGetResourceBundleWithMockedHttpResponse(JOB_ID, Response.Status.BAD_REQUEST, jobError);
+//        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+//            assertThat("Exception status code", e.getStatusCode(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+//            assertThat("Exception JobError entity not null", e.getJobError(), is(notNullValue()));
+//            assertThat("Exception JobError entity", e.getJobError(), is(jobError));
+//        }
+//    }
+//
+//    @Test
+//    public void getResourceBundle_responseWithNullValuedEntity_throws() throws JobStoreServiceConnectorException {
+//        try {
+//            callGetResourceBundleWithMockedHttpResponse(JOB_ID, Response.Status.INTERNAL_SERVER_ERROR, null);
+//        } catch(JobStoreServiceConnectorException e) {}
+//    }
+
+    @Test
+    public void getSinkStatus_returns() throws JobStoreServiceConnectorException {
+        SinkStatusSnapshot expectedSinkStatusSnapshot = new SinkStatusSnapshot().withName("name").withSinkType(SinkContent.SinkType.ES);
+        final SinkStatusSnapshot returnedSinkStatusSnapshot = callGetSinkStatusWithMockedHttpResponse(1, Response.Status.OK, callGetSinkStatusWithMockedHttpResponse(1, Response.Status.OK, expectedSinkStatusSnapshot));
+        assertThat(returnedSinkStatusSnapshot, is(expectedSinkStatusSnapshot));
+    }
+
     // ******************************************* addNotification() tests *******************************************
 
     @Test(expected = NullPointerException.class)
@@ -884,6 +951,22 @@ public class JobStoreServiceConnectorTest {
                 .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
         final JobStoreServiceConnector instance = newJobStoreServiceConnector();
         return instance.listJobNotificationsForJob(jobId);
+    }
+
+    private List<SinkStatusSnapshot> callGetSinkStatusListWithMockedHttpResponse(Response.Status statusCode, List<SinkStatusSnapshot> responseEntity)
+            throws JobStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, JobStoreServiceConstants.SINKS_STATUS))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), responseEntity));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.getSinkStatusList();
+    }
+
+    private SinkStatusSnapshot callGetSinkStatusWithMockedHttpResponse(int sinkId, Response.Status statusCode, Object returnValue)
+            throws JobStoreServiceConnectorException {
+        when(HttpClient.doGet(CLIENT, JOB_STORE_URL, buildJobIdPath(sinkId, JobStoreServiceConstants.SINK_STATUS)))
+                .thenReturn(new MockedResponse<>(statusCode.getStatusCode(), returnValue));
+        final JobStoreServiceConnector instance = newJobStoreServiceConnector();
+        return instance.getSinkStatus(sinkId);
     }
 
     private ChunkItem callProcessedNextResultWithMockedHttpResponse(int jobId, int chunkId, short itemId, Response.Status statusCode, Object returnValue)

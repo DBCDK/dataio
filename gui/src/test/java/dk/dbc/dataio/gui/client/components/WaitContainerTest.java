@@ -68,7 +68,7 @@ public class WaitContainerTest {
     @Test
     public void constructor_nullLambdaNullKey_noException() {
         // Test Object
-        new WaitContainer(null, null);
+        new WaitContainer(null, (String) null);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class WaitContainerTest {
     @Test
     public void constructor_validLambdaNullKey_noExceptionAndNoCallback() {
         // Test Object
-        new WaitContainer(keys -> {assert(false);}, null);
+        new WaitContainer(keys -> {assert(false);}, (String) null);
     }
 
     @Test

@@ -24,11 +24,25 @@ package dk.dbc.dataio.jobstore.types;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 
-public class SinkStatusSnapshot {
+import java.io.Serializable;
+
+public class SinkStatusSnapshot implements Serializable {
+    private static final long serialVersionUID = -4446705379560875610L;
+
+    private long sinkId;
     private SinkContent.SinkType type;
     private String name;
     private int numberOfJobs;
     private int numberOfChunks;
+
+    public long getSinkId() {
+        return sinkId;
+    }
+
+    public SinkStatusSnapshot withSinkId(long sinkId) {
+        this.sinkId = sinkId;
+        return this;
+    }
 
     public SinkContent.SinkType getType() {
         return type;

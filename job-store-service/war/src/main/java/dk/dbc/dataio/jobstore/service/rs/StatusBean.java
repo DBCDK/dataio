@@ -99,6 +99,7 @@ public class StatusBean implements ServiceStatus {
 
     private SinkStatusSnapshot toSinkStatusSnapshot(Sink sink, Object[] resultList) {
         return new SinkStatusSnapshot()
+                .withSinkId(sink.getId())
                 .withSinkType(sink.getContent().getSinkType())
                 .withName(sink.getContent().getName())
                 .withNumberOfJobs(((Long) resultList[0]).intValue())

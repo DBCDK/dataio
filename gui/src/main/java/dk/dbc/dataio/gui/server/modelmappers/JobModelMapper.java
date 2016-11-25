@@ -260,18 +260,20 @@ public class JobModelMapper {
     private static JobModel.Type getType(JobSpecification.Type type) {
         switch (type) {
             case TRANSIENT: return JobModel.Type.TRANSIENT;
+            case PERSISTENT: return JobModel.Type.PERSISTENT;
             case TEST: return JobModel.Type.TEST;
             case ACCTEST: return JobModel.Type.ACCTEST;
-            default: return JobModel.Type.TRANSIENT;
+            default: throw new IllegalStateException("Unknown JobSpecification Type: " + type.name());
         }
     }
 
     private static JobSpecification.Type getType(JobModel.Type type) {
         switch (type) {
             case TRANSIENT: return JobSpecification.Type.TRANSIENT;
+            case PERSISTENT: return JobSpecification.Type.PERSISTENT;
             case TEST: return JobSpecification.Type.TEST;
             case ACCTEST: return JobSpecification.Type.ACCTEST;
-            default: return JobSpecification.Type.TRANSIENT;
+            default: throw new IllegalStateException("Unknown JobModel Type: " + type.name());
         }
     }
 

@@ -35,6 +35,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>batch-exchange</module>
     <module>openupdate</module>
     <module>dummy</module>
     <module>es</module>

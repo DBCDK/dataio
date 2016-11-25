@@ -24,6 +24,7 @@ package dk.dbc.dataio.jobstore.service.rs;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.types.rest.JobStoreServiceConstants;
 import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
+import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -49,6 +51,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
+@LocalBean
 @javax.ws.rs.Path("/")
 public class StatusBean implements ServiceStatus {
 
@@ -65,8 +68,9 @@ public class StatusBean implements ServiceStatus {
     @GET
     @Path(JobStoreServiceConstants.SINKS_STATUS)
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response getSinkStatusList() throws JSONBException {
-        LOGGER.debug("getSinkStatusList called");
+        LOGGER.trace("getSinkStatusList called");
         try {
             final List<Sink> sinks = flowStoreServiceConnectorBean.getConnector().findAllSinks();
             final List<SinkStatusSnapshot> sinkStatusSnapshots = new ArrayList<>();
@@ -82,8 +86,9 @@ public class StatusBean implements ServiceStatus {
     @GET
     @Path(JobStoreServiceConstants.SINK_STATUS)
     @Produces({ MediaType.APPLICATION_JSON })
+    @Stopwatch
     public Response getSinkStatus(@PathParam(JobStoreServiceConstants.SINK_ID_VARIABLE) long sinkId) throws JSONBException {
-        LOGGER.debug("getSinkStatus called with id {}", sinkId);
+        LOGGER.trace("getSinkStatus called with id {}", sinkId);
         try {
             final Sink sink = flowStoreServiceConnectorBean.getConnector().getSink(sinkId);
             final SinkStatusSnapshot sinkStatusSnapshot = toSinkStatusSnapshot(sink, executeQuery(sink));

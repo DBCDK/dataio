@@ -60,16 +60,16 @@ public class SinkStatusTableTest {
 
     // Test Data
     private List<SinkStatusTable.SinkStatusModel> testData = Arrays.asList(
-            new SinkStatusTable.SinkStatusModel(  54, "Dummy sink", "Dummy sink", 0, 0, 1234567890L),
-            new SinkStatusTable.SinkStatusModel(6601, "Dummy sink", "Tracer bullit sink", 0, 0, 1234567890L),
-            new SinkStatusTable.SinkStatusModel(1551, "ES sink", "Basis22", 2, 4, 1234567890L),
-            new SinkStatusTable.SinkStatusModel(5701, "ES sink", "Danbib3", 0, 0, 1234567890L),
-            new SinkStatusTable.SinkStatusModel( 752, "Hive sink", "Cisterne sink", 34, 56, 1234567890L),
-            new SinkStatusTable.SinkStatusModel(   8, "Hive sink", "Boblebad sink", 32, 54, 1234567890L),
-            new SinkStatusTable.SinkStatusModel(1651, "Update sink", "Cisterne Update sink", 1, 56023, 1234567890L),
-            new SinkStatusTable.SinkStatusModel(5401, "IMS sink", "IMS cisterne sink", 7, 8, 1234567890L)
+            new SinkStatusTable.SinkStatusModel(  54, "Dummy sink", "Dummy sink", 0, 0, null),
+            new SinkStatusTable.SinkStatusModel(6601, "Dummy sink", "Tracer bullit sink", 0, 0, null),
+            new SinkStatusTable.SinkStatusModel(1551, "ES sink", "Basis22", 2, 4, null),
+            new SinkStatusTable.SinkStatusModel(5701, "ES sink", "Danbib3", 0, 0, null),
+            new SinkStatusTable.SinkStatusModel( 752, "Hive sink", "Cisterne sink", 34, 56, null),
+            new SinkStatusTable.SinkStatusModel(   8, "Hive sink", "Boblebad sink", 32, 54, null),
+            new SinkStatusTable.SinkStatusModel(1651, "Update sink", "Cisterne Update sink", 1, 56023, null),
+            new SinkStatusTable.SinkStatusModel(5401, "IMS sink", "IMS cisterne sink", 7, 8, null)
     );
-    private SinkStatusTable.SinkStatusModel testSinkStatus = new SinkStatusTable.SinkStatusModel(3333, "Test sink", "Sink name", 111, 222, 1234567890L);
+    private SinkStatusTable.SinkStatusModel testSinkStatus = new SinkStatusTable.SinkStatusModel(3333, "Test sink", "Sink name", 111, 222, null);
 
 
     // Subject Under Test
@@ -149,7 +149,7 @@ public class SinkStatusTableTest {
         assertThat(sinkStatusTable.getColumn(i++).getValue(testSinkStatus), is("Sink name"));
         assertThat(sinkStatusTable.getColumn(i++).getValue(testSinkStatus), is("111"));
         assertThat(sinkStatusTable.getColumn(i++).getValue(testSinkStatus), is("222"));
-        assertThat(sinkStatusTable.getColumn(i++).getValue(testSinkStatus), is("1970-01-15 07:56:07"));
+        assertThat(sinkStatusTable.getColumn(i++).getValue(testSinkStatus), is("NA"));
     }
 
 

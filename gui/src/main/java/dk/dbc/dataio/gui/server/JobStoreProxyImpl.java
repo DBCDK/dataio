@@ -38,9 +38,11 @@ import dk.dbc.dataio.gui.client.exceptions.StatusCodeTranslator;
 import dk.dbc.dataio.gui.client.model.ItemModel;
 import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
+import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
 import dk.dbc.dataio.gui.client.proxies.JobStoreProxy;
 import dk.dbc.dataio.gui.server.modelmappers.ItemModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.JobModelMapper;
+import dk.dbc.dataio.gui.server.modelmappers.SinkStatusModelMapper;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
@@ -406,6 +408,24 @@ public class JobStoreProxyImpl implements JobStoreProxy {
             throw new ProxyException(ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, e);
         } finally {
             log.debug("JobStoreProxy: setWorkflowNote took {} milliseconds", stopWatch.getElapsedTime());
+        }
+    }
+
+    @Override
+    public List<SinkStatusTable.SinkStatusModel> getSinkStatusModels() throws ProxyException {
+        log.debug("JobStoreProxy: getSinkStatusList()");
+        final StopWatch stopWatch = new StopWatch();
+        try {
+            return SinkStatusModelMapper.toModel(jobStoreServiceConnector.getSinkStatusList());
+        } catch (JobStoreServiceConnectorUnexpectedStatusCodeException e) {
+
+            log.error("JobStoreProxy: getSinkStatusList - Unexpected Status Code Exception({})", StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+            throw new ProxyException(StatusCodeTranslator.toProxyError(e.getStatusCode()), e);
+        } catch (JobStoreServiceConnectorException e) {
+            log.error("JobStoreProxy: getSinkStatusList - Service Not Found Exception", e);
+            throw new ProxyException(ProxyError.SERVICE_NOT_FOUND, e);
+        } finally {
+            log.debug("JobStoreProxy: getSinkStatusList took {} milliseconds", stopWatch.getElapsedTime());
         }
     }
 

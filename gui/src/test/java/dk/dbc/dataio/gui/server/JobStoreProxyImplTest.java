@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.server;
 
 import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.httpclient.HttpClient;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.lang.PrettyPrint;
@@ -33,6 +34,7 @@ import dk.dbc.dataio.gui.client.model.JobModel;
 import dk.dbc.dataio.gui.client.model.WorkflowNoteModel;
 import dk.dbc.dataio.gui.client.modelBuilders.JobModelBuilder;
 import dk.dbc.dataio.gui.client.modelBuilders.WorkflowNoteModelBuilder;
+import dk.dbc.dataio.gui.client.pages.sink.status.SinkStatusTable;
 import dk.dbc.dataio.gui.client.util.Format;
 import dk.dbc.dataio.gui.server.modelmappers.WorkflowNoteModelMapper;
 import dk.dbc.dataio.jobstore.test.types.ItemInfoSnapshotBuilder;
@@ -41,6 +43,7 @@ import dk.dbc.dataio.jobstore.types.ItemInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
 import dk.dbc.dataio.jobstore.types.JobNotification;
+import dk.dbc.dataio.jobstore.types.SinkStatusSnapshot;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
 import dk.dbc.dataio.jobstore.types.criteria.ItemListCriteria;
@@ -355,6 +358,42 @@ public class JobStoreProxyImplTest {
             assertThat(updatedItemModel.getWorkflowNoteModel(), is(workflowNoteModel));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: setWorkflowNote()");
+        }
+    }
+
+    @Test(expected = ProxyException.class)
+    public void getSinkStatusModels_jobStoreServiceConnectorException_throwsProxyException() throws ProxyException, NamingException, JobStoreServiceConnectorException {
+        when(jobStoreServiceConnector.getSinkStatusList()).thenThrow(new JobStoreServiceConnectorException("Testing"));
+
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        jobStoreProxy.getSinkStatusModels();
+    }
+
+    @Test
+    public void getSinkStatusModels_remoteServiceReturnsHttpStatusOk_returnsListOfSinkStatus() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        final SinkStatusSnapshot sinkStatusSnapshot = new SinkStatusSnapshot().withSinkId(1).withSinkType(SinkContent.SinkType.DUMMY).withName("testSink");
+        final SinkStatusTable.SinkStatusModel expectedSinkStatusModel = new SinkStatusTable.SinkStatusModel().withSinkId(1).withSinkType("DUMMY").withName("testSink");
+        when(jobStoreServiceConnector.getSinkStatusList()).thenReturn(Collections.singletonList(sinkStatusSnapshot));
+        try {
+            final List<SinkStatusTable.SinkStatusModel> sinkStatusModels = jobStoreProxy.getSinkStatusModels();
+            assertThat("sinkStatusModels not null", sinkStatusModels, not(nullValue()));
+            assertThat(sinkStatusModels.get(0), is(expectedSinkStatusModel));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getItemData()");
+        }
+    }
+
+    @Test
+    public void getSinkStatusModels_remoteServiceReturnsHttpStatusOk_returnsEmptyList() throws Exception {
+        final JobStoreProxyImpl jobStoreProxy = new JobStoreProxyImpl(jobStoreServiceConnector);
+        when(jobStoreServiceConnector.getSinkStatusList()).thenReturn(Collections.emptyList());
+        try {
+            List<SinkStatusTable.SinkStatusModel> sinkStatusSnapshots = jobStoreProxy.getSinkStatusModels();
+            assertThat(sinkStatusSnapshots, is(notNullValue()));
+            assertThat(sinkStatusSnapshots.isEmpty(), is(true));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: getItemData()");
         }
     }
 

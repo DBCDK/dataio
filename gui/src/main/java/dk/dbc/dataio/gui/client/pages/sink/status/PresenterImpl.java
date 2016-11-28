@@ -27,7 +27,6 @@ import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
-import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.Arrays;
 import java.util.List;
@@ -92,14 +91,14 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     private void fetchSinkStatus() {
         // Temporary fix (until backend is ready)
         List<SinkStatusTable.SinkStatusModel> sinkStatus = Arrays.asList(
-                new SinkStatusTable.SinkStatusModel(  54, "Dummy sink", "Dummy sink", 0, 0, Format.parseLongDateAsLong("2016-09-11 11:22:53")),
-                new SinkStatusTable.SinkStatusModel(6601, "Dummy sink", "Tracer bullit sink", 0, 0, Format.parseLongDateAsLong("2016-10-10 11:11:11")),
-                new SinkStatusTable.SinkStatusModel(1551, "ES sink", "Basis22", 2, 4, Format.parseLongDateAsLong("2016-10-11 11:20:53")),
-                new SinkStatusTable.SinkStatusModel(5701, "ES sink", "Danbib3", 0, 0, Format.parseLongDateAsLong("2016-10-11 11:22:53")),
-                new SinkStatusTable.SinkStatusModel( 752, "Hive sink", "Cisterne sink", 34, 56, Format.parseLongDateAsLong("2016-10-11 11:22:52")),
-                new SinkStatusTable.SinkStatusModel(   8, "Hive sink", "Boblebad sink", 32, 54, Format.parseLongDateAsLong("2016-10-11 11:20:01")),
-                new SinkStatusTable.SinkStatusModel(1651, "Update sink", "Cisterne Update sink", 1, 56023, Format.parseLongDateAsLong("2016-10-11 11:22:53")),
-                new SinkStatusTable.SinkStatusModel(5401, "IMS sink", "IMS cisterne sink", 7, 8, Format.parseLongDateAsLong("2016-10-11 11:22:48"))
+                new SinkStatusTable.SinkStatusModel(  54, "Dummy sink", "Dummy sink", 0, 0, null),
+                new SinkStatusTable.SinkStatusModel(6601, "Dummy sink", "Tracer bullit sink", 0, 0, null),
+                new SinkStatusTable.SinkStatusModel(1551, "ES sink", "Basis22", 2, 4, null),
+                new SinkStatusTable.SinkStatusModel(5701, "ES sink", "Danbib3", 0, 0, null),
+                new SinkStatusTable.SinkStatusModel( 752, "Hive sink", "Cisterne sink", 34, 56, null),
+                new SinkStatusTable.SinkStatusModel(   8, "Hive sink", "Boblebad sink", 32, 54, null),
+                new SinkStatusTable.SinkStatusModel(1651, "Update sink", "Cisterne Update sink", 1, 56023, null),
+                new SinkStatusTable.SinkStatusModel(5401, "IMS sink", "IMS cisterne sink", 7, 8, null)
         );
         getView().setSinkStatus(sinkStatus);
     }

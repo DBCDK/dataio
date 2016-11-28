@@ -309,13 +309,11 @@ public class View extends ViewWidget {
     Column constructAssigneeColumn() {
         TextInputCell textInputCell = new TextInputCell();
         final Cell.Context[] currentContext = new Cell.Context[1];
-        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(textInputCell)
-        {
+        Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(textInputCell) {
             @Override
             public String getValue(JobModel model) {
                 return model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
             }
-
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
                 if(event.getType().equals(BrowserEvents.CHANGE) || event.getKeyCode() == KeyCodes.KEY_ENTER) {
@@ -327,6 +325,19 @@ public class View extends ViewWidget {
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
                 return workFlowColumnsVisible ? "visible" : "invisible";
+            }
+            @Override
+            public void render(Cell.Context context, JobModel jobModel, SafeHtmlBuilder sb) {
+                if (jobModel != null) {
+                    String note = jobModel.getWorkflowNoteModel() == null ? "" : jobModel.getWorkflowNoteModel().getDescription();
+                    if (!note.isEmpty()) {
+                        sb.append(SafeHtmlUtils.fromSafeConstant("<span title='" + note + "'>"));
+                    }
+                    super.render(context, jobModel, sb);
+                    if (!note.isEmpty()) {
+                        sb.append(SafeHtmlUtils.fromSafeConstant("</span>"));
+                    }
+                }
             }
         };
 

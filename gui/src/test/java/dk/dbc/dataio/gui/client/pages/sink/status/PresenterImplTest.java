@@ -24,6 +24,7 @@ package dk.dbc.dataio.gui.client.pages.sink.status;
 
 
 import com.google.gwt.place.shared.PlaceController;
+import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.gui.client.pages.PresenterImplTestBase;
@@ -32,7 +33,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
-import static org.mockito.Matchers.anyList;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -60,6 +61,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedViewGinjector.getTexts()).thenReturn(mockedTexts);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
+        when(mockedCommonGinjector.getJobStoreProxyAsync()).thenReturn(mockedJobStore);
     }
 
     @Before
@@ -82,12 +84,12 @@ public class PresenterImplTest extends PresenterImplTestBase {
         presenterImpl.start(mockedContainerWidget, mockedEventBus);
 
         // Verify Test
-        verify(mockedViewGinjector, times(4)).getView();
+        verify(mockedViewGinjector, times(3)).getView();
         verify(mockedView).setHeader("Sink Status");
         verify(mockedView).setPresenter(presenterImpl);
         verify(mockedView).asWidget();
         verify(mockedContainerWidget).setWidget(mockedViewWidget);
-        verify(mockedView).setSinkStatus(anyList());
+        verify(mockedJobStore).getSinkStatusModels(any(AsyncCallback.class));
         verifyNoMoreInteractionsOnMocks();
     }
 
@@ -107,5 +109,6 @@ public class PresenterImplTest extends PresenterImplTestBase {
     private void setupPresenterImpl() {
         presenterImpl = new PresenterImpl(mockedPlaceController, "Sink Status");
         presenterImpl.viewInjector = mockedViewGinjector;
+        presenterImpl.commonInjector = mockedCommonGinjector;
     }
 }

@@ -26,9 +26,11 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
+import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -38,6 +40,7 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
 
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     private PlaceController placeController;
     private String header;
 
@@ -89,18 +92,18 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * This method fetches all sinks, and sends them to the view
      */
     private void fetchSinkStatus() {
-        // Temporary fix (until backend is ready)
-        List<SinkStatusTable.SinkStatusModel> sinkStatus = Arrays.asList(
-                new SinkStatusTable.SinkStatusModel(  54, "Dummy sink", "Dummy sink", 0, 0, null),
-                new SinkStatusTable.SinkStatusModel(6601, "Dummy sink", "Tracer bullit sink", 0, 0, null),
-                new SinkStatusTable.SinkStatusModel(1551, "ES sink", "Basis22", 2, 4, null),
-                new SinkStatusTable.SinkStatusModel(5701, "ES sink", "Danbib3", 0, 0, null),
-                new SinkStatusTable.SinkStatusModel( 752, "Hive sink", "Cisterne sink", 34, 56, null),
-                new SinkStatusTable.SinkStatusModel(   8, "Hive sink", "Boblebad sink", 32, 54, null),
-                new SinkStatusTable.SinkStatusModel(1651, "Update sink", "Cisterne Update sink", 1, 56023, null),
-                new SinkStatusTable.SinkStatusModel(5401, "IMS sink", "IMS cisterne sink", 7, 8, null)
-        );
-        getView().setSinkStatus(sinkStatus);
+        commonInjector.getJobStoreProxyAsync().getSinkStatusModels(new GetSinkStatusListFilteredAsyncCallback());
+    }
+
+    class GetSinkStatusListFilteredAsyncCallback extends FilteredAsyncCallback<List<SinkStatusTable.SinkStatusModel>> {
+        @Override
+        public void onFilteredFailure(Throwable throwable) {
+            getView().setErrorText(ProxyErrorTranslator.toClientErrorFromJobStoreProxy(throwable, commonInjector.getProxyErrorTexts(), null));
+        }
+        @Override
+        public void onSuccess(List<SinkStatusTable.SinkStatusModel> sinkStatusSnapshots) {
+            getView().setSinkStatus(sinkStatusSnapshots);
+        }
     }
 
     private View getView() {

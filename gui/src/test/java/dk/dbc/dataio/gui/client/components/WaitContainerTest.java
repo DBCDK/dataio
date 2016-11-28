@@ -23,10 +23,9 @@ package dk.dbc.dataio.gui.client.components;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.isNull;
 
 /**
  * WaitContainer unit tests
@@ -111,7 +110,7 @@ public class WaitContainerTest {
     public void put_validCallbackOneElement_callback() {
         // Test Preparation
         WaitContainer waitContainer = new WaitContainer(list -> {
-            assertThat(list, not(isNull()));
+            assertThat(list, is(notNullValue()));
             assertThat(list.size(), is(1));
             Object element = list.get("uniqueKeyA");
             assertThat(element, is("sample"));
@@ -134,7 +133,7 @@ public class WaitContainerTest {
     public void put_validCallbackTwoElementsTwoPuts_callback() {
         // Test Preparation
         WaitContainer waitContainer = new WaitContainer(list -> {
-            assertThat(list, not(isNull()));
+            assertThat(list, is(notNullValue()));
             assertThat(list.size(), is(2));
             Object first = list.get("uniqueKeyA");
             assertThat(first, is("sample"));

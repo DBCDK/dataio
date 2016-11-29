@@ -83,7 +83,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     public void showJobsFilteredBySink(long sinkId) {
         ShowJobsPlace showJobsPlace = ShowJobsPlace.getInstance();
-        showJobsPlace.setToken("SuppressSubmitterJobFilter&SinkJobFilter=" + sinkId + "&ShowEarliestActive");
+        showJobsPlace.setToken("SinkJobFilter=" + sinkId + "&ShowEarliestActive");
         placeController.goTo(showJobsPlace);
     }
 

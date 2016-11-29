@@ -63,20 +63,17 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         LOGGER.info("Handling chunk [%d, %d]", chunk.getJobId(), chunk.getChunkId());
 
         final Batch batch = createBatch(chunk);
-        entityManager.persist(batch);
-        entityManager.refresh(batch);
-
         LOGGER.info("Adding chunk [%d, %d] to batch %s", chunk.getJobId(), chunk.getChunkId(), batch);
 
         try {
             for (ChunkItem chunkItem : chunk) {
-                final String trackingId = chunkItem.getTrackingId();
+                final String trackingId = getTrackingId(chunkItem, batch);
                 DBCTrackedLogContext.setTrackingId(trackingId);
 
                 createBatchEntries(chunkItem).forEach(entry ->
                         entityManager.persist(entry
-                            .withBatch(batch.getId())
-                            .withTrackingId(trackingId)));
+                                .withBatch(batch.getId())
+                                .withTrackingId(trackingId)));
 
                 LOGGER.info("Adding chunk item %d to batch %d", chunkItem.getId(), batch.getId());
             }
@@ -86,8 +83,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     }
 
     private Batch createBatch(Chunk chunk) {
-        return new Batch()
+        final Batch batch = new Batch()
                 .withName(BatchName.fromChunk(chunk).toString());
+        entityManager.persist(batch);
+        entityManager.flush();
+        entityManager.refresh(batch);
+        return batch;
     }
 
     private List<BatchEntry> createBatchEntries(ChunkItem chunkItem) throws SinkException {
@@ -137,5 +138,13 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 .withStatus(BatchEntry.Status.IGNORED)
                 .withContent(StringUtil.asBytes(reason))
                 .withDiagnostics(Collections.singletonList(Diagnostic.createOk(reason)));
+    }
+
+    private String getTrackingId(ChunkItem chunkItem, Batch batch) {
+        String trackingId = chunkItem.getTrackingId();
+        if (trackingId == null) {
+            trackingId = String.format("io:%s-%d", batch.getName(), chunkItem.getId());
+        }
+        return trackingId;
     }
 }

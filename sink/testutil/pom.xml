@@ -41,6 +41,11 @@
       <version>${javaee.api.version}</version>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-commons-types</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

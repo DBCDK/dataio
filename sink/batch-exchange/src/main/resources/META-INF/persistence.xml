@@ -44,6 +44,8 @@
     <class>dk.dbc.batchexchange.dto.BatchEntry</class>
     <properties>
       <property name="javax.persistence.schema-generation.database.action" value="none"/>
+      <property name="eclipselink.logging.logger" value="org.eclipse.persistence.logging.DefaultSessionLog"/>
+      <property name="eclipselink.logging.level" value="FINE"/>
     </properties>
   </persistence-unit>
 </persistence>

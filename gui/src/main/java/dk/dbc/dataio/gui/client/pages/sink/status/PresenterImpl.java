@@ -77,22 +77,31 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      * Public interface methods
      */
 
+    /**
+     * This method links to the Jobs view, showing only sinks with the given id, and highlights the earliest active job
+     * @param sinkId The sink to use as the key for the filtering
+     */
     public void showJobsFilteredBySink(long sinkId) {
         ShowJobsPlace showJobsPlace = ShowJobsPlace.getInstance();
         showJobsPlace.setToken("SuppressSubmitterJobFilter&SinkJobFilter=" + sinkId + "&ShowEarliestActive");
         placeController.goTo(showJobsPlace);
     }
 
-
-    /*
-     * Private methods
-     */
-
     /**
      * This method fetches all sinks, and sends them to the view
      */
-    private void fetchSinkStatus() {
+    public void fetchSinkStatus() {
         commonInjector.getJobStoreProxyAsync().getSinkStatusModels(new GetSinkStatusListFilteredAsyncCallback());
+    }
+
+
+
+    /*
+     * Private stuff
+     */
+
+    private View getView() {
+        return viewInjector.getView();
     }
 
     class GetSinkStatusListFilteredAsyncCallback extends FilteredAsyncCallback<List<SinkStatusTable.SinkStatusModel>> {
@@ -104,10 +113,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onSuccess(List<SinkStatusTable.SinkStatusModel> sinkStatusSnapshots) {
             getView().setSinkStatus(sinkStatusSnapshots);
         }
-    }
 
-    private View getView() {
-        return viewInjector.getView();
     }
 
 }

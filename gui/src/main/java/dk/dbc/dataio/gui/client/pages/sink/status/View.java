@@ -22,8 +22,11 @@
 package dk.dbc.dataio.gui.client.pages.sink.status;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -36,6 +39,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
     // UI Fields
+    @UiField Button refreshButton;
     @UiField(provided=true) SinkStatusTable sinkStatusTable;
 
     /**
@@ -53,6 +57,16 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         super(header);
         sinkStatusTable = new SinkStatusTable();
         add(uiBinder.createAndBindUi(this));
+    }
+
+
+    /*
+     * Ui Handlers
+     */
+
+    @UiHandler("refreshButton")
+    void sinkTypeSelectionChanged(ClickEvent event) {
+        presenter.fetchSinkStatus();
     }
 
 

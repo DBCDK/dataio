@@ -158,7 +158,7 @@
               <maxPortNumber>65000</maxPortNumber>
               <minPortNumber>60000</minPortNumber>
               <portNames>
-                <portName>postgresql.port</portName>
+                <portName>batch-exchange-sink.postgresql.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -176,7 +176,7 @@
               <goal>start</goal>
             </goals>
             <configuration>
-              <pgPort>${postgresql.port}</pgPort>
+              <pgPort>${batch-exchange-sink.postgresql.port}</pgPort>
               <pgDbName>batch_exchange</pgDbName>
               <pgDbScripts>
               </pgDbScripts>
@@ -197,7 +197,7 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <systemPropertyVariables>
-            <postgresql.port>${postgresql.port}</postgresql.port>
+            <postgresql.port>${batch-exchange-sink.postgresql.port}</postgresql.port>
           </systemPropertyVariables>
         </configuration>
         <executions>

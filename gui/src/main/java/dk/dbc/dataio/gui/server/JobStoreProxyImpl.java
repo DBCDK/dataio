@@ -122,10 +122,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         log.trace("JobStoreProxy: fetchEarliestActiveJob()");
         final StopWatch stopWatch = new StopWatch();
         try {
-            JobListCriteria criteria = new JobListCriteria()
-                    .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"TEST\"}"))
-                    .or(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, "{ \"type\": \"ACCTEST\"}"));
-            criteria.and(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, String.valueOf(sinkId))));
+            JobListCriteria criteria = new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.SINK_ID, ListFilter.Op.EQUAL, String.valueOf(sinkId)));
             criteria.and(new JobListCriteria().where(new ListFilter<>(JobListCriteria.Field.TIME_OF_COMPLETION, ListFilter.Op.IS_NULL)));
             criteria.orderBy(new ListOrderBy<>(JobListCriteria.Field.TIME_OF_CREATION, ListOrderBy.Sort.ASC));
             jobInfoSnapshots = jobStoreServiceConnector.listJobs(criteria);

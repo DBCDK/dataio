@@ -144,7 +144,7 @@ public class JobStoreProxyImpl implements JobStoreProxy {
         } finally {
             log.debug("JobStoreProxy: fetchEarliestActiveJob took {} milliseconds", stopWatch.getElapsedTime());
         }
-        return JobModelMapper.toModel(jobInfoSnapshots.get(0));
+        return jobInfoSnapshots == null || jobInfoSnapshots.isEmpty() ? null : JobModelMapper.toModel(jobInfoSnapshots.get(0));
     }
 
     @Override

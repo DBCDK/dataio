@@ -308,7 +308,9 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         }
         @Override
         public void onSuccess(JobModel jobModel) {
-            view.selectionModel.setSelected(jobModel, true);
+            if (jobModel != null) {
+                view.selectionModel.setSelected(jobModel, true);
+            }
         }
     }
 }

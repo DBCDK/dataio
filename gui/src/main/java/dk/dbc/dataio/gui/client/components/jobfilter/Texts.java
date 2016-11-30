@@ -87,4 +87,11 @@ public interface Texts extends Constants{
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String errorFilter_JobCreation();
+
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String activeJobsFilter_name();
+
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String activeJobsFilter_Prompt();
 }

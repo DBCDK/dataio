@@ -64,6 +64,7 @@ public class BaseJobFilterTest {
     @Mock JobFilterPanel mockedJobFilterPanel;
     @Mock HandlerRegistration mockedClickHandlerRegistration;
     @Mock AbstractBasePlace mockedPlace;
+    @Mock ChangeHandler mockedChangeHandler;
 
 
     class ConcreteBaseJobFilter extends BaseJobFilter {
@@ -291,4 +292,47 @@ public class BaseJobFilterTest {
         assertThat(clickHandlerRegistration, is(nullValue()));
     }
 
+    @Test
+    public void setParameter_callDefaultSetParameter_noException() {
+        // Test Preparation
+        ActiveJobFilter jobFilter = new ActiveJobFilter("-test name-");
+
+        // Activate Subject Under Test
+        jobFilter.setParameter("test");
+
+        // Verify test
+        verifyNoMoreInteractions(mockedPlace);
+        verifyNoMoreInteractions(mockedJobFilter);
+        verifyNoMoreInteractions(mockedJobFilterPanel);
+    }
+
+    @Test
+    public void getParameter_callDefaultGetParameter_noException() {
+        // Test Preparation
+        ActiveJobFilter jobFilter = new ActiveJobFilter("-test name-");
+
+        // Activate Subject Under Test
+        String value = jobFilter.getParameter();
+
+        // Verify test
+        assertThat(value, is(""));
+        verifyNoMoreInteractions(mockedPlace);
+        verifyNoMoreInteractions(mockedJobFilter);
+        verifyNoMoreInteractions(mockedJobFilterPanel);
+    }
+
+    @Test
+    public void addChangeHandler_callDefaultAddChangeHandler_noException() {
+        // Test Preparation
+        ActiveJobFilter jobFilter = new ActiveJobFilter("-test name-");
+
+        // Activate Subject Under Test
+        jobFilter.addChangeHandler(mockedChangeHandler);
+
+        // Verify test
+        verifyNoMoreInteractions(mockedChangeHandler);
+        verifyNoMoreInteractions(mockedPlace);
+        verifyNoMoreInteractions(mockedJobFilter);
+        verifyNoMoreInteractions(mockedJobFilterPanel);
+    }
 }

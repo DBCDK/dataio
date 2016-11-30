@@ -65,6 +65,9 @@ public class ProgressColumn extends Column<JobModel, MultiProgressBar> {
      */
     @Override
     public MultiProgressBar getValue(JobModel model) {
+        if (model == null) {
+            model = new JobModel();
+        }
         final String DELIMITER = "/";
         String delivered = String.valueOf(model.getDeliveredCounter());
         String processed = String.valueOf(model.getProcessedCounter());

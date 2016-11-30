@@ -72,6 +72,9 @@ class StatusColumn extends Column<JobModel, ImageResource> {
      * @return JobStatusEnum: NOT_DONE, DONE_WITHOUT_ERROR or DONE_WITH_ERROR
      */
     private View.JobStatus getJobStatus(JobModel model) {
+        if (model == null) {
+            model = new JobModel();
+        }
         View.JobStatus jobStatus = View.JobStatus.DONE_WITHOUT_ERROR; // Default value
 
         // Check if the job has failed before partitioning

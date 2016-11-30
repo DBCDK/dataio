@@ -56,6 +56,7 @@ import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -192,7 +193,7 @@ public class View extends ViewWidget {
         for (int i=0; i<count; i++) {
             models.add((JobModel) jobsTable.getVisibleItem(i));
         }
-        Collections.sort(models, (model1, model2) -> Integer.valueOf(model1.getJobId()).compareTo(Integer.valueOf(model2.getJobId())));
+        Collections.sort(models, Comparator.comparing(model -> Integer.valueOf(model.getJobId())));
         return models;
     }
 
@@ -276,7 +277,7 @@ public class View extends ViewWidget {
         return new Column<JobModel, Boolean>(checkboxCell) {
             @Override
             public Boolean getValue(JobModel jobModel) {
-                return jobModel.getWorkflowNoteModel() != null && jobModel.getWorkflowNoteModel().isProcessed();
+                return jobModel != null && jobModel.getWorkflowNoteModel() != null && jobModel.getWorkflowNoteModel().isProcessed();
             }
             @Override
             public String getCellStyleNames(Cell.Context context, JobModel model) {
@@ -312,7 +313,7 @@ public class View extends ViewWidget {
         Column<JobModel, String> assigneeColumn = new Column<JobModel, String>(textInputCell) {
             @Override
             public String getValue(JobModel model) {
-                return model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
+                return model != null && model.getWorkflowNoteModel() != null ? model.getWorkflowNoteModel().getAssignee() : null;
             }
             @Override
             public void onBrowserEvent(Cell.Context context, Element elem, JobModel jobModel, NativeEvent event) {
@@ -368,7 +369,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model.getJobCreationTime();
+                return model == null ? "" : model.getJobCreationTime();
             }
         };
     }
@@ -383,7 +384,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model.getJobId();
+                return model == null ? "" : model.getJobId();
             }
         };
     }
@@ -398,7 +399,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return Format.inBracketsPairString(model.getSubmitterNumber(), model.getSubmitterName());
+                return model == null ? "" : Format.inBracketsPairString(model.getSubmitterNumber(), model.getSubmitterName());
             }
         };
     }
@@ -413,7 +414,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model.getFlowBinderName();
+                return model == null ? "" : model.getFlowBinderName();
             }
         };
     }
@@ -428,7 +429,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return model.getSinkName();
+                return model == null ? "" : model.getSinkName();
             }
         };
     }
@@ -443,7 +444,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return String.valueOf(model.getItemCounter());
+                return model == null ? "" : String.valueOf(model.getItemCounter());
             }
         };
     }
@@ -458,7 +459,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return String.valueOf(model.getFailedCounter());
+                return model == null ? "" : String.valueOf(model.getFailedCounter());
             }
         };
     }
@@ -473,7 +474,7 @@ public class View extends ViewWidget {
         return new TextColumn<JobModel>() {
             @Override
             public String getValue(JobModel model) {
-                return String.valueOf(model.getProcessingIgnoredCounter());
+                return model == null ? "" : String.valueOf(model.getProcessingIgnoredCounter());
             }
         };
     }

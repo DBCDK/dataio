@@ -52,7 +52,8 @@ final class JobFilterList {
                 new JobFilterItem(new SubmitterJobFilter(""), false),
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
                 new JobFilterItem(new DateJobFilter(""), false),
-                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false)
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
+                new JobFilterItem(new ActiveJobFilter(""), false)
                 // Add new Job Filters here...
         );
     }

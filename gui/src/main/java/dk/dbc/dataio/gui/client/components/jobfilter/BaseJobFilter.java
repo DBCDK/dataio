@@ -22,6 +22,7 @@
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
 import com.google.gwt.core.client.Scheduler;
+import com.google.gwt.event.dom.client.ChangeHandler;
 import com.google.gwt.event.dom.client.HasChangeHandlers;
 import com.google.gwt.event.shared.HandlerRegistration;
 import com.google.gwt.user.client.ui.Composite;
@@ -152,6 +153,38 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
     }
 
 
+    /*
+     * Default Overridable implementations
+     */
+
+    /**
+     * Sets the parameter value for the filter<br>
+     * The default implementation assumes, that the filter is always active, and there is therefore no value to set
+     * @param filterParameter The filter parameter for the specific job filter
+     */
+    public void setParameter(String filterParameter) {
+    }
+
+    /**
+     * Gets the parameter value for the filter<br>
+     * The default implementation always returns an empty string, since the assumption is, that the filter is always active
+     * @return The stored filter parameter for the specific job filter
+     */
+    public String getParameter() {
+        return "";
+    }
+
+    /**
+     * Adds a ChangeHandler for this job filter<br>
+     * The default implementation assumes, that there is no changeable input elements on the form, and there are consequently no changehandler to add, since no change handler is needed.
+     * @param changeHandler The ChangeHandler for this job filter
+     * @return A HandlerRegistration object to be used to remove the job filter
+     */
+    @Override
+    public HandlerRegistration addChangeHandler(ChangeHandler changeHandler) {
+        return () -> {};  // Returns a handler registration object, that is empty
+    }
+
 
     /*
      * Abstract Methods
@@ -169,17 +202,5 @@ public abstract class BaseJobFilter extends Composite implements HasChangeHandle
      * @return The current value of the Job List Criteria Model
      */
     abstract public JobListCriteria getValue();
-
-    /**
-     * Sets the parameter value for the filter
-     * @param filterParameter The filter parameter for the specific job filter
-     */
-    abstract public void setParameter(String filterParameter);
-
-    /**
-     * Gets the parameter value for the filter
-     * @return The stored filter parameter for the specific job filter
-     */
-    abstract public String getParameter();
 
 }

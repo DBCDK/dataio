@@ -77,6 +77,7 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
 
                 LOGGER.info("Adding chunk item %d to batch %d", chunkItem.getId(), batch.getId());
             }
+            completeIfBatchHasNoPendingEntries(batch);
         } finally {
             DBCTrackedLogContext.remove();
         }
@@ -146,5 +147,13 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             trackingId = String.format("io:%s-%d", batch.getName(), chunkItem.getId());
         }
         return trackingId;
+    }
+
+    private void completeIfBatchHasNoPendingEntries(Batch batch) {
+        entityManager.flush();
+        entityManager.refresh(batch);
+        if (batch.getIncompleteEntries() == 0) {
+            batch.withStatus(Batch.Status.COMPLETED);
+        }
     }
 }

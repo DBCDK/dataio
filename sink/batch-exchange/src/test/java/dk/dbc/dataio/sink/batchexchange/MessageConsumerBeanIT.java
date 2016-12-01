@@ -47,6 +47,9 @@ import static org.junit.Assert.assertThat;
 public class MessageConsumerBeanIT extends IntegrationTest {
     private final String addiMetadata = "<referenceData><info submitter=\"424242\"/></referenceData>";
 
+    private final AddiRecord addiRecordWithInvalidMetadata = new AddiRecord(
+            "Invalid XML metadata".getBytes(), "content".getBytes());
+
     /* Given: a consumed message containing a chunk where the first item is failed by processor
      *   And: the second item is ignored by processor
      *   And: the third item contains an invalid addi record
@@ -59,8 +62,6 @@ public class MessageConsumerBeanIT extends IntegrationTest {
     public void handleConsumedMessage() throws ServiceException, InvalidMessageException, IOException {
         // Given...
 
-        final AddiRecord addiRecordWithInvalidMetadata = new AddiRecord(
-                "Invalid XML metadata".getBytes(), "content".getBytes());
         final AddiRecord addiRecordX = new AddiRecord(
                 addiMetadata.getBytes(), "contentX".getBytes());
         final AddiRecord addiRecordY = new AddiRecord(
@@ -186,6 +187,60 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("7th entry metadata", entry.getMetadata(), is("{\"submitter\": \"424242\"}"));
         assertThat("7th entry is continued", entry.getContinued(), is(false));
         assertThat("7th entry tracking ID", entry.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
+    }
+
+    /* Given: a consumed message containing a chunk where the first item is failed by processor
+     *   And: the second item is ignored by processor
+     *   And: the third item contains an invalid addi record
+     *  When: the message is handled by the consumer
+     *  Then: a batch with status completed is created since it contains no pending entries
+     */
+    @Test
+    public void handleConsumedMessage_completesBatchWhenNoIncompleteEntriesExist() {
+        // Given...
+
+        final List<ChunkItem> chunkItems = new ArrayList<>();
+
+        // failed item
+        chunkItems.add(new ChunkItemBuilder()
+                .setId(0)
+                .setStatus(ChunkItem.Status.FAILURE)
+                .setTrackingId("zero")
+                .build());
+
+        // ignored item
+        chunkItems.add(new ChunkItemBuilder()
+                .setId(1)
+                .setStatus(ChunkItem.Status.IGNORE)
+                .setTrackingId("one")
+                .build());
+
+        // invalid addi
+        chunkItems.add(new ChunkItemBuilder()
+                .setId(2)
+                .setStatus(ChunkItem.Status.SUCCESS)
+                .setData(addiRecordWithInvalidMetadata.getBytes())
+                .setTrackingId("two")
+                .build());
+
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setItems(chunkItems)
+                .build();
+
+        // When...
+
+        persistenceContext.run(() -> {
+            final ConsumedMessage message = ObjectFactory.createConsumedMessage(chunk);
+            final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+            messageConsumerBean.handleConsumedMessage(message);
+        });
+
+        // Then...
+
+        final Batch batch = entityManager.find(Batch.class, 1);
+        assertThat("batch created", batch, is(notNullValue()));
+        assertThat("batch status", batch.getStatus(), is(Batch.Status.COMPLETED));
+        assertThat("batch name", batch.getName(), is(BatchName.fromChunk(chunk).toString()));
     }
 
     private MessageConsumerBean createMessageConsumerBean() {

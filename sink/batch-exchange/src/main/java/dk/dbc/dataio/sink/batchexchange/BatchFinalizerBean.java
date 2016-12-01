@@ -26,6 +26,7 @@ import dk.dbc.batchexchange.dto.BatchEntry;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
@@ -68,6 +69,7 @@ public class BatchFinalizerBean {
      * @return true if batch was finalized, false if not.
      * @throws SinkException nn failure to communicate with the job-store
      */
+    @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public boolean finalizeNextCompletedBatch() throws SinkException {
         final Batch batch = findCompletedBatch();

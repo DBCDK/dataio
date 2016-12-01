@@ -22,6 +22,7 @@
 package dk.dbc.dataio.sink.batchexchange;
 
 import dk.dbc.batchexchange.BatchExchangeDatabaseMigrator;
+import dk.dbc.commons.jdbc.util.JDBCUtil;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -30,6 +31,11 @@ import org.postgresql.ds.PGSimpleDataSource;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -95,5 +101,22 @@ public abstract class IntegrationTest {
     public void clearEntityManagerCache() {
         entityManager.clear();
         entityManager.getEntityManagerFactory().getCache().evictAll();
+    }
+
+    protected static void executeScriptResource(String resourcePath) {
+        final URL resource = IntegrationTest.class.getResource(resourcePath);
+        try {
+            executeScript(new File(resource.toURI()));
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    static void executeScript(File scriptFile) {
+        try (Connection conn = datasource.getConnection()) {
+            JDBCUtil.executeScript(conn, scriptFile, StandardCharsets.UTF_8.name());
+        } catch (SQLException | IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

@@ -111,14 +111,20 @@
             margin-top: 0.3em;
             width: 7.2em;
         }
+
+        .buttonPanel td {
+            vertical-align: bottom !important;
+        }
     </ui:style>
 
     <g:HTMLPanel styleName="{style.outerHtmlPanel}">
-        <g:HorizontalPanel horizontalAlignment="left">
-            <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />
-            <g:Button ui:field="rerunAllShownJobsButton" text="{txt.button_RerunAllShownJobs}" />
-            <jobs:JobFilter ui:field="jobFilter" />
-       </g:HorizontalPanel>
+        <g:HTMLPanel addStyleNames="{style.buttonPanel}">
+            <g:HorizontalPanel horizontalAlignment="left">
+                <g:Button ui:field="refreshButton" text="{txt.button_Refresh}" />
+                <g:Button ui:field="rerunAllShownJobsButton" text="{txt.button_RerunAllShownJobs}" />
+                <jobs:JobFilter ui:field="jobFilter" />
+           </g:HorizontalPanel>
+        </g:HTMLPanel>
 
         <g:HTMLPanel addStyleNames="{style.innerHtmlPanel}">
 

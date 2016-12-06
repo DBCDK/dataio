@@ -32,6 +32,9 @@
             background-color: white;
             border: solid 2px #b5cfe8;
         }
+        .dockPanel td {
+            vertical-align: middle !important;
+        }
         .buttonContainer {
             text-align: -moz-right;
             vertical-align: middle;

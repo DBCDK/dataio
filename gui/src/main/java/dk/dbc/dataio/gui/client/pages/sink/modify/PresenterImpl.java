@@ -72,6 +72,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     public void sinkTypeChanged(SinkContent.SinkType sinkType) {
         View view = getView();
+        view.sequenceAnalysisSection.setVisible(true);
         view.updateSinkSection.setVisible(false);
         view.esSinkSection.setVisible(false);
         view.imsSinkSection.setVisible(false);
@@ -262,7 +263,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         getView().setPresenter(this);
     }
 
-    public void initializeViewFields() {
+    private void initializeViewFields() {
         View view = getView();
         view.name.clearText();
         view.name.setEnabled(false);

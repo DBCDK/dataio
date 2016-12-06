@@ -51,7 +51,7 @@ import java.util.Map;
 public class View extends ContentPanel<Presenter> implements IsWidget {
     interface SinkBinder extends UiBinder<HTMLPanel, View> {}
     private static SinkBinder uiBinder = GWT.create(SinkBinder.class);
-    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     public View() {
         super("");
@@ -72,6 +72,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox name;
     @UiField PromptedTextBox resource;
     @UiField PromptedTextArea description;
+    @UiField HTMLPanel sequenceAnalysisSection;
     @UiField HTMLPanel updateSinkSection;
     @UiField HTMLPanel esSinkSection;
     @UiField HTMLPanel imsSinkSection;
@@ -88,48 +89,56 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedRadioButtons sequenceAnalysisSelection;
     @UiField PopupBox<Label> confirmation;
 
+    @SuppressWarnings("unused")
     @UiHandler("sinkTypeSelection")
     void sinkTypeSelectionChanged(ValueChangeEvent<String> event) {
         presenter.sinkTypeChanged(SinkContent.SinkType.valueOf(sinkTypeSelection.getSelectedKey()));
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("name")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("resource")
     void resourceChanged(ValueChangeEvent<String> event) {
         presenter.resourceChanged(resource.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("description")
     void descriptionChanged(ValueChangeEvent<String> event) {
         presenter.descriptionChanged(description.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("url")
     void urlChanged(ValueChangeEvent<String> event) {
         presenter.endpointChanged(url.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("openupdateuserid")
     void useridChanged(ValueChangeEvent<String> event) {
         presenter.openUpdateUserIdChanged(openupdateuserid.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("password")
     void passwordChanged(ValueChangeEvent<String> event) {
         presenter.passwordChanged(password.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("queueProviders")
     void availableQueueProvidersChanged(ValueChangeEvent<Map<String, String>> event) {
         if (presenter != null) {
@@ -138,29 +147,34 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         }
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("esUserId")
     void esUserIdChanged(ValueChangeEvent<String> event) {
         presenter.esUserIdChanged(esUserId.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("esDatabase")
     void esDatabaseChanged(ValueChangeEvent<String> event) {
         presenter.esDatabaseChanged(esDatabase.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("imsEndpoint")
     void imsEndpointChanged(ValueChangeEvent<String> event) {
         presenter.imsEndpointChanged(imsEndpoint.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("saveButton")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("deleteButton")
     void deleteButtonPressed(ClickEvent event) {
         confirmation.show();

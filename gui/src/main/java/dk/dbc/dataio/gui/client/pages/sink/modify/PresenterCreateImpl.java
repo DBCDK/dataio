@@ -85,6 +85,10 @@ public class PresenterCreateImpl extends PresenterImpl {
                 model.setSinkConfig(new ImsSinkConfig());
                 view.imsSinkSection.setVisible(true);
                 break;
+            case TICKLE:
+                model.setSinkConfig(null);
+                view.sequenceAnalysisSection.setVisible(false);
+                break;
             default:
                 model.setSinkConfig(null);
         }

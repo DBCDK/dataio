@@ -185,6 +185,7 @@ public class View extends ViewWidget {
             case OPENUPDATE: return getTexts().selection_UpdateSink();
             case IMS: return getTexts().selection_ImsSink();
             case HIVE: return getTexts().selection_HiveSink();
+            case TICKLE: return getTexts().selection_TickleSink();
             default: return "";
         }
     }

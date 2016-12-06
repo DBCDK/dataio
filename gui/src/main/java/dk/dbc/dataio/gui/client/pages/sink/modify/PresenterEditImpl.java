@@ -139,6 +139,9 @@ public class PresenterEditImpl<Place extends EditPlace> extends PresenterImpl {
                     view.imsEndpoint.setText(String.valueOf(model.getImsEndpoint()));
                     view.imsSinkSection.setVisible(true);
                     break;
+                case TICKLE:
+                    view.sequenceAnalysisSection.setVisible(false);
+                    break;
             }
     }
 

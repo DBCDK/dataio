@@ -44,6 +44,7 @@ import java.util.List;
 * This class represents the show jobs presenter implementation
 */
 public abstract class PresenterImpl extends AbstractActivity implements Presenter {
+    public final static String SHOW_EARLIEST_ACTIVE = "ShowEarliestActive";
 
     private static final String EMPTY = "";
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
@@ -178,7 +179,6 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
      */
     @Override
     public void setPlace(AbstractBasePlace place) {
-        final String SHOW_EARLIEST_ACTIVE = "ShowEarliestActive";
         if (view != null && view.jobFilter != null) {
             view.jobFilter.setupFilterParameters(place.getParameters());
         }

@@ -26,6 +26,8 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import dk.dbc.dataio.gui.client.components.jobfilter.ActiveJobFilter;
+import dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
@@ -83,7 +85,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     public void showJobsFilteredBySink(long sinkId) {
         ShowJobsPlace showJobsPlace = ShowJobsPlace.getInstance();
-        showJobsPlace.setToken("SinkJobFilter=" + sinkId + "&ShowEarliestActive");
+        showJobsPlace.setToken(SinkJobFilter.class.getSimpleName() + "=" + sinkId +                 // "SinkJobFilter=xxx"
+                "&" + ActiveJobFilter.class.getSimpleName() +                                       // "&ActiveJobFilter"
+                "&" + dk.dbc.dataio.gui.client.pages.job.show.PresenterImpl.SHOW_EARLIEST_ACTIVE);  // "&ShowEarliestActive"
         placeController.goTo(showJobsPlace);
     }
 

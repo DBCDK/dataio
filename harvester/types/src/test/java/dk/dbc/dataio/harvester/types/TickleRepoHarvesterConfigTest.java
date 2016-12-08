@@ -47,7 +47,7 @@ public class TickleRepoHarvesterConfigTest {
         final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2,
                 new TickleRepoHarvesterConfig.Content()
                         .withId("-id-")
-                        .withName("-name")
+                        .withDatasetName("-name")
                         .withDescription("-description-")
                         .withDestination("-destination-")
                         .withFormat("-format-")

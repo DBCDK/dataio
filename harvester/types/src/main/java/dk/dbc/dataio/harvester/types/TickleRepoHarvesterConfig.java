@@ -53,8 +53,8 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         /** ID of harvest operation */
         private String id;
 
-        /** JNDI name of rawrepo JDBC resource */
-        private String name;
+        /** JNDI name of tickle repo JDBC resource */
+        private String datasetName;
 
         /** Description */
         private String description;
@@ -85,12 +85,12 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             return this;
         }
 
-        public String getName() {
-            return name;
+        public String getDatasetName() {
+            return datasetName;
         }
 
-        public Content withName(String name) {
-            this.name = name;
+        public Content withDatasetName(String datasetName) {
+            this.datasetName = datasetName;
             return this;
         }
 
@@ -151,7 +151,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
 
             if (enabled != content.enabled) return false;
             if (id != null ? !id.equals(content.id) : content.id != null) return false;
-            if (name != null ? !name.equals(content.name) : content.name != null) return false;
+            if (datasetName != null ? !datasetName.equals(content.datasetName) : content.datasetName != null) return false;
             if (description != null ? !description.equals(content.description) : content.description != null)
                 return false;
             if (destination != null ? !destination.equals(content.destination) : content.destination != null)
@@ -163,7 +163,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         @Override
         public int hashCode() {
             int result = id != null ? id.hashCode() : 0;
-            result = 31 * result + (name != null ? name.hashCode() : 0);
+            result = 31 * result + (datasetName != null ? datasetName.hashCode() : 0);
             result = 31 * result + (description != null ? description.hashCode() : 0);
             result = 31 * result + (destination != null ? destination.hashCode() : 0);
             result = 31 * result + (format != null ? format.hashCode() : 0);
@@ -176,7 +176,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         public String toString() {
             return "Content{" +
                     "id='" + id + '\'' +
-                    ", name='" + name + '\'' +
+                    ", datasetName='" + datasetName + '\'' +
                     ", description='" + description + '\'' +
                     ", destination='" + destination + '\'' +
                     ", format='" + format + '\'' +

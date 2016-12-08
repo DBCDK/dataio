@@ -54,6 +54,7 @@ import dk.dbc.dataio.gui.server.modelmappers.SubmitterModelMapper;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.OLDRRHarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -68,13 +69,12 @@ import java.util.List;
 public class FlowStoreProxyImpl implements FlowStoreProxy {
     private static final Logger log = LoggerFactory.getLogger(FlowStoreProxyImpl.class);
     final Client client;
-    final String baseUrl;
-    final String ushHarvesterUrl;
-    final String subversionScmEndpoint;
-    FlowStoreServiceConnector flowStoreServiceConnector;
-    JavaScriptSubversionProject javaScriptSubversionProject;
+    private final String baseUrl;
+    private final String subversionScmEndpoint;
+    private FlowStoreServiceConnector flowStoreServiceConnector;
+    private JavaScriptSubversionProject javaScriptSubversionProject;
 
-    public FlowStoreProxyImpl() throws NamingException{
+    FlowStoreProxyImpl() throws NamingException{
         final ClientConfig clientConfig = new ClientConfig().register(new JacksonFeature());
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
@@ -82,7 +82,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
         flowStoreServiceConnector = new FlowStoreServiceConnector(client, baseUrl);
         javaScriptSubversionProject = new JavaScriptSubversionProject(subversionScmEndpoint);
-        ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
@@ -93,7 +92,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         client = HttpClient.newClient(clientConfig);
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
-        ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
     }
 
     //This constructor is intended for test purpose only with reference to dependency injection.
@@ -105,7 +103,6 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         baseUrl = ServiceUtil.getFlowStoreServiceEndpoint();
         log.info("FlowStoreProxy: Using Base URL {}", baseUrl);
         this.subversionScmEndpoint = ServiceUtil.getSubversionScmEndpoint();
-        ushHarvesterUrl = ServiceUtil.getUshHarvesterEndpoint();
     }
 
 
@@ -531,18 +528,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * Harvesters
      */
 
-    @Override
-    public RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException {
-        final String callerMethodName = "createHarvesterConfig";
-        //log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId()); // ja7
-        try {
-            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), RRHarvesterConfig.class);
-        } catch(Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-            return null;
-        }
-    }
-
+    // Generic harvesters
     @Override
     public HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException {
         final String callerMethodName = "updateHarvesterConfig";
@@ -569,6 +555,19 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
         }
     }
 
+    // RR harvester
+    @Override
+    public RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createRRHarvesterConfig";
+        //log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId()); // ja7
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), RRHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
     @Override
     public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllRRHarvesterConfigs";
@@ -585,6 +584,20 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
+    public RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getRRHarvesterConfig";
+        RRHarvesterConfig harvesterConfig = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, RRHarvesterConfig.class);
+        } catch (Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return harvesterConfig;
+    }
+
+    // USH Harvesters
+    @Override
     public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllUshSolrHarvesterConfigs";
         List<UshSolrHarvesterConfig> ushSolrHarvesterConfigs = null;
@@ -598,25 +611,39 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
     }
 
     @Override
-    public RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException {
-        final String callerMethodName = "getRRHarvesterConfig";
-        RRHarvesterConfig harvesterConfig = null;
-        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
-        try {
-            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, RRHarvesterConfig.class);
-        } catch (Exception genericException) {
-            handleExceptions(genericException, callerMethodName);
-        }
-        return harvesterConfig;
-    }
-
-    @Override
     public UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException {
         final String callerMethodName = "getUshSolrHarvesterConfig";
         UshSolrHarvesterConfig harvesterConfig = null;
         log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
         try {
             harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, UshSolrHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return harvesterConfig;
+    }
+
+    // Tickle Repo Harvesters
+    @Override
+    public List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException {
+        final String callerMethodName = "findAllTickleRepoHarvesterConfigs";
+        List<TickleRepoHarvesterConfig> tickleRepoHarvesterConfigs = null;
+        log.trace("FlowStoreProxy: " + callerMethodName + "();");
+        try {
+            tickleRepoHarvesterConfigs = flowStoreServiceConnector.findHarvesterConfigsByType(TickleRepoHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+        }
+        return tickleRepoHarvesterConfigs;
+    }
+
+    @Override
+    public TickleRepoHarvesterConfig getTickleRepoHarvesterConfig(long id) throws ProxyException {
+        final String callerMethodName = "getTickleRepoHarvesterConfig";
+        TickleRepoHarvesterConfig harvesterConfig = null;
+        log.trace("FlowStoreProxy: \" + callerMethodName + \"({});", id);
+        try {
+            harvesterConfig = flowStoreServiceConnector.getHarvesterConfig(id, TickleRepoHarvesterConfig.class);
         } catch(Exception genericException) {
             handleExceptions(genericException, callerMethodName);
         }
@@ -697,7 +724,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @param exception generic exception which in turn can be both Checked and Unchecked
      * @param callerMethodName calling method name for logging
      * @throws ProxyException GUI exception
-     * @throws NullPointerException
+     * @throws NullPointerException Null pointer exception
      */
     private void handleExceptions(Exception exception, String callerMethodName) throws ProxyException, NullPointerException {
         if (exception instanceof FlowStoreServiceConnectorUnexpectedStatusCodeException) {
@@ -763,7 +790,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @param flowComponentModels containing information regarding which flow components should be retrieved from the flow store
      * @return flowComponents, a list containing the retrieved flow components
      *
-     * @throws FlowStoreServiceConnectorException
+     * @throws FlowStoreServiceConnectorException Flowstore Service Connector Exception
      */
     private List<FlowComponent> getFlowComponentsLatestVersion (List<FlowComponentModel> flowComponentModels) throws FlowStoreServiceConnectorException {
         List<FlowComponent> flowComponents = new ArrayList<>(flowComponentModels.size());
@@ -791,7 +818,7 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
      * @param model containing the updated flow data
      *
      * @return flowComponents, a list containing the flow components that should be used.
-     * @throws FlowStoreServiceConnectorException
+     * @throws FlowStoreServiceConnectorException Flowstore Service Connector Exception
      */
     private List<FlowComponent> getFlowComponents (Flow flow, List<FlowComponentModel> model) throws FlowStoreServiceConnectorException {
         List<FlowComponent> flowComponents = new ArrayList<>(model.size());

@@ -30,6 +30,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
@@ -72,14 +73,15 @@ public interface FlowStoreProxyAsync {
     void getSink(Long id, AsyncCallback<SinkModel> async);
 
     // Harvesters
-    void createRRHarvesterConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
-
     void updateHarvesterConfig(HarvesterConfig config, AsyncCallback<HarvesterConfig> async);
     void deleteHarvesterConfig(long id, long version, AsyncCallback<Void> async);
+    void createRRHarvesterConfig(RRHarvesterConfig config, AsyncCallback<RRHarvesterConfig> async);
     void findAllRRHarvesterConfigs(AsyncCallback<List<RRHarvesterConfig>> async);
-    void findAllUshSolrHarvesterConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
     void getRRHarvesterConfig(long id, AsyncCallback<RRHarvesterConfig> async);
+    void findAllUshSolrHarvesterConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
     void getUshSolrHarvesterConfig(long id, AsyncCallback<UshSolrHarvesterConfig> async);
+    void findAllTickleRepoHarvesterConfigs(AsyncCallback<List<TickleRepoHarvesterConfig>> async);
+    void getTickleRepoHarvesterConfig(long id, AsyncCallback<TickleRepoHarvesterConfig> async);
 
     // Gatekeeper destinations
     void createGatekeeperDestination(GatekeeperDestination gatekeeperDestination, AsyncCallback<GatekeeperDestination> async);

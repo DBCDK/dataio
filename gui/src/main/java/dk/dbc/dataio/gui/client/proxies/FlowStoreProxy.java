@@ -33,6 +33,7 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
 import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import java.util.List;
@@ -78,13 +79,15 @@ public interface FlowStoreProxy extends RemoteService {
     SinkModel getSink(Long id) throws ProxyException;
 
     // Harvesters
-    RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException;
     HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException;
     void deleteHarvesterConfig(long id, long version) throws ProxyException;
+    RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException;
     List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException;
-    List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException;
     RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException;
+    List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException;
     UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException;
+    List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException;
+    TickleRepoHarvesterConfig getTickleRepoHarvesterConfig(long id) throws ProxyException;
 
     // Gatekeeper destinations
     GatekeeperDestination createGatekeeperDestination(GatekeeperDestination gatekeeperDestination) throws NullPointerException, ProxyException;

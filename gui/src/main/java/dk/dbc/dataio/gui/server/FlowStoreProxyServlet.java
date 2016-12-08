@@ -32,6 +32,7 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxy;
 import dk.dbc.dataio.harvester.types.HarvesterConfig;
 import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.harvester.types.UshSolrHarvesterConfig;
 
 import javax.naming.NamingException;
@@ -213,11 +214,6 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
      */
 
     @Override
-    public RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException {
-        return flowStoreProxy.createRRHarvesterConfig(config);
-    }
-
-    @Override
     public HarvesterConfig updateHarvesterConfig(HarvesterConfig config) throws ProxyException {
         return flowStoreProxy.updateHarvesterConfig(config);
     }
@@ -228,13 +224,13 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
-    public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
-        return flowStoreProxy.findAllRRHarvesterConfigs();
+    public RRHarvesterConfig createRRHarvesterConfig(RRHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createRRHarvesterConfig(config);
     }
 
     @Override
-    public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
-        return flowStoreProxy.findAllUshSolrHarvesterConfigs();
+    public List<RRHarvesterConfig> findAllRRHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllRRHarvesterConfigs();
     }
 
     @Override
@@ -243,8 +239,23 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllUshSolrHarvesterConfigs();
+    }
+
+    @Override
     public UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException {
         return flowStoreProxy.getUshSolrHarvesterConfig(id);
+    }
+
+    @Override
+    public List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException {
+        return flowStoreProxy.findAllTickleRepoHarvesterConfigs();
+    }
+
+    @Override
+    public TickleRepoHarvesterConfig getTickleRepoHarvesterConfig(long id) throws ProxyException {
+        return flowStoreProxy.getTickleRepoHarvesterConfig(id);
     }
 
 

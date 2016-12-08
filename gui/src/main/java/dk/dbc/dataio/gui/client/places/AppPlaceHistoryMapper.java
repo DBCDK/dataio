@@ -51,6 +51,7 @@ import com.google.gwt.place.shared.WithTokenizers;
         dk.dbc.dataio.gui.client.pages.job.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.item.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.ftp.show.Place.Tokenizer.class,
+        dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.rr.show.Place.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.rr.modify.EditPlace.Tokenizer.class,
         dk.dbc.dataio.gui.client.pages.harvester.ush.show.Place.Tokenizer.class,

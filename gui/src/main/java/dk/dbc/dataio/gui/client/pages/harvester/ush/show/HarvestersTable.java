@@ -66,7 +66,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructStatusColumn(), textWithToolTip(texts.columnHeader_Status()));
         addColumn(constructLatestHarvestColumn(), textWithToolTip(texts.columnHeader_LatestHarvest()));
         addColumn(constructCountColumn(), textWithToolTip(texts.columnHeader_Count()));
-        addColumn(constructNextHarverstColumn(), textWithToolTip(texts.columnHeader_NextHarverst()));
+        addColumn(constructNextHarverstColumn(), textWithToolTip(texts.columnHeader_NextHarvest()));
         addColumn(constructStatusMessageColumn(), textWithToolTip(texts.columnHeader_StatusMessage()));
         addColumn(constructSubmitterColumn(), textWithToolTip(texts.columnHeader_Submitter()));
         addColumn(constructFormatColumn(), textWithToolTip(texts.columnHeader_Format()));

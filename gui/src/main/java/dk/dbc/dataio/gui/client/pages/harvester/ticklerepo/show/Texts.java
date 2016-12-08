@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.ush.show;
+package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
 
 import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
@@ -28,7 +28,7 @@ import dk.dbc.dataio.gui.client.i18n.MainConstants;
 public interface Texts extends Constants {
     // Column Headers
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_JobId();
+    String columnHeader_TickleId();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Name();
@@ -37,42 +37,16 @@ public interface Texts extends Constants {
     String columnHeader_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Status();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_LatestHarvest();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Count();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_NextHarvest();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_StatusMessage();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Submitter();
+    String columnHeader_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String columnHeader_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Destination();
+    String columnHeader_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Enabled();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Action();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Harvest();
-
-
-    // Help texts
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String help_ColumnHeader();
+    String columnHeader_Status();
 
 
     // Button texts
@@ -80,10 +54,7 @@ public interface Texts extends Constants {
     String button_Edit();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_UshButton();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_TestSolrHarvest();
+    String button_NewTickleRepoHarvesterButton();
 
 
     // Value texts
@@ -93,23 +64,4 @@ public interface Texts extends Constants {
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
     String value_Disabled();
 
-
-    // Prefaced texts
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String pre_First();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String pre_Second();
-
-
-    // Errors
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_JndiFetchError();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_RunUshSolrTestError();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String error_NoHarvesterJobs();
-    
 }

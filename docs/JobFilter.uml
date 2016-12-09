@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter</OriginalElement>
+  <nodes>
+    <node x="713.3183333333334" y="382.0">dk.dbc.dataio.gui.client.components.jobfilter.JobFilter</node>
+    <node x="167.9999999999999" y="426.0">dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter</node>
+    <node x="844.5766666666667" y="80.0">com.google.gwt.user.client.EventListener</node>
+    <node x="664.6916666666666" y="160.0">com.google.gwt.user.client.ui.IsRenderable</node>
+    <node x="445.9999999999999" y="426.0">dk.dbc.dataio.gui.client.components.jobfilter.DateJobFilter</node>
+    <node x="392.8766666666666" y="320.0">dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter</node>
+    <node x="426.9999999999999" y="240.0">com.google.gwt.event.dom.client.HasChangeHandlers</node>
+    <node x="728.1916666666666" y="240.0">com.google.gwt.user.client.ui.Composite</node>
+    <node x="300.9999999999999" y="426.0">dk.dbc.dataio.gui.client.components.jobfilter.ActiveJobFilter</node>
+    <node x="562.5766666666667" y="80.0">com.google.gwt.event.logical.shared.HasAttachHandlers</node>
+    <node x="805.9999999999999" y="426.0">dk.dbc.dataio.gui.client.components.jobfilter.ErrorJobFilter</node>
+    <node x="1001.8266666666667" y="320.0">dk.dbc.dataio.gui.client.components.jobfilter.JobFilterPanel</node>
+    <node x="796.6916666666666" y="160.0">com.google.gwt.user.client.ui.Widget</node>
+    <node x="310.9999999999999" y="240.0">com.google.gwt.user.client.ui.Focusable</node>
+    <node x="629.0" y="537.0">dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList</node>
+    <node x="982.5766666666667" y="80.0">com.google.gwt.user.client.ui.UIObject</node>
+    <node x="988.1249999999999" y="0.0">com.google.gwt.user.client.ui.HasVisibility</node>
+    <node x="580.9999999999999" y="426.0">dk.dbc.dataio.gui.client.components.jobfilter.SuppressSubmitterJobFilter</node>
+    <node x="599.6249999999999" y="0.0">com.google.gwt.event.shared.HasHandlers</node>
+    <node x="1.0" y="426.0">dk.dbc.dataio.gui.client.components.jobfilter.SubmitterJobFilter</node>
+    <node x="736.5766666666667" y="80.0">com.google.gwt.user.client.ui.IsWidget</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList" target="dk.dbc.dataio.gui.client.components.jobfilter.DateJobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Widget" target="com.google.gwt.user.client.ui.Widget">
+      <point x="0.0" y="0.0" />
+      <point x="835.6916666666666" y="135.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilter" target="com.google.gwt.user.client.ui.Composite">
+      <point x="21.75" y="-15.0" />
+      <point x="778.5683333333334" y="301.0" />
+      <point x="778.1916666666666" y="300.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter" target="com.google.gwt.user.client.ui.Composite">
+      <point x="39.0" y="-15.0" />
+      <point x="490.3766666666666" y="300.0" />
+      <point x="744.8583333333333" y="300.0" />
+      <point x="-33.33333333333337" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.DateJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter">
+      <point x="0.0" y="-15.0" />
+      <point x="502.4999999999999" y="390.0" />
+      <point x="461.1266666666666" y="390.0" />
+      <point x="9.75" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter" target="com.google.gwt.user.client.ui.Widget">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.google.gwt.event.logical.shared.HasAttachHandlers" target="com.google.gwt.event.shared.HasHandlers">
+      <point x="0.0" y="-15.0" />
+      <point x="639.5766666666667" y="60.0" />
+      <point x="656.1249999999999" y="60.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.JobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList" target="dk.dbc.dataio.gui.client.components.jobfilter.ErrorJobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.google.gwt.event.dom.client.HasChangeHandlers" target="com.google.gwt.event.shared.HasHandlers">
+      <point x="0.0" y="-15.0" />
+      <point x="506.9999999999999" y="60.0" />
+      <point x="618.4583333333333" y="60.0" />
+      <point x="-37.66666666666663" y="15.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Widget" target="com.google.gwt.event.logical.shared.HasAttachHandlers">
+      <point x="-29.25" y="-15.0" />
+      <point x="806.4416666666666" y="140.0" />
+      <point x="639.5766666666667" y="140.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterPanel" target="com.google.gwt.event.shared.HasHandlers">
+      <point x="30.0" y="-15.0" />
+      <point x="1091.8266666666668" y="50.0" />
+      <point x="693.7916666666665" y="50.0" />
+      <point x="37.66666666666663" y="15.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Widget" target="com.google.gwt.user.client.ui.IsWidget">
+      <point x="-9.75" y="-15.0" />
+      <point x="825.9416666666666" y="130.0" />
+      <point x="780.5766666666667" y="130.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Widget" target="com.google.gwt.user.client.ui.UIObject">
+      <point x="29.25" y="-15.0" />
+      <point x="864.9416666666666" y="140.0" />
+      <point x="1026.0766666666668" y="140.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter" target="com.google.gwt.event.dom.client.HasChangeHandlers">
+      <point x="0.0" y="-15.0" />
+      <point x="451.3766666666666" y="300.0" />
+      <point x="466.9999999999999" y="300.0" />
+      <point x="-40.0" y="15.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Composite" target="com.google.gwt.user.client.ui.Widget">
+      <point x="25.0" y="-15.0" />
+      <point x="803.1916666666666" y="215.0" />
+      <point x="835.6916666666666" y="215.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterPanel">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList" target="dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter" target="com.google.gwt.user.client.ui.Focusable">
+      <point x="-39.0" y="-15.0" />
+      <point x="412.3766666666666" y="300.0" />
+      <point x="358.9999999999999" y="300.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilter" target="com.google.gwt.event.dom.client.HasChangeHandlers">
+      <point x="-21.75" y="-15.0" />
+      <point x="735.0683333333334" y="290.0" />
+      <point x="546.9999999999999" y="290.0" />
+      <point x="40.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.SinkJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter">
+      <point x="0.0" y="-15.0" />
+      <point x="223.4999999999999" y="380.0" />
+      <point x="422.1266666666666" y="380.0" />
+      <point x="-29.25" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList" target="dk.dbc.dataio.gui.client.components.jobfilter.SubmitterJobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList" target="dk.dbc.dataio.gui.client.components.jobfilter.SuppressSubmitterJobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Composite" target="com.google.gwt.user.client.ui.IsRenderable">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.SubmitterJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter">
+      <point x="0.0" y="-15.0" />
+      <point x="73.5" y="370.0" />
+      <point x="402.6266666666666" y="370.0" />
+      <point x="-48.75" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.ErrorJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter">
+      <point x="0.0" y="-15.0" />
+      <point x="863.9999999999999" y="370.0" />
+      <point x="500.1266666666666" y="370.0" />
+      <point x="48.75" y="15.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.Widget" target="com.google.gwt.user.client.EventListener">
+      <point x="9.75" y="-15.0" />
+      <point x="845.4416666666666" y="130.0" />
+      <point x="903.5766666666667" y="130.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList" target="dk.dbc.dataio.gui.client.components.jobfilter.ActiveJobFilter">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterPanel" target="com.google.gwt.user.client.ui.Composite">
+      <point x="-30.0" y="-15.0" />
+      <point x="1031.8266666666668" y="300.0" />
+      <point x="811.5250000000001" y="300.0" />
+      <point x="33.33333333333337" y="15.0" />
+    </edge>
+    <edge source="com.google.gwt.user.client.ui.UIObject" target="com.google.gwt.user.client.ui.HasVisibility">
+      <point x="0.0" y="-15.0" />
+      <point x="1026.0766666666668" y="60.0" />
+      <point x="1042.625" y="60.0" />
+      <point x="0.0" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.SuppressSubmitterJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter">
+      <point x="0.0" y="-15.0" />
+      <point x="682.4999999999999" y="380.0" />
+      <point x="480.6266666666666" y="380.0" />
+      <point x="29.25" y="15.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.JobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.JobFilterList">
+      <point x="0.0" y="0.0" />
+      <point x="0.0" y="0.0" />
+    </edge>
+    <edge source="dk.dbc.dataio.gui.client.components.jobfilter.ActiveJobFilter" target="dk.dbc.dataio.gui.client.components.jobfilter.BaseJobFilter">
+      <point x="0.0" y="-15.0" />
+      <point x="362.4999999999999" y="390.0" />
+      <point x="441.6266666666666" y="390.0" />
+      <point x="-9.75" y="15.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Group" zoom="1.0" x="561.5" y="277.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

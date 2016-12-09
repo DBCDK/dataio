@@ -249,6 +249,11 @@ public class FlowStoreProxyServlet extends RemoteServiceServlet implements FlowS
     }
 
     @Override
+    public TickleRepoHarvesterConfig createTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config) throws ProxyException {
+        return flowStoreProxy.createTickleRepoHarvesterConfig(config);
+    }
+
+    @Override
     public List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException {
         return flowStoreProxy.findAllTickleRepoHarvesterConfigs();
     }

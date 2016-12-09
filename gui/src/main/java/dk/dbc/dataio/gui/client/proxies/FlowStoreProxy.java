@@ -86,6 +86,7 @@ public interface FlowStoreProxy extends RemoteService {
     RRHarvesterConfig getRRHarvesterConfig(long id) throws ProxyException;
     List<UshSolrHarvesterConfig> findAllUshSolrHarvesterConfigs() throws ProxyException;
     UshSolrHarvesterConfig getUshSolrHarvesterConfig(long id) throws ProxyException;
+    TickleRepoHarvesterConfig createTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config) throws ProxyException;
     List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException;
     TickleRepoHarvesterConfig getTickleRepoHarvesterConfig(long id) throws ProxyException;
 

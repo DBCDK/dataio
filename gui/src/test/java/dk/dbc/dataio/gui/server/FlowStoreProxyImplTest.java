@@ -2163,6 +2163,80 @@ public class FlowStoreProxyImplTest {
 
 
     /*
+     * Test createTickleRepoHarvesterConfig
+     */
+
+    @Test(expected = ProxyException.class)
+    public void createTickleRepoHarvesterConfig_throwExceptionOnCorrectSubtype_exceptionIsThrown() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        // Now do emulate a TypeNotPresentException, which will be caught in the Proxy and a new ProxyException will be thrown
+        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class))).thenThrow(new TypeNotPresentException("TickleRepoHarvesterConfig", new Throwable()));
+
+        flowStoreProxy.createTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(1L, 1L, new TickleRepoHarvesterConfig.Content().withDatasetName("dataset-name")));
+    }
+
+    @Test
+    public void createTickleRepoHarvesterConfig_remoteServiceReturnsHttpStatusCreated_returnsTickleRepoHarvesterConfigEntity() throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(123L, 234L, new TickleRepoHarvesterConfig.Content().withId("created-content-id"));
+        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class))).thenReturn(config);
+        try {
+            final TickleRepoHarvesterConfig createdConfig = flowStoreProxy.createTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(345L, 456L, new TickleRepoHarvesterConfig.Content().withId("content-id")));
+            assertNotNull(createdConfig);
+            assertThat(createdConfig.getContent().getId(), is("created-content-id"));
+        } catch (ProxyException e) {
+            fail("Unexpected error when calling: createTickleRepoHarvesterConfig()");
+        }
+    }
+
+    @Test
+    public void createTickleRepoHarvesterConfig_remoteServiceReturnsHttpStatusInternalServerError_throws() throws Exception {
+        createTickleRepoHarvesterConfig_genericTestImplForHttpErrors(500, ProxyError.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+    }
+
+    @Test
+    public void createTickleRepoHarvesterConfig_remoteServiceReturnsHttpStatusNotAcceptable_throws() throws Exception {
+        createTickleRepoHarvesterConfig_genericTestImplForHttpErrors(406, ProxyError.NOT_ACCEPTABLE, "NOT_ACCEPTABLE");
+    }
+
+    @Test
+    public void createTickleRepoHarvesterConfig_throwsIllegalArgumentException() throws Exception {
+        IllegalArgumentException illegalArgumentException = new IllegalArgumentException("DIED");
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(123L, 234L, new TickleRepoHarvesterConfig.Content().withId("created-content-id"));
+        createTickleRepoHarvesterConfig_testForProxyError(config, illegalArgumentException, ProxyError.MODEL_MAPPER_INVALID_FIELD_VALUE, "MODEL_MAPPER_INVALID_FIELD_VALUE");
+    }
+
+    private void createTickleRepoHarvesterConfig_genericTestImplForHttpErrors(int errorCodeToReturn, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class)))
+                .thenThrow(new FlowStoreServiceConnectorUnexpectedStatusCodeException("DIED", errorCodeToReturn));
+
+        try {
+            flowStoreProxy.createTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(345L, 456L, new TickleRepoHarvesterConfig.Content().withId("content-id")));
+            fail("No " + expectedErrorName + " error was thrown by createTickleRepoHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+    private void createTickleRepoHarvesterConfig_testForProxyError(TickleRepoHarvesterConfig config, Exception exception, ProxyError expectedError, String expectedErrorName) throws Exception {
+        final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
+        final FlowStoreProxyImpl flowStoreProxy = new FlowStoreProxyImpl(flowStoreServiceConnector);
+        when(flowStoreServiceConnector.createHarvesterConfig(any(TickleRepoHarvesterConfig.class), eq(TickleRepoHarvesterConfig.class))).thenThrow(exception);
+
+        try {
+            flowStoreProxy.createTickleRepoHarvesterConfig(config);
+            fail("No " + expectedErrorName + " error was thrown by createTickleRepoHarvesterConfig()");
+        } catch (ProxyException e) {
+            assertThat(e.getErrorCode(), is(expectedError));
+        }
+    }
+
+
+    /*
      * Test findAllTickleRepoHarvesterConfigs
      */
 

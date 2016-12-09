@@ -80,6 +80,7 @@ public interface FlowStoreProxyAsync {
     void getRRHarvesterConfig(long id, AsyncCallback<RRHarvesterConfig> async);
     void findAllUshSolrHarvesterConfigs(AsyncCallback<List<UshSolrHarvesterConfig>> async);
     void getUshSolrHarvesterConfig(long id, AsyncCallback<UshSolrHarvesterConfig> async);
+    void createTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config, AsyncCallback<TickleRepoHarvesterConfig> async);
     void findAllTickleRepoHarvesterConfigs(AsyncCallback<List<TickleRepoHarvesterConfig>> async);
     void getTickleRepoHarvesterConfig(long id, AsyncCallback<TickleRepoHarvesterConfig> async);
 

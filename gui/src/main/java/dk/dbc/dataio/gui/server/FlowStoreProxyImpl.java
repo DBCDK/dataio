@@ -625,6 +625,18 @@ public class FlowStoreProxyImpl implements FlowStoreProxy {
 
     // Tickle Repo Harvesters
     @Override
+    public TickleRepoHarvesterConfig createTickleRepoHarvesterConfig(TickleRepoHarvesterConfig config) throws ProxyException {
+        final String callerMethodName = "createTickleRepoHarvesterConfig";
+        log.trace("FlowStoreProxy: " + callerMethodName + "(\"{}\");", config.getId());
+        try {
+            return flowStoreServiceConnector.createHarvesterConfig(config.getContent(), TickleRepoHarvesterConfig.class);
+        } catch(Exception genericException) {
+            handleExceptions(genericException, callerMethodName);
+            return null;
+        }
+    }
+
+    @Override
     public List<TickleRepoHarvesterConfig> findAllTickleRepoHarvesterConfigs() throws ProxyException {
         final String callerMethodName = "findAllTickleRepoHarvesterConfigs";
         List<TickleRepoHarvesterConfig> tickleRepoHarvesterConfigs = null;

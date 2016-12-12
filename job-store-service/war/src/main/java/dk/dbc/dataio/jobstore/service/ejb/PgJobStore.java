@@ -207,6 +207,10 @@ public class PgJobStore {
 
             int chunkId = 0;
             ChunkEntity chunkEntity;
+
+            // For Partitioning Submitter as DataSetId is fine but not optimal
+            //
+            long dataSetId = job.getSpecification().getSubmitterId();
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
@@ -223,8 +227,10 @@ public class PgJobStore {
                     abortDiagnostics.addAll(chunkEntity.getState().getDiagnostics());
                     break;
                 }
-                jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink());
+                jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), dataSetId);
             } while (true);
+
+            jobSchedulerBean.markJobDone( job.getId(), job.getCachedSink().getSink(), dataSetId);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
             final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());

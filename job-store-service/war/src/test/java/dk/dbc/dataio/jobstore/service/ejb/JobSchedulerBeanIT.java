@@ -1,23 +1,35 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.model.ChunkBuilder;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkBuilder;
+import dk.dbc.dataio.commons.utils.test.model.SinkContentBuilder;
+import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.Key;
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+import static org.mockito.Mockito.mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by ja7 on 11-04-16.
@@ -121,7 +133,7 @@ public class JobSchedulerBeanIT {
 
 
         em.getTransaction().begin();
-        for (int chunkid : new int[]{1, 2, 3, 4 , 6}) {
+        for (int chunkid : new int[]{1, 2, 3, 4, 6}) {
             bean.chunkDeliveringDone(new ChunkBuilder(PROCESSED)
                     .setJobId(3).setChunkId(chunkid)
                     .appendItem(new ChunkItemBuilder().setData("ProcessdChunk").build())
@@ -130,8 +142,104 @@ public class JobSchedulerBeanIT {
         }
         em.getTransaction().commit();
         JPATestUtils.clearEntityManagerCache(em);
-
-
-
     }
+
+    @Test
+    public void TickleFirstChunkDependency() throws Exception {
+        JPATestUtils.runSqlFromResource(em, JobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+
+        JobSchedulerBean bean = new JobSchedulerBean();
+        bean.entityManager = em;
+        JobSchedulerTransactionsBean jtbean= new JobSchedulerTransactionsBean();
+        jtbean.entityManager = bean.entityManager;
+        jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
+        bean.jobSchedulerTransactionsBean = jtbean;
+
+
+
+        Sink sink1=new SinkBuilder().setId(1).setContent(
+                new SinkContentBuilder().setSinkType( SinkContent.SinkType.TICKLE ).build()
+        ).build();
+
+        em.getTransaction().begin();
+        for (int chunkId : new int[]{0, 1, 2, 3}) {
+            String ck=String.format("CK%d",chunkId);
+            bean.scheduleChunk(new ChunkEntity()
+                            .withJobId(3)
+                            .withChunkId( chunkId ).withNumberOfItems((short) 1)
+                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck))
+                    , sink1
+                    , 1
+            );
+        }
+        em.getTransaction().commit();
+
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK0", "1"));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK1" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK2" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK3"));
+    }
+
+
+    @Test
+    public void NonTickleFirstChunkDependency() throws Exception {
+        JPATestUtils.runSqlFromResource(em, JobSchedulerBeanIT.class, "JobSchedulerBeanArquillianIT_findWaitForChunks.sql");
+
+        JobSchedulerBean bean = new JobSchedulerBean();
+        bean.entityManager = em;
+        JobSchedulerTransactionsBean jtbean= new JobSchedulerTransactionsBean();
+        jtbean.entityManager = bean.entityManager;
+        jtbean.sinkMessageProducerBean = mock(SinkMessageProducerBean.class);
+        bean.jobSchedulerTransactionsBean = jtbean;
+
+
+
+        Sink sink1=new SinkBuilder().setId(1).setContent(
+                new SinkContentBuilder().setSinkType( SinkContent.SinkType.DUMMY ).build()
+        ).build();
+
+        em.getTransaction().begin();
+        for (int chunkId : new int[]{0, 1, 2, 3}) {
+            String ck=String.format("CK%d",chunkId);
+            bean.scheduleChunk(new ChunkEntity()
+                            .withJobId(3)
+                            .withChunkId( chunkId ).withNumberOfItems((short) 1)
+                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck))
+                    , sink1
+                    , 1
+            );
+        }
+        em.getTransaction().commit();
+
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK0" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK1" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK2" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK3"));
+    }
+
+
+    private SequenceAnalysisData makeSequenceAnalyceData(String... s) {
+        return new SequenceAnalysisData(makeSet(s));
+    }
+
+    private Set<String> makeSet(String... s) {
+        Set<String> res = new HashSet<>();
+        Collections.addAll(res, s);
+        return res;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private DependencyTrackingEntity getDependencyTrackingEntity(int jobId, int chunkId) {
+        JPATestUtils.clearEntityManagerCache(em);
+        em.getTransaction().begin();
+
+        LOGGER.info("Test Checker entityManager.find( job={}, chunk={} ) ", jobId, chunkId );
+        DependencyTrackingEntity dependencyTrackingEntity = em.find(DependencyTrackingEntity.class, new DependencyTrackingEntity.Key(jobId, chunkId), LockModeType.PESSIMISTIC_READ);
+        assertThat(dependencyTrackingEntity, is(notNullValue()));
+        em.refresh(dependencyTrackingEntity);
+        em.getTransaction().rollback();
+        return dependencyTrackingEntity;
+    }
+
+
 }

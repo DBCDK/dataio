@@ -86,10 +86,13 @@ import java.util.Set;
 })
 public class DependencyTrackingEntity {
     public static final String QUERY_JOB_COUNT_CHUNK_COUNT = "DependencyTracking.jobCountChunkCountResult";
-    public DependencyTrackingEntity(ChunkEntity chunk, int sinkId) {
+    public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key( chunk.getKey());
         this.sinkid= sinkId;
-        this.matchKeys =  chunk.getSequenceAnalysisData().getData();
+        this.matchKeys =  new HashSet<>(chunk.getSequenceAnalysisData().getData());
+        if (extraKey != null) {
+            this.matchKeys.add( extraKey );
+        }
     }
 
     public DependencyTrackingEntity() {

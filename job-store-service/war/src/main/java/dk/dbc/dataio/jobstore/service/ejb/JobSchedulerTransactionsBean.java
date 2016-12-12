@@ -55,21 +55,25 @@ public class JobSchedulerTransactionsBean {
     JobProcessorMessageProducerBean jobProcessorMessageProducerBean;
 
 
+
+
     /**
      * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
      * New Transaction to ensure Record is on Disk before async submit
-     *  @param chunk new Chunk
-     * @param sink  Destination Sink
+     *
+     * Updates WaitingOn with chunks with matching keys
+     *
+     * @Param e Dependency tracking Entity
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void persistDependencyEntity(ChunkEntity chunk, Sink sink) {
-        int sinkId = (int) sink.getId();
+    public void persistDependencyEntity(DependencyTrackingEntity e ) {
 
-        getPrSinkStatusForSinkId(sinkId).processingStatus.readyForQueue.incrementAndGet();
+        getPrSinkStatusForSinkId(e.getSinkid()).processingStatus.readyForQueue.incrementAndGet();
 
-        DependencyTrackingEntity e = new DependencyTrackingEntity(chunk, sinkId);
-        e.setWaitingOn(findChunksToWaitFor(sinkId, e.getMatchKeys()));
+        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(e.getSinkid(), e.getMatchKeys());
+
+        e.setWaitingOn(chunksToWaitFor);
         entityManager.persist(e);
     }
 

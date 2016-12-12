@@ -16,8 +16,8 @@ public class JobSchedulerBeanTest {
     public void scheduleChunkThowsOnNullInpub()  {
         JobSchedulerBean bean=new JobSchedulerBean();
 
-        assertThat( () -> { bean.scheduleChunk( null, new SinkBuilder().build());}, isThrowing(NullPointerException.class));
-        assertThat( () -> { bean.scheduleChunk( new ChunkEntity() , null );}, isThrowing(NullPointerException.class));
+        assertThat( () -> bean.scheduleChunk( null, new SinkBuilder().build(),1 ), isThrowing(NullPointerException.class));
+        assertThat( () -> bean.scheduleChunk( new ChunkEntity() , null ,1 ), isThrowing(NullPointerException.class));
     }
 
 

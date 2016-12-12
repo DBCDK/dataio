@@ -194,7 +194,7 @@ public class JobSchedulerBeanArquillianIT {
         jobSchedulerBean.scheduleChunk(new ChunkEntity()
                 .withJobId(3).withChunkId(0)
                 .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
-                sink1);
+                sink1, 1);
 
         // Then
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
@@ -228,7 +228,7 @@ public class JobSchedulerBeanArquillianIT {
         jobSchedulerBean.scheduleChunk(new ChunkEntity()
                         .withJobId(3).withChunkId(1)
                         .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f1"))),
-                        sink1);
+                        sink1, 1);
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 1);
 
         jobSchedulerBean.chunkProcessingDone(new ChunkBuilder(PROCESSED)
@@ -292,7 +292,7 @@ public class JobSchedulerBeanArquillianIT {
             jobSchedulerBean.scheduleChunk(new ChunkEntity()
                             .withJobId(3).withChunkId(i)
                             .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
-                    sink1);
+                    sink1, 1);
         }
         // Chunk 3.[0-9] must take last slot before chunk is delayed.
         TestJobProcessorMessageConsumerBean.waitForProcessingOfChunks("", 10);
@@ -303,7 +303,7 @@ public class JobSchedulerBeanArquillianIT {
             jobSchedulerBean.scheduleChunk(new ChunkEntity()
                             .withJobId(3).withChunkId(i)
                             .withSequenceAnalysisData(new SequenceAnalysisData(makeSet("f"+i))),
-                    sink1);
+                    sink1, 1);
         }
 
         assertThat("Processing is back to directMode", sinkStatus.processingStatus.isDirectSubmitMode(),is(false));

@@ -79,14 +79,18 @@ public class JPATestUtils {
     }
 
     public static DataSource getTestDataSource( String dataBaseName ) throws SQLException {
-        if ( System.getProperty(POSTGRESQL_PORT) == null) {
+        int databasePort=5432;
+        if ( System.getProperty(POSTGRESQL_PORT) == null ||
+                System.getProperty(POSTGRESQL_PORT).length() < 1 ) {
             // Hack
             dataBaseName = System.getenv("USER");
+        } else {
+            databasePort = Integer.parseInt(System.getProperty(POSTGRESQL_PORT));
         }
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setDatabaseName(dataBaseName);
         dataSource.setServerName("localhost");
-        dataSource.setPortNumber(Integer.parseInt(System.getProperty(POSTGRESQL_PORT, "5432")));
+        dataSource.setPortNumber(databasePort);
         dataSource.setUser(System.getProperty("user.name"));
         dataSource.setPassword(System.getProperty("user.name"));
         // Fail early if unable to open connection
@@ -171,7 +175,7 @@ public class JPATestUtils {
             String dataBaseName = "testdb";
             String dataBaseHost = "localhost";
             String port = System.getProperty(POSTGRESQL_PORT);
-            if (port == null) {
+            if (port == null || port.length() < 1)  {
                 port = "5432";
                 password = System.getenv("USER");
                 dataBaseName = System.getenv("USER");

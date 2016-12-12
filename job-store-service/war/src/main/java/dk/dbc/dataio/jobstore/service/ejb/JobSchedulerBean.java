@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
@@ -56,6 +57,8 @@ import java.util.concurrent.Future;
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
 
+
+
     enum QueueSubmitMode {
         DIRECT,  // In this mode the chunk is send to the JMS queue directly
         BULK, // In this mode the chunk is just added as ready for Processing/Delivering
@@ -84,7 +87,7 @@ public class JobSchedulerBean {
     EntityManager entityManager;
 
     @EJB
-    private JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
+    protected JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
 
 
     /**
@@ -95,21 +98,43 @@ public class JobSchedulerBean {
      *
      * @param chunk next chunk element to enter into sequence analysis
      * @param sink  sink associated with chunk
+     * @param dataSetId
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
-    public void scheduleChunk(ChunkEntity chunk, Sink sink) {
+    public void scheduleChunk(ChunkEntity chunk, Sink sink, long dataSetId) {
         InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
         InvariantUtil.checkNotNullOrThrow(sink, "sink");
 
-        // Proxy to self to get new Transaction
-        jobSchedulerTransactionsBean.persistDependencyEntity(chunk, sink );
+        int sinkId = (int) sink.getId();
+        DependencyTrackingEntity e;
+
+        if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE &&
+                chunk.getKey().getId() == 0)
+        {
+            e = new DependencyTrackingEntity(chunk, sinkId, String.format("%d", dataSetId));
+        } else {
+            e = new DependencyTrackingEntity(chunk, sinkId, null );
+        }
+
+        jobSchedulerTransactionsBean.persistDependencyEntity(e);
 
         // Check before Submit to avoid unnecessary Async Call.
 
         if (getPrSinkStatusForSinkId(sink.getId()).isProcessingModeDirectSubmit()) {
             jobSchedulerTransactionsBean.submitToProcessingIfPossibleAsync(chunk, sink.getId());
         }
+    }
+
+    /**
+     * Place holder for later task
+     * @param jobId
+     * @param sink
+     * @param dataSetId
+     */
+    @Stopwatch
+    public void markJobDone(int jobId, Sink sink, long dataSetId) {
+        // TODO
     }
 
 

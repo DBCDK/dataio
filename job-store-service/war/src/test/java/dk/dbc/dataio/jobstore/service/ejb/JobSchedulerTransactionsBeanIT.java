@@ -2,6 +2,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
+import static dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.*;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.MigrationInfo;
 import static org.hamcrest.CoreMatchers.is;
@@ -37,14 +38,20 @@ public class JobSchedulerTransactionsBeanIT {
         JobSchedulerTransactionsBean bean= new JobSchedulerTransactionsBean();
         bean.entityManager=em;
 
-        assertThat(bean.findChunksToWaitFor( 0, createSet( )).size(), is(0));
+        assertThat(bean.findChunksToWaitFor( 0, createSet( ), null).size(), is(0));
 
-        assertThat(bean.findChunksToWaitFor( 0, createSet("K1")),containsInAnyOrder( new DependencyTrackingEntity.Key(1,1)));
-        assertThat(bean.findChunksToWaitFor( 0, createSet("C1")),containsInAnyOrder( new DependencyTrackingEntity.Key(1,1)));
+        assertThat(bean.findChunksToWaitFor( 0, createSet("K1"), null),containsInAnyOrder( new Key(1,1)));
+        assertThat(bean.findChunksToWaitFor( 0, createSet("C1"), null ),containsInAnyOrder( new Key(1,1)));
+
+        assertThat(bean.findChunksToWaitFor( 0, createSet("KK2"), null), containsInAnyOrder( new Key(1,0), new Key(1,1), new Key(1,2), new Key(1,3) ));
+        assertThat(bean.findChunksToWaitFor( 1, createSet("K4", "K6", "C4"), null), containsInAnyOrder( new Key(2,0), new Key(2,2), new Key(2,4)));
+
+        assertThat(bean.findChunksToWaitFor( 0, createSet(), "K1"),containsInAnyOrder( new Key(1,1)));
+        assertThat(bean.findChunksToWaitFor( 0, createSet(), "C1"),containsInAnyOrder( new Key(1,1)));
+
+        assertThat(bean.findChunksToWaitFor( 1, createSet("K4", "K6", "C4"), "K5"), containsInAnyOrder( new Key(2,1 ), new Key(2,0), new Key(2,2), new Key(2,4)));
 
 
-        assertThat(bean.findChunksToWaitFor( 0, createSet("KK2")), containsInAnyOrder( new DependencyTrackingEntity.Key(1,0), new DependencyTrackingEntity.Key(1,1), new DependencyTrackingEntity.Key(1,2), new DependencyTrackingEntity.Key(1,3) ));
-        assertThat(bean.findChunksToWaitFor( 1, createSet("K4", "K6", "C4")), containsInAnyOrder( new DependencyTrackingEntity.Key(2,0), new DependencyTrackingEntity.Key(2,2), new DependencyTrackingEntity.Key(2,4)));
     }
 
 

@@ -164,20 +164,27 @@ public class JobSchedulerBeanIT {
         em.getTransaction().begin();
         for (int chunkId : new int[]{0, 1, 2, 3}) {
             String ck=String.format("CK%d",chunkId);
+            String previousCk=String.format("CK%d", chunkId - 1);
+
             bean.scheduleChunk(new ChunkEntity()
                             .withJobId(3)
                             .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck))
+                            .withSequenceAnalysisData(makeSequenceAnalyceData(ck, previousCk))
                     , sink1
                     , 1
             );
         }
         em.getTransaction().commit();
 
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK0", "1"));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK1" ));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK2" ));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK3"));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0", "1"));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK0", "CK1" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK1", "CK2" ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK2", "CK3"));
+
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getWaitingOn().size(), is(0));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getWaitingOn(), containsInAnyOrder( mk(3,0) ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getWaitingOn(), containsInAnyOrder( mk(3,0), mk(3,1) ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getWaitingOn(), containsInAnyOrder( mk(3,0), mk(3,2)));
     }
 
 
@@ -201,23 +208,36 @@ public class JobSchedulerBeanIT {
         em.getTransaction().begin();
         for (int chunkId : new int[]{0, 1, 2, 3}) {
             String ck=String.format("CK%d",chunkId);
+            String previousCk=String.format("CK%d", chunkId - 1);
+
             bean.scheduleChunk(new ChunkEntity()
                             .withJobId(3)
                             .withChunkId( chunkId ).withNumberOfItems((short) 1)
-                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck))
+                            .withSequenceAnalysisData( makeSequenceAnalyceData(ck, previousCk))
                     , sink1
                     , 1
             );
         }
         em.getTransaction().commit();
 
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK0" ));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK1" ));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK2" ));
-        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK3"));
+
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0"));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getMatchKeys(), containsInAnyOrder("CK0", "CK1"));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getMatchKeys(), containsInAnyOrder("CK1", "CK2"));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getMatchKeys(), containsInAnyOrder("CK2", "CK3"));
+
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getWaitingOn().size(), is(0));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,1).getWaitingOn(), containsInAnyOrder( mk(3,0) ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,2).getWaitingOn(), containsInAnyOrder( mk(3,1) ));
+        assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,3).getWaitingOn(), containsInAnyOrder( mk(3,2)));
+
     }
 
 
+
+    private Key mk(int jobId, int chunkId ) {
+        return new Key(jobId, chunkId);
+    }
     private SequenceAnalysisData makeSequenceAnalyceData(String... s) {
         return new SequenceAnalysisData(makeSet(s));
     }

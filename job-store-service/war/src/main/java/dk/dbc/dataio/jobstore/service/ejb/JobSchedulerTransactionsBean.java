@@ -21,6 +21,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -67,11 +68,11 @@ public class JobSchedulerTransactionsBean {
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
-    public void persistDependencyEntity(DependencyTrackingEntity e ) {
+    public void persistDependencyEntity(DependencyTrackingEntity e, String waitForKey) {
 
         getPrSinkStatusForSinkId(e.getSinkid()).processingStatus.readyForQueue.incrementAndGet();
 
-        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(e.getSinkid(), e.getMatchKeys());
+        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findChunksToWaitFor(e.getSinkid(), e.getMatchKeys(), waitForKey);
 
         e.setWaitingOn(chunksToWaitFor);
         entityManager.persist(e);
@@ -206,10 +207,15 @@ public class JobSchedulerTransactionsBean {
      * @param matchKeys Set of match keys
      * @return Returns List of Chunks To wait for.
      */
-    List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys) {
-        if (matchKeys.isEmpty()) return new ArrayList<>();
+    List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys, String waitForKey) {
+        if (matchKeys.isEmpty() && waitForKey==null) return new ArrayList<>();
 
-        Query query = entityManager.createNativeQuery(buildFindChunksToWaitForQuery(sinkId, matchKeys), "JobIdChunkIdResult");
+        HashSet extraKeys=null;
+        if (waitForKey != null) {
+            extraKeys = new HashSet<>();
+            extraKeys.add( waitForKey );
+        }
+        Query query = entityManager.createNativeQuery(buildFindChunksToWaitForQuery(sinkId, matchKeys, extraKeys), "JobIdChunkIdResult");
         return query.getResultList();
     }
 
@@ -241,15 +247,20 @@ public class JobSchedulerTransactionsBean {
      * @param matchKeys Set of keys any chunk with any key is returned
      * @return NativeQuery for find chunks to wait for using @>
      */
-    String buildFindChunksToWaitForQuery(int sinkId, Set<String> matchKeys) {
+    String buildFindChunksToWaitForQuery(int sinkId, Set<String> matchKeys, Set<String> alsoWaitForKeys) {
         StringBuilder builder = new StringBuilder(1000);
         builder.append("select jobId, chunkId from dependencyTracking where sinkId=");
         builder.append(sinkId);
         builder.append(" and ( ");
 
+        Set<String> keys=matchKeys;
+        if( alsoWaitForKeys != null) {
+            keys=new HashSet<>(matchKeys);
+            keys.addAll(alsoWaitForKeys);
+        }
 
         Boolean first = true;
-        for (String key : matchKeys) {
+        for (String key : keys) {
             if (!first) builder.append(" or ");
             builder.append("matchKeys @> '[\"");
             builder.append(escapeSql(key));

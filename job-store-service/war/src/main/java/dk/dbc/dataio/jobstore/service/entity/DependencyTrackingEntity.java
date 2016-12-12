@@ -89,7 +89,11 @@ public class DependencyTrackingEntity {
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key( chunk.getKey());
         this.sinkid= sinkId;
-        this.matchKeys =  new HashSet<>(chunk.getSequenceAnalysisData().getData());
+        if( chunk.getSequenceAnalysisData() != null) {
+            this.matchKeys = new HashSet<>(chunk.getSequenceAnalysisData().getData());
+        } else {
+            this.matchKeys = new HashSet<>();
+        }
         if (extraKey != null) {
             this.matchKeys.add( extraKey );
         }

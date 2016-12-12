@@ -98,7 +98,7 @@ public class JobSchedulerBean {
      *
      * @param chunk next chunk element to enter into sequence analysis
      * @param sink  sink associated with chunk
-     * @param dataSetId
+     * @param dataSetId DataSet to be used by Tickle Sink Decadency Tracking
      * @throws NullPointerException if given any null-valued argument
      */
     @Stopwatch
@@ -132,13 +132,15 @@ public class JobSchedulerBean {
     }
 
     /**
-     * Place holder for later task
-     * @param jobId
-     * @param sink
-     * @param dataSetId
+     * If job is TICKLE scheduled Add Special Barrier Chunk with one Special JobTermination Record
+     *
+     * @param jobId jobId,
+     * @param sink sinkId,
+     * @param dataSetId DataSetId to be used for Tickle sink.
      */
     @Stopwatch
     public void markJobDone(int jobId, Sink sink, long dataSetId) {
+        if( sink.getContent().getSinkType() != SinkContent.SinkType.TICKLE) return;
         // TODO
     }
 

@@ -184,6 +184,7 @@ public class HarvestOperation_fbs_Test {
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -197,6 +198,7 @@ public class HarvestOperation_fbs_Test {
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("format")
                 .withCreationDate(SECOND_RECORD.getCreated())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
@@ -210,6 +212,7 @@ public class HarvestOperation_fbs_Test {
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
                 .withFormat("format")
                 .withCreationDate(THIRD_RECORD.getCreated())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -255,6 +258,7 @@ public class HarvestOperation_fbs_Test {
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final DataContainerExpectation dataContainerExpectation2 = null;
@@ -268,6 +272,7 @@ public class HarvestOperation_fbs_Test {
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
                         "Harvesting RawRepo %s failed: Record %s was not found in returned collection",
                         SECOND_RECORD.getId(), SECOND_RECORD.getId())))
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -281,6 +286,7 @@ public class HarvestOperation_fbs_Test {
                 .withSubmitterNumber(THIRD_RECORD.getId().getAgencyId())
                 .withFormat("format")
                 .withCreationDate(THIRD_RECORD.getCreated())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();

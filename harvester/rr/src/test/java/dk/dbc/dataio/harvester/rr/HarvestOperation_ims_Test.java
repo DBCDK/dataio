@@ -228,6 +228,7 @@ public class HarvestOperation_ims_Test {
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation737000 = new MarcExchangeCollectionExpectation();
@@ -247,6 +248,7 @@ public class HarvestOperation_ims_Test {
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation775100 = new MarcExchangeCollectionExpectation();
@@ -262,6 +264,7 @@ public class HarvestOperation_ims_Test {
                 .withCreationDate(SECOND_RECORD.getCreated())
                 .withEnrichmentTrail(SECOND_RECORD.getEnrichmentTrail())
                 .withTrackingId(SECOND_RECORD.getTrackingId())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final ImsHarvestOperation harvestOperation = newImsHarvestOperation();

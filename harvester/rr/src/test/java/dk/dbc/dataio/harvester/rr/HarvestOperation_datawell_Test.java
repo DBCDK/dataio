@@ -221,6 +221,7 @@ public class HarvestOperation_datawell_Test {
                 .withCreationDate(FIRST_RECORD.getCreated())
                 .withEnrichmentTrail(FIRST_RECORD.getEnrichmentTrail())
                 .withTrackingId(FIRST_RECORD.getTrackingId())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -236,6 +237,7 @@ public class HarvestOperation_datawell_Test {
                 .withFormat("katalog")
                 .withCreationDate(THIRD_RECORD.getCreated())
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation3 = new MarcExchangeCollectionExpectation();
@@ -250,6 +252,7 @@ public class HarvestOperation_datawell_Test {
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
                 .withCreationDate(SECOND_RECORD.getCreated())
+                .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
         final HarvestOperation harvestOperation = newHarvestOperation();
@@ -291,6 +294,7 @@ public class HarvestOperation_datawell_Test {
                 .withTrackingId(FIRST_RECORD.getTrackingId())
                 .withDiagnostic(new Diagnostic(Diagnostic.Level.FATAL, String.format(
                         "Harvesting RawRepo %s failed: member data can not be parsed as XML", FIRST_RECORD.getId())))
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation1 = new MarcExchangeCollectionExpectation();
@@ -305,6 +309,7 @@ public class HarvestOperation_datawell_Test {
                 .withSubmitterNumber(SECOND_RECORD.getId().getAgencyId())
                 .withFormat("katalog")
                 .withCreationDate(SECOND_RECORD.getCreated())
+                .withDeleted(false)
                 .withLibraryRules(localLibraryRules));
 
         final MarcExchangeCollectionExpectation marcExchangeCollectionExpectation2 = new MarcExchangeCollectionExpectation();
@@ -320,6 +325,7 @@ public class HarvestOperation_datawell_Test {
                 .withFormat("katalog")
                 .withCreationDate(THIRD_RECORD.getCreated())
                 .withEnrichmentTrail(THIRD_RECORD.getEnrichmentTrail())
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()));
 
         final HarvestOperation harvestOperation = newHarvestOperation();

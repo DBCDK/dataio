@@ -34,7 +34,7 @@ public class AddiMetaDataTest {
 
     @Test
     public void emptyAddiMetaData_canBeMarshalledWithoutNullFields() throws JSONBException {
-        assertThat(jsonbContext.marshall(new AddiMetaData()), is("{}"));
+        assertThat(jsonbContext.marshall(new AddiMetaData()), is("{\"deleted\":false}"));
     }
 
     @Test
@@ -64,6 +64,7 @@ public class AddiMetaDataTest {
         final AddiMetaData addiMetaData = new AddiMetaData()
                 .withSubmitterNumber(42)
                 .withFormat("marc2")
+                .withDeleted(false)
                 .withLibraryRules(new AddiMetaData.LibraryRules()
                                         .withAgencyType("theWorstType")
                                         .withLibraryRule("canDeleteAll", true)

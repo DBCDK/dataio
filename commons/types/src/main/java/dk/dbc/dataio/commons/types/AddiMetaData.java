@@ -44,6 +44,8 @@ public class AddiMetaData {
     @JsonProperty
     private String trackingId;
     @JsonProperty
+    private Boolean deleted;
+    @JsonProperty
     private Date creationDate;
     @JsonProperty
     private String enrichmentTrail;
@@ -87,6 +89,15 @@ public class AddiMetaData {
 
     public String trackingId() {
         return trackingId;
+    }
+
+    public AddiMetaData withDeleted(Boolean deleted) {
+        this.deleted = deleted;
+        return this;
+    }
+
+    public boolean isDeleted() {
+        return deleted != null && deleted;
     }
 
     public AddiMetaData withCreationDate(Date creationDate) {
@@ -153,6 +164,9 @@ public class AddiMetaData {
         if (trackingId != null ? !trackingId.equals(that.trackingId) : that.trackingId != null) {
             return false;
         }
+        if (deleted != null ? !deleted.equals(that.deleted) : that.deleted != null) {
+            return false;
+        }
         if (creationDate != null ? !creationDate.equals(that.creationDate) : that.creationDate != null) {
             return false;
         }
@@ -163,7 +177,6 @@ public class AddiMetaData {
             return false;
         }
         return libraryRules != null ? libraryRules.equals(that.libraryRules) : that.libraryRules == null;
-
     }
 
     @Override
@@ -172,6 +185,7 @@ public class AddiMetaData {
         result = 31 * result + (format != null ? format.hashCode() : 0);
         result = 31 * result + (bibliographicRecordId != null ? bibliographicRecordId.hashCode() : 0);
         result = 31 * result + (trackingId != null ? trackingId.hashCode() : 0);
+        result = 31 * result + (deleted != null ? deleted.hashCode() : 0);
         result = 31 * result + (creationDate != null ? creationDate.hashCode() : 0);
         result = 31 * result + (enrichmentTrail != null ? enrichmentTrail.hashCode() : 0);
         result = 31 * result + (diagnostic != null ? diagnostic.hashCode() : 0);
@@ -186,6 +200,7 @@ public class AddiMetaData {
                 ", format='" + format + '\'' +
                 ", bibliographicRecordId='" + bibliographicRecordId + '\'' +
                 ", trackingId='" + trackingId + '\'' +
+                ", deleted=" + deleted +
                 ", creationDate=" + creationDate +
                 ", enrichmentTrail='" + enrichmentTrail + '\'' +
                 ", diagnostic=" + diagnostic +

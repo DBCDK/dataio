@@ -64,8 +64,8 @@ public class JobSchedulerTransactionsBean {
      *
      * Updates WaitingOn with chunks with matching keys
      *
-     * @Param e Dependency tracking Entity
-     * @Param waitForKey Ekstra Key not part of this dependencyTrackingEntry, but we need to wait for chunks with this key.
+     * @param e Dependency tracking Entity
+     * @param waitForKey Ekstra Key not part of this dependencyTrackingEntry, but we need to wait for chunks with this key.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch

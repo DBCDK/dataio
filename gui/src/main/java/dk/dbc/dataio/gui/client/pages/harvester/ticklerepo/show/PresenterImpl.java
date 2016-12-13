@@ -24,9 +24,12 @@ package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
 import com.google.gwt.activity.shared.AbstractActivity;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
+import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
+import dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify.EditPlace;
+import dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify.CreatePlace;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 
@@ -39,12 +42,14 @@ import java.util.List;
 public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
+    private PlaceController placeController;
 
 
     /**
      * Default constructor
      */
-    public PresenterImpl() {
+    public PresenterImpl(PlaceController placeController) {
+        this.placeController = placeController;
     }
 
 
@@ -62,6 +67,28 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         getView().setHeader(commonInjector.getMenuTexts().menu_TickleHarvesters());
         containerWidget.setWidget(getView().asWidget());
         fetchHarvesters();
+    }
+
+
+    /*
+     * Overridden interface methods
+     */
+
+    /**
+     * This method starts the edit harvester page
+     * @param id The id of the harvester configuration to edit
+     */
+    @Override
+    public void editTickleRepoHarvesterConfig(String id) {
+        this.placeController.goTo(new EditPlace(id));
+    }
+
+    /**
+     * This method starts the create harvester page
+     */
+    @Override
+    public void createTickleRepoHarvester() {
+        placeController.goTo(new CreatePlace());
     }
 
 

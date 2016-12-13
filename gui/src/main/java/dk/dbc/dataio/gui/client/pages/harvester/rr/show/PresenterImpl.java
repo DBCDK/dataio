@@ -44,7 +44,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
 
-    PlaceController placeController;
+    private PlaceController placeController;
 
     /**
      * Default constructor
@@ -72,7 +72,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     }
 
 
-    /**
+    /*
      * Overridden methods
      */
 
@@ -85,6 +85,9 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         this.placeController.goTo(new EditPlace(id));
     }
 
+    /**
+     * This method starts the create harvester page
+     */
     @Override
     public void createHarvester() {
         this.placeController.goTo(new CreatePlace());

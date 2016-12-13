@@ -34,7 +34,7 @@ import dk.dbc.dataio.harvester.types.RRHarvesterConfig;
 import java.util.List;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, View> {}
@@ -43,8 +43,9 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     // UI Fields
     @UiField(provided=true) HarvestersTable harvestersTable;
 
+    @SuppressWarnings("unused")
     @UiHandler("createButton")
-        void backButtonPressed(ClickEvent event) {
+        void createButtonPressed(ClickEvent event) {
             presenter.createHarvester();
         }
     /**

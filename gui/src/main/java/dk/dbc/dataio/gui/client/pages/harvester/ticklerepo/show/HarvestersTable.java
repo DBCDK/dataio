@@ -21,13 +21,14 @@
 
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
 
+import com.google.gwt.cell.client.ButtonCell;
+import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.DoubleClickEvent;
 import com.google.gwt.event.dom.client.DoubleClickHandler;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
 import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.user.client.Window;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
@@ -40,7 +41,7 @@ import java.util.List;
  * Harvesters Table for the Harvester View
  */
 public class HarvestersTable extends CellTable {
-    ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
+    private ViewGinjector viewGinjector = GWT.create(ViewGinjector.class);
     Texts texts = viewGinjector.getTexts();
     Presenter presenter;
     ListDataProvider<TickleRepoHarvesterConfig> dataProvider;
@@ -60,6 +61,7 @@ public class HarvestersTable extends CellTable {
         addColumn(constructFormatColumn(), texts.columnHeader_Format());
         addColumn(constructTypeColumn(), texts.columnHeader_Type());
         addColumn(constructStatusColumn(), texts.columnHeader_Status());
+        addColumn(constructActionColumn(), texts.columnHeader_Action());
 
         setSelectionModel(selectionModel);
         addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
@@ -194,6 +196,27 @@ public class HarvestersTable extends CellTable {
     }
 
     /**
+     * This method constructs the Action column
+     * @return The constructed Action column
+     */
+    private Column constructActionColumn() {
+        Column column = new Column<TickleRepoHarvesterConfig, String>(new ButtonCell()) {
+            @Override
+            public String getValue(TickleRepoHarvesterConfig harvester) {
+                // The value to display in the button.
+                return texts.button_Edit();
+            }
+        };
+        column.setFieldUpdater(new FieldUpdater<TickleRepoHarvesterConfig, String>() {
+            @Override
+            public void update(int index, TickleRepoHarvesterConfig config, String buttonText) {
+                editTickleRepoHarvester(config);
+            }
+        });
+        return column;
+    }
+
+    /**
      * This method constructs a double click event handler. On double click event, the method calls
      * the presenter with the selection model selected value.
      * @return the double click handler
@@ -208,7 +231,7 @@ public class HarvestersTable extends CellTable {
      */
     private void editTickleRepoHarvester(TickleRepoHarvesterConfig harvester) {
         if (harvester != null) {
-            Window.alert("Rediger harvester");
+            presenter.editTickleRepoHarvesterConfig(String.valueOf(harvester.getId()));
         }
     }
 

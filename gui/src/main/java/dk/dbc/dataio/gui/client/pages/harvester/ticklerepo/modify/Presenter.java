@@ -19,11 +19,20 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
+package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
 import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
 
+
 public interface Presenter extends GenericPresenter {
-    void createTickleRepoHarvester();
-    void editTickleRepoHarvesterConfig(String id);
+    void idChanged(String id);
+    void nameChanged(String name);
+    void descriptionChanged(String description);
+    void destinationChanged(String destination);
+    void formatChanged(String format);
+    void typeChanged(String type);
+    void enabledChanged(Boolean value);
+    void keyPressed();
+
+    void saveButtonPressed();
 }

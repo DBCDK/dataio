@@ -35,7 +35,7 @@
 
     <g:HTMLPanel>
 
-        <!--<g:Button ui:field="newTickleRepoHarvesterButton"><ui:text from="{txt.button_NewTickleRepoHarvesterButton}" /></g:Button>-->
+        <g:Button ui:field="newTickleRepoHarvesterButton"><ui:text from="{txt.button_NewTickleRepoHarvesterButton}" /></g:Button>
 
         <table cellspacing='0' cellpadding='0' style='width:100%;'>
             <tr>

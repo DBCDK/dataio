@@ -18,12 +18,16 @@
  * You should have received a copy of the GNU General Public License
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
+package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
-package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
+import com.google.gwt.inject.client.GinModules;
+import com.google.gwt.inject.client.Ginjector;
 
-import dk.dbc.dataio.gui.client.presenters.GenericPresenter;
-
-public interface Presenter extends GenericPresenter {
-    void createTickleRepoHarvester();
-    void editTickleRepoHarvesterConfig(String id);
+/**
+ * Ginjector for the Harvester Modify module
+ */
+@GinModules(ViewModule.class)
+public interface ViewGinjector extends Ginjector {
+    View getView();
+    Texts getTexts();
 }

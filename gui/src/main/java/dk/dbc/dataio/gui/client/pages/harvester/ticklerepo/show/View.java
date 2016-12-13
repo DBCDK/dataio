@@ -22,8 +22,10 @@
 package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
 
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.IsWidget;
 import com.google.gwt.user.client.ui.Widget;
 import dk.dbc.dataio.gui.client.views.ContentPanel;
@@ -32,7 +34,7 @@ import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import java.util.List;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
     // Instantiate UI Binder
     interface MyUiBinder extends UiBinder<Widget, View> {}
@@ -64,6 +66,11 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
      * UI Handler Actions
      */
 
+    @SuppressWarnings("unused")
+    @UiHandler("newTickleRepoHarvesterButton")
+    public void createTickleRepoHarvester(ClickEvent event) {
+        presenter.createTickleRepoHarvester();
+    }
 
     /*
      * Public access methods

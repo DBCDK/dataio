@@ -19,51 +19,51 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.show;
+package dk.dbc.dataio.gui.client.pages.harvester.ticklerepo.modify;
 
-import com.google.gwt.i18n.client.Constants;
 import dk.dbc.dataio.gui.client.i18n.MainConstants;
 
 
-public interface Texts extends Constants {
-    // Column Headers
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_TickleId();
+public interface Texts extends com.google.gwt.i18n.client.Constants {
 
+    // Prompts
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Name();
+    String prompt_Id();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Description();
+    String prompt_Name();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Destination();
+    String prompt_Description();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Format();
+    String prompt_Destination();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Type();
+    String prompt_Format();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Status();
+    String prompt_Type();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String columnHeader_Action();
+    String prompt_Enabled();
 
 
-    // Button texts
+    // Buttons
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_Edit();
+    String button_Save();
 
+
+    // Status messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String status_ConfigSuccessfullySaved();
+
+
+    // Error messages
+    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
+    String error_InputFieldValidationError();
 
     @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String button_NewTickleRepoHarvesterButton();
+    String error_HarvesterNotFound();
 
-    // Value texts
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String value_Enabled();
-
-    @DefaultStringValue(MainConstants.TRANSLATED_TEXT_IS_MISSING)
-    String value_Disabled();
 }

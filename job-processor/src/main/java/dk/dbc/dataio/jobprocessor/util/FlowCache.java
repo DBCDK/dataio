@@ -26,7 +26,7 @@ import dk.dbc.dataio.commons.types.FlowComponent;
 import dk.dbc.dataio.commons.types.FlowComponentContent;
 import dk.dbc.dataio.commons.types.JavaScript;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
+import dk.dbc.dataio.jobprocessor.javascript.Script;
 import dk.dbc.dataio.jobprocessor.javascript.StringSourceSchemeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,10 +84,10 @@ public class FlowCache {
         LOGGER.info("Setting up javascript environments for flow '{}'", flow.getContent().getName());
         final FlowCacheEntry cacheEntry = new FlowCacheEntry();
         for (FlowComponent flowComponent : flow.getContent().getComponents()) {
-            cacheEntry.scripts.add(createWrappedScript(flowComponent.getContent()));
+            cacheEntry.scripts.add(createScript(flowComponent.getContent()));
             final FlowComponentContent flowComponentNextContent = flowComponent.getNext();
             if (flowComponentNextContent != FlowComponent.UNDEFINED_NEXT) {
-                cacheEntry.next.add(createWrappedScript(flowComponentNextContent));
+                cacheEntry.next.add(createScript(flowComponentNextContent));
             }
         }
         if (cacheEntry.scripts.isEmpty()) {
@@ -98,7 +98,7 @@ public class FlowCache {
     }
 
     /* This method is synchronized to hopefully overcome some the experienced nashorn concurrency issues */
-    private static synchronized JSWrapperSingleScript createWrappedScript(FlowComponentContent componentContent) throws Throwable {
+    private static synchronized Script createScript(FlowComponentContent componentContent) throws Throwable {
         final List<JavaScript> javaScriptsBase64 = componentContent.getJavascripts();
         final List<StringSourceSchemeHandler.Script> javaScripts = new ArrayList<>(javaScriptsBase64.size());
         for (JavaScript javascriptBase64 : javaScriptsBase64) {
@@ -109,7 +109,7 @@ public class FlowCache {
         if (componentContent.getRequireCache() != null) {
             requireCacheJson = StringUtil.base64decode(componentContent.getRequireCache());
         }
-        return new JSWrapperSingleScript(componentContent.getName(), componentContent.getInvocationMethod(),
+        return new Script(componentContent.getName(), componentContent.getInvocationMethod(),
                 javaScripts, requireCacheJson);
     }
 
@@ -117,7 +117,7 @@ public class FlowCache {
      * FlowCache entry abstraction giving direct access to 'script' and 'next' environments.
      */
     public static class FlowCacheEntry {
-        public List<JSWrapperSingleScript> scripts = new ArrayList<>();
-        public List<JSWrapperSingleScript> next = new ArrayList<>();
+        public List<Script> scripts = new ArrayList<>();
+        public List<Script> next = new ArrayList<>();
     }
 }

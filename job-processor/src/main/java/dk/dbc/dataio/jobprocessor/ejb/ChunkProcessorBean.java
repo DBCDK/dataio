@@ -26,16 +26,11 @@ import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.Flow;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
-import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
-import dk.dbc.dataio.jobprocessor.javascript.JSWrapperSingleScript;
+import dk.dbc.dataio.jobprocessor.util.ChunkItemProcessor;
 import dk.dbc.dataio.jobprocessor.util.FlowCache;
-import dk.dbc.dataio.jsonb.JSONBContext;
-import dk.dbc.dataio.logstore.types.LogStoreTrackingId;
-import dk.dbc.javascript.recordprocessing.FailRecord;
-import dk.dbc.javascript.recordprocessing.IgnoreRecord;
+import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.log.DBCTrackedLogContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +38,11 @@ import org.slf4j.MDC;
 
 import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in
- * associated flow
+ * This Enterprise Java Bean (EJB) processes chunks with JavaScript contained in the associated flow
  */
 @Stateless
 @LocalBean
@@ -61,8 +54,6 @@ public class ChunkProcessorBean {
     // A per bean instance LRU flow cache
     private final FlowCache flowCache = new FlowCache();
 
-    JSONBContext jsonbContext = new JSONBContext();
-
     /**
      * Processes given chunk with business logic dictated by given flow
      * @param chunk chunk
@@ -73,36 +64,39 @@ public class ChunkProcessorBean {
     public Chunk process(Chunk chunk, Flow flow, SupplementaryProcessData supplementaryProcessData) {
         final StopWatch stopWatchForChunk = new StopWatch();
         try {
-            MDC.put(FLOW_NAME_MDC_KEY, flow.getContent().getName());
-            MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
+            flowMdcPut(flow);
+
             LOGGER.info("process(): processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
-            final Chunk processedChunk = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
-            processedChunk.setEncoding(Charset.defaultCharset());// todo: Remove once Chunk gets encoding from ChunkItem
+            final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.PROCESSED);
             if (chunk.size() > 0) {
                 try {
                     final FlowCache.FlowCacheEntry flowCacheEntry = cacheFlow(flow);
-                    final Object supplementaryData = convertSupplementaryProcessDataToJsJsonObject(flowCacheEntry.scripts.get(0), supplementaryProcessData);
-                    final List<ChunkItem> items = processItems(chunk, supplementaryData, flowCacheEntry.scripts);
-                    List<ChunkItem> next = null;
-                    if (!flowCacheEntry.next.isEmpty()) {
-                        next = processItems(chunk, supplementaryData, flowCacheEntry.next);
-                    }
-                    processedChunk.addAllItems(items, next);
+
+                    result.addAllItems(
+                            processItemsWithCurrentRevision(chunk, flowCacheEntry, supplementaryProcessData),
+                            processItemsWithNextRevision(chunk, flowCacheEntry, supplementaryProcessData));
                 } catch (Throwable t) {
                     // Since we cannot signal failure at chunk level, we have to fail all items in the chunk
-                    // with the Throwable.
-                    LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}",
-                            chunk.getJobId(), chunk.getChunkId(), t);
-                    processedChunk.addAllItems(failItemsWithThrowable(chunk, t));
+                    LOGGER.error("process(): unrecoverable exception caught while processing chunk {}/{}", chunk.getJobId(), chunk.getChunkId(), t);
+                    result.addAllItems(failAllItems(chunk, t));
                 }
             }
-            return processedChunk;
+            return result;
         } finally {
             LOGGER.info("process(): processing of chunk {}/{} took {} milliseconds",
                     chunk.getJobId(), chunk.getChunkId(), stopWatchForChunk.getElapsedTime());
-            MDC.remove(FLOW_NAME_MDC_KEY);
-            MDC.remove(FLOW_VERSION_MDC_KEY);
+            flowMdcRemove();
         }
+    }
+
+    private void flowMdcPut(Flow flow) {
+        MDC.put(FLOW_NAME_MDC_KEY, flow.getContent().getName());
+        MDC.put(FLOW_VERSION_MDC_KEY, String.valueOf(flow.getVersion()));
+    }
+
+    private void flowMdcRemove() {
+        MDC.remove(FLOW_NAME_MDC_KEY);
+        MDC.remove(FLOW_VERSION_MDC_KEY);
     }
 
     private FlowCache.FlowCacheEntry cacheFlow(Flow flow) throws Throwable {
@@ -123,121 +117,44 @@ public class ChunkProcessorBean {
         }
     }
 
-    /* Processes each item in given chunk in sequence
-     */
-    private List<ChunkItem> processItems(Chunk chunk, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
-        List<ChunkItem> processedItems = new ArrayList<>();
+    private List<ChunkItem> processItemsWithCurrentRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, SupplementaryProcessData supplementaryProcessData)
+            throws JSONBException {
+        return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
+                flowCacheEntry.scripts, supplementaryProcessData));
+    }
+
+    private List<ChunkItem> processItemsWithNextRevision(Chunk chunk, FlowCache.FlowCacheEntry flowCacheEntry, SupplementaryProcessData supplementaryProcessData)
+            throws JSONBException {
+        if (!flowCacheEntry.next.isEmpty()) {
+            return processItems(chunk, new ChunkItemProcessor(chunk.getJobId(), chunk.getChunkId(),
+                flowCacheEntry.next, supplementaryProcessData));
+        }
+        return null;
+    }
+
+    /* Processes each item in given chunk in sequence */
+    private List<ChunkItem> processItems(Chunk chunk, ChunkItemProcessor chunkItemProcessor) {
+        final List<ChunkItem> results = new ArrayList<>();
         try {
             for (ChunkItem item : chunk) {
                 DBCTrackedLogContext.setTrackingId(item.getTrackingId());
-                final StopWatch stopWatchForItem = new StopWatch();
-
-                if (item.getStatus() != ChunkItem.Status.SUCCESS) {
-                    processedItems.add(skipItem(item));
-                    LOGGER.info("processItems(): processing of item {}/{}/{} skipped since item.Status was {}",
-                            chunk.getJobId(), chunk.getChunkId(), item.getId(), item.getStatus());
-                } else {
-                    try {
-                        final LogStoreTrackingId logStoreTrackingId = LogStoreTrackingId.create(
-                                String.valueOf(chunk.getJobId()), chunk.getChunkId(), item.getId());
-                        final ChunkItem processedItem = processItemWithLogStoreTracking(item, logStoreTrackingId,
-                                supplementaryData, jsWrappers);
-                        processedItems.add(processedItem);
-                    } finally {
-                        LOGGER.info("processItems(): javascript execution for item {}/{}/{} took {} milliseconds",
-                                chunk.getJobId(), chunk.getChunkId(), item.getId(), stopWatchForItem.getElapsedTime());
-                    }
+                final StopWatch timer = new StopWatch();
+                try {
+                    results.add(chunkItemProcessor.process(item));
+                } finally {
+                    LOGGER.info("processItems(): javascript execution for item {}/{}/{} took {} milliseconds",
+                            chunk.getJobId(), chunk.getChunkId(), item.getId(), timer.getElapsedTime());
                 }
             }
         } finally {
             DBCTrackedLogContext.remove();
         }
-        return processedItems;
+        return results;
     }
 
-    /* Processes given item with log-store tracking enabled
-     */
-    private ChunkItem processItemWithLogStoreTracking(ChunkItem item, LogStoreTrackingId trackingId,
-            Object supplementaryData, List<JSWrapperSingleScript> jsWrappers) {
-        ChunkItem processedItem;
-        try {
-            MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY, trackingId.toString());
-            processedItem = processItem(item, supplementaryData, jsWrappers, trackingId);
-        } finally {
-            MDC.put(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY, "true");
-            // This timing assumes the use of LogStoreBufferedJdbcAppender to be meaningful
-            final StopWatch stopWatchForLogStoreBatch = new StopWatch();
-            LOGGER.info("Done");
-            MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_COMMIT_MDC_KEY);
-            MDC.remove(LogStoreTrackingId.LOG_STORE_TRACKING_ID_MDC_KEY);
-            LOGGER.info("processItemWithLogStoreTracking(): log-store batch insert for item {}/{}/{} took {} milliseconds",
-                    trackingId.getJobId(), trackingId.getChunkId(), trackingId.getItemId(), stopWatchForLogStoreBatch.getElapsedTime());
-        }
-        return processedItem;
-    }
-
-    /*
-     * Skips javascript processing of an item and sets status to ignore.
-     */
-    private ChunkItem skipItem(ChunkItem item) {
-         return ObjectFactory.buildIgnoredChunkItem(item.getId(), String.format("Ignored by job-processor since returned status was {%s}", item.getStatus()), item.getTrackingId());
-    }
-
-    /* Processes given item
-     */
-    private ChunkItem processItem(ChunkItem item, Object supplementaryData, List<JSWrapperSingleScript> jsWrappers, LogStoreTrackingId trackingId) {
-        ChunkItem processedItem;
-        try {
-            String data = StringUtil.asString(item.getData());
-            for (JSWrapperSingleScript jsWrapper : jsWrappers) {
-                data = invokeJavaScript(jsWrapper, data, supplementaryData, trackingId);
-                if (data.isEmpty()) {
-                    // terminate pipeline processing
-                    break;
-                }
-            }
-            if (data.isEmpty()) {
-                processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), "Ignored by job-processor since returned data was empty", item.getTrackingId());
-            } else {
-                processedItem = ObjectFactory.buildSuccessfulChunkItem(item.getId(), data, ChunkItem.Type.UNKNOWN, item.getTrackingId());
-            }
-        } catch (IgnoreRecord e) {
-            LOGGER.error("processItem(): record ignored by javascript with message: {}", e.getMessage());
-            processedItem = ObjectFactory.buildIgnoredChunkItem(item.getId(), e.getMessage(), item.getTrackingId());
-        } catch (FailRecord e) {
-            LOGGER.error("processItem(): record processing terminated by javascript with message: {}", e.getMessage());
-            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), e.getMessage(), ChunkItem.Type.STRING, item.getTrackingId());
-            processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
-        } catch (Throwable t) {
-            LOGGER.error("processItem(): unhandled exception caught during javascript processing", t);
-            processedItem = ObjectFactory.buildFailedChunkItem(item.getId(), StringUtil.getStackTraceString(t), ChunkItem.Type.STRING, item.getTrackingId());
-            processedItem.appendDiagnostics(ObjectFactory.buildFatalDiagnostic("Exception caught during JavaScript processing", t));
-        }
-        return processedItem;
-    }
-
-    private String invokeJavaScript(JSWrapperSingleScript jsWrapper, String data, Object supplementaryData, LogStoreTrackingId trackingId) throws Throwable {
-        LOGGER.info("invokeJavaScript(): starting javascript [{}] with invocation method: [{}] and logging ID [{}]",
-                jsWrapper.getScriptId(), jsWrapper.getInvocationMethod(), trackingId.toString());
-        final Object result = jsWrapper.invoke(new Object[]{data, supplementaryData});
-        return (String) result;
-    }
-
-    private Object convertSupplementaryProcessDataToJsJsonObject(JSWrapperSingleScript scriptWrapper, SupplementaryProcessData supplementaryProcessData) throws Throwable {
-        // Something about why you need parentheses in the string around the json
-        // when trying to evaluate the json in javascript (rhino):
-        // http://rayfd.me/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
-        final String jsonStr = "(" + jsonbContext.marshall(supplementaryProcessData) + ")"; // notice the parentheses!
-        return scriptWrapper.eval(jsonStr);
-    }
-
-    private List<ChunkItem> failItemsWithThrowable(Chunk chunk, Throwable t) {
-        InvariantUtil.checkNotNullOrThrow(chunk, "chunk");
-        InvariantUtil.checkNotNullOrThrow(t, "t");
+    private List<ChunkItem> failAllItems(Chunk chunk, Throwable t) {
         final List<ChunkItem> failedItems = new ArrayList<>();
-        int itemNo = 0;
         for (ChunkItem item : chunk) {
-            InvariantUtil.checkNotNullOrThrow(item, "item" + itemNo++);
             failedItems.add(ChunkItem.failedChunkItem()
                     .withId(item.getId())
                     .withData(StringUtil.getStackTraceString(t))

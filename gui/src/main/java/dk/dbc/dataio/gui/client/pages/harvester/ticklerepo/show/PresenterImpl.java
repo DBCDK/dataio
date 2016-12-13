@@ -47,6 +47,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
 
     /**
      * Default constructor
+     * @param placeController The placecontroller
      */
     public PresenterImpl(PlaceController placeController) {
         this.placeController = placeController;

@@ -5,5 +5,6 @@ dest = "/home/gfish/dbc-glassfish.d/19-db-connection-pools.xml"
 keys = [
     "/dbc/postgres/harvester/tickle/env/postgres/user",
     "/dbc/postgres/harvester/tickle/env/postgres/password",
-    "/dbc/harvester/tickle/env/postgres/db"
+    "/dbc/harvester/tickle/env/postgres/db",
+    "/dbc/harvester/tickle/env/postgres/server"
 ]

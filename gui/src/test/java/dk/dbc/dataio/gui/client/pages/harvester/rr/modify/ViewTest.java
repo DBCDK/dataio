@@ -78,7 +78,7 @@ public class ViewTest {
         when(view.imsHoldingsTarget.getText()).thenReturn("-imsHoldingsTarget-");
         when(view.destination.getText()).thenReturn("-destination-");
         when(view.format.getText()).thenReturn("-format-");
-        when(view.type.getText()).thenReturn("-type-");
+        when(view.type.getSelectedKey()).thenReturn("-type-");
         when(view.note.getText()).thenReturn("-note-");
         when(view.enabled.getValue()).thenReturn(true);
     }
@@ -283,7 +283,7 @@ public class ViewTest {
         view.typeChanged(mockedValueChangeEvent);
 
         // Test verification
-        verify(view.type).getText();
+        verify(view.type).getSelectedKey();
         verify(mockedPresenter).typeChanged("-type-");
         verify(mockedPresenter).keyPressed();
     }

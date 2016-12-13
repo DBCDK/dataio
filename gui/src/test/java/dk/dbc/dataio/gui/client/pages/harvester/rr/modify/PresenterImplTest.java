@@ -28,6 +28,7 @@ import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.gui.client.components.PopupMapEntry;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
+import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
@@ -81,7 +82,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
     @Mock private PromptedTextBox mockedImsHoldingsTarget;
     @Mock private PromptedTextBox mockedDestination;
     @Mock private PromptedTextBox mockedFormat;
-    @Mock private PromptedTextBox mockedType;
+    @Mock private PromptedList mockedType;
     @Mock private PromptedTextArea mockedNote;
     @Mock private PromptedCheckBox mockedEnabled;
     @Mock private Button mockedUpdateButton;
@@ -1227,7 +1228,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedDestination).setEnabled(false);
         verify(mockedFormat).setText("");
         verify(mockedFormat).setEnabled(false);
-        verify(mockedType).setText("");
+        verifyType(mockedType, "", false);
         verify(mockedType).setEnabled(false);
         verify(mockedNote).setText("");
         verify(mockedNote).setEnabled(false);
@@ -1236,6 +1237,16 @@ public class PresenterImplTest extends PresenterImplTestBase {
         verify(mockedStatus, times(statusCount)).setText("");
         verify(mockedUpdateButton).setVisible(false);
         verify(mockedPopupFormatOverrideEntry).hide();
+    }
+
+    private void verifyType(PromptedList list, String value, boolean enabled) {
+        verify(list).clear();
+        verify(list).addAvailableItem("TRANSIENT");
+        verify(list).addAvailableItem("PERSISTENT");
+        verify(list).addAvailableItem("TEST");
+        verify(list).addAvailableItem("ACCTEST");
+        verify(list).setSelectedValue(value);
+        verify(list).setEnabled(enabled);
     }
 
     private void commonPostVerification() {

@@ -35,6 +35,7 @@ import com.google.gwt.user.client.ui.Label;
 import dk.dbc.dataio.gui.client.components.PopupBox;
 import dk.dbc.dataio.gui.client.components.PopupMapEntry;
 import dk.dbc.dataio.gui.client.components.PromptedCheckBox;
+import dk.dbc.dataio.gui.client.components.PromptedList;
 import dk.dbc.dataio.gui.client.components.PromptedMultiList;
 import dk.dbc.dataio.gui.client.components.PromptedPasswordTextBox;
 import dk.dbc.dataio.gui.client.components.PromptedTextArea;
@@ -45,11 +46,9 @@ import dk.dbc.dataio.gui.client.views.ContentPanel;
 import java.util.Map;
 
 public class View extends ContentPanel<Presenter> implements IsWidget {
-    private final String SEPARATOR = " - ";
-
     interface HarvesterBinder extends UiBinder<HTMLPanel, View> {}
     private static HarvesterBinder uiBinder = GWT.create(HarvesterBinder.class);
-    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    private ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
 
     public View() {
@@ -79,7 +78,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
     @UiField PromptedTextBox imsHoldingsTarget;
     @UiField PromptedTextBox destination;
     @UiField PromptedTextBox format;
-    @UiField PromptedTextBox type;
+    @UiField PromptedList type;
     @UiField PromptedTextArea note;
     @UiField PromptedCheckBox enabled;
     @UiField Label status;
@@ -90,108 +89,126 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
 
 
 
+    @SuppressWarnings("unused")
     @UiHandler("name")
     void nameChanged(ValueChangeEvent<String> event) {
         presenter.nameChanged(name.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("resource")
     void resourceChanged(ValueChangeEvent<String> event) {
         presenter.resourceChanged(resource.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("targetUrl")
     void targetUrlChanged(ValueChangeEvent<String> event) {
         presenter.targetUrlChanged(targetUrl.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("targetGroup")
     void targetGroupChanged(ValueChangeEvent<String> event) {
         presenter.targetGroupChanged(targetGroup.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("targetUser")
     void targetUserChanged(ValueChangeEvent<String> event) {
         presenter.targetUserChanged(targetUser.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("targetPassword")
     void targetPasswordChanged(ValueChangeEvent<String> event) {
         presenter.targetPasswordChanged(targetPassword.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("consumerId")
     void consumerIdChanged(ValueChangeEvent<String> event) {
         presenter.consumerIdChanged(consumerId.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("size")
     void sizeChanged(ValueChangeEvent<String> event) {
         presenter.sizeChanged(size.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("relations")
     void relationsChanged(ValueChangeEvent<Boolean> event) {
         presenter.relationsChanged(relations.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("libraryRules")
     void libraryRulesChanged(ValueChangeEvent<Boolean> event) {
         presenter.libraryRulesChanged(libraryRules.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("imsHarvester")
     void imsHarvesterChanged(ValueChangeEvent<Boolean> event) {
         presenter.imsHarvesterChanged(imsHarvester.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("imsHoldingsTarget")
     void imsHoldingsTargetChanged(ValueChangeEvent<String> event) {
         presenter.imsHoldingsTargetChanged(imsHoldingsTarget.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("destination")
     void destinationChanged(ValueChangeEvent<String> event) {
         presenter.destinationChanged(destination.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("format")
     void formatChanged(ValueChangeEvent<String> event) {
         presenter.formatChanged(format.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("type")
     void typeChanged(ValueChangeEvent<String> event) {
-        presenter.typeChanged(type.getText());
+        presenter.typeChanged(type.getSelectedKey());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("note")
     void noteChanged(ValueChangeEvent<String> event) {
         presenter.noteChanged(note.getText());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("enabled")
     void enabledChanged(ValueChangeEvent<Boolean> event) {
         presenter.enabledChanged(enabled.getValue());
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("popupFormatOverrideEntry")
     void popupTextBoxChanged(ValueChangeEvent<Map.Entry<String, String>> event) {
         String overrideKey = event.getValue().getKey();
@@ -205,6 +222,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("formatOverrides")
     void formatOverridesButtonPressed(ClickEvent event) {
         if (formatOverrides.isAddEvent(event)) {
@@ -217,23 +235,26 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
         presenter.keyPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("saveButton")
     void saveButtonPressed(ClickEvent event) {
         presenter.saveButtonPressed();
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("updateButton")
     void updateButtonPressed(ClickEvent event) {
         presenter.updateButtonPressed();
     }
 
-    public void setFormatOverrides(Map<String, String> formats) {
+    void setFormatOverrides(Map<String, String> formats) {
         this.formatOverrides.clear();
         for (String key: formats.keySet()) {
             this.formatOverrides.addValue(prepareFormatOverride(key, formats.get(key)), key);
         }
     }
 
+    @SuppressWarnings("unused")
     @UiHandler("deleteButton")
     void deleteButtonPressed(ClickEvent event) {
         confirmation.show();
@@ -253,6 +274,7 @@ public class View extends ContentPanel<Presenter> implements IsWidget {
      */
 
     private String prepareFormatOverride(String key, String value) {
+        final String SEPARATOR = " - ";
         return key + SEPARATOR + value;
     }
 

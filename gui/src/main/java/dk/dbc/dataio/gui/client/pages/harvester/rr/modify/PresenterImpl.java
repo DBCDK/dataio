@@ -437,7 +437,11 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.destination.setEnabled(viewEnabled);
         view.format.setText(format);
         view.format.setEnabled(viewEnabled);
-        view.type.setText(type);
+        view.type.clear();
+        for (JobSpecification.Type t: JobSpecification.Type.values()) {
+            view.type.addAvailableItem(t.toString());
+        }
+        view.type.setSelectedValue(type);
         view.type.setEnabled(viewEnabled);
         view.note.setText(note);
         view.note.setEnabled(viewEnabled);

@@ -31,6 +31,8 @@ import dk.dbc.dataio.commons.types.GatekeeperDestination;
 import dk.dbc.dataio.gui.client.proxies.FlowStoreProxyAsync;
 import dk.dbc.dataio.gui.client.util.CommonGinjector;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -198,11 +200,12 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<GatekeeperDestination> gatekeeperDestinations) {
-            getView().setGatekeepers(gatekeeperDestinations);
+            getView().setGatekeepers(doSort(gatekeeperDestinations));
         }
     }
 
     class DeleteGatekeeperDestinationCallback implements AsyncCallback<Void> {
+
         @Override
         public void onFailure(Throwable caught) {
             getView().displayWarning(getTexts().error_CannotDeleteGatekeeperDestination());
@@ -211,6 +214,20 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         public void onSuccess(Void result) {
             initializeData();
         }
+    }
+
+
+    /*
+     * Private methods
+     */
+    List<GatekeeperDestination> doSort(List<GatekeeperDestination> destinations) {
+        // Tertiary sort key: Sort according to format
+        Collections.sort(destinations, Comparator.comparing(GatekeeperDestination::getFormat));
+        // Secondary sort key: Sort according to packaging
+        Collections.sort(destinations, Comparator.comparing(GatekeeperDestination::getPackaging));
+        // Primary sort key: Sort according to submitter
+        Collections.sort(destinations, Comparator.comparing(p -> Long.valueOf(p.getSubmitterNumber())));
+        return destinations;
     }
 
 }

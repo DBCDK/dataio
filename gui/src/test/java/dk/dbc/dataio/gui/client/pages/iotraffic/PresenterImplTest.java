@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -392,6 +393,114 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verifyInitializeDataMethodCall();
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void doSort_nullList_exception() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+
+        // Subject Under Test
+        presenterImpl.doSort(null);
+    }
+
+    @Test
+    public void doSort_emptyList_noSortNoException() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+
+        // Subject Under Test
+        List result = presenterImpl.doSort(new ArrayList<>());
+
+        // Verify Test
+        assertThat(result.isEmpty(), is(true));
+    }
+
+    @Test
+    public void doSort_oneEntryList_ok() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+        List<GatekeeperDestination> inputList = new ArrayList<>();
+        inputList.add(new GatekeeperDestinationBuilder().setId(111).build());
+
+        // Subject Under Test
+        List<GatekeeperDestination> result = presenterImpl.doSort(inputList);
+
+        // Verify Test
+        assertThat(result.size(), is(1));
+        assertThat(result.get(0).getId(), is(111L));
+    }
+
+    @Test
+    public void doSort_nineEntriesList_ok() {
+        // Prepare Test
+        presenterImpl = new PresenterImpl("Header Text");
+        List<GatekeeperDestination> inputList = new ArrayList<>();
+        /*
+           Setup a matrix to be sorted like this:
+           Submitter:   Packaging:  Format:
+           2            aaa         hhh
+           2            aaa         iii
+           2            aaa         jjj
+           10           bbb         iii
+           10           bbb         jjj
+           10           ccc         hhh
+           30           ddd         jjj
+           30           eee         iii
+           30           fff         hhh
+         */
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber("30").setPackaging("fff").setFormat("hhh").build()); // Position 8
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber("30").setPackaging("eee").setFormat("iii").build()); // Position 7
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber("30").setPackaging("ddd").setFormat("jjj").build()); // Position 6
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber("10").setPackaging("ccc").setFormat("hhh").build()); // Position 5
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber("10").setPackaging("bbb").setFormat("jjj").build()); // Position 4
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber("10").setPackaging("bbb").setFormat("iii").build()); // Position 3
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber( "2").setPackaging("aaa").setFormat("jjj").build()); // Position 2
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber( "2").setPackaging("aaa").setFormat("iii").build()); // Position 1
+        inputList.add(new GatekeeperDestinationBuilder().setSubmitterNumber( "2").setPackaging("aaa").setFormat("hhh").build()); // Position 0
+
+        // Subject Under Test
+        List<GatekeeperDestination> result = presenterImpl.doSort(inputList);
+
+        // Verify Test
+        assertThat(result.size(), is(9));
+        int i = 0;
+        assertThat(result.get(i).getSubmitterNumber(),  is("2"));
+        assertThat(result.get(i).getPackaging(),        is("aaa"));
+        assertThat(result.get(i).getFormat(),           is("hhh"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("2"));
+        assertThat(result.get(i).getPackaging(),        is("aaa"));
+        assertThat(result.get(i).getFormat(),           is("iii"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("2"));
+        assertThat(result.get(i).getPackaging(),        is("aaa"));
+        assertThat(result.get(i).getFormat(),           is("jjj"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("10"));
+        assertThat(result.get(i).getPackaging(),        is("bbb"));
+        assertThat(result.get(i).getFormat(),           is("iii"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("10"));
+        assertThat(result.get(i).getPackaging(),        is("bbb"));
+        assertThat(result.get(i).getFormat(),           is("jjj"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("10"));
+        assertThat(result.get(i).getPackaging(),        is("ccc"));
+        assertThat(result.get(i).getFormat(),           is("hhh"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("30"));
+        assertThat(result.get(i).getPackaging(),        is("ddd"));
+        assertThat(result.get(i).getFormat(),           is("jjj"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("30"));
+        assertThat(result.get(i).getPackaging(),        is("eee"));
+        assertThat(result.get(i).getFormat(),           is("iii"));
+        i++;
+        assertThat(result.get(i).getSubmitterNumber(),  is("30"));
+        assertThat(result.get(i).getPackaging(),        is("fff"));
+        assertThat(result.get(i).getFormat(),           is("hhh"));
+
     }
 
 

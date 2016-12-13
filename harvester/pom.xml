@@ -36,6 +36,7 @@
 
   <modules>
     <module>rr</module>
+    <module>tickle-repo</module>
     <module>types</module>
     <module>ush-solr</module>
     <module>utils</module>

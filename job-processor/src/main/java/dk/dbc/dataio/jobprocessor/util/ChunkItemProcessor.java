@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobprocessor.util;
 
+import dk.dbc.commons.addi.AddiReader;
+import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
@@ -36,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 
 public class ChunkItemProcessor {
@@ -45,14 +48,12 @@ public class ChunkItemProcessor {
     private final List<Script> scripts;
     private final String supplementaryData;
 
-    private final JSONBContext jsonbContext = new JSONBContext();
-
     public ChunkItemProcessor(long jobId, long chunkId, List<Script> scripts, SupplementaryProcessData supplementaryData)
             throws JSONBException {
         this.jobId = jobId;
         this.chunkId = chunkId;
         this.scripts = scripts;
-        this.supplementaryData = jsonbContext.marshall(supplementaryData);
+        this.supplementaryData = new JSONBContext().marshall(supplementaryData);
     }
 
     public ChunkItem process(ChunkItem chunkItem) {
@@ -67,11 +68,10 @@ public class ChunkItemProcessor {
 
             final String logstoreTrackingId = logstoreMdcPut(chunkItem);
 
-            final Object supplementaryDataObject = evalSupplementaryData();
-
-            String scriptResult = StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding());
+            final ScriptArguments arguments = new ScriptArguments(scripts.get(0), chunkItem, supplementaryData);
+            String scriptResult = arguments.getItemData();
             for (Script script : scripts) {
-                scriptResult = invokeScript(script, scriptResult, supplementaryDataObject, logstoreTrackingId);
+                scriptResult = invokeScript(script, scriptResult, arguments.getSupplement(), logstoreTrackingId);
                 if (scriptResult.isEmpty()) {
                     // terminate pipeline processing
                     break;
@@ -144,10 +144,34 @@ public class ChunkItemProcessor {
         return (String) result;
     }
 
-    private Object evalSupplementaryData() throws Throwable {
-        // Something about why you need parentheses in the string around the json
-        // when trying to evaluate the json in javascript (rhino):
-        // https://rayfd.wordpress.com/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
-        return scripts.get(0).eval("(" + supplementaryData + ")"); // notice the parentheses!
+    private static class ScriptArguments {
+        private final String itemData;
+        private final Object supplement;
+
+        ScriptArguments(Script script, ChunkItem chunkItem, String nonAddiTypeSupplement) throws Throwable {
+            if (chunkItem.isTyped() && chunkItem.getType().get(0) == ChunkItem.Type.ADDI) {
+                final AddiRecord addiRecord = new AddiReader(new ByteArrayInputStream(chunkItem.getData())).next();
+                itemData = StringUtil.asString(addiRecord.getContentData(), chunkItem.getEncoding());
+                supplement = evalSupplement(script, StringUtil.asString(addiRecord.getMetaData()));
+            } else {
+                itemData = StringUtil.asString(chunkItem.getData(), chunkItem.getEncoding());
+                supplement = evalSupplement(script, nonAddiTypeSupplement);
+            }
+        }
+
+        String getItemData() {
+            return itemData;
+        }
+
+        Object getSupplement() {
+            return supplement;
+        }
+
+        private Object evalSupplement(Script script, String supp) throws Throwable {
+            // Something about why you need parentheses in the string around the json
+            // when trying to evaluate the json in javascript (rhino):
+            // https://rayfd.wordpress.com/2007/03/28/why-wont-eval-eval-my-json-or-json-object-object-literal/
+            return script.eval("(" + supp + ")"); // notice the parentheses!
+        }
     }
 }

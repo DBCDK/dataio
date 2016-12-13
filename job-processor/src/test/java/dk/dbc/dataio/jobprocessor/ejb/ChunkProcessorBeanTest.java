@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.jobprocessor.ejb;
 
+import dk.dbc.commons.addi.AddiRecord;
+import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Flow;
@@ -65,7 +67,7 @@ public class ChunkProcessorBeanTest {
     private final SupplementaryProcessData supplementaryProcessData = new SupplementaryProcessData(submitter, format);
 
     @Test
-    public void process_emptyChunk_returnsEmptyResult() throws Exception {
+    public void emptyChunk_returnsEmptyResult() throws Exception {
         final Chunk emptyChunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
                 .setJobId(jobId)
                 .setItems(new ArrayList<>(0))
@@ -80,7 +82,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_exceptionThrownFromJavascript_chunkItemFailure() throws Exception {
+    public void exceptionThrownFromJavascript_chunkItemFailure() throws Exception {
         final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException,
                 getJavaScript(getJavaScriptThrowExceptionFunction()));
         final Flow flow = getFlow(scriptWrapper);
@@ -102,7 +104,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() throws Exception {
+    public void exceptionThrownFromOneOutOfThreeJavascripts_chunkItemFailureForThrowSuccessForRest() throws Exception {
         final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptThrowException,
                 getJavaScript(getJavaScriptThrowExceptionFunction()));
         final Flow flow = getFlow(scriptWrapper);
@@ -137,7 +139,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_illegalJavascriptInEnvironment_chunkItemFailure() throws Exception {
+    public void illegalJavascriptInEnvironment_chunkItemFailure() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
                 getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptThrowException,
@@ -169,7 +171,7 @@ public class ChunkProcessorBeanTest {
     }
     
     @Test
-    public void process_javascriptReturnsEmptyString_chunkItemIgnored() throws Exception {
+    public void javascriptReturnsEmptyString_chunkItemIgnored() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
                 getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnEmptyString,
@@ -194,7 +196,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_javascriptReturnsWithNoResult_chunkItemFailed() throws Exception {
+    public void javascriptReturnsWithNoResult_chunkItemFailed() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
                 getJavaScript(getJavaScriptReturnUpperCaseFunction()));
         final ScriptWrapper scriptWrapper2 = new ScriptWrapper(javaScriptReturnNoResult,
@@ -220,7 +222,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_multipleFlowComponents_returnsResultOfJavascriptPipe() throws Exception {
+    public void multipleFlowComponents_returnsResultOfJavascriptPipe() throws Exception {
         final String record = "zero";
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
                 getJavaScript(getJavaScriptReturnUpperCaseFunction()));
@@ -245,7 +247,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_javaScriptIgnoreRecord() throws Exception {
+    public void javaScriptIgnoreRecord() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore",
                 getJavaScript("function throwIgnore() {" +
                         "Packages.dk.dbc.javascript.recordprocessing.IgnoreRecord.doThrow('errorMessage');" +
@@ -272,7 +274,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_javaScriptFailRecord() throws Exception {
+    public void javaScriptFailRecord() throws Exception {
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper("throwIgnore",
                 getJavaScript("function throwIgnore() {" +
                         "Packages.dk.dbc.javascript.recordprocessing.FailRecord.doThrow('errorMessage');" +
@@ -300,7 +302,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_flowHasNextComponents_returnsChunkWithNextItems() throws Exception {
+    public void flowHasNextComponents_returnsChunkWithNextItems() throws Exception {
         final FlowComponent flowComponent = new FlowComponentBuilder()
                 .setContent(getFlowComponentContent(
                         new ScriptWrapper(javaScriptReturnUpperCase, getJavaScript(getJavaScriptReturnUpperCaseFunction()))))
@@ -324,7 +326,7 @@ public class ChunkProcessorBeanTest {
     }
 
     @Test
-    public void process_skipsOnlyChunkItemsWithStatusFailureAndIgnore_returnsResultOfJavascriptPipe() throws Exception {
+    public void skipsOnlyChunkItemsWithStatusFailureAndIgnore_returnsResultOfJavascriptPipe() throws Exception {
 
         final String record = "zero";
         final ScriptWrapper scriptWrapper1 = new ScriptWrapper(javaScriptReturnUpperCase,
@@ -373,10 +375,37 @@ public class ChunkProcessorBeanTest {
         assertThat("Chunk has item[3]", iterator.hasNext(), is(false));
     }
 
-    /*
-     * private methods
-     */
+    @Test
+    public void chunkItemIsOfTypeAddi_scriptArgumentsAreReadFromAddiContentAndAddiMetadata() throws Exception {
+        final AddiMetaData addiMetaData = new AddiMetaData()
+                .withSubmitterNumber(654321)
+                .withFormat("addiContentFormat");
+        final AddiRecord addiRecord = new AddiRecord(
+                StringUtil.asBytes(new JSONBContext().marshall(addiMetaData)),
+                StringUtil.asBytes("addiContent"));
 
+        final Chunk chunk = new ChunkBuilder(Chunk.Type.PARTITIONED)
+                .setItems(Collections.singletonList(
+                        ChunkItem.successfulChunkItem()
+                            .withId(0)
+                            .withType(ChunkItem.Type.ADDI, ChunkItem.Type.BYTES)
+                            .withData(addiRecord.getBytes())))
+                .build();
+
+        final ScriptWrapper scriptWrapper = new ScriptWrapper(javaScriptReturnConcatenation,
+                getJavaScript(getJavaScriptReturnConcatenationFunction()));
+        final Flow flow = getFlow(scriptWrapper);
+
+        final ChunkProcessorBean chunkProcessorBean = getInitializedBean();
+        final Chunk result = chunkProcessorBean.process(chunk, flow, supplementaryProcessData);
+
+        final Iterator<ChunkItem> iterator = result.iterator();
+        assertThat("Chunk has item[0]", iterator.hasNext(), is(true));
+        final ChunkItem resultItem0 = iterator.next();
+        assertThat("Chunk item[0] data", StringUtil.asString(resultItem0.getData()),
+                is(String.format("%s%s%s", addiMetaData.submitterNumber(), "addiContent", addiMetaData.format())));
+        assertThat("Chunk item[0] status", resultItem0.getStatus(), is(ChunkItem.Status.SUCCESS));
+    }
 
     private void assertProcessedChunk(Chunk chunk, long jobID, long chunkId, int chunkSize) {
         assertThat("Chunk", chunk, is(notNullValue()));

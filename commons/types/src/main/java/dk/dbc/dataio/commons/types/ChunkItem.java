@@ -22,6 +22,7 @@
 package dk.dbc.dataio.commons.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
@@ -170,6 +171,11 @@ public class ChunkItem implements Serializable {
 
     public List<Type> getType() {
         return type;
+    }
+
+    @JsonIgnore
+    public boolean isTyped() {
+        return type != null && !type.isEmpty();
     }
 
     /**

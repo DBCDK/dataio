@@ -19,7 +19,7 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package rest;
+package dk.dbc.dataio.harvester.tickle.repo.rest;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;

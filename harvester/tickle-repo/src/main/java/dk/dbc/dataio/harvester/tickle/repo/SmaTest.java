@@ -19,31 +19,10 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package rest;
+package dk.dbc.dataio.harvester.tickle.repo;
 
-import dk.dbc.dataio.commons.utils.service.ServiceStatus;
-
-import javax.ejb.Stateless;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.Query;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Response;
-
-@Stateless
-@Path("/")
-public class StatusBean implements ServiceStatus {
-    @PersistenceContext
-    EntityManager entityManager;
-
-    @Override
-    public Response getStatus() {
-        healthCheckDatabase();
-        return Response.ok().build();
-    }
-
-    public void healthCheckDatabase() {
-        final Query query = entityManager.createNativeQuery("SELECT 1");
-        query.getSingleResult();
-    }
+/**
+ * Created by sma on 14/12/16.
+ */
+public class SmaTest {
 }

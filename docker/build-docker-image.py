@@ -55,15 +55,15 @@ fi
 echo building ${NAME} docker image
 
 ##
-/usr/bin/time --format="time: ${NAME}-build e: %e U: %U S: %S P: %P" docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg svn_revision=${SVN_REVISION:=devel} -f Dockerfile .
+/usr/bin/time --format="time: ${NAME}-build e: %%e U: %%U S: %%S P: %%P" docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg svn_revision=${SVN_REVISION:=devel} -f Dockerfile .
 rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest
 
 if [ "${BUILD_NUMBER}" != "devel" ] ; then
   echo pushing to ${REGISTRY}
-  /usr/bin/time --format="time: ${NAME}-push1 e: %e U: %U S: %S P: %P " docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
-  /usr/bin/time --format="time: ${NAME}-push2 e: %e U: %U S: %S P: %P " docker push ${REGISTRY}/${NAME}:latest
+  /usr/bin/time --format="time: ${NAME}-push1 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
+  /usr/bin/time --format="time: ${NAME}-push2 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:latest
   echo ${REGISTRY}/${NAME} >> %s
 fi
 """ % (image_name, artifact, log)

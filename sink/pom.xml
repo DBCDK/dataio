@@ -42,6 +42,7 @@
     <module>ims</module>
     <module>diff</module>
     <module>testutil</module>
+    <module>tickle-repo</module>
     <module>types</module>
     <module>util</module>
   </modules>

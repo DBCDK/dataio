@@ -27,7 +27,6 @@ import dk.dbc.dataio.common.utils.io.ByteCountingInputStream;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
-import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.util.EncodingsUtil;
 import dk.dbc.dataio.jobstore.types.InvalidDataException;
@@ -44,13 +43,27 @@ import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Optional;
 
-public abstract class AddiDataPartitioner implements DataPartitioner {
+public class AddiDataPartitioner implements DataPartitioner {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddiDataPartitioner.class);
 
     private final ByteCountingInputStream inputStream;
     private final AddiReader addiReader;
     private final JSONBContext jsonbContext;
     private final Charset encoding;
+
+    /**
+     * Creates new instance of DataPartitioner for Addi records
+     * @param inputStream stream from which addi records can be read
+     * @param encodingName encoding specified in job specification
+     * @throws NullPointerException if given null-valued argument
+     * @throws IllegalArgumentException if given empty valued encoding argument or if given stream is incompatible with AddiReader
+     * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
+     * @return new instance of AddiDataPartitioner
+     */
+    public static AddiDataPartitioner newInstance(InputStream inputStream, String encodingName)
+            throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
+        return new AddiDataPartitioner(inputStream, encodingName);
+    }
 
     /**
      * Super class constructor
@@ -60,10 +73,10 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
      * @throws IllegalArgumentException if given empty valued encoding argument or if given stream is incompatible with AddiReader
      * @throws InvalidEncodingException if encoding can not be deduced from given encoding name
      */
-    public AddiDataPartitioner(InputStream inputStream, String encodingName)
+    AddiDataPartitioner(InputStream inputStream, String encodingName)
             throws NullPointerException, IllegalArgumentException, InvalidEncodingException {
         InvariantUtil.checkNotNullOrThrow(inputStream, "inputStream");
-        InvariantUtil.checkNotNullNotEmptyOrThrow(encodingName, "specifiedEncoding");
+        InvariantUtil.checkNotNullNotEmptyOrThrow(encodingName, "encodingName");
         this.inputStream = new ByteCountingInputStream(inputStream);
         this.addiReader = new AddiReader(this.inputStream);
         this.jsonbContext = new JSONBContext();
@@ -95,8 +108,6 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
         };
     }
 
-    protected abstract ChunkItem.Type getChunkItemType();
-
     private boolean hasNextDataPartitionerResult() throws InvalidDataException {
         try {
             return addiReader.hasNext();
@@ -121,33 +132,33 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
         return result;
     }
 
-    private DataPartitionerResult processAddiRecord(AddiRecord addiRecord) {
+    ChunkItem.Type[] getChunkItemType() {
+        return new ChunkItem.Type[] {ChunkItem.Type.ADDI, ChunkItem.Type.BYTES};
+    }
+
+    DataPartitionerResult processAddiRecord(AddiRecord addiRecord) {
         ChunkItem chunkItem;
         Optional<RecordInfo> recordInfo = Optional.empty();
         try {
-            if (addiRecord.getMetaData().length == 0 && addiRecord.getContentData().length == 0) {
+            if (!addiRecord.isEmpty()) {
+                final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
+                final Diagnostic diagnostic = addiMetaData.diagnostic();
+                if (diagnostic != null && diagnostic.getLevel() == Diagnostic.Level.FATAL) {
+                    chunkItem = ChunkItem.failedChunkItem().withDiagnostics(diagnostic);
+                } else {
+                    chunkItem = ChunkItem.successfulChunkItem();
+                }
+                chunkItem
+                        .withTrackingId(addiMetaData.trackingId())
+                        .withData(addiRecord.getBytes())
+                        .withEncoding(encoding)
+                        .withType(getChunkItemType());
+
+                recordInfo = getRecordInfo(addiMetaData, addiRecord.getContentData());
+            } else {
                 chunkItem = ChunkItem.ignoredChunkItem()
                     .withData("Empty Record")
                     .withType(ChunkItem.Type.STRING);
-            } else {
-                final AddiMetaData addiMetaData = getAddiMetaData(addiRecord);
-                final byte[] content = addiRecord.getContentData();
-                final Diagnostic diagnostic = addiMetaData.diagnostic();
-                if (diagnostic != null) {
-                    chunkItem = ChunkItem.failedChunkItem()
-                            .withTrackingId(addiMetaData.trackingId())
-                            .withData(addiRecord.getBytes())
-                            .withEncoding(encoding)
-                            .withDiagnostics(diagnostic)
-                            .withType(ChunkItem.Type.ADDI, getChunkItemType());
-                } else {
-                    chunkItem = ChunkItem.successfulChunkItem()
-                            .withTrackingId(addiMetaData.trackingId())
-                            .withData(content)
-                            .withEncoding(encoding)
-                            .withType(getChunkItemType());
-                }
-                recordInfo = getRecordInfo(addiMetaData, content);
             }
         } catch (JSONBException | RuntimeException e) {
             LOGGER.error("Exception caught while processing AddiRecord", e);
@@ -155,17 +166,17 @@ public abstract class AddiDataPartitioner implements DataPartitioner {
                 .withData(addiRecord.getBytes())
                 .withEncoding(encoding)
                 .withType(ChunkItem.Type.BYTES)
-                .withDiagnostics(ObjectFactory.buildFatalDiagnostic(e.getMessage()));
+                .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e));
         }
         return new DataPartitionerResult(chunkItem, recordInfo.orElse(null));
     }
 
-    private AddiMetaData getAddiMetaData(AddiRecord addiRecord) throws JSONBException {
+    AddiMetaData getAddiMetaData(AddiRecord addiRecord) throws JSONBException {
         return jsonbContext.unmarshall(
                 new String(addiRecord.getMetaData(), encoding), AddiMetaData.class);
     }
 
-    protected Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
+    Optional<RecordInfo> getRecordInfo(AddiMetaData addiMetaData, byte[] content) {
         return Optional.of(new RecordInfo(addiMetaData.bibliographicRecordId()));
     }
 }

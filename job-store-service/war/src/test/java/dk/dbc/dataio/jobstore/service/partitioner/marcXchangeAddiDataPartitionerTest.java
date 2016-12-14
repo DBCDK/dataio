@@ -79,5 +79,7 @@ public class marcXchangeAddiDataPartitionerTest extends AbstractPartitionerTestB
         final ChunkItem chunkItem = dataPartitionerResult.getChunkItem();
         assertThat("chunkItem", chunkItem, is(notNullValue()));
         assertThat("chunkItem.getType()", chunkItem.getType(), is(Collections.singletonList(ChunkItem.Type.MARCXCHANGE)));
+        assertThat("chunkItem.getData", StringUtil.asString(chunkItem.getData()), is(StringUtil.asString(contentData)));
+        assertThat("recordInfo", dataPartitionerResult.getRecordInfo(), is(notNullValue()));
     }
 }

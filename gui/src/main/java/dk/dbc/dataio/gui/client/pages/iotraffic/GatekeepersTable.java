@@ -24,18 +24,19 @@ package dk.dbc.dataio.gui.client.pages.iotraffic;
 import com.google.gwt.cell.client.ButtonCell;
 import com.google.gwt.cell.client.Cell;
 import com.google.gwt.cell.client.CheckboxCell;
-import com.google.gwt.cell.client.FieldUpdater;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.InputElement;
 import com.google.gwt.dom.client.NativeEvent;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.view.client.ListDataProvider;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
 
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -58,13 +59,18 @@ public class GatekeepersTable extends CellTable {
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
 
-        addColumn(constructSubmitterColumn(), texts.label_Submitter());
+        Column submitterColumn = constructSubmitterColumn();
+        addColumn(submitterColumn, texts.label_Submitter());
         addColumn(constructPackagingColumn(), texts.label_Packaging());
         addColumn(constructFormatColumn(), texts.label_Format());
         addColumn(constructDestinationColumn(), texts.label_Destination());
-        addColumn(constructCopyColumn(), texts.label_Copy());
+        Column copyColumn = constructCopyColumn();
+        addColumn(copyColumn, texts.label_Copy());
         addColumn(constructNotifyColumn(), texts.label_Notify());
         addColumn(constructActivityColumn(), texts.label_Action());
+
+        addColumnSortHandler(constructSubmitterSortHandler(submitterColumn));
+        addColumnSortHandler(constructCopySortHandler(copyColumn));
     }
 
 
@@ -177,14 +183,26 @@ public class GatekeepersTable extends CellTable {
                 return texts.button_Delete();
             }
         };
-        column.setFieldUpdater(new FieldUpdater<GatekeeperDestination, String>() {
-            @Override
-            public void update(int index, GatekeeperDestination gatekeeperDestination, String buttonText) {
-                view.gateKeeperDestinationToBeDeleted = gatekeeperDestination.getId();
-                view.confirmation.show();
-            }
+        column.setFieldUpdater((index, gatekeeper, buttonText) -> {
+            view.gateKeeperDestinationToBeDeleted = ((GatekeeperDestination) gatekeeper).getId();
+            view.confirmation.show();
         });
         return column;
+    }
+
+    ColumnSortEvent.ListHandler constructSubmitterSortHandler(Column column) {
+        ColumnSortEvent.ListHandler<GatekeeperDestination> columnSortHandler = new ColumnSortEvent.ListHandler<>(dataProvider.getList());
+        columnSortHandler.setComparator(column, Comparator.comparing((p) -> Long.valueOf(p.getSubmitterNumber())));
+        column.setSortable(true);
+        getColumnSortList().push(column);  // Default sorting is chosen here
+        return columnSortHandler;
+    }
+
+    ColumnSortEvent.ListHandler constructCopySortHandler(Column column) {
+        ColumnSortEvent.ListHandler<GatekeeperDestination> columnSortHandler = new ColumnSortEvent.ListHandler<>(dataProvider.getList());
+        columnSortHandler.setComparator(column, Comparator.comparing((gatekeeperDestination) -> !gatekeeperDestination.isCopyToPosthus()));
+        column.setSortable(true);
+        return columnSortHandler;
     }
 
 }

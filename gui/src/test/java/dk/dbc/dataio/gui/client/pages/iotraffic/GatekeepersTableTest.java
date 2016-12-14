@@ -21,6 +21,8 @@
 
 package dk.dbc.dataio.gui.client.pages.iotraffic;
 
+import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwtmockito.GwtMockitoTestRunner;
 import dk.dbc.dataio.commons.types.GatekeeperDestination;
@@ -31,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -55,6 +58,7 @@ public class GatekeepersTableTest {
     @Mock Texts mockedTexts;
     @Mock View mockedView;
     @Mock Presenter mockedPresenter;
+    @Mock Column mockedColumn;
 
     @Before
     public void setupTexts() {
@@ -116,4 +120,48 @@ public class GatekeepersTableTest {
         assertThat(gatekeepersTable.getColumn(5).getValue(gatekeeper), is(false));
         assertThat(gatekeepersTable.getColumn(6).getValue(gatekeeper), is("ButtonDelete"));
     }
+
+    @Test
+    public void constructSubmitterSortHandler_callMethod_sortIsOk() {
+        // Prepare test
+        GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
+        GatekeeperDestination d1 = new GatekeeperDestinationBuilder().setSubmitterNumber("1").build();
+        GatekeeperDestination d2 = new GatekeeperDestinationBuilder().setSubmitterNumber("2").build();
+
+        // Subject Under Test
+        ColumnSortEvent.ListHandler handler = gatekeepersTable.constructSubmitterSortHandler(mockedColumn);
+
+        // Verify Test
+        Comparator comparator = handler.getComparator(mockedColumn);
+
+        assertThat(comparator.compare(d1, d1), is(0));
+        assertThat(comparator.compare(d1, d2), is(-1));
+        assertThat(comparator.compare(d2, d1), is(1));
+
+        verify(mockedColumn).setSortable(true);
+        verify(mockedColumn).isDefaultSortAscending();
+        verifyNoMoreInteractions(mockedColumn);
+    }
+
+    @Test
+    public void constructCopySortHandler_callMethod_sortIsOk() {
+        // Prepare test
+        GatekeepersTable gatekeepersTable = new GatekeepersTable(mockedView);
+        GatekeeperDestination dTrue = new GatekeeperDestinationBuilder().setCopyToPosthus(true).build();
+        GatekeeperDestination dFalse = new GatekeeperDestinationBuilder().setCopyToPosthus(false).build();
+
+        // Subject Under Test
+        ColumnSortEvent.ListHandler handler = gatekeepersTable.constructCopySortHandler(mockedColumn);
+
+        // Verify Test
+        Comparator comparator = handler.getComparator(mockedColumn);
+
+        assertThat(comparator.compare(dTrue, dTrue), is(0));
+        assertThat(comparator.compare(dTrue, dFalse), is(-1));
+        assertThat(comparator.compare(dFalse, dTrue), is(1));
+
+        verify(mockedColumn).setSortable(true);
+        verifyNoMoreInteractions(mockedColumn);
+    }
+
 }

@@ -19,24 +19,15 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.tickle.repo.rest;
+package dk.dbc.dataio.harvester.ticklerepo.rest;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import dk.dbc.dataio.commons.utils.service.ServiceStatus;
 
-/**
- * This class defines the other classes that make up this JAX-RS application by
- * having the getClasses method return a specific set of resources.
- */
-@ApplicationPath("/")
-public class HarvesterApplication extends Application {
-    @Override
-    public Set<Class<?>> getClasses() {
-        return new HashSet<>(Arrays.asList(
-                StatusBean.class
-        ));
-    }
+import javax.ejb.Stateless;
+import javax.ws.rs.Path;
+
+@Stateless
+@Path("/")
+public class StatusBean implements ServiceStatus {
+
 }

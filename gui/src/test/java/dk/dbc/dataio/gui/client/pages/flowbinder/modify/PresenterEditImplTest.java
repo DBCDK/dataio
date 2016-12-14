@@ -109,7 +109,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         assertThat(presenterEditImpl.model.getFormat(), is(""));
         assertThat(presenterEditImpl.model.getCharset(), is(""));
         assertThat(presenterEditImpl.model.getDestination(), is(""));
-        assertThat(presenterEditImpl.model.getRecordSplitter(), is(RecordSplitterConstants.RecordSplitter.XML.name()));
+        assertThat(presenterEditImpl.model.getRecordSplitter(), is(RecordSplitterConstants.getRecordSplitters().get(0).name()));
         assertThat(presenterEditImpl.model.getFlowModel(), is(notNullValue()));
         assertThat(presenterEditImpl.model.getFlowModel().getFlowName(), is(""));
         assertThat(presenterEditImpl.model.getSubmitterModels(), is(notNullValue()));

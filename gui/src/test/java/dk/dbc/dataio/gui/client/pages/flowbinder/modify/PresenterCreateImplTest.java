@@ -98,7 +98,7 @@ public class PresenterCreateImplTest extends PresenterImplTestBase {
         assertThat(presenterCreateImpl.model.getFormat(), is(""));
         assertThat(presenterCreateImpl.model.getCharset(), is(""));
         assertThat(presenterCreateImpl.model.getDestination(), is(""));
-        assertThat(presenterCreateImpl.model.getRecordSplitter(), is(RecordSplitterConstants.RecordSplitter.XML.name()));
+        assertThat(presenterCreateImpl.model.getRecordSplitter(), is(RecordSplitterConstants.getRecordSplitters().get(0).name()));
         assertThat(presenterCreateImpl.model.getFlowModel(), is(notNullValue()));
         assertThat(presenterCreateImpl.model.getFlowModel().getFlowName(), is(""));
         assertThat(presenterCreateImpl.model.getSubmitterModels(), is(notNullValue()));

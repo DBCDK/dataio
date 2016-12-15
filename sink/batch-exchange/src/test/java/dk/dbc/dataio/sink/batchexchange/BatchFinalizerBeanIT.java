@@ -107,7 +107,7 @@ public class BatchFinalizerBeanIT extends IntegrationTest {
         assertThat("chunk size", chunk.size(), is(5));
 
         ChunkItem chunkItem = chunk.getItems().get(0);
-        assertThat("1st chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.SUCCESS));
+        assertThat("1st chunkItem status", chunkItem.getStatus(), is(ChunkItem.Status.IGNORE));
         assertThat("1st chunkItem trackingId", chunkItem.getTrackingId(), is("42-0-1"));
         assertThat("1st chunkItem diagnostics", chunkItem.getDiagnostics(), is(nullValue()));
         assertThat("1st chunkItem data", StringUtil.asString(chunkItem.getData()), is("ok42-0-1\n"));

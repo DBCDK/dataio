@@ -115,22 +115,21 @@ public class BatchFinalizerBean {
     private Chunk createChunkFromBatchEntries(long jobId, long chunkId, List<BatchEntry> batchEntries) {
         final Chunk chunk = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
         long chunkItemId = 0;
-        ChunkItem chunkItem = new ChunkItem()
-                .withId(chunkItemId)
-                .withStatus(ChunkItem.Status.SUCCESS);
+        ChunkItem chunkItem = new ChunkItem().withId(chunkItemId);
         ChunkItemDataBuffer dataBuffer = new ChunkItemDataBuffer();
         for (BatchEntry batchEntry : batchEntries) {
             DBCTrackedLogContext.setTrackingId(batchEntry.getTrackingId());
             try {
                 chunkItem.appendDiagnostics(extractBatchEntryData(batchEntry, dataBuffer));
                 if (!batchEntry.getContinued()) {
+                    if (chunkItem.getStatus() == null) {
+                        chunkItem.withStatus(convertBatchEntryStatus(batchEntry.getStatus()));
+                    }
                     chunk.insertItem(chunkItem
                             .withData(dataBuffer.getBytes())
                             .withTrackingId(batchEntry.getTrackingId()));
                     LOGGER.info("Result of downstream processing was {}", chunkItem.getStatus());
-                    chunkItem = new ChunkItem()
-                            .withId(++chunkItemId)
-                            .withStatus(ChunkItem.Status.SUCCESS);
+                    chunkItem = new ChunkItem().withId(++chunkItemId);
                     dataBuffer = new ChunkItemDataBuffer();
                 }
             } finally {
@@ -138,6 +137,15 @@ public class BatchFinalizerBean {
             }
         }
         return chunk;
+    }
+
+    private ChunkItem.Status convertBatchEntryStatus(BatchEntry.Status batchEntryStatus) {
+        switch (batchEntryStatus) {
+            case FAILED: return ChunkItem.Status.FAILURE;
+            case IGNORED: return ChunkItem.Status.IGNORE;
+            case OK: return ChunkItem.Status.SUCCESS;
+            default: throw new IllegalStateException("illegal batch entry status " + batchEntryStatus);
+        }
     }
 
     private List<Diagnostic> extractBatchEntryData(BatchEntry batchEntry, ChunkItemDataBuffer dataBuffer) {

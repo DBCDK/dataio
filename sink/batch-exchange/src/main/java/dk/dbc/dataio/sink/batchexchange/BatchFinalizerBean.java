@@ -115,22 +115,24 @@ public class BatchFinalizerBean {
     private Chunk createChunkFromBatchEntries(long jobId, long chunkId, List<BatchEntry> batchEntries) {
         final Chunk chunk = new Chunk(jobId, chunkId, Chunk.Type.DELIVERED);
         long chunkItemId = 0;
-        ChunkItem chunkItem = new ChunkItem().withId(chunkItemId);
         ChunkItemDataBuffer dataBuffer = new ChunkItemDataBuffer();
+        ChunkItem chunkItem = new ChunkItem();
         for (BatchEntry batchEntry : batchEntries) {
             DBCTrackedLogContext.setTrackingId(batchEntry.getTrackingId());
             try {
+                // appendDiagnostics ensures that status is set to FAILURE if any FATAL level diagnostics are appended
                 chunkItem.appendDiagnostics(extractBatchEntryData(batchEntry, dataBuffer));
                 if (!batchEntry.getContinued()) {
                     if (chunkItem.getStatus() == null) {
                         chunkItem.withStatus(convertBatchEntryStatus(batchEntry.getStatus()));
                     }
                     chunk.insertItem(chunkItem
+                            .withId(chunkItemId++)
                             .withData(dataBuffer.getBytes())
                             .withTrackingId(batchEntry.getTrackingId()));
                     LOGGER.info("Result of downstream processing was {}", chunkItem.getStatus());
-                    chunkItem = new ChunkItem().withId(++chunkItemId);
                     dataBuffer = new ChunkItemDataBuffer();
+                    chunkItem = new ChunkItem();
                 }
             } finally {
                 DBCTrackedLogContext.remove();

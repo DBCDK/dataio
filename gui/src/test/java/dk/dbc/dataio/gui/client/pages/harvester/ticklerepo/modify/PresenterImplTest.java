@@ -126,15 +126,11 @@ public class PresenterImplTest extends PresenterImplTestBase {
         mockedView.status = mockedStatus;
         when(mockedView.asWidget()).thenReturn(mockedWidget);
         when(mockedConfig.getContent()).thenReturn(mockedContent);
-
-//        when(presenter.commonInjector.getFlowStoreProxyAsync()).thenReturn(mockedFlowStore);
-//        when(presenter.commonInjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
     }
 
     @Before
     public void prepareTexts() {
         when(mockedTexts.error_InputFieldValidationError()).thenReturn("InputFieldValidationError");
-//        when(mockedTexts.error_NumericSubmitterValidationError()).thenReturn("NumericSubmitterValidationError");
     }
 
 

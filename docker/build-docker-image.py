@@ -62,8 +62,10 @@ docker tag ${TAG} ${TAG%%:*}:latest
 
 if [ "${BUILD_NUMBER}" != "devel" ] ; then
   echo pushing to ${REGISTRY}
-  /usr/bin/time --format="time: ${NAME}-push1 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
-  /usr/bin/time --format="time: ${NAME}-push2 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:latest
+  /usr/bin/time --format="time: ${NAME}-push1 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER} &
+  /usr/bin/time --format="time: ${NAME}-push2 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:latest &
+  wait %%2
+  wait %%1
   echo ${REGISTRY}/${NAME} >> %s
 fi
 """ % (image_name, artifact, log)

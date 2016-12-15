@@ -70,7 +70,8 @@ import java.util.List;
 import java.util.Map;
 
 public class AbstractJobStoreIT {
-    protected static final String DATABASE_NAME = "jobstore";
+    protected static String DATABASE_NAME = "testdb";
+    protected static int DATABASE_PORT = 5432;
     protected static final String JOB_TABLE_NAME = "job";
     protected static final String CHUNK_TABLE_NAME = "chunk";
     protected static final String ITEM_TABLE_NAME = "item";
@@ -91,10 +92,17 @@ public class AbstractJobStoreIT {
     protected TransactionScopedPersistenceContext persistenceContext;
 
     static {
+        if (System.getProperty("postgresql.port") != null &&
+                System.getProperty("postgresql.port").length() > 1) {
+            DATABASE_PORT = Integer.parseInt(System.getProperty("postgresql.port"));
+        } else {
+            DATABASE_NAME=System.getProperty("user.name");
+        }
+
         datasource = new PGSimpleDataSource();
-        datasource.setDatabaseName(DATABASE_NAME);
+        datasource.setDatabaseName( DATABASE_NAME );
         datasource.setServerName("localhost");
-        datasource.setPortNumber(Integer.parseInt(System.getProperty("postgresql.port", "5432")));
+        datasource.setPortNumber( DATABASE_PORT );
         datasource.setUser(System.getProperty("user.name"));
         datasource.setPassword(System.getProperty("user.name"));
     }
@@ -111,7 +119,7 @@ public class AbstractJobStoreIT {
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, System.getProperty("user.name"));
         properties.put(JDBC_PASSWORD, System.getProperty("user.name"));
-        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/jobstore", System.getProperty("postgresql.port","5432")));
+        properties.put(JDBC_URL, String.format("jdbc:postgresql://localhost:%s/%s",DATABASE_PORT, DATABASE_NAME));
         properties.put(JDBC_DRIVER, "org.postgresql.Driver");
         properties.put("eclipselink.logging.level", "FINE");
 

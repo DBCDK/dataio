@@ -60,10 +60,10 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
     @Override
     public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
         final Chunk chunk = unmarshallPayload(consumedMessage);
-        LOGGER.info("Handling chunk [{}, {}]", chunk.getJobId(), chunk.getChunkId());
+        LOGGER.info("Handling chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
 
         final Batch batch = createBatch(chunk);
-        LOGGER.info("Adding chunk [{}, {}] to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
+        LOGGER.info("Adding chunk {}/{} to batch {}", chunk.getJobId(), chunk.getChunkId(), batch);
 
         try {
             for (ChunkItem chunkItem : chunk) {

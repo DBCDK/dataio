@@ -77,7 +77,7 @@ public class BatchFinalizerBean {
             return false;
         }
         final BatchName batchName = BatchName.fromString(batch.getName());
-        LOGGER.info("Finalizing batch %d for chunk[%d, %d]",
+        LOGGER.info("Finalizing batch {} for chunk[{}, {}]",
                 batch.getId(), batchName.getJobId(), batchName.getChunkId());
 
         final List<BatchEntry> batchEntries = getBatchEntries(batch);

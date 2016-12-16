@@ -84,6 +84,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
         mockedView.flowBindersTable = mockedFlowBindersTable;
         mockedView.flowBindersTable.setSelectionModel(mockedSelectionModel);
+        when(mockedView.flowBindersTable.getSelectionModel()).thenReturn(mockedSelectionModel);
         mockedView.flowBindersTable.dataProvider = mockedDataProvider;
     }
 

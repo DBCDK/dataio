@@ -24,7 +24,7 @@ import com.google.gwt.inject.client.AbstractGinModule;
 import com.google.inject.Singleton;
 
 /**
- * Created by ThomasBerg on 09/11/15.
+ * Gin Module for Flowbinder Show
  */
 public class ViewModule extends AbstractGinModule {
 

@@ -21,344 +21,55 @@
 
 package dk.dbc.dataio.gui.client.pages.flowbinder.show;
 
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
+import com.google.gwt.user.client.ui.IsWidget;
+import com.google.gwt.user.client.ui.Widget;
+import dk.dbc.dataio.gui.client.components.PopupListBox;
+import dk.dbc.dataio.gui.client.views.ContentPanel;
 
-import com.google.gwt.cell.client.AbstractCell;
-import com.google.gwt.cell.client.ButtonCell;
-import com.google.gwt.cell.client.Cell;
-import com.google.gwt.cell.client.FieldUpdater;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.event.dom.client.DoubleClickEvent;
-import com.google.gwt.event.dom.client.DoubleClickHandler;
-import com.google.gwt.safehtml.shared.SafeHtml;
-import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
-import com.google.gwt.user.cellview.client.Column;
-import com.google.gwt.user.cellview.client.TextColumn;
-import com.google.gwt.view.client.ListDataProvider;
-import com.google.gwt.view.client.SingleSelectionModel;
-import dk.dbc.dataio.gui.client.model.FlowBinderModel;
-import dk.dbc.dataio.gui.client.model.SubmitterModel;
-import dk.dbc.dataio.gui.client.util.Format;
+public class View extends ContentPanel<Presenter> implements IsWidget {
+    ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
+    interface MyUiBinder extends UiBinder<Widget, View> {}
+    private static MyUiBinder uiBinder = GWT.create(MyUiBinder.class);
 
-import java.util.Collections;
-import java.util.List;
-
-/**
- * This class is the View class for the FlowBinders Show View
- */
-public class View extends ViewWidget {
-    ListDataProvider<FlowBinderModel> dataProvider;
-    SingleSelectionModel<FlowBinderModel> selectionModel = new SingleSelectionModel<>();
+    // UI Fields
+    @UiField(provided=true) FlowBindersTable flowBindersTable;
+    @UiField PopupListBox popupList;
 
 
-
+    /**
+     * Default constructor
+     */
     public View() {
-        super("");
-        setupColumns();
-    }
-
-
-    /**
-     * This method is used to put data into the view
-     *
-     * @param flowBinderModels The list of flowbinders to put into the view
-     */
-    public void setFlowBinders(List<FlowBinderModel> flowBinderModels) {
-        dataProvider.getList().clear();
-        dataProvider.getList().addAll(flowBinderModels);
-    }
-
-
-    /**
-     * Private methods
-     */
-
-
-    /**
-     * This method sets up all columns in the view
-     * It is called before data has been applied to the view - data is being applied in the setFlowBinders method
-     */
-    @SuppressWarnings("unchecked")
-    private void setupColumns() {
-        dataProvider = new ListDataProvider<>();
-        dataProvider.addDataDisplay(flowBindersTable);
-
-        flowBindersTable.addColumn(constructNameColumn(), getTexts().columnHeader_Name());
-        flowBindersTable.addColumn(constructDescriptionColumn(), getTexts().columnHeader_Description());
-        flowBindersTable.addColumn(constructPackagingColumn(), getTexts().columnHeader_Packaging());
-        flowBindersTable.addColumn(constructFormatColumn(), getTexts().columnHeader_Format());
-        flowBindersTable.addColumn(constructCharsetColumn(), getTexts().columnHeader_Charset());
-        flowBindersTable.addColumn(constructDestinationColumn(), getTexts().columnHeader_Destination());
-        flowBindersTable.addColumn(constructRecordSplitterColumn(), getTexts().columnHeader_RecordSplitter());
-        flowBindersTable.addColumn(constructSubmittersColumn(), getTexts().columnHeader_Submitters());
-        flowBindersTable.addColumn(constructFlowColumn(), getTexts().columnHeader_Flow());
-        flowBindersTable.addColumn(constructSinkColumn(), getTexts().columnHeader_Sink());
-        flowBindersTable.addColumn(constructQueueProviderColumn(), getTexts().columnHeader_QueueProvider());
-        flowBindersTable.addColumn(constructActionColumn(), getTexts().columnHeader_Action());
-        flowBindersTable.setSelectionModel(selectionModel);
-        flowBindersTable.addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
+        this("");
     }
 
     /**
-     * This method constructs the Name column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Name column
+     * Constructor
+     * @param header    Breadcrumb header text
      */
-    Column constructNameColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getName();
-            }
-        };
+    public View(String header) {
+        super(header);
+        flowBindersTable = new FlowBindersTable(this);
+        add(uiBinder.createAndBindUi(this));
+    }
+
+    @Override
+    public void init() {
+        flowBindersTable.setPresenter(presenter);
     }
 
     /**
-     * This method constructs the Description column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Description column
+     * Ui Handler to catch click events on the create button
+     * @param event Clicked event
      */
-    Column constructDescriptionColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getDescription();
-            }
-        };
+    @UiHandler("createButton")
+    void createButtonPressed(ClickEvent event) {
+        presenter.createFlowBinder();
     }
 
-    /**
-     * This method constructs the Packaging column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Packaging column
-     */
-    Column constructPackagingColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getPackaging();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Format column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Format column
-     */
-    Column constructFormatColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getFormat();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Charset column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Charset column
-     */
-    Column constructCharsetColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getCharset();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Destination column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Destination column
-     */
-    Column constructDestinationColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getDestination();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the RecordSplitter column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed RecordSplitter column
-     */
-    Column constructRecordSplitterColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getRecordSplitter();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Submitters column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Submitters column
-     */
-    Column constructSubmittersColumn() {
-        return new SubmitterColumn();
-    }
-
-    /**
-     * This method constructs the Flow column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Flow column
-     */
-    Column constructFlowColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getFlowModel().getFlowName();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Sink column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Sink column
-     */
-    Column constructSinkColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getSinkModel().getSinkName();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Queue Provider column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Queue Provider column
-     */
-    Column constructQueueProviderColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getQueueProvider();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Action column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Action column
-     */
-    @SuppressWarnings("unchecked")
-    Column constructActionColumn() {
-        Column column = new Column<FlowBinderModel, String>(new ButtonCell()) {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                // The value to display in the button.
-                return getTexts().button_Edit();
-            }
-        };
-        column.setFieldUpdater(new FieldUpdater<FlowBinderModel, String>() {
-            @Override
-            public void update(int index, FlowBinderModel model, String buttonText) {
-                presenter.editFlowBinder(model);
-            }
-        });
-    return column;
-    }
-
-    /**
-     * This method constructs a double click event handler. On double click event, the method calls
-     * the presenter with the selection model selected value.
-     * @return the double click handler
-     */
-    private DoubleClickHandler getDoubleClickHandler(){
-        return doubleClickEvent -> {
-            FlowBinderModel selected = selectionModel.getSelectedObject();
-            if(selected != null) {
-                presenter.editFlowBinder(selected);
-            }
-        };
-    }
-
-
-    /**
-     * Private classes
-     */
-    class SafeHtmlCell extends AbstractCell<SafeHtml> {
-        public SafeHtmlCell() {
-            super("click", "keydown");
-        }
-
-        @Override
-        public void render(Context context, SafeHtml value, SafeHtmlBuilder sb) {
-            if (value != null) {
-                sb.append(value);
-            }
-        }
-    }
-
-    class SubmitterColumn extends Column<FlowBinderModel, SafeHtml> {
-        public SubmitterColumn(Cell<SafeHtml> cell) {
-            super(cell);
-        }
-
-        public SubmitterColumn() {
-            this(new SafeHtmlCell());
-        }
-
-        @Override
-        public SafeHtml getValue(FlowBinderModel model) {
-            List<SubmitterModel> models = model.getSubmitterModels();
-            SafeHtmlBuilder sb = new SafeHtmlBuilder();
-            if (isClickableColumn(models)) {
-                sb.appendHtmlConstant("<a href='javascript:;'>");
-                sb.append(models.size()).appendEscaped(" ").appendEscaped(getTexts().text_Submitters());
-                sb.appendHtmlConstant("</a>");
-            } else {
-                if (!models.isEmpty()) {
-                    SubmitterModel submitter = models.get(0);
-                    sb.appendEscaped(Format.inBracketsPairString(submitter.getNumber(), submitter.getName()));
-                }
-            }
-            return sb.toSafeHtml();
-        }
-
-        @Override
-        public void onBrowserEvent(Cell.Context context, Element elem, FlowBinderModel model, NativeEvent event) {
-            super.onBrowserEvent(context, elem, model, event);
-            if (isClickableColumn(model.getSubmitterModels()) && "click".equals(event.getType())) {
-                showSubmittersInPopupList(model.getSubmitterModels());
-            }
-        }
-
-        private boolean isClickableColumn(List<SubmitterModel> models) {
-            return models != null && models.size() > 1;
-        }
-
-        private void showSubmittersInPopupList(List<SubmitterModel> submitters) {
-            Collections.sort(submitters, (sm1, sm2) -> Long.valueOf(sm1.getNumber()).compareTo(Long.valueOf(sm2.getNumber())));
-            popupList.clear();
-            for (SubmitterModel model: submitters) {
-                popupList.addItem(Format.inBracketsPairString(model.getNumber(), model.getName()), model.getNumber());
-            }
-            popupList.show();
-        }
-    }
 }

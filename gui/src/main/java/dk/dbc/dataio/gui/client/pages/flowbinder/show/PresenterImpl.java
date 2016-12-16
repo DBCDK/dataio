@@ -26,6 +26,7 @@ import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.shared.EventBus;
 import com.google.gwt.place.shared.PlaceController;
 import com.google.gwt.user.client.ui.AcceptsOneWidget;
+import com.google.gwt.view.client.SingleSelectionModel;
 import dk.dbc.dataio.gui.client.exceptions.FilteredAsyncCallback;
 import dk.dbc.dataio.gui.client.exceptions.ProxyErrorTranslator;
 import dk.dbc.dataio.gui.client.model.FlowBinderModel;
@@ -46,8 +47,8 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
     CommonGinjector commonInjector = GWT.create(CommonGinjector.class);
     ViewGinjector viewInjector = GWT.create(ViewGinjector.class);
 
-    PlaceController placeController;
-    String header;
+    private PlaceController placeController;
+    private String header;
 
 
     /**
@@ -93,7 +94,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     @Override
     public void createFlowBinder() {
-        getView().selectionModel.clear();
+        ((SingleSelectionModel<FlowBinderModel>) (getView().flowBindersTable.getSelectionModel())).clear();
         placeController.goTo(new CreatePlace());
     }
 
@@ -124,13 +125,13 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
      */
     private void setFlowBindersAndDecipherSelection(Set<FlowBinderModel> dataProviderSet, List<FlowBinderModel> models) {
         if (dataProviderSet.size() > models.size() || dataProviderSet.size() == 0) {
-            getView().selectionModel.clear();
-            getView().setFlowBinders(models);
+            ((SingleSelectionModel<FlowBinderModel>) (getView().flowBindersTable.getSelectionModel())).clear();
+            getView().flowBindersTable.setFlowBinders(models);
         } else {
             for (FlowBinderModel current : models) {
                 if (!dataProviderSet.contains(current)) {
-                    getView().setFlowBinders(models);
-                    getView().selectionModel.setSelected(current, true);
+                    getView().flowBindersTable.setFlowBinders(models);
+                    ((SingleSelectionModel<FlowBinderModel>) (getView().flowBindersTable.getSelectionModel())).setSelected(current, true);
                     break;
                 }
             }
@@ -151,7 +152,7 @@ public class PresenterImpl extends AbstractActivity implements Presenter {
         }
         @Override
         public void onSuccess(List<FlowBinderModel> models) {
-            setFlowBindersAndDecipherSelection(new HashSet<>(getView().dataProvider.getList()), models);
+            setFlowBindersAndDecipherSelection(new HashSet<>(getView().flowBindersTable.dataProvider.getList()), models);
         }
     }
 

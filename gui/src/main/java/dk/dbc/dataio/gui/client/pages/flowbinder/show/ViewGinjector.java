@@ -24,7 +24,7 @@ import com.google.gwt.inject.client.GinModules;
 import com.google.gwt.inject.client.Ginjector;
 
 /**
- * Created by ThomasBerg on 09/11/15.
+ * Ginjector for Flowbinder Show
  */
 @GinModules(ViewModule.class)
 public interface ViewGinjector extends Ginjector {

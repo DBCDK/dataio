@@ -69,6 +69,7 @@ import static org.mockito.Mockito.when;
 public class PresenterImplTest extends PresenterImplTestBase {
 
     @Mock View mockedView;
+    @Mock FlowBindersTable mockedFlowBindersTable;
     @Mock Widget mockedViewWidget;
     @Mock SingleSelectionModel<FlowBinderModel> mockedSelectionModel;
     @Mock ListDataProvider<FlowBinderModel> mockedDataProvider;
@@ -81,8 +82,9 @@ public class PresenterImplTest extends PresenterImplTestBase {
         when(mockedViewGinjector.getView()).thenReturn(mockedView);
         when(mockedView.asWidget()).thenReturn(mockedViewWidget);
         when(mockedCommonGinjector.getProxyErrorTexts()).thenReturn(mockedProxyErrorTexts);
-        mockedView.selectionModel = mockedSelectionModel;
-        mockedView.dataProvider = mockedDataProvider;
+        mockedView.flowBindersTable = mockedFlowBindersTable;
+        mockedView.flowBindersTable.setSelectionModel(mockedSelectionModel);
+        mockedView.flowBindersTable.dataProvider = mockedDataProvider;
     }
 
     // Subject Under Test
@@ -206,7 +208,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedSelectionModel).clear();
-        verify(mockedView).setFlowBinders(flowBinderModels);
+        verify(mockedView.flowBindersTable).setFlowBinders(flowBinderModels);
     }
 
     @Test
@@ -223,7 +225,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verifyZeroInteractions(mockedSelectionModel);
-        verify(mockedView, times(0)).setFlowBinders(flowBinderModels);
+        verify(mockedView.flowBindersTable, times(0)).setFlowBinders(flowBinderModels);
     }
 
     @Test
@@ -244,7 +246,7 @@ public class PresenterImplTest extends PresenterImplTestBase {
 
         // Verify Test
         verify(mockedSelectionModel).setSelected(editedFlowBinder, true);
-        verify(mockedView).setFlowBinders(flowBinderModels);
+        verify(mockedView.flowBindersTable).setFlowBinders(flowBinderModels);
     }
 
     private void setupPresenterImplConcrete() {

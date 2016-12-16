@@ -37,6 +37,7 @@ def write_build_script(path, artifact, image_name, log):
 set -e
 REGISTRY=docker-io.dbc.dk
 NAME=%s
+TIMEFORMAT="time: ${NAME}-push1 e: %%E U: %%U S: %%S P: %%P "
 
 if [ -n "${SKIP_BUILD_DOCKER_IMAGE}" ]; then
   echo skipping building of $NAME docker image
@@ -55,15 +56,15 @@ fi
 echo building ${NAME} docker image
 
 ##
-/usr/bin/time --format="time: ${NAME}-build e: %%e U: %%U S: %%S P: %%P" docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg svn_revision=${SVN_REVISION:=devel} -f Dockerfile .
+time docker build -t ${TAG} --build-arg build_number=${BUILD_NUMBER:=devel} --build-arg svn_revision=${SVN_REVISION:=devel} -f Dockerfile .
 rm ${ARTIFACT}
 
 docker tag ${TAG} ${TAG%%:*}:latest
 
 if [ "${BUILD_NUMBER}" != "devel" ] ; then
   echo pushing to ${REGISTRY}
-  /usr/bin/time --format="time: ${NAME}-push1 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER} &
-  /usr/bin/time --format="time: ${NAME}-push2 e: %%e U: %%U S: %%S P: %%P " docker push ${REGISTRY}/${NAME}:latest &
+  time docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER} &
+  time docker push ${REGISTRY}/${NAME}:latest &
   wait %%2
   wait %%1
   echo ${REGISTRY}/${NAME} >> %s

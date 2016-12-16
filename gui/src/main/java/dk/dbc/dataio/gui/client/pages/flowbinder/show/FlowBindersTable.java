@@ -34,6 +34,7 @@ import com.google.gwt.safehtml.shared.SafeHtml;
 import com.google.gwt.safehtml.shared.SafeHtmlBuilder;
 import com.google.gwt.user.cellview.client.CellTable;
 import com.google.gwt.user.cellview.client.Column;
+import com.google.gwt.user.cellview.client.ColumnSortEvent;
 import com.google.gwt.user.cellview.client.TextColumn;
 import com.google.gwt.view.client.ListDataProvider;
 import com.google.gwt.view.client.SingleSelectionModel;
@@ -42,7 +43,9 @@ import dk.dbc.dataio.gui.client.model.SubmitterModel;
 import dk.dbc.dataio.gui.client.util.Format;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Flow Binders Table
@@ -55,29 +58,53 @@ public class FlowBindersTable extends CellTable {
     ListDataProvider<FlowBinderModel> dataProvider;
 
 
-
     public FlowBindersTable(View view) {
         this.view = view;
         dataProvider = new ListDataProvider<>();
         dataProvider.addDataDisplay(this);
 
-        addColumn(constructNameColumn(), texts.columnHeader_Name());
-        addColumn(constructDescriptionColumn(), texts.columnHeader_Description());
-        addColumn(constructPackagingColumn(), texts.columnHeader_Packaging());
-        addColumn(constructFormatColumn(), texts.columnHeader_Format());
-        addColumn(constructCharsetColumn(), texts.columnHeader_Charset());
-        addColumn(constructDestinationColumn(), texts.columnHeader_Destination());
-        addColumn(constructRecordSplitterColumn(), texts.columnHeader_RecordSplitter());
-        addColumn(constructSubmittersColumn(), texts.columnHeader_Submitters());
-        addColumn(constructFlowColumn(), texts.columnHeader_Flow());
-        addColumn(constructSinkColumn(), texts.columnHeader_Sink());
-        addColumn(constructQueueProviderColumn(), texts.columnHeader_QueueProvider());
-        addColumn(constructActionColumn(), texts.columnHeader_Action());
+        Column nameColumn = constructColumn(FlowBinderModel::getName);
+        Column descriptionColumn = constructColumn(FlowBinderModel::getDescription);
+        Column packagingColumn = constructColumn(FlowBinderModel::getPackaging);
+        Column formatColumn = constructColumn(FlowBinderModel::getFormat);
+        Column charsetColumn = constructColumn(FlowBinderModel::getCharset);
+        Column destinationColumn = constructColumn(FlowBinderModel::getDestination);
+        Column recordSplitterColumn = constructColumn(FlowBinderModel::getRecordSplitter);
+        Column submitterColumn = new SubmitterColumn();
+        Column flowColumn = constructColumn(model -> model.getFlowModel().getFlowName());
+        Column sinkColumn = constructColumn(model -> model.getSinkModel().getSinkName());
+        Column queueProviderColumn = constructColumn(FlowBinderModel::getQueueProvider);
+        Column actionColumn = constructActionColumn();
+
+        addColumn(nameColumn, texts.columnHeader_Name());
+        addColumn(descriptionColumn, texts.columnHeader_Description());
+        addColumn(packagingColumn, texts.columnHeader_Packaging());
+        addColumn(formatColumn, texts.columnHeader_Format());
+        addColumn(charsetColumn, texts.columnHeader_Charset());
+        addColumn(destinationColumn, texts.columnHeader_Destination());
+        addColumn(recordSplitterColumn, texts.columnHeader_RecordSplitter());
+        addColumn(submitterColumn, texts.columnHeader_Submitters());
+        addColumn(flowColumn, texts.columnHeader_Flow());
+        addColumn(sinkColumn, texts.columnHeader_Sink());
+        addColumn(queueProviderColumn, texts.columnHeader_QueueProvider());
+        addColumn(actionColumn, texts.columnHeader_Action());
+
+        addColumnSortHandler(constructStringSortHandler(nameColumn, FlowBinderModel::getName));
+        addColumnSortHandler(constructStringSortHandler(descriptionColumn, FlowBinderModel::getDescription));
+        addColumnSortHandler(constructStringSortHandler(packagingColumn, FlowBinderModel::getPackaging));
+        addColumnSortHandler(constructStringSortHandler(formatColumn, FlowBinderModel::getFormat));
+        addColumnSortHandler(constructStringSortHandler(charsetColumn, FlowBinderModel::getCharset));
+        addColumnSortHandler(constructStringSortHandler(destinationColumn, FlowBinderModel::getDestination));
+        addColumnSortHandler(constructStringSortHandler(recordSplitterColumn, FlowBinderModel::getRecordSplitter));
+        addColumnSortHandler(constructStringSortHandler(flowColumn, (model) -> model.getFlowModel().getFlowName()));
+        addColumnSortHandler(constructStringSortHandler(sinkColumn, (model) -> model.getSinkModel().getSinkName()));
+        addColumnSortHandler(constructStringSortHandler(queueProviderColumn, FlowBinderModel::getQueueProvider));
+
+        getColumnSortList().push(nameColumn);  // Default sorting is chosen here
 
         setSelectionModel(new SingleSelectionModel<FlowBinderModel>());
         addDomHandler(getDoubleClickHandler(), DoubleClickEvent.getType());
     }
-
 
     /**
      * Sets the presenter to allow communication back to the presenter
@@ -105,161 +132,15 @@ public class FlowBindersTable extends CellTable {
      */
 
     /**
-     * This method constructs the Name column
-     * Should have been private, but is package-private to enable unit test
+     * This method constructs a column
      *
-     * @return the constructed Name column
+     * @return the constructed column
      */
-    private Column constructNameColumn() {
+    private Column constructColumn(Function<FlowBinderModel, String> extractor) {
         return new TextColumn<FlowBinderModel>() {
             @Override
             public String getValue(FlowBinderModel model) {
-                return model.getName();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Description column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Description column
-     */
-    private Column constructDescriptionColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getDescription();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Packaging column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Packaging column
-     */
-    private Column constructPackagingColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getPackaging();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Format column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Format column
-     */
-    private Column constructFormatColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getFormat();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Charset column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Charset column
-     */
-    private Column constructCharsetColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getCharset();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Destination column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Destination column
-     */
-    private Column constructDestinationColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getDestination();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the RecordSplitter column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed RecordSplitter column
-     */
-    private Column constructRecordSplitterColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getRecordSplitter();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Submitters column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Submitters column
-     */
-    private Column constructSubmittersColumn() {
-        return new SubmitterColumn();
-    }
-
-    /**
-     * This method constructs the Flow column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Flow column
-     */
-    private Column constructFlowColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getFlowModel().getFlowName();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Sink column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Sink column
-     */
-    private Column constructSinkColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getSinkModel().getSinkName();
-            }
-        };
-    }
-
-    /**
-     * This method constructs the Queue Provider column
-     * Should have been private, but is package-private to enable unit test
-     *
-     * @return the constructed Queue Provider column
-     */
-    private Column constructQueueProviderColumn() {
-        return new TextColumn<FlowBinderModel>() {
-            @Override
-            public String getValue(FlowBinderModel model) {
-                return model.getQueueProvider();
+                return extractor.apply(model);
             }
         };
     }
@@ -286,6 +167,18 @@ public class FlowBindersTable extends CellTable {
             }
         });
         return column;
+    }
+
+    /**
+     * This method constructs a sort handler for a String column
+     * @param column The column to sort
+     * @return The list handler for the column
+     */
+    ColumnSortEvent.ListHandler constructStringSortHandler(Column column, Function<FlowBinderModel, String> keyExtractor) {
+        ColumnSortEvent.ListHandler<FlowBinderModel> columnSortHandler = new ColumnSortEvent.ListHandler<>(dataProvider.getList());
+        columnSortHandler.setComparator(column, Comparator.comparing(keyExtractor.andThen(s -> s == null ? "" : s)));
+        column.setSortable(true);
+        return columnSortHandler;
     }
 
     /**

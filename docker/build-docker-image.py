@@ -63,10 +63,8 @@ docker tag ${TAG} ${TAG%%:*}:latest
 
 if [ "${BUILD_NUMBER}" != "devel" ] ; then
   echo pushing to ${REGISTRY}
-  time docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER} &
-  time docker push ${REGISTRY}/${NAME}:latest &
-  wait %%2
-  wait %%1
+  time docker push ${REGISTRY}/${NAME}:${BUILD_NUMBER}
+  time docker push ${REGISTRY}/${NAME}:latest
   echo ${REGISTRY}/${NAME} >> %s
 fi
 """ % (image_name, artifact, log)

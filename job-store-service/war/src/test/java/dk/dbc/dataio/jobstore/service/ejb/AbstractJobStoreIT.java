@@ -61,10 +61,8 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +76,7 @@ public class AbstractJobStoreIT {
     protected static final String FLOW_CACHE_TABLE_NAME = "flowcache";
     protected static final String SINK_CACHE_TABLE_NAME = "sinkcache";
     protected static final String JOBQUEUE_TABLE_NAME = "jobqueue";
+    protected static final String DEPENDENCYTRACKING_TABLE_NAME = "dependencyTracking";
     protected static final String NOTIFICATION_TABLE_NAME = "notification";
 
     protected static final PGSimpleDataSource datasource;
@@ -145,7 +144,7 @@ public class AbstractJobStoreIT {
         try (final Connection connection = newConnection()) {
             for (String tableName : Arrays.asList(
                     CHUNK_TABLE_NAME, ITEM_TABLE_NAME, JOBQUEUE_TABLE_NAME, NOTIFICATION_TABLE_NAME,
-                    JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME)) {
+                    JOB_TABLE_NAME, FLOW_CACHE_TABLE_NAME, SINK_CACHE_TABLE_NAME, DEPENDENCYTRACKING_TABLE_NAME)) {
                 JDBCUtil.update(connection, String.format("DELETE FROM %s", tableName));
             }
             connection.commit();

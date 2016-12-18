@@ -53,7 +53,8 @@ public class ChunkItem implements Serializable {
         DATACONTAINER,
         MARCXCHANGE,
         STRING,
-        BYTES
+        BYTES,
+        TICKLE_JOB_END,
     }
 
     private long id;

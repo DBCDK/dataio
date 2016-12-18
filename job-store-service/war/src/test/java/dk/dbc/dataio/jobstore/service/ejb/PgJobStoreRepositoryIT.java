@@ -23,6 +23,8 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
 import dk.dbc.dataio.commons.types.ChunkItem;
+import static dk.dbc.dataio.commons.types.ChunkItem.Status.SUCCESS;
+import static dk.dbc.dataio.commons.types.ChunkItem.Type.TICKLE_JOB_END;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.test.model.ChunkItemBuilder;
@@ -40,18 +42,19 @@ import dk.dbc.dataio.jobstore.types.RecordInfo;
 import dk.dbc.dataio.jobstore.types.ResourceBundle;
 import dk.dbc.dataio.jobstore.types.State;
 import dk.dbc.dataio.jobstore.types.WorkflowNote;
+import static java.lang.String.format;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
 import org.junit.Test;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import static org.junit.Assert.assertThat;
 
 public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
@@ -359,8 +362,55 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         assertThat("deliveredChunkItem", deliveredChunkItem, is(itemEntity.getDeliveringOutcome()));
     }
 
+    @Test
+    public void createJobTerminationChunkEntity() throws Exception {
 
-    /*
+        final String TEST_FILE_NAME = "TestFileName";
+        short chunkId=0;
+        short itemId=0;
+        // Given...
+        final int jobId1 = newPersistedJobEntity().getId();
+
+        // When...
+        final ChunkEntity chunkEntity = persistenceContext.run(() -> {
+                    return pgJobStoreRepository.createJobTerminationChunkEntity(jobId1, chunkId, TEST_FILE_NAME);
+                }
+        );
+
+
+        // Then ChunkEntity is
+        assertThat("Chunk id", chunkEntity.getKey(), is( new ChunkEntity.Key(chunkId, jobId1)));
+        assertThat("Chunk Items ", chunkEntity.getNumberOfItems(), is( (short)1));
+        assertThat("Chunk DatafileId", chunkEntity.getDataFileId(), is(TEST_FILE_NAME));
+
+        // And Item is
+
+        ItemEntity.Key key = new ItemEntity.Key(jobId1, chunkId, itemId);
+        final ItemEntity itemEntity = persistenceContext.run(()->entityManager.find(ItemEntity.class, key) );
+
+
+        assertThat("Item record Id", itemEntity.getRecordInfo().getId(), is(format("Termination Item For job %d", jobId1)));
+        assertThat("Item", itemEntity.getState().getDiagnostics(), empty());
+
+        final ChunkItem partitioningOutcome = itemEntity.getPartitioningOutcome();
+        List<ChunkItem.Type> itemTypeList= partitioningOutcome.getType();
+        assertThat("Item Type list size ",itemTypeList.size(), is(1));
+        assertThat("Item Type list type",itemTypeList.get(0), is(TICKLE_JOB_END));
+
+        assertThat("Item", new String(partitioningOutcome.getData()), is("Tickle Job Termination Item"));
+        assertThat("Item", partitioningOutcome.getStatus(), is(SUCCESS));
+
+
+        // And job1 is
+        final JobEntity job1 = persistenceContext.run( () -> { return  pgJobStoreRepository.getJobEntityById(jobId1); });
+
+        assertThat("Number of chunks", job1.getNumberOfChunks(), is(1));
+        assertThat("Number of Items ", job1.getNumberOfItems(), is(0));
+
+    }
+
+
+/*
      * private methods
      */
 

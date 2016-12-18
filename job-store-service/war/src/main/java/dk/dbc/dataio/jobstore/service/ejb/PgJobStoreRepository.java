@@ -32,7 +32,6 @@ import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.SupplementaryProcessData;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
-import dk.dbc.dataio.commons.types.jndi.JndiConstants;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.jobstore.service.digest.Md5;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
@@ -90,8 +89,10 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -287,6 +288,81 @@ public class PgJobStoreRepository extends RepositoryBase {
             updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
             entityManager.flush();
         }
+
+        return chunkEntity;
+    }
+
+    /**
+     * Creates new chunk and associated data item entities and updates the state of the containing job
+     * <p>
+     * CAVEAT: Even though this method is publicly available it is <b>NOT</b>
+     * intended for use outside of this class - accessibility is only so defined
+     * to allow the method to be called internally as an EJB business method.
+     * </p>
+     *
+     * @param jobId                        id of job for which the chunk is to be created
+     * @param chunkId                      id of the chunk to be created
+     * @param dataFileId for fake chunk
+     * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
+     * @throws JobStoreException on referenced entities not found
+     */
+    @Stopwatch
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public ChunkEntity createJobTerminationChunkEntity(
+            int jobId,
+            int chunkId,
+            String dataFileId)
+            throws JobStoreException {
+
+        final Date chunkBegin = new Date();
+
+        // Create ChunkItemEntities
+        short itemId=0;
+
+        final ChunkItemEntities chunkItemEntities = new ChunkItemEntities();
+        chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
+
+        final ChunkItem chunkItem = new ChunkItem().withId( itemId )
+                                        .withStatus(ChunkItem.Status.SUCCESS)
+                                        .withType(ChunkItem.Type.TICKLE_JOB_END)
+                .withData("Tickle Job Termination Item");
+
+
+        final State itemState = new State();
+        StateChange stateChange = new StateChange()
+                .setPhase(State.Phase.PARTITIONING)
+                .setBeginDate(chunkBegin)
+                .setEndDate(new Date());
+
+        itemState.updateState(stateChange);
+
+        RecordInfo recordInfo = new RecordInfo(String.format("Termination Item For job %d",jobId));
+        chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemId, itemState, chunkItem, recordInfo));
+        // ChunkItem Entities created
+
+        // Items were created, so now create the chunk to which they belong
+        final StateChange chunkStateChange = chunkItemEntities.chunkStateChange.setBeginDate(chunkBegin);
+
+        SequenceAnalysisData sequenceAnalysisData = new SequenceAnalysisData(new HashSet<>());
+
+        final State chunkState = initializeChunkState(chunkItemEntities);
+
+        chunkStateChange.setEndDate(new Date());
+        chunkState.updateState(chunkStateChange);
+
+        ChunkEntity chunkEntity = initializeChunkEntityAndSetValues(jobId, chunkId, dataFileId, chunkItemEntities, sequenceAnalysisData, chunkState);
+
+        entityManager.persist(chunkEntity);
+        entityManager.flush();
+        entityManager.refresh(chunkEntity);
+
+        // update job (with exclusive lock)
+        final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
+        jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
+        // Don't count JobTermination Item.
+        //jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
+        updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
+        entityManager.flush();
 
         return chunkEntity;
     }

@@ -21,8 +21,231 @@
 
 package dk.dbc.dataio.sink.ticklerepo;
 
+import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
+import dk.dbc.dataio.commons.types.ConsumedMessage;
+import dk.dbc.dataio.commons.types.Diagnostic;
+import dk.dbc.dataio.commons.types.exceptions.InvalidMessageException;
+import dk.dbc.dataio.commons.types.exceptions.ServiceException;
+import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
+import dk.dbc.dataio.commons.utils.cache.Cache;
+import dk.dbc.dataio.commons.utils.cache.CacheManager;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
+import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
+import dk.dbc.dataio.jobstore.types.JobError;
+import dk.dbc.dataio.jsonb.JSONBException;
+import dk.dbc.dataio.sink.types.SinkException;
+import dk.dbc.log.DBCTrackedLogContext;
+import dk.dbc.ticklerepo.TickleRepo;
+import dk.dbc.ticklerepo.dto.Batch;
+import dk.dbc.ticklerepo.dto.DataSet;
+import dk.dbc.ticklerepo.dto.Record;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.ejb.EJB;
 import javax.ejb.MessageDriven;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collection;
+import java.util.Optional;
 
 @MessageDriven
-public class MessageConsumerBean {
+public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MessageConsumerBean.class);
+
+    @EJB
+    TickleRepo tickleRepo;
+
+    @EJB
+    JobStoreServiceConnectorBean jobStoreServiceConnectorBean;
+
+    // cached mappings of job-ID to Batch
+    Cache<Long, Batch> batchCache = CacheManager.createLRUCache(Long.class, Batch.class, 50);
+
+    @Override
+    @Stopwatch
+    public void handleConsumedMessage(ConsumedMessage consumedMessage) throws InvalidMessageException, ServiceException {
+        final Chunk chunk = unmarshallPayload(consumedMessage);
+        LOGGER.info("Handling chunk {}/{}", chunk.getJobId(), chunk.getChunkId());
+
+        final Batch batch = getBatch(chunk);
+
+        final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
+        chunk.getItems().forEach(
+                chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
+
+        uploadChunk(result);
+    }
+
+    private Batch getBatch(Chunk chunk) {
+        if (batchCache.containsKey(chunk.getJobId())) {
+            // we already have the batch cached
+            return batchCache.get(chunk.getJobId());
+        }
+
+        final Optional<Batch> batch = tickleRepo.lookupBatch(new Batch().withBatchKey((int) chunk.getJobId()));
+        if (batch.isPresent()) {
+            // batch is not in cache but already exists in tickle repo
+            batchCache.put(chunk.getJobId(), batch.get());
+            return batch.get();
+        }
+
+        final TickleAttributes tickleAttributes = findFirstTickleAttributes(chunk).orElse(null);
+        if (tickleAttributes != null) {
+            // find dataset or else create it
+            final DataSet searchValue = new DataSet()
+                    .withName(tickleAttributes.getDatasetName())
+                    .withAgencyId(tickleAttributes.getAgencyId());
+            final DataSet dataset = tickleRepo.lookupDataSet(searchValue)
+                    .orElseGet(() -> tickleRepo.createDataSet(searchValue));
+            // create new batch and cache it
+            final Batch createdBatch = tickleRepo.createBatch(new Batch()
+                    .withBatchKey((int) chunk.getJobId())
+                    .withDataset(dataset.getId())
+                    .withType(Batch.Type.TOTAL));
+            batchCache.put(chunk.getJobId(), createdBatch);
+            return createdBatch;
+        }
+
+        // no chunk item exists with valid tickle attributes
+        return null;
+    }
+
+    private Optional<TickleAttributes> findFirstTickleAttributes(Chunk chunk) {
+        return chunk.getItems().stream()
+                .filter(chunkItem -> chunkItem.getStatus() == ChunkItem.Status.SUCCESS)
+                .map(ExpandedChunkItem::safeFrom)
+                .flatMap(Collection::stream)
+                .map(ExpandedChunkItem::getTickleAttributes)
+                .filter(TickleAttributes::isValid)
+                .findFirst();
+    }
+
+    private ChunkItem handleChunkItem(ChunkItem chunkItem, Batch batch) {
+        try {
+            DBCTrackedLogContext.setTrackingId(chunkItem.getTrackingId());
+            switch (chunkItem.getStatus()) {
+                case SUCCESS:
+                    return putInTickleBatch(batch, chunkItem);
+                case FAILURE:
+                    return ChunkItem.ignoredChunkItem()
+                            .withId(chunkItem.getId())
+                            .withTrackingId(chunkItem.getTrackingId())
+                            .withStatus(ChunkItem.Status.IGNORE)
+                            .withType(ChunkItem.Type.STRING)
+                            .withData("Failed by processor")
+                            .withEncoding(StandardCharsets.UTF_8);
+                case IGNORE:
+                    return ChunkItem.ignoredChunkItem()
+                            .withId(chunkItem.getId())
+                            .withTrackingId(chunkItem.getTrackingId())
+                            .withStatus(ChunkItem.Status.IGNORE)
+                            .withType(ChunkItem.Type.STRING)
+                            .withData("Ignored by processor")
+                            .withEncoding(StandardCharsets.UTF_8);
+                default:
+                    throw new IllegalStateException("Unhandled chunk item status " + chunkItem.getStatus());
+            }
+        } catch (Exception e) {
+            return ChunkItem.failedChunkItem()
+                    .withId(chunkItem.getId())
+                    .withTrackingId(chunkItem.getTrackingId())
+                    .withStatus(ChunkItem.Status.FAILURE)
+                    .withType(ChunkItem.Type.STRING)
+                    .withDiagnostics(new Diagnostic(Diagnostic.Level.FATAL, e.getMessage(), e))
+                    .withData(e.getMessage())
+                    .withEncoding(StandardCharsets.UTF_8);
+        } finally {
+            DBCTrackedLogContext.remove();
+        }
+    }
+
+    private ChunkItem putInTickleBatch(Batch batch, ChunkItem chunkItem) throws IOException, JSONBException {
+        final ChunkItem result = new ChunkItem()
+                .withId(chunkItem.getId())
+                .withTrackingId(chunkItem.getTrackingId())
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8);
+
+        final StringBuilder dataBuffer = new StringBuilder();
+        final String dataPrintf = "Record %d: %s\n\t%s\n";
+        int recordNo = 1;
+        for (ExpandedChunkItem item : ExpandedChunkItem.from(chunkItem)) {
+            final TickleAttributes tickleAttributes = item.getTickleAttributes();
+            if (!tickleAttributes.isValid()) {
+                final Diagnostic diagnostic = new Diagnostic(Diagnostic.Level.FATAL,
+                        "Invalid tickle attributes extracted from record " + tickleAttributes);
+                result.withDiagnostics(diagnostic);
+                dataBuffer.append(String.format(dataPrintf, recordNo, diagnostic.getMessage(), "ERROR"));
+            } else {
+                Record tickleRecord = new Record()
+                        .withBatch(batch.getId())
+                        .withDataset(batch.getDataset())
+                        .withStatus(Record.Status.ACTIVE)
+                        .withTrackingId(item.getTrackingId())
+                        .withLocalId(tickleAttributes.getBibliographicRecordId())
+                        .withContent(item.getData())
+                        .withChecksum(tickleAttributes.getCompareRecord());
+
+                final Optional<Record> lookupRecord = tickleRepo.lookupRecord(tickleRecord);
+                if (lookupRecord.isPresent()) {
+                    tickleRecord = lookupRecord.get()
+                            .withContent(item.getData())
+                            .withStatus(Record.Status.ACTIVE);
+                    tickleRecord.updateBatchIfModified(batch, tickleAttributes.getCompareRecord());
+                    if (tickleRecord.getBatch() == batch.getId()) {
+                        tickleRecord.withTrackingId(item.getTrackingId());
+                        dataBuffer.append(String.format(dataPrintf, recordNo,
+                                "updated tickle repo record with ID " + tickleRecord.getLocalId() +
+                                        " in dataset " + tickleRecord.getDataset(), "OK"));
+                    } else {
+                        dataBuffer.append(String.format(dataPrintf, recordNo,
+                                "tickle repo record with ID " + tickleRecord.getLocalId() +
+                                        " not updated in dataset " + tickleRecord.getDataset() +
+                                        " since checksum indicates no change", "OK"));
+                    }
+                } else {
+                    tickleRepo.getEntityManager().persist(tickleRecord);
+                    tickleRepo.getEntityManager().flush();
+                    tickleRepo.getEntityManager().refresh(tickleRecord);
+                    dataBuffer.append(String.format(dataPrintf, recordNo,
+                            "created tickle repo record with ID " + tickleRecord.getLocalId() +
+                                    " in dataset " + tickleRecord.getDataset(), "OK"));
+                }
+
+                LOGGER.info("Handled record {} in dataset {}", tickleRecord.getLocalId(), tickleRecord.getDataset());
+            }
+            recordNo++;
+        }
+
+        if (result.getStatus() == null) {
+            result.withStatus(ChunkItem.Status.SUCCESS);
+        }
+        return result.withData(dataBuffer.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void uploadChunk(Chunk chunk) throws SinkException {
+        final JobStoreServiceConnector jobStoreServiceConnector = jobStoreServiceConnectorBean.getConnector();
+        try {
+            jobStoreServiceConnector.addChunkIgnoreDuplicates(chunk, chunk.getJobId(), chunk.getChunkId());
+        } catch (Exception e) {
+            final String message = String.format("Error in communication with job-store for chunk {}/{}",
+                    chunk.getJobId(), chunk.getChunkId());
+            logException(message, e);
+            throw new SinkException(message, e);
+        }
+    }
+
+     private void logException(String message, Exception e) {
+        if (e instanceof JobStoreServiceConnectorUnexpectedStatusCodeException) {
+            final JobError jobError = ((JobStoreServiceConnectorUnexpectedStatusCodeException) e).getJobError();
+            if (jobError != null) {
+                message += ": job-store returned error '" + jobError.getDescription() + "'";
+                LOGGER.error(message, e);
+            }
+        }
+    }
 }

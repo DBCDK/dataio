@@ -1,2 +1,6 @@
 #!/usr/bin/env bash
-docker images -qf dangling=true | xargs --no-run-if-empt docker rmi
+if [[ "$OSTYPE" == "darwin" ]]; then
+    docker images -qf dangling=true | xargs docker rmi
+else
+    docker images -qf dangling=true | xargs --no-run-if-empt docker rmi
+fi

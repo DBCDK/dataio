@@ -27,6 +27,7 @@ import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Flow;
 import dk.dbc.dataio.commons.types.RecordSplitterConstants;
 import dk.dbc.dataio.commons.types.Sink;
+import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
 import dk.dbc.dataio.commons.utils.test.jpa.TransactionScopedPersistenceContext;
 import dk.dbc.dataio.commons.utils.test.model.FlowBuilder;
 import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
@@ -115,6 +116,8 @@ public class AbstractJobStoreIT {
 
     @Before
     public void initialiseEntityManager() {
+        entityManager = JPATestUtils.createEntityManagerForIntegrationTest("jobstoreIT");
+
         final Map<String, String> properties = new HashMap<>();
         properties.put(JDBC_USER, System.getProperty("user.name"));
         properties.put(JDBC_PASSWORD, System.getProperty("user.name"));

@@ -305,6 +305,7 @@ public class JobsBean {
     @Produces({ MediaType.APPLICATION_JSON })
     @Stopwatch
     public Response addChunkDelivered(
+
         @Context UriInfo uriInfo,
         String chunkData,
         @PathParam(JobStoreServiceConstants.JOB_ID_VARIABLE) long jobId,
@@ -319,6 +320,7 @@ public class JobsBean {
 
         jobSchedulerBean.chunkDeliveringDone( deliveredChunk );
 
+        // Todo check hvordan job afsluttes.
         return addChunk(uriInfo, jobId, chunkId, Chunk.Type.DELIVERED, deliveredChunk);
     }
 

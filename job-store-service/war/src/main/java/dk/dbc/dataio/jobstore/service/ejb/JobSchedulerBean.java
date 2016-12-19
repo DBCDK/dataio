@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
@@ -11,7 +12,12 @@ import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
 import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
+import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
+import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
+import dk.dbc.dataio.jobstore.types.RecordInfo;
+import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +32,9 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
+import java.nio.charset.Charset;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -53,6 +62,7 @@ import java.util.concurrent.Future;
  * HACK:
  * Limits is pr jvm process.
  */
+
 @Stateless
 public class JobSchedulerBean {
     private static final Logger LOGGER = LoggerFactory.getLogger(JobSchedulerBean.class);
@@ -89,6 +99,9 @@ public class JobSchedulerBean {
     @EJB
     protected JobSchedulerTransactionsBean jobSchedulerTransactionsBean;
 
+    @EJB
+    protected PgJobStoreRepository pgJobStoreRepository;
+
 
     /**
      * ScheduleChunk
@@ -113,13 +126,13 @@ public class JobSchedulerBean {
 
         if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() == 0)
         {
-            e = new DependencyTrackingEntity(chunk, sinkId, String.format("%d", dataSetId));
+            e = new DependencyTrackingEntity(chunk, sinkId, String.valueOf(dataSetId));
         } else {
             e = new DependencyTrackingEntity(chunk, sinkId, null );
         }
 
         if ( sink.getContent().getSinkType() == SinkContent.SinkType.TICKLE && chunk.getKey().getId() > 0) {
-            extraMatchKey = toString().format("%d",dataSetId);
+            extraMatchKey = String.valueOf(dataSetId);
         }
 
         jobSchedulerTransactionsBean.persistDependencyEntity(e, extraMatchKey);
@@ -139,9 +152,19 @@ public class JobSchedulerBean {
      * @param dataSetId DataSetId to be used for Tickle sink.
      */
     @Stopwatch
-    public void markJobDone(int jobId, Sink sink, long dataSetId) {
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    public void markJobDone(int jobId, Sink sink, int chunkid, long dataSetId) throws JobStoreException {
         if( sink.getContent().getSinkType() != SinkContent.SinkType.TICKLE) return;
-        // TODO
+        int sinkId = (int) sink.getId();
+
+
+        ChunkEntity chunkEntity=pgJobStoreRepository.createJobTerminationChunkEntity( jobId, chunkid, "dummyDatafileId");
+
+        DependencyTrackingEntity jobEndBarrierTrackingEntity= new DependencyTrackingEntity(chunkEntity, sinkId, String.valueOf(dataSetId));
+
+
+        jobSchedulerTransactionsBean.persistJobTerminationDependencyEntity(jobEndBarrierTrackingEntity);
+        jobSchedulerTransactionsBean.submitToDeliveringIfPossible(jobSchedulerTransactionsBean.getChunkFrom( chunkEntity ),  jobEndBarrierTrackingEntity );
     }
 
 

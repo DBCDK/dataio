@@ -80,6 +80,34 @@ public class JobSchedulerTransactionsBean {
     }
 
     /**
+     * Force new Chunk to Store before Async SubmitIfPossibleForProcessing.
+     * New Transaction to ensure Record is on Disk before async submit
+     *
+     * Updates WaitingOn with chunks with matching keys
+     *
+     * @Param e Dependency tracking Entity
+     * @Param waitForKey Ekstra Key not part of this dependencyTrackingEntry, but we need to wait for chunks with this key.
+     */
+    @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @Stopwatch
+    public void persistJobTerminationDependencyEntity(DependencyTrackingEntity e) {
+
+        getPrSinkStatusForSinkId(e.getSinkid()).processingStatus.readyForQueue.incrementAndGet();
+
+        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findJobBarrierier(e.getSinkid(), e.getKey().getJobId(), e.getMatchKeys());
+
+        e.setWaitingOn(chunksToWaitFor);
+        e.setStatus( DependencyTrackingEntity.ChunkProcessStatus.BLOCKED );
+
+        if( chunksToWaitFor.isEmpty() ) {
+            e.setStatus(DependencyTrackingEntity.ChunkProcessStatus.READY_TO_DELIVER);
+        }
+        entityManager.persist(e);
+    }
+
+
+
+    /**
      * Send JMS message to Processing, if queue size is lower then MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK
      *
      * @param chunk  Chunk to send to JMS queue
@@ -205,7 +233,9 @@ public class JobSchedulerTransactionsBean {
     /**
      * Finding lists with which contains any of chunks keys
      *
+     * @param sinkId sinkId
      * @param matchKeys Set of match keys
+     * @param waitForKey Extra key to check for.
      * @return Returns List of Chunks To wait for.
      */
     List<DependencyTrackingEntity.Key> findChunksToWaitFor(int sinkId, Set<String> matchKeys, String waitForKey) {
@@ -219,6 +249,25 @@ public class JobSchedulerTransactionsBean {
         Query query = entityManager.createNativeQuery(buildFindChunksToWaitForQuery(sinkId, matchKeys, extraKeys), "JobIdChunkIdResult");
         return query.getResultList();
     }
+
+    /**
+     * Finding lists of chunks in dependency Tracking with this jobId.
+     *
+     * @param sinkId sinkId
+     * @param jobId jobId for witch chunks to wait for
+     * @param waitForKey
+     * @return Returns List of Chunks To wait for.
+     */
+    List<DependencyTrackingEntity.Key> findJobBarrierier(int sinkId, int jobId, Set<String> waitForKey) {
+
+        Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_PR_SINK_JOBID);
+        query.setParameter(1, sinkId);
+        query.setParameter(2, jobId);
+        query.setParameter(3, waitForKey );
+
+        return query.getResultList();
+    }
+
 
 
     public Chunk getChunkFrom(ChunkEntity chunk) {

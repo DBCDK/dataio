@@ -331,13 +331,19 @@ public class PgJobStoreRepository extends RepositoryBase {
         final State itemState = new State();
         StateChange stateChange = new StateChange()
                 .setPhase(State.Phase.PARTITIONING)
+                .setSucceeded( 1)
                 .setBeginDate(chunkBegin)
                 .setEndDate(new Date());
 
         itemState.updateState(stateChange);
+        itemState.updateState(stateChange.setPhase( State.Phase.PROCESSING) );
 
         RecordInfo recordInfo = new RecordInfo(String.format("Termination Item For job %d",jobId));
-        chunkItemEntities.entities.add(persistItemInDatabase(jobId, chunkId, itemId, itemState, chunkItem, recordInfo));
+
+        ItemEntity itemEntity=persistItemInDatabase(jobId, chunkId, itemId, itemState, chunkItem, recordInfo);
+        itemEntity.setProcessingOutcome( chunkItem );
+
+        chunkItemEntities.entities.add(itemEntity);
         // ChunkItem Entities created
 
         // Items were created, so now create the chunk to which they belong

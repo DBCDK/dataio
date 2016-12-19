@@ -82,10 +82,16 @@ import java.util.Set;
         ),
         @NamedNativeQuery(name= DependencyTrackingEntity.QUERY_JOB_COUNT_CHUNK_COUNT,
                 query = "select count (distinct jobid) as numberOfJobs, count(jobid) as NumberOfChunks from dependencytracking where sinkid = ?"
-        )
+        ),
+        @NamedNativeQuery( name= DependencyTrackingEntity.CHUNKS_PR_SINK_JOBID,
+                query = "select jobId, chunkId from dependencyTracking where sinkId=? and (jobId=? or matchKeys @> '[\"?\"]' ) ORDER BY jobId, chunkId for update",
+                resultSetMapping = "JobIdChunkIdResult"
+        ),
+
 })
 public class DependencyTrackingEntity {
     public static final String QUERY_JOB_COUNT_CHUNK_COUNT = "DependencyTracking.jobCountChunkCountResult";
+    public static final String CHUNKS_PR_SINK_JOBID = "DependencyTracking.jobIdSinkIdChunks";
     public DependencyTrackingEntity(ChunkEntity chunk, int sinkId, String extraKey) {
         this.key = new Key( chunk.getKey());
         this.sinkid= sinkId;

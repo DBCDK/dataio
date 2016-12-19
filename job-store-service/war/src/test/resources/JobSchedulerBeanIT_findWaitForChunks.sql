@@ -2,7 +2,10 @@ delete from job;
 
 insert into job (id, specification, state, flowstorereferences) values (1,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
 insert into job (id, specification, state, flowstorereferences) values (2,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
-insert into job (id, specification, state, flowstorereferences) values (3,'{}'::JSONB, '{}'::JSON, '{}'::JSON);
+insert into job (id, specification, state, flowstorereferences)
+values (3,
+        '{"type": "TEST", "format": "b", "charset": "utf8", "ancestry": null, "dataFile": "df", "packaging": "p", "destination": "d", "submitterId": 870970, "resultmailInitials": "", "mailForNotificationAboutProcessing": "", "mailForNotificationAboutVerification": ""}'::JSONB,
+        '{}'::JSON, '{}'::JSON);
 
 
 --

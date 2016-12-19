@@ -73,6 +73,7 @@ import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.dataio.sequenceanalyser.CollisionDetectionElement;
 import dk.dbc.dataio.sequenceanalyser.keygenerator.SequenceAnalyserKeyGenerator;
 import dk.dbc.log.DBCTrackedLogContext;
+import static java.lang.String.format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.profiler.Profiler;
@@ -325,7 +326,8 @@ public class PgJobStoreRepository extends RepositoryBase {
         final ChunkItem chunkItem = new ChunkItem().withId( itemId )
                                         .withStatus(ChunkItem.Status.SUCCESS)
                                         .withType(ChunkItem.Type.TICKLE_JOB_END)
-                .withData("Tickle Job Termination Item");
+                .withData("Tickle Job Termination Item")
+                .withTrackingId(format("TickleEndItem for Job %d", jobId));
 
 
         final State itemState = new State();
@@ -338,7 +340,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         itemState.updateState(stateChange);
         itemState.updateState(stateChange.setPhase( State.Phase.PROCESSING) );
 
-        RecordInfo recordInfo = new RecordInfo(String.format("Termination Item For job %d",jobId));
+        RecordInfo recordInfo = new RecordInfo("End Item");
 
         ItemEntity itemEntity=persistItemInDatabase(jobId, chunkId, itemId, itemState, chunkItem, recordInfo);
         itemEntity.setProcessingOutcome( chunkItem );
@@ -365,8 +367,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         // update job (with exclusive lock)
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
         jobEntity.setNumberOfChunks(jobEntity.getNumberOfChunks() + 1);
-        // Don't count JobTermination Item.
-        //jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
+        jobEntity.setNumberOfItems(jobEntity.getNumberOfItems() + chunkEntity.getNumberOfItems());
         updateJobEntityState(jobEntity, chunkStateChange.setBeginDate(null).setEndDate(null));
         entityManager.flush();
 
@@ -406,7 +407,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     public JobEntity setJobEntityWorkFlowNote(WorkflowNote workflowNote, int jobId) throws JobStoreException {
         final JobEntity jobEntity = getExclusiveAccessFor(JobEntity.class, jobId);
         if (jobEntity == null) {
-            throw new JobStoreException(String.format("JobEntity.%s could not be found", jobId));
+            throw new JobStoreException(format("JobEntity.%s could not be found", jobId));
         }
         jobEntity.setWorkflowNote(workflowNote);
         return jobEntity;
@@ -426,7 +427,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = getExclusiveAccessFor(ItemEntity.class, key);
         if (itemEntity == null) {
-            throw new JobStoreException(String.format("ItemEntity.key{jobId: %s, chunkId: %s, itemId: %s} could not be found", jobId, chunkId, itemId));
+            throw new JobStoreException(format("ItemEntity.key{jobId: %s, chunkId: %s, itemId: %s} could not be found", jobId, chunkId, itemId));
         }
         itemEntity.setWorkflowNote(workflowNote);
         return itemEntity;
@@ -445,7 +446,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ResourceBundle getResourceBundle(int jobId) throws JobStoreException, NullPointerException {
         final JobEntity jobEntity = entityManager.find(JobEntity.class, jobId);
         if (jobEntity == null) {
-            throwInvalidInputException(String.format("JobEntity.%d could not be found", jobId), JobError.Code.INVALID_JOB_IDENTIFIER);
+            throwInvalidInputException(format("JobEntity.%d could not be found", jobId), JobError.Code.INVALID_JOB_IDENTIFIER);
         }
         final Flow flow = jobEntity.getCachedFlow().getFlow();
         final Sink sink = jobEntity.getCachedSink().getSink();
@@ -505,7 +506,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
         if (itemEntity == null) {
-            throwInvalidInputException(String.format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
+            throwInvalidInputException(format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
         }
         switch(phase) {
             case PARTITIONING:  return itemEntity.getPartitioningOutcome();
@@ -528,7 +529,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = entityManager.find(ItemEntity.class, key);
         if (itemEntity == null) {
-            throwInvalidInputException(String.format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
+            throwInvalidInputException(format("ItemEntity.Key{jobId:%d, chunkId:%d, itemId:%d} could not be found", jobId, chunkId, itemId), JobError.Code.INVALID_ITEM_IDENTIFIER);
         }
         return itemEntity.getNextProcessingOutcome();
     }
@@ -559,11 +560,11 @@ public class PgJobStoreRepository extends RepositoryBase {
                 final ItemEntity.Key itemKey = new ItemEntity.Key((int) chunk.getJobId(), (int) chunk.getChunkId(), (short) chunkItem.getId());
                 final ItemEntity itemEntity = entityManager.find(ItemEntity.class, itemKey);
                 if (itemEntity == null) {
-                    throwInvalidInputException(String.format("ItemEntity.%s could not be found", itemKey), JobError.Code.INVALID_ITEM_IDENTIFIER);
+                    throwInvalidInputException(format("ItemEntity.%s could not be found", itemKey), JobError.Code.INVALID_ITEM_IDENTIFIER);
                 }
 
                 if (itemEntity.getState().phaseIsDone(phase)) {
-                    throwDuplicateChunkException(String.format("Aborted attempt to add item %s to already finished %s phase", itemEntity.getKey(), phase), JobError.Code.ILLEGAL_CHUNK);
+                    throwDuplicateChunkException(format("Aborted attempt to add item %s to already finished %s phase", itemEntity.getKey(), phase), JobError.Code.ILLEGAL_CHUNK);
                 }
 
                 chunkItemEntities.entities.add(itemEntity);
@@ -753,7 +754,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         } catch (RuntimeException e) {
             LOGGER.warn("Unrecoverable exception caught during job partitioning of job {}", jobId, e);
             final Diagnostic diagnostic = ObjectFactory.buildFatalDiagnostic(
-                    String.format("Unable to complete partitioning at chunk %d item %d: %s",
+                    format("Unable to complete partitioning at chunk %d item %d: %s",
                             chunkId, itemCounter, e.getMessage()), e);
 
             final StateChange stateChange = new StateChange()
@@ -780,6 +781,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param itemId id of item
      * @param state initial state of item
      * @param chunkItem result of the partitioning phase
+     * @param recordInfo recordInfo for Item
      * @return created item entity (managed)
      */
     @Stopwatch
@@ -835,7 +837,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             case DELIVERING: itemEntity.setDeliveringOutcome(chunkItem);
                 break;
             case PARTITIONING:
-                throwInvalidInputException(String.format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
+                throwInvalidInputException(format("Trying to add items to %s phase of Chunk[%d,%d]", phase, chunk.getJobId(), chunk.getChunkId()), JobError.Code.ILLEGAL_CHUNK);
         }
     }
     private State initializeChunkState(ChunkItemEntities chunkItemEntities) {
@@ -860,7 +862,7 @@ public class PgJobStoreRepository extends RepositoryBase {
             case PARTITIONED: return State.Phase.PARTITIONING;
             case PROCESSED:   return State.Phase.PROCESSING;
             case DELIVERED:   return State.Phase.DELIVERING;
-            default: throw new IllegalStateException(String.format("Unknown type: '%s'", chunkType));
+            default: throw new IllegalStateException(format("Unknown type: '%s'", chunkType));
         }
     }
     private void throwDuplicateChunkException(String errMsg, JobError.Code jobErrorCode) throws DuplicateChunkException {

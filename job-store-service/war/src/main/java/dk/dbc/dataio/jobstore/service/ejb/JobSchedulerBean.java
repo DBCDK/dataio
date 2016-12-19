@@ -155,7 +155,7 @@ public class JobSchedulerBean {
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void markJobDone(int jobId, Sink sink, int chunkId, long dataSetId) throws JobStoreException {
+    public void markJobPartitioned(int jobId, Sink sink, int chunkId, long dataSetId) throws JobStoreException {
         if( sink.getContent().getSinkType() != SinkContent.SinkType.TICKLE) return;
         int sinkId = (int) sink.getId();
 

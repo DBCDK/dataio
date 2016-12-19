@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import java.util.Collections;
 import java.util.HashSet;
@@ -168,7 +167,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     , 1
             );
         }
-        bean.markJobDone(3, sink1, 5, 1);
+        bean.markJobPartitioned(3, sink1, 5, 1);
         entityManager.getTransaction().commit();
 
         assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0", "1"));
@@ -216,7 +215,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     , 1
             );
         }
-        bean.markJobDone(3, sink1, 4, 1);
+        bean.markJobPartitioned(3, sink1, 4, 1);
         entityManager.getTransaction().commit();
 
 

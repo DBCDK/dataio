@@ -369,28 +369,29 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
         short chunkId=0;
         short itemId=0;
         // Given...
-        final int jobId1 = newPersistedJobEntity().getId();
+        final int jobId = newPersistedJobEntity().getId();
 
         // When...
         final ChunkEntity chunkEntity = persistenceContext.run(() -> {
-                    return pgJobStoreRepository.createJobTerminationChunkEntity(jobId1, chunkId, TEST_FILE_NAME);
+                    return pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, TEST_FILE_NAME);
                 }
         );
 
 
         // Then ChunkEntity is
-        assertThat("Chunk id", chunkEntity.getKey(), is( new ChunkEntity.Key(chunkId, jobId1)));
+        assertThat("Chunk id", chunkEntity.getKey(), is( new ChunkEntity.Key(chunkId, jobId)));
         assertThat("Chunk Items ", chunkEntity.getNumberOfItems(), is( (short)1));
         assertThat("Chunk DatafileId", chunkEntity.getDataFileId(), is(TEST_FILE_NAME));
 
         // And Item is
 
-        ItemEntity.Key key = new ItemEntity.Key(jobId1, chunkId, itemId);
+        ItemEntity.Key key = new ItemEntity.Key(jobId, chunkId, itemId);
         final ItemEntity itemEntity = persistenceContext.run(()->entityManager.find(ItemEntity.class, key) );
 
 
-        assertThat("Item record Id", itemEntity.getRecordInfo().getId(), is(format("Termination Item For job %d", jobId1)));
-        assertThat("Item", itemEntity.getState().getDiagnostics(), empty());
+        assertThat("Item record Id", itemEntity.getRecordInfo().getId(), is("End Item"));
+        assertThat("Item Diagnostics", itemEntity.getState().getDiagnostics(), empty());
+        assertThat("Item", itemEntity.getProcessingOutcome().getTrackingId(), is(format("TickleEndItem for Job %d", jobId)));
 
         final ChunkItem partitioningOutcome = itemEntity.getPartitioningOutcome();
         List<ChunkItem.Type> itemTypeList= partitioningOutcome.getType();
@@ -402,10 +403,10 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
 
         // And job1 is
-        final JobEntity job1 = persistenceContext.run( () -> { return  pgJobStoreRepository.getJobEntityById(jobId1); });
+        final JobEntity job1 = persistenceContext.run( () -> { return  pgJobStoreRepository.getJobEntityById(jobId); });
 
         assertThat("Number of chunks", job1.getNumberOfChunks(), is(1));
-        assertThat("Number of Items ", job1.getNumberOfItems(), is(0));
+        assertThat("Number of Items ", job1.getNumberOfItems(), is(1));
 
     }
 

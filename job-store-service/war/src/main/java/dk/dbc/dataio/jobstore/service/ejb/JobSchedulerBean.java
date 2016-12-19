@@ -149,16 +149,17 @@ public class JobSchedulerBean {
      *
      * @param jobId jobId,
      * @param sink sinkId,
+     * @param chunkId id of job termination chunk.
      * @param dataSetId DataSetId to be used for Tickle sink.
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void markJobDone(int jobId, Sink sink, int chunkid, long dataSetId) throws JobStoreException {
+    public void markJobDone(int jobId, Sink sink, int chunkId, long dataSetId) throws JobStoreException {
         if( sink.getContent().getSinkType() != SinkContent.SinkType.TICKLE) return;
         int sinkId = (int) sink.getId();
 
 
-        ChunkEntity chunkEntity=pgJobStoreRepository.createJobTerminationChunkEntity( jobId, chunkid, "dummyDatafileId");
+        ChunkEntity chunkEntity=pgJobStoreRepository.createJobTerminationChunkEntity( jobId, chunkId, "dummyDatafileId");
 
         DependencyTrackingEntity jobEndBarrierTrackingEntity= new DependencyTrackingEntity(chunkEntity, sinkId, String.valueOf(dataSetId));
 

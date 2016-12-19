@@ -1,9 +1,11 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.commons.types.Chunk;
-import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.interceptor.Stopwatch;
 import dk.dbc.dataio.jobstore.service.cdi.JobstoreDB;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
+import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getPrSinkStatusForSinkId;
 import dk.dbc.dataio.jobstore.service.entity.ChunkEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
@@ -24,10 +26,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_DELIVERING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.MAX_NUMBER_OF_CHUNKS_IN_PROCESSING_QUEUE_PER_SINK;
-import static dk.dbc.dataio.jobstore.service.ejb.JobSchedulerBean.getPrSinkStatusForSinkId;
 
 /**
  * Created by ja7 on 03-07-16.
@@ -65,7 +63,7 @@ public class JobSchedulerTransactionsBean {
      * Updates WaitingOn with chunks with matching keys
      *
      * @param e Dependency tracking Entity
-     * @param waitForKey Ekstra Key not part of this dependencyTrackingEntry, but we need to wait for chunks with this key.
+     * @param waitForKey Extra Key not part of this dependencyTrackingEntry, but we need to wait for chunks with this key.
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     @Stopwatch
@@ -93,7 +91,7 @@ public class JobSchedulerTransactionsBean {
 
         getPrSinkStatusForSinkId(e.getSinkid()).processingStatus.readyForQueue.incrementAndGet();
 
-        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findJobBarrierier(e.getSinkid(), e.getKey().getJobId(), e.getMatchKeys());
+        final List<DependencyTrackingEntity.Key> chunksToWaitFor = findJobBarrier(e.getSinkid(), e.getKey().getJobId(), e.getMatchKeys());
 
         e.setWaitingOn(chunksToWaitFor);
         e.setStatus( DependencyTrackingEntity.ChunkProcessStatus.BLOCKED );
@@ -250,14 +248,15 @@ public class JobSchedulerTransactionsBean {
     }
 
     /**
-     * Finding lists of chunks in dependency Tracking with this jobId.
+     * Finding lists of chunks in dependency Tracking with this jobId and MatchKey.
+     * Note only First key in waitForKey is checked.
      *
      * @param sinkId sinkId
-     * @param jobId jobId for witch chunks to wait for
-     * @param waitForKey
+     * @param jobId jobId for witch chunks to wait for  barrier
+     * @param waitForKey dataSetID
      * @return Returns List of Chunks To wait for.
      */
-    List<DependencyTrackingEntity.Key> findJobBarrierier(int sinkId, int jobId, Set<String> waitForKey) {
+    List<DependencyTrackingEntity.Key> findJobBarrier(int sinkId, int jobId, Set<String> waitForKey) {
 
         Query query = entityManager.createNamedQuery(DependencyTrackingEntity.CHUNKS_PR_SINK_JOBID);
         query.setParameter(1, sinkId);
@@ -294,6 +293,7 @@ public class JobSchedulerTransactionsBean {
     /**
      * @param sinkId    Sink Id to find
      * @param matchKeys Set of keys any chunk with any key is returned
+     * @param alsoWaitForKeys extra keys to wait for
      * @return NativeQuery for find chunks to wait for using @>
      */
     String buildFindChunksToWaitForQuery(int sinkId, Set<String> matchKeys, Set<String> alsoWaitForKeys) {

@@ -56,6 +56,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -245,6 +246,45 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                 is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData())));
     }
 
+     /*  When: handling chunk containing successful end-of-job chunk item
+     *   Then: the tickle repo batch is closed
+     */
+    @Test
+    public void closeBatch() {
+        final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+
+        final Chunk chunk = createChunk();
+        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(
+                ObjectFactory.createConsumedMessage(chunk)));
+
+        final Chunk endJobChunk = createEndJobChunk();
+        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(
+                ObjectFactory.createConsumedMessage(endJobChunk)));
+
+        final Batch batch = messageConsumerBean.batchCache.get(chunk.getJobId());
+        verify(messageConsumerBean.tickleRepo).closeBatch(batch);
+    }
+
+    /*   When: handling chunk containing failed end-of-job chunk item
+     *   Then: the tickle repo batch is aborted
+     */
+    @Test
+    public void abortBatch() {
+        final MessageConsumerBean messageConsumerBean = createMessageConsumerBean();
+
+        final Chunk chunk = createChunk();
+        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(
+                ObjectFactory.createConsumedMessage(chunk)));
+
+        final Chunk endJobChunk = createFailedEndJobChunk();
+        persistenceContext.run(() -> messageConsumerBean.handleConsumedMessage(
+                ObjectFactory.createConsumedMessage(endJobChunk)));
+
+        final Batch batch = messageConsumerBean.batchCache.get(chunk.getJobId());
+        verify(messageConsumerBean.tickleRepo).abortBatch(batch);
+        verify(messageConsumerBean.tickleRepo).closeBatch(batch);
+    }
+
     @Test
     public void resultingChunk() throws JobStoreServiceConnectorException {
         final Chunk chunk = createChunk();
@@ -297,7 +337,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
 
     private MessageConsumerBean createMessageConsumerBean() {
         final MessageConsumerBean bean = new MessageConsumerBean();
-        bean.tickleRepo = new TickleRepo(entityManager);
+        bean.tickleRepo = spy(new TickleRepo(entityManager));
         bean.jobStoreServiceConnectorBean = jobStoreServiceConnectorBean;
         return bean;
     }
@@ -357,6 +397,26 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                             .withType(ChunkItem.Type.STRING)
                             .withData("IGNORED")
                             .withTrackingId("ignored item"))
+                .build();
+    }
+
+    private Chunk createEndJobChunk() {
+        return new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setItems(new ArrayList<>())
+                .appendItem(ChunkItem.successfulChunkItem()
+                            .withId(0)
+                            .withType(ChunkItem.Type.TICKLE_JOB_END)
+                            .withData("END"))
+                .build();
+    }
+
+    private Chunk createFailedEndJobChunk() {
+        return new ChunkBuilder(Chunk.Type.PROCESSED)
+                .setItems(new ArrayList<>())
+                .appendItem(ChunkItem.failedChunkItem()
+                            .withId(0)
+                            .withType(ChunkItem.Type.TICKLE_JOB_END)
+                            .withData("END"))
                 .build();
     }
 

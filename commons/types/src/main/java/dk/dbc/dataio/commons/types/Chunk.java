@@ -117,6 +117,13 @@ public class Chunk implements Iterable<ChunkItem> {
         return !next.isEmpty();
     }
 
+    @JsonIgnore
+    public boolean isJobEnd() {
+        return items.size() == 1
+                && items.get(0).isTyped()
+                && items.get(0).getType().get(0) == ChunkItem.Type.TICKLE_JOB_END;
+    }
+
     public Charset getEncoding() {
         return Charset.forName(encoding);
     }

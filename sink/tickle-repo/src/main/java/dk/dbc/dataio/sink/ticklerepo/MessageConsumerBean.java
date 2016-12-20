@@ -74,8 +74,12 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
         final Batch batch = getBatch(chunk);
 
         final Chunk result = new Chunk(chunk.getJobId(), chunk.getChunkId(), Chunk.Type.DELIVERED);
-        chunk.getItems().forEach(
-                chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
+        if (chunk.isJobEnd()) {
+            result.insertItem(handleJobEnd(chunk.getItems().get(0), batch));
+        } else {
+            chunk.getItems().forEach(
+                    chunkItem -> result.insertItem(handleChunkItem(chunkItem, batch)));
+        }
 
         uploadChunk(result);
     }
@@ -122,6 +126,24 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 .map(ExpandedChunkItem::getTickleAttributes)
                 .filter(TickleAttributes::isValid)
                 .findFirst();
+    }
+
+    private ChunkItem handleJobEnd(ChunkItem chunkItem, Batch batch) {
+        final ChunkItem result = ChunkItem.successfulChunkItem()
+                .withId(chunkItem.getId())
+                .withTrackingId(chunkItem.getTrackingId())
+                .withStatus(ChunkItem.Status.SUCCESS)
+                .withType(ChunkItem.Type.STRING)
+                .withEncoding(StandardCharsets.UTF_8);
+
+        if (chunkItem.getStatus() == ChunkItem.Status.SUCCESS) {
+            tickleRepo.closeBatch(batch);
+            result.withData(String.format("Batch %d closed", batch.getId()));
+        } else {
+            tickleRepo.abortBatch(batch);
+            result.withData(String.format("Batch %d aborted", batch.getId()));
+        }
+        return result;
     }
 
     private ChunkItem handleChunkItem(ChunkItem chunkItem, Batch batch) {

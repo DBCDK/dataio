@@ -19,15 +19,18 @@
  * along with DataIO.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package dk.dbc.dataio.harvester.rr;
+package dk.dbc.dataio.harvester.utils.harvesterjobbuilder;
 
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFile;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
+import dk.dbc.dataio.commons.types.Constants;
+import dk.dbc.dataio.commons.types.FileStoreUrn;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.commons.utils.jobstore.MockedJobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.test.model.JobSpecificationBuilder;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorException;
 import dk.dbc.dataio.harvester.types.HarvesterException;
@@ -54,7 +57,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class HarvesterJobBuilderTest {
+public class AbstractHarvesterJobBuilderTest {
+
     private final OutputStream os = mock(OutputStream.class);
     private final InputStream is = mock(InputStream.class);
     private final BinaryFile binaryFile = mock(BinaryFile.class);
@@ -76,19 +80,23 @@ public class HarvesterJobBuilderTest {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenReturn(jobInfoSnapshot);
     }
 
-    @Test(expected = NullPointerException.class)
+
+    @Test
     public void constructor_binaryFileStoreArgIsNull_throws() throws HarvesterException {
-        new HarvesterJobBuilder(null, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
+        assertThat(() -> new AbstractHarvesterJobBuilderImpl(null, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate),
+                isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jobStoreServiceConnectorArgIsNull_throws() throws HarvesterException {
-        new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate);
+        assertThat(() ->  new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, null, jobSpecificationTemplate),
+                isThrowing(NullPointerException.class));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void constructor_jobSpecificationTemplateArgIsNull_throws() throws HarvesterException {
-        new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null);
+        assertThat(() ->  new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, null),
+                isThrowing(NullPointerException.class));
     }
 
     @Test
@@ -99,37 +107,52 @@ public class HarvesterJobBuilderTest {
 
     @Test
     public void addHarvesterRecord_incrementsRecordCounter() throws HarvesterException {
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
-        assertThat(harvesterJobBuilder.getRecordsAdded(), is(0));
-        harvesterJobBuilder.addRecord(addiRecord);
-        assertThat(harvesterJobBuilder.getRecordsAdded(), is(1));
+        final AbstractHarvesterJobBuilder abstractHarvesterJobBuilder = newHarvesterJobBuilder();
+        assertThat(abstractHarvesterJobBuilder.getRecordsAdded(), is(0));
+        abstractHarvesterJobBuilder.addRecord(addiRecord);
+        assertThat(abstractHarvesterJobBuilder.getRecordsAdded(), is(1));
     }
 
     @Test
     public void addHarvesterRecord_writesToDataFile() throws HarvesterException, IOException {
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
-        harvesterJobBuilder.addRecord(addiRecord);
+        final AbstractHarvesterJobBuilder abstractHarvesterJobBuilder = newHarvesterJobBuilder();
+        abstractHarvesterJobBuilder.addRecord(addiRecord);
         verify(os).write(addiRecord.getBytes());
     }
 
     @Test
     public void addHarvesterRecord_addiRecordArgIsNull_throws() throws HarvesterException, IOException {
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
-        assertThat(() -> harvesterJobBuilder.addRecord(null), isThrowing(NullPointerException.class));
+        final AbstractHarvesterJobBuilder abstractHarvesterJobBuilder = newHarvesterJobBuilder();
+        assertThat(() -> abstractHarvesterJobBuilder.addRecord(null), isThrowing(NullPointerException.class));
+    }
+
+    @Test
+    public void close_deletesTmpFile() throws HarvesterException {
+        try (AbstractHarvesterJobBuilder abstractHarvesterJobBuilder = newHarvesterJobBuilder()) {
+        }
+        verify(binaryFile, times(1)).delete();
+    }
+
+    @Test
+    public void close_deletionOfTmpFileThrowsIllegalStateException_noExceptionThrown() throws HarvesterException {
+        doThrow(new IllegalStateException()).when(binaryFile).delete();
+
+        final AbstractHarvesterJobBuilder abstractHarvesterJobBuilder = newHarvesterJobBuilder();
+        abstractHarvesterJobBuilder.close();
     }
 
     @Test
     public void build_closingOfOutputStreamThrowsIOException_throws() throws IOException, HarvesterException {
         doThrow(new IOException()).when(os).close();
 
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final AbstractHarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         assertThat(() -> harvesterJobBuilder.build(), isThrowing(HarvesterException.class));
     }
 
     @Test
     public void build_noHarvesterRecordsAdded_noJobIsCreated()
             throws HarvesterException, FileStoreServiceConnectorException, JobStoreServiceConnectorException {
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final AbstractHarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         assertThat(harvesterJobBuilder.build(), is(Optional.empty()));
         verify(fileStoreServiceConnector, times(0)).addFile(any(InputStream.class));
         verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
@@ -140,7 +163,7 @@ public class HarvesterJobBuilderTest {
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException {
         when(fileStoreServiceConnector.addFile(is)).thenThrow(new FileStoreServiceConnectorException("DIED"));
 
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final AbstractHarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addRecord(addiRecord);
         assertThat(() -> harvesterJobBuilder.build(), isThrowing(HarvesterException.class));
         verify(jobStoreServiceConnector, times(0)).addJob(any(JobInputStream.class));
@@ -151,7 +174,7 @@ public class HarvesterJobBuilderTest {
             throws FileStoreServiceConnectorException, HarvesterException, JobStoreServiceConnectorException, IOException {
         doThrow(new IOException()).when(is).close();
 
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final AbstractHarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addRecord(addiRecord);
         harvesterJobBuilder.build();
         verify(jobStoreServiceConnector, times(1)).addJob(any(JobInputStream.class));
@@ -162,7 +185,7 @@ public class HarvesterJobBuilderTest {
             throws JobStoreServiceConnectorException, HarvesterException, FileStoreServiceConnectorException {
         when(jobStoreServiceConnector.addJob(any(JobInputStream.class))).thenThrow(new JobStoreServiceConnectorException("DIED"));
 
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final AbstractHarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addRecord(addiRecord);
 
         assertThat(() -> harvesterJobBuilder.build(), isThrowing(HarvesterException.class));
@@ -173,24 +196,9 @@ public class HarvesterJobBuilderTest {
     public void build_creationOfFileStoreUrnThrowsIllegalArgumentException_throws() throws FileStoreServiceConnectorException, HarvesterException {
         when(fileStoreServiceConnector.addFile(is)).thenReturn("\\");
 
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
+        final AbstractHarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
         harvesterJobBuilder.addRecord(addiRecord);
         assertThat(() -> harvesterJobBuilder.build(), isThrowing(IllegalArgumentException.class));
-    }
-
-    @Test
-    public void close_deletesTmpFile() throws HarvesterException {
-        try (HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder()) {
-        }
-        verify(binaryFile, times(1)).delete();
-    }
-
-    @Test
-    public void close_deletionOfTmpFileThrowsIllegalStateException_noExceptionThrown() throws HarvesterException {
-        doThrow(new IllegalStateException()).when(binaryFile).delete();
-
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
-        harvesterJobBuilder.close();
     }
 
     @Test
@@ -199,7 +207,7 @@ public class HarvesterJobBuilderTest {
         final MockedJobStoreServiceConnector mockedJobStoreServiceConnector = new MockedJobStoreServiceConnector();
         mockedJobStoreServiceConnector.jobInfoSnapshots.add(jobInfoSnapshot);
 
-        final HarvesterJobBuilder harvesterJobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector,
+        final AbstractHarvesterJobBuilderImpl harvesterJobBuilder = new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector,
                 mockedJobStoreServiceConnector, jobSpecificationTemplate);
         harvesterJobBuilder.addRecord(addiRecord);
         harvesterJobBuilder.build();
@@ -208,20 +216,17 @@ public class HarvesterJobBuilderTest {
                 jobSpecificationTemplate);
     }
 
-    @Test
-    public void close_closingOfOutputStreamThrowsIOException_throws() throws IOException, HarvesterException {
-        doThrow(new IOException()).when(os).close();
+    /*
+     * private methods
+     */
 
-        final HarvesterJobBuilder harvesterJobBuilder = newHarvesterJobBuilder();
-        assertThat(harvesterJobBuilder::build, isThrowing(HarvesterException.class));
-    }
-
-    private HarvesterJobBuilder newHarvesterJobBuilder() throws HarvesterException {
-        return new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
-    }
 
     private AddiRecord newAddiRecord() {
         return new AddiRecord("meta".getBytes(StandardCharsets.UTF_8), "content".getBytes(StandardCharsets.UTF_8));
+    }
+
+    private AbstractHarvesterJobBuilder newHarvesterJobBuilder() throws HarvesterException {
+        return new AbstractHarvesterJobBuilderImpl(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
     }
 
     private void verifyJobSpecification(JobSpecification jobSpecification, JobSpecification jobSpecificationTemplate) {
@@ -230,7 +235,29 @@ public class HarvesterJobBuilderTest {
         assertThat("charset", jobSpecification.getCharset(), is(jobSpecificationTemplate.getCharset()));
         assertThat("destination", jobSpecification.getDestination(), is(jobSpecificationTemplate.getDestination()));
         assertThat("submitter", jobSpecification.getSubmitterId(), is(jobSpecificationTemplate.getSubmitterId()));
-        assertThat("mailForNotificationAboutVerification", jobSpecification.getMailForNotificationAboutVerification(), is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_VERIFICATION));
-        assertThat("mailForNotificationAboutProcessing", jobSpecification.getMailForNotificationAboutProcessing(), is(JobSpecification.EMPTY_MAIL_FOR_NOTIFICATION_ABOUT_PROCESSING));
+        assertThat("mailForNotificationAboutVerification", jobSpecification.getMailForNotificationAboutVerification(), is(Constants.CALL_OPEN_AGENCY));
+        assertThat("mailForNotificationAboutProcessing", jobSpecification.getMailForNotificationAboutProcessing(), is(Constants.CALL_OPEN_AGENCY));
+    }
+
+    static class AbstractHarvesterJobBuilderImpl extends AbstractHarvesterJobBuilder {
+
+        public AbstractHarvesterJobBuilderImpl(BinaryFileStore binaryFileStore, FileStoreServiceConnector fileStoreServiceConnector, JobStoreServiceConnector jobStoreServiceConnector, JobSpecification jobSpecificationTemplate) throws NullPointerException, HarvesterException {
+            super(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector, jobSpecificationTemplate);
+        }
+
+        @Override
+        protected JobSpecification createJobSpecification(String fileId) throws HarvesterException {
+            final FileStoreUrn fileStoreUrn = FileStoreUrn.create(fileId);
+            return new JobSpecificationBuilder()
+                    .setDataFile(fileStoreUrn.toString())
+                    .setPackaging(jobSpecificationTemplate.getPackaging())
+                    .setFormat(jobSpecificationTemplate.getFormat())
+                    .setCharset(jobSpecificationTemplate.getCharset())
+                    .setDestination(jobSpecificationTemplate.getDestination())
+                    .setSubmitterId(jobSpecificationTemplate.getSubmitterId())
+                    .setMailForNotificationAboutVerification(Constants.CALL_OPEN_AGENCY)
+                    .setMailForNotificationAboutProcessing(Constants.CALL_OPEN_AGENCY)
+                    .build();
+        }
     }
 }

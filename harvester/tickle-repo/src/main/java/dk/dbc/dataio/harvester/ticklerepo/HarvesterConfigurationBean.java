@@ -61,7 +61,7 @@ public class HarvesterConfigurationBean {
             configs = new ArrayList<>();
             List<TickleRepoHarvesterConfig> tickleRepoHarvesterConfigs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(TickleRepoHarvesterConfig.class);
             for(TickleRepoHarvesterConfig config : tickleRepoHarvesterConfigs) {
-                Optional<DataSet> dataSet = tickleRepo.lookupDataSet(new DataSet().withName(config.getContent().getDatasetName()));
+                final Optional<DataSet> dataSet = tickleRepo.lookupDataSet(new DataSet().withName(config.getContent().getDatasetName()));
                 configs.add(new ExtendedTickleRepoHarvesterConfig().withTickleRepoHarvesterConfig(config).withDataSet(dataSet.orElse(null)));
             }
             LOGGER.info("Applying configuration: {}", configs);

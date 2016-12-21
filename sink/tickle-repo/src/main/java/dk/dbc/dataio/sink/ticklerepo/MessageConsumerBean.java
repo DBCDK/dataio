@@ -33,6 +33,7 @@ import dk.dbc.dataio.commons.utils.cache.CacheManager;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorUnexpectedStatusCodeException;
 import dk.dbc.dataio.commons.utils.jobstore.ejb.JobStoreServiceConnectorBean;
+import dk.dbc.dataio.commons.utils.lang.StringUtil;
 import dk.dbc.dataio.commons.utils.service.AbstractSinkMessageConsumerBean;
 import dk.dbc.dataio.jobstore.types.JobError;
 import dk.dbc.dataio.jsonb.JSONBException;
@@ -203,19 +204,20 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
                 result.withDiagnostics(diagnostic);
                 dataBuffer.append(String.format(dataPrintf, recordNo, diagnostic.getMessage(), "ERROR"));
             } else {
+                final byte[] content = getContent(item);
                 Record tickleRecord = new Record()
                         .withBatch(batch.getId())
                         .withDataset(batch.getDataset())
                         .withStatus(Record.Status.ACTIVE)
                         .withTrackingId(item.getTrackingId())
                         .withLocalId(tickleAttributes.getBibliographicRecordId())
-                        .withContent(item.getData())
+                        .withContent(content)
                         .withChecksum(tickleAttributes.getCompareRecord());
 
                 final Optional<Record> lookupRecord = tickleRepo.lookupRecord(tickleRecord);
                 if (lookupRecord.isPresent()) {
                     tickleRecord = lookupRecord.get()
-                            .withContent(item.getData())
+                            .withContent(content)
                             .withStatus(Record.Status.ACTIVE);
                     tickleRecord.updateBatchIfModified(batch, tickleAttributes.getCompareRecord());
                     if (tickleRecord.getBatch() == batch.getId()) {
@@ -247,6 +249,14 @@ public class MessageConsumerBean extends AbstractSinkMessageConsumerBean {
             result.withStatus(ChunkItem.Status.SUCCESS);
         }
         return result.withData(dataBuffer.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private byte[] getContent(ExpandedChunkItem item) {
+        if (!StandardCharsets.UTF_8.equals(item.getEncoding())) {
+            // Force UTF-8 encoding for tickle record content
+            return StringUtil.asBytes(StringUtil.asString(item.getData(), item.getEncoding()), StandardCharsets.UTF_8);
+        }
+        return item.getData();
     }
 
     private void uploadChunk(Chunk chunk) throws SinkException {

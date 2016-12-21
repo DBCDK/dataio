@@ -46,6 +46,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -207,8 +208,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("2nd record local ID", record.getLocalId(), is(tickleAttributes2.getBibliographicRecordId()));
         assertThat("2nd record status", record.getStatus(), is(Record.Status.ACTIVE));
         assertThat("2nd record checksum", record.getChecksum(), is(tickleAttributes2.getCompareRecord()));
-        assertThat("2nd record content", StringUtil.asString(record.getContent()),
-                is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData())));
+        assertThat("2nd record content", StringUtil.asString(record.getContent(), StandardCharsets.UTF_8),
+                is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData(), StandardCharsets.ISO_8859_1)));
 
         assertThat("number of records created is 2", recordIterator.hasNext(), is(false));
     }
@@ -242,8 +243,8 @@ public class MessageConsumerBeanIT extends IntegrationTest {
         assertThat("record updated status", updated.getStatus(), is(Record.Status.ACTIVE));
         assertThat("record updated tracking ID", updated.getTrackingId(), is(chunk.getItems().get(4).getTrackingId()));
         assertThat("record updated checksum", updated.getChecksum(), is("chksum2"));
-        assertThat("record updated content", StringUtil.asString(updated.getContent()),
-                is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData())));
+        assertThat("record updated content", StringUtil.asString(updated.getContent(), StandardCharsets.UTF_8),
+                is(StringUtil.asString(toAddiRecord(chunk.getItems().get(4).getData()).getContentData(), StandardCharsets.ISO_8859_1)));
     }
 
      /*  When: handling chunk containing successful end-of-job chunk item
@@ -362,7 +363,7 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                             .withData(toBytes(
                                     new AddiRecord(
                                             jsonbContext.marshall(tickleAttributes1).getBytes(),
-                                            "data1a".getBytes()),
+                                            "data1a æøå".getBytes()),
                                     new AddiRecord(
                                             jsonbContext.marshall(invalidTickleAttributes).getBytes(),
                                             "data1b".getBytes())))
@@ -378,10 +379,11 @@ public class MessageConsumerBeanIT extends IntegrationTest {
                     .appendItem(ChunkItem.successfulChunkItem()
                             .withId(4)
                             .withType(ChunkItem.Type.ADDI, ChunkItem.Type.BYTES)
+                            .withEncoding(StandardCharsets.ISO_8859_1)
                             .withData(toBytes(
                                     new AddiRecord(
                                             jsonbContext.marshall(tickleAttributes2).getBytes(),
-                                            "data2".getBytes())))
+                                            "data2 æøå".getBytes(StandardCharsets.ISO_8859_1))))
                             .withTrackingId("single addi"))
                     .build();
         } catch (IOException | JSONBException e) {

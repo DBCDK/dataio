@@ -195,6 +195,7 @@ public class PgJobStore {
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
             partitioningParam.closeDataFile();
+            entityManager.refresh( jobEntity );
             final ChunkItem.Status itemStatus = jobEntity.hasFatalError() ? ChunkItem.Status.FAILURE: ChunkItem.Status.SUCCESS;
             jobSchedulerBean.markJobPartitioned( jobEntity.getId(), jobEntity.getCachedSink().getSink(), jobEntity.getNumberOfChunks(), jobEntity.lookupDataSetId(), itemStatus);
         }

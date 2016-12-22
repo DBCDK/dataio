@@ -181,8 +181,8 @@ public class PgJobStore {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
-        JobEntity jobEntity = partitioningParam.getJobEntity();
         try {
+            JobEntity jobEntity = partitioningParam.getJobEntity();
             if (partitioningParam.getDiagnostics().isEmpty()) {
                 jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
                 jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
@@ -195,9 +195,15 @@ public class PgJobStore {
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
             partitioningParam.closeDataFile();
-            entityManager.refresh( jobEntity );
+
+            /*
+            // LookUp New Entity
+            final JobEntity jobEntity = entityManager.find(JobEntity.class, partitioningParam.getJobEntity().getId());
+            entityManager.refresh(jobEntity);
             final ChunkItem.Status itemStatus = jobEntity.hasFatalError() ? ChunkItem.Status.FAILURE: ChunkItem.Status.SUCCESS;
+            LOGGER.info("marking job {} done with status {}, terminationChunkNumberIs {} ", jobEntity.getId(), itemStatus, jobEntity.getNumberOfChunks());
             jobSchedulerBean.markJobPartitioned( jobEntity.getId(), jobEntity.getCachedSink().getSink(), jobEntity.getNumberOfChunks(), jobEntity.lookupDataSetId(), itemStatus);
+            */
         }
     }
 
@@ -234,6 +240,9 @@ public class PgJobStore {
                 }
                 jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), dataSetId);
             } while (true);
+
+
+            jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), job.getNumberOfChunks(), job.lookupDataSetId(), ChunkItem.Status.SUCCESS);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
             final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());

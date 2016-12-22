@@ -24,16 +24,17 @@ package dk.dbc.dataio.harvester.ticklerepo;
 import dk.dbc.commons.addi.AddiRecord;
 import dk.dbc.dataio.bfs.api.BinaryFileStore;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
-import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
+import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
-import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.ticklerepo.TickleRepo;
+import dk.dbc.ticklerepo.dto.Batch;
+import dk.dbc.ticklerepo.dto.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,14 +46,13 @@ import java.nio.charset.StandardCharsets;
 public class HarvestOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(HarvestOperation.class);
 
-    private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final BinaryFileStore binaryFileStore;
     private final FileStoreServiceConnector fileStoreServiceConnector;
     private final JobStoreServiceConnector jobStoreServiceConnector;
+    private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final TickleRepo tickleRepo;
-
-    private TickleRepoHarvesterConfig config;
-    private final JSONBContext jsonbContext;
+    private final ExtendedTickleRepoHarvesterConfig config;
+    private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
      * Class constructor
@@ -60,32 +60,60 @@ public class HarvestOperation {
      * @param flowStoreServiceConnector connector used to update configuration
      * @param binaryFileStore used to create HarvesterJobBuilder in order to create dataIO job
      * @param fileStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
-     * @param jobStoreServiceConnector used to look up harvester token in dataIO
+     * @param jobStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
+     * @param tickleRepo tickle repository API
      * @throws NullPointerException if given any null-valued argument
-     * @throws HarvesterException on low-level binary wal file failure
      */
-    public HarvestOperation(TickleRepoHarvesterConfig config,
-                            FlowStoreServiceConnector flowStoreServiceConnector,
-                            BinaryFileStore binaryFileStore,
-                            FileStoreServiceConnector fileStoreServiceConnector,
-                            JobStoreServiceConnector jobStoreServiceConnector,
-                            TickleRepo tickleRepo) throws NullPointerException, HarvesterException {
+    HarvestOperation(ExtendedTickleRepoHarvesterConfig config,
+                     FlowStoreServiceConnector flowStoreServiceConnector,
+                     BinaryFileStore binaryFileStore,
+                     FileStoreServiceConnector fileStoreServiceConnector,
+                     JobStoreServiceConnector jobStoreServiceConnector,
+                     TickleRepo tickleRepo) throws NullPointerException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
-        this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.binaryFileStore = InvariantUtil.checkNotNullOrThrow(binaryFileStore, "binaryFileStore");
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
+        this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.tickleRepo = tickleRepo;
-        this.jsonbContext = new JSONBContext();
     }
 
     /**
-     * Runs this harvest operation, (re)doing configuration updates as needed.
+     * Runs this harvest operation
      * @return number of records harvested
      * @throws HarvesterException if unable to complete harvest operation
     */
-    public int execute() throws HarvesterException {
-        return 0;
+    int execute() throws HarvesterException {
+        final StopWatch stopWatch = new StopWatch();
+
+        final Batch lastBatchHarvested = new Batch()
+                .withId(config.getTickleRepoHarvesterConfig().getContent().getLastBatchHarvested())
+                .withDataset(config.getDataSet().getId());
+
+        final Batch batchToHarvest = tickleRepo.getNextBatch(lastBatchHarvested).orElse(null);
+
+        int recordHarvested = 0;
+        if (batchToHarvest != null) {
+            try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
+                    JobSpecificationTemplate.create(config.getTickleRepoHarvesterConfig(), config.getDataSet(), batchToHarvest))) {
+                for (Record record : tickleRepo.getRecordsInBatch(batchToHarvest)) {
+                    LOGGER.info("{} ready for harvesting from {}/{}", record.getLocalId(), record.getDataset(), record.getBatch());
+
+                    final AddiMetaData addiMetaData = new AddiMetaData()
+                            .withBibliographicRecordId(record.getLocalId())
+                            .withCreationDate(record.getTimeOfCreation())
+                            .withDeleted(record.getStatus() == Record.Status.DELETED)
+                            .withSubmitterNumber(config.getDataSet().getAgencyId())
+                            .withFormat(config.getTickleRepoHarvesterConfig().getContent().getFormat());
+
+                    jobBuilder.addRecord(createAddiRecord(addiMetaData, record.getContent()));
+                }
+            }
+            ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(
+                    config.getTickleRepoHarvesterConfig(), batchToHarvest);
+        }
+        LOGGER.info("Harvested {} records in {} ms", recordHarvested, stopWatch.getElapsedTime());
+        return recordHarvested;
     }
 
     private AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
@@ -93,14 +121,6 @@ public class HarvestOperation {
             return new AddiRecord(jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8), content);
         } catch (JSONBException e) {
             throw new HarvesterException("Error marshalling Addi metadata", e);
-        }
-    }
-
-    private TickleRepoHarvesterConfig updateHarvesterConfig(TickleRepoHarvesterConfig config) throws HarvesterException {
-        try {
-            return flowStoreServiceConnector.updateHarvesterConfig(config);
-        } catch (FlowStoreServiceConnectorException | RuntimeException e) {
-            throw new HarvesterException("Failed to update harvester config: " + config.toString(), e);
         }
     }
 }

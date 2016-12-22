@@ -132,7 +132,7 @@ public class ScheduledHarvestBean {
                  TickleRepoHarvesterConfig tickleRepoHarvesterConfig = config.getTickleRepoHarvesterConfig();
                 final String harvesterId = tickleRepoHarvesterConfig.getContent().getId();
                 if (!runningHarvests.containsKey(harvesterId)) {
-                    runningHarvests.put(harvesterId, harvester.harvest(tickleRepoHarvesterConfig));
+                    runningHarvests.put(harvesterId, harvester.harvest(null));
                     LOGGER.debug("Scheduling harvest for '{}'", harvesterId);
                 }
             }

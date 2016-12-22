@@ -22,6 +22,7 @@
 package dk.dbc.dataio.harvester.types;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import dk.dbc.dataio.commons.types.JobSpecification;
@@ -42,13 +43,16 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
 
     public TickleRepoHarvesterConfig() { }
 
+    @JsonIgnore
+    public String getHarvesterToken(int batchId) {
+        return "tickle-repo:" + getId() + ":" + getVersion() + ":" + batchId;
+    }
+
     @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
     public static class Content implements Serializable {
         private static final long serialVersionUID = -5437124801330551281L;
 
         public Content() { }
-
-        // Data
 
         /** ID of harvest operation */
         private String id;
@@ -72,9 +76,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
         @JsonProperty
         private boolean enabled = false;
 
-
-
-        // Getters and Setters
+        private int lastBatchHarvested;
 
         public String getId() {
             return id;
@@ -139,24 +141,47 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             return this;
         }
 
+        public Content withLastBatchHarvested(int batchId) {
+            this.lastBatchHarvested = batchId;
+            return this;
+        }
 
-        // Other methods
+        public int getLastBatchHarvested() {
+            return lastBatchHarvested;
+        }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof Content)) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
 
             Content content = (Content) o;
 
-            if (enabled != content.enabled) return false;
-            if (id != null ? !id.equals(content.id) : content.id != null) return false;
-            if (datasetName != null ? !datasetName.equals(content.datasetName) : content.datasetName != null) return false;
-            if (description != null ? !description.equals(content.description) : content.description != null)
+            if (enabled != content.enabled) {
                 return false;
-            if (destination != null ? !destination.equals(content.destination) : content.destination != null)
+            }
+            if (lastBatchHarvested != content.lastBatchHarvested) {
                 return false;
-            if (format != null ? !format.equals(content.format) : content.format != null) return false;
+            }
+            if (id != null ? !id.equals(content.id) : content.id != null) {
+                return false;
+            }
+            if (datasetName != null ? !datasetName.equals(content.datasetName) : content.datasetName != null) {
+                return false;
+            }
+            if (description != null ? !description.equals(content.description) : content.description != null) {
+                return false;
+            }
+            if (destination != null ? !destination.equals(content.destination) : content.destination != null) {
+                return false;
+            }
+            if (format != null ? !format.equals(content.format) : content.format != null) {
+                return false;
+            }
             return type == content.type;
         }
 
@@ -169,6 +194,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
             result = 31 * result + (format != null ? format.hashCode() : 0);
             result = 31 * result + (type != null ? type.hashCode() : 0);
             result = 31 * result + (enabled ? 1 : 0);
+            result = 31 * result + lastBatchHarvested;
             return result;
         }
 
@@ -182,6 +208,7 @@ public class TickleRepoHarvesterConfig extends HarvesterConfig<TickleRepoHarvest
                     ", format='" + format + '\'' +
                     ", type=" + type +
                     ", enabled=" + enabled +
+                    ", lastBatchHarvested=" + lastBatchHarvested +
                     '}';
         }
     }

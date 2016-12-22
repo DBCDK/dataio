@@ -60,4 +60,9 @@ public class TickleRepoHarvesterConfigTest {
         assertThat(configFromString, is(config));
     }
 
+    @Test
+    public void getHarvesterToken() {
+        final TickleRepoHarvesterConfig config = new TickleRepoHarvesterConfig(1, 2, new TickleRepoHarvesterConfig.Content());
+        assertThat(config.getHarvesterToken(42), is("tickle-repo:1:2:42"));
+    }
 }

@@ -82,10 +82,10 @@ public class HarvesterBean {
     @Asynchronous
     @Lock(LockType.READ)
     @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
-    public Future<Integer> harvest(TickleRepoHarvesterConfig config) throws HarvesterException {
+    public Future<Integer> harvest(ExtendedTickleRepoHarvesterConfig config) throws HarvesterException {
         LOGGER.debug("Called with config {}", config);
         try {
-            MDC.put(HARVESTER_MDC_KEY, config.getContent().getId());
+            MDC.put(HARVESTER_MDC_KEY, config.getTickleRepoHarvesterConfig().getContent().getId());
             final HarvesterBean businessObject = sessionContext.getBusinessObject(HarvesterBean.class);
             final HarvestOperation harvestOperation = getHarvestOperation(config);
             int itemsHarvested = businessObject.execute(harvestOperation);
@@ -110,7 +110,7 @@ public class HarvesterBean {
 
     /* Stand-alone method to enable easy injection during testing (via partial mocking)
      */
-    public HarvestOperation getHarvestOperation(TickleRepoHarvesterConfig config) throws HarvesterException {
+    public HarvestOperation getHarvestOperation(ExtendedTickleRepoHarvesterConfig config) throws HarvesterException {
         return new HarvestOperation(config, flowStoreServiceConnectorBean.getConnector(),
                 binaryFileStoreBean, fileStoreServiceConnectorBean.getConnector(), jobStoreServiceConnectorBean.getConnector(), tickleRepo);
     }

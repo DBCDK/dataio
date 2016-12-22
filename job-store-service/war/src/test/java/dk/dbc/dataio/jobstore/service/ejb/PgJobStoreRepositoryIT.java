@@ -373,7 +373,7 @@ public class PgJobStoreRepositoryIT extends PgJobStoreRepositoryAbstractIT {
 
         // When...
         final ChunkEntity chunkEntity = persistenceContext.run(() -> {
-                    return pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, TEST_FILE_NAME);
+                    return pgJobStoreRepository.createJobTerminationChunkEntity(jobId, chunkId, TEST_FILE_NAME, SUCCESS);
                 }
         );
 

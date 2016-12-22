@@ -23,6 +23,7 @@ package dk.dbc.dataio.jobstore.service.ejb;
 
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.commons.types.Chunk;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Diagnostic;
 import dk.dbc.dataio.commons.types.ObjectFactory;
 import dk.dbc.dataio.commons.types.Sink;
@@ -180,8 +181,8 @@ public class PgJobStore {
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
     public JobInfoSnapshot partition(PartitioningParam partitioningParam) throws JobStoreException {
+        JobEntity jobEntity = partitioningParam.getJobEntity();
         try {
-            JobEntity jobEntity = partitioningParam.getJobEntity();
             if (partitioningParam.getDiagnostics().isEmpty()) {
                 jobEntity = partitionJobIntoChunksAndItems(jobEntity, partitioningParam);
                 jobEntity = verifyJobPartitioning(jobEntity, partitioningParam);
@@ -194,6 +195,8 @@ public class PgJobStore {
             return JobInfoSnapshotConverter.toJobInfoSnapshot(jobEntity);
         } finally {
             partitioningParam.closeDataFile();
+            final ChunkItem.Status itemStatus = jobEntity.hasFatalError() ? ChunkItem.Status.FAILURE: ChunkItem.Status.SUCCESS;
+            jobSchedulerBean.markJobPartitioned( jobEntity.getId(), jobEntity.getCachedSink().getSink(), jobEntity.getNumberOfChunks(), jobEntity.lookupDataSetId(), itemStatus);
         }
     }
 
@@ -210,7 +213,8 @@ public class PgJobStore {
 
             // For Partitioning Submitter as DataSetId is fine but not optimal
             //
-            long dataSetId = job.getSpecification().getSubmitterId();
+            long dataSetId = job.lookupDataSetId();
+
             do {
                 // Creates each chunk entity (and associated item entities) in its own
                 // transactional scope to enable external visibility of job creation progress
@@ -229,8 +233,6 @@ public class PgJobStore {
                 }
                 jobSchedulerBean.scheduleChunk(chunkEntity, job.getCachedSink().getSink(), dataSetId);
             } while (true);
-
-            jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), job.getNumberOfChunks(), dataSetId);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
             final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());

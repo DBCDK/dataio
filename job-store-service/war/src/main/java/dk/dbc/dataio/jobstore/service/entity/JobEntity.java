@@ -205,6 +205,14 @@ public class JobEntity {
         this.cachedSink = cachedSink;
     }
 
+    /**
+     * pt. it's only used by the Tickle Repo JobScheduling code for Correct TerminationChunkScheduling
+     * @return DatasetId for the job.
+     */
+    public long lookupDataSetId() {
+        return getSpecification().getSubmitterId();
+
+    }
     public boolean hasFailedItems() {
         /*
         Due to bytecode manipulation being done internally in eclipselink

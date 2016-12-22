@@ -1,6 +1,7 @@
 package dk.dbc.dataio.jobstore.service.ejb;
 
 import static dk.dbc.dataio.commons.types.Chunk.Type.PROCESSED;
+import dk.dbc.dataio.commons.types.ChunkItem;
 import dk.dbc.dataio.commons.types.Sink;
 import dk.dbc.dataio.commons.types.SinkContent;
 import dk.dbc.dataio.commons.utils.test.jpa.JPATestUtils;
@@ -167,7 +168,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     , 1
             );
         }
-        bean.markJobPartitioned(3, sink1, 5, 1);
+        bean.markJobPartitioned(3, sink1, 5, 1, ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 
         assertThat("check Ekstra key for chunk0", getDependencyTrackingEntity(3,0).getMatchKeys(), containsInAnyOrder("CK-1", "CK0", "1"));
@@ -215,7 +216,7 @@ public class JobSchedulerBeanIT extends AbstractJobStoreIT {
                     , 1
             );
         }
-        bean.markJobPartitioned(3, sink1, 4, 1);
+        bean.markJobPartitioned(3, sink1, 4, 1, ChunkItem.Status.SUCCESS);
         entityManager.getTransaction().commit();
 
 

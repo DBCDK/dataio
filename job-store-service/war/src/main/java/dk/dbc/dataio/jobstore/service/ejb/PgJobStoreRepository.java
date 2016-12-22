@@ -93,7 +93,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -304,6 +303,7 @@ public class PgJobStoreRepository extends RepositoryBase {
      * @param jobId                        id of job for which the chunk is to be created
      * @param chunkId                      id of the chunk to be created
      * @param dataFileId for fake chunk
+     * @param itemStatus
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
      * @throws JobStoreException on referenced entities not found
      */
@@ -312,7 +312,7 @@ public class PgJobStoreRepository extends RepositoryBase {
     public ChunkEntity createJobTerminationChunkEntity(
             int jobId,
             int chunkId,
-            String dataFileId)
+            String dataFileId, ChunkItem.Status itemStatus)
             throws JobStoreException {
 
         final Date chunkBegin = new Date();
@@ -324,7 +324,7 @@ public class PgJobStoreRepository extends RepositoryBase {
         chunkItemEntities.chunkStateChange.setPhase(State.Phase.PARTITIONING);
 
         final ChunkItem chunkItem = new ChunkItem().withId( itemId )
-                                        .withStatus(ChunkItem.Status.SUCCESS)
+                                        .withStatus(itemStatus)
                                         .withType(ChunkItem.Type.TICKLE_JOB_END)
                 .withData("Tickle Job Termination Item")
                 .withTrackingId(format("TickleEndItem for Job %d", jobId));

@@ -12,12 +12,7 @@ import dk.dbc.dataio.jobstore.service.entity.ConverterJSONBContext;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity;
 import dk.dbc.dataio.jobstore.service.entity.DependencyTrackingEntity.ChunkProcessStatus;
 import dk.dbc.dataio.jobstore.service.entity.SinkIdStatusCountResult;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitioner;
-import dk.dbc.dataio.jobstore.service.partitioner.DataPartitionerResult;
-import dk.dbc.dataio.jobstore.types.InvalidEncodingException;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
-import dk.dbc.dataio.jobstore.types.RecordInfo;
-import dk.dbc.dataio.jobstore.types.SequenceAnalysisData;
 import dk.dbc.dataio.jsonb.JSONBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,9 +27,6 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.Query;
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -151,16 +143,17 @@ public class JobSchedulerBean {
      * @param sink sinkId,
      * @param chunkId id of job termination chunk.
      * @param dataSetId DataSetId to be used for Tickle sink.
+     * @param ItemStatus
      * @throws JobStoreException on createJobTerminationChunkEntity errors
      */
     @Stopwatch
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
-    public void markJobPartitioned(int jobId, Sink sink, int chunkId, long dataSetId) throws JobStoreException {
+    public void markJobPartitioned(int jobId, Sink sink, int chunkId, long dataSetId, ChunkItem.Status ItemStatus) throws JobStoreException {
         if( sink.getContent().getSinkType() != SinkContent.SinkType.TICKLE) return;
         int sinkId = (int) sink.getId();
 
 
-        ChunkEntity chunkEntity=pgJobStoreRepository.createJobTerminationChunkEntity( jobId, chunkId, "dummyDatafileId");
+        ChunkEntity chunkEntity=pgJobStoreRepository.createJobTerminationChunkEntity( jobId, chunkId, "dummyDatafileId", ItemStatus);
 
         DependencyTrackingEntity jobEndBarrierTrackingEntity= new DependencyTrackingEntity(chunkEntity, sinkId, String.valueOf(dataSetId));
 

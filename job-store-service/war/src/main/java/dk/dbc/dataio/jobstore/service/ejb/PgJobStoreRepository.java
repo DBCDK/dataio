@@ -300,10 +300,10 @@ public class PgJobStoreRepository extends RepositoryBase {
      * to allow the method to be called internally as an EJB business method.
      * </p>
      *
-     * @param jobId                        id of job for which the chunk is to be created
-     * @param chunkId                      id of the chunk to be created
+     * @param jobId      id of job for which the chunk is to be created
+     * @param chunkId    id of the chunk to be created
      * @param dataFileId for fake chunk
-     * @param itemStatus
+     * @param itemStatus status for TICKLE_JOB_END item
      * @return created chunk entity (managed) or null of no chunk was created as a result of data exhaustion*
      * @throws JobStoreException on referenced entities not found
      */

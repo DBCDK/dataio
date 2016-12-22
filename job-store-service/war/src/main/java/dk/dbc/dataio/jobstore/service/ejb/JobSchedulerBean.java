@@ -143,7 +143,7 @@ public class JobSchedulerBean {
      * @param sink sinkId,
      * @param chunkId id of job termination chunk.
      * @param dataSetId DataSetId to be used for Tickle sink.
-     * @param ItemStatus
+     * @param ItemStatus  status for tickle termination item
      * @throws JobStoreException on createJobTerminationChunkEntity errors
      */
     @Stopwatch

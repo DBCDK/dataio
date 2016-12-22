@@ -74,7 +74,7 @@ public class ScheduledHarvestBean {
     @PostConstruct
     public void bootstrap() {
         final ScheduleExpression scheduleExpression = new ScheduleExpression();
-        scheduleExpression.second("*/5");
+        scheduleExpression.second("*/15");
         scheduleExpression.minute("*");
         scheduleExpression.hour("*");
         start(scheduleExpression);
@@ -112,7 +112,6 @@ public class ScheduledHarvestBean {
     @Timeout
     public void scheduleHarvests(Timer timer) {
         try {
-            config.reload();
             final Iterator<Map.Entry<String, Future<Integer>>> iterator = runningHarvests.entrySet().iterator();
             while (iterator.hasNext()) {
                 final Map.Entry<String, Future<Integer>> harvest = iterator.next();
@@ -128,11 +127,11 @@ public class ScheduledHarvestBean {
                 }
             }
 
-            for (ExtendedTickleRepoHarvesterConfig config : config.get()) {
-                 TickleRepoHarvesterConfig tickleRepoHarvesterConfig = config.getTickleRepoHarvesterConfig();
-                final String harvesterId = tickleRepoHarvesterConfig.getContent().getId();
+            config.reload();
+            for (TickleRepoHarvesterConfig config : config.get()) {
+                final String harvesterId = config.getContent().getId();
                 if (!runningHarvests.containsKey(harvesterId)) {
-                    runningHarvests.put(harvesterId, harvester.harvest(null));
+                    runningHarvests.put(harvesterId, harvester.harvest(config));
                     LOGGER.debug("Scheduling harvest for '{}'", harvesterId);
                 }
             }

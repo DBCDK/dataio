@@ -26,8 +26,7 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.ticklerepo.TickleRepo;
-import dk.dbc.ticklerepo.dto.DataSet;
+import dk.dbc.dataio.jsonb.JSONBException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -35,7 +34,6 @@ import javax.ejb.EJBException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
 import static dk.dbc.commons.testutil.Assert.isThrowing;
@@ -43,15 +41,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class HarvesterConfigurationBeanTest {
     private final FlowStoreServiceConnectorBean flowStoreServiceConnectorBean = mock(FlowStoreServiceConnectorBean.class);
     private final FlowStoreServiceConnector flowStoreServiceConnector = mock(FlowStoreServiceConnector.class);
-    private final TickleRepo tickleRepo = mock(TickleRepo.class);
-    private final static String DATA_SET_NAME = "random";
+    private final Class harvesterConfigurationType = TickleRepoHarvesterConfig.class;
 
     @Before
     public void setupMocks() {
@@ -60,7 +56,7 @@ public class HarvesterConfigurationBeanTest {
 
     @Test
     public void initialize_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException {
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(TickleRepoHarvesterConfig.class))
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
                 .thenThrow(new FlowStoreServiceConnectorException("Died"));
 
         final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
@@ -69,72 +65,51 @@ public class HarvesterConfigurationBeanTest {
 
     @Test
     public void initialize_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException {
-        final List<TickleRepoHarvesterConfig> configs = getTickleRepoHarvesterConfigs(getTickleRepoHarvesterConfig(DATA_SET_NAME));
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(TickleRepoHarvesterConfig.class))
-                .thenReturn(configs);
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
+                .thenReturn(Collections.singletonList(newConfig()));
 
-        when(tickleRepo.lookupDataSet(any(DataSet.class))).thenReturn(Optional.ofNullable(new DataSet().withName(DATA_SET_NAME)));
         final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         assertThat("config before initialize", bean.configs, is(nullValue()));
         bean.initialize();
         assertThat("config after initialize", bean.configs, is(notNullValue()));
-        assertThat(bean.configs.get(0).getDataSet(), is(notNullValue()));
+    }
+
+    @Test
+    public void reload_flowStoreLookupThrows_throws() throws FlowStoreServiceConnectorException, HarvesterException {
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
+                .thenThrow(new FlowStoreServiceConnectorException("Died"));
+
+        final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
+        assertThat(bean::reload, isThrowing(HarvesterException.class));
     }
 
     @Test
     public void reload_flowStoreLookupReturns_setsConfigs() throws FlowStoreServiceConnectorException, HarvesterException {
+        final List<TickleRepoHarvesterConfig> configs = new ArrayList<>(0);
+        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(harvesterConfigurationType))
+                .thenReturn(configs);
 
         final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
-        final DataSet dataSet = new DataSet().withName(DATA_SET_NAME).withAgencyId(42);
-        final TickleRepoHarvesterConfig tickleRepoHarvesterConfig = new TickleRepoHarvesterConfig(1,1, new TickleRepoHarvesterConfig.Content().withDatasetName(DATA_SET_NAME));
-        final List<TickleRepoHarvesterConfig> configsPostReload = Collections.singletonList(tickleRepoHarvesterConfig);
-
-        when(tickleRepo.lookupDataSet(any(DataSet.class))).thenReturn(Optional.of(dataSet));
-        when(flowStoreServiceConnector.findEnabledHarvesterConfigsByType(TickleRepoHarvesterConfig.class))
-                .thenReturn(configsPostReload);
-
-        // Subject under test
+        bean.configs = new ArrayList<>(Collections.singletonList(newConfig()));
         bean.reload();
-
-        // Verification
-        assertThat("extendedTickleRepoConfig after reload", bean.configs, is(notNullValue()));
-        final ExtendedTickleRepoHarvesterConfig extendedTickleRepoHarvesterConfig = bean.configs.get(0);
-        assertThat("dataSet after reload", extendedTickleRepoHarvesterConfig.getDataSet(), is(dataSet));
-        assertThat("tickleRepoConfig after reload", extendedTickleRepoHarvesterConfig.getTickleRepoHarvesterConfig(), is(tickleRepoHarvesterConfig));
+        assertThat("config after initialize", bean.configs, is(configs));
     }
 
     @Test
-    public void get_returnsConfigs() {
-        final List<ExtendedTickleRepoHarvesterConfig> configs = Collections.singletonList(new ExtendedTickleRepoHarvesterConfig()
-                .withTickleRepoHarvesterConfig(new TickleRepoHarvesterConfig(1,1, new TickleRepoHarvesterConfig.Content()))
-                .withDataSet(new DataSet()));
-
+    public void get_returnsConfigs() throws JSONBException {
+        final List<TickleRepoHarvesterConfig> configs = Collections.singletonList(newConfig());
         final HarvesterConfigurationBean bean = newHarvesterConfigurationBean();
         bean.configs = configs;
         assertThat(bean.get(), is(configs));
     }
 
-    /*
-     * Private methods
-     */
     private HarvesterConfigurationBean newHarvesterConfigurationBean() {
         final HarvesterConfigurationBean harvesterConfigurationBean = new HarvesterConfigurationBean();
         harvesterConfigurationBean.flowStoreServiceConnectorBean = flowStoreServiceConnectorBean;
-        harvesterConfigurationBean.tickleRepo = tickleRepo;
         return harvesterConfigurationBean;
     }
 
-    private List<TickleRepoHarvesterConfig> getTickleRepoHarvesterConfigs(TickleRepoHarvesterConfig.Content... entries) {
-        final List<TickleRepoHarvesterConfig> configs = new ArrayList<>(entries.length);
-        long id = 1;
-        for (TickleRepoHarvesterConfig.Content content : entries) {
-            configs.add(new TickleRepoHarvesterConfig(id++, 1, content));
-        }
-        return configs;
-    }
-
-    private TickleRepoHarvesterConfig.Content getTickleRepoHarvesterConfig(String dataSetName) {
-        return new TickleRepoHarvesterConfig.Content()
-                .withDatasetName(dataSetName);
+    private TickleRepoHarvesterConfig newConfig() {
+        return new TickleRepoHarvesterConfig(1, 1, new TickleRepoHarvesterConfig.Content());
     }
 }

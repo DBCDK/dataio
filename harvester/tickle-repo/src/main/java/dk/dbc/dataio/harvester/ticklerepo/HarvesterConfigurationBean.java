@@ -4,8 +4,6 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.common.utils.flowstore.ejb.FlowStoreServiceConnectorBean;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
-import dk.dbc.ticklerepo.TickleRepo;
-import dk.dbc.ticklerepo.dto.DataSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +14,7 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * This Enterprise Java Bean is responsible for retrieval of harvester configurations via flow-store lookup
@@ -32,10 +27,7 @@ public class HarvesterConfigurationBean {
     @EJB
     FlowStoreServiceConnectorBean flowStoreServiceConnectorBean;
 
-    @EJB
-    TickleRepo tickleRepo;
-
-    List<ExtendedTickleRepoHarvesterConfig> configs;
+    List<TickleRepoHarvesterConfig> configs;
 
     /**
      * Initializes configuration
@@ -58,19 +50,14 @@ public class HarvesterConfigurationBean {
     public void reload() throws HarvesterException {
         LOGGER.debug("Retrieving configuration");
         try {
-            configs = new ArrayList<>();
-            List<TickleRepoHarvesterConfig> tickleRepoHarvesterConfigs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(TickleRepoHarvesterConfig.class);
-            for(TickleRepoHarvesterConfig config : tickleRepoHarvesterConfigs) {
-                final Optional<DataSet> dataSet = tickleRepo.lookupDataSet(new DataSet().withName(config.getContent().getDatasetName()));
-                configs.add(new ExtendedTickleRepoHarvesterConfig().withTickleRepoHarvesterConfig(config).withDataSet(dataSet.orElse(null)));
-            }
+            configs = flowStoreServiceConnectorBean.getConnector().findEnabledHarvesterConfigsByType(TickleRepoHarvesterConfig.class);
             LOGGER.info("Applying configuration: {}", configs);
         } catch (FlowStoreServiceConnectorException e) {
             throw new HarvesterException("Exception caught while refreshing configuration", e);
         }
     }
 
-    public List<ExtendedTickleRepoHarvesterConfig> get() {
+    public List<TickleRepoHarvesterConfig> get() {
         return configs;
     }
 }

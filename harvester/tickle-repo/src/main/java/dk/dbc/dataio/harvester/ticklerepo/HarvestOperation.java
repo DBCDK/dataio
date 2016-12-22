@@ -30,15 +30,18 @@ import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
+import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.ticklerepo.TickleRepo;
 import dk.dbc.ticklerepo.dto.Batch;
+import dk.dbc.ticklerepo.dto.DataSet;
 import dk.dbc.ticklerepo.dto.Record;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 /**
  * Class representing a single harvest operation
@@ -51,7 +54,8 @@ public class HarvestOperation {
     private final JobStoreServiceConnector jobStoreServiceConnector;
     private final FlowStoreServiceConnector flowStoreServiceConnector;
     private final TickleRepo tickleRepo;
-    private final ExtendedTickleRepoHarvesterConfig config;
+    private final TickleRepoHarvesterConfig config;
+    private final DataSet dataset;
     private final JSONBContext jsonbContext = new JSONBContext();
 
     /**
@@ -63,19 +67,23 @@ public class HarvestOperation {
      * @param jobStoreServiceConnector used to create HarvesterJobBuilder in order to create dataIO job
      * @param tickleRepo tickle repository API
      * @throws NullPointerException if given any null-valued argument
+     * @throws IllegalStateException if unable to resolve tickle dataset
      */
-    HarvestOperation(ExtendedTickleRepoHarvesterConfig config,
+    HarvestOperation(TickleRepoHarvesterConfig config,
                      FlowStoreServiceConnector flowStoreServiceConnector,
                      BinaryFileStore binaryFileStore,
                      FileStoreServiceConnector fileStoreServiceConnector,
                      JobStoreServiceConnector jobStoreServiceConnector,
-                     TickleRepo tickleRepo) throws NullPointerException {
+                     TickleRepo tickleRepo) throws NullPointerException, IllegalStateException {
         this.config = InvariantUtil.checkNotNullOrThrow(config, "config");
         this.binaryFileStore = InvariantUtil.checkNotNullOrThrow(binaryFileStore, "binaryFileStore");
         this.fileStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(fileStoreServiceConnector, "fileStoreServiceConnector");
         this.jobStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(jobStoreServiceConnector, "jobStoreServiceConnector");
         this.flowStoreServiceConnector = InvariantUtil.checkNotNullOrThrow(flowStoreServiceConnector, "flowStoreServiceConnector");
         this.tickleRepo = tickleRepo;
+        this.dataset = getDataset(config)
+                .orElseThrow(() -> new IllegalStateException(
+                        "No dataset found for " + config.getContent().getDatasetName()));
     }
 
     /**
@@ -87,15 +95,15 @@ public class HarvestOperation {
         final StopWatch stopWatch = new StopWatch();
 
         final Batch lastBatchHarvested = new Batch()
-                .withId(config.getTickleRepoHarvesterConfig().getContent().getLastBatchHarvested())
-                .withDataset(config.getDataSet().getId());
+                .withId(config.getContent().getLastBatchHarvested())
+                .withDataset(dataset.getId());
 
         final Batch batchToHarvest = tickleRepo.getNextBatch(lastBatchHarvested).orElse(null);
 
         int recordHarvested = 0;
         if (batchToHarvest != null) {
             try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
-                    JobSpecificationTemplate.create(config.getTickleRepoHarvesterConfig(), config.getDataSet(), batchToHarvest))) {
+                    JobSpecificationTemplate.create(config, dataset, batchToHarvest))) {
                 for (Record record : tickleRepo.getRecordsInBatch(batchToHarvest)) {
                     LOGGER.info("{} ready for harvesting from {}/{}", record.getLocalId(), record.getDataset(), record.getBatch());
 
@@ -103,17 +111,20 @@ public class HarvestOperation {
                             .withBibliographicRecordId(record.getLocalId())
                             .withCreationDate(record.getTimeOfCreation())
                             .withDeleted(record.getStatus() == Record.Status.DELETED)
-                            .withSubmitterNumber(config.getDataSet().getAgencyId())
-                            .withFormat(config.getTickleRepoHarvesterConfig().getContent().getFormat());
+                            .withSubmitterNumber(dataset.getAgencyId())
+                            .withFormat(config.getContent().getFormat());
 
                     jobBuilder.addRecord(createAddiRecord(addiMetaData, record.getContent()));
                 }
             }
-            ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(
-                    config.getTickleRepoHarvesterConfig(), batchToHarvest);
+            ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(config, batchToHarvest);
         }
         LOGGER.info("Harvested {} records in {} ms", recordHarvested, stopWatch.getElapsedTime());
         return recordHarvested;
+    }
+
+    private Optional<DataSet> getDataset(TickleRepoHarvesterConfig config) {
+        return tickleRepo.lookupDataSet(new DataSet().withName(config.getContent().getDatasetName()));
     }
 
     private AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {

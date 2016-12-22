@@ -27,8 +27,12 @@ import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorUnexpectedS
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
 import dk.dbc.ticklerepo.dto.Batch;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ConfigUpdater {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigUpdater.class);
+
     private final FlowStoreServiceConnector flowStoreServiceConnector;
 
     static ConfigUpdater create(FlowStoreServiceConnector flowStoreServiceConnector) {
@@ -58,6 +62,7 @@ class ConfigUpdater {
                             .withLastBatchHarvested(config.getContent().getLastBatchHarvested());
                     return updateHarvesterConfig(refreshedConfig);
                 } catch (FlowStoreServiceConnectorException fssce) {
+                    LOGGER.error("Error refreshing config " + config.getId(), fssce);
                 }
             }
             throw new HarvesterException("Failed to update harvester config: " + config.toString(), e);

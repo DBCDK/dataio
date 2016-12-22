@@ -28,9 +28,12 @@ import dk.dbc.dataio.commons.time.StopWatch;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.utils.invariant.InvariantUtil;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
+import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnectorException;
 import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnector;
 import dk.dbc.dataio.harvester.types.HarvesterException;
 import dk.dbc.dataio.harvester.types.TickleRepoHarvesterConfig;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
+import dk.dbc.dataio.jobstore.types.criteria.ListFilter;
 import dk.dbc.dataio.jsonb.JSONBContext;
 import dk.dbc.dataio.jsonb.JSONBException;
 import dk.dbc.ticklerepo.TickleRepo;
@@ -94,11 +97,10 @@ public class HarvestOperation {
     int execute() throws HarvesterException {
         final StopWatch stopWatch = new StopWatch();
 
-        final Batch lastBatchHarvested = new Batch()
-                .withId(config.getContent().getLastBatchHarvested())
-                .withDataset(dataset.getId());
-
-        final Batch batchToHarvest = tickleRepo.getNextBatch(lastBatchHarvested).orElse(null);
+        Batch batchToHarvest = getNextBatch(config);
+        while (configUpdateResubmitted(config, batchToHarvest)) {
+            batchToHarvest = getNextBatch(config);
+        }
 
         int recordHarvested = 0;
         if (batchToHarvest != null) {
@@ -127,11 +129,39 @@ public class HarvestOperation {
         return tickleRepo.lookupDataSet(new DataSet().withName(config.getContent().getDatasetName()));
     }
 
+    private Batch getNextBatch(TickleRepoHarvesterConfig config) {
+        final Batch lastBatchHarvested = new Batch()
+                .withId(config.getContent().getLastBatchHarvested())
+                .withDataset(dataset.getId());
+
+        return tickleRepo.getNextBatch(lastBatchHarvested).orElse(null);
+    }
+
     private AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {
         try {
             return new AddiRecord(jsonbContext.marshall(addiMetaData).getBytes(StandardCharsets.UTF_8), content);
         } catch (JSONBException e) {
             throw new HarvesterException("Error marshalling Addi metadata", e);
+        }
+    }
+
+    private boolean configUpdateResubmitted(TickleRepoHarvesterConfig config, Batch batch) throws HarvesterException {
+        if (harvesterTokenExistsInJobStore(config.getHarvesterToken(batch.getId()))) {
+            LOGGER.info("Re-submitting config update for batch {}", batch.getId());
+            ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(config, batch);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean harvesterTokenExistsInJobStore(String harvesterToken) throws HarvesterException {
+        final String harvesterTokenJson = String.format("{\"ancestry\": {\"harvesterToken\": \"%s\"}}", harvesterToken);
+        final JobListCriteria criteria = new JobListCriteria()
+                .where(new ListFilter<>(JobListCriteria.Field.SPECIFICATION, ListFilter.Op.JSON_LEFT_CONTAINS, harvesterTokenJson));
+        try {
+            return !jobStoreServiceConnector.listJobs(criteria).isEmpty();
+        } catch (JobStoreServiceConnectorException | RuntimeException e) {
+            throw new HarvesterException("Failed to query dataIO job-store for harvester token: " + harvesterToken, e);
         }
     }
 }

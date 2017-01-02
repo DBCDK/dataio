@@ -102,7 +102,7 @@ public class HarvestOperation {
             batchToHarvest = getNextBatch(config);
         }
 
-        int recordHarvested = 0;
+        int recordsHarvested = 0;
         if (batchToHarvest != null) {
             try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                     JobSpecificationTemplate.create(config, dataset, batchToHarvest))) {
@@ -110,6 +110,7 @@ public class HarvestOperation {
                     LOGGER.info("{} ready for harvesting from {}/{}", record.getLocalId(), record.getDataset(), record.getBatch());
 
                     final AddiMetaData addiMetaData = new AddiMetaData()
+                            .withTrackingId(record.getTrackingId())
                             .withBibliographicRecordId(record.getLocalId())
                             .withCreationDate(record.getTimeOfCreation())
                             .withDeleted(record.getStatus() == Record.Status.DELETED)
@@ -118,11 +119,13 @@ public class HarvestOperation {
 
                     jobBuilder.addRecord(createAddiRecord(addiMetaData, record.getContent()));
                 }
+                jobBuilder.build();
+                recordsHarvested = jobBuilder.getRecordsAdded();
             }
             ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(config, batchToHarvest);
         }
-        LOGGER.info("Harvested {} records in {} ms", recordHarvested, stopWatch.getElapsedTime());
-        return recordHarvested;
+        LOGGER.info("Harvested {} records in {} ms", recordsHarvested, stopWatch.getElapsedTime());
+        return recordsHarvested;
     }
 
     private Optional<DataSet> getDataset(TickleRepoHarvesterConfig config) {

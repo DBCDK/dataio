@@ -63,8 +63,20 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
+      <artifactId>dataio-harvester-utils-datafile-verifier</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
       <artifactId>tickle-repo-api</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>dk.dbc</groupId>
+      <artifactId>dataio-job-store-service-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
@@ -74,8 +86,14 @@
     </dependency>
     <dependency>
       <groupId>dk.dbc</groupId>
-      <artifactId>dataio-commons-utils-logback</artifactId>
-      <version>${project.version}</version>
+      <artifactId>dbc-commons-jdbc-util</artifactId>
+      <version>1.3-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-client</artifactId>
+      <version>${jersey.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -152,7 +170,7 @@
             </goals>
             <configuration>
               <pgPort>${harvester.postgresql.port}</pgPort>
-              <pgDbName>testdb</pgDbName>
+              <pgDbName>ticklerepo</pgDbName>
               <pgDbScripts>
               </pgDbScripts>
             </configuration>

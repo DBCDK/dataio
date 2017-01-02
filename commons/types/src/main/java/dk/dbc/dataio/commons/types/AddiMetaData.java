@@ -109,7 +109,7 @@ public class AddiMetaData {
 
     public Date creationDate() {
         if (creationDate != null) {
-            return new Date(creationDate().getTime());
+            return new Date(creationDate.getTime());
         }
         return null;
     }

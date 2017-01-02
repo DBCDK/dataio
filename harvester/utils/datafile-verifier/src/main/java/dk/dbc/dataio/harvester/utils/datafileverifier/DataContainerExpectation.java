@@ -31,12 +31,11 @@ import java.util.Map;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * Verifier helper class for data-container expectations
  */
-public class DataContainerExpectation implements XmlExpectation {
+public class DataContainerExpectation extends XmlExpectation {
     private static final String HARVESTER_DATAFILE_ELEMENT_NAME = "dataio-harvester-datafile";
     private static final String DATA_CONTAINER_ELEMENT_NAME = "data-container";
     private static final String DATA_SUPPLEMENTARY_ELEMENT_NAME = "data-supplementary";
@@ -47,7 +46,6 @@ public class DataContainerExpectation implements XmlExpectation {
 
     public DataContainerExpectation() {
         supplementaryDataExpectation = new HashMap<>();
-        dataExpectation = node -> fail("No data expectation set");
     }
 
     /**

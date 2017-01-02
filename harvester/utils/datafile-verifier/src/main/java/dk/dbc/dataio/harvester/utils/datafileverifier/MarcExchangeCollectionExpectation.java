@@ -43,7 +43,7 @@ import static org.junit.Assert.assertThat;
 /**
  * Verifier helper class for MARC exchange collection expectations
  */
-public class MarcExchangeCollectionExpectation implements XmlExpectation {
+public class MarcExchangeCollectionExpectation extends XmlExpectation {
     static final String MARC_EXCHANGE_NAMESPACE = "info:lc/xmlns/marcxchange-v1";
     static final String COLLECTION_ELEMENT_NAME = "collection";
     static final String RECORD_ELEMENT_NAME = "record";

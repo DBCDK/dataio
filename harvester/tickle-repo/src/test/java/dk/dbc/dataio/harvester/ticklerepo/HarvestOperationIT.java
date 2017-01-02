@@ -23,6 +23,7 @@ package dk.dbc.dataio.harvester.ticklerepo;
 
 import dk.dbc.dataio.bfs.ejb.BinaryFileStoreBeanTestUtil;
 import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnector;
+import dk.dbc.dataio.common.utils.flowstore.FlowStoreServiceConnectorException;
 import dk.dbc.dataio.commons.types.AddiMetaData;
 import dk.dbc.dataio.commons.types.JobSpecification;
 import dk.dbc.dataio.commons.utils.jobstore.JobStoreServiceConnector;
@@ -35,6 +36,7 @@ import dk.dbc.dataio.harvester.utils.datafileverifier.AddiFileVerifier;
 import dk.dbc.dataio.harvester.utils.datafileverifier.Expectation;
 import dk.dbc.dataio.jobstore.test.types.JobInfoSnapshotBuilder;
 import dk.dbc.dataio.jobstore.types.JobInputStream;
+import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 import dk.dbc.ticklerepo.TickleRepo;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -47,6 +49,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static dk.dbc.commons.testutil.Assert.assertThat;
@@ -55,6 +58,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class HarvestOperationIT extends IntegrationTest {
@@ -104,6 +109,7 @@ public class HarvestOperationIT extends IntegrationTest {
     @Test
     public void recordsHarvested() throws HarvesterException {
         final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(2);
         final HarvestOperation harvestOperation = createHarvestOperation(config);
         assertThat("Number of records harvested", harvestOperation.execute(), is(3));
 
@@ -136,6 +142,21 @@ public class HarvestOperationIT extends IntegrationTest {
         addiFileVerifier.verify(harvesterTmpFile.toFile(), addiMetadataExpectations, addiContentExpectations);
     }
 
+    @Test
+    public void reSubmitConfigUpdates() throws HarvesterException, JobStoreServiceConnectorException, FlowStoreServiceConnectorException {
+        when(jobStoreServiceConnector.listJobs(any(JobListCriteria.class)))
+                .thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()))
+                .thenReturn(Collections.singletonList(new JobInfoSnapshotBuilder().build()))
+                .thenReturn(Collections.emptyList());
+
+        final TickleRepoHarvesterConfig config = newConfig();
+        config.getContent().withLastBatchHarvested(0);
+        final HarvestOperation harvestOperation = createHarvestOperation(config);
+        assertThat("Number of records harvested", harvestOperation.execute(), is(3));
+
+        verify(flowStoreServiceConnector, times(3)).updateHarvesterConfig(any(TickleRepoHarvesterConfig.class));
+    }
+
     private HarvestOperation createHarvestOperation(TickleRepoHarvesterConfig config) {
         return new HarvestOperation(config,
                 flowStoreServiceConnector,
@@ -152,7 +173,7 @@ public class HarvestOperationIT extends IntegrationTest {
                 .withFormat("test-format")
                 .withDestination("test-destination")
                 .withType(JobSpecification.Type.TEST)
-                .withLastBatchHarvested(2);
+                .withLastBatchHarvested(0);
         return config;
     }
 }

@@ -39,7 +39,7 @@ public class AddiFileVerifier {
      * @param addiMetaDataList expectations for addi records meta data
      * @param expectations expectations for addi records content
      */
-    public void verify(File dataFile, List<AddiMetaData> addiMetaDataList, List<Expectation> expectations) {
+    public void verify(File dataFile, List<AddiMetaData> addiMetaDataList, List<? extends Expectation> expectations) {
         try {
             final AddiReader addiReader = new AddiReader(new BufferedInputStream(new FileInputStream(dataFile)));
             int recordNo = 0;

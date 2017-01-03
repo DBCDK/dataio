@@ -214,7 +214,7 @@ public class JobStoreProxyImplTest {
         when(jobStoreServiceConnector.getChunkItem(anyInt(), anyInt(), anyShort(), any(State.Phase.class))).thenReturn(chunkItem);
         try {
             String data = jobStoreProxy.getItemData(new ItemModel(), ItemModel.LifeCycle.PARTITIONING);
-            assertThat(data, is(""));
+            assertThat(data, is(PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding())));
         } catch (ProxyException e) {
             fail("Unexpected error when calling: getItemData()");
         }

@@ -234,22 +234,20 @@ public class JobStoreProxyImpl implements JobStoreProxy {
     public String getItemData(ItemModel itemModel, ItemModel.LifeCycle lifeCycle) throws ProxyException {
         log.trace("JobStoreProxy: getItemData(\"{}\", {});", itemModel, lifeCycle);
         final StopWatch stopWatch = new StopWatch();
-        final String empty = "";
         try {
             ChunkItem chunkItem = jobStoreServiceConnector.getChunkItem(Integer.parseInt(itemModel.getJobId()), Integer.parseInt(itemModel.getChunkId()), Short.parseShort(itemModel.getItemId()), getPhase(lifeCycle));
 
-            // FIXME: 07/07/16 can be removed when type on chunkItem becomes mandatory
-            if(chunkItem.getType() == null) {
-                return empty;
-            }
-
-            if(chunkItem.getType().stream().filter(type -> type == ChunkItem.Type.ADDI).findFirst().isPresent()) {
-                final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
-                if(addiReader.hasNext()) {
-                    AddiRecord addiRecord = addiReader.next();
-                    final String metaData = PrettyPrint.asJson(addiRecord.getMetaData(), chunkItem.getEncoding());
-                    final String contentData = PrettyPrint.asXml(addiRecord.getContentData(), chunkItem.getEncoding());
-                    return PrettyPrint.combinePrintElements(metaData, contentData);
+            if (chunkItem.getType() == null || chunkItem.getType().isEmpty()) {
+                log.error("JobStoreProxy: getItemData - Unexpected Chunk Item Type({})", chunkItem.getType());
+            } else {
+                if (chunkItem.getType().stream().filter(type -> type == ChunkItem.Type.ADDI).findFirst().isPresent()) {
+                    final AddiReader addiReader = new AddiReader(new ByteArrayInputStream(chunkItem.getData()));
+                    if(addiReader.hasNext()) {
+                        AddiRecord addiRecord = addiReader.next();
+                        final String metaData = PrettyPrint.asJson(addiRecord.getMetaData(), chunkItem.getEncoding());
+                        final String contentData = PrettyPrint.asXml(addiRecord.getContentData(), chunkItem.getEncoding());
+                        return PrettyPrint.combinePrintElements(metaData, contentData);
+                    }
                 }
             }
             return PrettyPrint.asXml(chunkItem.getData(), chunkItem.getEncoding());

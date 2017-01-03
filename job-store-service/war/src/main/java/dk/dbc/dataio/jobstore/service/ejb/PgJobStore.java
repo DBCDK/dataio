@@ -245,9 +245,12 @@ public class PgJobStore {
             jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), chunkId, job.lookupDataSetId(), ChunkItem.Status.SUCCESS);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
-            final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+            StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
             job = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, job.getId());
             jobStoreRepository.updateJobEntityState(job, jobStateChange);
+            if(job.getNumberOfChunks() == 0) {
+                completeZeroChunkJob(job);
+            }
             if (!abortDiagnostics.isEmpty()) {
                 job = abortJob(job, abortDiagnostics);
             }
@@ -418,6 +421,18 @@ public class PgJobStore {
         jobEntity.setFatalError(true);
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
         return jobEntity;
+    }
+
+    private void completeZeroChunkJob(JobEntity jobEntity) {
+        StateChange processingCompleted = new StateChange().setPhase(State.Phase.PROCESSING).setEndDate(new Date());
+        jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
+        jobStoreRepository.updateJobEntityState(jobEntity, processingCompleted);
+
+        StateChange deliveringCompleted = new StateChange().setPhase(State.Phase.DELIVERING).setEndDate(new Date());
+        jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
+        jobStoreRepository.updateJobEntityState(jobEntity, deliveringCompleted);
+
+        jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));
     }
 
     private void addNotificationIfSpecificationHasDestination(JobNotification.Type type, JobEntity jobEntity) {

@@ -28,6 +28,7 @@ import dk.dbc.dataio.filestore.service.connector.FileStoreServiceConnectorExcept
 import dk.dbc.dataio.jobstore.service.entity.JobEntity;
 import dk.dbc.dataio.jobstore.service.entity.SinkCacheEntity;
 import dk.dbc.dataio.jobstore.service.param.PartitioningParam;
+import dk.dbc.dataio.jobstore.service.partitioner.DefaultXmlDataPartitioner;
 import dk.dbc.dataio.jobstore.types.JobInfoSnapshot;
 import dk.dbc.dataio.jobstore.types.JobStoreException;
 import dk.dbc.dataio.jobstore.types.State;
@@ -36,6 +37,9 @@ import org.junit.Test;
 import types.TestablePartitioningParamBuilder;
 
 import javax.persistence.LockModeType;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -142,7 +146,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     }
 
     @Test
-    public void partition_allArgsAreValid_returnsJobInformationSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
+    public void partition_allArgsAreValid_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
         // Setup preconditions
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(307L);
         final PartitioningParam param = partitioningParamBuilder.build();
@@ -158,5 +162,29 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
         assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
         assertThat("Time of completion not set", jobInfoSnapshot.getTimeOfCompletion(), is(nullValue()));
         assertThat("JobInfoSnapshot.State.Diagnostics", jobInfoSnapshot.getState().getDiagnostics(), is(param.getDiagnostics()));
+    }
+
+    @Test
+    public void partition_noRecords_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
+        // Setup preconditions
+        final byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
+        final InputStream dataFileInputStream = new ByteArrayInputStream("<records></records>".getBytes(StandardCharsets.UTF_8));
+        final PartitioningParam param = partitioningParamBuilder.setDataPartitioner(DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name())).build();
+
+        when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length).longValue());
+
+        // Subject Under Test
+        final JobInfoSnapshot jobInfoSnapshot = pgJobStore.partition(param);
+
+        // Verify
+        assertThat("Returned JobInfoSnapshot", jobInfoSnapshot, is(notNullValue()));
+        assertThat("Fatal error did not occur", jobInfoSnapshot.hasFatalError(), is(false));
+
+        assertThat("Number of chunks created", jobInfoSnapshot.getNumberOfChunks(), is(0));
+        assertThat("Number of items created", jobInfoSnapshot.getNumberOfItems(), is(0));
+        assertThat("Partitioning phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PARTITIONING).getEndDate(), is(notNullValue()));
+        assertThat("Processing phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.PROCESSING).getEndDate(), is(notNullValue()));
+        assertThat("Delivering phase endDate set", jobInfoSnapshot.getState().getPhase(State.Phase.DELIVERING).getEndDate(), is(notNullValue()));
+        assertThat("Time of completion set", jobInfoSnapshot.getTimeOfCompletion(), is(notNullValue()));
     }
 }

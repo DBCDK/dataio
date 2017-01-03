@@ -128,6 +128,7 @@ public class BatchFinalizerBean {
                     }
                     chunk.insertItem(chunkItem
                             .withId(chunkItemId++)
+                            .withType(ChunkItem.Type.STRING)
                             .withData(dataBuffer.getBytes())
                             .withTrackingId(batchEntry.getTrackingId()));
                     LOGGER.info("Result of downstream processing was {}", chunkItem.getStatus());

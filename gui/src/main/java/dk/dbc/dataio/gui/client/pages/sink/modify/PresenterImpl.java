@@ -76,6 +76,7 @@ public abstract class PresenterImpl extends AbstractActivity implements Presente
         view.updateSinkSection.setVisible(false);
         view.esSinkSection.setVisible(false);
         view.imsSinkSection.setVisible(false);
+        view.resource.setEnabled(true);
         handleSinkConfig(sinkType);
     }
 

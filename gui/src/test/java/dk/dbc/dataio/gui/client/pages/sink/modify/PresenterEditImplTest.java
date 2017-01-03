@@ -267,6 +267,7 @@ public class PresenterEditImplTest extends PresenterImplTestBase {
         presenterEditImpl.handleSinkConfig(SinkContent.SinkType.DUMMY);
 
         // Verifications
+        verify(editView.resource).setEnabled(false);
         verifyNoMoreViewInteractions();
     }
 

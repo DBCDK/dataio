@@ -34,6 +34,8 @@ import dk.dbc.dataio.gui.client.model.SinkModel;
  */
 public class PresenterCreateImpl extends PresenterImpl {
 
+    private static final String DEFAULT_DUMMY_SINK_RESOURCE = "jdbc/dataio/dummy";
+
     /**
      * Constructor
      * @param header            header
@@ -88,6 +90,11 @@ public class PresenterCreateImpl extends PresenterImpl {
             case TICKLE:
                 model.setSinkConfig(null);
                 view.sequenceAnalysisSection.setVisible(false);
+                break;
+            case DUMMY:
+                model.setSinkConfig(null);
+                view.resource.setEnabled(false);
+                view.resource.setValue(DEFAULT_DUMMY_SINK_RESOURCE);
                 break;
             default:
                 model.setSinkConfig(null);

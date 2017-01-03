@@ -245,7 +245,7 @@ public class PgJobStore {
             jobSchedulerBean.markJobPartitioned( job.getId(), job.getCachedSink().getSink(), chunkId, job.lookupDataSetId(), ChunkItem.Status.SUCCESS);
 
             // Job partitioning is now done - signalled by setting the endDate property of the PARTITIONING phase.
-            StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
+            final StateChange jobStateChange = new StateChange().setPhase(State.Phase.PARTITIONING).setEndDate(new Date());
             job = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, job.getId());
             jobStoreRepository.updateJobEntityState(job, jobStateChange);
             if(job.getNumberOfChunks() == 0) {

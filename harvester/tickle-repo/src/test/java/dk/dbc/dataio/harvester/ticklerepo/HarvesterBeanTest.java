@@ -27,8 +27,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ejb.SessionContext;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -41,8 +39,6 @@ import static org.mockito.Mockito.when;
 public class HarvesterBeanTest {
     private SessionContext sessionContext = mock(SessionContext.class);
     private HarvestOperation harvestOperation = mock(HarvestOperation.class);
-    private EntityManagerFactory entityManagerFactory = mock(EntityManagerFactory.class);
-    private EntityManager entityManager = mock(EntityManager.class);
 
     @Test
     public void harvest_harvestOperationCompletes_returnsNumberOfItemsHarvested() throws HarvesterException, ExecutionException, InterruptedException {
@@ -60,7 +56,6 @@ public class HarvesterBeanTest {
         final HarvesterBean harvesterBean = Mockito.spy(new HarvesterBean());
         harvesterBean.sessionContext = sessionContext;
         when(sessionContext.getBusinessObject(HarvesterBean.class)).thenReturn(harvesterBean);
-        when(entityManagerFactory.createEntityManager()).thenReturn(entityManager);
         return harvesterBean;
     }
 

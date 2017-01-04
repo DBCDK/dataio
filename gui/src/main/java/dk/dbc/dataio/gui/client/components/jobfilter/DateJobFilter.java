@@ -42,9 +42,10 @@ import java.util.Date;
  * This is the Date Job Filter
  */
 public class DateJobFilter extends BaseJobFilter {
-    private final static Integer TWO_DAYS_IN_MILLISECONDS = 2*24*60*60*1000;
+    private final static Integer ONE_DAY_IN_MILLISECONDS = 24*60*60*1000;
     private final static String DEFAULT_TO_DATE = "";
     private final static String DEFAULT_EMPTY_TIME = "00:00:00";
+    private static final String INTEGER_MATCHER = "^\\d+$";
 
     interface DateJobFilterUiBinder extends UiBinder<HTMLPanel, DateJobFilter> {
     }
@@ -71,7 +72,7 @@ public class DateJobFilter extends BaseJobFilter {
     DateJobFilter(Texts texts, Resources resources, String parameter) {
         super(texts, resources);
         initWidget(ourUiBinder.createAndBindUi(this));
-        fromDate.setValue(defaultFromDate());
+        fromDate.setValue(daysFromNow(2));
         toDate.setValue(DEFAULT_TO_DATE);
         setParameter(parameter);
     }
@@ -127,16 +128,21 @@ public class DateJobFilter extends BaseJobFilter {
 
     /**
      * Sets the selection according to the value, setup in the parameter attribute<br>
-     * The value is one or two dates, separated by commas
+     * The value is one or two date parameters, separated by commas<br>
+     * Each date parameter can be entered in two different formats:<br>
+     *     <ul>
+     *          <li>An integer: Giving a number of days to subtract from the current date</li>
+     *          <li>A date format in the format: 'yyyy-MM-dd HH:mm:ss'</li>
+     *     </ul>
      * @param filterParameter The filter parameters to be used by this job filter
      */
     @Override
     public void setParameter(String filterParameter) {
         if (!filterParameter.isEmpty()) {
             String[] data = filterParameter.split(",", 2);
-            fromDate.setValue(data[0], true);
+            fromDate.setValue(evaluateDate(data[0]), true);
             if (data.length == 2) {
-                toDate.setValue(data[1], true);
+                toDate.setValue(evaluateDate(data[1]), true);
             }
         }
     }
@@ -169,11 +175,27 @@ public class DateJobFilter extends BaseJobFilter {
 
     /**
      * Calculates the default "from" date to be used. Should be set to the current day minus two days, at 00:00:00
+     * @param days Gives the number of days to subtract from the current date
      * @return The default From date
      */
-    private String defaultFromDate() {
-        String date = Format.formatLongDate(new Date(System.currentTimeMillis()-TWO_DAYS_IN_MILLISECONDS));
+    private String daysFromNow(int days) {
+        String date = Format.formatLongDate(new Date(System.currentTimeMillis()- days * ONE_DAY_IN_MILLISECONDS));
         return date.substring(0, date.length() - DEFAULT_EMPTY_TIME.length()) + DEFAULT_EMPTY_TIME;
+    }
+
+    /**
+     * Evaluates a string, and returns a proper date value in the form 'yyyy-MM-dd HH:mm:ss'
+     * @param date The input string to evaluate
+     * @return The resulting date
+     */
+    private String evaluateDate(String date) {
+        if (date == null || date.isEmpty()) {
+            return date;
+        }
+        if (date.matches(INTEGER_MATCHER)) {  // Then this is an integer, giving the number of days to subtract from the current date
+            return daysFromNow(Integer.valueOf(date));
+        }
+        return date;  // The default case is the format 'yyyy-MM-dd HH:mm:ss'
     }
 
 }

@@ -229,20 +229,34 @@ public class DateJobFilterTest {
         // setParameter is called upon initialization
 
         // Verify test
-        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
         verify(jobFilter.toDate).setValue("");  // Upon initialization
         verifyNoMoreInteractions(jobFilter.fromDate);
         verifyNoMoreInteractions(jobFilter.toDate);
     }
 
     @Test
-    public void setParameterData_fromDateParameter_fromDateSet() {
+    public void setParameterData_fromDateParameterAsDays_fromDateSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "20");
+        // setParameter is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue(calculateDate(20), true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_fromDateParameterAsDate_fromDateSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00");
         // setParameter is called upon initialization
 
         // Verify test
-        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
         verify(jobFilter.toDate).setValue("");  // Upon initialization
         verify(jobFilter.fromDate).setValue("2016-10-16 22:11:00", true);
         verifyNoMoreInteractions(jobFilter.fromDate);
@@ -250,13 +264,28 @@ public class DateJobFilterTest {
     }
 
     @Test
-    public void setParameterData_twoDatesParameter_twoDatesSet() {
+    public void setParameterData_twoDatesParameterAsDays_twoDatesSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "32,1");
+        // setParameter is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue(calculateDate(32), true);
+        verify(jobFilter.toDate).setValue(calculateDate(1), true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_twoDatesParameterAsDates_twoDatesSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,2016-10-16 22:11:01");
         // setParameter is called upon initialization
 
         // Verify test
-        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
         verify(jobFilter.toDate).setValue("");  // Upon initialization
         verify(jobFilter.fromDate).setValue("2016-10-16 22:11:00", true);
         verify(jobFilter.toDate).setValue("2016-10-16 22:11:01", true);
@@ -265,13 +294,43 @@ public class DateJobFilterTest {
     }
 
     @Test
-    public void setParameterData_toDateParameter_toDateSet() {
+    public void setParameterData_twoDatesParameterAsDateAndDays_twoDatesSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, "2016-10-16 22:11:00,123");
+        // setParameter is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue("2016-10-16 22:11:00", true);
+        verify(jobFilter.toDate).setValue(calculateDate(123), true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_toDateParameterAsDays_toDateSet() {
+        // Activate Subject Under Test
+        DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",345");
+        // setParameter is called upon initialization
+
+        // Verify test
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
+        verify(jobFilter.toDate).setValue("");  // Upon initialization
+        verify(jobFilter.fromDate).setValue("", true);
+        verify(jobFilter.toDate).setValue(calculateDate(345), true);
+        verifyNoMoreInteractions(jobFilter.fromDate);
+        verifyNoMoreInteractions(jobFilter.toDate);
+    }
+
+    @Test
+    public void setParameterData_toDateParameterAsDate_toDateSet() {
         // Activate Subject Under Test
         DateJobFilter jobFilter = new DateJobFilter(mockedTexts, mockedResources, ",2016-10-16 22:11:02");
         // setParameter is called upon initialization
 
         // Verify test
-        verify(jobFilter.fromDate).setValue(defaultFromDate());  // Upon initialization
+        verify(jobFilter.fromDate).setValue(calculateDate(2));  // Upon initialization
         verify(jobFilter.toDate).setValue("");  // Upon initialization
         verify(jobFilter.fromDate).setValue("", true);
         verify(jobFilter.toDate).setValue("2016-10-16 22:11:02", true);
@@ -357,10 +416,10 @@ public class DateJobFilterTest {
     /*
      * Private methods
      */
-    private String defaultFromDate() {
-        final Integer TWO_DAYS_IN_MILLISECONDS = 2*24*60*60*1000;
+    private String calculateDate(int days) {
+        final Integer ONE_DAY_IN_MILLISECONDS = 24*60*60*1000;
         final String DEFAULT_EMPTY_TIME = "00:00:00";
-        String date = Format.formatLongDate(new Date(System.currentTimeMillis()-TWO_DAYS_IN_MILLISECONDS));
+        String date = Format.formatLongDate(new Date(System.currentTimeMillis() - days*ONE_DAY_IN_MILLISECONDS));
         return date.substring(0, date.length() - DEFAULT_EMPTY_TIME.length()) + DEFAULT_EMPTY_TIME;
     }
 

@@ -141,7 +141,10 @@ public class HarvestOperation {
                 .withId(config.getContent().getLastBatchHarvested())
                 .withDataset(dataset.getId());
 
-        return tickleRepo.getNextBatch(lastBatchHarvested).orElse(null);
+        final Optional<Batch> nextBatch = tickleRepo.getNextBatch(lastBatchHarvested);
+        LOGGER.debug("Searching for next batch with {} returned {}", lastBatchHarvested, nextBatch.isPresent());
+
+        return nextBatch.orElse(null);
     }
 
     private AddiRecord createAddiRecord(AddiMetaData addiMetaData, byte[] content) throws HarvesterException {

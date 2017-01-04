@@ -142,8 +142,7 @@ public class HarvestOperation {
                 .withDataset(dataset.getId());
 
         final Optional<Batch> nextBatch = tickleRepo.getNextBatch(lastBatchHarvested);
-        LOGGER.debug("Searching for next batch with {} returned {}", lastBatchHarvested, nextBatch.isPresent());
-
+        LOGGER.debug("Searching for next batch with {} returned {}", lastBatchHarvested, nextBatch.orElse(null));
         return nextBatch.orElse(null);
     }
 

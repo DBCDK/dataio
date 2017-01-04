@@ -33,21 +33,21 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 public class AddiDiffGeneratorTest {
-    private static final String XML_METADATA =
+    public static final String XML_METADATA =
             "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
               "<es:info format=\"currentFormat\" language=\"dan\" submitter=\"870970\"/>" +
             "</es:referencedata>";
-    private static final String XML_METADATA_NEXT =
+    public static final String XML_METADATA_NEXT =
             "<es:referencedata xmlns:es=\"http://oss.dbc.dk/ns/es\">" +
               "<es:info format=\"nextFormat\" language=\"dan\" submitter=\"870970\"/>" +
             "</es:referencedata>";
-    private static final String XML_CONTENT =
+    public static final String XML_CONTENT =
             "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
               "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                 "<marcx:subfield code=\"a\">currentTitle</marcx:subfield>" +
               "</marcx:datafield>" +
             "</marcx:record>";
-    private static final String XML_CONTENT_NEXT =
+    public static final String XML_CONTENT_NEXT =
             "<marcx:record xmlns:marcx=\"info:lc/xmlns/marcxchange-v1\" format=\"danMARC2\">" +
               "<marcx:datafield ind1=\"0\" ind2=\"0\" tag=\"245\">" +
                 "<marcx:subfield code=\"a\">nextTitle</marcx:subfield>" +
@@ -149,7 +149,7 @@ public class AddiDiffGeneratorTest {
         assertThat(addiDiffGenerator.getDiff(current, next), is(EMPTY));
     }
 
-    private AddiRecord getAddiRecord(String metadata, String content) {
+    public static AddiRecord getAddiRecord(String metadata, String content) {
         return new AddiRecord(
                 metadata.trim().getBytes(StandardCharsets.UTF_8),
                 content.trim().getBytes(StandardCharsets.UTF_8));

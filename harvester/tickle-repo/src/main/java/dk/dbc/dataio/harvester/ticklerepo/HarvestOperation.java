@@ -104,6 +104,10 @@ public class HarvestOperation {
 
         int recordsHarvested = 0;
         if (batchToHarvest != null) {
+            while (configUpdateResubmitted(config, batchToHarvest)) {
+                batchToHarvest = getNextBatch(config);
+            }
+
             try (HarvesterJobBuilder jobBuilder = new HarvesterJobBuilder(binaryFileStore, fileStoreServiceConnector, jobStoreServiceConnector,
                     JobSpecificationTemplate.create(config, dataset, batchToHarvest))) {
                 for (Record record : tickleRepo.getRecordsInBatch(batchToHarvest)) {
@@ -149,7 +153,7 @@ public class HarvestOperation {
     }
 
     private boolean configUpdateResubmitted(TickleRepoHarvesterConfig config, Batch batch) throws HarvesterException {
-        if (harvesterTokenExistsInJobStore(config.getHarvesterToken(batch.getId()))) {
+        if (batch != null && harvesterTokenExistsInJobStore(config.getHarvesterToken(batch.getId()))) {
             LOGGER.info("Re-submitting config update for batch {}", batch.getId());
             ConfigUpdater.create(flowStoreServiceConnector).updateHarvesterConfig(config, batch);
             return true;

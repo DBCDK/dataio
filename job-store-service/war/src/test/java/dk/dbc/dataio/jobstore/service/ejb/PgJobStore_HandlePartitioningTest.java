@@ -168,7 +168,7 @@ public class PgJobStore_HandlePartitioningTest extends PgJobStoreBaseTest {
     public void partition_noRecords_returnsJobInfoSnapshot() throws JobStoreException, FileStoreServiceConnectorException {
         // Setup preconditions
         final byte[] records = "<records></records>".getBytes(StandardCharsets.UTF_8);
-        final InputStream dataFileInputStream = new ByteArrayInputStream("<records></records>".getBytes(StandardCharsets.UTF_8));
+        final InputStream dataFileInputStream = new ByteArrayInputStream(records);
         final PartitioningParam param = partitioningParamBuilder.setDataPartitioner(DefaultXmlDataPartitioner.newInstance(dataFileInputStream, StandardCharsets.UTF_8.name())).build();
 
         when(mockedFileStoreServiceConnector.getByteSize(anyString())).thenReturn(Long.valueOf(records.length).longValue());

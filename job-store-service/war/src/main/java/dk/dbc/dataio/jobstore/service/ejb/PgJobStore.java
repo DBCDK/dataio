@@ -425,11 +425,9 @@ public class PgJobStore {
 
     private void completeZeroChunkJob(JobEntity jobEntity) {
         StateChange processingCompleted = new StateChange().setPhase(State.Phase.PROCESSING).setEndDate(new Date());
-        jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
         jobStoreRepository.updateJobEntityState(jobEntity, processingCompleted);
 
         StateChange deliveringCompleted = new StateChange().setPhase(State.Phase.DELIVERING).setEndDate(new Date());
-        jobEntity = jobStoreRepository.getExclusiveAccessFor(JobEntity.class, jobEntity.getId());
         jobStoreRepository.updateJobEntityState(jobEntity, deliveringCompleted);
 
         jobEntity.setTimeOfCompletion(new Timestamp(System.currentTimeMillis()));

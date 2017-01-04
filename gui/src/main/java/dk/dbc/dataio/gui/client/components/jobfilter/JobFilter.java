@@ -40,6 +40,7 @@ import dk.dbc.dataio.jobstore.types.criteria.JobListCriteria;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,6 +72,7 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     final JobFilterList availableJobFilters;
     ChangeHandler changeHandler = null;
     AbstractBasePlace place = null;
+    String placeName = "";
     private boolean filterMenuNotYetInitialized = true;
 
     @UiField FlowPanel jobFilterPanel;
@@ -103,14 +105,29 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      */
     @Override
     public void onLoad() {
+        onLoad(place.getClass().getSimpleName());
+    }
+
+    /**
+     * This method is the body of the empty-parameter onLoad method<br>
+     * the getClass() method of an object cannot be mocked - therefore this method
+     * allows unit test of the onLoad method by injecting the place name
+     *
+     * @param placeName The place name used to select the correct filter list
+     */
+    public void onLoad(String placeName) {
+        this.placeName = placeName;
         if (filterMenuNotYetInitialized) {
             filterMenuNotYetInitialized = false;
-            availableJobFilters.getJobFilterList().forEach(filter -> {
-                filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
-                if (place.getParameters().isEmpty() && filter.activeOnStartup) {  // Only use activeOnStartup if no parameters are given in the URL
-                    filter.jobFilter.getAddCommand(this).execute();
-                }
-            });
+            List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
+            if (filters != null) {
+                filters.forEach(filter -> {
+                    filterMenu.addItem(filter.jobFilter.getName(), filter.jobFilter.getAddCommand(this));
+                    if (place.getParameters().isEmpty() && filter.activeOnStartup) {  // Only use activeOnStartup if no parameters are given in the URL
+                        filter.jobFilter.getAddCommand(this).execute();
+                    }
+                });
+            }
         }
         Presenter presenter = (Presenter) place.presenter;
         if (presenter != null) {
@@ -209,7 +226,10 @@ public class JobFilter extends Composite implements HasChangeHandlers {
     public Map<String, String> setupFilterParameters(Map<String, String> parameters) {
         Map<String, String> recognizedParameters = new LinkedHashMap<>();
         if (!parameters.isEmpty()) {
-            availableJobFilters.getJobFilterList().forEach(filter -> filter.jobFilter.removeJobFilter(false));
+            List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
+            if (filters != null) {
+                filters.forEach(filter -> filter.jobFilter.removeJobFilter(false));
+            }
             new LinkedHashMap<>(parameters).forEach((filterName, filterParameter) -> {  // Use a clone of parameters to avoid ConcurrentModificationException
                 String foundFilterName = JobFilter.this.setupFilterParameterFor(filterName, filterParameter);
                 if (foundFilterName != null) {
@@ -244,7 +264,8 @@ public class JobFilter extends Composite implements HasChangeHandlers {
      * @return If a match is found, then the filter name of that filter is returned, if no math is found - null is returned
      */
     private String setupFilterParameterFor(String filterName, String filterParameter) {
-        for (JobFilterList.JobFilterItem filter: availableJobFilters.getJobFilterList()) {
+        List<JobFilterList.JobFilterItem> filters = availableJobFilters.getJobFilters(placeName);
+        for (JobFilterList.JobFilterItem filter: filters) {
             if (filter.jobFilter.getClass().getSimpleName().toLowerCase().equals(filterName.toLowerCase())) {
                 filter.jobFilter.setParameter(filterParameter);
                 filter.jobFilter.addJobFilter();

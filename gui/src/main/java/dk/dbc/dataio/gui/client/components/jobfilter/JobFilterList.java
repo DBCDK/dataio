@@ -21,15 +21,21 @@
 
 package dk.dbc.dataio.gui.client.components.jobfilter;
 
+import dk.dbc.dataio.gui.client.pages.job.show.ShowAcctestJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowJobsPlace;
+import dk.dbc.dataio.gui.client.pages.job.show.ShowTestJobsPlace;
+
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class is the configuration of which filters constitutes the list of Job Filters
  * in the Jobs List
  */
 final class JobFilterList {
-    private List<JobFilterItem> jobFilterList;
+    private Map<String, List<JobFilterItem>> jobFilters = new HashMap<>();
 
     class JobFilterItem {
         BaseJobFilter jobFilter;
@@ -47,7 +53,7 @@ final class JobFilterList {
      * Add new Job Filters to the end of the list
      */
     JobFilterList() {
-        jobFilterList = Arrays.asList(
+        jobFilters.put(ShowJobsPlace.class.getSimpleName(), Arrays.asList(
                 new JobFilterItem(new SinkJobFilter(""), false),
                 new JobFilterItem(new SubmitterJobFilter(""), false),
                 new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
@@ -55,18 +61,37 @@ final class JobFilterList {
                 new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
                 new JobFilterItem(new ActiveJobFilter(""), false)
                 // Add new Job Filters here...
-        );
+        ));
+        jobFilters.put(ShowTestJobsPlace.class.getSimpleName(), Arrays.asList(
+                new JobFilterItem(new SinkJobFilter(""), false),
+                new JobFilterItem(new SubmitterJobFilter(""), false),
+                new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
+                new JobFilterItem(new DateJobFilter(""), false),
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
+                new JobFilterItem(new ActiveJobFilter(""), false)
+                // Add new Job Filters here...
+        ));
+        jobFilters.put(ShowAcctestJobsPlace.class.getSimpleName(), Arrays.asList(
+                new JobFilterItem(new SinkJobFilter(""), false),
+                new JobFilterItem(new SubmitterJobFilter(""), false),
+                new JobFilterItem(new SuppressSubmitterJobFilter(""), false),
+                new JobFilterItem(new DateJobFilter(""), false),
+                new JobFilterItem(new ErrorJobFilter("processing,delivering,jobcreation"), false),
+                new JobFilterItem(new ActiveJobFilter(""), false)
+                // Add new Job Filters here...
+        ));
     }
 
-    JobFilterList(List<JobFilterItem> jobFilterList) {
-        this.jobFilterList = jobFilterList;
+    JobFilterList(Map<String, List<JobFilterItem>> jobFilters) {
+        this.jobFilters = jobFilters;
     }
 
     /**
      * Getter for the Job Filter List
+     * @param place The Place Class for the jobs list in question
      * @return The list of Job Filters
      */
-    List<JobFilterItem> getJobFilterList() {
-        return jobFilterList;
+    List<JobFilterItem> getJobFilters(String place) {
+        return jobFilters.get(place);
     }
 }
